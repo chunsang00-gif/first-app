@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>오늘 뭐하지?</title>
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #f5f5f5;
+      font-family: Arial, sans-serif;
+    }
+    .card {
+      width: min(90%, 420px);
+      background: white;
+      padding: 32px;
+      border-radius: 18px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.08);
+      text-align: center;
+    }
+    h1 { margin-top: 0; }
+    #result {
+      min-height: 48px;
+      margin: 24px 0;
+      font-size: 22px;
+      font-weight: 700;
+    }
+    button {
+      border: 0;
+      padding: 14px 22px;
+      border-radius: 12px;
+      font-size: 17px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>오늘 뭐하지?</h1>
+    <p>버튼을 누르면 오늘 할 일을 하나 골라줍니다.</p>
+    <div id="result">아직 선택 안 됨</div>
+    <button onclick="pickTask()">추천받기</button>
+  </div>
+
+  <script>
+    const tasks = [
+      '산책 20분 하기',
+      '책상 정리 10분 하기',
+      '새로운 아이디어 1개 적기',
+      '오늘 할 일 3개 정리하기',
+      '관심 있는 상품 1개 조사하기'
+    ];
+
+    function pickTask() {
+      const task = tasks[Math.floor(Math.random() * tasks.length)];
+      document.getElementById('result').textContent = task;
+    }
+  </script>
+</body>
+</html>
