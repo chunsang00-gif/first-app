@@ -1,97 +1,106 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AI 실행 대시보드</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>한칸 - 7일 실행관리</title>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#0f1115;color:#f7f7f7;font-family:Arial,'Noto Sans KR',sans-serif}button,input{font:inherit}.wrap{max-width:1100px;margin:auto;padding:28px}.top{display:flex;justify-content:space-between;gap:20px;align-items:flex-end;margin-bottom:24px}.top h1{font-size:34px;margin:0 0 8px}.muted{color:#9ca3af}.badge{background:#1f2937;padding:8px 12px;border-radius:999px;font-size:13px}.grid{display:grid;grid-template-columns:1.15fr .85fr;gap:18px}.card{background:#171a21;border:1px solid #2a2f3a;border-radius:20px;padding:22px;box-shadow:0 14px 40px rgba(0,0,0,.18)}.card h2{margin:0 0 16px;font-size:20px}.inputrow{display:flex;gap:10px}.inputrow input{flex:1;background:#0f1115;border:1px solid #343a46;color:white;border-radius:12px;padding:14px}.primary{background:#fff;color:#111;border:0;border-radius:12px;padding:14px 18px;font-weight:700;cursor:pointer}.secondary{background:#242936;color:white;border:1px solid #3a4251;border-radius:10px;padding:9px 12px;cursor:pointer}.idea{margin-top:16px;padding:16px;border-radius:14px;background:#11141a;border:1px solid #242a35}.idea-title{font-size:18px;font-weight:700}.tasks{margin-top:14px;display:grid;gap:9px}.task{display:flex;align-items:center;gap:10px;background:#11141a;border:1px solid #262c36;border-radius:12px;padding:11px}.task input{width:18px;height:18px}.task.done span{text-decoration:line-through;color:#777}.progress{height:10px;background:#2a2f38;border-radius:999px;overflow:hidden;margin-top:12px}.bar{height:100%;width:0;background:#fff;transition:.25s}.score{font-size:42px;font-weight:800}.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.kpi{background:#11141a;border:1px solid #262c36;border-radius:14px;padding:14px}.kpi b{display:block;font-size:24px;margin-top:4px}.quick{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.quick button{min-height:76px;text-align:left}.history{display:grid;gap:9px;max-height:220px;overflow:auto}.hist{padding:10px 12px;background:#11141a;border-radius:10px;border:1px solid #262c36;font-size:14px}.footer{margin-top:18px;color:#6b7280;font-size:12px;text-align:center}@media(max-width:800px){.grid{grid-template-columns:1fr}.top{align-items:flex-start;flex-direction:column}.kpis{grid-template-columns:1fr 1fr 1fr}.inputrow{flex-direction:column}}
+:root{--bg:#f6f7f9;--panel:#fff;--text:#17191d;--muted:#7b818c;--line:#e7e9ee;--dark:#17191d;--soft:#f0f2f5;--good:#159d68;--warn:#d88916;--shadow:0 12px 35px rgba(20,24,31,.07)}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,Pretendard,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}button,input,textarea{font:inherit}.app{display:grid;grid-template-columns:220px 1fr;min-height:100vh}.side{background:#14161a;color:white;padding:24px 18px;position:sticky;top:0;height:100vh}.brand{font-size:25px;font-weight:900;letter-spacing:-1px;margin-bottom:4px}.tagline{font-size:12px;color:#9197a3;margin-bottom:34px}.nav{display:grid;gap:8px}.nav button{border:0;background:transparent;color:#aeb4bf;text-align:left;padding:12px 13px;border-radius:12px;cursor:pointer;font-weight:700}.nav button.active,.nav button:hover{background:#25282e;color:white}.side-bottom{position:absolute;left:18px;right:18px;bottom:20px;padding:14px;border:1px solid #2a2e35;border-radius:14px;color:#aeb4bf;font-size:12px}.main{padding:30px;max-width:1250px;width:100%;margin:auto}.top{display:flex;justify-content:space-between;gap:20px;align-items:center;margin-bottom:24px}.hello h1{margin:0;font-size:30px;letter-spacing:-1.2px}.hello p{margin:7px 0 0;color:var(--muted)}.date{padding:10px 14px;background:white;border:1px solid var(--line);border-radius:999px;font-size:13px;color:#555}.hero{display:grid;grid-template-columns:1.3fr .7fr;gap:18px;margin-bottom:18px}.card{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:22px;box-shadow:var(--shadow)}.focus{padding:26px}.eyebrow{font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}.focus h2{font-size:26px;margin:8px 0 6px;letter-spacing:-1px}.focus p{margin:0;color:var(--muted)}.quickadd{display:flex;gap:10px;margin-top:20px}.quickadd input{flex:1;border:1px solid var(--line);background:#fafbfc;padding:14px 15px;border-radius:12px;outline:none}.quickadd input:focus{border-color:#b7bcc6;background:white}.primary{border:0;background:var(--dark);color:#fff;border-radius:12px;padding:13px 18px;font-weight:800;cursor:pointer}.ghost{border:1px solid var(--line);background:white;border-radius:11px;padding:10px 13px;font-weight:700;cursor:pointer;color:#525761}.weekcard{display:flex;flex-direction:column;justify-content:space-between}.weekscore{font-size:48px;font-weight:900;letter-spacing:-2px;margin-top:10px}.progress{height:10px;background:#edf0f3;border-radius:999px;overflow:hidden;margin-top:14px}.bar{height:100%;background:#17191d;width:0;transition:.25s}.minirow{display:flex;justify-content:space-between;margin-top:10px;color:var(--muted);font-size:13px}.section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}.section-head h3{margin:0;font-size:18px}.today-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:18px}.tasks{display:grid;gap:10px}.task{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;border:1px solid var(--line);border-radius:14px;padding:13px 14px;transition:.15s;background:white}.task:hover{transform:translateY(-1px);box-shadow:0 8px 18px rgba(20,24,31,.05)}.check{width:23px;height:23px;border-radius:8px;border:2px solid #cfd3da;display:grid;place-items:center;cursor:pointer;font-size:13px}.task.done .check{background:#17191d;border-color:#17191d;color:white}.task.done .task-title{text-decoration:line-through;color:#9aa0aa}.task-title{font-weight:800}.task-meta{font-size:12px;color:var(--muted);margin-top:3px}.pill{font-size:11px;padding:6px 8px;border-radius:999px;background:var(--soft);color:#686e78}.empty{border:1px dashed #cfd4dc;border-radius:15px;padding:28px;text-align:center;color:var(--muted)}.starter{display:grid;gap:10px}.starter button{border:1px solid var(--line);background:#fff;padding:14px;border-radius:14px;text-align:left;cursor:pointer}.starter button:hover{background:#f8f9fb}.starter b{display:block;margin-bottom:3px}.starter span{font-size:12px;color:var(--muted)}.view{display:none}.view.active{display:block}.week-project{display:grid;grid-template-columns:1fr 300px;gap:18px}.project-card h2{margin:8px 0 5px}.days{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-top:18px}.day{padding:12px 8px;border-radius:12px;background:#f4f5f7;text-align:center;font-size:12px;color:var(--muted)}.day b{display:block;font-size:18px;color:var(--text);margin-top:4px}.day.active{background:#17191d;color:#bcc1ca}.day.active b{color:white}.project-list{display:grid;gap:10px;margin-top:18px}.project-step{display:flex;gap:10px;align-items:center;padding:13px;border-radius:13px;border:1px solid var(--line)}.month-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.stat{background:white;border:1px solid var(--line);border-radius:17px;padding:18px}.stat .num{font-size:30px;font-weight:900;margin-top:8px}.bars{display:grid;gap:11px;margin-top:18px}.monthbar{display:grid;grid-template-columns:70px 1fr 45px;gap:10px;align-items:center;font-size:13px}.track{height:9px;background:#edf0f3;border-radius:999px;overflow:hidden}.fill{height:100%;background:#17191d;border-radius:999px}.year-months{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-top:18px}.ym{border:1px solid var(--line);border-radius:14px;padding:14px;background:white}.ym b{font-size:20px;display:block;margin-top:6px}.modal{position:fixed;inset:0;background:rgba(15,17,21,.5);display:none;align-items:center;justify-content:center;padding:20px;z-index:10}.modal.show{display:flex}.modalbox{background:white;border-radius:20px;padding:24px;width:min(520px,100%);box-shadow:0 25px 80px rgba(0,0,0,.2)}.modalbox h3{margin-top:0}.field{display:grid;gap:6px;margin:13px 0}.field label{font-size:12px;color:var(--muted);font-weight:700}.field input,.field textarea{border:1px solid var(--line);border-radius:11px;padding:12px}.actions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}.toast{position:fixed;right:24px;bottom:24px;background:#17191d;color:white;padding:13px 16px;border-radius:12px;opacity:0;transform:translateY(8px);transition:.2s;pointer-events:none}.toast.show{opacity:1;transform:none}.celebrate{font-size:12px;color:var(--good);font-weight:800;margin-top:8px;min-height:18px}@media(max-width:950px){.app{grid-template-columns:1fr}.side{height:auto;position:relative;padding:16px}.brand{margin:0}.tagline,.side-bottom{display:none}.nav{grid-template-columns:repeat(5,1fr);margin-top:14px;overflow:auto}.nav button{text-align:center;padding:10px 6px;font-size:12px}.main{padding:18px}.hero,.today-grid,.week-project{grid-template-columns:1fr}.month-grid{grid-template-columns:1fr 1fr}.days{grid-template-columns:repeat(7,minmax(55px,1fr));overflow:auto}.year-months{grid-template-columns:repeat(3,1fr)}}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <div class="top">
-    <div><div class="muted">개인 실행 시스템</div><h1>AI 실행 대시보드</h1><div class="muted">생각만 하지 말고, 바로 다음 행동으로 바꿉니다.</div></div>
-    <div class="badge" id="today"></div>
+<div class="app">
+<aside class="side">
+  <div class="brand">한칸</div><div class="tagline">딱 한 칸만 앞으로.</div>
+  <div class="nav">
+    <button class="active" data-view="today">오늘</button>
+    <button data-view="week">이번 주</button>
+    <button data-view="month">월간</button>
+    <button data-view="year">연간</button>
+    <button data-view="archive">보관함</button>
   </div>
-
-  <div class="grid">
-    <section class="card">
-      <h2>1. 아이디어 하나만 적기</h2>
-      <div class="inputrow">
-        <input id="ideaInput" placeholder="예: 스마트스토어 작업복 상품 테스트">
-        <button class="primary" onclick="analyzeIdea()">실행계획 만들기</button>
-      </div>
-      <div id="planArea" class="idea" style="display:none">
-        <div class="muted">현재 프로젝트</div>
-        <div class="idea-title" id="ideaTitle"></div>
-        <div class="tasks" id="tasks"></div>
-        <div class="progress"><div class="bar" id="bar"></div></div>
-        <div class="muted" style="margin-top:8px" id="progressText"></div>
-      </div>
-    </section>
-
-    <section class="card">
-      <h2>오늘의 실행 점수</h2>
-      <div class="score"><span id="score">0</span>%</div>
-      <div class="muted">체크한 일 기준 자동 계산</div>
-      <div class="kpis" style="margin-top:18px">
-        <div class="kpi"><span class="muted">전체</span><b id="totalCount">0</b></div>
-        <div class="kpi"><span class="muted">완료</span><b id="doneCount">0</b></div>
-        <div class="kpi"><span class="muted">남음</span><b id="leftCount">0</b></div>
-      </div>
-    </section>
-
-    <section class="card">
-      <h2>2. 빠른 시작</h2>
-      <div class="quick">
-        <button class="secondary" onclick="preset('취업 준비')">💼 취업 준비<br><span class="muted">지원·면접·연봉</span></button>
-        <button class="secondary" onclick="preset('스마트스토어 상품 테스트')">🛒 스마트스토어<br><span class="muted">상품조사·등록·검증</span></button>
-        <button class="secondary" onclick="preset('앱 아이디어 만들기')">📱 앱 만들기<br><span class="muted">기획·화면·테스트</span></button>
-        <button class="secondary" onclick="preset('개인 수익화 프로젝트')">💰 수익화<br><span class="muted">아이디어·실행·검증</span></button>
-      </div>
-    </section>
-
-    <section class="card">
-      <h2>최근 프로젝트</h2>
-      <div id="history" class="history"><div class="muted">아직 기록이 없습니다.</div></div>
-    </section>
+  <div class="side-bottom">계획보다 실행. 하루에 3개만 끝내도 충분합니다.</div>
+</aside>
+<main class="main">
+<section id="today" class="view active">
+  <div class="top"><div class="hello"><h1>오늘은 3개만 끝내세요.</h1><p>많이 적지 않습니다. 가장 중요한 것만 보여줍니다.</p></div><div class="date" id="date"></div></div>
+  <div class="hero">
+    <div class="card focus">
+      <div class="eyebrow">10초 추가</div><h2>머릿속에 있는 걸 그냥 적으세요.</h2><p>정리하지 않아도 됩니다. 적는 순간 오늘 할 일로 들어갑니다.</p>
+      <div class="quickadd"><input id="quickInput" placeholder="예: 상품 후보 3개만 찾아보기" /><button class="primary" onclick="quickAdd()">추가</button></div>
+      <div class="celebrate" id="message"></div>
+    </div>
+    <div class="card weekcard"><div><div class="eyebrow">이번 주</div><div class="weekscore"><span id="weekScore">0</span>%</div><div class="progress"><div class="bar" id="weekBar"></div></div></div><div class="minirow"><span id="weekDone">0개 완료</span><span id="weekLeft">0개 남음</span></div></div>
   </div>
-  <div class="footer">입력한 내용과 체크 상태는 이 브라우저에 자동 저장됩니다.</div>
+  <div class="today-grid">
+    <div class="card"><div class="section-head"><h3>오늘의 3개</h3><button class="ghost" onclick="openTaskModal()">+ 직접 추가</button></div><div id="todayTasks" class="tasks"></div></div>
+    <div class="card"><div class="section-head"><h3>생각하기 싫을 때</h3><span class="pill">한 번 클릭</span></div><div class="starter">
+      <button onclick="startPreset('정리')"><b>10분 정리</b><span>눈에 보이는 것 하나만 정리</span></button>
+      <button onclick="startPreset('진행')"><b>멈춘 일 15분만</b><span>완료 말고 다시 시작만 하기</span></button>
+      <button onclick="startPreset('탐색')"><b>궁금한 것 하나 조사</b><span>결론 내지 말고 자료 3개만 보기</span></button>
+    </div></div>
+  </div>
+</section>
+
+<section id="week" class="view">
+  <div class="top"><div class="hello"><h1>7일 프로젝트</h1><p>큰 목표를 1주짜리로 줄여야 시작하기 쉬워집니다.</p></div><button class="primary" onclick="openProjectModal()">새 7일 프로젝트</button></div>
+  <div class="week-project">
+    <div class="card project-card"><div class="eyebrow">현재 프로젝트</div><h2 id="projectTitle">아직 프로젝트가 없습니다</h2><p id="projectGoal" class="muted">오른쪽 버튼으로 1주 프로젝트를 하나 만들어보세요.</p><div class="days" id="days"></div><div class="project-list" id="projectSteps"></div></div>
+    <div class="card"><div class="eyebrow">프로젝트 원칙</div><h3>끝내기보다 이어가기</h3><p class="muted">하루를 놓쳐도 실패가 아닙니다. 남은 일은 자동으로 계속 보입니다.</p><div style="margin-top:20px" class="progress"><div class="bar" id="projectBar"></div></div><div class="minirow"><span id="projectPct">0%</span><span>7일 단위</span></div></div>
+  </div>
+</section>
+
+<section id="month" class="view">
+  <div class="top"><div class="hello"><h1>월간 흐름</h1><p>기록하려고 노력하지 않아도 완료한 일이 자동으로 쌓입니다.</p></div></div>
+  <div class="month-grid"><div class="stat"><span class="muted">이번 달 완료</span><div class="num" id="mDone">0</div></div><div class="stat"><span class="muted">완료율</span><div class="num" id="mRate">0%</div></div><div class="stat"><span class="muted">프로젝트</span><div class="num" id="mProjects">0</div></div><div class="stat"><span class="muted">연속 실행</span><div class="num" id="streak">0일</div></div></div>
+  <div class="card" style="margin-top:18px"><div class="section-head"><h3>최근 4주</h3><span class="muted">자동 집계</span></div><div class="bars" id="monthBars"></div></div>
+</section>
+
+<section id="year" class="view">
+  <div class="top"><div class="hello"><h1>올해 한눈에</h1><p>완벽한 하루보다, 계속 움직인 달이 몇 번이었는지 봅니다.</p></div></div>
+  <div class="card"><div class="section-head"><h3 id="yearTitle">연간 기록</h3><span class="pill" id="yearTotal">완료 0개</span></div><div class="year-months" id="yearMonths"></div></div>
+</section>
+
+<section id="archive" class="view">
+  <div class="top"><div class="hello"><h1>보관함</h1><p>끝난 일은 여기로 빠지고, 오늘 화면은 항상 가볍게 유지됩니다.</p></div></div>
+  <div class="card"><div id="archiveList" class="tasks"></div></div>
+</section>
+</main>
 </div>
 
+<div class="modal" id="taskModal"><div class="modalbox"><h3>할 일 추가</h3><div class="field"><label>할 일</label><input id="taskName" placeholder="작게 적을수록 실행하기 쉽습니다" /></div><div class="field"><label>분야</label><input id="taskTag" placeholder="예: 개인, 공부, 부업" /></div><div class="actions"><button class="ghost" onclick="closeModal('taskModal')">취소</button><button class="primary" onclick="addTaskFromModal()">추가</button></div></div></div>
+<div class="modal" id="projectModal"><div class="modalbox"><h3>새 7일 프로젝트</h3><div class="field"><label>이번 주에 끝내고 싶은 것</label><input id="projectName" placeholder="예: 스마트스토어 상품 1개 등록" /></div><div class="field"><label>왜 하려는지 한 줄</label><input id="projectWhy" placeholder="예: 실제 판매 테스트를 시작하려고" /></div><div class="field"><label>이번 주 할 일 5개 (줄바꿈)</label><textarea id="projectTasks" rows="6" placeholder="상품 후보 10개 찾기&#10;상위 3개 비교&#10;도매가 확인&#10;상세페이지 초안&#10;상품 1개 등록"></textarea></div><div class="actions"><button class="ghost" onclick="closeModal('projectModal')">취소</button><button class="primary" onclick="createProject()">프로젝트 시작</button></div></div></div>
+<div class="toast" id="toast"></div>
 <script>
-const templates={
- '취업 준비':['공고 3개 추려보기','내 경력과 맞는 공고 1개 선택','이력서 핵심 문장 3개 수정','지원하기','면접 예상질문 5개 준비'],
- '스마트스토어 상품 테스트':['후보 상품 10개 수집','가격·리뷰·경쟁강도 비교','상위 3개 압축','도매가와 예상마진 계산','1개 상품 등록 테스트'],
- '앱 아이디어 만들기':['문제 한 줄 정의','핵심 기능 3개 선정','첫 화면 구성','동작하는 시제품 만들기','직접 써보고 불편한 점 3개 수정'],
- '개인 수익화 프로젝트':['돈 내는 사람이 누구인지 정의','판매할 것 1개 정하기','첫 결과물 만들기','무료로 3명에게 보여주기','반응 좋은 부분만 개선']
-};
-let state=JSON.parse(localStorage.getItem('aiDash')||'null')||{idea:'',tasks:[],history:[]};
-document.getElementById('today').textContent=new Date().toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric'});
+const KEY='hankan_v1';
+const now=new Date();
+const defaultState={tasks:[],project:null,archive:[],history:[]};
+let state=JSON.parse(localStorage.getItem(KEY)||'null')||defaultState;
+if(!state.tasks)state.tasks=[];if(!state.archive)state.archive=[];if(!state.history)state.history=[];
+const fmt=d=>new Date(d).toISOString().slice(0,10);
+const today=fmt(now);
+document.getElementById('date').textContent=now.toLocaleDateString('ko-KR',{month:'long',day:'numeric',weekday:'short'});
 
-function preset(name){document.getElementById('ideaInput').value=name;analyzeIdea()}
-function analyzeIdea(){
- const input=document.getElementById('ideaInput').value.trim(); if(!input)return;
- let key=Object.keys(templates).find(k=>input.includes(k.split(' ')[0]));
- let list=key?templates[key]:['목표를 한 문장으로 정리','필요한 정보 3개 찾기','가장 작은 실행 1개 하기','결과 확인','다음 행동 결정'];
- state.idea=input; state.tasks=list.map(t=>({text:t,done:false}));
- state.history=[{title:input,time:new Date().toLocaleString('ko-KR')},...state.history.filter(x=>x.title!==input)].slice(0,8);
- save();render();
-}
-function toggle(i){state.tasks[i].done=!state.tasks[i].done;save();render()}
-function save(){localStorage.setItem('aiDash',JSON.stringify(state))}
-function render(){
- if(state.idea){document.getElementById('planArea').style.display='block';document.getElementById('ideaTitle').textContent=state.idea}
- const box=document.getElementById('tasks');box.innerHTML='';
- state.tasks.forEach((t,i)=>{const d=document.createElement('div');d.className='task'+(t.done?' done':'');d.innerHTML=`<input type="checkbox" ${t.done?'checked':''} onchange="toggle(${i})"><span>${t.text}</span>`;box.appendChild(d)});
- const total=state.tasks.length,done=state.tasks.filter(t=>t.done).length,p=total?Math.round(done/total*100):0;
- document.getElementById('bar').style.width=p+'%';document.getElementById('progressText').textContent=`진행률 ${p}%`;
- document.getElementById('score').textContent=p;document.getElementById('totalCount').textContent=total;document.getElementById('doneCount').textContent=done;document.getElementById('leftCount').textContent=total-done;
- const h=document.getElementById('history');h.innerHTML=state.history.length?'': '<div class="muted">아직 기록이 없습니다.</div>';
- state.history.forEach(x=>{const d=document.createElement('div');d.className='hist';d.innerHTML=`<b>${x.title}</b><div class="muted">${x.time}</div>`;h.appendChild(d)});
-}
-render();
+document.querySelectorAll('.nav button').forEach(b=>b.onclick=()=>{document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));b.classList.add('active');document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.getElementById(b.dataset.view).classList.add('active');render();});
+function save(){localStorage.setItem(KEY,JSON.stringify(state));render()}
+function toast(t){const e=document.getElementById('toast');e.textContent=t;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),1300)}
+function quickAdd(){const i=document.getElementById('quickInput');const t=i.value.trim();if(!t)return;state.tasks.unshift({id:Date.now(),title:t,tag:'오늘',done:false,created:today,doneAt:null});i.value='';document.getElementById('message').textContent='좋습니다. 생각은 끝, 이제 하나만 해보세요.';save();}
+function openTaskModal(){document.getElementById('taskModal').classList.add('show')}
+function openProjectModal(){document.getElementById('projectModal').classList.add('show')}
+function closeModal(id){document.getElementById(id).classList.remove('show')}
+function addTaskFromModal(){const n=document.getElementById('taskName').value.trim();if(!n)return;state.tasks.unshift({id:Date.now(),title:n,tag:document.getElementById('taskTag').value.trim()||'일반',done:false,created:today,doneAt:null});document.getElementById('taskName').value='';document.getElementById('taskTag').value='';closeModal('taskModal');save();}
+function toggleTask(id){const t=state.tasks.find(x=>x.id===id);if(!t)return;t.done=!t.done;t.doneAt=t.done?new Date().toISOString():null;if(t.done){state.history.push({date:today,type:'task'});toast('완료. 한 칸 전진했습니다.');setTimeout(()=>{const idx=state.tasks.findIndex(x=>x.id===id);if(idx>=0&&state.tasks[idx].done){state.archive.unshift(state.tasks[idx]);state.tasks.splice(idx,1);save()}},500)}save();}
+function startPreset(type){const map={정리:'눈에 보이는 곳 10분 정리',진행:'미뤄둔 일 15분만 시작',탐색:'궁금한 것 자료 3개만 찾기'};state.tasks.unshift({id:Date.now(),title:map[type],tag:'빠른 시작',done:false,created:today,doneAt:null});save();toast('오늘 할 일에 넣었습니다.')}
+function createProject(){const name=document.getElementById('projectName').value.trim();if(!name)return;let lines=document.getElementById('projectTasks').value.split('\n').map(x=>x.trim()).filter(Boolean);if(!lines.length)lines=['첫 단계 15분만 시작','필요한 자료 찾기','중간 결과 만들기','한 번 검토하기','마무리하고 기록'];state.project={id:Date.now(),title:name,goal:document.getElementById('projectWhy').value.trim(),start:today,steps:lines.map((x,i)=>({id:i+1,title:x,done:false}))};state.history.push({date:today,type:'project'});closeModal('projectModal');save();toast('7일 프로젝트를 시작했습니다.')}
+function toggleStep(id){if(!state.project)return;const s=state.project.steps.find(x=>x.id===id);s.done=!s.done;if(s.done)state.history.push({date:today,type:'step'});save()}
+function renderToday(){const box=document.getElementById('todayTasks');const list=state.tasks.filter(x=>!x.done).slice(0,3);box.innerHTML='';if(!list.length){box.innerHTML='<div class="empty"><b>오늘은 비어 있습니다.</b><br>위 입력창에 해야 할 일을 그냥 한 줄 적어보세요.</div>'}list.forEach(t=>{const d=document.createElement('div');d.className='task'+(t.done?' done':'');d.innerHTML=`<div class="check" onclick="toggleTask(${t.id})">${t.done?'✓':''}</div><div><div class="task-title">${t.title}</div><div class="task-meta">오늘 · ${t.tag}</div></div><span class="pill">집중</span>`;box.appendChild(d)});
+ const wStart=new Date();wStart.setDate(now.getDate()-6);const recent=state.history.filter(h=>new Date(h.date)>=wStart);const done=recent.filter(h=>h.type==='task'||h.type==='step').length;const total=Math.max(done+state.tasks.length,1);const p=Math.min(100,Math.round(done/total*100));document.getElementById('weekScore').textContent=p;document.getElementById('weekBar').style.width=p+'%';document.getElementById('weekDone').textContent=done+'개 완료';document.getElementById('weekLeft').textContent=state.tasks.length+'개 남음'}
+function renderWeek(){const days=document.getElementById('days');days.innerHTML='';for(let i=0;i<7;i++){const d=new Date();d.setDate(d.getDate()+i);const el=document.createElement('div');el.className='day'+(i===0?' active':'');el.innerHTML=`${d.toLocaleDateString('ko-KR',{weekday:'short'})}<b>${d.getDate()}</b>`;days.appendChild(el)}const title=document.getElementById('projectTitle'),goal=document.getElementById('projectGoal'),steps=document.getElementById('projectSteps');steps.innerHTML='';if(!state.project){title.textContent='아직 프로젝트가 없습니다';goal.textContent='큰 목표 하나를 7일짜리로 줄여보세요.';document.getElementById('projectBar').style.width='0%';document.getElementById('projectPct').textContent='0%';return}title.textContent=state.project.title;goal.textContent=state.project.goal||'이번 주엔 이것 하나만 밀어봅니다.';state.project.steps.forEach(s=>{const d=document.createElement('div');d.className='project-step';d.innerHTML=`<div class="check" onclick="toggleStep(${s.id})">${s.done?'✓':''}</div><div style="${s.done?'text-decoration:line-through;color:#999':''}">${s.title}</div>`;steps.appendChild(d)});const done=state.project.steps.filter(s=>s.done).length,p=Math.round(done/state.project.steps.length*100);document.getElementById('projectBar').style.width=p+'%';document.getElementById('projectPct').textContent=p+'%'}
+function renderMonth(){const ym=now.toISOString().slice(0,7);const monthHist=state.history.filter(h=>h.date.startsWith(ym));const done=monthHist.filter(h=>h.type==='task'||h.type==='step').length;document.getElementById('mDone').textContent=done;document.getElementById('mProjects').textContent=monthHist.filter(h=>h.type==='project').length;document.getElementById('mRate').textContent=Math.min(100,done?Math.round(done/(done+state.tasks.length)*100):0)+'%';const unique=[...new Set(state.history.map(h=>h.date))].sort();let streak=0;for(let i=0;i<30;i++){const d=new Date();d.setDate(d.getDate()-i);if(unique.includes(fmt(d)))streak++;else if(i>0)break}document.getElementById('streak').textContent=streak+'일';const b=document.getElementById('monthBars');b.innerHTML='';for(let w=3;w>=0;w--){const end=new Date();end.setDate(end.getDate()-w*7);const start=new Date(end);start.setDate(start.getDate()-6);const c=state.history.filter(h=>{const x=new Date(h.date);return x>=start&&x<=end&&(h.type==='task'||h.type==='step')}).length;const p=Math.min(100,c*12);const row=document.createElement('div');row.className='monthbar';row.innerHTML=`<span>${4-w}주차</span><div class="track"><div class="fill" style="width:${p}%"></div></div><b>${c}개</b>`;b.appendChild(row)}}
+function renderYear(){const y=now.getFullYear();document.getElementById('yearTitle').textContent=y+'년 기록';const box=document.getElementById('yearMonths');box.innerHTML='';let total=0;for(let m=1;m<=12;m++){const prefix=`${y}-${String(m).padStart(2,'0')}`;const c=state.history.filter(h=>h.date.startsWith(prefix)&&(h.type==='task'||h.type==='step')).length;total+=c;const d=document.createElement('div');d.className='ym';d.innerHTML=`<span class="muted">${m}월</span><b>${c}</b><span class="muted">완료</span>`;box.appendChild(d)}document.getElementById('yearTotal').textContent='완료 '+total+'개'}
+function renderArchive(){const b=document.getElementById('archiveList');b.innerHTML='';if(!state.archive.length){b.innerHTML='<div class="empty">아직 완료한 일이 없습니다.</div>';return}state.archive.slice(0,50).forEach(t=>{const d=document.createElement('div');d.className='task done';d.innerHTML=`<div class="check">✓</div><div><div class="task-title">${t.title}</div><div class="task-meta">${t.tag}</div></div><span class="pill">완료</span>`;b.appendChild(d)})}
+function render(){renderToday();renderWeek();renderMonth();renderYear();renderArchive()}
+document.getElementById('quickInput').addEventListener('keydown',e=>{if(e.key==='Enter')quickAdd()});render();
 </script>
 </body>
 </html>
