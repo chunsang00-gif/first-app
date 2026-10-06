@@ -8,3 +8,4 @@ run('Daewoon convention returns onset fields',()=>{const r=C.fortune(sample);ass
 run('2027 annual pillar is 丁未',()=>{assert.equal(P.annualPillar(2027),'丁未')});
 run('production result carries provenance',()=>{const r=P.calculate(sample);assert.equal(P.canAnalyze(r),true);assert.equal(r.targetYear.pillar,'丁未');assert.ok(r.provenance.year&&r.provenance.day)});
 run('report packet is facts-only and ready',()=>{const r=F.build(sample);assert.equal(r.status,'ready');assert.equal(r.targetYear.pillar,'丁未');assert.equal(r.constraints.factsOnly,true);assert.equal(r.constraints.nameAnalysisEnabled,false)});
+run('report handoff preserves canonical input',()=>{const r=F.build(sample);assert.deepEqual(r.calculationInput,{...sample,unknownBirthTime:false,leapMonth:false});assert.equal(r.calculationInput.birthDate,'1983-01-07');assert.equal(r.calculationInput.birthTime,'14:20')});
