@@ -90,525 +90,60 @@
       "type": "array",
       "minItems": 12,
       "maxItems": 12,
-      "prefixItems": [
-        {
-          "type": "object",
-          "additionalProperties": false,
-          "required": [
-            "id",
-            "title",
-            "body",
-            "keyJudgment",
-            "evidence"
-          ],
-          "properties": {
-            "id": {
-              "type": "string",
-              "enum": [
-                "saju_core"
-              ]
-            },
-            "title": {
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "title",
+          "body",
+          "keyJudgment",
+          "evidence"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "enum": [
+              "saju_core",
+              "mbti_contradiction",
+              "decision",
+              "money",
+              "career",
+              "relationship",
+              "stress",
+              "integrated_judgment",
+              "year_2027",
+              "year_2027_money",
+              "year_2027_career",
+              "year_2027_relationship"
+            ]
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1
+          },
+          "body": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
               "type": "string",
               "minLength": 1
-            },
-            "body": {
-              "type": "array",
-              "minItems": 1,
-              "items": {
-                "type": "string",
-                "minLength": 1
-              }
-            },
-            "keyJudgment": {
-              "type": "string",
-              "minLength": 1
-            },
-            "evidence": {
-              "type": "array",
-              "minItems": 1,
-              "items": {
-                "type": "string",
-                "minLength": 1
-              }
             }
-          }
-        },
-        {
-          "type": "object",
-          "additionalProperties": false,
-          "required": [
-            "id",
-            "title",
-            "body",
-            "keyJudgment",
-            "evidence"
-          ],
-          "properties": {
-            "id": {
-              "type": "string",
-              "enum": [
-                "mbti_contradiction"
-              ]
-            },
-            "title": {
+          },
+          "keyJudgment": {
+            "type": "string",
+            "minLength": 1
+          },
+          "evidence": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
               "type": "string",
               "minLength": 1
-            },
-            "body": {
-              "type": "array",
-              "minItems": 1,
-              "items": {
-                "type": "string",
-                "minLength": 1
-              }
-            },
-            "keyJudgment": {
-              "type": "string",
-              "minLength": 1
-            },
-            "evidence": {
-              "type": "array",
-              "minItems": 1,
-              "items": {
-                "type": "string",
-                "minLength": 1
-              }
-            }
-          }
-        },
-        {
-          "type": "object",
-          "additionalProperties": false,
-          "required": [
-            "id",
-            "title",
-            "body",
-            "keyJudgment",
-            "evidence"
-          ],
-          "properties": {
-            "id": {
-              "type": "string",
-              "enum": [
-                "decision"
-              ]
-            },
-            "title": {
-              "type": "string",
-              "minLength": 1
-            },
-            "body": {
-              "type": "array",
-              "minItems": 1,
-              "items": {
-                "type": "string",
-                "minLength": 1
-              }
-            },
-            "keyJudgment": {
-              "type": "string",
-              "minLength": 1
-            },
-            "evidence": {
-              "type": "array",
-              "minItems": 1,
-              "items": {
-                "type": "string",
-                "minLength": 1
-              }
-            }
-          }
-        },
-        {
-          "type": "object",
-          "additionalProperties": false,
-          "required": [
-            "id",
-            "title",
-            "body",
-            "keyJudgment",
-            "evidence"
-          ],
-          "properties": {
-            "id": {
-              "type": "string",
-              "enum": [
-                "money"
-              ]
-            },
-            "title": {
-              "type": "string",
-              "minLength": 1
-            },
-            "body": {
-              "type": "array",
-              "minItems": 1,
-              "items": {
-                "type": "string",
-                "minLength": 1
-              }
-            },
-            "keyJudgment": {
-              "type": "string",
-              "minLength": 1
-            },
-            "evidence": {
-              "type": "array",
-              "minItems": 1,
-              "items": {
-                "type": "string",
-                "minLength": 1
-              }
-            }
-          }
-        },
-        {
-          "type": "object",
-          "additionalProperties": false,
-          "required": [
-            "id",
-            "title",
-            "body",
-            "keyJudgment",
-            "evidence"
-          ],
-          "properties": {
-            "id": {
-              "type": "string",
-              "enum": [
-                "career"
-              ]
-            },
-            "title": {
-              "type": "string",
-              "minLength": 1
-            },
-            "body": {
-              "type": "array",
-              "minItems": 1,
-              "items": {
-                "type": "string",
-                "minLength": 1
-              }
-            },
-            "keyJudgment": {
-              "type": "string",
-              "minLength": 1
-            },
-            "evidence": {
-              "type": "array",
-              "minItems": 1,
-              "items": {
-                "type": "string",
-                "minLength": 1
-              }
-            }
-          }
-        },
-        {
-          "type": "object",
-          "additionalProperties": false,
-          "required": [
-            "id",
-            "title",
-            "body",
-            "keyJudgment",
-            "evidence"
-          ],
-          "properties": {
-            "id": {
-              "type": "string",
-              "enum": [
-                "relationship"
-              ]
-            },
-            "title": {
-              "type": "string",
-              "minLength": 1
-            },
-            "body": {
-              "type": "array",
-              "minItems": 1,
-              "items": {
-                "type": "string",
-                "minLength": 1
-              }
-            },
-            "keyJudgment": {
-              "type": "string",
-              "minLength": 1
-            },
-            "evidence": {
-              "type": "array",
-              "minItems": 1,
-              "items": {
-                "type": "string",
-                "minLength": 1
-              }
-            }
-          }
-        },
-        {
-          "type": "object",
-          "additionalProperties": false,
-          "required": [
-            "id",
-            "title",
-            "body",
-            "keyJudgment",
-            "evidence"
-          ],
-          "properties": {
-            "id": {
-              "type": "string",
-              "enum": [
-                "stress"
-              ]
-            },
-            "title": {
-              "type": "string",
-              "minLength": 1
-            },
-            "body": {
-              "type": "array",
-              "minItems": 1,
-              "items": {
-                "type": "string",
-                "minLength": 1
-              }
-            },
-            "keyJudgment": {
-              "type": "string",
-              "minLength": 1
-            },
-            "evidence": {
-              "type": "array",
-              "minItems": 1,
-              "items": {
-                "type": "string",
-                "minLength": 1
-              }
-            }
-          }
-        },
-        {
-          "type": "object",
-          "additionalProperties": false,
-          "required": [
-            "id",
-            "title",
-            "body",
-            "keyJudgment",
-            "evidence"
-          ],
-          "properties": {
-            "id": {
-              "type": "string",
-              "enum": [
-                "integrated_judgment"
-              ]
-            },
-            "title": {
-              "type": "string",
-              "minLength": 1
-            },
-            "body": {
-              "type": "array",
-              "minItems": 1,
-              "items": {
-                "type": "string",
-                "minLength": 1
-              }
-            },
-            "keyJudgment": {
-              "type": "string",
-              "minLength": 1
-            },
-            "evidence": {
-              "type": "array",
-              "minItems": 1,
-              "items": {
-                "type": "string",
-                "minLength": 1
-              }
-            }
-          }
-        },
-        {
-          "type": "object",
-          "additionalProperties": false,
-          "required": [
-            "id",
-            "title",
-            "body",
-            "keyJudgment",
-            "evidence"
-          ],
-          "properties": {
-            "id": {
-              "type": "string",
-              "enum": [
-                "year_2027"
-              ]
-            },
-            "title": {
-              "type": "string",
-              "minLength": 1
-            },
-            "body": {
-              "type": "array",
-              "minItems": 1,
-              "items": {
-                "type": "string",
-                "minLength": 1
-              }
-            },
-            "keyJudgment": {
-              "type": "string",
-              "minLength": 1
-            },
-            "evidence": {
-              "type": "array",
-              "minItems": 1,
-              "items": {
-                "type": "string",
-                "minLength": 1
-              }
-            }
-          }
-        },
-        {
-          "type": "object",
-          "additionalProperties": false,
-          "required": [
-            "id",
-            "title",
-            "body",
-            "keyJudgment",
-            "evidence"
-          ],
-          "properties": {
-            "id": {
-              "type": "string",
-              "enum": [
-                "year_2027_money"
-              ]
-            },
-            "title": {
-              "type": "string",
-              "minLength": 1
-            },
-            "body": {
-              "type": "array",
-              "minItems": 1,
-              "items": {
-                "type": "string",
-                "minLength": 1
-              }
-            },
-            "keyJudgment": {
-              "type": "string",
-              "minLength": 1
-            },
-            "evidence": {
-              "type": "array",
-              "minItems": 1,
-              "items": {
-                "type": "string",
-                "minLength": 1
-              }
-            }
-          }
-        },
-        {
-          "type": "object",
-          "additionalProperties": false,
-          "required": [
-            "id",
-            "title",
-            "body",
-            "keyJudgment",
-            "evidence"
-          ],
-          "properties": {
-            "id": {
-              "type": "string",
-              "enum": [
-                "year_2027_career"
-              ]
-            },
-            "title": {
-              "type": "string",
-              "minLength": 1
-            },
-            "body": {
-              "type": "array",
-              "minItems": 1,
-              "items": {
-                "type": "string",
-                "minLength": 1
-              }
-            },
-            "keyJudgment": {
-              "type": "string",
-              "minLength": 1
-            },
-            "evidence": {
-              "type": "array",
-              "minItems": 1,
-              "items": {
-                "type": "string",
-                "minLength": 1
-              }
-            }
-          }
-        },
-        {
-          "type": "object",
-          "additionalProperties": false,
-          "required": [
-            "id",
-            "title",
-            "body",
-            "keyJudgment",
-            "evidence"
-          ],
-          "properties": {
-            "id": {
-              "type": "string",
-              "enum": [
-                "year_2027_relationship"
-              ]
-            },
-            "title": {
-              "type": "string",
-              "minLength": 1
-            },
-            "body": {
-              "type": "array",
-              "minItems": 1,
-              "items": {
-                "type": "string",
-                "minLength": 1
-              }
-            },
-            "keyJudgment": {
-              "type": "string",
-              "minLength": 1
-            },
-            "evidence": {
-              "type": "array",
-              "minItems": 1,
-              "items": {
-                "type": "string",
-                "minLength": 1
-              }
             }
           }
         }
-      ],
-      "items": false
+      }
     },
     "finalJudgment": {
       "type": "object",
