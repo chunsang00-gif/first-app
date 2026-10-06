@@ -1,0 +1,4 @@
+/* Server/client report generation contract v1.0 */
+const REPORT_API=(()=>{
+async function generate({endpoint='/api/report',analysisInput}){if(!analysisInput||analysisInput.status!=='ready')return {status:'blocked',errors:['analysis input is not ready']};const res=await fetch(endpoint,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({schemaVersion:'report-v1',promptVersion:window.REPORT_PROMPT?.version||'premium-v1.0',analysisInput})});if(!res.ok)return {status:'error',errors:[`report api ${res.status}`]};const report=await res.json(),qa=window.REPORT_VALIDATOR.validate(report);if(!qa.pass)return {status:'rejected',report,qa};return {status:'ready',report,qa}}
+return {generate};})();window.REPORT_API=REPORT_API;
