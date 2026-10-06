@@ -2,12 +2,11 @@
 const REPORT_API=(()=>{
 const wait=ms=>new Promise(r=>setTimeout(r,ms));
 async function errorDetail(res){try{const x=await res.json();return x?.qa?.errors?.join(' / ')||x?.errors?.join(' / ')||x?.message||x?.error||x?.status||''}catch{return ''}}
+async function poll(jobId){const deadline=Date.now()+95000;while(Date.now()<deadline){await wait(2000);const s=await fetch(`/api/report-status?id=${encodeURIComponent(jobId)}`,{cache:'no-store'});if(s.status===404){sessionStorage.removeItem('reportJobId');return {status:'missing'}}if(!s.ok){const detail=await errorDetail(s);return {status:'error',errors:[detail||`report status ${s.status}`]}}const x=await s.json();if(x.status==='processing')continue;sessionStorage.removeItem('reportJobId');if(x.status==='ready'){const report=x.report,qa=window.REPORT_VALIDATOR.validate(report);if(!qa.pass)return {status:'rejected',report,qa};return {status:'ready',report,qa}}return {status:'error',errors:[x.message||'report generation failed']}}return {status:'error',errors:['보고서 생성 시간이 1분 30초를 초과했습니다. 다시 생성해주세요.']}}
+async function resume(){const id=sessionStorage.getItem('reportJobId');if(!id)return null;return poll(id)}
 async function generate({endpoint='/api/report',analysisInput}){if(!analysisInput||analysisInput.status!=='ready')return {status:'blocked',errors:['analysis input is not ready']};try{
  const res=await fetch(endpoint,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({schemaVersion:'report-v1',promptVersion:window.REPORT_PROMPT?.version||'premium-v1.2',analysisInput})});
  if(!res.ok){const detail=await errorDetail(res);return {status:'error',errors:[detail||`report api ${res.status}`]}}
- const start=await res.json();if(start.status!=='processing'||!start.jobId)return {status:'error',errors:['report job was not started']};
- const deadline=Date.now()+95000;
- while(Date.now()<deadline){await wait(2000);const s=await fetch(`/api/report-status?id=${encodeURIComponent(start.jobId)}`,{cache:'no-store'});if(!s.ok){const detail=await errorDetail(s);return {status:'error',errors:[detail||`report status ${s.status}`]}}const x=await s.json();if(x.status==='processing')continue;if(x.status==='ready'){const report=x.report,qa=window.REPORT_VALIDATOR.validate(report);if(!qa.pass)return {status:'rejected',report,qa};return {status:'ready',report,qa}}return {status:'error',errors:[x.message||'report generation failed']}}
- return {status:'error',errors:['보고서 생성 시간이 1분 30초를 초과했습니다. 다시 생성해주세요.']}
+ const start=await res.json();if(start.status!=='processing'||!start.jobId)return {status:'error',errors:['report job was not started']};sessionStorage.setItem('reportJobId',start.jobId);return poll(start.jobId)
  }catch(e){return {status:'error',errors:[e?.message||'network error']}}}
-return {generate};})();window.REPORT_API=REPORT_API;
+return {generate,resume};})();window.REPORT_API=REPORT_API;
