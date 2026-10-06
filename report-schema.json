@@ -1,0 +1,11 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "title":"SajuMbtiPremiumReport",
+  "type":"object",
+  "required":["meta","sections","finalJudgment"],
+  "properties":{
+    "meta":{"type":"object","required":["name","mbti","chart","targetYear"],"properties":{"name":{"type":"string"},"mbti":{"type":"string"},"chart":{"type":"string"},"targetYear":{"type":"integer"}}},
+    "sections":{"type":"array","minItems":8,"items":{"type":"object","required":["id","title","body","keyJudgment"],"properties":{"id":{"type":"string"},"title":{"type":"string"},"body":{"type":"array","items":{"type":"string"}},"keyJudgment":{"type":"string"},"evidence":{"type":"array","items":{"type":"string"}}}}},
+    "finalJudgment":{"type":"object","required":["body","closingQuestion"],"properties":{"body":{"type":"array","items":{"type":"string"}},"closingQuestion":{"type":"string"},"afterClosingText":{"type":"string","maxLength":0}}}
+  }
+}
