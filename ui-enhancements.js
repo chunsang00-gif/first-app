@@ -1,0 +1,6 @@
+/* Progressive UI controls v0.9 */
+(()=>{function add(){const time=document.getElementById('time'),birth=document.getElementById('birth');if(!time||!birth)return;
+ const timeField=time.closest('.field');if(timeField&&!document.getElementById('unknownTime')){const w=document.createElement('label');w.style.cssText='display:flex;gap:8px;align-items:center;margin-top:9px;font-weight:700;color:#70757f';w.innerHTML='<input id="unknownTime" type="checkbox" style="width:auto"> 출생시간 모름';timeField.appendChild(w);w.querySelector('input').addEventListener('change',e=>{time.disabled=e.target.checked;if(e.target.checked)time.value=''})}
+ const cal=document.querySelector('[data-choice="calendar"]');if(cal&&!document.getElementById('leapMonthWrap')){const w=document.createElement('label');w.id='leapMonthWrap';w.className='hidden';w.style.cssText='display:flex;gap:8px;align-items:center;margin-top:10px;font-weight:700;color:#70757f';w.innerHTML='<input id="leapMonth" type="checkbox" style="width:auto"> 윤달';cal.parentElement.appendChild(w);cal.addEventListener('click',()=>{setTimeout(()=>{const lunar=cal.querySelector('.chip.on')?.dataset.v==='음력';w.classList.toggle('hidden',!lunar);if(!lunar)w.querySelector('input').checked=false},0)})}
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',add);else add();})();
