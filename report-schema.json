@@ -7,8 +7,8 @@
   "properties":{
     "meta":{"type":"object","additionalProperties":false,"required":["name","mbti","chart","targetYear","versions"],"properties":{
       "name":{"type":"string"},"mbti":{"type":"string"},"targetYear":{"type":"integer"},
-      "chart":{"type":"object","additionalProperties":false,"required":["year","month","day","hour","calculationStatus"],"properties":{"year":{"type":"string"},"month":{"type":"string"},"day":{"type":"string"},"hour":{"type":["string","null"]},"calculationStatus":{"enum":["complete","provisional"]}}},
-      "versions":{"type":"object","required":["ruleset","prompt","schema"],"properties":{"ruleset":{"type":"string"},"prompt":{"type":"string"},"schema":{"type":"string"}}}
+      "chart":{"type":"object","additionalProperties":false,"required":["year","month","day","hour","calculationStatus"],"properties":{"year":{"type":"string"},"month":{"type":"string"},"day":{"type":"string"},"hour":{"type":["string","null"]},"calculationStatus":{"type":"string","enum":["complete","provisional"]}}},
+      "versions":{"type":"object","additionalProperties":false,"required":["ruleset","prompt","schema"],"properties":{"ruleset":{"type":"string"},"prompt":{"type":"string"},"schema":{"type":"string"}}}
     }},
     "sections":{"type":"array","minItems":12,"maxItems":12,"prefixItems":[
       {"$ref":"#/$defs/sectionSaju"},{"$ref":"#/$defs/sectionMbti"},{"$ref":"#/$defs/sectionDecision"},{"$ref":"#/$defs/sectionMoney"},{"$ref":"#/$defs/sectionCareer"},{"$ref":"#/$defs/sectionRelationship"},{"$ref":"#/$defs/sectionStress"},{"$ref":"#/$defs/sectionIntegrated"},{"$ref":"#/$defs/sectionYear"},{"$ref":"#/$defs/sectionYearMoney"},{"$ref":"#/$defs/sectionYearCareer"},{"$ref":"#/$defs/sectionYearRelationship"}
