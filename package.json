@@ -1,8 +1,8 @@
 {
   "name":"saju-mbti-app",
   "private":true,
-  "version":"0.9.0",
+  "version":"1.0.0",
   "description":"Deterministic Saju calculation and premium Saju x MBTI report pipeline",
   "dependencies":{"lunar-javascript":"1.7.7"},
-  "scripts":{"test":"node node-tests.js"}
+  "scripts":{"start":"node server.js","test":"node node-tests.js","smoke":"node smoke-test.js"}
 }
