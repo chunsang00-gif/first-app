@@ -1,0 +1,8 @@
+/* Framework-neutral server report contract v1.0.
+ * Inject callModel(promptObject) from the chosen server runtime. Never expose an AI key in index.html.
+ */
+const facts=require('./report-facts-node');
+const IDS=['saju_core','mbti_contradiction','decision','money','career','relationship','stress','integrated_judgment','year_2027','year_2027_money','year_2027_career','year_2027_relationship'];
+function validateShape(r){const errors=[];if(!r||!Array.isArray(r.sections)||r.sections.length!==12)errors.push('12 sections required');else r.sections.forEach((s,i)=>{if(s.id!==IDS[i])errors.push(`section order ${i+1}`);if(!s.title||!s.body||!s.keyJudgment||!Array.isArray(s.evidence)||!s.evidence.length)errors.push(`${s.id}: incomplete`)});if(!r?.finalJudgment?.closingQuestion)errors.push('closing question required');if((r?.finalJudgment?.afterClosingText||'')!=='')errors.push('text after closing question forbidden');return {pass:!errors.length,errors}}
+async function generate(input,callModel){const packet=facts.build(input,2027);if(packet.status!=='ready')return {status:'blocked',packet};const prompt={role:'유료 사주×MBTI 분석가',facts:packet,rules:{factsOnly:true,noPersonalHistoryInference:true,noDeterministicPrediction:true,sections:IDS,eachSectionNewInsight:true,integrateMbti:true,explainHanjaInline:true,strongEnding:true,noTextAfterFinalQuestion:true}};const report=await callModel(prompt);const qa=validateShape(report);return qa.pass?{status:'ready',report,qa}:{status:'rejected',report,qa}}
+module.exports={IDS,validateShape,generate};
