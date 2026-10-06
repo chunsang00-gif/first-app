@@ -1,0 +1,6 @@
+const assert=require('assert');const C=require('./calendar-provider-node');
+function run(name,fn){try{fn();console.log('PASS',name)}catch(e){console.error('FAIL',name,e.message);process.exitCode=1}}
+run('golden solar sample exposes actual library result',()=>{const r=C.calculate({calendar:'solar',birthDate:'1983-01-07',birthTime:'14:20',gender:'male'});assert.equal(r.status,'complete');assert.equal(r.solarDate,'1983-01-07');assert.ok(r.chart.year&&r.chart.month&&r.chart.day&&r.chart.hour);console.log('  chart:',r.chart)});
+run('lunar conversion round trip',()=>{const r=C.calculate({calendar:'lunar',birthDate:'1982-11-24',birthTime:'14:20',gender:'male',leapMonth:false});assert.equal(r.solarDate,'1983-01-07')});
+run('unknown time suppresses hour pillar',()=>{const r=C.calculate({calendar:'solar',birthDate:'1983-01-07',unknownBirthTime:true,gender:'male'});assert.equal(r.chart.hour,null)});
+run('Daewoon convention returns onset fields',()=>{const r=C.fortune({calendar:'solar',birthDate:'1983-01-07',birthTime:'14:20',gender:'male'});assert.equal(r.status,'complete');assert.equal(typeof r.forward,'boolean');assert.ok(Number.isInteger(r.start.year))});
