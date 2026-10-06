@@ -1,0 +1,19 @@
+name: saju-mbti-tests
+on:
+  push:
+    branches: [saju-mbti-app]
+  pull_request:
+    branches: [saju-mbti-app]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm install
+      - run: npm test
+      - run: npm run smoke
