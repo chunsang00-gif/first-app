@@ -5,7 +5,7 @@ run('generic solar input calculates four pillars',()=>{const r=C.calculate(sampl
 run('unknown time suppresses hour pillar',()=>{const r=C.calculate({...sample,birthTime:'',unknownBirthTime:true});assert.equal(r.chart.hour,null)});
 run('Daewoon convention returns onset fields',()=>{const r=C.fortune(sample);assert.equal(r.status,'complete');assert.equal(typeof r.forward,'boolean');assert.ok(Number.isInteger(r.start.year))});
 run('2027 annual pillar is deterministic',()=>{assert.equal(P.annualPillar(2027),'丁未')});
-run('production result carries provenance',()=>{const r=P.calculate(sample);assert.equal(P.canAnalyze(r),true);assert.ok(r.provenance.year&&r.provenance.day)});
+run('production result carries provenance',()=>{const r=P.calculate(sample);assert.ok(P.canAnalyze(r));assert.ok(r.provenance.year&&r.provenance.day)});
 run('report packet is facts-only and ready',()=>{const r=F.build(sample);assert.equal(r.status,'ready');assert.equal(r.constraints.factsOnly,true);assert.equal(r.constraints.nameAnalysisEnabled,false)});
 run('report handoff preserves generic input',()=>{const r=F.build(sample);assert.equal(r.calculationInput.birthDate,sample.birthDate);assert.equal(r.calculationInput.birthTime,sample.birthTime)});
 run('unverified hanja is blocked',()=>{const r=N.analyze('테스트','天地人');assert.equal(r.status,'needs_verified_dictionary')});
