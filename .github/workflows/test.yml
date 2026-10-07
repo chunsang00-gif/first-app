@@ -15,5 +15,6 @@ jobs:
         with:
           node-version: 20
       - run: npm install --no-audit --no-fund
+      - run: node character-assets-test.js
       - run: npm test
       - run: npm run smoke

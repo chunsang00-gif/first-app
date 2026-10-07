@@ -1,0 +1,104 @@
+{
+  "style": "기존 3D 캐릭터 스타일 유지: 청록·남색·금색, 금테 선글라스, 투명 배경",
+  "assetCount": 18,
+  "generatedThisUpdate": 7,
+  "selection": {
+    "zodiac": "검증된 사주 연주 지지(입춘 기준 계산 결과)",
+    "portrait": "성별 + 성취/계획 평균과 감정/독립 평균 비교; 점수가 없으면 MBTI E/I",
+    "detail": "돈·일·결정은 confident, 나머지는 reflective",
+    "screens": "입력 confident, 확인 reflective, 분석 state-loading, 오류 state-error"
+  },
+  "assets": [
+    {
+      "id": "portrait-female-confident",
+      "file": "portrait-female-confident.webp",
+      "source": "imagegen-current-update"
+    },
+    {
+      "id": "portrait-female-reflective",
+      "file": "portrait-female-reflective.webp",
+      "source": "imagegen-current-update"
+    },
+    {
+      "id": "portrait-male-confident",
+      "file": "portrait-male-confident.webp",
+      "source": "imagegen-current-update"
+    },
+    {
+      "id": "portrait-male-reflective",
+      "file": "portrait-male-reflective.webp",
+      "source": "preserved-existing-generated-asset"
+    },
+    {
+      "id": "state-error",
+      "file": "state-error.webp",
+      "source": "imagegen-current-update"
+    },
+    {
+      "id": "state-loading",
+      "file": "state-loading.webp",
+      "source": "imagegen-current-update"
+    },
+    {
+      "id": "zodiac-dog",
+      "file": "zodiac-dog.webp",
+      "source": "imagegen-current-update"
+    },
+    {
+      "id": "zodiac-dragon",
+      "file": "zodiac-dragon.webp",
+      "source": "preserved-existing-generated-asset"
+    },
+    {
+      "id": "zodiac-goat",
+      "file": "zodiac-goat.webp",
+      "source": "preserved-existing-generated-asset"
+    },
+    {
+      "id": "zodiac-horse",
+      "file": "zodiac-horse.webp",
+      "source": "imagegen-current-update"
+    },
+    {
+      "id": "zodiac-monkey",
+      "file": "zodiac-monkey.webp",
+      "source": "preserved-existing-generated-asset"
+    },
+    {
+      "id": "zodiac-ox",
+      "file": "zodiac-ox.webp",
+      "source": "preserved-existing-generated-asset"
+    },
+    {
+      "id": "zodiac-pig",
+      "file": "zodiac-pig.webp",
+      "source": "preserved-existing-generated-asset"
+    },
+    {
+      "id": "zodiac-rabbit",
+      "file": "zodiac-rabbit.webp",
+      "source": "preserved-existing-generated-asset"
+    },
+    {
+      "id": "zodiac-rat",
+      "file": "zodiac-rat.webp",
+      "source": "preserved-existing-generated-asset"
+    },
+    {
+      "id": "zodiac-rooster",
+      "file": "zodiac-rooster.webp",
+      "source": "preserved-existing-generated-asset"
+    },
+    {
+      "id": "zodiac-snake",
+      "file": "zodiac-snake.webp",
+      "source": "preserved-existing-generated-asset"
+    },
+    {
+      "id": "zodiac-tiger",
+      "file": "zodiac-tiger.webp",
+      "source": "preserved-existing-generated-asset"
+    }
+  ],
+  "generationPrompt": "Standalone production character asset. Match existing dragon and male portrait references: premium polished 3D animated-film collectible style, rounded proportions, warm studio lighting, teal/navy/gold palette, gold-rim sunglasses, transparent alpha. Humans wear gray hoodie with navy lining and gold eyelets. Confident characters present an idea; reflective characters rest hand under chin. Horse and dog zodiac characters hold glowing crystal orb. Loading dragon studies orb; retry dragon waves with circular-arrow token. One character per image. No UI, screen, labels, text, watermark or scenery."
+}
