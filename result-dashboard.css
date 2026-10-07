@@ -18,3 +18,8 @@ body.has-report{background:#f5f7fa}.has-report .app{max-width:1000px}.has-report
 .insight-icon{font-style:normal;font-size:22px;vertical-align:middle;margin-right:3px}
 
 .cover-dashboard .balance-row>span{font-size:inherit}
+/* Keep Korean phrases together and align all three card headings. */
+.approved-cover .hero-quote,.approved-cover .cover-insight strong{word-break:keep-all;overflow-wrap:anywhere}
+.approved-cover .cover-insight{display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start}
+.approved-cover .asset-zodiac{width:52%;height:56%;right:-1%}
+@media(max-width:540px){.approved-cover .asset-zodiac{width:47%;height:47%;right:3%}}
