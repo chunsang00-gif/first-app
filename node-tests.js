@@ -28,3 +28,8 @@ run('premium quality gate rejects insufficient total depth',()=>{const x=mockRep
 run('premium quality gate rejects banned filler',()=>{const x=mockReport();x.sections[0].body[0]+=' 이 점이 중요합니다';assert.equal(Q.validate(x).pass,false)});
 run('premium quality gate rejects text after closing question',()=>{const x=mockReport();x.finalJudgment.afterClosingText='추가 설명';assert.equal(Q.validate(x).pass,false)});
 run('premium quality gate requires question ending',()=>{const x=mockReport();x.finalJudgment.closingQuestion='최종 결론입니다.';assert.equal(Q.validate(x).pass,false)});
+
+run('premium quality gate rejects anyone-style wording',()=>{const x=mockReport();x.sections[2].body[0]+=' 균형이 중요합니다.';const r=Q.validate(x);assert.equal(r.pass,false);assert.ok(r.errors.some(e=>e.includes('could-apply-to-anyone')))});
+run('premium quality gate rejects vague evidence',()=>{const x=mockReport();x.sections[2].evidence=['근거'];const r=Q.validate(x);assert.equal(r.pass,false);assert.ok(r.errors.some(e=>e.includes('evidence too vague')))});
+run('premium quality gate rejects sugarcoating',()=>{const x=mockReport();x.sections[2].body[0]+=' 결국 잘 풀릴 것입니다.';const r=Q.validate(x);assert.equal(r.pass,false);assert.ok(r.errors.some(e=>e.includes('unsupported positive framing')))});
+run('premium quality gate rejects overreaching advice',()=>{const x=mockReport();x.sections[2].body[0]+=' 반드시 해야 합니다.';const r=Q.validate(x);assert.equal(r.pass,false);assert.ok(r.errors.some(e=>e.includes('overreaching advice')))});
