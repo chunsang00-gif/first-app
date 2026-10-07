@@ -50,7 +50,7 @@ function mockReport(){
   year_2027_career:'2027년 일은 평소 역할에서 책임과 판단권이 달라지는지를 비교합니다.',
   year_2027_relationship:'2027년 관계는 기존 정보 공유와 시간 배분의 변화를 비교합니다.'
  };
- return {meta:{name:'',mbti:'모름',chart:{year:'甲子',month:'甲子',day:'甲子',hour:'甲子',calculationStatus:'complete'},targetYear:2027,versions:{ruleset:'test',prompt:'test',schema:'test'}},sections:Q.IDS.map((id,i)=>({id,title:'테스트 '+(i+1),body:[bodies[id],bodies[id]],keyJudgment:judgments[id],evidence:['검증된 계산 사실 '+i]})),finalJudgment:{body:['전체 판단을 종합합니다.'],closingQuestion:'이 판단을 실제 선택에서 어떻게 확인할 것인가?',afterClosingText:''}}}
+ return {meta:{name:'',mbti:'모름',chart:{year:'甲子',month:'甲子',day:'甲子',hour:'甲子',calculationStatus:'complete'},targetYear:2027,versions:{ruleset:'test',prompt:'test',schema:'test'}},sections:Q.IDS.map((id,i)=>({id,title:'테스트 '+(i+1),body:[bodies[id]],keyJudgment:judgments[id],evidence:['검증된 계산 사실 '+i]})),finalJudgment:{body:['전체 판단을 종합합니다.'],closingQuestion:'이 판단을 실제 선택에서 어떻게 확인할 것인가?',afterClosingText:''}}}
 
 run('premium quality gate accepts complete distinct report',()=>{const r=Q.validate(mockReport());assert.equal(r.pass,true,JSON.stringify(r.errors))});
 run('premium quality gate rejects Hanja in prose',()=>{const x=mockReport();x.sections[0].body[0]+=' 甲';const r=Q.validate(x);assert.equal(r.pass,false);assert.ok(r.errors.some(e=>e.includes('Hanja')))});
@@ -68,3 +68,6 @@ run('premium quality gate rejects abstract user-facing wording',()=>{const x=moc
 run('premium quality gate rejects vague production-style summary',()=>{const x=mockReport();x.sections[0].keyJudgment='새로운 선택지에는 관심을 보이지만, 시간을 쓰기로 약속할 때는 계획과 말을 따져볼 수 있습니다.';const r=Q.validate(x);assert.equal(r.pass,false);assert.ok(r.errors.some(e=>e.includes('vague phrase')||e.includes('abstract wording')))});
 run('premium quality gate rejects repeated section analysis',()=>{const x=mockReport();x.sections[4].body=x.sections[3].body.slice();x.sections[4].keyJudgment=x.sections[3].keyJudgment;const r=Q.validate(x);assert.equal(r.pass,false);assert.ok(r.errors.some(e=>e.includes('similar')||e.includes('repeated')))});
 run('premium quality gate accepts different evidence by domain',()=>{const x=mockReport();x.sections[3].evidence=['재성 계산값이 금전 판단에 직접 연결됨'];x.sections[4].evidence=['관성 계산값이 역할과 책임 판단에 직접 연결됨'];assert.equal(Q.validate(x).pass,true)});
+
+run('rejects repeated paragraphs within a section',()=>{const x=mockReport();x.sections[0].body.push(x.sections[0].body[0]);assert.ok(Q.validate(x).errors.some(e=>e.includes('repeated body sentence')))});
+run('rejects leaked fields and duplicated words',()=>{const x=mockReport();x.sections[0].body.push('profileBalance_score 때문에 결정을 결정을 미룹니다.');const q=Q.validate(x);assert.ok(q.errors.some(e=>e.includes('internal field')));assert.ok(q.errors.some(e=>e.includes('adjacent word')))});

@@ -9,7 +9,7 @@
  if(step===3){
   const d=data();
   $('#reportTitle').textContent=(d.name||'당신')+'님의 사주 × MBTI 분석';
-  $('#reportMeta').textContent=`${d.birthDate} · ${d.unknownBirthTime?'출생시간 모름':d.birthTime} · ${d.birthplace} · MBTI ${d.mbti}`;
+  $('#reportMeta').textContent=`${d.birthDate} · ${d.unknownBirthTime?'출생시간 모름':d.birthTime} · ${d.birthplace}${d.mbti==='모름'?'':' · '+d.mbti}`;
   const body=$('#reportBody');
   if(body)body.innerHTML='<section class="section"><div class="num">ANALYSIS</div><h2>분석을 시작합니다.</h2><p>입력 정보를 확인하고 있습니다.</p></section>';
   setTimeout(()=>LIVE_REPORT_UI.run(),0)
