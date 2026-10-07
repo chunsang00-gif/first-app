@@ -11,7 +11,8 @@ function balance(chart,mbti){
  const known=/^[EI][NS][FT][JP]$/.test(mbti||''); const bump=(cond,n)=>known&&cond?n:0;
  return {
   mode:known?'saju-mbti':'saju-only',
-  note:known?'사주와 MBTI를 함께 반영한 앱 내 상대 성향 지표':'MBTI 미입력으로 사주 계산만 반영한 앱 내 상대 성향 지표',
+  note:known?'내 결과 안에서 5가지 성향을 비교한 값':'사주 결과 안에서 5가지 성향을 비교한 값',
+  scaleLabel:'높을수록 이 성향이 더 자주 드러남',
   axes:{
    relationship:clamp(48+counts.wood*6+counts.fire*5+bump(/[EF]/.test(mbti),8)),
    achievement:clamp(48+counts.metal*6+counts.fire*5+bump(/[TJ]/.test(mbti),7)),
