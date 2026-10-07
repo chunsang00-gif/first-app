@@ -8,6 +8,10 @@ run('2027 annual pillar is deterministic',()=>{assert.equal(P.annualPillar(2027)
 run('production result carries provenance',()=>{const r=P.calculate(sample);assert.ok(P.canAnalyze(r));assert.ok(r.provenance.year&&r.provenance.day)});
 run('report packet is facts-only and ready',()=>{const r=F.build(sample);assert.equal(r.status,'ready');assert.equal(r.constraints.factsOnly,true);assert.equal(r.constraints.nameAnalysisEnabled,false)});
 run('report handoff preserves generic input',()=>{const r=F.build(sample);assert.equal(r.calculationInput.birthDate,sample.birthDate);assert.equal(r.calculationInput.birthTime,sample.birthTime)});
+run('report facts expose deterministic core evidence',()=>{const r=F.build(sample);assert.equal(r.schemaVersion,'analysis-facts-v1.4');assert.ok(r.facts.core.dayMaster.stem);assert.ok(r.facts.core.dayMaster.element);assert.ok(r.facts.core.monthBranch.branch);assert.ok(r.facts.core.monthBranch.element);assert.equal(Object.values(r.facts.core.elementCounts).reduce((a,b)=>a+b,0),8);assert.equal(r.facts.core.hourKnown,true)});
+run('unknown time never creates hour-derived core evidence',()=>{const r=F.build({...sample,birthTime:'',unknownBirthTime:true});assert.equal(r.facts.core.hourKnown,false);assert.equal(Object.values(r.facts.core.elementCounts).reduce((a,b)=>a+b,0),6)});
+run('changing only name leaves analytical facts unchanged',()=>{const a=F.build({...sample,name:'가'}),b=F.build({...sample,name:'나'});assert.deepEqual(a.chart,b.chart);assert.deepEqual(a.facts,b.facts);assert.deepEqual(a.profileBalance,b.profileBalance)});
+run('changing MBTI leaves Saju core facts unchanged',()=>{const a=F.build({...sample,mbti:'ENFP'}),b=F.build({...sample,mbti:'ISTJ'});assert.deepEqual(a.chart,b.chart);assert.deepEqual(a.facts.core,b.facts.core);assert.notDeepEqual(a.profileBalance,b.profileBalance)});
 run('unverified hanja is blocked',()=>{const r=N.analyze('테스트','天地人');assert.equal(r.status,'needs_verified_dictionary')});
 run('name ruleset contains no embedded user dictionary',()=>{assert.deepEqual(NR.VERIFIED,{})});
 
