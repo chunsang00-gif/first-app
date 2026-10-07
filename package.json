@@ -4,5 +4,5 @@
   "version":"1.0.0",
   "description":"Deterministic Saju calculation and premium Saju x MBTI report pipeline",
   "dependencies":{"lunar-javascript":"1.7.7"},
-  "scripts":{"start":"node server.js","test":"node node-tests.js","smoke":"node smoke-test.js"}
+  "scripts":{"start":"node server.js","test":"node node-tests.js && node result-dashboard-tests.js","smoke":"node smoke-test.js"}
 }

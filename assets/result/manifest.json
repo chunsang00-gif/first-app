@@ -1,0 +1,137 @@
+{
+  "style": "첨부 참고 디자인: 부드러운 고급 3D 애니메이션, 갈색 머리와 눈·흰 셔츠·따뜻한 봄 햇빛, 동물은 카라멜색 목수건",
+  "assetCount": 22,
+  "generationMode": "built-in image_gen",
+  "reference": "d29df140-5368-4920-99f4-b216a73143ba.png",
+  "referenceLibraryId": "libfile_ac2c9e20286881918116d40225a207c4",
+  "ui": "문장·카드·버튼은 HTML/CSS, 차트는 실제 수치에 기반한 SVG와 CSS 막대. 화면 전체 이미지를 사용하지 않음.",
+  "selection": {
+    "portrait": "성별 + 성취/계획 점수 평균 대 감정/독립 점수 평균 비교; 점수 없을 때 MBTI E/I",
+    "zodiac": "사주 연주 지지의 검증된 계산값, 그레고리력 출생연도로 추정하지 않음",
+    "content": "생성된 해당 보고서의 기본·MBTI 대비·통합 결론",
+    "charts": "해당 보고서의 profileBalance.axes 다섯 점수를 두 차트에 동일하게 연결"
+  },
+  "prompts": {
+    "portrait": "One isolated youthful adult 3D animated character, brown wavy hair, warm brown expressive eyes, white/ivory open collar shirt. Reflective: cheek on palm. Confident: relaxed upright with open presenting hand. Soft premium animated-film aesthetic, warm spring sunlight. Transparent alpha. No glasses, hoodie, text, UI or scenery. One character per file.",
+    "zodiac": "One isolated full-body sitting zodiac animal of specified anatomy, friendly smile and expressive brown eyes, caramel neckerchief, warm soft sunlight, premium rounded polished animated-film style matching reference pony. Transparent alpha. No glasses, orb, text, UI, person, scenery or ground plane.",
+    "garden": "Wide sunny meadow with blue sky, fluffy clouds, golden sun upper right, leafy branches, distant hills, wooden fence, wildflowers and grass. Pale airy left half. No people, animals, text, cards or UI.",
+    "insights": [
+      "Cream checkmark clipboard, coral target and purple arrow.",
+      "Blue magnifier with stacked ivory blank papers.",
+      "Warm yellow bulb with lavender/mint rounded gears."
+    ],
+    "states": "One friendly teal dragon with golden horns, tiny wings and caramel scarf, warm polished animated-film style. Loading: studying parchment with sparkles. Error: waving with circular arrow token. Transparent alpha. No text, glasses, orb, scenery or UI."
+  },
+  "assets": [
+    {
+      "id": "portrait-male-confident",
+      "file": "portrait-male-confident.webp",
+      "source": "generated-for-reference-result-dashboard"
+    },
+    {
+      "id": "portrait-male-reflective",
+      "file": "portrait-male-reflective.webp",
+      "source": "generated-for-reference-result-dashboard"
+    },
+    {
+      "id": "portrait-female-confident",
+      "file": "portrait-female-confident.webp",
+      "source": "generated-for-reference-result-dashboard"
+    },
+    {
+      "id": "portrait-female-reflective",
+      "file": "portrait-female-reflective.webp",
+      "source": "generated-for-reference-result-dashboard"
+    },
+    {
+      "id": "zodiac-rat",
+      "file": "zodiac-rat.webp",
+      "source": "generated-for-reference-result-dashboard"
+    },
+    {
+      "id": "zodiac-ox",
+      "file": "zodiac-ox.webp",
+      "source": "generated-for-reference-result-dashboard"
+    },
+    {
+      "id": "zodiac-tiger",
+      "file": "zodiac-tiger.webp",
+      "source": "generated-for-reference-result-dashboard"
+    },
+    {
+      "id": "zodiac-rabbit",
+      "file": "zodiac-rabbit.webp",
+      "source": "generated-for-reference-result-dashboard"
+    },
+    {
+      "id": "zodiac-dragon",
+      "file": "zodiac-dragon.webp",
+      "source": "generated-for-reference-result-dashboard"
+    },
+    {
+      "id": "zodiac-snake",
+      "file": "zodiac-snake.webp",
+      "source": "generated-for-reference-result-dashboard"
+    },
+    {
+      "id": "zodiac-horse",
+      "file": "zodiac-horse.webp",
+      "source": "generated-for-reference-result-dashboard"
+    },
+    {
+      "id": "zodiac-goat",
+      "file": "zodiac-goat.webp",
+      "source": "generated-for-reference-result-dashboard"
+    },
+    {
+      "id": "zodiac-monkey",
+      "file": "zodiac-monkey.webp",
+      "source": "generated-for-reference-result-dashboard"
+    },
+    {
+      "id": "zodiac-rooster",
+      "file": "zodiac-rooster.webp",
+      "source": "generated-for-reference-result-dashboard"
+    },
+    {
+      "id": "zodiac-dog",
+      "file": "zodiac-dog.webp",
+      "source": "generated-for-reference-result-dashboard"
+    },
+    {
+      "id": "zodiac-pig",
+      "file": "zodiac-pig.webp",
+      "source": "generated-for-reference-result-dashboard"
+    },
+    {
+      "id": "state-loading",
+      "file": "state-loading.webp",
+      "source": "generated-for-reference-result-dashboard"
+    },
+    {
+      "id": "state-error",
+      "file": "state-error.webp",
+      "source": "generated-for-reference-result-dashboard"
+    },
+    {
+      "id": "hero-garden",
+      "file": "hero-garden.webp",
+      "source": "generated-for-reference-result-dashboard"
+    },
+    {
+      "id": "insight-1",
+      "file": "insight-1.webp",
+      "source": "generated-for-reference-result-dashboard"
+    },
+    {
+      "id": "insight-2",
+      "file": "insight-2.webp",
+      "source": "generated-for-reference-result-dashboard"
+    },
+    {
+      "id": "insight-3",
+      "file": "insight-3.webp",
+      "source": "generated-for-reference-result-dashboard"
+    }
+  ]
+}
