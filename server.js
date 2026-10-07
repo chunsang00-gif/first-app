@@ -1,5 +1,5 @@
 const http=require('http');const fs=require('fs');const path=require('path');const facts=require('./report-facts-node');const reportContract=require('./report-server-contract');
-const PORT=Number(process.env.PORT||3000),ROOT=__dirname,MODEL_TIMEOUT_MS=Number(process.env.REPORT_MODEL_TIMEOUT_MS||90000),JOB_TTL_MS=10*60*1000,JOBS=new Map();
+const PORT=Number(process.env.PORT||3000),ROOT=__dirname,MODEL_TIMEOUT_MS=Number(process.env.REPORT_MODEL_TIMEOUT_MS||180000),JOB_TTL_MS=10*60*1000,JOBS=new Map();
 function cleanupJobs(){const now=Date.now();for(const [id,j] of JOBS)if(now-(j.createdAt||now)>JOB_TTL_MS)JOBS.delete(id)}
 function json(res,status,data){res.writeHead(status,{'content-type':'application/json; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff','referrer-policy':'no-referrer'});res.end(JSON.stringify(data))}
 function body(req){return new Promise((ok,fail)=>{let s='';req.on('data',c=>{s+=c;if(s.length>200000){fail(Error('request too large'));req.destroy()}});req.on('end',()=>{try{ok(JSON.parse(s||'{}'))}catch(e){fail(Error('invalid json'))}});req.on('error',fail)})}
