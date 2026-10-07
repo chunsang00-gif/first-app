@@ -64,7 +64,7 @@ run('premium quality gate rejects text after closing question',()=>{const x=mock
 run('premium quality gate requires question ending',()=>{const x=mockReport();x.finalJudgment.closingQuestion='최종 결론입니다.';assert.equal(Q.validate(x).pass,false)});
 
 run('premium quality gate rejects anyone-style wording',()=>{const x=mockReport();x.sections[2].body[0]+=' 균형이 중요합니다.';const r=Q.validate(x);assert.equal(r.pass,false);assert.ok(r.errors.some(e=>e.includes('could-apply-to-anyone')))});
-run('premium quality gate rejects vague evidence',()=>{const x=mockReport();x.sections[2].evidence=['근거'];const r=Q.validate(x);assert.equal(r.pass,false);assert.ok(r.errors.some(e=>e.includes('evidence too vague'))});
+run('premium quality gate rejects vague evidence',()=>{const x=mockReport();x.sections[2].evidence=['근거'];const r=Q.validate(x);assert.equal(r.pass,false);assert.ok(r.errors.some(e=>e.includes('evidence too vague')))});
 run('premium quality gate rejects evidence placeholders',()=>{const x=mockReport();x.sections[2].evidence=['제공된 근거를 사용했습니다'];const r=Q.validate(x);assert.equal(r.pass,false);assert.ok(r.errors.some(e=>e.includes('evidence placeholder')))});
 run('premium quality gate rejects sugarcoating',()=>{const x=mockReport();x.sections[2].body[0]+=' 결국 잘 풀릴 것입니다.';const r=Q.validate(x);assert.equal(r.pass,false);assert.ok(r.errors.some(e=>e.includes('unsupported positive framing')))});
 run('premium quality gate rejects overreaching advice',()=>{const x=mockReport();x.sections[2].body[0]+=' 반드시 해야 합니다.';const r=Q.validate(x);assert.equal(r.pass,false);assert.ok(r.errors.some(e=>e.includes('overreaching advice')))});
