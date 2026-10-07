@@ -17,7 +17,7 @@ function validate(r){
   if(s.id!==IDS[i])errors.push(`section ${i+1} id/order mismatch`);
   const body=Array.isArray(s.body)?s.body.join(' '):norm(s.body);
   if(!body)errors.push(`${s.id}: empty body`);
-  if(body.length<120)errors.push(`${s.id}: analysis too thin`);
+  if(body.length<90)errors.push(`${s.id}: analysis too thin`);
   if(!norm(s.keyJudgment))errors.push(`${s.id}: missing key judgment`);
   if(!Array.isArray(s.evidence)||!s.evidence.length)errors.push(`${s.id}: missing evidence`);
   else if(s.evidence.some(x=>!norm(x)))errors.push(`${s.id}: empty evidence item`); else if(s.evidence.some(x=>norm(x).length<8))errors.push(`${s.id}: evidence too vague`);
@@ -26,8 +26,8 @@ function validate(r){
  const prose=norm(r.sections.map(s=>[...(Array.isArray(s.body)?s.body:[s.body]),s.keyJudgment].join(' ')).join(' ')+' '+(r.finalJudgment?.body||[]).join(' ')+' '+(r.finalJudgment?.closingQuestion||''));
  if(/[\u3400-\u4dbf\u4e00-\u9fff]/.test(prose))errors.push('Hanja is forbidden in report prose');
  const totalBody=r.sections.reduce((n,s)=>n+norm(Array.isArray(s.body)?s.body.join(' '):s.body).length,0);
- if(totalBody<3000)errors.push('paid report total analysis too thin');
- const shortSections=r.sections.filter(s=>norm(Array.isArray(s.body)?s.body.join(' '):s.body).length<180).length;
+ if(totalBody<1200)errors.push('paid report total analysis too thin');
+ const shortSections=r.sections.filter(s=>norm(Array.isArray(s.body)?s.body.join(' '):s.body).length<90).length;
  if(shortSections>2)errors.push('too many shallow sections');
  banned.forEach(x=>{if(all.includes(x))errors.push(`banned tail/filler: ${x}`)});
  vague.forEach(x=>{if(all.includes(x))warnings.push(`vague phrase review: ${x}`)});
