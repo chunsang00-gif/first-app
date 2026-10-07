@@ -9,7 +9,7 @@ const sugar=['걱정하지 않아도','잘될 것입니다','잘 풀릴','분명
 const meddling=['반드시 해야','꼭 해야','습관을 들이','주변 사람에게','마음을 내려놓','감사하는 마음','스스로를 사랑'];
 const universal=['상황에 따라 다를','사람마다 다를','때로는 적극적','때로는 신중','장단점이 있','균형이 중요','소통이 중요','자기계발','성장할 수'];
 const norm=s=>String(s||'').replace(/\s+/g,' ').trim();
-function validate(r){
+function validate(r,packet){
  const errors=[],warnings=[];
  if(!r||!Array.isArray(r.sections))return {pass:false,errors:['sections missing'],warnings};
  if(r.sections.length!==12)errors.push(`sections must be 12, got ${r.sections.length}`);
@@ -28,6 +28,19 @@ function validate(r){
  banned.forEach(x=>{if(all.includes(x))errors.push(`banned tail/filler: ${x}`)});
  vague.forEach(x=>{if(all.includes(x))errors.push(`vague phrase: ${x}`)}); abstract.forEach(x=>{if(all.includes(x))errors.push(`abstract wording: ${x}`)});
  generic.forEach(x=>{if(all.includes(x))errors.push(`generic/cliche phrase: ${x}`)}); advice.forEach(x=>{if(all.includes(x))warnings.push(`generic advice review: ${x}`)}); sugar.forEach(x=>{if(all.includes(x))errors.push(`unsupported positive framing: ${x}`)}); meddling.forEach(x=>{if(all.includes(x))errors.push(`overreaching advice: ${x}`)}); universal.forEach(x=>{if(all.includes(x))errors.push(`could-apply-to-anyone wording: ${x}`)});
+ if(packet){
+  const unknownTime=packet?.calculationInput?.unknownBirthTime===true||packet?.facts?.core?.hourKnown===false;
+  if(unknownTime){
+   r.sections.forEach(s=>{const t=norm([...(Array.isArray(s.body)?s.body:[s.body]),s.keyJudgment,...(Array.isArray(s.evidence)?s.evidence:[])].join(' '));if(/시주/.test(t))errors.push(`${s.id}: hour pillar claim with unknown birth time`)})
+  }
+  const actualMbti=String(packet?.mbti?.type||packet?.calculationInput?.mbti||'모름').toUpperCase();
+  const mbtiTokens=all.match(/\b(?:E|I)(?:N|S)(?:T|F)(?:J|P)\b/g)||[];
+  if(actualMbti==='모름'){if(mbtiTokens.length)errors.push('specific MBTI claim without MBTI input')}
+  else if(mbtiTokens.some(x=>x!==actualMbti))errors.push('report mentions MBTI type different from input');
+  const rel=Array.isArray(packet?.facts?.targetYearRelations)?packet.facts.targetYearRelations:[];
+  const yearText=norm(r.sections.filter(s=>['year_2027','year_2027_money','year_2027_career','year_2027_relationship'].includes(s.id)).map(s=>[...(Array.isArray(s.body)?s.body:[s.body]),s.keyJudgment,...(Array.isArray(s.evidence)?s.evidence:[])].join(' ')).join(' '));
+  if(!rel.length&&/(자오충|축미충|인신충|묘유충|진술충|사해충)/.test(yearText))errors.push('2027 specific clash claim not present in calculation facts');
+ }
  const sectionTexts=r.sections.filter(Boolean).map(s=>norm((Array.isArray(s.body)?s.body.join(' '):s.body)+' '+s.keyJudgment));
  const tokens=s=>new Set(norm(s).split(/[^가-힣A-Za-z0-9]+/).filter(x=>x.length>=3));
  const similarity=(a,b)=>{const A=tokens(a),B=tokens(b);if(!A.size||!B.size)return 0;const common=[...A].filter(x=>B.has(x)).length;return common/Math.max(1,Math.min(A.size,B.size))};
