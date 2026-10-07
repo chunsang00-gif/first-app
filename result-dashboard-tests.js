@@ -31,3 +31,5 @@ const editedHTML=render(edited);assert(editedHTML.includes(edited.cover.headline
 const malicious=structuredClone(edited);malicious.cover.headline='<img onerror=alert(1)>';malicious.sections[0].bodyLabels[0]='<script>bad</script>';assert(!render(malicious).includes('<script>bad</script>'));assert(!render(malicious).includes('<img onerror=alert(1)>'));
 for(const gender of ['male','female'])for(const mood of ['encouraging','cautious'])assert(fs.existsSync('assets/result/portrait-'+gender+'-'+mood+'.webp'));
 console.log('PASS personalized cover, keyword order, no repeated tags, share controls, reduced portraits, mood selection, labeled paragraphs, actionable final summary, escaping');
+
+assert(editedHTML.includes('id="shareFullReport"'));assert(editedHTML.includes('id="saveFullReport"'));assert(editedHTML.indexOf('id="shareFullReport"')>editedHTML.indexOf('class="section final-card"'));console.log('PASS full-report sharing appears after final summary');

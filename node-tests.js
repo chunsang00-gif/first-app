@@ -71,3 +71,6 @@ run('premium quality gate accepts different evidence by domain',()=>{const x=moc
 
 run('rejects repeated paragraphs within a section',()=>{const x=mockReport();x.sections[0].body.push(x.sections[0].body[0]);assert.ok(Q.validate(x).errors.some(e=>e.includes('repeated body sentence')))});
 run('rejects leaked fields and duplicated words',()=>{const x=mockReport();x.sections[0].body.push('profileBalance_score 때문에 결정을 결정을 미룹니다.');const q=Q.validate(x);assert.ok(q.errors.some(e=>e.includes('internal field')));assert.ok(q.errors.some(e=>e.includes('adjacent word')))});
+
+run('ten-god facts use chart stems and preserve unknown-time limitations',()=>{const p=F.build({calendar:'solar',birthDate:'1999-09-24',unknownBirthTime:true,gender:'female',mbti:'ISFP'});assert.equal(p.facts.tenGods.month.stemTenGod,'편재');assert.equal(p.facts.annualTenGods.stemTenGod,'편인');assert.equal(p.facts.tenGods.year.hiddenStems[0].tenGod,'편관');assert.equal(p.facts.tenGods.hour,undefined);assert.equal(p.facts.natalClashes.length,2);assert.equal(p.fortune.status,'unavailable_without_birth_time')});
+run('same branch is never mislabeled as a clash',()=>{const p=F.build({...sample,birthDate:'1991-06-15'});assert(!p.facts.targetYearRelations.some(r=>r.between==='year'));for(const relation of p.facts.natalClashes)assert.notEqual(relation.branches[0],relation.branches[1])});

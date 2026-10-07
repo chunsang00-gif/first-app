@@ -9,7 +9,7 @@ async function capture(element){
  for(let i=0;i<original.length;i++){
   const source=original[i],copy=copies[i],computed=getComputedStyle(source);let style='';
   for(const key of computed){let value=computed.getPropertyValue(key);if(value.includes('url(')){const matches=[...value.matchAll(/url\(["']?([^"')]+)["']?\)/g)];for(const match of matches){if(match[1].includes('#')&&!match[1].includes('/assets/'))value=value.replace(match[0],`url(#${match[1].split('#').pop()})`);else value=value.replace(match[0],`url("${await inline(match[1])}")`)}}style+=`${key}:${value};`}
-  copy.setAttribute('style',style+'animation:none!important;transition:none!important;');
+  copy.setAttribute('style',style+'animation:none!important;transition:none!important;content-visibility:visible!important;contain:none!important;contain-intrinsic-size:none!important;');
   if(source.tagName==='IMG'){copy.setAttribute('src',await inline(source.currentSrc||source.src));copy.removeAttribute('srcset');copy.removeAttribute('loading')}
  }
  clone.querySelectorAll('[data-share-exclude],.result-nav,.full-analysis-cta,.chart-explanation').forEach(el=>el.remove());
