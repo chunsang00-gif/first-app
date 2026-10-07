@@ -11,7 +11,7 @@ run('report handoff preserves generic input',()=>{const r=F.build(sample);assert
 run('unverified hanja is blocked',()=>{const r=N.analyze('테스트','天地人');assert.equal(r.status,'needs_verified_dictionary')});
 run('name ruleset contains no embedded user dictionary',()=>{assert.deepEqual(NR.VERIFIED,{})});
 
-run('browser prompt contract parses',()=>{const fs=require('fs'),vm=require('vm');const src=fs.readFileSync('report-prompt.js','utf8');const sandbox={window:{}};vm.runInNewContext(src,sandbox);assert.ok(sandbox.window.REPORT_PROMPT);assert.equal(sandbox.window.REPORT_PROMPT.version,'premium-v1.3')});
+run('browser prompt contract parses',()=>{const fs=require('fs'),vm=require('vm');const src=fs.readFileSync('report-prompt.js','utf8');const sandbox={window:{}};vm.runInNewContext(src,sandbox);assert.ok(sandbox.window.REPORT_PROMPT);assert.equal(sandbox.window.REPORT_PROMPT.version,'premium-v1.6')});
 const Q=require('./report-quality-node');
 const cases=[
  {label:'winter male ENFP',input:{calendar:'solar',birthDate:'1993-01-18',birthTime:'07:30',birthplace:'서울',gender:'male',mbti:'ENFP',name:'테스트'}},

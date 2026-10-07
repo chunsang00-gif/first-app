@@ -16,6 +16,8 @@ function validate(r){
  r.sections.forEach((s,i)=>{
   if(!s||typeof s!=='object'){errors.push(`section ${i+1} invalid`);return}
   if(s.id!==IDS[i])errors.push(`section ${i+1} id/order mismatch`);
+  if(s.bodyLabels&&(!Array.isArray(s.bodyLabels)||s.bodyLabels.length!==s.body?.length||s.bodyLabels.some(x=>!norm(x))))errors.push(`${s.id}: paragraph labels incomplete`);
+  if(s.mood&&!['confident','reflective','encouraging','cautious'].includes(s.mood))errors.push(`${s.id}: invalid content mood`);
   const body=Array.isArray(s.body)?s.body.join(' '):norm(s.body);
   if(!body)errors.push(`${s.id}: empty body`);
   if(!norm(s.keyJudgment))errors.push(`${s.id}: missing key judgment`);
@@ -40,6 +42,8 @@ function validate(r){
   const overlap=[...a].filter(x=>b.has(x)).length/Math.max(1,Math.min(a.size,b.size));
   if(overlap>.72)errors.push(`repeated judgment: ${IDS[i]} / ${IDS[j]}`);
  }
+ if(r.cover){if(!norm(r.cover.headline)||!norm(r.cover.description)||!Array.isArray(r.cover.keywords)||r.cover.keywords.length<3)errors.push('cover incomplete');if(new Set(r.cover.keywords).size!==r.cover.keywords.length)errors.push('cover keywords repeat');const coverHeadline=norm(r.cover.headline);if(r.sections.some(s=>norm(s.title)===coverHeadline||norm(s.keyJudgment)===coverHeadline))errors.push('cover repeats a card');}
+ if(r.finalJudgment?.routines&&r.finalJudgment.routines.some(x=>!norm(x.trigger)||!norm(x.action)||!norm(x.reason)))errors.push('final routine incomplete');
  if(!Array.isArray(r.finalJudgment?.body)||!r.finalJudgment.body.length)errors.push('final body missing');
  if(!norm(r.finalJudgment?.closingQuestion))errors.push('final closing question missing');
  else if(!/[?？]$/.test(norm(r.finalJudgment.closingQuestion)))errors.push('closing line must be a question');

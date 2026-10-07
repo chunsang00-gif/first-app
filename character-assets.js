@@ -25,7 +25,7 @@
  function hero(report,input){const s=select(report,input);return `<div class="character-stage asset-stage" data-character="${s.portrait}" data-zodiac="${s.animal||'unknown'}">${image(s.portrait,s.pose==='confident'?'자신 있게 표현하는 인물 캐릭터':'생각을 정리하는 인물 캐릭터','hero-portrait',true)}${s.zodiac?`<div class="asset-zodiac">${image(s.zodiac,labels[s.animal]+'띠 캐릭터','hero-zodiac',true)}</div>`:''}</div>`;}
  function state(kind){const loading=kind==='loading';return image(loading?'state-loading':'state-error',loading?'분석을 준비하는 캐릭터':'다시 시도를 안내하는 캐릭터','state-character',true);}
  function guide(input,confirm=false){const gender=input.gender==='female'?'female':'male';return image(`portrait-${gender}-${confirm?'reflective':'confident'}`,confirm?'입력 정보를 확인하는 캐릭터':'사주 분석을 안내하는 캐릭터','guide-character',true);}
- function detail(sectionId,report,input){const s=select(report,input);const pose=/money|career|decision/.test(sectionId)?'confident':'reflective';return image(`portrait-${s.gender}-${pose}`,'','detail-character');}
+ function detail(sectionId,report,input,section={}){const s=select(report,input);const allowed=['confident','reflective','encouraging','cautious'];const pose=allowed.includes(section.mood)?section.mood:(/stress|money/.test(sectionId)?'cautious':/relationship|integrated/.test(sectionId)?'encouraging':s.pose);return image(`portrait-${s.gender}-${pose}`,'','detail-character');}
  function badge(report,input){const s=select(report,input);return s.zodiac?image(s.zodiac,'','badge-character',true):'';}
  const api={select,hero,state,detail,guide,badge,zodiac,labels,base};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;

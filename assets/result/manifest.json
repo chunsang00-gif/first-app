@@ -1,6 +1,6 @@
 {
   "style": "첨부 참고 디자인: 부드러운 고급 3D 애니메이션, 갈색 머리와 눈·흰 셔츠·따뜻한 봄 햇빛, 동물은 카라멜색 목수건",
-  "assetCount": 22,
+  "assetCount": 26,
   "generationMode": "built-in image_gen",
   "reference": "d29df140-5368-4920-99f4-b216a73143ba.png",
   "referenceLibraryId": "libfile_ac2c9e20286881918116d40225a207c4",
@@ -9,7 +9,8 @@
     "portrait": "성별 + 성취/계획 점수 평균 대 감정/독립 점수 평균 비교; 점수 없을 때 MBTI E/I",
     "zodiac": "사주 연주 지지의 검증된 계산값, 그레고리력 출생연도로 추정하지 않음",
     "content": "생성된 해당 보고서의 기본·MBTI 대비·통합 결론",
-    "charts": "해당 보고서의 profileBalance.axes 다섯 점수를 두 차트에 동일하게 연결"
+    "charts": "해당 보고서의 profileBalance.axes 다섯 점수를 두 차트에 동일하게 연결",
+    "detail": "본문의 mood와 입력 성별에 따라 표정 선택. 12개 중 7개 핵심 장에만 배치하여 반복을 줄임"
   },
   "prompts": {
     "portrait": "One isolated youthful adult 3D animated character, brown wavy hair, warm brown expressive eyes, white/ivory open collar shirt. Reflective: cheek on palm. Confident: relaxed upright with open presenting hand. Soft premium animated-film aesthetic, warm spring sunlight. Transparent alpha. No glasses, hoodie, text, UI or scenery. One character per file.",
@@ -20,7 +21,8 @@
       "Blue magnifier with stacked ivory blank papers.",
       "Warm yellow bulb with lavender/mint rounded gears."
     ],
-    "states": "One friendly teal dragon with golden horns, tiny wings and caramel scarf, warm polished animated-film style. Loading: studying parchment with sparkles. Error: waving with circular arrow token. Transparent alpha. No text, glasses, orb, scenery or UI."
+    "states": "One friendly teal dragon with golden horns, tiny wings and caramel scarf, warm polished animated-film style. Loading: studying parchment with sparkles. Error: waving with circular arrow token. Transparent alpha. No text, glasses, orb, scenery or UI.",
+    "expressions": "기존 인물 동일성·헤어·갈색 눈·아이보리 셔츠·따뜻한 프리미엄 3D 조명을 유지. encouraging: 따뜻한 미소와 작은 엄지, cautious: 부드럽게 진지한 표정과 턱에 손가락. 투명 배경, UI·문자·장면 없음."
   },
   "assets": [
     {
@@ -132,6 +134,30 @@
       "id": "insight-3",
       "file": "insight-3.webp",
       "source": "generated-for-reference-result-dashboard"
+    },
+    {
+      "id": "portrait-male-encouraging",
+      "file": "portrait-male-encouraging.webp",
+      "source": "exec-e18c805b-0599-493b-a236-8b51637480ac.png",
+      "generationMode": "built-in image_gen"
+    },
+    {
+      "id": "portrait-female-encouraging",
+      "file": "portrait-female-encouraging.webp",
+      "source": "exec-3df71680-bbc0-4d5a-974a-3e48b3d55f64.png",
+      "generationMode": "built-in image_gen"
+    },
+    {
+      "id": "portrait-male-cautious",
+      "file": "portrait-male-cautious.webp",
+      "source": "exec-39f1c33f-3d5d-4f67-aa66-f12c7e01db1d.png",
+      "generationMode": "built-in image_gen"
+    },
+    {
+      "id": "portrait-female-cautious",
+      "file": "portrait-female-cautious.webp",
+      "source": "exec-c564f3a2-a078-409d-85ab-feeefe8ca558.png",
+      "generationMode": "built-in image_gen"
     }
   ]
 }
