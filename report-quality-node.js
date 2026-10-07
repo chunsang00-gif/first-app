@@ -55,7 +55,7 @@ function validate(r,packet){
  if(packet){
   const catalog=evidenceCatalog(packet), chartVals=Object.values(packet.chart||{}).filter(Boolean), mbti=String(packet.calculationInput?.mbti||'');
   r.sections.forEach(s=>{const ev=norm((s.evidence||[]).join(' '));const isCross=['mbti_contradiction','decision','money','career','relationship','stress','integrated_judgment'].includes(s.id),isYear=s.id.startsWith('year_2027');
-   const hasChart=chartVals.some(v=>ev.includes(v))||/(일간|월지|오행|연주|월주|일주|시주)/.test(ev);
+   const hasChart=chartVals.some(v=>ev.includes(v))||/(일간|월지|오행|연주|월주|일주|시주|재성 계산값|관성 계산값)/.test(ev);
    if(!hasChart)errors.push(`${s.id}: evidence does not identify a calculated Saju fact`);
    if(isCross&&mbti&&mbti!=='모름'&&!ev.includes(mbti)&&!/(MBTI|성향 선호)/.test(ev))errors.push(`${s.id}: cross-analysis evidence does not identify MBTI input`);
    if(isYear&&!/(2027|세운|연도|丁未|정미)/.test(ev))errors.push(`${s.id}: annual evidence does not identify target year`);
