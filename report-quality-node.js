@@ -2,7 +2,7 @@
 const IDS=['saju_core','mbti_contradiction','decision','money','career','relationship','stress','integrated_judgment','year_2027','year_2027_money','year_2027_career','year_2027_relationship'];
 const banned=['두 경우는 완전히 다릅니다','이 점이 중요합니다','기억할 필요가 있습니다','수익의 질','실제로 남는 돈','맹점'];
 const vague=['현실적인 선택','흐름이 강하다','가능성이 있습니다','구조가 좋다','결과로 만든다'];
-const abstract=['통제할 수 있는 돈','판단 기준','선택 메커니즘','감당 가능한 범위','현실적 구조','작동 방식','통제 범위'];
+const abstract=['통제할 수 있는 돈','판단 기준','선택 메커니즘','감당 가능한 범위','현실적 구조','작동 방식','통제 범위','흐름이','구조가','구조를','작용이','기운이','에너지가','균형이','메커니즘'];
 const generic=['신중한 편입니다','책임감이 강합니다','대화를 많이 해야','안정적으로 관리','좋은 기회가 올','타고난 운명','운이 열립니다','대박 운','귀인의 도움','기운을 받아'];
 const advice=['노력해야 합니다','긍정적으로 생각','마음을 열고','균형을 유지','꾸준히 노력','자신을 믿'];
 const sugar=['걱정하지 않아도','잘될 것입니다','잘 풀릴','분명 좋은','행복해질','충분히 해낼','결국 잘','좋은 방향으로','희망을 가지'];
@@ -18,7 +18,7 @@ function validate(r){
   if(s.id!==IDS[i])errors.push(`section ${i+1} id/order mismatch`);
   const body=Array.isArray(s.body)?s.body.join(' '):norm(s.body);
   if(!body)errors.push(`${s.id}: empty body`);
-  if(body.length<90)errors.push(`${s.id}: analysis too thin`);
+  if(body.length<300)errors.push(`${s.id}: analysis too thin`);
   if(!norm(s.keyJudgment))errors.push(`${s.id}: missing key judgment`);
   if(!Array.isArray(s.evidence)||!s.evidence.length)errors.push(`${s.id}: missing evidence`);
   else if(s.evidence.some(x=>!norm(x)))errors.push(`${s.id}: empty evidence item`); else if(s.evidence.some(x=>norm(x).length<8))errors.push(`${s.id}: evidence too vague`);
@@ -27,8 +27,8 @@ function validate(r){
  const prose=norm(r.sections.map(s=>[...(Array.isArray(s.body)?s.body:[s.body]),s.keyJudgment].join(' ')).join(' ')+' '+(r.finalJudgment?.body||[]).join(' ')+' '+(r.finalJudgment?.closingQuestion||''));
  if(/[\u3400-\u4dbf\u4e00-\u9fff]/.test(prose))errors.push('Hanja is forbidden in report prose');
  const totalBody=r.sections.reduce((n,s)=>n+norm(Array.isArray(s.body)?s.body.join(' '):s.body).length,0);
- if(totalBody<1200)errors.push('paid report total analysis too thin');
- const shortSections=r.sections.filter(s=>norm(Array.isArray(s.body)?s.body.join(' '):s.body).length<90).length;
+ if(totalBody<3600)errors.push('paid report total analysis too thin');
+ const shortSections=r.sections.filter(s=>norm(Array.isArray(s.body)?s.body.join(' '):s.body).length<300).length;
  if(shortSections>2)errors.push('too many shallow sections');
  banned.forEach(x=>{if(all.includes(x))errors.push(`banned tail/filler: ${x}`)});
  vague.forEach(x=>{if(all.includes(x))warnings.push(`vague phrase review: ${x}`)}); abstract.forEach(x=>{if(all.includes(x))errors.push(`abstract wording: ${x}`)});
