@@ -9,6 +9,17 @@ const sugar=['걱정하지 않아도','잘될 것입니다','잘 풀릴','분명
 const meddling=['반드시 해야','꼭 해야','습관을 들이','주변 사람에게','마음을 내려놓','감사하는 마음','스스로를 사랑'];
 const universal=['상황에 따라 다를','사람마다 다를','때로는 적극적','때로는 신중','장단점이 있','균형이 중요','소통이 중요','자기계발','성장할 수'];
 const norm=s=>String(s||'').replace(/\s+/g,' ').trim();
+function evidenceCatalog(packet){
+ const f=packet?.facts||{},c=f.core||{},out=[];
+ if(c.dayMaster?.stem)out.push('일간 '+c.dayMaster.stem);
+ if(c.monthBranch?.branch)out.push('월지 '+c.monthBranch.branch);
+ if(c.elementCounts)out.push('오행 '+Object.entries(c.elementCounts).map(([k,v])=>k+':'+v).join(' '));
+ if(packet?.chart)Object.entries(packet.chart).filter(([,v])=>v).forEach(([k,v])=>out.push(k+'주 '+v));
+ const mbti=packet?.calculationInput?.mbti;if(mbti&&mbti!=='모름')out.push('MBTI '+mbti);
+ if(packet?.targetYear?.pillar)out.push('2027 '+packet.targetYear.pillar);
+ (f.targetYearRelations||[]).forEach(x=>out.push('2027 '+x.type+' '+x.between+' '+x.branches));
+ return out;
+}
 function validate(r,packet){
  const errors=[],warnings=[];
  if(!r||!Array.isArray(r.sections))return {pass:false,errors:['sections missing'],warnings};
@@ -40,6 +51,16 @@ function validate(r,packet){
   const rel=Array.isArray(packet?.facts?.targetYearRelations)?packet.facts.targetYearRelations:[];
   const yearText=norm(r.sections.filter(s=>['year_2027','year_2027_money','year_2027_career','year_2027_relationship'].includes(s.id)).map(s=>[...(Array.isArray(s.body)?s.body:[s.body]),s.keyJudgment,...(Array.isArray(s.evidence)?s.evidence:[])].join(' ')).join(' '));
   if(!rel.length&&/(자오충|축미충|인신충|묘유충|진술충|사해충)/.test(yearText))errors.push('2027 specific clash claim not present in calculation facts');
+ }
+ if(packet){
+  const catalog=evidenceCatalog(packet), chartVals=Object.values(packet.chart||{}).filter(Boolean), mbti=String(packet.calculationInput?.mbti||'');
+  r.sections.forEach(s=>{const ev=norm((s.evidence||[]).join(' '));const isCross=['mbti_contradiction','decision','money','career','relationship','stress','integrated_judgment'].includes(s.id),isYear=s.id.startsWith('year_2027');
+   const hasChart=chartVals.some(v=>ev.includes(v))||/(일간|월지|오행|연주|월주|일주|시주)/.test(ev);
+   if(!hasChart)errors.push(`${s.id}: evidence does not identify a calculated Saju fact`);
+   if(isCross&&mbti&&mbti!=='모름'&&!ev.includes(mbti)&&!/(MBTI|성향 선호)/.test(ev))errors.push(`${s.id}: cross-analysis evidence does not identify MBTI input`);
+   if(isYear&&!/(2027|세운|연도|丁未|정미)/.test(ev))errors.push(`${s.id}: annual evidence does not identify target year`);
+  });
+  if(!catalog.length)errors.push('calculated evidence catalog is empty');
  }
  const sectionTexts=r.sections.filter(Boolean).map(s=>norm((Array.isArray(s.body)?s.body.join(' '):s.body)+' '+s.keyJudgment));
  const tokens=s=>new Set(norm(s).split(/[^가-힣A-Za-z0-9]+/).filter(x=>x.length>=3));
