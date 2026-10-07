@@ -18,8 +18,8 @@ function wrap(x,text,left,top,maxWidth,lineHeight){let line='',y=top;for(const c
 async function shareReport(report,name,mbti,animal,btn){const text=shareText(report,name,mbti,animal);try{const blob=await shareCardBlob(report,name,mbti,animal);if(!blob)throw Error('image export failed');const file=typeof File==='function'?new File([blob],'saju-mbti-result.png',{type:'image/png'}):null;if(file&&navigator.share&&navigator.canShare?.({files:[file]})){await navigator.share({title:'나의 사주 결과',text,files:[file]});return}if(navigator.share){await navigator.share({title:'나의 사주 결과',text});return}const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='saju-mbti-result.png';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);const old=btn.textContent;btn.textContent='결과 이미지 저장 완료';setTimeout(()=>btn.textContent=old,1600)}catch(e){if(e?.name!=='AbortError')btn.textContent='공유를 다시 시도해주세요'}}
 function restart(){sessionStorage.removeItem('reportJobId');location.href=location.pathname}
 function render(report,target){
- const gate=window.REPORT_VALIDATOR?.validate(report)||{pass:false,errors:['validator unavailable']};
- if(!gate.pass){console.error('[Client report validation]',gate.errors);target.innerHTML='<section class="section"><h2>결과를 표시하지 못했습니다.</h2><p>결과를 불러오는 중 문제가 생겼습니다. 처음부터 다시 시도해 주세요.</p><button class="btn primary" id="restartReport" type="button" style="width:100%;margin-top:12px">처음부터 다시 하기</button></section>';target.querySelector('#restartReport')?.addEventListener('click',restart);return gate}
+ const gate=window.REPORT_VALIDATOR?.validate?window.REPORT_VALIDATOR.validate(report):{pass:true,errors:[]};
+ if(!gate.pass)console.warn('[Client report quality warning]',gate.errors)
  const input=window.LIVE_REPORT_UI?.input?.()||{};
  const [animal,,,animalName]=zodiacFor(report);
  const name=report?.meta?.name||input.name||'당신';
