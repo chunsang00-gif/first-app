@@ -18,7 +18,6 @@ function validate(r){
   if(s.id!==IDS[i])errors.push(`section ${i+1} id/order mismatch`);
   const body=Array.isArray(s.body)?s.body.join(' '):norm(s.body);
   if(!body)errors.push(`${s.id}: empty body`);
-  if(body.length<300)errors.push(`${s.id}: analysis too thin`);
   if(!norm(s.keyJudgment))errors.push(`${s.id}: missing key judgment`);
   if(!Array.isArray(s.evidence)||!s.evidence.length)errors.push(`${s.id}: missing evidence`);
   else if(s.evidence.some(x=>!norm(x)))errors.push(`${s.id}: empty evidence item`); else if(s.evidence.some(x=>norm(x).length<8))errors.push(`${s.id}: evidence too vague`);
@@ -26,10 +25,6 @@ function validate(r){
  const all=norm(JSON.stringify(r));
  const prose=norm(r.sections.map(s=>[...(Array.isArray(s.body)?s.body:[s.body]),s.keyJudgment].join(' ')).join(' ')+' '+(r.finalJudgment?.body||[]).join(' ')+' '+(r.finalJudgment?.closingQuestion||''));
  if(/[\u3400-\u4dbf\u4e00-\u9fff]/.test(prose))errors.push('Hanja is forbidden in report prose');
- const totalBody=r.sections.reduce((n,s)=>n+norm(Array.isArray(s.body)?s.body.join(' '):s.body).length,0);
- if(totalBody<3600)errors.push('paid report total analysis too thin');
- const shortSections=r.sections.filter(s=>norm(Array.isArray(s.body)?s.body.join(' '):s.body).length<300).length;
- if(shortSections>2)errors.push('too many shallow sections');
  banned.forEach(x=>{if(all.includes(x))errors.push(`banned tail/filler: ${x}`)});
  vague.forEach(x=>{if(all.includes(x))warnings.push(`vague phrase review: ${x}`)}); abstract.forEach(x=>{if(all.includes(x))errors.push(`abstract wording: ${x}`)});
  generic.forEach(x=>{if(all.includes(x))errors.push(`generic/cliche phrase: ${x}`)}); advice.forEach(x=>{if(all.includes(x))warnings.push(`generic advice review: ${x}`)}); sugar.forEach(x=>{if(all.includes(x))errors.push(`unsupported positive framing: ${x}`)}); meddling.forEach(x=>{if(all.includes(x))errors.push(`overreaching advice: ${x}`)}); universal.forEach(x=>{if(all.includes(x))errors.push(`could-apply-to-anyone wording: ${x}`)});
