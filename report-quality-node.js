@@ -20,7 +20,7 @@ function validate(r){
   if(!body)errors.push(`${s.id}: empty body`);
   if(!norm(s.keyJudgment))errors.push(`${s.id}: missing key judgment`);
   if(!Array.isArray(s.evidence)||!s.evidence.length)errors.push(`${s.id}: missing evidence`);
-  else if(s.evidence.some(x=>!norm(x)))errors.push(`${s.id}: empty evidence item`); else if(s.evidence.some(x=>norm(x).length<8))errors.push(`${s.id}: evidence too vague`);
+  else if(s.evidence.some(x=>!norm(x)))errors.push(`${s.id}: empty evidence item`); else if(s.evidence.some(x=>norm(x).length<8))errors.push(`${s.id}: evidence too vague`); else if(s.evidence.some(x=>/(검증된 계산 사실|계산 사실|사주 계산값|성향 정보|제공된 근거|위 근거)/.test(norm(x))))errors.push(`${s.id}: evidence placeholder`);
  });
  const all=norm(JSON.stringify(r));
  const prose=norm(r.sections.map(s=>[...(Array.isArray(s.body)?s.body:[s.body]),s.keyJudgment].join(' ')).join(' ')+' '+(r.finalJudgment?.body||[]).join(' ')+' '+(r.finalJudgment?.closingQuestion||''));
