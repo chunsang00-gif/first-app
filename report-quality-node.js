@@ -1,8 +1,8 @@
 /* Server-side paid-report quality gate v1.0. */
 const IDS=['saju_core','mbti_contradiction','decision','money','career','relationship','stress','integrated_judgment','year_2027','year_2027_money','year_2027_career','year_2027_relationship'];
 const banned=['두 경우는 완전히 다릅니다','이 점이 중요합니다','기억할 필요가 있습니다','수익의 질','실제로 남는 돈','맹점'];
-const vague=['현실적인 선택','흐름이 강하다','가능성이 있습니다','구조가 좋다','결과로 만든다'];
-const abstract=['통제할 수 있는 돈','판단 기준','선택 메커니즘','감당 가능한 범위','현실적 구조','작동 방식','통제 범위','흐름이','구조가','구조를','작용이','기운이','에너지가','균형이','메커니즘'];
+const vague=['현실적인 선택','흐름이 강하다','가능성이 있습니다','구조가 좋다','결과로 만든다','새로운 선택지','관심을 보이지만','시간을 쓰기로','약속할 때','계획과 말을','따져볼 수 있습니다','허술한 부분','그냥 넘기기','여러 가능성'];
+const abstract=['통제할 수 있는 돈','판단 기준','선택 메커니즘','감당 가능한 범위','현실적 구조','작동 방식','통제 범위','흐름이','구조가','구조를','작용이','기운이','에너지가','균형이','메커니즘','선택지','가능성을','관심을 보','계획과 말','약속할 때','따져볼'];
 const generic=['신중한 편입니다','책임감이 강합니다','대화를 많이 해야','안정적으로 관리','좋은 기회가 올','타고난 운명','운이 열립니다','대박 운','귀인의 도움','기운을 받아'];
 const advice=['노력해야 합니다','긍정적으로 생각','마음을 열고','균형을 유지','꾸준히 노력','자신을 믿'];
 const sugar=['걱정하지 않아도','잘될 것입니다','잘 풀릴','분명 좋은','행복해질','충분히 해낼','결국 잘','좋은 방향으로','희망을 가지'];
@@ -26,7 +26,7 @@ function validate(r){
  const prose=norm(r.sections.map(s=>[...(Array.isArray(s.body)?s.body:[s.body]),s.keyJudgment].join(' ')).join(' ')+' '+(r.finalJudgment?.body||[]).join(' ')+' '+(r.finalJudgment?.closingQuestion||''));
  if(/[\u3400-\u4dbf\u4e00-\u9fff]/.test(prose))errors.push('Hanja is forbidden in report prose');
  banned.forEach(x=>{if(all.includes(x))errors.push(`banned tail/filler: ${x}`)});
- vague.forEach(x=>{if(all.includes(x))warnings.push(`vague phrase review: ${x}`)}); abstract.forEach(x=>{if(all.includes(x))errors.push(`abstract wording: ${x}`)});
+ vague.forEach(x=>{if(all.includes(x))errors.push(`vague phrase: ${x}`)}); abstract.forEach(x=>{if(all.includes(x))errors.push(`abstract wording: ${x}`)});
  generic.forEach(x=>{if(all.includes(x))errors.push(`generic/cliche phrase: ${x}`)}); advice.forEach(x=>{if(all.includes(x))warnings.push(`generic advice review: ${x}`)}); sugar.forEach(x=>{if(all.includes(x))errors.push(`unsupported positive framing: ${x}`)}); meddling.forEach(x=>{if(all.includes(x))errors.push(`overreaching advice: ${x}`)}); universal.forEach(x=>{if(all.includes(x))errors.push(`could-apply-to-anyone wording: ${x}`)});
  const sectionTexts=r.sections.filter(Boolean).map(s=>norm((Array.isArray(s.body)?s.body.join(' '):s.body)+' '+s.keyJudgment));
  const tokens=s=>new Set(norm(s).split(/[^가-힣A-Za-z0-9]+/).filter(x=>x.length>=3));
