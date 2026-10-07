@@ -65,3 +65,5 @@ run('premium quality gate rejects sugarcoating',()=>{const x=mockReport();x.sect
 run('premium quality gate rejects overreaching advice',()=>{const x=mockReport();x.sections[2].body[0]+=' 반드시 해야 합니다.';const r=Q.validate(x);assert.equal(r.pass,false);assert.ok(r.errors.some(e=>e.includes('overreaching advice')))});
 
 run('premium quality gate rejects abstract user-facing wording',()=>{const x=mockReport();x.sections[3].keyJudgment='내가 통제할 수 있는 돈에 민감합니다.';const r=Q.validate(x);assert.equal(r.pass,false);assert.ok(r.errors.some(e=>e.includes('abstract wording')))});
+run('premium quality gate rejects repeated section analysis',()=>{const x=mockReport();x.sections[4].body=x.sections[3].body.slice();x.sections[4].keyJudgment=x.sections[3].keyJudgment;const r=Q.validate(x);assert.equal(r.pass,false);assert.ok(r.errors.some(e=>e.includes('similar')||e.includes('repeated')))});
+run('premium quality gate accepts different evidence by domain',()=>{const x=mockReport();x.sections[3].evidence=['재성 계산값이 금전 판단에 직접 연결됨'];x.sections[4].evidence=['관성 계산값이 역할과 책임 판단에 직접 연결됨'];assert.equal(Q.validate(x).pass,true)});
