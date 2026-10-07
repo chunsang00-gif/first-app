@@ -23,3 +23,7 @@ body.has-report{background:#f5f7fa}.has-report .app{max-width:1000px}.has-report
 .approved-cover .cover-insight{display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start}
 .approved-cover .asset-zodiac{width:52%;height:56%;right:-1%}
 @media(max-width:540px){.approved-cover .asset-zodiac{width:47%;height:47%;right:3%}}
+/* Override legacy small-label and navigation colors for clear controls. */
+.approved-cover .cover-insight .insight-arrow{display:grid;place-items:center;font-size:29px;font-weight:400;color:#cb8041;line-height:1}
+.approved-cover .result-nav button.on span{color:#245adb}
+@media(max-width:540px){.approved-cover .cover-insight .insight-arrow{font-size:22px}}
