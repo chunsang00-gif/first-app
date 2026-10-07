@@ -4,6 +4,8 @@ const banned=['두 경우는 완전히 다릅니다','이 점이 중요합니다
 const vague=['현실적인 선택','흐름이 강하다','가능성이 있습니다','구조가 좋다','결과로 만든다'];
 const generic=['신중한 편입니다','책임감이 강합니다','대화를 많이 해야','안정적으로 관리','좋은 기회가 올','타고난 운명','운이 열립니다','대박 운','귀인의 도움','기운을 받아'];
 const advice=['노력해야 합니다','긍정적으로 생각','마음을 열고','균형을 유지','꾸준히 노력','자신을 믿'];
+const sugar=['걱정하지 않아도','잘될 것입니다','잘 풀릴','분명 좋은','행복해질','충분히 해낼','결국 잘','좋은 방향으로','희망을 가지'];
+const meddling=['반드시 해야','꼭 해야','습관을 들이','주변 사람에게','마음을 내려놓','감사하는 마음','스스로를 사랑'];
 const norm=s=>String(s||'').replace(/\s+/g,' ').trim();
 function validate(r){
  const errors=[],warnings=[];
@@ -28,7 +30,7 @@ function validate(r){
  if(shortSections>2)errors.push('too many shallow sections');
  banned.forEach(x=>{if(all.includes(x))errors.push(`banned tail/filler: ${x}`)});
  vague.forEach(x=>{if(all.includes(x))warnings.push(`vague phrase review: ${x}`)});
- generic.forEach(x=>{if(all.includes(x))errors.push(`generic/cliche phrase: ${x}`)}); advice.forEach(x=>{if(all.includes(x))warnings.push(`generic advice review: ${x}`)});
+ generic.forEach(x=>{if(all.includes(x))errors.push(`generic/cliche phrase: ${x}`)}); advice.forEach(x=>{if(all.includes(x))warnings.push(`generic advice review: ${x}`)}); sugar.forEach(x=>{if(all.includes(x))errors.push(`unsupported positive framing: ${x}`)}); meddling.forEach(x=>{if(all.includes(x))errors.push(`overreaching advice: ${x}`)});
  const judgments=r.sections.filter(Boolean).map(s=>norm(s.keyJudgment));
  for(let i=0;i<judgments.length;i++)for(let j=i+1;j<judgments.length;j++){
   const a=new Set(judgments[i].split(' ').filter(x=>x.length>2)),b=new Set(judgments[j].split(' ').filter(x=>x.length>2));
