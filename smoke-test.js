@@ -29,7 +29,7 @@ function mockReport(){
   year_2027_career:'2027년 일은 평소 역할에서 책임과 판단권이 달라지는지를 비교합니다.',
   year_2027_relationship:'2027년 관계는 기존 정보 공유와 시간 배분의 변화를 비교합니다.'
  };
- return {meta:{name:'',mbti:'모름',chart:{year:'甲子',month:'甲子',day:'甲子',hour:'甲子',calculationStatus:'complete'},targetYear:2027,versions:{ruleset:'test',prompt:'test',schema:'test'}},sections:Q.IDS.map((id,i)=>({id,title:'테스트 '+(i+1),body:[bodies[id],bodies[id]],keyJudgment:judgments[id],evidence:['일간 갑목과 월지 자수를 함께 확인한 근거 '+i]})),finalJudgment:{body:['전체 판단을 종합합니다.'],closingQuestion:'이 판단을 실제 선택에서 어떻게 확인할 것인가?',afterClosingText:''}}}
+ return {meta:{name:'',mbti:'모름',chart:{year:'甲子',month:'甲子',day:'甲子',hour:'甲子',calculationStatus:'complete'},targetYear:2027,versions:{ruleset:'test',prompt:'test',schema:'test'}},sections:Q.IDS.map((id,i)=>({id,title:'테스트 '+(i+1),body:[bodies[id],bodies[id]],keyJudgment:judgments[id],evidence:[id.startsWith('year_2027')?'일간 갑목과 월지 자수, 2027 연도 근거를 함께 확인 '+i:'일간 갑목과 월지 자수를 함께 확인한 근거 '+i]})),finalJudgment:{body:['전체 판단을 종합합니다.'],closingQuestion:'이 판단을 실제 선택에서 어떻게 확인할 것인가?',afterClosingText:''}}}
 
 const child=spawn(process.execPath,['server.js'],{env:{...process.env,PORT:'3210',REPORT_MODEL_URL:'http://127.0.0.1:3211/report'},stdio:'ignore'});
 const model=httpServer();
