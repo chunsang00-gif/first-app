@@ -33,22 +33,29 @@ async function generate(input,callModel,onProgress=()=>{}){const packet=facts.bu
   finalRule:'전체 본문에서 중요한 강점·주의점·행동 루틴을 우선순위대로 선별한다. 앞 장을 하나씩 요약하는 나열이나 연간 운세 중심 결론을 피한다. 서로 다른 분야의 행동을 고르고 실제 상황·행동·이유를 연결한다. closingQuestion 뒤에는 텍스트를 넣지 않는다.'
  });
  // Keep one authoritative instruction per concern. Repeating old policies inflates every request.
- const ruleKeys=['factsOnly','noPersonalHistoryInference','noDeterministicPrediction','mbtiOptionalRule','hanjaPolicy','tone','titleRule','keyJudgmentRule','narrativeRule','paragraphGuide','domainUniquenessRule','evidenceRule','confidenceStyleRule','profileScoreRule','factCoverageRule','proofreadingRule','moodRule','namePolicy','avoidPhrases','depthVersion'];
- const summaryRules={factsOnly:true,noPersonalHistoryInference:true,noDeterministicPrediction:true,namePolicy:base.rules.namePolicy,mbtiOptionalRule:base.rules.mbtiOptionalRule,tone:base.rules.tone,hanjaPolicy:base.rules.hanjaPolicy,coverRule:base.rules.coverRule,finalRule:base.rules.finalRule,confidenceStyleRule:base.rules.confidenceStyleRule,proofreadingRule:base.rules.proofreadingRule};
+ const ruleKeys=['factsOnly','noPersonalHistoryInference','noDeterministicPrediction','mbtiOptionalRule','hanjaPolicy','tone','titleRule','keyJudgmentRule','narrativeRule','paragraphGuide','domainUniquenessRule','evidenceRule','confidenceStyleRule','profileScoreRule','factCoverageRule','proofreadingRule','moodRule','namePolicy','avoidPhrases','depthVersion','diversityRule','coverEditingRule','year2027Rule','year2027ComparisonRule','year2027DomainRule'];
+ const summaryRules={factsOnly:true,noPersonalHistoryInference:true,noDeterministicPrediction:true,namePolicy:base.rules.namePolicy,mbtiOptionalRule:base.rules.mbtiOptionalRule,tone:base.rules.tone,hanjaPolicy:base.rules.hanjaPolicy,coverRule:base.rules.coverRule,finalRule:base.rules.finalRule,confidenceStyleRule:base.rules.confidenceStyleRule,proofreadingRule:base.rules.proofreadingRule,coverEditingRule:base.rules.coverEditingRule};
  base.rules=Object.fromEntries(ruleKeys.map(key=>[key,base.rules[key]]));
  base.rules.avoidPhrases=quality.forbiddenPhrases;summaryRules.avoidPhrases=quality.forbiddenPhrases;
  const groups=Array.from({length:6},(_,i)=>IDS.slice(i*2,i*2+2));
  const validateBatch=(result,ids)=>{if(!Array.isArray(result?.sections)||JSON.stringify(result.sections.map(s=>s?.id))!==JSON.stringify(ids))throw Error('AI report service returned incomplete report data');for(const section of result.sections){const topics=Object.keys(outline.topics[section.id]);if(JSON.stringify(section.bodyTopics)!==JSON.stringify(topics)||section.body?.length!==topics.length||section.bodyLabels?.length!==topics.length||section.body.some(p=>typeof p!=='string'||!p.trim())||section.bodyLabels.some(p=>typeof p!=='string'||!p.trim()))throw Error('AI report service returned incomplete report data')}return result};
  const request=(ids,extra={})=>({...base,...extra,requestedSections:ids,includeFinal:false,includeCover:false,rules:{...base.rules,...extra.rules,sections:ids,topicPlan:Object.fromEntries(ids.map(id=>[id,outline.topics[id]])),returnOnlyRequestedSections:true},output:{...base.output,requestedSections:ids,cover:'null',finalJudgment:'null'}});
  let done=0;onProgress({stage:'body',completed:0,total:12});
- const drafts=await mapLimited(groups,async ids=>{const result=validateBatch(await callModel(request(ids,{stage:'body'})),ids);onProgress({stage:'body',completed:done+=ids.length,total:12});return result});
- const meta={characterGender:input.gender||'male',name:input.name||'',mbti:input.mbti||'모름',chart:packet.chart,profileBalance:packet.profileBalance,targetYear:2027,versions:{ruleset:'premium-v2',prompt:'premium-v2',schema:outline.version}};
- const draft={meta,sections:drafts.flatMap(p=>p.sections||[]),finalJudgment:{body:[],closingQuestion:'?',afterClosingText:''}};
- const initial=quality.validate(draft);
- done=0;onProgress({stage:'edit',completed:0,total:12});
- const edited=await mapLimited(groups,async ids=>{const result=await callModel(request(ids,{stage:'edit',editorialDraft:{...draft,sections:draft.sections.map(s=>ids.includes(s.id)?s:{...s,body:(s.body||[]).map(p=>p.slice(0,130))})},editorialTask:'전체 12장의 초안을 읽고 담당 장의 주제 누락, 같은 결론을 돌려 쓰는 문단, 설명 없는 용어, 어색한 문장과 오타를 고친다. 연애·가족을 직업 이야기로 대신하지 않는다. 다른 장과의 연결은 짧게, 해당 장의 고유 질문에 대한 답은 깊게 쓴다. bodyTopics의 순서와 항목을 유지한다.',rules:{retryReason:initial.errors.filter(x=>!x.startsWith('final ')).slice(0,30)}}));validateBatch(result,ids);onProgress({stage:'edit',completed:done+=ids.length,total:12});return result});
- const sections=edited.flatMap(p=>p.sections||[]);
- // The cover never races the body: only completed, edited chapters are eligible for selection.
+ // Carry only completed conclusions forward: preserve cross-chapter variety without
+ // paying to rewrite every paragraph a second time.
+ const priorSections=[];
+ const drafts=await mapLimited(groups,async ids=>{
+  const result=validateBatch(await callModel(request(ids,{
+   stage:'body',priorSections:priorSections.slice(),
+   editorialTask:'이번 응답을 최종 본문으로 작성한다. 제출 전에 같은 응답 안에서 주제 누락, 문장 중복, 용어 설명, 조사와 맞춤법을 바로잡는다. priorSections는 이미 작성한 장의 결론이다. 같은 결론을 분야명만 바꾸어 반복하지 않는다. 현재 장의 고유 질문에 깊이 답한다. 평생 성향 장에 2027 해석을 섞지 않는다. 본문 분량과 bodyTopics의 모든 항목을 유지한다.'
+  })),ids);
+  priorSections.push(...result.sections.map(s=>({id:s.id,keyJudgment:s.keyJudgment,bodyLabels:s.bodyLabels})));
+  onProgress({stage:'body',completed:done+=ids.length,total:12});return result;
+ });
+ const meta={characterGender:input.gender||'male',name:input.name||'',mbti:input.mbti||'모름',chart:packet.chart,profileBalance:packet.profileBalance,targetYear:2027,versions:{ruleset:'premium-v2',prompt:'premium-v3-single-pass',schema:outline.version}};
+ const sections=drafts.flatMap(p=>p.sections||[]);
+ // Select the cover only after all 12 complete chapters. The final local quality
+ // gate below remains mandatory; no automatic paid rewrite or retry is issued.
  const summaryPrompt={...base,stage:'synthesis',requestedSections:[],includeFinal:true,includeCover:true,completedReport:{meta,sections},rules:{...summaryRules,sections:[],returnOnlyRequestedSections:true},output:{...base.output,requestedSections:[],cover:'required',finalJudgment:'required'}};
  onProgress({stage:'synthesis',completed:0,total:1});
  let summary=await callModel(summaryPrompt);
