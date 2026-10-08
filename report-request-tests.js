@@ -1,7 +1,11 @@
 'use strict';
 const assert=require('node:assert/strict');
-const {createQueue,retryDelay}=require('./report-request-control');
+const {createQueue,retryDelay,rateLimitKind}=require('./report-request-control');
 (async()=>{
+ assert.equal(rateLimitKind('Rate limit reached on requests per day (RPD).','rate_limit_exceeded'),'daily rate limit');
+ assert.equal(rateLimitKind('tokens per min: Limit 10,000, Used 0, Requested 12,300','rate_limit_exceeded'),'request exceeds token limit');
+ assert.equal(rateLimitKind('tokens per min: Limit 30,000, Used 29,000, Requested 2,000','rate_limit_exceeded'),'token rate limit');
+ assert.equal(rateLimitKind('', 'insufficient_quota'),'quota exhausted');
  const queue=createQueue();let active=0,maxActive=0;const order=[];
  const results=await Promise.allSettled([0,1,2].map(i=>queue(async()=>{maxActive=Math.max(maxActive,++active);order.push(i);await new Promise(r=>setTimeout(r,2));active--;if(i===1)throw Error('provider rejected');return i})));
  assert.equal(maxActive,1);assert.deepEqual(order,[0,1,2]);assert.equal(results[2].value,2);
