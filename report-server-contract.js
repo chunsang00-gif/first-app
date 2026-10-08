@@ -32,8 +32,11 @@ async function generate(input,callModel,onProgress=()=>{}){const packet=facts.bu
   coverRule:'본문 단계에서는 cover와 finalJudgment를 null로 반환한다. 최종 선별 단계에서는 교정이 끝난 전체 본문만을 근거로 cover와 finalJudgment를 작성한다. 메인은 연간 운세만으로 평생 성격을 요약하지 않는다. highlights는 12장 전체에서 서로 다른 세 장을 고른다. 기본 성향·의외의 차이·종합이라는 고정 틀 대신 그 사람에게 중요한 실제 특징 세 개를 고른다. sectionId는 원문 장의 id, title과 description은 해당 본문에 근거한 간결한 결론이다. 다른 특징 세 개를 선별하고 상단 headline을 되풀이하지 않는다.',
   finalRule:'전체 본문에서 중요한 강점·주의점·행동 루틴을 우선순위대로 선별한다. 앞 장을 하나씩 요약하는 나열이나 연간 운세 중심 결론을 피한다. 서로 다른 분야의 행동을 고르고 실제 상황·행동·이유를 연결한다. closingQuestion 뒤에는 텍스트를 넣지 않는다.'
  });
- // Send the current rules only; obsolete summary/domain rules contradicted the deeper outline.
- for(const key of ['summaryRule','sectionSeparationRule','crossBatchRule','sectionQuestions','year2027DomainRule','interpretationChainRule','neutralityRule','minSectionDepth'])delete base.rules[key];
+ // Keep one authoritative instruction per concern. Repeating old policies inflates every request.
+ const ruleKeys=['factsOnly','noPersonalHistoryInference','noDeterministicPrediction','mbtiOptionalRule','hanjaPolicy','tone','titleRule','keyJudgmentRule','narrativeRule','paragraphGuide','domainUniquenessRule','evidenceRule','confidenceStyleRule','profileScoreRule','factCoverageRule','proofreadingRule','moodRule','namePolicy','avoidPhrases','depthVersion'];
+ const summaryRules={factsOnly:true,noPersonalHistoryInference:true,noDeterministicPrediction:true,namePolicy:base.rules.namePolicy,mbtiOptionalRule:base.rules.mbtiOptionalRule,tone:base.rules.tone,hanjaPolicy:base.rules.hanjaPolicy,coverRule:base.rules.coverRule,finalRule:base.rules.finalRule,confidenceStyleRule:base.rules.confidenceStyleRule,proofreadingRule:base.rules.proofreadingRule};
+ base.rules=Object.fromEntries(ruleKeys.map(key=>[key,base.rules[key]]));
+ base.rules.avoidPhrases=quality.forbiddenPhrases;summaryRules.avoidPhrases=quality.forbiddenPhrases;
  const groups=Array.from({length:6},(_,i)=>IDS.slice(i*2,i*2+2));
  const request=(ids,extra={})=>({...base,...extra,requestedSections:ids,includeFinal:false,includeCover:false,rules:{...base.rules,...extra.rules,sections:ids,topicPlan:Object.fromEntries(ids.map(id=>[id,outline.topics[id]])),returnOnlyRequestedSections:true},output:{...base.output,requestedSections:ids,cover:'null',finalJudgment:'null'}});
  let done=0;onProgress({stage:'body',completed:0,total:12});
@@ -45,7 +48,7 @@ async function generate(input,callModel,onProgress=()=>{}){const packet=facts.bu
  const edited=await mapLimited(groups,async ids=>{const result=await callModel(request(ids,{stage:'edit',editorialDraft:{...draft,sections:draft.sections.map(s=>ids.includes(s.id)?s:{...s,body:(s.body||[]).map(p=>p.slice(0,130))})},editorialTask:'전체 12장의 초안을 읽고 담당 장의 주제 누락, 같은 결론을 돌려 쓰는 문단, 설명 없는 용어, 어색한 문장과 오타를 고친다. 연애·가족을 직업 이야기로 대신하지 않는다. 다른 장과의 연결은 짧게, 해당 장의 고유 질문에 대한 답은 깊게 쓴다. bodyTopics의 순서와 항목을 유지한다.',rules:{retryReason:initial.errors.filter(x=>!x.startsWith('final ')).slice(0,30)}}));onProgress({stage:'edit',completed:done+=ids.length,total:12});return result});
  const sections=edited.flatMap(p=>p.sections||[]);
  // The cover never races the body: only completed, edited chapters are eligible for selection.
- const summaryPrompt={...base,stage:'synthesis',requestedSections:[],includeFinal:true,includeCover:true,completedReport:{meta,sections},rules:{...base.rules,sections:[],returnOnlyRequestedSections:true},output:{...base.output,requestedSections:[],cover:'required',finalJudgment:'required'}};
+ const summaryPrompt={...base,stage:'synthesis',requestedSections:[],includeFinal:true,includeCover:true,completedReport:{meta,sections},rules:{...summaryRules,sections:[],returnOnlyRequestedSections:true},output:{...base.output,requestedSections:[],cover:'required',finalJudgment:'required'}};
  onProgress({stage:'synthesis',completed:0,total:1});
  let summary=await callModel(summaryPrompt);
  let report={meta,sections,cover:summary.cover,finalJudgment:summary.finalJudgment};

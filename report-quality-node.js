@@ -64,4 +64,4 @@ function validate(r){
  if((r.finalJudgment?.afterClosingText||'')!=='')errors.push('text after closing question is forbidden');
  return {pass:errors.length===0,errors,warnings};
 }
-module.exports={IDS,validate};
+module.exports={IDS,validate,forbiddenPhrases:[...new Set([...banned,...vague,...abstract,...generic,...sugar,...meddling,...universal])]};
