@@ -8,6 +8,7 @@ const advice=['노력해야 합니다','긍정적으로 생각','마음을 열�
 const sugar=['걱정하지 않아도','잘될 것입니다','잘 풀릴','분명 좋은','행복해질','충분히 해낼','결국 잘','좋은 방향으로','희망을 가지'];
 const meddling=['반드시 해야','꼭 해야','습관을 들이','주변 사람에게','마음을 내려놓','감사하는 마음','스스로를 사랑'];
 const universal=['상황에 따라 다를','사람마다 다를','때로는 적극적','때로는 신중','장단점이 있','균형이 중요','소통이 중요','자기계발','성장할 수'];
+const editorial=require('./report-editorial');
 const norm=s=>String(s||'').replace(/\s+/g,' ').trim();
 function validate(r){
  const errors=[],warnings=[];
@@ -32,6 +33,15 @@ function validate(r){
  });
  const readable=[r.cover?.headline,r.cover?.description,...(r.cover?.highlights||[]).flatMap(h=>[h.title,h.description]),...(r.cover?.keywords||[]),...r.sections.flatMap(s=>[s.title,s.keyJudgment,...(s.body||[]),...(s.bodyLabels||[]),...(s.evidence||[])]),...(r.finalJudgment?.body||[]),r.finalJudgment?.headline,...(r.finalJudgment?.strengths||[]),...(r.finalJudgment?.watchouts||[]),...(r.finalJudgment?.routines||[]).flatMap(x=>[x.trigger,x.action,x.reason]),r.finalJudgment?.closingQuestion].filter(Boolean);
  const all=norm(readable.join(' '));
+ editorial.awkwardPhrases.forEach(x=>{if(all.includes(x))errors.push('unnatural Korean: '+x)});
+ for(const section of r.sections){
+  const paragraphs=section.body||[];
+  const boilerplate=paragraphs.filter(p=>/사주에서는|모습으로 읽습니다|과정으로 읽습니다/.test(p)).length;
+  if(boilerplate>=4)errors.push(section.id+': repeated interpretation boilerplate');
+ }
+ const headings=[r.cover?.headline,...(r.cover?.highlights||[]).map(h=>h.title),...r.sections.flatMap(s=>[s.title,...(s.bodyLabels||[])]),r.finalJudgment?.headline].filter(Boolean);
+ if(headings.some(t=>/(?:납득|참여|금전)의? (?:순서|경계|여부)/.test(t)))errors.push('abstract headline without concrete meaning');
+
  if(readable.some(x=>/(?:[A-Za-z]+_){1,}[A-Za-z]+|undefined|\[object Object\]/.test(x)))errors.push('internal field leaked into prose');
  if(readable.some(x=>/([가-힣]{2,})\s+\1(?=[\s,.!?]|$)/.test(x)))errors.push('duplicated adjacent word');
  if(readable.some(x=>/\uFFFD/.test(x)))errors.push('invalid text encoding');
@@ -64,4 +74,5 @@ function validate(r){
  if((r.finalJudgment?.afterClosingText||'')!=='')errors.push('text after closing question is forbidden');
  return {pass:errors.length===0,errors,warnings};
 }
-module.exports={IDS,validate,forbiddenPhrases:[...new Set([...banned,...vague,...abstract,...generic,...sugar,...meddling,...universal])]};
+module.exports={IDS,validate,forbiddenPhrases:[...new Set([...banned,...vague,...abstract,...generic,...sugar,...meddling,...universal,...editorial.awkwardPhrases])]};
+

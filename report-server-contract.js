@@ -32,9 +32,11 @@ async function generate(input,callModel,onProgress=()=>{}){const packet=facts.bu
   coverRule:'본문 단계에서는 cover와 finalJudgment를 null로 반환한다. 최종 선별 단계에서는 교정이 끝난 전체 본문만을 근거로 cover와 finalJudgment를 작성한다. 메인은 연간 운세만으로 평생 성격을 요약하지 않는다. highlights는 12장 전체에서 서로 다른 세 장을 고른다. 기본 성향·의외의 차이·종합이라는 고정 틀 대신 그 사람에게 중요한 실제 특징 세 개를 고른다. sectionId는 원문 장의 id, title과 description은 해당 본문에 근거한 간결한 결론이다. 다른 특징 세 개를 선별하고 상단 headline을 되풀이하지 않는다.',
   finalRule:'전체 본문에서 중요한 강점·주의점·행동 루틴을 우선순위대로 선별한다. 앞 장을 하나씩 요약하는 나열이나 연간 운세 중심 결론을 피한다. 서로 다른 분야의 행동을 고르고 실제 상황·행동·이유를 연결한다. closingQuestion 뒤에는 텍스트를 넣지 않는다.'
  });
+ Object.assign(base.rules,require('./report-editorial').rules);
+ base.promptVersion='reader-v4';
  // Keep one authoritative instruction per concern. Repeating old policies inflates every request.
- const ruleKeys=['factsOnly','noPersonalHistoryInference','noDeterministicPrediction','mbtiOptionalRule','hanjaPolicy','tone','titleRule','keyJudgmentRule','narrativeRule','paragraphGuide','domainUniquenessRule','evidenceRule','confidenceStyleRule','profileScoreRule','factCoverageRule','proofreadingRule','moodRule','namePolicy','avoidPhrases','depthVersion','diversityRule','coverEditingRule','year2027Rule','year2027ComparisonRule','year2027DomainRule'];
- const summaryRules={factsOnly:true,noPersonalHistoryInference:true,noDeterministicPrediction:true,namePolicy:base.rules.namePolicy,mbtiOptionalRule:base.rules.mbtiOptionalRule,tone:base.rules.tone,hanjaPolicy:base.rules.hanjaPolicy,coverRule:base.rules.coverRule,finalRule:base.rules.finalRule,confidenceStyleRule:base.rules.confidenceStyleRule,proofreadingRule:base.rules.proofreadingRule,coverEditingRule:base.rules.coverEditingRule};
+ const ruleKeys=['factsOnly','noPersonalHistoryInference','noDeterministicPrediction','mbtiOptionalRule','hanjaPolicy','tone','titleRule','keyJudgmentRule','narrativeRule','paragraphGuide','domainUniquenessRule','evidenceRule','confidenceStyleRule','profileScoreRule','factCoverageRule','proofreadingRule','moodRule','namePolicy','avoidPhrases','depthVersion','diversityRule','coverEditingRule','year2027Rule','year2027ComparisonRule','year2027DomainRule','mbtiDepthRule','plainSentenceRule','editorialVersion'];
+ const summaryRules={factsOnly:true,noPersonalHistoryInference:true,noDeterministicPrediction:true,namePolicy:base.rules.namePolicy,mbtiOptionalRule:base.rules.mbtiOptionalRule,tone:base.rules.tone,hanjaPolicy:base.rules.hanjaPolicy,coverRule:base.rules.coverRule,finalRule:base.rules.finalRule,confidenceStyleRule:base.rules.confidenceStyleRule,proofreadingRule:base.rules.proofreadingRule,coverEditingRule:base.rules.coverEditingRule,plainSentenceRule:base.rules.plainSentenceRule};
  base.rules=Object.fromEntries(ruleKeys.map(key=>[key,base.rules[key]]));
  base.rules.avoidPhrases=quality.forbiddenPhrases;summaryRules.avoidPhrases=quality.forbiddenPhrases;
  const groups=Array.from({length:6},(_,i)=>IDS.slice(i*2,i*2+2));
@@ -49,10 +51,10 @@ async function generate(input,callModel,onProgress=()=>{}){const packet=facts.bu
    stage:'body',priorSections:priorSections.slice(),
    editorialTask:'이번 응답을 최종 본문으로 작성한다. 제출 전에 같은 응답 안에서 주제 누락, 문장 중복, 용어 설명, 조사와 맞춤법을 바로잡는다. priorSections는 이미 작성한 장의 결론이다. 같은 결론을 분야명만 바꾸어 반복하지 않는다. 현재 장의 고유 질문에 깊이 답한다. 평생 성향 장에 2027 해석을 섞지 않는다. 본문 분량과 bodyTopics의 모든 항목을 유지한다.'
   })),ids);
-  priorSections.push(...result.sections.map(s=>({id:s.id,keyJudgment:s.keyJudgment,bodyLabels:s.bodyLabels})));
+  priorSections.push(...result.sections.map(s=>({id:s.id,keyJudgment:s.keyJudgment,bodyLabels:s.bodyLabels,topicConclusions:s.body.map(p=>p.split(/(?<=[.!?])\s+/)[0].slice(0,180))})));
   onProgress({stage:'body',completed:done+=ids.length,total:12});return result;
  });
- const meta={characterGender:input.gender||'male',name:input.name||'',mbti:input.mbti||'모름',chart:packet.chart,profileBalance:packet.profileBalance,targetYear:2027,versions:{ruleset:'premium-v2',prompt:'premium-v3-single-pass',schema:outline.version}};
+ const meta={characterGender:input.gender||'male',name:input.name||'',mbti:input.mbti||'모름',chart:packet.chart,profileBalance:packet.profileBalance,targetYear:2027,versions:{ruleset:'premium-v2',prompt:'reader-v4-single-pass',schema:outline.version}};
  const sections=drafts.flatMap(p=>p.sections||[]);
  // Select the cover only after all 12 complete chapters. The final local quality
  // gate below remains mandatory; no automatic paid rewrite or retry is issued.
@@ -65,3 +67,4 @@ async function generate(input,callModel,onProgress=()=>{}){const packet=facts.bu
  return qa.pass?{status:'ready',report,qa}:{status:'rejected',report,qa};
 }
 module.exports={IDS,validateShape,buildPrompt,generate};
+
