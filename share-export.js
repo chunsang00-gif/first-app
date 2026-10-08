@@ -20,7 +20,7 @@ async function capture(element){
  if(sourceVisual&&visual){const layer=document.createElement('div'),css=getComputedStyle(sourceVisual,'::before');layer.style.cssText=`position:absolute;inset:0;background:${css.backgroundImage};z-index:-1;pointer-events:none;`;visual.prepend(layer)}
  const markup=new XMLSerializer().serializeToString(clone),svg=`<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}"><foreignObject width="100%" height="100%"><div xmlns="http://www.w3.org/1999/xhtml">${markup}</div></foreignObject></svg>`;
  const image=new Image();await new Promise((ok,fail)=>{image.onload=ok;image.onerror=()=>fail(Error('이미지 변환에 실패했습니다'));image.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg)});
- const canvas=document.createElement('canvas'),scale=Math.min(2,1800/width);canvas.width=Math.ceil(width*scale);canvas.height=Math.ceil(height*scale);const ctx=canvas.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.scale(scale,scale);ctx.drawImage(image,0,0);
+ const canvas=document.createElement('canvas'),scale=Math.min(2,1800/width,14000/height);canvas.width=Math.ceil(width*scale);canvas.height=Math.ceil(height*scale);const ctx=canvas.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.scale(scale,scale);ctx.drawImage(image,0,0);
  return new Promise((ok,fail)=>canvas.toBlob(blob=>blob?ok(blob):fail(Error('이미지를 저장하지 못했습니다')),'image/png'));
 }
 function download(blob,name='saju-mbti-first-page.png'){const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),30000)}

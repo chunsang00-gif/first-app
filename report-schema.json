@@ -101,7 +101,8 @@
           "keyJudgment",
           "evidence",
           "mood",
-          "bodyLabels"
+          "bodyLabels",
+          "bodyTopics"
         ],
         "properties": {
           "id": {
@@ -128,12 +129,12 @@
           },
           "body": {
             "type": "array",
-            "minItems": 3,
+            "minItems": 5,
             "items": {
               "type": "string",
               "minLength": 1
             },
-            "maxItems": 4
+            "maxItems": 7
           },
           "keyJudgment": {
             "type": "string",
@@ -158,11 +159,19 @@
           },
           "bodyLabels": {
             "type": "array",
-            "minItems": 3,
-            "maxItems": 4,
+            "minItems": 5,
+            "maxItems": 7,
             "items": {
               "type": "string",
               "minLength": 1
+            }
+          },
+          "bodyTopics": {
+            "type": "array",
+            "minItems": 5,
+            "maxItems": 7,
+            "items": {
+              "type": "string"
             }
           }
         }
@@ -255,7 +264,8 @@
       "required": [
         "headline",
         "description",
-        "keywords"
+        "keywords",
+        "highlights"
       ],
       "properties": {
         "headline": {
@@ -275,6 +285,49 @@
           "items": {
             "type": "string",
             "minLength": 1
+          }
+        },
+        "highlights": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "sectionId",
+              "title",
+              "description"
+            ],
+            "properties": {
+              "sectionId": {
+                "type": "string",
+                "enum": [
+                  "saju_core",
+                  "mbti_contradiction",
+                  "decision",
+                  "money",
+                  "career",
+                  "relationship",
+                  "stress",
+                  "integrated_judgment",
+                  "year_2027",
+                  "year_2027_money",
+                  "year_2027_career",
+                  "year_2027_relationship"
+                ]
+              },
+              "title": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 36
+              },
+              "description": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 130
+              }
+            }
           }
         }
       }
