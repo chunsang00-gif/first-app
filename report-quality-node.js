@@ -30,7 +30,7 @@ function validate(r){
   if(!Array.isArray(s.evidence)||!s.evidence.length)errors.push(`${s.id}: missing evidence`);
   else if(s.evidence.some(x=>!norm(x)))errors.push(`${s.id}: empty evidence item`); else if(s.evidence.some(x=>norm(x).length<8))errors.push(`${s.id}: evidence too vague`);
  });
- const readable=[r.cover?.headline,r.cover?.description,...(r.cover?.keywords||[]),...r.sections.flatMap(s=>[s.title,s.keyJudgment,...(s.body||[]),...(s.bodyLabels||[]),...(s.evidence||[])]),...(r.finalJudgment?.body||[]),r.finalJudgment?.headline,...(r.finalJudgment?.strengths||[]),...(r.finalJudgment?.watchouts||[]),...(r.finalJudgment?.routines||[]).flatMap(x=>[x.trigger,x.action,x.reason]),r.finalJudgment?.closingQuestion].filter(Boolean);
+ const readable=[r.cover?.headline,r.cover?.description,...(r.cover?.highlights||[]).flatMap(h=>[h.title,h.description]),...(r.cover?.keywords||[]),...r.sections.flatMap(s=>[s.title,s.keyJudgment,...(s.body||[]),...(s.bodyLabels||[]),...(s.evidence||[])]),...(r.finalJudgment?.body||[]),r.finalJudgment?.headline,...(r.finalJudgment?.strengths||[]),...(r.finalJudgment?.watchouts||[]),...(r.finalJudgment?.routines||[]).flatMap(x=>[x.trigger,x.action,x.reason]),r.finalJudgment?.closingQuestion].filter(Boolean);
  const all=norm(readable.join(' '));
  if(readable.some(x=>/(?:[A-Za-z]+_){1,}[A-Za-z]+|undefined|\[object Object\]/.test(x)))errors.push('internal field leaked into prose');
  if(readable.some(x=>/([가-힣]{2,})\s+\1(?=[\s,.!?]|$)/.test(x)))errors.push('duplicated adjacent word');
