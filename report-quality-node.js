@@ -69,9 +69,9 @@ function validate(r){
  if(r.cover){if(!norm(r.cover.headline)||!norm(r.cover.description)||!Array.isArray(r.cover.keywords)||r.cover.keywords.length<3)errors.push('cover incomplete');if(new Set(r.cover.keywords).size!==r.cover.keywords.length)errors.push('cover keywords repeat');const coverHeadline=norm(r.cover.headline);if(r.sections.some(s=>norm(s.title)===coverHeadline||norm(s.keyJudgment)===coverHeadline))errors.push('cover repeats a card');}
  if(r.finalJudgment?.routines&&r.finalJudgment.routines.some(x=>!norm(x.trigger)||!norm(x.action)||!norm(x.reason)))errors.push('final routine incomplete');
  if(!Array.isArray(r.finalJudgment?.body)||!r.finalJudgment.body.length)errors.push('final body missing');
- if(!norm(r.finalJudgment?.closingQuestion))errors.push('final closing question missing');
- else if(!/[?？]$/.test(norm(r.finalJudgment.closingQuestion)))errors.push('closing line must be a question');
- if((r.finalJudgment?.afterClosingText||'')!=='')errors.push('text after closing question is forbidden');
+ if(!norm(r.finalJudgment?.closingQuestion))errors.push('final conclusion missing');
+ else if(/[?？]|(?:까요|습니까|무엇인가|어떠한가)\s*[.!。]?\s*$/.test(norm(r.finalJudgment.closingQuestion)))errors.push('final conclusion must not ask a question');
+ if((r.finalJudgment?.afterClosingText||'')!=='')errors.push('text after final conclusion is forbidden');
  return {pass:errors.length===0,errors,warnings};
 }
 module.exports={IDS,validate,forbiddenPhrases:[...new Set([...banned,...vague,...abstract,...generic,...sugar,...meddling,...universal,...editorial.awkwardPhrases])]};

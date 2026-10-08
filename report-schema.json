@@ -195,11 +195,13 @@
           "minItems": 1,
           "items": {
             "type": "string"
-          }
+          },
+          "description": "A developed synthesis of core character, strengths and weaknesses, and the most important direction with reasons."
         },
         "closingQuestion": {
           "type": "string",
-          "minLength": 1
+          "minLength": 1,
+          "description": "Compatibility field name: write a declarative final conclusion in 2–3 Korean sentences, never a question or invitation to answer."
         },
         "afterClosingText": {
           "type": "string",

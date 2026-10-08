@@ -50,14 +50,14 @@ function mockReport(){
   year_2027_career:'2027년 일은 평소 역할에서 책임과 판단권이 달라지는지를 비교합니다.',
   year_2027_relationship:'2027년 관계는 기존 정보 공유와 시간 배분의 변화를 비교합니다.'
  };
- return {meta:{name:'',mbti:'모름',chart:{year:'甲子',month:'甲子',day:'甲子',hour:'甲子',calculationStatus:'complete'},targetYear:2027,versions:{ruleset:'test',prompt:'test',schema:'test'}},sections:Q.IDS.map((id,i)=>({id,title:'테스트 '+(i+1),body:[bodies[id]],keyJudgment:judgments[id],evidence:['검증된 계산 사실 '+i]})),finalJudgment:{body:['전체 판단을 종합합니다.'],closingQuestion:'이 판단을 실제 선택에서 어떻게 확인할 것인가?',afterClosingText:''}}}
+ return {meta:{name:'',mbti:'모름',chart:{year:'甲子',month:'甲子',day:'甲子',hour:'甲子',calculationStatus:'complete'},targetYear:2027,versions:{ruleset:'test',prompt:'test',schema:'test'}},sections:Q.IDS.map((id,i)=>({id,title:'테스트 '+(i+1),body:[bodies[id]],keyJudgment:judgments[id],evidence:['검증된 계산 사실 '+i]})),finalJudgment:{body:['전체 판단을 종합합니다.'],closingQuestion:'자신의 강점을 발휘할 일을 고르고, 그 강점이 지나쳐 생기는 손해를 줄이는 것이 중요합니다.',afterClosingText:''}}}
 
 run('premium quality gate accepts complete distinct report',()=>{const r=Q.validate(mockReport());assert.equal(r.pass,true,JSON.stringify(r.errors))});
 run('premium quality gate rejects Hanja in prose',()=>{const x=mockReport();x.sections[0].body[0]+=' 甲';const r=Q.validate(x);assert.equal(r.pass,false);assert.ok(r.errors.some(e=>e.includes('Hanja')))});
 run('premium quality gate rejects cliché fortune language',()=>{const x=mockReport();x.sections[1].body[0]+=' 귀인의 도움';const r=Q.validate(x);assert.equal(r.pass,false);assert.ok(r.errors.some(e=>e.includes('generic/cliche')))});
 run('premium quality gate rejects banned filler',()=>{const x=mockReport();x.sections[0].body[0]+=' 이 점이 중요합니다';assert.equal(Q.validate(x).pass,false)});
-run('premium quality gate rejects text after closing question',()=>{const x=mockReport();x.finalJudgment.afterClosingText='추가 설명';assert.equal(Q.validate(x).pass,false)});
-run('premium quality gate requires question ending',()=>{const x=mockReport();x.finalJudgment.closingQuestion='최종 결론입니다.';assert.equal(Q.validate(x).pass,false)});
+run('premium quality gate rejects text after final conclusion',()=>{const x=mockReport();x.finalJudgment.afterClosingText='추가 설명';assert.equal(Q.validate(x).pass,false)});
+run('premium quality gate rejects question ending',()=>{const x=mockReport();x.finalJudgment.closingQuestion='어떤 선택을 하시겠습니까?';assert.equal(Q.validate(x).pass,false)});
 
 run('premium quality gate rejects anyone-style wording',()=>{const x=mockReport();x.sections[2].body[0]+=' 균형이 중요합니다.';const r=Q.validate(x);assert.equal(r.pass,false);assert.ok(r.errors.some(e=>e.includes('could-apply-to-anyone')))});
 run('premium quality gate rejects vague evidence',()=>{const x=mockReport();x.sections[2].evidence=['근거'];const r=Q.validate(x);assert.equal(r.pass,false);assert.ok(r.errors.some(e=>e.includes('evidence too vague')))});
@@ -77,3 +77,4 @@ run('same branch is never mislabeled as a clash',()=>{const p=F.build({...sample
 run('expanded reports reject missing subtopics instead of silently thinning content',()=>{const r=mockReport();r.meta.versions.schema='depth-v2';const q=Q.validate(r);assert(q.errors.some(x=>x.includes('required topics missing')));assert(q.errors.some(x=>x.includes('topic explanations incomplete')))});
 
 run('curated cover copy goes through the same language checks',()=>{const r=mockReport();r.cover={headline:'핵심 제목',description:'핵심 설명',keywords:['하나','둘','셋'],highlights:[{sectionId:'money',title:'돈의 특징',description:'귀인의 도움으로 돈이 늘어납니다.'}]};assert(Q.validate(r).errors.some(e=>e.includes('generic/cliche')))});
+

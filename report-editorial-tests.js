@@ -1,10 +1,20 @@
 'use strict';
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const quality=require('./report-quality-node'),outline=require('./report-outline');
-const fixture=()=>({sections:quality.IDS.map((id,i)=>({id,title:'제목'+i,keyJudgment:'판정'+i,evidence:['계산한 사주 항목의 설명입니다.'],body:['문단'+i]})),finalJudgment:{body:['마지막 설명'],closingQuestion:'어떻게 생각하십니까?',afterClosingText:''}});
+const fixture=()=>({sections:quality.IDS.map((id,i)=>({id,title:'제목'+i,keyJudgment:'판정'+i,evidence:['계산한 사주 항목의 설명입니다.'],body:['문단'+i]})),finalJudgment:{body:['마지막 설명'],closingQuestion:'자신의 강점을 발휘할 일을 고르고, 그 강점이 지나쳐 생기는 손해를 줄이는 것이 중요합니다.',afterClosingText:''}});
 for(const phrase of require('./report-editorial').awkwardPhrases){const r=fixture();r.sections[0].body=[phrase];assert(quality.validate(r).errors.includes('unnatural Korean: '+phrase));}
 const repeated=fixture();repeated.sections[0].body=Array.from({length:4},(_,i)=>'사주에서는 서로 다른 설명 '+i);assert(quality.validate(repeated).errors.some(e=>e.includes('repeated interpretation boilerplate')));
 const natural=fixture();natural.sections[0].body=['충분히 알아본 뒤 시작하려다 실행이 늦어집니다.'];assert(!quality.validate(natural).errors.some(e=>/unnatural Korean|interpretation boilerplate|abstract headline/.test(e)));
+for(const ending of ['어떤 선택을 하시겠습니까?','이제 어떻게 할까요','무엇이 중요합니까？']){const r=fixture();r.finalJudgment.closingQuestion=ending;assert(quality.validate(r).errors.includes('final conclusion must not ask a question'));}
+assert(!quality.validate(fixture()).errors.some(e=>e.includes('conclusion')));
+const client={window:{addEventListener(){},CHARACTER_ASSETS:{badge(){return ""},hero(){return ""},detail(){return ""}}},document:{body:{classList:{add(){}}},getElementById(){return null}},requestAnimationFrame(){},console};
+vm.runInNewContext(fs.readFileSync(require.resolve('./report-validator'),'utf8'),client);
+assert(!client.window.REPORT_VALIDATOR.validate(fixture()).errors.some(e=>e.includes('conclusion')));
+vm.runInNewContext(fs.readFileSync(require.resolve('./report-renderer'),'utf8'),client);
+const target={innerHTML:'',closest(){return {classList:{add(){}}}},querySelectorAll(){return []},querySelector(){return null}};
+client.window.REPORT_RENDERER.render({...fixture(),meta:{}},target);
+assert(target.innerHTML.includes('종합 총평'));assert(target.innerHTML.includes('가장 중요한 결론'));
+assert(target.innerHTML.indexOf('가장 중요한 결론')<target.innerHTML.indexOf(fixture().finalJudgment.closingQuestion));
 // Exercise the actual pipeline without an API key, network, or calculation dependency.
 const sandbox={module:{exports:{}},require:n=>n==='./report-facts-node'?{build:()=>({status:'ready',person:{mbti:'ISFP'}})}:require(n)};
 vm.runInNewContext(fs.readFileSync(require.resolve('./report-server-contract'),'utf8'),sandbox);
@@ -13,7 +23,7 @@ vm.runInNewContext(fs.readFileSync(require.resolve('./report-server-contract'),'
  await sandbox.module.exports.generate({mbti:'ISFP'},async p=>{
   calls++;seen.push(p.stage);
   assert(p.rules.plainSentenceRule);assert(!p.rules.tone.includes('사주에서는 ~로 읽습니다로 구분'));
-  if(p.stage==='synthesis'){assert.equal(p.completedReport.sections.reduce((n,s)=>n+s.body.length,0),71);return {cover:null,finalJudgment:{body:['마지막 설명'],closingQuestion:'무엇입니까?',afterClosingText:''}};}
+  if(p.stage==='synthesis'){assert(p.rules.finalRule.includes('평서형 결론 2~3문장'));assert(p.rules.finalRule.includes('body는 세 문단'));assert.equal(p.completedReport.sections.reduce((n,s)=>n+s.body.length,0),71);return {cover:null,finalJudgment:{body:['마지막 설명'],closingQuestion:'자신의 강점을 발휘할 일을 고르고, 그 강점이 지나쳐 생기는 손해를 줄이는 것이 중요합니다.',afterClosingText:''}};}
   assert(p.rules.mbtiDepthRule);assert.equal(p.priorSections.length,(calls-1)*2);
   if(calls>1)assert(p.priorSections.every(s=>s.topicConclusions.length===s.bodyLabels.length));
   return {sections:p.requestedSections.map(id=>({id,title:'제목',keyJudgment:'핵심',evidence:['계산한 사주 항목의 설명입니다.'],bodyTopics:Object.keys(outline.topics[id]),bodyLabels:Object.values(outline.topics[id]),body:Object.keys(outline.topics[id]).map((_,i)=>'첫 번째 결론 '+i+'. 이어지는 설명입니다.')}))};
