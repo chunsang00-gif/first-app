@@ -33,7 +33,7 @@ function validate(r){
  });
  const readable=[r.cover?.headline,r.cover?.description,...(r.cover?.highlights||[]).flatMap(h=>[h.title,h.description]),...(r.cover?.keywords||[]),...r.sections.flatMap(s=>[s.title,s.keyJudgment,...(s.body||[]),...(s.bodyLabels||[]),...(s.evidence||[])]),...(r.finalJudgment?.body||[]),r.finalJudgment?.headline,...(r.finalJudgment?.strengths||[]),...(r.finalJudgment?.watchouts||[]),...(r.finalJudgment?.routines||[]).flatMap(x=>[x.trigger,x.action,x.reason]),r.finalJudgment?.closingQuestion].filter(Boolean);
  const all=norm(readable.join(' '));
- editorial.awkwardPhrases.forEach(x=>{if(all.includes(x))errors.push('unnatural Korean: '+x)});
+ errors.push(...editorial.wordingErrors(readable));
  for(const section of r.sections){
   const paragraphs=section.body||[];
   const boilerplate=paragraphs.filter(p=>/사주에서는|모습으로 읽습니다|과정으로 읽습니다/.test(p)).length;

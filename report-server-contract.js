@@ -35,8 +35,8 @@ async function generate(input,callModel,onProgress=()=>{}){const packet=facts.bu
  Object.assign(base.rules,require('./report-editorial').rules);
  base.promptVersion='reader-v4';
  // Keep one authoritative instruction per concern. Repeating old policies inflates every request.
- const ruleKeys=['factsOnly','noPersonalHistoryInference','noDeterministicPrediction','mbtiOptionalRule','hanjaPolicy','tone','titleRule','keyJudgmentRule','narrativeRule','paragraphGuide','domainUniquenessRule','evidenceRule','confidenceStyleRule','profileScoreRule','factCoverageRule','proofreadingRule','moodRule','namePolicy','avoidPhrases','depthVersion','diversityRule','coverEditingRule','year2027Rule','year2027ComparisonRule','year2027DomainRule','mbtiDepthRule','plainSentenceRule','editorialVersion'];
- const summaryRules={factsOnly:true,noPersonalHistoryInference:true,noDeterministicPrediction:true,namePolicy:base.rules.namePolicy,mbtiOptionalRule:base.rules.mbtiOptionalRule,tone:base.rules.tone,hanjaPolicy:base.rules.hanjaPolicy,coverRule:base.rules.coverRule,finalRule:base.rules.finalRule,confidenceStyleRule:base.rules.confidenceStyleRule,proofreadingRule:base.rules.proofreadingRule,coverEditingRule:base.rules.coverEditingRule,plainSentenceRule:base.rules.plainSentenceRule};
+ const ruleKeys=['factsOnly','noPersonalHistoryInference','noDeterministicPrediction','mbtiOptionalRule','hanjaPolicy','tone','titleRule','keyJudgmentRule','narrativeRule','paragraphGuide','domainUniquenessRule','evidenceRule','confidenceStyleRule','profileScoreRule','factCoverageRule','proofreadingRule','moodRule','namePolicy','avoidPhrases','depthVersion','diversityRule','coverEditingRule','year2027Rule','year2027ComparisonRule','year2027DomainRule','mbtiDepthRule','plainSentenceRule','concreteReviewRule','editorialVersion'];
+ const summaryRules={factsOnly:true,noPersonalHistoryInference:true,noDeterministicPrediction:true,namePolicy:base.rules.namePolicy,mbtiOptionalRule:base.rules.mbtiOptionalRule,tone:base.rules.tone,hanjaPolicy:base.rules.hanjaPolicy,coverRule:base.rules.coverRule,finalRule:base.rules.finalRule,confidenceStyleRule:base.rules.confidenceStyleRule,proofreadingRule:base.rules.proofreadingRule,coverEditingRule:base.rules.coverEditingRule,plainSentenceRule:base.rules.plainSentenceRule,concreteReviewRule:base.rules.concreteReviewRule};
  base.rules=Object.fromEntries(ruleKeys.map(key=>[key,base.rules[key]]));
  base.rules.avoidPhrases=quality.forbiddenPhrases;summaryRules.avoidPhrases=quality.forbiddenPhrases;
  const groups=Array.from({length:6},(_,i)=>IDS.slice(i*2,i*2+2));
@@ -54,7 +54,7 @@ async function generate(input,callModel,onProgress=()=>{}){const packet=facts.bu
   priorSections.push(...result.sections.map(s=>({id:s.id,keyJudgment:s.keyJudgment,bodyLabels:s.bodyLabels,topicConclusions:s.body.map(p=>p.split(/(?<=[.!?])\s+/)[0].slice(0,180))})));
   onProgress({stage:'body',completed:done+=ids.length,total:12});return result;
  });
- const meta={characterGender:input.gender||'male',name:input.name||'',mbti:input.mbti||'모름',chart:packet.chart,profileBalance:packet.profileBalance,targetYear:2027,versions:{ruleset:'premium-v2',prompt:'reader-v5-conclusion',schema:outline.version}};
+ const meta={characterGender:input.gender||'male',name:input.name||'',mbti:input.mbti||'모름',chart:packet.chart,profileBalance:packet.profileBalance,targetYear:2027,versions:{ruleset:'premium-v2',prompt:'reader-v6-concrete',schema:outline.version}};
  const sections=drafts.flatMap(p=>p.sections||[]);
  // Select the cover only after all 12 complete chapters. The final local quality
  // gate below remains mandatory; no automatic paid rewrite or retry is issued.
