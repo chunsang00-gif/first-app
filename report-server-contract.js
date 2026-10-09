@@ -62,9 +62,10 @@ async function generate(input,callModel,onProgress=()=>{}){const packet=facts.bu
  onProgress({stage:'synthesis',completed:0,total:1});
  let summary=await callModel(summaryPrompt);
  let report={meta,sections,cover:summary.cover,finalJudgment:summary.finalJudgment};
+ const headingRepairs=require('./report-heading-review').repair(report);
  let shape=validateShape(report),qa=shape.pass?quality.validate(report):shape;
 
- return qa.pass?{status:'ready',report,qa}:{status:'rejected',report,qa};
+ return qa.pass?{status:'ready',report,qa,headingRepairs}:{status:'rejected',report,qa,headingRepairs};
 }
 module.exports={IDS,validateShape,buildPrompt,generate};
 

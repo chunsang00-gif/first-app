@@ -8,7 +8,7 @@
   },
   "scripts": {
     "start": "node server.js",
-    "test": "node node-tests.js && node result-dashboard-tests.js && node share-export-tests.js && node report-request-tests.js && node report-editorial-tests.js && node report-timing-tests.js",
+    "test": "node node-tests.js && node result-dashboard-tests.js && node share-export-tests.js && node report-request-tests.js && node report-editorial-tests.js && node report-timing-tests.js && node report-review-tests.js",
     "smoke": "node smoke-test.js"
   }
 }

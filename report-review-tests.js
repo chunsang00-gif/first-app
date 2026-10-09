@@ -1,0 +1,18 @@
+'use strict';
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
+const review=require('./report-heading-review'),quality=require('./report-quality-node');
+const concrete='참석할지 결정하기 전에 그날 끝내야 할 일부터 확인합니다.';
+const report={sections:quality.IDS.map((id,i)=>({id,title:'제목'+i,keyJudgment:concrete,bodyLabels:['참여 여부를 바로 답하지 못하는 이유'],bodyTopics:['test'],body:[concrete],evidence:['계산한 근거의 설명입니다.']})),finalJudgment:{body:[concrete],closingQuestion:concrete}};
+assert(!review.issues(report).some(x=>x.reason==='abstract headline without concrete meaning'));
+assert(!quality.validate(report).errors.includes('abstract headline without concrete meaning'));
+report.sections[0].bodyLabels[0]='참여 여부';
+assert.deepEqual(review.issues(report).find(x=>x.reason==='abstract headline without concrete meaning'),{path:'sections.0.bodyLabels.0',text:'참여 여부',reason:'abstract headline without concrete meaning'});
+const bodyBefore=JSON.stringify(report.sections.map(s=>s.body));const repairs=review.repair(report);
+assert.equal(repairs.length,1);assert.equal(report.sections[0].bodyLabels[0],concrete);assert.equal(JSON.stringify(report.sections.map(s=>s.body)),bodyBefore);
+report.sections[0].bodyLabels[0]='납득의 순서';report.sections[0].body[0]='짧음';assert.equal(review.repair(report).length,0);assert(review.issues(report).length);
+const original={status:'rejected',code:'REPORT_QUALITY_REJECTED',report,qa:quality.validate(report)};
+const values=new Map([['reportJobId','existing']]);let fetchCount=0;
+const response={status:422,ok:false,json:async()=>original,clone(){return this}};
+const context={window:{},sessionStorage:{getItem:k=>values.get(k),setItem:(k,v)=>values.set(k,v),removeItem:k=>values.delete(k)},setTimeout:fn=>fn(),Date,console,fetch:async()=>{fetchCount++;return response;}};
+vm.runInNewContext(fs.readFileSync(require.resolve('./report-api-contract'),'utf8'),context);
+(async()=>{const out=await context.window.REPORT_API.resume();assert.equal(out.status,'rejected');assert.deepEqual(JSON.parse(values.get('reportQualityDraft')).report,report);const again=await context.window.REPORT_API.resume();assert.equal(again.status,'rejected');assert.equal(fetchCount,1);assert(!values.has('reportJobId'));console.log('PASS complete heading accepted; bare heading located/repaired from its own text; bodies unchanged; rejected report survives resume without regeneration');})().catch(e=>{console.error(e);process.exitCode=1});

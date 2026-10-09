@@ -39,9 +39,8 @@ function validate(r){
   const boilerplate=paragraphs.filter(p=>/사주에서는|모습으로 읽습니다|과정으로 읽습니다/.test(p)).length;
   if(boilerplate>=4)errors.push(section.id+': repeated interpretation boilerplate');
  }
- const headings=[r.cover?.headline,...(r.cover?.highlights||[]).map(h=>h.title),...r.sections.flatMap(s=>[s.title,...(s.bodyLabels||[])]),r.finalJudgment?.headline].filter(Boolean);
- if(headings.some(t=>/(?:납득|참여|금전)의? (?:순서|경계|여부)/.test(t)))errors.push('abstract headline without concrete meaning');
-
+ const issues=require('./report-heading-review').issues(r);
+ for(const issue of issues)if(issue.reason==='abstract headline without concrete meaning')errors.push(issue.reason);
  if(readable.some(x=>/(?:[A-Za-z]+_){1,}[A-Za-z]+|undefined|\[object Object\]/.test(x)))errors.push('internal field leaked into prose');
  if(readable.some(x=>/([가-힣]{2,})\s+\1(?=[\s,.!?]|$)/.test(x)))errors.push('duplicated adjacent word');
  if(readable.some(x=>/\uFFFD/.test(x)))errors.push('invalid text encoding');
@@ -72,7 +71,7 @@ function validate(r){
  if(!norm(r.finalJudgment?.closingQuestion))errors.push('final conclusion missing');
  else if(/[?？]|(?:까요|습니까|무엇인가|어떠한가)\s*[.!。]?\s*$/.test(norm(r.finalJudgment.closingQuestion)))errors.push('final conclusion must not ask a question');
  if((r.finalJudgment?.afterClosingText||'')!=='')errors.push('text after final conclusion is forbidden');
- return {pass:errors.length===0,errors,warnings};
+ return {pass:errors.length===0,errors:[...new Set(errors)],warnings,issues};
 }
 module.exports={IDS,validate,forbiddenPhrases:[...new Set([...banned,...vague,...abstract,...generic,...sugar,...meddling,...universal,...editorial.awkwardPhrases])]};
 
