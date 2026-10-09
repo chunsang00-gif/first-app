@@ -37,7 +37,7 @@ vm.runInNewContext(fs.readFileSync(require.resolve('./report-server-contract'),'
  let calls=0;const seen=[];
  await sandbox.module.exports.generate({mbti:'ISFP'},async p=>{
   calls++;seen.push(p.stage);
-  assert(p.rules.plainSentenceRule);assert(p.rules.concreteReviewRule);assert(p.rules.avoidPhrases.includes('핵심 성향'));assert(!p.rules.tone.includes('사주에서는 ~로 읽습니다로 구분'));
+  assert(p.rules.plainSentenceRule);assert(p.rules.concreteReviewRule);assert(p.rules.candidRule.includes('단점은 예쁜 말로 바꾸지 않는다'));assert(p.rules.weaknessActionRule.includes('바꿀 행동'));assert(p.rules.avoidPhrases.includes('핵심 성향'));assert(!p.rules.tone.includes('사주에서는 ~로 읽습니다로 구분'));
   if(p.stage==='synthesis'){assert(p.rules.finalRule.includes('평서형 결론 2~3문장'));assert(p.rules.finalRule.includes('body는 세 문단'));assert.equal(p.completedReport.sections.reduce((n,s)=>n+s.body.length,0),71);return {cover:null,finalJudgment:{body:['마지막 설명'],closingQuestion:'꼼꼼하게 확인하느라 결정을 늦출 때는, 오늘 확인할 내용을 먼저 정하는 것이 도움이 됩니다.',afterClosingText:''}};}
   assert(p.rules.mbtiDepthRule);assert.equal(p.priorSections.length,(calls-1)*2);
   if(calls>1)assert(p.priorSections.every(s=>s.topicConclusions.length===s.bodyLabels.length));
