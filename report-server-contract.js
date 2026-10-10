@@ -24,11 +24,11 @@ async function generate(input,callModel,onProgress=()=>{}){const packet=facts.bu
  const outline=require('./report-outline');
  Object.assign(base.rules,{
   depthVersion:outline.version,topicPlan:outline.topics,
-  paragraphGuide:'각 장의 topicPlan 항목을 순서대로 빠짐없이 다룬다. bodyTopics에 해당 키, bodyLabels에 독자가 이해할 소제목, body에 충분한 설명을 같은 순서로 넣는다. 장마다 5~7개 문단이다.',
-  narrativeRule:'문단마다 서로 다른 독자 질문에 답한다. 결론→왜 그렇게 해석하는지→그 조건에서 드러나는 모습까지 충분히 풀어쓴다. 문단당 대략 180~300자를 참고하되 반복으로 채우지 않는다. 매 문단에 똑같은 근거 소개·예시·한계·조언을 붙이지 않는다. 독자가 이미 이해한 전문 용어를 다시 정의하지 않는다.',
+  paragraphGuide:'각 장의 필수 topicPlan 질문에 답하되 겹치는 질문은 같은 설명을 반복하지 않는다. bodyTopics와 bodyLabels의 키와 순서를 유지하면서 각 본문은 핵심 해석 2~4문장으로 간결하게 작성한다. 별도 사주 근거 설명과 반복되는 교훈을 덧붙이지 않는다.',
+  narrativeRule:'각 본문은 해당 질문에 대한 해석을 바로 설명한다. 180~300자 분량 목표를 없앤다. 계산된 사실을 내부에서 확인하되 사용자에게 계산 순서나 해석 과정 자체를 장황하게 보여주지 않는다. 앞선 항목과 같은 이야기라면 핵심 차이만 남긴다. 해석이 부족하면 꾸며서 채우지 않는다.',
   domainUniquenessRule:'돈은 벌기·쓰기·모으기·함께 쓰기, 직업은 배움·업무 적합성·조직·협업·진로, 관계는 우정·연애·애정·결혼생활·가족을 각각 별도로 분석한다. 모든 분야를 작업·수정·요청·비용 이야기로 바꾸지 않는다. 알려지지 않은 현재 직업·연애 여부·가족사를 지어내지 말고 해당 상황일 때의 해석으로 쓴다.',
   confidenceStyleRule:'사주 해석의 한계는 최종 정리에 한 번 명확히 밝힌다. 문단마다 단정하지 않습니다·알 수 없습니다로 끝내지 않는다. 특정 근거가 없는 판단은 그 판단만 짧게 제한하고, 계산된 다른 근거로 답할 수 있는 내용을 설명한다. 과거 사실·건강 진단·성공률·사건 발생·계산하지 않은 월별 시기를 만들지 않는다.',
-  evidenceRule:'근거는 evidence에 핵심 2~3개를 모으고 본문에서는 그 근거가 어떤 차이를 만드는지 풀어쓴다. 본문 전체를 명리 용어 정의로 채우지 않는다. 십성 하나를 성격 하나로 기계적으로 대응하지 않고 계산된 여러 관계와 계절·위치를 함께 검토한다. 강약·용신은 계산하지 않았으므로 판정하지 않는다.',
+  evidenceRule:'evidence 필드는 내부 검증용으로 유지하되 사용자 본문에 사주의 근거라는 별도 설명을 반복하지 않는다. 계산된 여러 요소를 종합해 해석하고 계산하지 않은 강약·용신은 판정하지 않는다. 명리 용어 설명은 결과를 이해하는 데 꼭 필요할 때만 본문에 짧게 넣는다.',
   coverRule:'본문 단계에서는 cover와 finalJudgment를 null로 반환한다. 최종 선별 단계에서는 교정이 끝난 전체 본문만을 근거로 cover와 finalJudgment를 작성한다. 메인은 연간 운세만으로 평생 성격을 요약하지 않는다. highlights는 12장 전체에서 서로 다른 세 장을 고른다. 기본 성향·의외의 차이·종합이라는 고정 틀 대신 그 사람에게 중요한 실제 특징 세 개를 고른다. sectionId는 원문 장의 id, title과 description은 해당 본문에 근거한 간결한 결론이다. 다른 특징 세 개를 선별하고 상단 headline을 되풀이하지 않는다.',
   finalRule:'전체 본문에서 중요한 강점·주의점·행동 루틴을 우선순위대로 선별한다. 앞 장을 하나씩 요약하는 나열이나 연간 운세 중심 결론을 피한다. 서로 다른 분야의 행동을 고르고 실제 상황·행동·이유를 연결한다. closingQuestion 뒤에는 텍스트를 넣지 않는다.'
  });
@@ -49,7 +49,7 @@ async function generate(input,callModel,onProgress=()=>{}){const packet=facts.bu
  const drafts=await mapLimited(groups,async ids=>{
   const result=validateBatch(await callModel(request(ids,{
    stage:'body',priorSections:priorSections.slice(),
-   editorialTask:'이번 응답을 최종 본문으로 작성한다. 제출 전에 같은 응답 안에서 주제 누락, 문장 중복, 용어 설명, 조사와 맞춤법을 바로잡는다. priorSections는 이미 작성한 장의 결론이다. 같은 결론을 분야명만 바꾸어 반복하지 않는다. 현재 장의 고유 질문에 깊이 답한다. 평생 성향 장에 2027 해석을 섞지 않는다. 본문 분량과 bodyTopics의 모든 항목을 유지한다.'
+   editorialTask:'이번 응답을 최종 본문으로 작성한다. 각 질문에 답하되 문장을 늘리지 않는다. 이미 설명한 판단이나 행동은 반복하지 않고 겹치는 내용은 간결하게 처리한다. 실제 사주·MBTI에서 확인되지 않은 일반적인 성격 칭찬이나 상담 장면을 만들어 넣지 않는다. 문장 간 논리, 조사, 띄어쓰기를 자연스럽게 교정한다. 필수 bodyTopics의 구조는 유지한다. 별도 유료 재작성 호출을 하지 않는다.'
   })),ids);
   priorSections.push(...result.sections.map(s=>({id:s.id,keyJudgment:s.keyJudgment,bodyLabels:s.bodyLabels,topicConclusions:s.body.map(p=>p.split(/(?<=[.!?])\s+/)[0].slice(0,180))})));
   onProgress({stage:'body',completed:done+=ids.length,total:12});return result;
