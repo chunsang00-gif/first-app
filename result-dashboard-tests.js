@@ -10,7 +10,7 @@ function render(r){const target={innerHTML:'',closest(){return {classList:{add()
 const a=report({calendar:'solar',birthDate:'1990-06-15',birthTime:'12:00',birthplace:'서울',gender:'male',mbti:'ESTJ',name:'검증 남성'});
 const b=report({calendar:'solar',birthDate:'1999-12-24',birthTime:'07:30',birthplace:'대구',gender:'female',mbti:'INFP',name:'검증 여성'});
 const first=render(a),second=render(b);
-assert(first.includes('말을 뜻하는 글자'));assert(!first.includes('말를 뜻하는 글자'));
+assert(!first.includes('이 해석의 근거'));assert(!first.includes('사주 계산값 확인'));
 assert(first.includes('MBTI를 해석한'));assert(!first.includes('MBTI을'));
 assert(first.includes('검증 남성'));assert(second.includes('검증 여성'));assert(!second.includes('검증 남성'));
 assert.notEqual(characters.select(a).zodiac,characters.select(b).zodiac);

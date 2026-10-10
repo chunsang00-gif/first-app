@@ -37,12 +37,12 @@ vm.runInNewContext(fs.readFileSync(require.resolve('./report-server-contract'),'
  let calls=0;const seen=[];
  await sandbox.module.exports.generate({mbti:'ISFP'},async p=>{
   calls++;seen.push(p.stage);
-  assert(p.rules.plainSentenceRule);assert(p.rules.concreteReviewRule);assert(p.rules.candidRule.includes('단점은 예쁜 말로 바꾸지 않는다'));assert(p.rules.weaknessActionRule.includes('바꿀 행동'));assert(p.rules.avoidPhrases.includes('핵심 성향'));assert(!p.rules.tone.includes('사주에서는 ~로 읽습니다로 구분'));
-  if(p.stage==='synthesis'){assert(p.rules.finalRule.includes('평서형 결론 2~3문장'));assert(p.rules.finalRule.includes('body는 세 문단'));assert.equal(p.completedReport.sections.reduce((n,s)=>n+s.body.length,0),71);return {cover:null,finalJudgment:{body:['마지막 설명'],closingQuestion:'꼼꼼하게 확인하느라 결정을 늦출 때는, 오늘 확인할 내용을 먼저 정하는 것이 도움이 됩니다.',afterClosingText:''}};}
+  assert(p.rules.plainSentenceRule);assert(p.rules.concreteReviewRule);assert(p.rules.candidRule.includes('단점은 예쁜 말로 바꾸지 않는다'));assert(p.rules.weaknessActionRule.includes('단점마다 조언을 붙이지 않는다'));assert(p.rules.avoidPhrases.includes('핵심 성향'));assert(!p.rules.tone.includes('사주에서는 ~로 읽습니다로 구분'));
+  if(p.stage==='synthesis'){assert(p.rules.finalRule.includes('교훈이나 감동 문구를 억지로 붙이지 않는다'));assert(p.rules.finalRule.includes('앞의 12개 장을 다시 요약하지 않는다'));assert.equal(p.completedReport.sections.reduce((n,s)=>n+s.body.length,0),35);return {cover:null,finalJudgment:{body:['마지막 설명'],closingQuestion:'꼼꼼하게 확인하느라 결정을 늦출 때는, 오늘 확인할 내용을 먼저 정하는 것이 도움이 됩니다.',afterClosingText:''}};}
   assert(p.rules.mbtiDepthRule);assert.equal(p.priorSections.length,(calls-1)*2);
   if(calls>1)assert(p.priorSections.every(s=>s.topicConclusions.length===s.bodyLabels.length));
   return {sections:p.requestedSections.map(id=>({id,title:'제목',keyJudgment:'핵심',evidence:['계산한 사주 항목의 설명입니다.'],bodyTopics:Object.keys(outline.topics[id]),bodyLabels:Object.values(outline.topics[id]),body:Object.keys(outline.topics[id]).map((_,i)=>'첫 번째 결론 '+i+'. 이어지는 설명입니다.')}))};
  });
  assert.equal(calls,7);assert.equal(seen.filter(s=>s==='body').length,6);assert.equal(seen[6],'synthesis');
- console.log('PASS editorial phrases, repetitive templates, natural phrasing, active body/summary rules, topic memory, 71 topics and seven calls; no paid API');
+ console.log('PASS editorial phrases, repetitive templates, natural phrasing, active body/summary rules, topic memory, 35 topics and seven calls; no paid API');
 })().catch(e=>{console.error(e);process.exitCode=1});
