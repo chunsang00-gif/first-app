@@ -24,7 +24,7 @@ async function generate(input,callModel,onProgress=()=>{}){const packet=facts.bu
  const outline=require('./report-outline');
  Object.assign(base.rules,{
   depthVersion:outline.version,topicPlan:outline.topics,
-  paragraphGuide:'각 장의 필수 topicPlan 질문에 답하되 겹치는 질문은 같은 설명을 반복하지 않는다. bodyTopics와 bodyLabels의 키와 순서를 유지하면서 각 본문은 핵심 해석 2~4문장으로 간결하게 작성한다. 별도 사주 근거 설명과 반복되는 교훈을 덧붙이지 않는다.',
+  paragraphGuide:'각 장의 topicPlan 질문에 각각 답한다. 합쳐진 질문을 다시 세분화하지 않는다. bodyTopics와 bodyLabels 순서를 유지하고 주제당 2~4문장으로 핵심 내용만 쓴다. 별도의 사주 근거 설명과 반복되는 교훈을 덧붙이지 않는다.',
   narrativeRule:'각 본문은 해당 질문에 대한 해석을 바로 설명한다. 180~300자 분량 목표를 없앤다. 계산된 사실을 내부에서 확인하되 사용자에게 계산 순서나 해석 과정 자체를 장황하게 보여주지 않는다. 앞선 항목과 같은 이야기라면 핵심 차이만 남긴다. 해석이 부족하면 꾸며서 채우지 않는다.',
   domainUniquenessRule:'돈은 벌기·쓰기·모으기·함께 쓰기, 직업은 배움·업무 적합성·조직·협업·진로, 관계는 우정·연애·애정·결혼생활·가족을 각각 별도로 분석한다. 모든 분야를 작업·수정·요청·비용 이야기로 바꾸지 않는다. 알려지지 않은 현재 직업·연애 여부·가족사를 지어내지 말고 해당 상황일 때의 해석으로 쓴다.',
   confidenceStyleRule:'사주 해석의 한계는 최종 정리에 한 번 명확히 밝힌다. 문단마다 단정하지 않습니다·알 수 없습니다로 끝내지 않는다. 특정 근거가 없는 판단은 그 판단만 짧게 제한하고, 계산된 다른 근거로 답할 수 있는 내용을 설명한다. 과거 사실·건강 진단·성공률·사건 발생·계산하지 않은 월별 시기를 만들지 않는다.',
@@ -33,7 +33,7 @@ async function generate(input,callModel,onProgress=()=>{}){const packet=facts.bu
   finalRule:'전체 본문에서 중요한 강점·주의점·행동 루틴을 우선순위대로 선별한다. 앞 장을 하나씩 요약하는 나열이나 연간 운세 중심 결론을 피한다. 서로 다른 분야의 행동을 고르고 실제 상황·행동·이유를 연결한다. closingQuestion 뒤에는 텍스트를 넣지 않는다.'
  });
  Object.assign(base.rules,require('./report-editorial').rules);
- base.promptVersion='reader-v4';
+ base.promptVersion='reader-concise-v1';
  // Keep one authoritative instruction per concern. Repeating old policies inflates every request.
  const ruleKeys=['factsOnly','noPersonalHistoryInference','noDeterministicPrediction','mbtiOptionalRule','hanjaPolicy','tone','titleRule','keyJudgmentRule','narrativeRule','paragraphGuide','domainUniquenessRule','evidenceRule','confidenceStyleRule','profileScoreRule','factCoverageRule','proofreadingRule','moodRule','namePolicy','avoidPhrases','depthVersion','diversityRule','coverEditingRule','year2027Rule','year2027ComparisonRule','year2027DomainRule','mbtiDepthRule','plainSentenceRule','concreteReviewRule','candidRule','weaknessActionRule','editorialVersion'];
  const summaryRules={factsOnly:true,noPersonalHistoryInference:true,noDeterministicPrediction:true,namePolicy:base.rules.namePolicy,mbtiOptionalRule:base.rules.mbtiOptionalRule,tone:base.rules.tone,hanjaPolicy:base.rules.hanjaPolicy,coverRule:base.rules.coverRule,finalRule:base.rules.finalRule,confidenceStyleRule:base.rules.confidenceStyleRule,proofreadingRule:base.rules.proofreadingRule,coverEditingRule:base.rules.coverEditingRule,plainSentenceRule:base.rules.plainSentenceRule,concreteReviewRule:base.rules.concreteReviewRule,candidRule:base.rules.candidRule,weaknessActionRule:base.rules.weaknessActionRule};
@@ -54,7 +54,7 @@ async function generate(input,callModel,onProgress=()=>{}){const packet=facts.bu
   priorSections.push(...result.sections.map(s=>({id:s.id,keyJudgment:s.keyJudgment,bodyLabels:s.bodyLabels,topicConclusions:s.body.map(p=>p.split(/(?<=[.!?])\s+/)[0].slice(0,180))})));
   onProgress({stage:'body',completed:done+=ids.length,total:12});return result;
  });
- const meta={characterGender:input.gender||'male',name:input.name||'',mbti:input.mbti||'모름',chart:packet.chart,profileBalance:packet.profileBalance,targetYear:2027,versions:{ruleset:'premium-v2',prompt:'reader-v7-candid',schema:outline.version}};
+ const meta={characterGender:input.gender||'male',name:input.name||'',mbti:input.mbti||'모름',chart:packet.chart,profileBalance:packet.profileBalance,targetYear:2027,versions:{ruleset:'premium-v2',prompt:'reader-concise-v1',schema:outline.version}};
  const sections=drafts.flatMap(p=>p.sections||[]);
  // Select the cover only after all 12 complete chapters. The final local quality
  // gate below remains mandatory; no automatic paid rewrite or retry is issued.
