@@ -134,7 +134,7 @@ function validate(r,packet){
   // Flag it for editorial review; don't reject legitimate free-form evidence solely
   // because it uses unfamiliar wording.
   if(Array.isArray(s.evidence)&&s.evidence.some(x=>/^(?:계산한\s*사주\s*항목의\s*설명|사주\s*근거를\s*확인|명리학적으로\s*해석)(?:입니다|했습니다|합니다)?[.!]?\s*$/.test(norm(x))))
-   warnings.push(s.id+': evidence is generic placeholder');
+   errors.push(s.id+': evidence is generic placeholder');
   if(Array.isArray(s.evidence)&&s.evidence.every(x=>!/(?:일간|월지|연지|일지|시지|천간|지지|십성|비견|겁재|식신|상관|편재|정재|편관|정관|편인|정인|지장간|세운|충|목|화|토|금|수|甲|乙|丙|丁|戊|己|庚|辛|壬|癸|子|丑|寅|卯|辰|巳|午|未|申|酉|戌|亥)/.test(norm(x))))
    warnings.push(s.id+': evidence has no identifiable saju element');
 
