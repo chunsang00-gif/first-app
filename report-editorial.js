@@ -6,7 +6,10 @@ const awkwardPhrases=['납득의 순서','사용감이 남는 소비','금전 �
 const compact=s=>String(s||'').normalize('NFKC').replace(/[\s\u200B-\u200D\uFEFF·ㆍ“”‘’"']/g,'');
 function wordingErrors(fields){const found=new Set();for(const field of fields){const text=compact(field);for(const phrase of awkwardPhrases)if(text.includes(compact(phrase)))found.add('unnatural Korean: '+phrase);}return [...found];}
 const rules={
- editorialVersion:'reader-v9-plain-cover',
+ editorialVersion:'reader-v10-direct-action',
+ decisiveSentenceRule:'분석 결론은 근거가 충분할 때 단정하고 자연스럽게 끝낸다. 예: 눈에 보이는 성과가 있는 일이 더 잘 맞습니다. 뒷받침하는 근거가 있는데도 더 잘 맞을 수 있습니다, 어울릴 가능성이 있습니다처럼 습관적으로 회피하지 않는다. 근거가 부족할 때는 막연히 가능성을 높이지 말고 어떤 사실이 부족한지 한 번만 밝힌다. 실제 과거 사건이나 성공을 사실로 단정하지 않는다.',
+ actionableMoneyRule:'돈과 2027년 금전 분석에서는 돈을 어디에 쓰는지 살펴볼 필요가 있습니다, 소비를 점검하세요, 계획을 세워야 합니다처럼 행동이 없는 조언을 금지한다. 금전상의 주의가 계산 근거에서 확인되어 실질적인 관리법을 제안할 경우, 예: 가계부에 한 달 지출을 적어 식비·쇼핑·구독료 중 어디에 돈이 많이 나가는지 확인하고, 가장 큰 항목부터 줄일 수 있는지 비교합니다처럼 당장 무엇을 하는지 말한다. 단, 이 예시는 작성 방식일 뿐 해당 사용자의 2027년 돈 문제가 있다는 증거가 아니다. 계산 근거가 없으면 2027년에 금전 문제가 생긴다고 꾸미지 않는다. 위험 분석과 해결 행동을 구분하고, 해법이 필요하지 않으면 조언을 생략한다.',
+
  coverNaturalnessRule:'표지의 headline·description·highlights는 한국어로 실제 사람이 말할 법한 문장을 쓴다. 특히 아래 불량 문장은 그대로 쓰거나 단어만 바꿔 재활용하지 않는다. 불량 예: 경험으로 확인하고 이유를 이해해야 받아들이는 성향 / 경험을 중시하면서도 낯선 일에는 설명을 먼저 구하는 면 / 이익에 동의해도 결정을 바꾸지는 않을 수 있습니다 / 결과물을 직접 다루는 업무가 어울립니다 / 2027년에는 반복 비용이 주요 검토 대상입니다. 이들은 추상 명사·대상 없는 동사·부자연스러운 연결 때문에 사람이 읽고 뜻을 곧바로 이해하기 어렵다. 개선 예시는 특정 인물의 사실이 아니라 문장 형태만 보여준다: 남의 말을 바로 믿기보다 직접 해 보고 판단하는 편입니다 / 조건이 좋아 보여도 마음에 들지 않으면 거절할 수 있습니다 / 직접 만들고 결과를 확인하는 일이 잘 맞을 수 있습니다. 예시의 성격 판단을 해당 사용자에게 그대로 적용하지 말고 실제 계산 근거가 있을 때만 작성한다. 2027년 돈 풀이에 반복 비용이라는 말을 자동으로 넣지 않는다. 그해 계산 사실이 어떤 지출과 관련되는지 구체적으로 설명할 수 없으면 숫자·비용·가계 지출 예측을 만들지 않는다. 키워드는 경험과 이해·개인적 가치·결과물 중심 업무처럼 뜻이 모호한 명사 조합 대신 짧고 이해 가능한 일상 표현을 쓴다.',
 
  // Prevent prompting by copying canned personality descriptions as if they were evidence.
