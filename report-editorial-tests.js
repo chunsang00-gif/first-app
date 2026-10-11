@@ -46,6 +46,15 @@ const goodGod=fixture();goodGod.sections[0].evidence=['월간의 정재는 전�
 assert(!quality.validate(goodGod,calculatedFacts).errors.some(e=>e.includes('conflicts with calculated')));
 const unstatedGod=fixture();unstatedGod.sections[0].evidence=['사주에서 편재를 어떻게 이해할 수 있는지 설명합니다.'];
 assert(!quality.validate(unstatedGod,calculatedFacts).errors.some(e=>e.includes('conflicts with calculated')));
+const yearFacts={facts:{tenGods:{},annualTenGods:{stemTenGod:'정재'},targetYearRelations:[{type:'충',between:'month',branches:'午子'}]}};
+const wrongYear=fixture();wrongYear.sections[8].evidence=['2027년 세운은 편재이므로 소비가 늘어납니다.'];
+assert(quality.validate(wrongYear,yearFacts).errors.includes('year_2027: 2027 편재 conflicts with calculated 정재'));
+const correctYear=fixture();correctYear.sections[8].evidence=['2027년 세운은 정재로 나타납니다.'];
+assert(!quality.validate(correctYear,yearFacts).errors.some(x=>x.includes('2027')&&x.includes('conflicts with calculated')));
+const unsupportedClash=fixture();unsupportedClash.sections[8].evidence=['2027년 일지와 충돌하는 관계가 있습니다.'];
+assert(quality.validate(unsupportedClash,yearFacts).errors.includes('year_2027: unsupported 2027 clash with 일지'));
+const supportedClash=fixture();supportedClash.sections[8].evidence=['2027년 월지와 충돌하는 관계가 있습니다.'];
+assert(!quality.validate(supportedClash,yearFacts).errors.some(x=>x.includes('unsupported 2027 clash')));
 const contradiction=fixture();contradiction.sections[3].title='불필요한 지출은 하지 않습니다';contradiction.sections[3].body=['마음에 드는 물건에는 예산보다 많은 돈을 쓸 수 있습니다.'];assert(quality.validate(contradiction).errors.includes('money: categorical money headline conflicts with spending exception'));
 const conditional=fixture();conditional.sections[3].title='평소에는 돈을 아끼지만 좋아하는 물건에는 지출합니다';conditional.sections[3].body=['마음에 드는 물건에는 예산보다 많은 돈을 쓸 수 있습니다.'];assert(!quality.validate(conditional).errors.some(x=>x.includes('categorical money headline')));
 const natural=fixture();natural.sections[0].body=['충분히 알아본 뒤 시작하려다 실행이 늦어집니다.'];assert(!quality.validate(natural).errors.some(e=>/unnatural Korean|interpretation boilerplate|abstract headline/.test(e)));
