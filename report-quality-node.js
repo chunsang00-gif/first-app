@@ -10,7 +10,29 @@ const meddling=['반드시 해야','꼭 해야','습관을 들이','주변 사�
 const universal=['상황에 따라 다를','사람마다 다를','때로는 적극적','때로는 신중','장단점이 있','균형이 중요','소통이 중요','자기계발','성장할 수'];
 const editorial=require('./report-editorial');
 const norm=s=>String(s||'').replace(/\s+/g,' ').trim();
-function validate(r){
+// Only verify explicit stem-ten-god claims that can be matched to computed positions.
+// More nuanced traditional interpretations still require human review.
+const positionKeys={연간:'year',월간:'month',일간:'day',시간:'hour'};
+const godTerms='비견|겁재|식신|상관|편재|정재|편관|정관|편인|정인';
+function verifyEvidenceAgainstFacts(report,packet){
+ const errors=[],warnings=[];
+ const tenGods=packet?.facts?.tenGods;
+ if(!tenGods)return {errors,warnings};
+ for(const section of report.sections||[]){
+  for(const evidence of section.evidence||[]){
+   const text=norm(evidence);
+   const re=new RegExp('(연간|월간|일간|시간)(?:의|에|은|에는|에서|\\s+){0,3}('+godTerms+')','g');
+   for(const match of text.matchAll(re)){
+    const position=positionKeys[match[1]];
+    const calculated=tenGods[position]?.stemTenGod;
+    if(calculated&&calculated!==match[2])errors.push(section.id+': '+match[1]+' '+match[2]+' conflicts with calculated '+calculated);
+    else if(!calculated)warnings.push(section.id+': '+match[1]+' position unavailable to verify');
+   }
+  }
+ }
+ return {errors:[...new Set(errors)],warnings:[...new Set(warnings)]};
+}
+function validate(r,packet){
  const errors=[],warnings=[];
  if(!r||!Array.isArray(r.sections))return {pass:false,errors:['sections missing'],warnings};
  if(r.sections.length!==12)errors.push(`sections must be 12, got ${r.sections.length}`);
@@ -50,6 +72,7 @@ function validate(r){
  });
  const readable=[r.cover?.headline,r.cover?.description,...(r.cover?.highlights||[]).flatMap(h=>[h.title,h.description]),...(r.cover?.keywords||[]),...r.sections.flatMap(s=>[s.title,s.keyJudgment,...(s.body||[]),...(s.bodyLabels||[]),...(s.evidence||[])]),...(r.finalJudgment?.body||[]),r.finalJudgment?.headline,...(r.finalJudgment?.strengths||[]),...(r.finalJudgment?.watchouts||[]),...(r.finalJudgment?.routines||[]).flatMap(x=>[x.trigger,x.action,x.reason]),r.finalJudgment?.closingQuestion].filter(Boolean);
  const all=norm(readable.join(' '));
+ const factCheck=verifyEvidenceAgainstFacts(r,packet);errors.push(...factCheck.errors);warnings.push(...factCheck.warnings);
  errors.push(...editorial.wordingErrors(readable));
  for(const section of r.sections){
   const paragraphs=section.body||[];
@@ -90,5 +113,5 @@ function validate(r){
  if((r.finalJudgment?.afterClosingText||'')!=='')errors.push('text after final conclusion is forbidden');
  return {pass:errors.length===0,errors:[...new Set(errors)],warnings,issues};
 }
-module.exports={IDS,validate,forbiddenPhrases:[...new Set([...banned,...vague,...abstract,...generic,...sugar,...meddling,...universal,...editorial.awkwardPhrases])]};
+module.exports={IDS,validate,verifyEvidenceAgainstFacts,forbiddenPhrases:[...new Set([...banned,...vague,...abstract,...generic,...sugar,...meddling,...universal,...editorial.awkwardPhrases])]};
 
