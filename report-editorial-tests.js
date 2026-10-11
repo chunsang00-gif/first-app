@@ -62,6 +62,11 @@ const unsupportedYongshin=fixture();unsupportedYongshin.sections[8].evidence=['2
 assert(quality.validate(unsupportedYongshin,uncalculatedFacts).errors.includes('year_2027: unsupported strength or favorable-element classification'));
 const limitedEvidence=fixture();limitedEvidence.sections[8].body=['이 계산만으로 신강인지 신약인지 판단하지 않습니다.'];
 assert(!quality.validate(limitedEvidence,uncalculatedFacts).errors.some(x=>x.includes('unsupported strength')));
+const decadeOnly={fortune:{status:'complete',forward:true,start:{year:3,month:0,day:0,hour:0}},facts:{tenGods:{}}};
+const inventedDecade=fixture();inventedDecade.sections[8].evidence=['2027년 대운은 편재이므로 사업으로 돈을 벌게 됩니다.'];
+assert(quality.validate(inventedDecade,decadeOnly).errors.includes('year_2027: unsupported decade-fortune pillar or ten-god claim'));
+const acceptableDecade=fixture();acceptableDecade.sections[8].evidence=['대운의 십성은 현재 계산에서 제공되지 않아 단정할 수 없습니다.'];
+assert(!quality.validate(acceptableDecade,decadeOnly).errors.some(x=>x.includes('unsupported decade-fortune')));
 const contradiction=fixture();contradiction.sections[3].title='불필요한 지출은 하지 않습니다';contradiction.sections[3].body=['마음에 드는 물건에는 예산보다 많은 돈을 쓸 수 있습니다.'];assert(quality.validate(contradiction).errors.includes('money: categorical money headline conflicts with spending exception'));
 const conditional=fixture();conditional.sections[3].title='평소에는 돈을 아끼지만 좋아하는 물건에는 지출합니다';conditional.sections[3].body=['마음에 드는 물건에는 예산보다 많은 돈을 쓸 수 있습니다.'];assert(!quality.validate(conditional).errors.some(x=>x.includes('categorical money headline')));
 const natural=fixture();natural.sections[0].body=['충분히 알아본 뒤 시작하려다 실행이 늦어집니다.'];assert(!quality.validate(natural).errors.some(e=>/unnatural Korean|interpretation boilerplate|abstract headline/.test(e)));
