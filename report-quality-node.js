@@ -31,6 +31,19 @@ function verifyEvidenceAgainstFacts(report,packet){
   }
  }
  // Check only explicit 2027 claims against facts actually calculated for that year.
+ // These classifications are expressly NOT calculated by the current fact packet.
+ // A statement about missing data is valid; a positive classification is not.
+ const limits=packet?.facts?.limits||[];
+ const noStrength=limits.some(x=>x.includes('신강·신약·용신은 이 계산에서 판정하지 않음'));
+ if(noStrength)for(const section of report.sections||[]){
+  const passages=[section.title,section.keyJudgment,...(section.body||[]),...(section.evidence||[])].map(norm);
+  for(const passage of passages){
+   const asserted=/(?:신강|신약|용신)(?:으로|이라|이라고|이다|입니다|에 해당|에 속|이기 때문에|이라서|으로 판정|으로 확정|이 뚜렷|이 강하|이 약하)/.test(passage)
+    ||/(?:용신|신강|신약)(?:은|는|이|가)\s*(?:확실|분명|뚜렷|강하|약하|목|화|토|금|수|[甲乙丙丁戊己庚辛壬癸])/.test(passage);
+   if(asserted&&!/(?:판정하지|계산하지|확인할 수 없|알 수 없|단정할 수 없|판단하지)/.test(passage))
+    errors.push(section.id+': unsupported strength or favorable-element classification');
+  }
+ }
  const annualGod=packet?.facts?.annualTenGods?.stemTenGod;
  const relations=packet?.facts?.targetYearRelations;
  const branchPosition={연지:'year',월지:'month',일지:'day',시지:'hour'};
