@@ -18,6 +18,22 @@ const editorial=require('./report-editorial');
 assert(editorial.wordingErrors(['우선할\n방향']).length);
 assert(editorial.wordingErrors(['핵심\u200B성향']).length);
 assert.deepEqual(editorial.wordingErrors(['정인(배움과 보호를 뜻하는 십성)을 함께 살펴봅니다.','부탁을 거절하지 못해 자신의 일을 끝내지 못합니다.']),[]);
+// Concise reports must still contain every planned topic in its exact order.
+const concise=fixture();
+concise.meta={versions:{schema:'concise-v1'}};
+for(const section of concise.sections){
+ const keys=Object.keys(outline.topics[section.id]);
+ section.bodyTopics=keys;
+ section.body=keys.map((_,i)=>'서로 다른 설명 '+i);
+ section.bodyLabels=keys.map((_,i)=>'문단 '+i);
+}
+assert(!quality.validate(concise).errors.some(e=>e.includes('required topics')||e.includes('topic explanations incomplete')));
+const incomplete=structuredClone(concise);
+incomplete.sections[0].bodyTopics.pop();
+assert(quality.validate(incomplete).errors.includes('saju_core: required topics missing or reordered'));
+const shorter=structuredClone(concise);
+shorter.sections[0].body.pop();
+assert(quality.validate(shorter).errors.includes('saju_core: topic explanations incomplete'));
 const repeated=fixture();repeated.sections[0].body=Array.from({length:4},(_,i)=>'사주에서는 서로 다른 설명 '+i);assert(quality.validate(repeated).errors.some(e=>e.includes('repeated interpretation boilerplate')));
 const natural=fixture();natural.sections[0].body=['충분히 알아본 뒤 시작하려다 실행이 늦어집니다.'];assert(!quality.validate(natural).errors.some(e=>/unnatural Korean|interpretation boilerplate|abstract headline/.test(e)));
 for(const ending of ['어떤 선택을 하시겠습니까?','이제 어떻게 할까요','무엇이 중요합니까？']){const r=fixture();r.finalJudgment.closingQuestion=ending;assert(quality.validate(r).errors.includes('final conclusion must not ask a question'));}
