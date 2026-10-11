@@ -40,7 +40,22 @@ async function generate(input,callModel,onProgress=()=>{}){const packet=facts.bu
  base.rules=Object.fromEntries(ruleKeys.map(key=>[key,base.rules[key]]));
  base.rules.avoidPhrases=quality.forbiddenPhrases;summaryRules.avoidPhrases=quality.forbiddenPhrases;
  const groups=Array.from({length:6},(_,i)=>IDS.slice(i*2,i*2+2));
- const validateBatch=(result,ids)=>{if(!Array.isArray(result?.sections)||JSON.stringify(result.sections.map(s=>s?.id))!==JSON.stringify(ids))throw Error('AI report service returned incomplete report data');for(const section of result.sections){const topics=Object.keys(outline.topics[section.id]);if(JSON.stringify(section.bodyTopics)!==JSON.stringify(topics)||section.body?.length!==topics.length||section.bodyLabels?.length!==topics.length||section.body.some(p=>typeof p!=='string'||!p.trim())||section.bodyLabels.some(p=>typeof p!=='string'||!p.trim()))throw Error('AI report service returned incomplete report data')}return result};
+ const validateBatch=(result,ids)=>{
+  const fail=(reason,info={})=>{console.error('[Report batch incomplete]',{reason,requestedIds:ids,...info});throw Error('AI report service returned incomplete report data')};
+  if(!Array.isArray(result?.sections))fail('sections not array');
+  const actualIds=result.sections.map(s=>s?.id);
+  if(JSON.stringify(actualIds)!==JSON.stringify(ids))fail('section order/count mismatch',{actualIds});
+  for(const section of result.sections){
+   const topics=Object.keys(outline.topics[section.id]);
+   const actualTopics=section.bodyTopics;
+   if(JSON.stringify(actualTopics)!==JSON.stringify(topics))fail('topic keys mismatch',{sectionId:section.id,expectedTopics:topics,actualTopics});
+   if(!Array.isArray(section.body)||!Array.isArray(section.bodyLabels)||section.body.length!==topics.length||section.bodyLabels.length!==topics.length)
+    fail('paragraph/label count mismatch',{sectionId:section.id,expected:topics.length,paragraphCount:section.body?.length??null,labelCount:section.bodyLabels?.length??null});
+   if(section.body.some(p=>typeof p!=='string'||!p.trim())||section.bodyLabels.some(p=>typeof p!=='string'||!p.trim()))
+    fail('empty paragraph/label',{sectionId:section.id});
+  }
+  return result;
+ };
  const request=(ids,extra={})=>({...base,...extra,requestedSections:ids,includeFinal:false,includeCover:false,rules:{...base.rules,...extra.rules,sections:ids,topicPlan:Object.fromEntries(ids.map(id=>[id,outline.topics[id]])),returnOnlyRequestedSections:true},output:{...base.output,requestedSections:ids,cover:'null',finalJudgment:'null'}});
  let done=0;onProgress({stage:'body',completed:0,total:12});
  // Carry only completed conclusions forward: preserve cross-chapter variety without
