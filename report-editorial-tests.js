@@ -79,6 +79,16 @@ assert(packet2027.fortune.activeDecade?.pillar);
 assert(packet2027.fortune.activeDecade?.stemTenGod);
 assert.equal(packet2027.targetYear.year,2027);
 assert(packet2027.facts.annualTenGods.stemTenGod);
+const unknownTimePacket=require('./report-facts-node').build({calendar:'solar',birthDate:'1990-06-15',unknownBirthTime:true,gender:'male',mbti:'ISFP'},2027);
+assert.equal(unknownTimePacket.status,'ready');
+assert.equal(unknownTimePacket.chart.hour,null);
+assert.equal(unknownTimePacket.fortune.status,'unavailable_without_birth_time');
+assert.equal(unknownTimePacket.fortune.activeDecade,null);
+assert.equal(unknownTimePacket.fortune.decades.length,0);
+const unknownTimeMockReport=fixture();
+unknownTimeMockReport.sections[8].evidence=['2027년 대운은 편재이므로 사업으로 돈을 벌게 됩니다.'];
+assert(quality.validate(unknownTimeMockReport,unknownTimePacket).errors.includes('year_2027: unsupported decade-fortune pillar or ten-god claim'));
+
 
 assert(Array.isArray(computedCalendar.decades)&&computedCalendar.decades.length>0);
 assert(computedCalendar.decades.some(d=>d.pillar&&Number.isInteger(d.startYear)&&Number.isInteger(d.endYear)));
