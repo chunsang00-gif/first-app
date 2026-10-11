@@ -82,7 +82,7 @@ shorter.sections[0].body.pop();
 assert(quality.validate(shorter).errors.includes('saju_core: topic explanations incomplete'));
 const repeated=fixture();repeated.sections[0].body=Array.from({length:4},(_,i)=>'사주에서는 서로 다른 설명 '+i);assert(quality.validate(repeated).errors.some(e=>e.includes('repeated interpretation boilerplate')));
 const genericEvidence=fixture();
-assert(quality.validate(genericEvidence).warnings.includes('saju_core: evidence is generic placeholder'));
+assert(quality.validate(genericEvidence).errors.includes('saju_core: evidence is generic placeholder'));
 const specificEvidence=fixture();specificEvidence.sections[0].evidence=['월지의 정인 관계가 전통적으로 배움과 보호를 뜻하는 항목입니다.'];
 assert(!quality.validate(specificEvidence).warnings.some(x=>x.startsWith('saju_core: evidence')));
 const calculatedFacts={facts:{tenGods:{year:{stemTenGod:'정관'},month:{stemTenGod:'정재'},day:{stemTenGod:'일간'},hour:{stemTenGod:'편인'}}}};
