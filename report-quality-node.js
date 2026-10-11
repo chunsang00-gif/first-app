@@ -64,7 +64,7 @@ function verifyEvidenceAgainstFacts(report,packet){
    if(!/^year_2027/.test(section.id))continue;
    const passages=[section.title,section.keyJudgment,...(section.body||[]),...(section.evidence||[])].map(norm);
    for(const passage of passages){
-    const godMatches=passage.matchAll(/(?:2027년(?:의|에|의\\s*)?\\s*)?(?:현재\\s*)?대운(?:은|이|에는|의|에서|\\s+){0,2}(비견|겁재|식신|상관|편재|정재|편관|정관|편인|정인)/g);
+    const godMatches=passage.matchAll(/(?:2027년(?:의|에|의\s*)?\s*)?(?:현재\s*)?대운(?:은|이|에는|의|에서|\s+){0,2}(비견|겁재|식신|상관|편재|정재|편관|정관|편인|정인)/g);
     for(const match of godMatches){
      if(!active)warnings.push(section.id+': active decade not calculated for 2027');
      else if(active.stemTenGod&&match[1]!==active.stemTenGod)
