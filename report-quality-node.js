@@ -39,6 +39,14 @@ function validate(r){
   if(!norm(s.keyJudgment))errors.push(`${s.id}: missing key judgment`);
   if(!Array.isArray(s.evidence)||!s.evidence.length)errors.push(`${s.id}: missing evidence`);
   else if(s.evidence.some(x=>!norm(x)))errors.push(`${s.id}: empty evidence item`); else if(s.evidence.some(x=>norm(x).length<8))errors.push(`${s.id}: evidence too vague`);
+  // A long generic sentence is not a concrete traditional saju explanation.
+  // Flag it for editorial review; don't reject legitimate free-form evidence solely
+  // because it uses unfamiliar wording.
+  if(Array.isArray(s.evidence)&&s.evidence.some(x=>/^(?:계산한\s*사주\s*항목의\s*설명|사주\s*근거를\s*확인|명리학적으로\s*해석)(?:입니다|했습니다|합니다)?[.!]?\s*$/.test(norm(x))))
+   warnings.push(s.id+': evidence is generic placeholder');
+  if(Array.isArray(s.evidence)&&s.evidence.every(x=>!/(?:일간|월지|연지|일지|시지|천간|지지|십성|비견|겁재|식신|상관|편재|정재|편관|정관|편인|정인|지장간|세운|충|목|화|토|금|수|甲|乙|丙|丁|戊|己|庚|辛|壬|癸|子|丑|寅|卯|辰|巳|午|未|申|酉|戌|亥)/.test(norm(x))))
+   warnings.push(s.id+': evidence has no identifiable saju element');
+
  });
  const readable=[r.cover?.headline,r.cover?.description,...(r.cover?.highlights||[]).flatMap(h=>[h.title,h.description]),...(r.cover?.keywords||[]),...r.sections.flatMap(s=>[s.title,s.keyJudgment,...(s.body||[]),...(s.bodyLabels||[]),...(s.evidence||[])]),...(r.finalJudgment?.body||[]),r.finalJudgment?.headline,...(r.finalJudgment?.strengths||[]),...(r.finalJudgment?.watchouts||[]),...(r.finalJudgment?.routines||[]).flatMap(x=>[x.trigger,x.action,x.reason]),r.finalJudgment?.closingQuestion].filter(Boolean);
  const all=norm(readable.join(' '));
