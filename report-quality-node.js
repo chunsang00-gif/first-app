@@ -108,7 +108,7 @@ function validate(r,packet){
  r.sections.forEach((s,i)=>{
   if(!s||typeof s!=='object'){errors.push(`section ${i+1} invalid`);return}
   if(s.id!==IDS[i])errors.push(`section ${i+1} id/order mismatch`);
-  if(['depth-v2','concise-v1'].includes(r.meta?.versions?.schema)){
+  if(['depth-v2','concise-v1','concise-v2'].includes(r.meta?.versions?.schema)){
    const keys=Object.keys(require('./report-outline').topics[s.id]||{});
    if(JSON.stringify(s.bodyTopics)!==JSON.stringify(keys))errors.push(s.id+': required topics missing or reordered');
    if(s.body?.length!==keys.length||s.bodyLabels?.length!==keys.length)errors.push(s.id+': topic explanations incomplete');
@@ -173,7 +173,7 @@ function validate(r,packet){
   const overlap=[...a].filter(x=>b.has(x)).length/Math.max(1,Math.min(a.size,b.size));
   if(overlap>.72)errors.push(`repeated judgment: ${IDS[i]} / ${IDS[j]}`);
  }
- if(['depth-v2','concise-v1'].includes(r.meta?.versions?.schema)&&r.cover){const h=r.cover.highlights;if(!Array.isArray(h)||h.length!==3||new Set(h.map(x=>x.sectionId)).size!==3||h.some(x=>!IDS.includes(x.sectionId)||!norm(x.title)||!norm(x.description)))errors.push('cover selected highlights incomplete');}
+ if(['depth-v2','concise-v1','concise-v2'].includes(r.meta?.versions?.schema)&&r.cover){const h=r.cover.highlights;if(!Array.isArray(h)||h.length!==3||new Set(h.map(x=>x.sectionId)).size!==3||h.some(x=>!IDS.includes(x.sectionId)||!norm(x.title)||!norm(x.description)))errors.push('cover selected highlights incomplete');}
  if(r.cover){if(!norm(r.cover.headline)||!norm(r.cover.description)||!Array.isArray(r.cover.keywords)||r.cover.keywords.length<3)errors.push('cover incomplete');if(new Set(r.cover.keywords).size!==r.cover.keywords.length)errors.push('cover keywords repeat');const coverHeadline=norm(r.cover.headline);if(r.sections.some(s=>norm(s.title)===coverHeadline||norm(s.keyJudgment)===coverHeadline))errors.push('cover repeats a card');}
  if(r.finalJudgment?.routines&&r.finalJudgment.routines.some(x=>!norm(x.trigger)||!norm(x.action)||!norm(x.reason)))errors.push('final routine incomplete');
  if(!Array.isArray(r.finalJudgment?.body)||!r.finalJudgment.body.length)errors.push('final body missing');
