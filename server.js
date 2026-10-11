@@ -17,7 +17,7 @@ async function callOpenAI(prompt){const key=process.env.OPENAI_API_KEY;if(!key)t
   const ids=prompt.requestedSections;
   const sectionItem=schema.properties.sections.items;
   schema={type:'object',additionalProperties:false,required:['sections','finalJudgment','cover'],properties:{
-   sections:ids.length?{type:'array',minItems:ids.length,maxItems:ids.length,items:{...sectionItem,properties:{...sectionItem.properties,id:{type:'string',enum:ids}}}}:{type:'array',maxItems:0,items:sectionItem},
+   sections:ids.length?{type:'array',items:{...sectionItem,properties:{...sectionItem.properties,id:{type:'string',enum:ids}}}}:{type:'array',items:sectionItem},
    finalJudgment:prompt.includeFinal?schema.properties.finalJudgment:{type:'null'},
    cover:prompt.includeCover?schema.properties.cover:{type:'null'}
   }};
