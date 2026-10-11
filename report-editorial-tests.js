@@ -154,7 +154,7 @@ client.window.REPORT_RENDERER.render({...fixture(),meta:{}},target);
 assert(target.innerHTML.includes('종합 총평'));assert(target.innerHTML.includes('가장 중요한 결론'));
 assert(target.innerHTML.indexOf('가장 중요한 결론')<target.innerHTML.indexOf(fixture().finalJudgment.closingQuestion));
 // Exercise the actual pipeline without an API key, network, or calculation dependency.
-const sandbox={module:{exports:{}},require:n=>n==='./report-facts-node'?{build:()=>({status:'ready',person:{mbti:'ISFP'}})}:require(n)};
+const sandbox={module:{exports:{}},process:{env:{}},require:n=>n==='./report-facts-node'?{build:()=>({status:'ready',person:{mbti:'ISFP'}})}:require(n)};
 vm.runInNewContext(fs.readFileSync(require.resolve('./report-server-contract'),'utf8'),sandbox);
 (async()=>{
  let calls=0;const seen=[];
