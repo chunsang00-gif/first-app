@@ -44,6 +44,20 @@ function verifyEvidenceAgainstFacts(report,packet){
     errors.push(section.id+': unsupported strength or favorable-element classification');
   }
  }
+ // fortune currently provides direction/start only, not decade pillars or their ten gods.
+ const fortune=packet?.fortune;
+ const hasDecadePillars=Array.isArray(fortune?.decades)&&fortune.decades.length>0;
+ if(fortune&&!hasDecadePillars)for(const section of report.sections||[]){
+  const passages=[section.title,section.keyJudgment,...(section.body||[]),...(section.evidence||[])].map(norm);
+  for(const passage of passages){
+   if(/(?:대운(?:이|은|에는|에서|상|의|과|으로)?).{0,16}(?:정재|편재|정관|편관|정인|편인|식신|상관|비견|겁재|[甲乙丙丁戊己庚辛壬癸][子丑寅卯辰巳午未申酉戌亥]|목운|화운|토운|금운|수운)/.test(passage)
+     && !/(?:계산하지|제공되지|확인할 수 없|알 수 없|판정할 수 없|단정할 수 없)/.test(passage))
+    errors.push(section.id+': unsupported decade-fortune pillar or ten-god claim');
+   if(/(?:대운(?:의|이|은|에서|으로|이므로|때문에)?).{0,15}(?:바뀌어|바뀝니다|시작되어|끝나서|들어와서|겹쳐서|충돌해서|상승하|하락하)/.test(passage)
+     && !/(?:계산하지|제공되지|확인할 수 없|알 수 없|단정할 수 없)/.test(passage))
+    warnings.push(section.id+': decade-fortune event needs independently calculated period');
+  }
+ }
  const annualGod=packet?.facts?.annualTenGods?.stemTenGod;
  const relations=packet?.facts?.targetYearRelations;
  const branchPosition={연지:'year',월지:'month',일지:'day',시지:'hour'};
