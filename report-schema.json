@@ -129,7 +129,7 @@
           },
           "body": {
             "type": "array",
-            "minItems": 5,
+            "minItems": 1,
             "items": {
               "type": "string",
               "minLength": 1
@@ -159,7 +159,7 @@
           },
           "bodyLabels": {
             "type": "array",
-            "minItems": 5,
+            "minItems": 1,
             "maxItems": 7,
             "items": {
               "type": "string",
@@ -168,7 +168,7 @@
           },
           "bodyTopics": {
             "type": "array",
-            "minItems": 5,
+            "minItems": 1,
             "maxItems": 7,
             "items": {
               "type": "string"
@@ -232,7 +232,7 @@
         },
         "routines": {
           "type": "array",
-          "minItems": 1,
+          "minItems": 0,
           "maxItems": 3,
           "items": {
             "type": "object",
