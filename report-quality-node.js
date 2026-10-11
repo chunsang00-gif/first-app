@@ -21,7 +21,7 @@ function verifyEvidenceAgainstFacts(report,packet){
  for(const section of report.sections||[]){
   for(const evidence of section.evidence||[]){
    const text=norm(evidence);
-   const re=new RegExp('(연간|월간|일간|시간)(?:의|에|은|에는|에서|\s+){0,3}('+godTerms+')','g');
+   const re=new RegExp('(연간|월간|일간|시간)(?:의|에|은|에는|에서|\\s+){0,3}('+godTerms+')','g');
    for(const match of text.matchAll(re)){
     const position=positionKeys[match[1]];
     const calculated=tenGods[position]?.stemTenGod;
