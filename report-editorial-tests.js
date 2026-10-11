@@ -156,6 +156,10 @@ assert(target.innerHTML.indexOf('가장 중요한 결론')<target.innerHTML.inde
 // Exercise the actual pipeline without an API key, network, or calculation dependency.
 const sandbox={module:{exports:{}},process:{env:{}},require:n=>n==='./report-facts-node'?{build:()=>({status:'ready',person:{mbti:'ISFP'}})}:require(n)};
 vm.runInNewContext(fs.readFileSync(require.resolve('./report-server-contract'),'utf8'),sandbox);
+const guidance=require('./report-analysis-guidance');
+assert.equal(guidance.forRequest(['saju_core'],'모름').mbtiReference,null);
+assert.equal(guidance.forRequest(['saju_core'],'INVALID').mbtiReference,null);
+for(const a of ['I','E'])for(const b of ['S','N'])for(const c of ['T','F'])for(const d of ['J','P']){const type=a+b+c+d; const ref=guidance.forRequest(['decision'],type).mbtiReference; assert.equal(ref.preferences.map(x=>x.code).join(''),type);assert.equal(ref.preferences.length,4);}
 (async()=>{
  let calls=0;const seen=[];
  const dryRun=await sandbox.module.exports.generate({mbti:'ISFP'},async p=>{
@@ -163,7 +167,10 @@ vm.runInNewContext(fs.readFileSync(require.resolve('./report-server-contract'),'
   assert(p.rules.plainSentenceRule);assert(p.rules.decisiveSentenceRule.includes('더 잘 맞습니다'));assert(p.rules.actionableMoneyRule.includes('가계부'));assert(p.rules.idiomaticWritingRule.includes('불필요한 지출은 하지 않습니다'));assert(p.rules.everydayWordChoiceRule.includes('결과를 확인하는 일이 잘 맞습니다'));assert(p.rules.coherenceRule.includes('모순이다'));assert(p.rules.expressionPolicyRule.includes('심장도 내준다'));assert(p.rules.depthAndEvidenceRule.includes('12개 장과 29개 항목'));assert(p.rules.yearAndDecadeIntegrationRule.includes('fortune.activeDecade'));assert(p.rules.yearAndDecadeIntegrationRule.includes('대운과 세운'));assert(p.rules.depthAndEvidenceRule.includes('일간·월지·십성의 위치'));assert(p.rules.depthAndEvidenceRule.includes('실제 원국의 근거 없이'));assert(p.rules.expressionPolicyRule.includes('특정 문장을 고정하거나'));assert(!p.rules.decisiveSentenceRule.includes('눈에 보이는 성과'));assert(p.rules.decisiveSentenceRule.includes('그 결과를 눈으로 확인'));assert(p.rules.coherenceRule.includes('평소에는 지출을 아끼지만'));assert(p.rules.everydayWordChoiceRule.includes('성과는 평가·매출·실적·업적을 뜻할 때만 사용'));assert(p.rules.idiomaticWritingRule.includes('간이고 쓸개고'));assert(p.rules.naturalKoreanRule.includes('경험을 지어내는 연결어'));assert(p.rules.concreteReviewRule);assert(p.rules.candidRule.includes('단점은 예쁜 말로 바꾸지 않는다'));assert(p.rules.weaknessActionRule.includes('단점마다 조언을 붙이지 않는다'));assert(p.rules.avoidPhrases.includes('핵심 성향'));assert(!p.rules.tone.includes('사주에서는 ~로 읽습니다로 구분'));
   if(p.stage==='synthesis'){assert(p.rules.finalEditingTask.includes('routines는 빈 배열'));assert(p.rules.coverNaturalnessRule.includes('반복 비용이라는 말을 자동으로 넣지 않는다'));assert(p.rules.naturalKoreanRule.includes('한 가지 뜻은 한 번만'));assert(p.rules.finalRule.includes('교훈이나 감동 문구를 억지로 붙이지 않는다'));assert(p.rules.finalRule.includes('앞의 12개 장을 다시 요약하지 않는다'));assert.equal(p.completedReport.sections.reduce((n,s)=>n+s.body.length,0),29);return {cover:null,finalJudgment:{body:['마지막 설명'],closingQuestion:'꼼꼼하게 확인하느라 결정을 늦출 때는, 오늘 확인할 내용을 먼저 정하는 것이 도움이 됩니다.',afterClosingText:''}};}
   assert(p.rules.mbtiDepthRule);assert.equal(p.priorSections.length,(calls-1)*2);
-  if(calls>1)assert(p.priorSections.every(s=>s.topicConclusions.length===s.bodyLabels.length));
+  if(calls>1){assert(p.priorSections.every(s=>s.topicConclusions.length===s.bodyLabels.length)); assert(p.priorSections.every(s=>s.topicConclusions.every(t=>t.includes('이어지는 설명입니다.'))));}
+  assert.deepEqual(Object.keys(p.analysisGuidance.chapterTasks),Array.from(p.requestedSections));
+  assert.equal(p.analysisGuidance.mbtiReference.type,'ISFP');
+  assert.equal(p.analysisGuidance.mbtiReference.preferences.map(x=>x.code).join(''),'ISFP');
   return {sections:p.requestedSections.map(id=>({id,title:'제목',keyJudgment:'핵심',evidence:['계산한 사주 항목의 설명입니다.'],bodyTopics:Object.keys(outline.topics[id]),bodyLabels:Object.values(outline.topics[id]),body:Object.keys(outline.topics[id]).map((_,i)=>'첫 번째 결론 '+i+'. 이어지는 설명입니다.')}))};
  });
  // The mock intentionally contains placeholder evidence and no cover.

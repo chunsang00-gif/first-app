@@ -1,0 +1,35 @@
+'use strict';
+// These are questions and interpretation limits, never precomputed personality claims.
+// Include only the current chapters, keeping the existing paid call count unchanged.
+const chapters={
+ saju_core:{focus:'원국의 구조를 설명하는 장. 일간과 월지의 계절 배경, 천간에 드러난 십성과 지장간의 구분, 서로 다른 십성을 함께 읽었을 때의 해석을 본문에서 연결한다.',avoid:'상관 하나만 보고 반항적이라고 결론내리거나 정재 하나로 성실함을 확정하지 않는다. 월지의 계절과 출현 횟수만으로 신강·신약·용신을 판정하지 않는다.'},
+ mbti_contradiction:{focus:'같은 선택 상황에서 사주 해석과 MBTI 선호가 각각 무엇을 설명하는지 비교한다. 겉으로 같은 행동이어도 선택 이유가 다른지, 같은 선호가 상황에 따라 다른 행동으로 나올 수 있는지 근거가 있는 경우에만 설명한다.',avoid:'I는 조용함, F는 착함, P는 미루기라는 설명으로 끝내거나 반전을 억지로 만들지 않는다.'},
+ decision:{focus:'정보 중 무엇을 먼저 보는지, 대안을 어떻게 비교하는지, 무엇이 새로 드러날 때 결정을 바꾸는지를 분석한다.',avoid:'자기 의견을 말한다는 원국 설명을 반복하거나 신중하다는 한마디로 대체하지 않는다.'},
+ money:{focus:'돈을 버는 데 들이는 수고, 지출의 우선순위, 당장 쓸 돈과 남길 돈 사이의 선택을 구분한다. 소비 습관이나 소득은 실제 관측값이 아님을 전제로 해석한다.',avoid:'정재=절약, 겁재=금전 손실로 확정하지 않는다. 모든 사람에게 공동투자·계약서 확인을 주된 결론으로 붙이지 않는다.'},
+ career:{focus:'문제를 찾는 일·실행하는 일·조율하는 일 중 어떤 업무 조건을 설명할 근거가 있는지, 배우는 과정과 협업에서 어떻게 달라지는지 다룬다.',avoid:'의견을 낼 자유가 중요하다는 말로 네 항목을 채우지 않는다. 특정 직업의 성공이나 능력을 유형만으로 보장하지 않는다.'},
+ relationship:{focus:'가까워지는 과정, 애정을 표현하고 기대하는 방식, 서운함을 알리고 거절하는 방식의 차이를 설명한다. 친구·연인·가족이 실제로 있다는 전제는 두지 않는다.',avoid:'업무의 발언권·역할 분담 이야기를 관계에 그대로 옮기지 않는다. 헌신·질투·이별 경험을 만들어내지 않는다.'},
+ stress:{focus:'평소에 도움이 되던 반응이 어떤 압박 아래에서 달라져 손해가 되는지 다룬다. 회복 방법은 그 반응과 직접 연결될 때만 짧게 쓴다.',avoid:'원국의 단점을 다시 나열하거나 누구에게나 통하는 휴식 조언으로 채우지 않는다. 정신건강을 진단하지 않는다.'},
+ integrated_judgment:{focus:'앞 장의 서로 다른 해석을 연결해 함께 존재할 수 있는 장점과 약점, 두드러지는 조건의 차이를 설명한다. 새 성격을 추가하는 장이 아니다.',avoid:'MBTI 비교 장의 조용하지만 의견을 말한다는 설명을 반복하지 않는다.'},
+ year_2027:{focus:'계산된 원국·세운·대운에서 실제로 달라지는 요소를 이름과 뜻으로 먼저 설명한다. 이 조합으로 무엇을 더 살피는지와 근거가 약한 부분을 구분한다.',avoid:'모든 원국에 책임과 평가가 늘어난다고 쓰지 않는다. 대운 교체일을 모르면 연초부터 바뀐다고 단정하지 않는다.'},
+ year_2027_money:{focus:'2027년 계산 요소 중 금전 해석과 관련되는 근거를 먼저 고른다. 평소의 돈 풀이와 무엇이 달라지는지 설명하며 차이가 약하면 간결하게 끝낸다.',avoid:'계약·해지 비용·공동투자를 정해진 결론처럼 쓰지 않는다. 수입 증가나 손실을 예고하지 않는다.'},
+ year_2027_career:{focus:'2027년 계산 요소를 업무·배움·역할 등 관련 있는 문제와 연결하고 평소 직업 풀이와 달라지는 점을 설명한다.',avoid:'항상 책임·결정 권한을 결론으로 삼거나 승진·이직을 확정하지 않는다.'},
+ year_2027_relationship:{focus:'2027년 계산 요소와 가까운 사람에게 반응하는 방식의 연결 근거가 있을 때만 변화 해석을 쓴다.',avoid:'항상 바빠져 연락이 줄어든다고 가정하지 않는다. 만남·결혼·이별 사건을 예언하지 않는다.'}
+};
+const preferences={
+ I:{dimension:'관심과 생각을 정리하는 선호',meaning:'혼자 숙고하는 과정에 더 편안함을 느끼는 선호',notEvidenceOf:'말수가 적음·대인기피·의견을 말하지 않음'},
+ E:{dimension:'관심과 생각을 정리하는 선호',meaning:'사람이나 외부 활동과 상호작용하며 생각을 정리하는 선호',notEvidenceOf:'항상 사교적임·리더십·혼자 있지 못함'},
+ S:{dimension:'정보를 받아들이는 선호',meaning:'구체적으로 확인한 사실과 경험을 우선해 정보를 이해하는 선호',notEvidenceOf:'상상력 부족·변화 거부'},
+ N:{dimension:'정보를 받아들이는 선호',meaning:'정보 사이의 연결과 가능한 해석을 우선해 이해하는 선호',notEvidenceOf:'창의적 재능·정확한 직감·현실 감각 부족'},
+ T:{dimension:'판단에서 더 비중을 두는 선호',meaning:'논리적 일관성과 공통 원칙을 우선해 판단하는 선호',notEvidenceOf:'감정이 없음·공감 능력 부족·더 높은 지능'},
+ F:{dimension:'판단에서 더 비중을 두는 선호',meaning:'중요하게 여기는 가치와 사람에게 미칠 영향을 우선해 판단하는 선호',notEvidenceOf:'친절함·헌신·감정 조절 실패·논리 부족'},
+ J:{dimension:'외부 생활을 진행하는 선호',meaning:'계획과 결정을 정해 두고 일을 진행하는 쪽을 선호',notEvidenceOf:'성실함·완벽주의·높은 수행 능력'},
+ P:{dimension:'외부 생활을 진행하는 선호',meaning:'정보와 선택의 여지를 열어 두고 상황에 맞춰 조정하는 쪽을 선호',notEvidenceOf:'게으름·마감 실패·결정 장애'}
+};
+function forRequest(ids,mbti){
+ const valid=typeof mbti==='string'&&/^[EI][NS][FT][JP]$/.test(mbti);
+ return {
+  chapterTasks:Object.fromEntries(ids.map(id=>{if(!chapters[id])throw Error('unknown report chapter: '+id);return [id,chapters[id]];})),
+  mbtiReference:valid?{type:mbti,source:'사용자가 입력한 유형에 대한 선호 설명. 실제 행동·능력의 측정 결과가 아니다.',preferences:[...mbti].map(code=>({code,...preferences[code]})),application:'글자별 소개를 나열하지 말고 해당 질문에 필요한 선호끼리 연결한다. 예를 들어 정보 탐색과 결정 이유를 구분하고, 어떤 조건에서 두 선호가 서로 돕거나 갈리는지 설명한다. 기능 발달 정도·정신 상태·행동 빈도·유형 적합도를 추정하지 않는다.'}:null
+ };
+}
+module.exports={forRequest};
