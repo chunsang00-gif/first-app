@@ -41,6 +41,7 @@ assert(!quality.validate(fixture()).errors.some(e=>e.includes('conclusion')));
 const client={window:{addEventListener(){},CHARACTER_ASSETS:{badge(){return ""},hero(){return ""},detail(){return ""}}},document:{body:{classList:{add(){}}},getElementById(){return null}},requestAnimationFrame(){},console};
 vm.runInNewContext(fs.readFileSync(require.resolve('./report-validator'),'utf8'),client);
 assert(!client.window.REPORT_VALIDATOR.validate(fixture()).errors.some(e=>e.includes('conclusion')));
+const browserConcise=structuredClone(concise);assert(!client.window.REPORT_VALIDATOR.validate(browserConcise).errors.some(e=>e.includes('concise topics incomplete')));browserConcise.sections[0].body.pop();assert(client.window.REPORT_VALIDATOR.validate(browserConcise).errors.includes('saju_core: concise topics incomplete'));
 vm.runInNewContext(fs.readFileSync(require.resolve('./report-renderer'),'utf8'),client);
 const target={innerHTML:'',closest(){return {classList:{add(){}}}},querySelectorAll(){return []},querySelector(){return null}};
 client.window.REPORT_RENDERER.render({...fixture(),meta:{}},target);
