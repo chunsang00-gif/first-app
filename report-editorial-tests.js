@@ -36,7 +36,7 @@ for(const [i,section] of passing.sections.entries()){
  section.title=['타고난 기질과 반응','사주와 성격 선호의 차이','결정할 때 살피는 점','돈을 사용할 때의 특징','일하는 환경과 역할','가까운 관계에서의 반응','압박을 받았을 때','사주와 성격의 종합','2027년 세운과 원국','2027년 돈 관련 해석','2027년 일 관련 해석','2027년 관계 관련 해석'][i];
  section.keyJudgment=['감정을 표현하는 방식에 차이가 있습니다.','성향을 설명하는 두 관점은 같지 않습니다.','결정은 여러 조건을 비교해 이루어집니다.','지출과 관리 방식은 나누어 살펴야 합니다.','담당하는 역할에 따라 일하는 방식이 달라집니다.','가까운 사이에서 표현 방식이 달라집니다.','압박을 받는 상황을 구분해 살펴봅니다.','서로 다른 설명이 만나는 부분을 확인합니다.','2027년에는 평소와 다른 부분을 비교합니다.','2027년 돈에 관한 차이를 비교합니다.','2027년 업무에서의 변화를 비교합니다.','2027년 관계에서의 변화를 비교합니다.'][i];
  section.evidence=['월지와 일간의 관계를 바탕으로 전통적인 의미를 살펴봅니다.'];
- section.body=section.bodyTopics.map((_,j)=>topicsSample[(i+j)%topicsSample.length]+' '+section.bodyLabels[j]+'에 대해 설명합니다.');
+ section.body=section.bodyTopics.map((_,j)=>section.bodyLabels[j]+'에 대해서는 '+['원국의 위치와 전통적 뜻을 연결해 풀이합니다.','해당 분야의 상황을 구분하고 계산된 항목을 설명합니다.','다른 항목과의 차이를 구체적으로 비교합니다.','근거가 부족한 예측을 피하고 판단 범위를 밝힙니다.'][j%4]+' '+section.title+' 분야에서 살펴볼 내용입니다.');
 }
 passing.finalJudgment={body:['각 분야의 차이를 살펴본 결과를 바탕으로 중요한 부분을 정리합니다.'],closingQuestion:'계산 근거를 확인한 범위 안에서 판단하는 것이 좋습니다.',afterClosingText:''};
 const passingQA=quality.validate(passing);
