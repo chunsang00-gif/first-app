@@ -28,7 +28,7 @@ const {createQueue,retryDelay,rateLimitKind}=require('./report-request-control')
   global.fetch=async(_url,opts)=>{sentSchema=JSON.parse(opts.body).text.format.schema;return {ok:true,json:async()=>({output_text:'{"ok":true}'})}};
   await require('./server').callOpenAI({requestedSections:['saju_core'],includeFinal:false,includeCover:false});
   const walk=x=>{if(!x||typeof x!=='object')return;for(const [k,v] of Object.entries(x)){assert(!['minItems','maxItems','minLength','maxLength','$schema','title'].includes(k),'unsupported strict schema keyword '+k);walk(v)}};
-  walk(sentSchema);assert.equal(sentSchema.properties.sections.items.properties.id.enum.length,1);
+  walk(sentSchema);assert.equal(sentSchema.properties.sections.items.properties.id.enum.length,1);assert(sentSchema.properties.sections.items.properties.title,'required section title must remain');assert(sentSchema.properties.sections.items.required.includes('title'));
  }finally{global.fetch=savedFetch;for(const [key,value] of [['OPENAI_API_KEY',savedKey],['REPORT_MODEL',savedModel]])if(value===undefined)delete process.env[key];else process.env[key]=value}
  assert.equal(require('./report-schema.json').properties.finalJudgment.properties.routines.minItems,0);
  assert.equal(require('./report-schema.json').properties.sections.items.properties.body.minItems,1);
