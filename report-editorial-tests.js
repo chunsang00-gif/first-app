@@ -88,6 +88,7 @@ assert(!quality.validate(specificEvidence).warnings.some(x=>x.startsWith('saju_c
 const calculatedFacts={facts:{tenGods:{year:{stemTenGod:'정관'},month:{stemTenGod:'정재'},day:{stemTenGod:'일간'},hour:{stemTenGod:'편인'}}}};
 const badGod=fixture();badGod.sections[0].evidence=['월간의 편재는 사업에서 돈을 버는 방식으로 설명합니다.'];
 assert(quality.validate(badGod,calculatedFacts).errors.includes('saju_core: 월간 편재 conflicts with calculated 정재'));
+const badGodInBody=fixture();badGodInBody.sections[0].body=['월간의 편재가 일하는 모습에 영향을 준다는 해석입니다.'];assert(quality.validate(badGodInBody,calculatedFacts).errors.includes('saju_core: 월간 편재 conflicts with calculated 정재'));
 const goodGod=fixture();goodGod.sections[0].evidence=['월간의 정재는 전통적으로 재물 관리에 관련된 십성입니다.'];
 assert(!quality.validate(goodGod,calculatedFacts).errors.some(e=>e.includes('conflicts with calculated')));
 const unstatedGod=fixture();unstatedGod.sections[0].evidence=['사주에서 편재를 어떻게 이해할 수 있는지 설명합니다.'];
