@@ -67,6 +67,14 @@ const inventedDecade=fixture();inventedDecade.sections[8].evidence=['2027년 대
 assert(quality.validate(inventedDecade,decadeOnly).errors.includes('year_2027: unsupported decade-fortune pillar or ten-god claim'));
 const acceptableDecade=fixture();acceptableDecade.sections[8].evidence=['대운의 십성은 현재 계산에서 제공되지 않아 단정할 수 없습니다.'];
 assert(!quality.validate(acceptableDecade,decadeOnly).errors.some(x=>x.includes('unsupported decade-fortune')));
+const computedDecade={fortune:{status:'complete',decades:[{pillar:'甲子',stemTenGod:'비견',startYear:2022,endYear:2031}],activeDecade:{pillar:'甲子',stemTenGod:'비견',startYear:2022,endYear:2031}},facts:{tenGods:{}}};
+const falseDecadeGod=fixture();falseDecadeGod.sections[8].evidence=['2027년 대운은 편재로 나타납니다.'];
+assert(quality.validate(falseDecadeGod,computedDecade).errors.includes('year_2027: 2027 decade 편재 conflicts with calculated 비견'));
+const trueDecadeGod=fixture();trueDecadeGod.sections[8].evidence=['2027년 대운은 비견으로 나타납니다.'];
+assert(!quality.validate(trueDecadeGod,computedDecade).errors.some(x=>x.includes('decade')&&x.includes('conflicts')));
+const computedCalendar=require('./calendar-provider-node').fortune({calendar:'solar',birthDate:'1990-06-15',birthTime:'12:00',gender:'male'});
+assert(Array.isArray(computedCalendar.decades)&&computedCalendar.decades.length>0);
+assert(computedCalendar.decades.some(d=>d.pillar&&Number.isInteger(d.startYear)&&Number.isInteger(d.endYear)));
 const contradiction=fixture();contradiction.sections[3].title='불필요한 지출은 하지 않습니다';contradiction.sections[3].body=['마음에 드는 물건에는 예산보다 많은 돈을 쓸 수 있습니다.'];assert(quality.validate(contradiction).errors.includes('money: categorical money headline conflicts with spending exception'));
 const conditional=fixture();conditional.sections[3].title='평소에는 돈을 아끼지만 좋아하는 물건에는 지출합니다';conditional.sections[3].body=['마음에 드는 물건에는 예산보다 많은 돈을 쓸 수 있습니다.'];assert(!quality.validate(conditional).errors.some(x=>x.includes('categorical money headline')));
 const natural=fixture();natural.sections[0].body=['충분히 알아본 뒤 시작하려다 실행이 늦어집니다.'];assert(!quality.validate(natural).errors.some(e=>/unnatural Korean|interpretation boilerplate|abstract headline/.test(e)));
