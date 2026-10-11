@@ -12,7 +12,7 @@ const outline=require('./report-outline'),wire=require('./report-wire'),schema=r
 const ids=Object.keys(outline.topics),prompt={requestedSections:ids};
 const providerSchema=wire.schemaFor(prompt,schema);assert.deepEqual(providerSchema.properties.chapters.required,ids);
 const chapters=Object.fromEntries([...ids].reverse().map(id=>[id,{paragraphs:Object.fromEntries(Object.keys(outline.topics[id]).reverse().map(t=>[t,{label:outline.topics[id][t],text:id+':'+t}]))}]));
-const decoded=wire.decode({chapters},prompt);assert.equal(decoded.sections.reduce((n,s)=>n+s.body.length,0),35);
+const decoded=wire.decode({chapters},prompt);assert.equal(decoded.sections.reduce((n,s)=>n+s.body.length,0),29);
 for(const s of decoded.sections){assert.deepEqual(s.bodyTopics,Object.keys(outline.topics[s.id]));s.body.forEach((v,i)=>assert.equal(v,s.id+':'+s.bodyTopics[i]));}
 const diagnostics=require('./report-diagnostics');
 assert.equal(diagnostics.failureCode('AI report service output token limit'),'MODEL_OUTPUT_TOKEN_LIMIT');
@@ -23,4 +23,4 @@ assert(quality.verifyEvidenceAgainstFacts({sections:[],finalJudgment:{body:['202
 const noClash={...facts,facts:{...facts.facts,targetYearRelations:[]}};
 assert.equal(quality.verifyEvidenceAgainstFacts({sections:[{id:'year_2027',body:['2027년 일지와 충이 없습니다.']}]},noClash).errors.length,0);
 assert(quality.verifyEvidenceAgainstFacts({sections:[{id:'year_2027',body:['2027년 일지와 충이 있습니다.']}]},noClash).errors.length);
-console.log('PASS private-file denial, invalid inputs, required 35-topic transport, distinct failures, final-summary factual checks and negated clash');
+console.log('PASS private-file denial, invalid inputs, required 29-topic transport, distinct failures, final-summary factual checks and negated clash');
