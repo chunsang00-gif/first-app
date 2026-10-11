@@ -39,7 +39,7 @@ function verifyEvidenceAgainstFacts(report,packet){
   const passages=[section.title,section.keyJudgment,...(section.body||[]),...(section.evidence||[])].map(norm);
   for(const passage of passages){
    if(annualGod){
-    const yearlyGod=/(?:2027년|2027년의|세운|연운)(?:의|에|은|에는|에서|\\s+){0,3}(비견|겁재|식신|상관|편재|정재|편관|정관|편인|정인)/g;
+    const yearlyGod=/(?:2027년(?:의|\\s*세운|\\s*연운)?|세운|연운)(?:의|에|은|에는|에서|\\s+){0,3}(비견|겁재|식신|상관|편재|정재|편관|정관|편인|정인)/g;
     for(const match of passage.matchAll(yearlyGod))if(match[1]!==annualGod)errors.push(section.id+': 2027 '+match[1]+' conflicts with calculated '+annualGod);
    }
    if(Array.isArray(relations)){
