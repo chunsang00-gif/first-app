@@ -28,6 +28,22 @@ for(const section of concise.sections){
  section.bodyLabels=keys.map((_,i)=>'문단 '+i);
 }
 assert(!quality.validate(concise).errors.some(e=>e.includes('required topics')||e.includes('topic explanations incomplete')));
+// A structurally complete, non-repetitive report should pass the server quality gate.
+const passing=structuredClone(concise);
+passing.cover={headline:'서로 다른 상황을 차근차근 살펴봅니다',description:'계산 자료를 바탕으로 각 주제의 차이를 설명합니다.',keywords:['사주 풀이','성향 분석','연간 변화'],highlights:[{sectionId:'saju_core',title:'타고난 반응',description:'사주 원국에서 드러나는 차이를 설명합니다.'},{sectionId:'career',title:'일하는 환경',description:'직장에서 나타날 수 있는 반응을 설명합니다.'},{sectionId:'year_2027',title:'2027년 해석',description:'세운과 원국의 관계를 설명합니다.'}]};
+const topicsSample=['원국의 일간과 월지를 비교해 성향의 차이를 풀이합니다.','월지에 나타난 기운과 다른 자리의 관계를 함께 설명합니다.','십성의 위치에 따라 해석의 범위를 구분합니다.','실제 계산된 항목을 확인한 후 해당 주제를 풀이합니다.'];
+for(const [i,section] of passing.sections.entries()){
+ section.title=['타고난 기질과 반응','사주와 성격 선호의 차이','결정할 때 살피는 점','돈을 사용할 때의 특징','일하는 환경과 역할','가까운 관계에서의 반응','압박을 받았을 때','사주와 성격의 종합','2027년 세운과 원국','2027년 돈 관련 해석','2027년 일 관련 해석','2027년 관계 관련 해석'][i];
+ section.keyJudgment=['감정을 표현하는 방식에 차이가 있습니다.','성향을 설명하는 두 관점은 같지 않습니다.','결정은 여러 조건을 비교해 이루어집니다.','지출과 관리 방식은 나누어 살펴야 합니다.','담당하는 역할에 따라 일하는 방식이 달라집니다.','가까운 사이에서 표현 방식이 달라집니다.','압박을 받는 상황을 구분해 살펴봅니다.','서로 다른 설명이 만나는 부분을 확인합니다.','2027년에는 평소와 다른 부분을 비교합니다.','2027년 돈에 관한 차이를 비교합니다.','2027년 업무에서의 변화를 비교합니다.','2027년 관계에서의 변화를 비교합니다.'][i];
+ section.evidence=['월지와 일간의 관계를 바탕으로 전통적인 의미를 살펴봅니다.'];
+ section.body=section.bodyTopics.map((_,j)=>topicsSample[(i+j)%topicsSample.length]+' '+section.bodyLabels[j]+'에 대해 설명합니다.');
+}
+passing.finalJudgment={body:['각 분야의 차이를 살펴본 결과를 바탕으로 중요한 부분을 정리합니다.'],closingQuestion:'계산 근거를 확인한 범위 안에서 판단하는 것이 좋습니다.',afterClosingText:''};
+const passingQA=quality.validate(passing);
+assert.equal(passingQA.pass,true,'complete report rejected: '+passingQA.errors.join(' | '));
+const brokenPassing=structuredClone(passing);
+brokenPassing.sections[0].body.pop();
+assert.equal(quality.validate(brokenPassing).pass,false);
 const incomplete=structuredClone(concise);
 incomplete.sections[0].bodyTopics.pop();
 assert(quality.validate(incomplete).errors.includes('saju_core: required topics missing or reordered'));
