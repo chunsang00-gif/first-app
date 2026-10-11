@@ -41,7 +41,7 @@ async function generate(input,callModel,onProgress=()=>{}){const packet=facts.bu
  base.rules.avoidPhrases=quality.forbiddenPhrases;summaryRules.avoidPhrases=quality.forbiddenPhrases;
  const groups=Array.from({length:6},(_,i)=>IDS.slice(i*2,i*2+2));
  const validateBatch=(result,ids)=>{
-  const fail=(reason,info={})=>{console.error('[Report batch incomplete]',{reason,requestedIds:ids,...info});throw Error('AI report service returned incomplete report data')};
+  const fail=(reason,info={})=>{console.error('[Report batch incomplete]',{reason,requestedIds:ids,...info});throw Error('AI report service returned invalid report structure')};
   if(!Array.isArray(result?.sections))fail('sections not array');
   const actualIds=result.sections.map(s=>s?.id);
   if(JSON.stringify(actualIds)!==JSON.stringify(ids))fail('section order/count mismatch',{actualIds});
@@ -69,7 +69,7 @@ async function generate(input,callModel,onProgress=()=>{}){const packet=facts.bu
   priorSections.push(...result.sections.map(s=>({id:s.id,keyJudgment:s.keyJudgment,bodyLabels:s.bodyLabels,topicConclusions:s.body.map(p=>p.split(/(?<=[.!?])\s+/)[0].slice(0,180))})));
   onProgress({stage:'body',completed:done+=ids.length,total:12});return result;
  });
- const meta={characterGender:input.gender||'male',name:input.name||'',mbti:input.mbti||'모름',chart:packet.chart,profileBalance:packet.profileBalance,targetYear:2027,versions:{ruleset:'premium-v2',prompt:'reader-concise-v1',schema:outline.version}};
+ const meta={calculationNote:'입력한 출생 시각을 그대로 사용합니다. 출생지에 따른 시차·태양시 보정은 하지 않으며, 23시대의 일주는 해당 날짜로 계산합니다. 2027년 해석은 입춘을 기준으로 하는 정미년의 전통 해석이며 사건 예측이 아닙니다. 대운은 연도 단위로 비교하며 교체일 전후는 구분하지 않습니다.',characterGender:input.gender||'male',name:input.name||'',mbti:input.mbti||'모름',chart:packet.chart,profileBalance:packet.profileBalance,targetYear:2027,versions:{ruleset:'premium-v2',prompt:'reader-concise-v1',schema:outline.version}};
  const sections=drafts.flatMap(p=>p.sections||[]);
  // Select the cover only after all 12 complete chapters. The final local quality
  // gate below remains mandatory; no automatic paid rewrite or retry is issued.
@@ -83,4 +83,5 @@ async function generate(input,callModel,onProgress=()=>{}){const packet=facts.bu
  return qa.pass?{status:'ready',report,qa,headingRepairs}:{status:'rejected',report,qa,headingRepairs};
 }
 module.exports={IDS,validateShape,buildPrompt,generate};
+
 

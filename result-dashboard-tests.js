@@ -11,7 +11,7 @@ const a=report({calendar:'solar',birthDate:'1990-06-15',birthTime:'12:00',birthp
 const b=report({calendar:'solar',birthDate:'1999-12-24',birthTime:'07:30',birthplace:'대구',gender:'female',mbti:'INFP',name:'검증 여성'});
 const first=render(a),second=render(b);
 assert(!first.includes('이 해석의 근거'));assert(!first.includes('사주 계산값 확인'));
-assert(first.includes('MBTI를 해석한'));assert(!first.includes('MBTI을'));
+assert(first.includes('MBTI를 정해진 규칙으로 표시한'));assert(!first.includes('MBTI을'));
 assert(first.includes('검증 남성'));assert(second.includes('검증 여성'));assert(!second.includes('검증 남성'));
 assert.notEqual(characters.select(a).zodiac,characters.select(b).zodiac);
 assert(first.includes('portrait-male-'));assert(second.includes('portrait-female-'));
@@ -36,4 +36,5 @@ console.log('PASS personalized cover, keyword order, no repeated tags, share con
 
 assert(editedHTML.includes('id="shareFullReport"'));assert(editedHTML.includes('id="saveFullReport"'));assert(editedHTML.indexOf('id="shareFullReport"')>editedHTML.indexOf('class="section final-card"'));console.log('PASS full-report sharing appears after final summary');
 const curated=structuredClone(edited);curated.cover.highlights=[{sectionId:'relationship',title:'관계에서 선별한 핵심',description:'본문 관계 해석에서 뽑은 설명'},{sectionId:'money',title:'재물에서 선별한 핵심',description:'본문 재물 해석에서 뽑은 설명'},{sectionId:'career',title:'직업에서 선별한 핵심',description:'본문 직업 해석에서 뽑은 설명'}];const curatedHtml=render(curated);for(const item of curated.cover.highlights){assert(curatedHtml.includes(item.title));assert(curatedHtml.includes(item.description));assert(curatedHtml.includes('data-target="detail-'+item.sectionId+'"'))}console.log('PASS cover uses whole-report curated highlights with matching navigation');
+
 

@@ -35,14 +35,15 @@ const {createQueue,retryDelay,rateLimitKind}=require('./report-request-control')
  const savedFetch=global.fetch,savedKey=process.env.OPENAI_API_KEY,savedModel=process.env.REPORT_MODEL;
  try{
   process.env.OPENAI_API_KEY='local-test-placeholder';process.env.REPORT_MODEL='local-test-model';
-  global.fetch=async(_url,opts)=>{sentSchema=JSON.parse(opts.body).text.format.schema;return {ok:true,json:async()=>({output_text:'{"ok":true}'})}};
+  global.fetch=async(_url,opts)=>{sentSchema=JSON.parse(opts.body).text.format.schema;return {ok:true,json:async()=>({output_text:JSON.stringify({chapters:{saju_core:{paragraphs:Object.fromEntries(Object.keys(outline.topics.saju_core).map(t=>[t,{label:t,text:t}]))}},cover:null,finalJudgment:null})})}};
   await require('./server').callOpenAI({requestedSections:['saju_core'],includeFinal:false,includeCover:false});
   const walk=x=>{if(!x||typeof x!=='object')return;for(const [k,v] of Object.entries(x)){assert(!['minItems','maxItems','minLength','maxLength','$schema'].includes(k),'unsupported strict schema keyword '+k);walk(v)}};
-  walk(sentSchema);assert.equal(sentSchema.properties.sections.items.properties.id.enum.length,1);assert(sentSchema.properties.sections.items.properties.title,'required section title must remain');assert(sentSchema.properties.sections.items.required.includes('title'));
+  walk(sentSchema);assert.deepEqual(sentSchema.properties.chapters.required,['saju_core']);const chapter=sentSchema.properties.chapters.properties.saju_core;assert(chapter.properties.title);assert(chapter.required.includes('title'));assert.deepEqual(chapter.properties.paragraphs.required,Object.keys(outline.topics.saju_core));
  }finally{global.fetch=savedFetch;for(const [key,value] of [['OPENAI_API_KEY',savedKey],['REPORT_MODEL',savedModel]])if(value===undefined)delete process.env[key];else process.env[key]=value}
  assert.equal(require('./report-schema.json').properties.finalJudgment.properties.routines.minItems,0);
  assert.equal(require('./report-schema.json').properties.sections.items.properties.body.minItems,1);
  console.log('PASS no automatic provider retry, no follow-up batches after failure, no continuation after missing topics');
  console.log('PASS shared request queue, failure recovery, Retry-After seconds/date, all 35 topics, 7 model calls, no full rewrite, synthesis after all chapters');
 })().catch(e=>{console.error(e);process.exitCode=1});
+
 

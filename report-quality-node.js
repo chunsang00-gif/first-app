@@ -17,8 +17,10 @@ const godTerms='비견|겁재|식신|상관|편재|정재|편관|정관|편인|�
 function verifyEvidenceAgainstFacts(report,packet){
  const errors=[],warnings=[];
  const tenGods=packet?.facts?.tenGods;
+ const extraSections=[{id:'cover',title:report.cover?.headline,body:[report.cover?.description,...(report.cover?.highlights||[]).flatMap(h=>[h.title,h.description])]},{id:'finalJudgment',title:report.finalJudgment?.headline,body:[...(report.finalJudgment?.body||[]),report.finalJudgment?.closingQuestion,...(report.finalJudgment?.strengths||[]),...(report.finalJudgment?.watchouts||[]),...(report.finalJudgment?.routines||[]).flatMap(r=>[r.trigger,r.action,r.reason])]}];
+ const sections=[...(report.sections||[]),...extraSections];
  if(!tenGods)return {errors,warnings};
- for(const section of report.sections||[]){
+ for(const section of sections){
   for(const evidence of [...(section.evidence||[]),section.title,section.keyJudgment,...(section.body||[])]){
    const text=norm(evidence);
    const re=new RegExp('(연간|월간|일간|시간)(?:의|에|은|에는|에서|\\s+){0,3}('+godTerms+')','g');
@@ -35,7 +37,7 @@ function verifyEvidenceAgainstFacts(report,packet){
  // A statement about missing data is valid; a positive classification is not.
  const limits=packet?.facts?.limits||[];
  const noStrength=limits.some(x=>x.includes('신강·신약·용신은 이 계산에서 판정하지 않음'));
- if(noStrength)for(const section of report.sections||[]){
+ if(noStrength)for(const section of sections){
   const passages=[section.title,section.keyJudgment,...(section.body||[]),...(section.evidence||[])].map(norm);
   for(const passage of passages){
    const asserted=/(?:신강|신약|용신)(?:으로|이라|이라고|이다|입니다|에 해당|에 속|이기 때문에|이라서|으로 판정|으로 확정|이 뚜렷|이 강하|이 약하)/.test(passage)
@@ -47,7 +49,7 @@ function verifyEvidenceAgainstFacts(report,packet){
  // fortune currently provides direction/start only, not decade pillars or their ten gods.
  const fortune=packet?.fortune;
  const hasDecadePillars=Array.isArray(fortune?.decades)&&fortune.decades.length>0;
- if(fortune&&!hasDecadePillars)for(const section of report.sections||[]){
+ if(fortune&&!hasDecadePillars)for(const section of sections){
   const passages=[section.title,section.keyJudgment,...(section.body||[]),...(section.evidence||[])].map(norm);
   for(const passage of passages){
    if(/(?:대운(?:이|은|에는|에서|상|의|과|으로)?).{0,16}(?:정재|편재|정관|편관|정인|편인|식신|상관|비견|겁재|[甲乙丙丁戊己庚辛壬癸][子丑寅卯辰巳午未申酉戌亥]|목운|화운|토운|금운|수운)/.test(passage)
@@ -60,8 +62,8 @@ function verifyEvidenceAgainstFacts(report,packet){
  }
  if(hasDecadePillars){
   const active=fortune.activeDecade;
-  for(const section of report.sections||[]){
-   if(!/^year_2027/.test(section.id))continue;
+  for(const section of sections){
+   if(!/^year_2027/.test(section.id)&&!['cover','finalJudgment'].includes(section.id))continue;
    const passages=[section.title,section.keyJudgment,...(section.body||[]),...(section.evidence||[])].map(norm);
    for(const passage of passages){
     const godMatches=passage.matchAll(/(?:2027년(?:의|에|의\s*)?\s*)?(?:현재\s*)?대운(?:은|이|에는|의|에서|\s+){0,2}(비견|겁재|식신|상관|편재|정재|편관|정관|편인|정인)/g);
@@ -76,8 +78,8 @@ function verifyEvidenceAgainstFacts(report,packet){
  const annualGod=packet?.facts?.annualTenGods?.stemTenGod;
  const relations=packet?.facts?.targetYearRelations;
  const branchPosition={연지:'year',월지:'month',일지:'day',시지:'hour'};
- for(const section of report.sections||[]){
-  if(!/^year_2027/.test(section.id))continue;
+ for(const section of sections){
+  if(!/^year_2027/.test(section.id)&&!['cover','finalJudgment'].includes(section.id))continue;
   const passages=[section.title,section.keyJudgment,...(section.body||[]),...(section.evidence||[])].map(norm);
   for(const passage of passages){
    if(annualGod){
@@ -88,8 +90,11 @@ function verifyEvidenceAgainstFacts(report,packet){
     const yearlyClash=/(?:2027년|2027년의|세운|연운).{0,30}(연지|월지|일지|시지)(?:와|과|에|에서|가|는|의|\s){0,5}(?:충돌|충이|충을|충으로|충합니다|충 관계)/g;
     for(const match of passage.matchAll(yearlyClash)){
      const pos=branchPosition[match[1]];
-     if(!relations.some(rel=>rel.type==='충'&&rel.between===pos))
-      errors.push(section.id+': unsupported 2027 clash with '+match[1]);
+     const following=passage.slice(match.index+match[0].length).match(/^[^.!?。]{0,12}/)?.[0]||'';
+     const denied=/^\s*(?:없|아니|발생하지|성립하지)/.test(following);
+     const exists=relations.some(rel=>rel.type==='충'&&rel.between===pos);
+     if(!denied&&!exists)errors.push(section.id+': unsupported 2027 clash with '+match[1]);
+     if(denied&&exists)errors.push(section.id+': denied calculated 2027 clash with '+match[1]);
     }
    }
   }
@@ -178,4 +183,5 @@ function validate(r,packet){
  return {pass:errors.length===0,errors:[...new Set(errors)],warnings,issues};
 }
 module.exports={IDS,validate,verifyEvidenceAgainstFacts,forbiddenPhrases:[...new Set([...banned,...vague,...abstract,...generic,...sugar,...meddling,...universal,...editorial.awkwardPhrases])]};
+
 
