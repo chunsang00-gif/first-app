@@ -6,7 +6,9 @@ const awkwardPhrases=['납득의 순서','사용감이 남는 소비','금전 �
 const compact=s=>String(s||'').normalize('NFKC').replace(/[\s\u200B-\u200D\uFEFF·ㆍ“”‘’"']/g,'');
 function wordingErrors(fields){const found=new Set();for(const field of fields){const text=compact(field);for(const phrase of awkwardPhrases)if(text.includes(compact(phrase)))found.add('unnatural Korean: '+phrase);}return [...found];}
 const rules={
- editorialVersion:'reader-v7-candid',
+ editorialVersion:'reader-v8-natural-review',
+ // Prevent prompting by copying canned personality descriptions as if they were evidence.
+ naturalKoreanRule:'문장을 먼저 꾸미지 말고 해당 사람의 계산 자료에서 말할 수 있는 해석을 먼저 정한다. 그다음 평범한 한국어 문장으로 설명한다. 문장마다 상대에게 말을 거는 척하거나, 그러다 보면·어느새·말이죠처럼 경험을 지어내는 연결어를 넣지 않는다. 한 가지 뜻은 한 번만 쓰며 제목·핵심 판정·본문·총평에서 같은 내용을 서로 바꾸어 적지 않는다. 장점이나 단점이 근거에서 나오지 않으면 채우지 않는다. 조언도 꼭 필요한 곳에만 둔다. 문장을 간단히 끝낼 수 있으면 요약 문장이나 멋있는 마지막 말을 덧붙이지 않는다.',
  candidRule:'칭찬으로 기분을 좋게 만드는 글이 아니라, 잘하는 일과 반복해서 손해 보는 행동을 구별하는 풀이를 쓴다. 근거가 있는 장점은 무엇을 얼마나 꼼꼼하게·빠르게·끈기 있게 하는지, 어떤 일에서 그 점이 도움이 되는지 선명하게 설명한다. 다른 사람보다 우월하다는 비교나 성공 보장은 만들지 않는다. 단점은 예쁜 말로 바꾸지 않는다. 반대 의견을 듣지 않는 행동을 단순히 주관이 뚜렷하다고 칭찬하거나, 결정을 미루는 행동을 신중함으로만 포장하지 않는다. 해당 해석이 자료로 뒷받침될 때 실제 행동, 상대가 겪는 불편 또는 본인이 잃는 것을 직설적으로 설명한다. 사람 자체를 이기적·무능하다고 낙인찍거나 실제로 그런 일을 겪었다고 단정하지 않는다. 모든 장을 좋은 말로 마무리하지 말고 장단점 비율도 억지로 맞추지 않는다.',
  weaknessActionRule:'단점은 실제 해석에 근거가 있을 때만 구체적으로 말한다. 단점마다 조언을 붙이지 않는다. 독자가 바꿀 수 있는 행동이 명확하고 앞에서 제안하지 않았을 때만 짧게 제안한다. 해결책이 뻔하거나 자료가 부족하면 조언 없이 분석을 끝낸다. routines는 필요한 경우에만 작성하며 같은 행동을 다른 말로 다시 제안하지 않는다. 단점은 예쁘게 포장하지 않되 실제 겪은 사건처럼 꾸미지 않는다.',
  finalRule:'총평은 앞의 12개 장을 다시 요약하지 않는다. 사주와 MBTI를 함께 볼 때 새롭게 드러나는 핵심 차이 또는 판단을 1~2문단으로 설명한다. 앞에서 이미 설명한 장점과 주의점은 반복하지 않고 총평에 추가할 내용이 부족하면 짧게 끝낸다. strengths와 watchouts는 서로 다른 판단만 고르고 routines는 근거 있는 새로운 제안이 있을 때만 작성한다. 마지막에 교훈이나 감동 문구를 억지로 붙이지 않는다. closingQuestion은 질문이 아닌 간결한 평서문으로 쓰고 afterClosingText는 비운다.',
