@@ -55,6 +55,13 @@ const unsupportedClash=fixture();unsupportedClash.sections[8].evidence=['2027년
 assert(quality.validate(unsupportedClash,yearFacts).errors.includes('year_2027: unsupported 2027 clash with 일지'));
 const supportedClash=fixture();supportedClash.sections[8].evidence=['2027년 월지와 충돌하는 관계가 있습니다.'];
 assert(!quality.validate(supportedClash,yearFacts).errors.some(x=>x.includes('unsupported 2027 clash')));
+const uncalculatedFacts={facts:{tenGods:{},limits:['신강·신약·용신은 이 계산에서 판정하지 않음']}};
+const unsupportedStrength=fixture();unsupportedStrength.sections[8].body=['2027년에는 신강으로 판정되므로 독립하기 좋습니다.'];
+assert(quality.validate(unsupportedStrength,uncalculatedFacts).errors.includes('year_2027: unsupported strength or favorable-element classification'));
+const unsupportedYongshin=fixture();unsupportedYongshin.sections[8].evidence=['2027년 용신은 목이라서 운이 좋아집니다.'];
+assert(quality.validate(unsupportedYongshin,uncalculatedFacts).errors.includes('year_2027: unsupported strength or favorable-element classification'));
+const limitedEvidence=fixture();limitedEvidence.sections[8].body=['이 계산만으로 신강인지 신약인지 판단하지 않습니다.'];
+assert(!quality.validate(limitedEvidence,uncalculatedFacts).errors.some(x=>x.includes('unsupported strength')));
 const contradiction=fixture();contradiction.sections[3].title='불필요한 지출은 하지 않습니다';contradiction.sections[3].body=['마음에 드는 물건에는 예산보다 많은 돈을 쓸 수 있습니다.'];assert(quality.validate(contradiction).errors.includes('money: categorical money headline conflicts with spending exception'));
 const conditional=fixture();conditional.sections[3].title='평소에는 돈을 아끼지만 좋아하는 물건에는 지출합니다';conditional.sections[3].body=['마음에 드는 물건에는 예산보다 많은 돈을 쓸 수 있습니다.'];assert(!quality.validate(conditional).errors.some(x=>x.includes('categorical money headline')));
 const natural=fixture();natural.sections[0].body=['충분히 알아본 뒤 시작하려다 실행이 늦어집니다.'];assert(!quality.validate(natural).errors.some(e=>/unnatural Korean|interpretation boilerplate|abstract headline/.test(e)));
