@@ -20,6 +20,16 @@ const {createQueue,retryDelay,rateLimitKind}=require('./report-request-control')
  let emptyCalls=0;await assert.rejects(contract.generate({calendar:'solar',birthDate:'1990-06-15',unknownBirthTime:true,gender:'male',mbti:'INFP'},async()=>{emptyCalls++;return {sections:[]}}));assert.equal(emptyCalls,1);
  const originalFetch=global.fetch,originalKey=process.env.OPENAI_API_KEY,originalModel=process.env.REPORT_MODEL;let providerCalls=0;
  try{process.env.OPENAI_API_KEY='local-test-placeholder';process.env.REPORT_MODEL='local-test-model';global.fetch=async()=>{providerCalls++;return {ok:false,status:429,json:async()=>({error:{code:'rate_limit_exceeded',message:'tokens per min'}})}};await assert.rejects(require('./server').callOpenAI({}),/token rate limit/);assert.equal(providerCalls,1)}finally{global.fetch=originalFetch;for(const [key,value] of [['OPENAI_API_KEY',originalKey],['REPORT_MODEL',originalModel]])if(value===undefined)delete process.env[key];else process.env[key]=value}
+ // Responses API may split valid JSON across multiple output_text content blocks.
+ const beforeSplitFetch=global.fetch,beforeSplitKey=process.env.OPENAI_API_KEY,beforeSplitModel=process.env.REPORT_MODEL;
+ try{
+  process.env.OPENAI_API_KEY='local-test-placeholder';process.env.REPORT_MODEL='local-test-model';
+  global.fetch=async()=>({ok:true,json:async()=>({output:[{content:[{type:'output_text',text:'{\"ok\":'},{type:'output_text',text:'true}'}]}]})});
+  assert.deepEqual(await require('./server').callOpenAI({}),{ok:true});
+ }finally{
+  global.fetch=beforeSplitFetch;
+  for(const [key,value] of [['OPENAI_API_KEY',beforeSplitKey],['REPORT_MODEL',beforeSplitModel]])if(value===undefined)delete process.env[key];else process.env[key]=value;
+ }
  // Verify that actual OpenAI requests contain no unsupported JSON Schema bounds.
  let sentSchema=null;
  const savedFetch=global.fetch,savedKey=process.env.OPENAI_API_KEY,savedModel=process.env.REPORT_MODEL;
