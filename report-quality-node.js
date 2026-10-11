@@ -23,6 +23,15 @@ function validate(r){
    if(s.body?.length!==keys.length||s.bodyLabels?.length!==keys.length)errors.push(s.id+': topic explanations incomplete');
   }
 
+  // High-confidence editorial conflict: categorical thrift claim versus overspending.
+  // Avoid guessing broader psychological contradictions from isolated keywords.
+  if(s.id==='money'||s.id==='year_2027_money'){
+   const claim=norm([s.title,s.keyJudgment,...(s.bodyLabels||[])].join(' '));
+   const bodyText=norm((Array.isArray(s.body)?s.body:[]).join(' '));
+   const absoluteThrift=/불필요한\s*지출(?:은|을)?\s*(?:하지\s*않|안\s*하)|(?:절대|전혀)\s*(?:충동구매|과소비)(?:를|는|는\s*)?\s*(?:하지\s*않|안\s*하)/.test(claim);
+   const exceedingBudget=/(?:예산|계획|생각|예상)(?:보다|을\s*넘어|을\s*초과).{0,25}(?:많은\s*돈|큰돈|더\s*쓰|지출|구매|소비|쓸\s*수)|(?:충동구매|과소비)(?:를)?\s*(?:하|할\s*수|잦)/.test(bodyText);
+   if(absoluteThrift&&exceedingBudget)errors.push(s.id+': categorical money headline conflicts with spending exception');
+  }
   if(s.bodyLabels&&(!Array.isArray(s.bodyLabels)||s.bodyLabels.length!==s.body?.length||s.bodyLabels.some(x=>!norm(x))))errors.push(`${s.id}: paragraph labels incomplete`);
   if(s.mood&&!['confident','reflective','encouraging','cautious'].includes(s.mood))errors.push(`${s.id}: invalid content mood`);
   const body=Array.isArray(s.body)?s.body.join(' '):norm(s.body);
