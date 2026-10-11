@@ -19,7 +19,7 @@ function verifyEvidenceAgainstFacts(report,packet){
  const tenGods=packet?.facts?.tenGods;
  if(!tenGods)return {errors,warnings};
  for(const section of report.sections||[]){
-  for(const evidence of section.evidence||[]){
+  for(const evidence of [...(section.evidence||[]),section.title,section.keyJudgment,...(section.body||[])]){
    const text=norm(evidence);
    const re=new RegExp('(연간|월간|일간|시간)(?:의|에|은|에는|에서|\\s+){0,3}('+godTerms+')','g');
    for(const match of text.matchAll(re)){
