@@ -21,7 +21,7 @@ function verifyEvidenceAgainstFacts(report,packet){
  for(const section of report.sections||[]){
   for(const evidence of section.evidence||[]){
    const text=norm(evidence);
-   const re=new RegExp('(연간|월간|일간|시간)(?:의|에|은|에는|에서|\\s+){0,3}('+godTerms+')','g');
+   const re=new RegExp('(연간|월간|일간|시간)(?:의|에|은|에는|에서|\s+){0,3}('+godTerms+')','g');
    for(const match of text.matchAll(re)){
     const position=positionKeys[match[1]];
     const calculated=tenGods[position]?.stemTenGod;
@@ -39,11 +39,11 @@ function verifyEvidenceAgainstFacts(report,packet){
   const passages=[section.title,section.keyJudgment,...(section.body||[]),...(section.evidence||[])].map(norm);
   for(const passage of passages){
    if(annualGod){
-    const yearlyGod=/(?:2027년(?:의|\\s*세운|\\s*연운)?|세운|연운)(?:의|에|은|에는|에서|\\s+){0,3}(비견|겁재|식신|상관|편재|정재|편관|정관|편인|정인)/g;
+    const yearlyGod=/(?:2027년(?:의|\s*세운|\s*연운)?|세운|연운)(?:의|에|은|에는|에서|\s+){0,3}(비견|겁재|식신|상관|편재|정재|편관|정관|편인|정인)/g;
     for(const match of passage.matchAll(yearlyGod))if(match[1]!==annualGod)errors.push(section.id+': 2027 '+match[1]+' conflicts with calculated '+annualGod);
    }
    if(Array.isArray(relations)){
-    const yearlyClash=/(?:2027년|2027년의|세운|연운).{0,30}(연지|월지|일지|시지)(?:와|과|에|에서|가|는|의|\\s){0,5}(?:충돌|충이|충을|충으로|충합니다|충 관계)/g;
+    const yearlyClash=/(?:2027년|2027년의|세운|연운).{0,30}(연지|월지|일지|시지)(?:와|과|에|에서|가|는|의|\s){0,5}(?:충돌|충이|충을|충으로|충합니다|충 관계)/g;
     for(const match of passage.matchAll(yearlyClash)){
      const pos=branchPosition[match[1]];
      if(!relations.some(rel=>rel.type==='충'&&rel.between===pos))
