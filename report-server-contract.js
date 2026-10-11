@@ -25,7 +25,7 @@ async function generate(input,callModel,onProgress=()=>{}){const packet=facts.bu
  const outline=require('./report-outline');
  Object.assign(base.rules,{
   depthVersion:outline.version,topicPlan:outline.topics,
-  paragraphGuide:'각 장의 topicPlan 질문에 각각 답한다. 합쳐진 질문을 다시 세분화하지 않는다. bodyTopics와 bodyLabels 순서를 유지하고 주제당 문장 수를 고정하지 않는다. 특히 원국 장은 서로 다른 명리 요소를 함께 읽는 이유와 뜻을 충분히 설명한다. 다른 장도 주장에 필요한 이유와 조건을 생략하지 않되, 설명을 마친 뒤 같은 결론이나 교훈으로 분량을 늘리지 않는다. 근거는 별도 요약 상자가 아니라 해당 해석의 본문 안에 자연스럽게 연결한다.',
+  paragraphGuide:'각 장의 topicPlan 질문에 각각 답한다. 합쳐진 질문을 다시 세분화하지 않는다. bodyTopics와 bodyLabels 순서를 유지하고 주제당 문장 수를 고정하지 않는다. 특히 성격을 설명하는 장은 계산된 근거를 내부에서 확인하고 실제 생각과 행동을 충분히 설명한다. 전문용어와 그 정의는 본문에 쓰지 않는다. 다른 장도 주장에 필요한 이유와 조건을 생략하지 않되, 설명을 마친 뒤 같은 결론이나 교훈으로 분량을 늘리지 않는다. 계산 용어는 내부 evidence에만 남긴다. 본문은 같은 행동의 이유와 결과가 자연스럽게 이어지게 쓴다.',
   narrativeRule:'각 본문은 해당 질문에 대한 해석을 바로 설명한다. 180~300자 분량 목표를 없앤다. 계산된 사실을 내부에서 확인하되 사용자에게 계산 순서나 해석 과정 자체를 장황하게 보여주지 않는다. 앞선 항목과 같은 이야기라면 핵심 차이만 남긴다. 해석이 부족하면 꾸며서 채우지 않는다.',
   domainUniquenessRule:'돈은 벌기·쓰기·모으기·함께 쓰기, 직업은 배움·업무 적합성·조직·협업·진로, 관계는 우정·연애·애정·결혼생활·가족을 각각 별도로 분석한다. 모든 분야를 작업·수정·요청·비용 이야기로 바꾸지 않는다. 알려지지 않은 현재 직업·연애 여부·가족사를 지어내지 말고 해당 상황일 때의 해석으로 쓴다.',
   confidenceStyleRule:'사주 해석의 한계는 최종 정리에 한 번 명확히 밝힌다. 문단마다 단정하지 않습니다·알 수 없습니다로 끝내지 않는다. 특정 근거가 없는 판단은 그 판단만 짧게 제한하고, 계산된 다른 근거로 답할 수 있는 내용을 설명한다. 과거 사실·건강 진단·성공률·사건 발생·계산하지 않은 월별 시기를 만들지 않는다.',
@@ -70,7 +70,7 @@ async function generate(input,callModel,onProgress=()=>{}){const packet=facts.bu
   priorSections.push(...result.sections.map(s=>({id:s.id,keyJudgment:s.keyJudgment,bodyLabels:s.bodyLabels,topicConclusions:s.body.slice()})));
   onProgress({stage:'body',completed:done+=ids.length,total:12});return result;
  });
- const meta={calculationNote:'입력한 출생 시각을 그대로 사용합니다. 출생지에 따른 시차·태양시 보정은 하지 않으며, 23시대의 일주는 해당 날짜로 계산합니다. 2027년 해석은 입춘을 기준으로 하는 정미년의 전통 해석이며 사건 예측이 아닙니다. 대운은 연도 단위로 비교하며 교체일 전후는 구분하지 않습니다.',characterGender:input.gender||'male',name:input.name||'',mbti:input.mbti||'모름',chart:packet.chart,profileBalance:packet.profileBalance,targetYear:2027,versions:{ruleset:'premium-v2',prompt:'reader-depth-v2',schema:outline.version}};
+ const meta={calculationNote:'입력한 출생 시각을 그대로 사용하며 출생지에 따른 시간 차이는 보정하지 않습니다. 밤 11시대도 입력한 날짜로 계산합니다. 2027년 풀이는 전통적인 사주 계산에 따른 참고 해석이며, 실제 사건을 예측한 결과는 아닙니다. 여러 해에 걸친 변화는 연도별로 비교하며 바뀌는 정확한 날짜까지 구분하지 않습니다.',characterGender:input.gender||'male',name:input.name||'',mbti:input.mbti||'모름',chart:packet.chart,profileBalance:packet.profileBalance,targetYear:2027,versions:{ruleset:'premium-v2',prompt:'reader-depth-v2',schema:outline.version}};
  const sections=drafts.flatMap(p=>p.sections||[]);
  // Select the cover only after all 12 complete chapters. The final local quality
  // gate below remains mandatory; no automatic paid rewrite or retry is issued.
