@@ -20,6 +20,18 @@ const {createQueue,retryDelay,rateLimitKind}=require('./report-request-control')
  let emptyCalls=0;await assert.rejects(contract.generate({calendar:'solar',birthDate:'1990-06-15',unknownBirthTime:true,gender:'male',mbti:'INFP'},async()=>{emptyCalls++;return {sections:[]}}));assert.equal(emptyCalls,1);
  const originalFetch=global.fetch,originalKey=process.env.OPENAI_API_KEY,originalModel=process.env.REPORT_MODEL;let providerCalls=0;
  try{process.env.OPENAI_API_KEY='local-test-placeholder';process.env.REPORT_MODEL='local-test-model';global.fetch=async()=>{providerCalls++;return {ok:false,status:429,json:async()=>({error:{code:'rate_limit_exceeded',message:'tokens per min'}})}};await assert.rejects(require('./server').callOpenAI({}),/token rate limit/);assert.equal(providerCalls,1)}finally{global.fetch=originalFetch;for(const [key,value] of [['OPENAI_API_KEY',originalKey],['REPORT_MODEL',originalModel]])if(value===undefined)delete process.env[key];else process.env[key]=value}
+ // Verify that actual OpenAI requests contain no unsupported JSON Schema bounds.
+ let sentSchema=null;
+ const savedFetch=global.fetch,savedKey=process.env.OPENAI_API_KEY,savedModel=process.env.REPORT_MODEL;
+ try{
+  process.env.OPENAI_API_KEY='local-test-placeholder';process.env.REPORT_MODEL='local-test-model';
+  global.fetch=async(_url,opts)=>{sentSchema=JSON.parse(opts.body).text.format.schema;return {ok:true,json:async()=>({output_text:'{"ok":true}'})}};
+  await require('./server').callOpenAI({requestedSections:['saju_core'],includeFinal:false,includeCover:false});
+  const walk=x=>{if(!x||typeof x!=='object')return;for(const [k,v] of Object.entries(x)){assert(!['minItems','maxItems','minLength','maxLength','$schema','title'].includes(k),'unsupported strict schema keyword '+k);walk(v)}};
+  walk(sentSchema);assert.equal(sentSchema.properties.sections.items.properties.id.enum.length,1);
+ }finally{global.fetch=savedFetch;for(const [key,value] of [['OPENAI_API_KEY',savedKey],['REPORT_MODEL',savedModel]])if(value===undefined)delete process.env[key];else process.env[key]=value}
+ assert.equal(require('./report-schema.json').properties.finalJudgment.properties.routines.minItems,0);
+ assert.equal(require('./report-schema.json').properties.sections.items.properties.body.minItems,1);
  console.log('PASS no automatic provider retry, no follow-up batches after failure, no continuation after missing topics');
  console.log('PASS shared request queue, failure recovery, Retry-After seconds/date, all 35 topics, 7 model calls, no full rewrite, synthesis after all chapters');
 })().catch(e=>{console.error(e);process.exitCode=1});
