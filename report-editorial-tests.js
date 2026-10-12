@@ -142,6 +142,7 @@ assert(computedCalendar.decades.some(d=>d.pillar&&Number.isInteger(d.startYear)&
 const contradiction=fixture();contradiction.sections[3].title='불필요한 지출은 하지 않습니다';contradiction.sections[3].body=['마음에 드는 물건에는 예산보다 많은 돈을 쓸 수 있습니다.'];assert(quality.validate(contradiction).errors.includes('money: categorical money headline conflicts with spending exception'));
 const conditional=fixture();conditional.sections[3].title='평소에는 돈을 아끼지만 좋아하는 물건에는 지출합니다';conditional.sections[3].body=['마음에 드는 물건에는 예산보다 많은 돈을 쓸 수 있습니다.'];assert(!quality.validate(conditional).errors.some(x=>x.includes('categorical money headline')));
 const natural=fixture();natural.sections[0].body=['충분히 알아본 뒤 시작하려다 실행이 늦어집니다.'];assert(!quality.validate(natural).errors.some(e=>/unnatural Korean|interpretation boilerplate|abstract headline/.test(e)));
+const emptyEnding=fixture();emptyEnding.finalJudgment.closingQuestion='이 보고서는 전통 사주 해석과 입력된 MBTI를 비교한 참고 자료입니다.';assert(quality.validate(emptyEnding).errors.includes('final conclusion is disclaimer instead of personal insight'));
 for(const ending of ['어떤 선택을 하시겠습니까?','이제 어떻게 할까요','무엇이 중요합니까？']){const r=fixture();r.finalJudgment.closingQuestion=ending;assert(quality.validate(r).errors.includes('final conclusion must not ask a question'));}
 assert(!quality.validate(fixture()).errors.some(e=>e.includes('conclusion')));
 const client={window:{addEventListener(){},CHARACTER_ASSETS:{badge(){return ""},hero(){return ""},detail(){return ""}}},document:{body:{classList:{add(){}}},getElementById(){return null}},requestAnimationFrame(){},console};
