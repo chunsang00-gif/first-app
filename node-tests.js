@@ -145,3 +145,19 @@ run('distinct conclusions are not flagged as paraphrases',()=>{
  const q=Q.validate(r);
  assert.ok(!q.errors.some(x=>x.includes('paraphrased judgment repeated')),JSON.stringify(q.errors));
 });
+
+run('paid quality gate rejects substantive evidence copied across chapters',()=>{
+ const r=mockReport();
+ const copied='월지 본기와 일간의 관계를 함께 확인하여 해석의 전제를 세웠습니다.';
+ r.sections[2].evidence=[copied];
+ r.sections[5].evidence=[copied+'!'];
+ const q=Q.validate(r);
+ assert.ok(q.errors.some(x=>x.includes('reused evidence across chapters')),JSON.stringify(q.errors));
+});
+run('paid quality gate permits distinct chapter evidence',()=>{
+ const r=mockReport();
+ r.sections[2].evidence=['월지 본기를 근거로 판단 시점의 차이를 살펴보았습니다.'];
+ r.sections[5].evidence=['일지 지장간을 근거로 관계 표현의 조건을 따로 검토했습니다.'];
+ const q=Q.validate(r);
+ assert.ok(!q.errors.some(x=>x.includes('reused evidence across chapters')),JSON.stringify(q.errors));
+});
