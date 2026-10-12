@@ -20,7 +20,7 @@ assert.equal(createTiming().snapshot().sampleCount,0);
   return require(n);
  }};
  vm.runInNewContext(fs.readFileSync(require.resolve('./server'),'utf8'),server);
- async function request(method,url,data){const req=new EventEmitter();req.method=method;req.url=url;let output;const res={writeHead(code){this.code=code},end(s){output={code:this.code,...JSON.parse(s)}}};const p=server.module.exports.handler(req,res);if(method==='POST'){req.emit('data',JSON.stringify(data));req.emit('end');}await p;return output;}
+ async function request(method,url,data){const req=new EventEmitter();req.method=method;req.url=url;req.socket={remoteAddress:'127.0.0.1'};let output;const res={writeHead(code){this.code=code},end(s){output={code:this.code,...JSON.parse(s)}}};const p=server.module.exports.handler(req,res);if(method==='POST'){req.emit('data',JSON.stringify(data));req.emit('end');}await p;return output;}
  const payload={analysisInput:{status:'ready',calculationInput:{calendar:'solar',birthDate:'1990-06-15',unknownBirthTime:true,gender:'male',mbti:'INFP'}}};
  const first=await request('POST','/api/report',{...payload,requestId:'one-delivery-test-0001'});const duplicate=await request('POST','/api/report',{...payload,requestId:'one-delivery-test-0001'});assert.equal(duplicate.jobId,first.jobId);assert.equal(first.timing.averageSeconds,null);
  clock=31000;const loading=await request('GET','/api/report-status?id='+first.jobId);assert.equal(loading.timing.elapsedSeconds,30);
