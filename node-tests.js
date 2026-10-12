@@ -78,3 +78,37 @@ run('expanded reports reject missing subtopics instead of silently thinning cont
 
 run('curated cover copy goes through the same language checks',()=>{const r=mockReport();r.cover={headline:'핵심 제목',description:'핵심 설명',keywords:['하나','둘','셋'],highlights:[{sectionId:'money',title:'돈의 특징',description:'귀인의 도움으로 돈이 늘어납니다.'}]};assert(Q.validate(r).errors.some(e=>e.includes('generic/cliche')))});
 
+
+run('structural evidence matches known pillars and month root',()=>{
+ const p=F.build({calendar:'solar',birthDate:'1990-05-15',birthTime:'10:30',birthplace:'서울',gender:'male',mbti:'INTJ',name:'테스트'});
+ assert.equal(p.status,'ready');
+ const e=p.facts.structuralEvidence;
+ assert.ok(e&&e.monthCommand&&Array.isArray(e.dayMasterRoots));
+ assert.equal(e.monthCommand.branch,p.chart.month.slice(-1));
+ const root=e.monthCommand.mainHiddenStem;
+ assert.ok(p.facts.hiddenStems.month.includes(root));
+ assert.equal(e.dayMasterRoots.length,4);
+ for(const x of e.dayMasterRoots){
+  assert.deepEqual(x.hiddenStems,p.facts.hiddenStems[x.position]);
+  for(const stem of x.sameElementStems)assert.ok(x.hiddenStems.includes(stem));
+ }
+ assert.equal(e.visibleStems.length,4);
+ assert.ok(e.interpretationLimits.some(x=>x.includes('신강')));
+});
+run('unknown birth time structural evidence excludes hour',()=>{
+ const p=F.build({...sample,birthTime:'',unknownBirthTime:true});
+ assert.equal(p.status,'ready');
+ assert.equal(p.chart.hour,null);
+ assert.equal(p.facts.structuralEvidence.dayMasterRoots.length,3);
+ assert.equal(p.facts.structuralEvidence.visibleStems.length,3);
+ assert.ok(!p.facts.structuralEvidence.dayMasterRoots.some(x=>x.position==='hour'));
+});
+run('structural evidence is consistent across varied inputs',()=>{
+ for(const {input} of cases){
+  const p=F.build(input),e=p.facts.structuralEvidence;
+  assert.equal(p.status,'ready');
+  assert.equal(e.monthCommand.branch,p.chart.month.slice(-1));
+  assert.equal(e.visibleStems.length,Object.values(p.chart).filter(Boolean).length);
+  for(const x of e.dayMasterRoots)assert.deepEqual(x.hiddenStems,p.facts.hiddenStems[x.position]);
+ }
+});
