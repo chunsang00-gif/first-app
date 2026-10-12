@@ -132,3 +132,16 @@ run('quality gate rejects paraphrased duplicate conclusions',()=>{
  const q=Q.validate(r);
  assert.ok(q.errors.some(x=>x.includes('paraphrased judgment repeated')),JSON.stringify(q.errors));
 });
+
+run('paraphrase normalization catches whitespace and punctuation variants',()=>{
+ const r=mockReport();
+ r.sections[2].keyJudgment='정보 공유 시점과 책임 범위를 확인해야 합니다.';
+ r.sections[5].keyJudgment='정보를 공유 시점과 책임의 범위를 확인해야 합니다!';
+ const q=Q.validate(r);
+ assert.ok(q.errors.some(x=>x.includes('paraphrased judgment repeated')),JSON.stringify(q.errors));
+});
+run('distinct conclusions are not flagged as paraphrases',()=>{
+ const r=mockReport();
+ const q=Q.validate(r);
+ assert.ok(!q.errors.some(x=>x.includes('paraphrased judgment repeated')),JSON.stringify(q.errors));
+});
