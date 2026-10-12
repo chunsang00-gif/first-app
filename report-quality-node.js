@@ -183,6 +183,11 @@ function validate(r,packet){
  if(readable.some(x=>/(?:[A-Za-z]+_){1,}[A-Za-z]+|undefined|\[object Object\]/.test(x)))errors.push('internal field leaked into prose');
  if(readable.some(x=>/([가-힣]{2,})\s+\1(?=[\s,.!?]|$)/.test(x)))errors.push('duplicated adjacent word');
  if(readable.some(x=>/\uFFFD/.test(x)))errors.push('invalid text encoding');
+ // An individually cautious sentence is legitimate; a paid report dominated by the
+ // same broad "cannot know" ending across unrelated chapters is not.
+ const broadCaveat=/(?:이|그|해당)\s*자료(?:만으로|로는)|(?:원국|사주)(?:만으로|로는)|(?:정할|알|평가할|확정할|단정할)\s*수\s*(?:는\s*)?없(?:습니다|다)/;
+ const caveatChapters=r.sections.filter(s=>(s.body||[]).some(p=>broadCaveat.test(String(p))));
+ if(caveatChapters.length>=5)errors.push('repeated generic limitations across '+caveatChapters.length+' chapters; replace with supported analysis rather than repeated disclaimers');
  const seenSentences=new Map();
  for(const section of r.sections){for(const paragraph of section.body||[]){for(const sentence of String(paragraph).split(/(?<=[.!?])\s+/)){const t=norm(sentence);if(t.length<28)continue;const owner=seenSentences.get(t);if(owner)errors.push('repeated body sentence: '+owner+' / '+section.id);else seenSentences.set(t,section.id)}}}
 
