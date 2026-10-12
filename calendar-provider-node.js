@@ -4,8 +4,8 @@
  */
 const {Solar,Lunar}=require('lunar-javascript');
 function parts(date,time='12:00'){
- if(typeof date!=='string'||!/^(\\d{4})-(\\d{2})-(\\d{2})$/.test(date))throw Error('invalid birth date format');
- if(typeof time!=='string'||!/^([01]\\d|2[0-3]):[0-5]\\d$/.test(time))throw Error('invalid birth time format');
+ if(typeof date!=='string'||!/^(\d{4})-(\d{2})-(\d{2})$/.test(date))throw Error('invalid birth date format');
+ if(typeof time!=='string'||!/^([01]\d|2[0-3]):[0-5]\d$/.test(time))throw Error('invalid birth time format');
  const [y,m,d]=date.split('-').map(Number),[h,mi]=time.split(':').map(Number);
  if(y<1900||y>2100||m<1||m>12||d<1||d>31)throw Error('birth date out of supported range');
  return {y,m,d,h,mi};
