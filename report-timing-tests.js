@@ -11,7 +11,7 @@ now+=1000001;assert.equal(stats.snapshot().averageSeconds,null);
 assert.equal(createTiming().snapshot().sampleCount,0);
 (async()=>{
  let clock=1000,finish,fail;
- const server={module:{exports:{}},__dirname:__dirname,process:{env:{}},Date:{now:()=>clock},URL,console:{error(){},warn(){}},require:n=>{
+ const server={module:{exports:{}},__dirname:__dirname,process:{env:{REPORT_MODEL_URL:'http://127.0.0.1:3211/report'}},Date:{now:()=>clock},URL,console:{error(){},warn(){}},require:n=>{
   if(n==='./report-facts-node')return {};
   if(n==='./report-diagnostics')return {configuration:()=>({configured:true}),failureCode:()=> 'FAILED',messageFor:()=> 'failed'};
   if(n==='./report-server-contract')return {generate:()=>new Promise((resolve,reject)=>{finish=resolve;fail=reject;})};
