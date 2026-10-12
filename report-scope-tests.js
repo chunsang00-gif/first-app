@@ -34,3 +34,12 @@ sample.sections[8].body=['2027년 세운은 계산된 원국과 대운을 함께
 judged=quality.validate(sample,paidPacket);
 assert(!judged.errors.some(x=>x.includes('reader-facing natal')||x.includes('reader-facing fortune')));
 console.log('PASS paid-report body visibly explains natal and 2027 calculations');
+
+// One specific uncertainty is acceptable; the same broad caveat in many domains is not.
+const repeated=structuredClone(sample);
+for(let i=0;i<5;i++)repeated.sections[i].body=['이 자료만으로 실제 행동을 알 수 없습니다.'];
+assert(quality.validate(repeated,paidPacket).errors.some(x=>x.includes('repeated generic limitations')));
+const restrained=structuredClone(sample);
+restrained.sections[3].body=['이 자료만으로 실제 소득을 알 수 없습니다.'];
+assert(!quality.validate(restrained,paidPacket).errors.some(x=>x.includes('repeated generic limitations')));
+console.log('PASS chapter-spanning caveat repetition is blocked without banning isolated uncertainty');
