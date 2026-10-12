@@ -222,6 +222,17 @@ function validate(r,packet){
   if(!/(?:2027|정미|丁未)/.test(yearText)||!/(?:세운|대운|십성|편관|정관|식신|상관|원국)/.test(yearText))
    errors.push('year_2027: reader-facing fortune omits calculated annual context');
  }
+ // A seasonal annual pillar must never be sold as a January-to-December guarantee.
+ // Only reject explicit full-calendar-year claims; ordinary '2027년' wording remains valid.
+ if(packet?.calculationPolicy?.annualPillarBoundary==='ipchun-solar-term'){
+  const seasonalClaims=[...(r.sections||[]).filter(x=>/^year_2027/.test(x.id)).flatMap(x=>[x.title,x.keyJudgment,...(x.body||[]),...(x.evidence||[])]),...(r.finalJudgment?.body||[])];
+  for(const passage of seasonalClaims){
+   const t=norm(passage);
+   if(/(?:2027년\s*)?(?:1월\s*1일|1월부터|연초부터).{0,45}(?:정미|丁未|세운)/.test(t)
+      ||/(?:정미|丁未|세운).{0,45}(?:1월\s*1일부터|1월부터|12월\s*31일까지|양력\s*1년\s*내내)/.test(t))
+    errors.push('2027: annual pillar incorrectly applied to full Gregorian year');
+  }
+ }
  const factCheck=verifyEvidenceAgainstFacts(r,packet);errors.push(...factCheck.errors);warnings.push(...factCheck.warnings);
  errors.push(...editorial.wordingErrors(readable));
  for(const section of r.sections){
