@@ -1,0 +1,15 @@
+'use strict';
+const assert=require('node:assert/strict');
+const {verifyEvidenceAgainstFacts}=require('./report-quality-node');
+const packet={facts:{tenGods:{year:{stemTenGod:'겁재'},month:{stemTenGod:'상관'}},annualTenGods:{stemTenGod:'편관'}}};
+const check=(id,text)=>verifyEvidenceAgainstFacts({sections:[{id,evidence:[text]}]},packet);
+assert.equal(check('year_2027_career','연간 편관의 대응 부담과 구분하여 업무를 설명합니다.').errors.length,0);
+assert(check('year_2027_career','연간 편관의 대응 부담과 구분하여 업무를 설명합니다.').warnings.length);
+assert(check('year_2027_career','원국 연간 편관은 태어난 해의 항목입니다.').errors.length);
+assert(check('year_2027_career','출생 연간 편관입니다.').errors.length);
+assert.equal(check('year_2027_career','원국 연간 겁재를 확인합니다.').errors.length,0);
+assert(check('saju_core','연간 편관으로 계산됩니다.').errors.length);
+assert(check('year_2027_career','월간 정재를 확인합니다.').errors.length);
+assert(check('year_2027_career','2027년 세운은 정재입니다.').errors.length);
+assert.equal(check('year_2027_career','2027년 세운은 편관입니다.').errors.length,0);
+console.log('PASS annual/natal ambiguity, explicit natal mismatch, annual mismatch');

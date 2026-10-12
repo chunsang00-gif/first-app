@@ -25,6 +25,12 @@ function verifyEvidenceAgainstFacts(report,packet){
    const text=norm(evidence);
    const re=new RegExp('(연간|월간|일간|시간)(?:의|에|은|에는|에서|\\s+){0,3}('+godTerms+')','g');
    for(const match of text.matchAll(re)){
+    // In annual chapters 연간 can mean "for the year", not the natal year stem.
+    // Keep explicit natal claims checked; ambiguous usage is reviewable, not a false rejection.
+    if(match[1]==='연간'&&/^year_2027/.test(section.id)&&!/(?:원국|출생|태어난 해|태어난 연도|년주|연주)\s*(?:의\s*)?$/.test(text.slice(Math.max(0,match.index-20),match.index))){
+     warnings.push(section.id+': ambiguous 연간; use 세운 or 원국 연간 in internal evidence');
+     continue;
+    }
     const position=positionKeys[match[1]];
     const calculated=tenGods[position]?.stemTenGod;
     if(calculated&&calculated!==match[2])errors.push(section.id+': '+match[1]+' '+match[2]+' conflicts with calculated '+calculated);
