@@ -34,17 +34,33 @@ function verifyEvidenceAgainstFacts(report,packet){
     const position=positionKeys[match[1]];
     const calculated=tenGods[position]?.stemTenGod;
     if(calculated&&calculated!==match[2])errors.push(section.id+': '+match[1]+' '+match[2]+' conflicts with calculated '+calculated);
-    else if(!calculated)warnings.push(section.id+': '+match[1]+' position unavailable to verify');
+    else if(!calculated){
+     // Without a birth hour, an hour ten-god is invented rather than uncertain.
+     if(position==='hour')errors.push(section.id+': uncalculated hour-pillar ten-god claim');
+     else warnings.push(section.id+': '+match[1]+' position unavailable to verify');
+    }
    }
   }
  }
- // Reject explicitly incorrect 지장간 십성. A generic stem check cannot verify branch contents.
+ // Validate hidden-stem claims in the natural wording used by actual reports.
+ // Multiple branch positions and explicit stem + ten-god pairings must agree
+ // with the calculated fact packet, not just a generic ten-god dictionary.
  const hiddenKeys={연지:'year',년지:'year',월지:'month',일지:'day',시지:'hour'};
- const hiddenClaim=new RegExp('(연지|년지|월지|일지|시지)(?:의)?\\s*지장간(?:의|에|에는|에도)?\\s*(?:있는\\s*)?('+godTerms+')','g');
+ const stemNames={갑목:'甲',을목:'乙',병화:'丙',정화:'丁',무토:'戊',기토:'己',경금:'庚',신금:'辛',임수:'壬',계수:'癸'};
+ const hiddenClaim=new RegExp('((?:(?:연지|년지|월지|일지|시지)(?:\\s*[·,/]\\s*|\\s*(?:와|과|및)\\s*)?){1,4})(?:인\\s*[가-힣]+)?(?:의)?\\s*지장간(?:의|에는|에도|에|에서)?(?:\\s*있는)?\\s*(?:(甲|乙|丙|丁|戊|己|庚|辛|壬|癸|갑목|을목|병화|정화|무토|기토|경금|신금|임수|계수)\\s*)?('+godTerms+')','g');
  for(const section of sections)for(const passage of [...(section.evidence||[]),section.title,section.keyJudgment,...(section.body||[])]){
   for(const match of norm(passage).matchAll(hiddenClaim)){
-   const known=tenGods[hiddenKeys[match[1]]]?.hiddenStems;
-   if(Array.isArray(known)&&!known.some(item=>item.tenGod===match[2]))errors.push(section.id+': '+match[1]+' 지장간 '+match[2]+' conflicts with calculated hidden stems');
+   const stem=stemNames[match[2]]||match[2];
+   for(const position of match[1].match(/연지|년지|월지|일지|시지/g)||[]){
+    const key=hiddenKeys[position],known=tenGods[key]?.hiddenStems;
+    if(!Array.isArray(known)){
+     if(key==='hour')errors.push(section.id+': uncalculated hour-branch hidden-stem claim');
+     else warnings.push(section.id+': '+position+' hidden stems unavailable to verify');
+     continue;
+    }
+    if(!known.some(item=>item.tenGod===match[3]&&(!stem||item.stem===stem)))
+     errors.push(section.id+': '+position+' 지장간 '+(match[2]?match[2]+' ':'')+match[3]+' conflicts with calculated hidden stems');
+   }
   }
  }
  // Check only explicit 2027 claims against facts actually calculated for that year.
