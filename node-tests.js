@@ -161,3 +161,26 @@ run('paid quality gate permits distinct chapter evidence',()=>{
  const q=Q.validate(r);
  assert.ok(!q.errors.some(x=>x.includes('reused evidence across chapters')),JSON.stringify(q.errors));
 });
+
+run('reference case locks four pillars and 2027 annual stem relationships',()=>{
+ const p=F.build({calendar:'solar',birthDate:'1990-05-15',birthTime:'10:30',birthplace:'서울',gender:'male',mbti:'INTJ'});
+ assert.equal(p.status,'ready');
+ assert.deepEqual(p.chart,{year:'庚午',month:'辛巳',day:'庚辰',hour:'辛巳'});
+ assert.equal(p.targetYear.pillar,'丁未');
+ assert.equal(p.facts.dayMaster,'庚');
+ assert.equal(p.facts.structuralEvidence.monthCommand.mainHiddenStem,'丙');
+ assert.equal(p.facts.structuralEvidence.monthCommand.mainHiddenStemTenGod,'편관');
+ assert.equal(p.facts.annualTenGods.stemTenGod,'정관');
+ assert.equal(p.facts.targetYearRelations.length,0);
+ assert.equal(p.facts.natalClashes.length,0);
+});
+run('2027 year-branch clash is restricted to actual opposing natal branches',()=>{
+ const p=F.build({calendar:'solar',birthDate:'1991-06-15',birthTime:'12:00',birthplace:'서울',gender:'female',mbti:'ISTJ'});
+ assert.equal(p.status,'ready');
+ assert.equal(p.targetYear.pillar,'丁未');
+ for(const relation of p.facts.targetYearRelations){
+  assert.equal(relation.type,'충');
+  assert.equal(relation.branches.slice(-1),'未');
+  assert.equal(relation.branches[0],'丑');
+ }
+});
