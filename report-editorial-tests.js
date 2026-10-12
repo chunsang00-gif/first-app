@@ -194,3 +194,11 @@ const seasonalBadReverse=fixture();seasonalBadReverse.sections[8].body=['정미 
 assert(quality.validate(seasonalBadReverse,seasonalPacket).errors.includes('2027: annual pillar incorrectly applied to full Gregorian year'));
 const seasonalCorrect=fixture();seasonalCorrect.sections[8].body=['2027년 정미 세운은 입춘을 기준으로 해석합니다.'];
 assert(!quality.validate(seasonalCorrect,seasonalPacket).errors.includes('2027: annual pillar incorrectly applied to full Gregorian year'));
+
+const locationPacket={status:'ready',calculationPolicy:{birthplaceUsedForCalculation:false},facts:{tenGods:{}}};
+const locationBad=fixture();locationBad.sections[0].body=['출생지 경도를 보정하여 시주를 산출했습니다.'];
+assert(quality.validate(locationBad,locationPacket).errors.includes('calculation: unsupported birthplace or solar-time correction claim'));
+const locationBadSolar=fixture();locationBadSolar.sections[0].body=['진태양시를 반영한 정밀한 사주입니다.'];
+assert(quality.validate(locationBadSolar,locationPacket).errors.includes('calculation: unsupported birthplace or solar-time correction claim'));
+const locationGood=fixture();locationGood.sections[0].body=['출생지에 따른 진태양시 보정은 적용하지 않았습니다.'];
+assert(!quality.validate(locationGood,locationPacket).errors.includes('calculation: unsupported birthplace or solar-time correction claim'));
