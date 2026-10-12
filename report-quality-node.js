@@ -253,6 +253,24 @@ function validate(r,packet){
  for(let i=0;i<sectionTexts.length;i++)for(let j=i+1;j<sectionTexts.length;j++){const sim=similarity(sectionTexts[i],sectionTexts[j]);if(sim>.58)errors.push(`section insight overlap: ${IDS[i]} / ${IDS[j]}`);else if(sim>.45)warnings.push(`section similarity review: ${IDS[i]} / ${IDS[j]}`)}
  const yearIds=new Set(['year_2027','year_2027_money','year_2027_career','year_2027_relationship']);
  r.sections.filter(s=>yearIds.has(s.id)).forEach(s=>{const t=norm((Array.isArray(s.body)?s.body.join(' '):s.body)+' '+s.keyJudgment);if(!/(2027|올해|평소|기존|더 |강해|약해|달라|변화|비교|반복|유지)/.test(t))errors.push(`${s.id}: 2027 comparison missing`);if(/(반드시|확실히|틀림없이).{0,12}(합격|이직|취업|연애|결혼|수입|돈|성공)/.test(t))errors.push(`${s.id}: deterministic event prediction`)});
+ // Conservative paraphrase detection: catch near-identical conclusions even when
+ // a small set of interchangeable expressions has been substituted.
+ const canonicalJudgment=value=>norm(value)
+  .replace(/판단을 내리|결정을 내리|결론을 내리/g,'결정하')
+  .replace(/검토하|살펴보|확인하/g,'확인하')
+  .replace(/책임 범위|책임의 범위|맡는 책임/g,'책임')
+  .replace(/정보 공유|정보를 공유|정보 전달/g,'정보공유')
+  .replace(/시간 배분|시간을 배분|시간 분배/g,'시간배분')
+  .replace(/\\s+/g,'')
+  .replace(/[.,!?。！？]/g,'');
+ const canonicalOwners=new Map();
+ for(const section of r.sections){
+  const canonical=canonicalJudgment(section.keyJudgment);
+  if(canonical.length<18)continue;
+  const previous=canonicalOwners.get(canonical);
+  if(previous)errors.push('paraphrased judgment repeated: '+previous+' / '+section.id);
+  else canonicalOwners.set(canonical,section.id);
+ }
  const judgments=r.sections.filter(Boolean).map(s=>norm(s.keyJudgment));
  for(let i=0;i<judgments.length;i++)for(let j=i+1;j<judgments.length;j++){
   const a=new Set(judgments[i].split(' ').filter(x=>x.length>2)),b=new Set(judgments[j].split(' ').filter(x=>x.length>2));
