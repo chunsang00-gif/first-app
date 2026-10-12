@@ -45,7 +45,7 @@ async function generate(input,callModel,onProgress=()=>{}){const packet=facts.bu
  for(const key of reviewKeys)summaryRules[key]=base.rules[key];
  base.rules=Object.fromEntries([...activeRuleKeys,...reviewKeys].map(key=>[key,base.rules[key]]));
  base.rules.avoidPhrases=quality.forbiddenPhrases;summaryRules.avoidPhrases=quality.forbiddenPhrases;
- const groups=[['saju_core','mbti_contradiction'],['decision','stress'],['money','year_2027_money'],['career','year_2027_career'],['relationship','year_2027_relationship'],['integrated_judgment','year_2027']];
+ const groups=[['saju_core','mbti_contradiction'],['decision','year_2027'],['money','year_2027_money'],['career','year_2027_career'],['relationship','year_2027_relationship'],['stress','integrated_judgment']];
  const validateBatch=(result,ids)=>{
   const fail=(reason,info={})=>{console.error('[Report batch incomplete]',{reason,requestedIds:ids,...info});throw Error('AI report service returned invalid report structure')};
   if(!Array.isArray(result?.sections))fail('sections not array');
