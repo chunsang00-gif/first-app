@@ -261,7 +261,7 @@ function validate(r,packet){
   .replace(/책임 범위|책임의 범위|맡는 책임/g,'책임')
   .replace(/정보 공유|정보를 공유|정보 전달/g,'정보공유')
   .replace(/시간 배분|시간을 배분|시간 분배/g,'시간배분')
-  .replace(/\\s+/g,'')
+  .replace(/\s+/g,'')
   .replace(/[.,!?。！？]/g,'');
  const canonicalOwners=new Map();
  for(const section of r.sections){
