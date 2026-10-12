@@ -269,3 +269,19 @@ run('premium prompt forbids claims of unperformed solar-time conversion',()=>{
  assert.ok(prompt.includes('진태양시'));
  assert.ok(prompt.includes('calculationPolicy'));
 });
+
+run('birthplace limitation is disclosed at entry before report purchase',()=>{
+ const html=require('fs').readFileSync('index.html','utf8');
+ assert.ok(html.includes('출생지는 기록용이며 시차·태양시 보정에는 사용하지 않습니다.'));
+ const p=F.build({...sample,birthplace:'서울'});
+ assert.equal(p.calculationPolicy.birthplaceUsedForCalculation,false);
+});
+run('birth time near 2-hour pillar boundaries is not silently corrected by birthplace',()=>{
+ const base={...sample,birthDate:'2000-06-15',calendar:'solar'};
+ for(const time of ['00:59','01:00','22:59','23:00']){
+  const seoul=F.build({...base,birthTime:time,birthplace:'서울'});
+  const busan=F.build({...base,birthTime:time,birthplace:'부산'});
+  assert.equal(seoul.status,'ready');
+  assert.deepEqual(seoul.chart,busan.chart);
+ }
+});
