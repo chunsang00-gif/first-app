@@ -202,3 +202,14 @@ const locationBadSolar=fixture();locationBadSolar.sections[0].body=['진태양�
 assert(quality.validate(locationBadSolar,locationPacket).errors.includes('calculation: unsupported birthplace or solar-time correction claim'));
 const locationGood=fixture();locationGood.sections[0].body=['출생지에 따른 진태양시 보정은 적용하지 않았습니다.'];
 assert(!quality.validate(locationGood,locationPacket).errors.includes('calculation: unsupported birthplace or solar-time correction claim'));
+
+const revisedTopics=require('./report-outline').topics;
+for(const id of ['integrated_judgment','year_2027_money','year_2027_career','year_2027_relationship']){
+ const items=Object.values(revisedTopics[id]);
+ assert.equal(items.length,2);
+ assert.notEqual(items[0],items[1]);
+ assert.ok(items.some(x=>/근거|관점|세운|원국/.test(x)));
+}
+assert(revisedTopics.year_2027_money.action.includes('단정하지'));
+assert(revisedTopics.year_2027_career.action.includes('예언하지'));
+assert(revisedTopics.year_2027_relationship.action.includes('예언하지'));
