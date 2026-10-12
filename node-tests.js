@@ -127,8 +127,8 @@ run('rejects invented month main hidden stem in report evidence',()=>{
 
 run('quality gate rejects paraphrased duplicate conclusions',()=>{
  const r=mockReport();
- r.sections[2].keyJudgment='정보 공유 시점과 맡는 책임을 확인해야 합니다.';
- r.sections[5].keyJudgment='정보를 공유하는 시점과 책임 범위를 살펴보아야 합니다.';
+ r.sections[2].keyJudgment='정보 공유 시점과 책임 범위를 확인해야 합니다.';
+ r.sections[5].keyJudgment='정보를 공유 시점과 책임의 범위를 살펴보아야 합니다.';
  const q=Q.validate(r);
  assert.ok(q.errors.some(x=>x.includes('paraphrased judgment repeated')),JSON.stringify(q.errors));
 });
