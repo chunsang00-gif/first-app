@@ -184,3 +184,27 @@ run('2027 year-branch clash is restricted to actual opposing natal branches',()=
   assert.equal(relation.branches[0],'丑');
  }
 });
+
+run('calendar rejects impossible solar dates and malformed times',()=>{
+ for(const date of ['2001-02-29','2026-04-31','2026-13-01','2026-00-10','2026-01-00','2026/01/01']){
+  assert.throws(()=>C.calculate({...sample,birthDate:date}),/invalid|range/);
+ }
+ for(const time of ['24:00','12:60','7:30','bad']){
+  assert.throws(()=>C.calculate({...sample,birthTime:time}),/invalid/);
+ }
+});
+run('calendar accepts leap day and sect-2 late zi boundary',()=>{
+ const leap=C.calculate({...sample,birthDate:'2000-02-29',birthTime:'23:30'});
+ assert.equal(leap.status,'complete');
+ const early=C.calculate({...sample,birthDate:'2000-02-29',birthTime:'00:30'});
+ assert.equal(leap.chart.day,early.chart.day);
+ assert.equal(leap.chart.hour.slice(-1),'子');
+});
+run('unknown birth hour is excluded regardless of placeholder time',()=>{
+ const a=F.build({...sample,birthDate:'2000-06-15',birthTime:'',unknownBirthTime:true});
+ const b=F.build({...sample,birthDate:'2000-06-15',birthTime:'12:00',unknownBirthTime:true});
+ assert.equal(a.chart.hour,null);
+ assert.equal(b.chart.hour,null);
+ assert.deepEqual(a.chart,b.chart);
+ assert.equal(a.fortune.status,'unavailable_without_birth_time');
+});
