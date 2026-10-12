@@ -43,3 +43,27 @@ const restrained=structuredClone(sample);
 restrained.sections[3].body=['이 자료만으로 실제 소득을 알 수 없습니다.'];
 assert(!quality.validate(restrained,paidPacket).errors.some(x=>x.includes('repeated generic limitations')));
 console.log('PASS chapter-spanning caveat repetition is blocked without banning isolated uncertainty');
+
+
+// The original paid-report sample uses grouped positions and named hidden stems.
+// 午 contains 丁/편관 and 己/편인; 亥 contains 壬/상관 and 甲/정재.
+const hiddenPacket={facts:{tenGods:{
+ year:{stemTenGod:'겁재',hiddenStems:[{stem:'丁',tenGod:'편관'},{stem:'己',tenGod:'편인'}]},
+ month:{stemTenGod:'상관',hiddenStems:[{stem:'丁',tenGod:'편관'},{stem:'己',tenGod:'편인'}]},
+ day:{stemTenGod:'일간',hiddenStems:[{stem:'壬',tenGod:'상관'},{stem:'甲',tenGod:'정재'}]},
+ hour:{stemTenGod:'정재',hiddenStems:[{stem:'丁',tenGod:'편관'},{stem:'己',tenGod:'편인'}]}
+}}};
+const hiddenCheck=text=>verifyEvidenceAgainstFacts({sections:[{id:'saju_core',evidence:[text]}]},hiddenPacket).errors;
+assert.equal(hiddenCheck('월지·연지·시지인 오의 지장간에는 정화 편관이 있습니다.').length,0);
+assert.equal(hiddenCheck('연지·월지·시지의 지장간에 있는 편인입니다.').length,0);
+assert.equal(hiddenCheck('일지 지장간의 갑목 정재를 해석합니다.').length,0);
+assert(hiddenCheck('월지·연지·시지의 지장간에는 갑목 정재가 있습니다.').some(x=>x.includes('지장간')));
+assert(hiddenCheck('일지 지장간의 정화 편관을 해석합니다.').some(x=>x.includes('지장간')));
+assert(hiddenCheck('월지의 지장간에는 정화 정관이 있습니다.').some(x=>x.includes('지장간')));
+assert(hiddenCheck('월지와 일지의 지장간에는 정화 편관이 있습니다.').some(x=>x.includes('일지')));
+const unknownHour={facts:{tenGods:{year:hiddenPacket.facts.tenGods.year,month:hiddenPacket.facts.tenGods.month,day:hiddenPacket.facts.tenGods.day}}};
+const unknownCheck=text=>verifyEvidenceAgainstFacts({sections:[{id:'saju_core',evidence:[text]}]},unknownHour).errors;
+assert(unknownCheck('시간 편관으로 해석됩니다.').some(x=>x.includes('uncalculated hour-pillar')));
+assert(unknownCheck('시지 지장간의 편관을 해석합니다.').some(x=>x.includes('uncalculated hour-branch')));
+assert.equal(unknownCheck('일지 지장간의 정재를 해석합니다.').length,0);
+console.log('PASS multi-position hidden-stem pair grounding and unknown-hour rejection');
