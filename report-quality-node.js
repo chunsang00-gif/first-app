@@ -42,6 +42,18 @@ function verifyEvidenceAgainstFacts(report,packet){
    }
   }
  }
+ // Check explicit claims about the natal month main hidden stem against the deterministic evidence.
+ const monthEvidence=packet?.facts?.structuralEvidence?.monthCommand;
+ if(monthEvidence){
+  const stemNames={갑목:'甲',을목:'乙',병화:'丙',정화:'丁',무토:'戊',기토:'己',경금:'庚',신금:'辛',임수:'壬',계수:'癸'};
+  const claim=/(?:월지|태어난 달의 지지)(?:의|에|에서|는|은|\\s){0,3}(?:본기|중심 지장간)(?:는|은|이|가|으로|\\s){0,3}(갑목|을목|병화|정화|무토|기토|경금|신금|임수|계수|[甲乙丙丁戊己庚辛壬癸])/g;
+  for(const section of sections)for(const passage of [...(section.evidence||[]),section.title,section.keyJudgment,...(section.body||[])]){
+   for(const match of norm(passage).matchAll(claim)){
+    const claimed=stemNames[match[1]]||match[1];
+    if(claimed!==monthEvidence.mainHiddenStem)errors.push(section.id+': month main hidden stem '+claimed+' conflicts with calculated '+monthEvidence.mainHiddenStem);
+   }
+  }
+ }
  // Verify explicit natal stem names independently of ten-god labels.
  // A correct ten-god name does not excuse an invented stem at that position.
  const natalStems=packet?.facts?.tenGods;
