@@ -38,6 +38,15 @@ function verifyEvidenceAgainstFacts(report,packet){
    }
   }
  }
+ // Reject explicitly incorrect 지장간 십성. A generic stem check cannot verify branch contents.
+ const hiddenKeys={연지:'year',년지:'year',월지:'month',일지:'day',시지:'hour'};
+ const hiddenClaim=new RegExp('(연지|년지|월지|일지|시지)(?:의)?\\s*지장간(?:의|에|에는|에도)?\\s*(?:있는\\s*)?('+godTerms+')','g');
+ for(const section of sections)for(const passage of [...(section.evidence||[]),section.title,section.keyJudgment,...(section.body||[])]){
+  for(const match of norm(passage).matchAll(hiddenClaim)){
+   const known=tenGods[hiddenKeys[match[1]]]?.hiddenStems;
+   if(Array.isArray(known)&&!known.some(item=>item.tenGod===match[2]))errors.push(section.id+': '+match[1]+' 지장간 '+match[2]+' conflicts with calculated hidden stems');
+  }
+ }
  // Check only explicit 2027 claims against facts actually calculated for that year.
  // These classifications are expressly NOT calculated by the current fact packet.
  // A statement about missing data is valid; a positive classification is not.
