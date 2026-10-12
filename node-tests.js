@@ -242,3 +242,13 @@ run('decade fortune sequence is ordered and direction differs by gender',()=>{
 run('invalid lunar leap month cannot silently become an ordinary month',()=>{
  assert.throws(()=>C.calculate({...sample,calendar:'lunar',birthDate:'2024-05-12',leapMonth:true}),/invalid|leap|month|range|not found/i);
 });
+
+run('public API input validation rejects impossible lunar leap month',()=>{
+ const validate=require('./input-validation').validateInput;
+ const invalid={...sample,calendar:'lunar',birthDate:'2024-05-12',leapMonth:true};
+ assert.ok(validate(invalid).length>0);
+ const solarInvalid={...sample,calendar:'solar',leapMonth:true};
+ assert.ok(validate(solarInvalid).some(x=>x.includes('윤달')));
+ const valid={...sample,calendar:'solar',birthDate:'2024-02-29',leapMonth:false};
+ assert.deepEqual(validate(valid),[]);
+});
