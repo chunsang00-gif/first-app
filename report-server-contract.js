@@ -70,7 +70,7 @@ async function generate(input,callModel,onProgress=()=>{}){const packet=facts.bu
  const drafts=await mapLimited(groups,async ids=>{
   const result=validateBatch(await callModel(request(ids,{
    stage:'body',priorSections:priorSections.slice(),
-   editorialTask:'이번 응답을 최종 본문으로 작성한다. analysisGuidance.chapterTasks에서 현재 장이 맡은 질문에 답하고 필요한 근거와 이유를 설명한다. analysisGuidance는 질문 안내이지 그 사람에 대한 확정 사실이 아니다. 이미 설명한 판단이나 행동은 반복하지 않고 겹치는 내용은 간결하게 처리한다. 실제 사주·MBTI에서 확인되지 않은 일반적인 성격 칭찬이나 상담 장면을 만들어 넣지 않는다. 문장 간 논리, 조사, 띄어쓰기를 자연스럽게 교정한다. 필수 bodyTopics의 구조는 유지한다. 별도 유료 재작성 호출을 하지 않는다.'
+   editorialTask:'이 응답은 결제 고객에게 제공할 최종 원고다. 각 topicPlan 질문에 계산된 근거가 실제로 답할 수 있는 부분을 먼저 선정하고, 해석의 이유·서로 다른 근거의 충돌·불리한 부분까지 읽는 사람이 이해할 수 있도록 완결된 문장으로 설명한다. 사주 원국 장에서는 일간·월지·십성의 실제 값과 위치를 본문에서 밝히고 처음 나오는 명리 용어를 괄호로 풀어 쓴다. MBTI 장에서는 정보를 받아들이는 선호와 판단 선호가 만나는 조건을 분석하고 실제 성격을 측정했다고 주장하지 않는다. 돈은 수입·지출·위험, 직업은 역할·학습·조직, 관계는 친밀감·표현·갈등으로 서로 다른 질문에 답한다. 2027년은 계산된 세운과 대운을 해당 분야에 연결할 수 있을 때만 평소와 다른 점을 밝힌다. priorSections와 같은 반응이나 조언을 직업·돈·관계라는 명사만 바꾸어 반복하지 않는다. 유효한 새 해석이 없으면 지어내지 말고 그 질문에 답할 수 있는 근거만 정확히 제시한다. 일반적 계약서 확인이나 소통하라는 상투적 조언, 사용자 과거 경험의 창작은 금지한다. 필수 bodyTopics 순서를 지키되 한 줄짜리 요약으로 분석을 대체하지 않고 한국어 문맥과 조사·서술어 호응을 점검한다. 별도 유료 재작성 호출은 하지 않는다.'
   })),ids);
   priorSections.push(...result.sections.map(s=>({id:s.id,keyJudgment:s.keyJudgment,bodyLabels:s.bodyLabels,topicConclusions:s.body.slice()})));
   onProgress({stage:'body',completed:done+=ids.length,total:12});return result;
