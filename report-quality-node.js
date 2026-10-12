@@ -260,6 +260,7 @@ function validate(r,packet){
   .replace(/검토하|살펴보|확인하/g,'확인하')
   .replace(/책임 범위|책임의 범위|맡는 책임/g,'책임')
   .replace(/정보공유(?:하는)?\s*시점/g,'정보공유시점')
+  .replace(/확인해야\s*합니다/g,'확인합니다')
   .replace(/정보 공유|정보를 공유|정보 전달/g,'정보공유')
   .replace(/시간 배분|시간을 배분|시간 분배/g,'시간배분')
   .replace(/\s+/g,'')
