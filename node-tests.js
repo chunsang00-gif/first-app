@@ -112,3 +112,15 @@ run('structural evidence is consistent across varied inputs',()=>{
   for(const x of e.dayMasterRoots)assert.deepEqual(x.hiddenStems,p.facts.hiddenStems[x.position]);
  }
 });
+
+run('rejects invented month main hidden stem in report evidence',()=>{
+ const packet=F.build({calendar:'solar',birthDate:'1990-05-15',birthTime:'10:30',birthplace:'서울',gender:'male',mbti:'INTJ'});
+ const actual=packet.facts.structuralEvidence.monthCommand.mainHiddenStem;
+ const wrong=['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'].find(x=>x!==actual);
+ const report=mockReport();
+ report.sections[0].evidence=['월지의 본기는 '+wrong+'입니다.'];
+ const check=Q.verifyEvidenceAgainstFacts(report,packet);
+ assert.ok(check.errors.some(x=>x.includes('month main hidden stem')),JSON.stringify(check));
+ report.sections[0].evidence=['월지의 본기는 '+actual+'입니다.'];
+ assert.ok(!Q.verifyEvidenceAgainstFacts(report,packet).errors.some(x=>x.includes('month main hidden stem')));
+});
