@@ -13,3 +13,11 @@ assert(check('year_2027_career','월간 정재를 확인합니다.').errors.leng
 assert(check('year_2027_career','2027년 세운은 정재입니다.').errors.length);
 assert.equal(check('year_2027_career','2027년 세운은 편관입니다.').errors.length,0);
 console.log('PASS annual/natal ambiguity, explicit natal mismatch, annual mismatch');
+const periodPacket={...packet,fortune:{activeDecade:{startYear:2027,endYear:2036,stemTenGod:'정관'},decades:[{startYear:2017,endYear:2026,stemTenGod:'편재'},{startYear:2027,endYear:2036,stemTenGod:'정관'}]}};
+const dated=text=>verifyEvidenceAgainstFacts({sections:[{id:'year_2027_career',evidence:[text]}]},periodPacket).errors;
+assert.equal(dated('현재 대운은 2027~2036년 丙戌이며 천간 丙은 정관이다. 이전 2017~2026년 乙酉 대운의 편재가 자원 활용을 살핀다.').length,0);
+assert(dated('이전 2017~2026년 乙酉 대운의 정관을 살핀다.').length);
+assert(dated('현재 대운의 편재를 살핀다.').length);
+assert(dated('2027~2036년 丙戌 대운의 편재를 살핀다.').length);
+assert(dated('2000~2009년 乙酉 대운의 편재를 살핀다.').length);
+console.log('PASS dated previous period, wrong historical/current facts, unknown period');
