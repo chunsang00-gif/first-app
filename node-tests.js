@@ -208,3 +208,37 @@ run('unknown birth hour is excluded regardless of placeholder time',()=>{
  assert.deepEqual(a.chart,b.chart);
  assert.equal(a.fortune.status,'unavailable_without_birth_time');
 });
+
+run('solar-lunar conversion roundtrip preserves four pillars',()=>{
+ const {Solar}=require('lunar-javascript');
+ for(const [date,time] of [['1990-05-15','10:30'],['2000-02-29','23:30'],['2024-02-10','12:00'],['2024-09-17','08:15']]){
+  const solar=C.calculate({...sample,calendar:'solar',birthDate:date,birthTime:time});
+  const [y,m,d]=date.split('-').map(Number);
+  const lunar=Solar.fromYmdHms(y,m,d,...time.split(':').map(Number),0).getLunar();
+  const viaLunar=C.calculate({...sample,calendar:'lunar',birthDate:[lunar.getYear(),String(Math.abs(lunar.getMonth())).padStart(2,'0'),String(lunar.getDay()).padStart(2,'0')].join('-'),leapMonth:lunar.getMonth()<0,birthTime:time});
+  assert.equal(viaLunar.solarDate,date);
+  assert.deepEqual(viaLunar.chart,solar.chart);
+ }
+});
+run('seasonal boundary changes month pillar across early February',()=>{
+ const before=C.calculate({...sample,birthDate:'2024-02-03',birthTime:'12:00'});
+ const after=C.calculate({...sample,birthDate:'2024-02-05',birthTime:'12:00'});
+ assert.notEqual(before.chart.month,after.chart.month);
+ assert.notEqual(before.chart.year,after.chart.year);
+});
+run('decade fortune sequence is ordered and direction differs by gender',()=>{
+ const male=C.fortune({...sample,birthDate:'1990-05-15',birthTime:'10:30',gender:'male'});
+ const female=C.fortune({...sample,birthDate:'1990-05-15',birthTime:'10:30',gender:'female'});
+ assert.equal(male.status,'complete');assert.equal(female.status,'complete');
+ assert.notEqual(male.forward,female.forward);
+ for(const f of [male,female]){
+  assert.ok(f.decades.length>=8);
+  for(let i=1;i<f.decades.length;i++){
+   assert.ok(f.decades[i].startYear>=f.decades[i-1].startYear);
+   assert.ok(f.decades[i].startAge>=f.decades[i-1].startAge);
+  }
+ }
+});
+run('invalid lunar leap month cannot silently become an ordinary month',()=>{
+ assert.throws(()=>C.calculate({...sample,calendar:'lunar',birthDate:'2024-05-12',leapMonth:true}),/invalid|leap|month|range|not found/i);
+});
