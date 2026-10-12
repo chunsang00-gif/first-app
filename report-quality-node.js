@@ -42,6 +42,20 @@ function verifyEvidenceAgainstFacts(report,packet){
    }
   }
  }
+ // Verify explicit natal stem names independently of ten-god labels.
+ // A correct ten-god name does not excuse an invented stem at that position.
+ const natalStems=packet?.facts?.pillars||packet?.facts?.fourPillars;
+ const stemAliases={갑:'甲',을:'乙',병:'丙',정:'丁',무:'戊',기:'己',경:'庚',신:'辛',임:'壬',계:'癸'};
+ const namedStemClaim=/(연간|월간|일간|시간)(?:의|은|에는|에서|에|\\s+){0,3}(갑목|을목|병화|정화|무토|기토|경금|신금|임수|계수|[甲乙丙丁戊己庚辛壬癸])(?:\\s+(?:비견|겁재|식신|상관|편재|정재|편관|정관|편인|정인))?/g;
+ for(const section of sections)for(const passage of [...(section.evidence||[]),section.title,section.keyJudgment,...(section.body||[])]){
+  for(const match of norm(passage).matchAll(namedStemClaim)){
+   const key=positionKeys[match[1]];
+   const actual=natalStems?.[key]?.stem;
+   const claimed=match[2].length===2?stemAliases[match[2][0]]:match[2];
+   if(actual&&actual!==claimed)errors.push(section.id+': '+match[1]+' '+match[2]+' conflicts with calculated stem '+actual);
+   else if(!actual&&key==='hour')errors.push(section.id+': uncalculated hour-pillar stem claim');
+  }
+ }
  // Validate hidden-stem claims in the natural wording used by actual reports.
  // Multiple branch positions and explicit stem + ten-god pairings must agree
  // with the calculated fact packet, not just a generic ten-god dictionary.
