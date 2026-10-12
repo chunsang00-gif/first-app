@@ -186,3 +186,11 @@ for(const a of ['I','E'])for(const b of ['S','N'])for(const c of ['T','F'])for(c
  assert.equal(calls,7);assert.equal(seen.filter(s=>s==='body').length,6);assert.equal(seen[6],'synthesis');
  console.log('PASS editorial phrases, repetitive templates, natural phrasing, active body/summary rules, topic memory, 29 topics and seven calls; no paid API');
 })().catch(e=>{console.error(e);process.exitCode=1});
+
+const seasonalPacket={status:'ready',calculationPolicy:{annualPillarBoundary:'ipchun-solar-term'},facts:{tenGods:{}}};
+const seasonalBad=fixture();seasonalBad.sections[8].body=['2027년 1월부터 정미 세운이 시작됩니다.'];
+assert(quality.validate(seasonalBad,seasonalPacket).errors.includes('2027: annual pillar incorrectly applied to full Gregorian year'));
+const seasonalBadReverse=fixture();seasonalBadReverse.sections[8].body=['정미 세운은 양력 1년 내내 적용됩니다.'];
+assert(quality.validate(seasonalBadReverse,seasonalPacket).errors.includes('2027: annual pillar incorrectly applied to full Gregorian year'));
+const seasonalCorrect=fixture();seasonalCorrect.sections[8].body=['2027년 정미 세운은 입춘을 기준으로 해석합니다.'];
+assert(!quality.validate(seasonalCorrect,seasonalPacket).errors.includes('2027: annual pillar incorrectly applied to full Gregorian year'));
