@@ -294,3 +294,12 @@ run('annual 2027 fortune is explicitly bounded by Ipchun convention',()=>{
  assert.ok(prompt.includes('입춘 기준'));
  assert.ok(prompt.includes('1월 1일'));
 });
+
+run('2027 Gregorian January remains prior seasonal year until Ipchun',()=>{
+ const january=C.calculate({...sample,birthDate:'2027-01-15',birthTime:'12:00'});
+ const february=C.calculate({...sample,birthDate:'2027-02-10',birthTime:'12:00'});
+ assert.equal(january.chart.year,'丙午');
+ assert.equal(february.chart.year,'丁未');
+ assert.notEqual(january.chart.month,february.chart.month);
+ assert.equal(P.annualPillar(2027),'丁未');
+});
