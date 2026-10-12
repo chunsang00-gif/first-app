@@ -252,3 +252,20 @@ run('public API input validation rejects impossible lunar leap month',()=>{
  const valid={...sample,calendar:'solar',birthDate:'2024-02-29',leapMonth:false};
  assert.deepEqual(validate(valid),[]);
 });
+
+run('fact packet discloses absent birthplace and true-solar-time correction',()=>{
+ const p=F.build({...sample,birthplace:'부산'});
+ assert.equal(p.status,'ready');
+ assert.equal(p.calculationPolicy.birthplaceUsedForCalculation,false);
+ assert.equal(p.calculationPolicy.trueSolarTime,false);
+ assert.equal(p.calculationPolicy.timezoneConversion,false);
+ assert.equal(p.calculationPolicy.lateZiDayBoundary,'civil-day-sect-2');
+ const q=F.build({...sample,birthplace:'서울'});
+ assert.deepEqual(p.chart,q.chart);
+});
+run('premium prompt forbids claims of unperformed solar-time conversion',()=>{
+ const fs=require('fs');
+ const prompt=fs.readFileSync('report-prompt.js','utf8');
+ assert.ok(prompt.includes('진태양시'));
+ assert.ok(prompt.includes('calculationPolicy'));
+});
