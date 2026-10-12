@@ -233,6 +233,16 @@ function validate(r,packet){
     errors.push('2027: annual pillar incorrectly applied to full Gregorian year');
   }
  }
+ // Claims of location/time correction are forbidden when the calculation did not do it.
+ if(packet?.calculationPolicy?.birthplaceUsedForCalculation===false){
+  const passages=[...(r.sections||[]).flatMap(x=>[x.title,x.keyJudgment,...(x.body||[]),...(x.evidence||[])]),r.cover?.headline,r.cover?.description,...(r.finalJudgment?.body||[])];
+  for(const passage of passages){
+   const t=norm(passage);
+   if(/(?:출생지|출생도시|경도|진태양시|태양시|지역별\s*시차).{0,30}(?:보정(?:했|하여|한|되어|됐|을\s*적용)|반영(?:했|하여|한|되어|됐))/.test(t)
+    && !/(?:않았|않습니다|미적용|하지\s*않|적용하지|반영하지|보정하지)/.test(t))
+    errors.push('calculation: unsupported birthplace or solar-time correction claim');
+  }
+ }
  const factCheck=verifyEvidenceAgainstFacts(r,packet);errors.push(...factCheck.errors);warnings.push(...factCheck.warnings);
  errors.push(...editorial.wordingErrors(readable));
  for(const section of r.sections){
