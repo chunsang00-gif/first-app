@@ -285,3 +285,12 @@ run('birth time near 2-hour pillar boundaries is not silently corrected by birth
   assert.deepEqual(seoul.chart,busan.chart);
  }
 });
+
+run('annual 2027 fortune is explicitly bounded by Ipchun convention',()=>{
+ const packet=F.build({...sample,targetYear:2027},2027);
+ assert.equal(packet.targetYear.pillar,'丁未');
+ assert.equal(packet.calculationPolicy.annualPillarBoundary,'ipchun-solar-term');
+ const prompt=require('fs').readFileSync('report-prompt.js','utf8');
+ assert.ok(prompt.includes('입춘 기준'));
+ assert.ok(prompt.includes('1월 1일'));
+});
