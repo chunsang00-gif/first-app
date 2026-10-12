@@ -268,7 +268,7 @@ function validate(r,packet){
  const canonicalOwners=new Map();
  for(const section of r.sections){
   const canonical=canonicalJudgment(section.keyJudgment);
-  if(canonical.length<18)continue;
+  if(canonical.length<10)continue;
   const previous=canonicalOwners.get(canonical);
   if(previous)errors.push('paraphrased judgment repeated: '+previous+' / '+section.id);
   else canonicalOwners.set(canonical,section.id);
