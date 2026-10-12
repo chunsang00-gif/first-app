@@ -239,6 +239,19 @@ function validate(r,packet){
  const broadCaveat=/(?:이|그|해당)\s*자료(?:만으로|로는)|(?:원국|사주)(?:만으로|로는)|(?:정할|알|평가할|확정할|단정할)\s*수\s*(?:는\s*)?없(?:습니다|다)/;
  const caveatChapters=r.sections.filter(s=>(s.body||[]).some(p=>broadCaveat.test(String(p))));
  if(caveatChapters.length>=5)errors.push('repeated generic limitations across '+caveatChapters.length+' chapters; replace with supported analysis rather than repeated disclaimers');
+ // Evidence reuse is a stronger sign of chapter padding than shared vocabulary.
+ // Ignore short generic anchors; reject a substantive evidence sentence copied
+ // into multiple chapters even when the body text is rewritten.
+ const evidenceOwners=new Map();
+ for(const section of r.sections){
+  for(const item of section.evidence||[]){
+   const key=norm(item).replace(/[.!?。！？]+$/,'');
+   if(key.length<24)continue;
+   const previous=evidenceOwners.get(key);
+   if(previous&&previous!==section.id)errors.push('reused evidence across chapters: '+previous+' / '+section.id);
+   else evidenceOwners.set(key,section.id);
+  }
+ }
  const seenSentences=new Map();
  for(const section of r.sections){for(const paragraph of section.body||[]){for(const sentence of String(paragraph).split(/(?<=[.!?])\s+/)){const t=norm(sentence);if(t.length<28)continue;const owner=seenSentences.get(t);if(owner)errors.push('repeated body sentence: '+owner+' / '+section.id);else seenSentences.set(t,section.id)}}}
 
