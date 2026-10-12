@@ -45,7 +45,7 @@ async function generate(input,callModel,onProgress=()=>{}){const packet=facts.bu
  for(const key of reviewKeys)summaryRules[key]=base.rules[key];
  base.rules=Object.fromEntries([...activeRuleKeys,...reviewKeys].map(key=>[key,base.rules[key]]));
  base.rules.avoidPhrases=quality.forbiddenPhrases;summaryRules.avoidPhrases=quality.forbiddenPhrases;
- const chaptersPerCall=process.env.REPORT_CHAPTERS_PER_CALL==='3'?3:2;const groups=Array.from({length:Math.ceil(IDS.length/chaptersPerCall)},(_,i)=>IDS.slice(i*chaptersPerCall,i*chaptersPerCall+chaptersPerCall));
+ const groups=[['saju_core','mbti_contradiction'],['decision','stress'],['money','year_2027_money'],['career','year_2027_career'],['relationship','year_2027_relationship'],['integrated_judgment','year_2027']];
  const validateBatch=(result,ids)=>{
   const fail=(reason,info={})=>{console.error('[Report batch incomplete]',{reason,requestedIds:ids,...info});throw Error('AI report service returned invalid report structure')};
   if(!Array.isArray(result?.sections))fail('sections not array');
@@ -76,7 +76,8 @@ async function generate(input,callModel,onProgress=()=>{}){const packet=facts.bu
   onProgress({stage:'body',completed:done+=ids.length,total:12});return result;
  });
  const meta={calculationNote:'입력한 출생 시각을 그대로 사용하며 출생지에 따른 시간 차이는 보정하지 않습니다. 밤 11시대도 입력한 날짜로 계산합니다. 2027년 풀이는 전통적인 사주 계산에 따른 참고 해석이며, 실제 사건을 예측한 결과는 아닙니다. 여러 해에 걸친 변화는 연도별로 비교하며 바뀌는 정확한 날짜까지 구분하지 않습니다.',characterGender:input.gender||'male',name:input.name||'',mbti:input.mbti||'모름',chart:packet.chart,profileBalance:packet.profileBalance,targetYear:2027,versions:{ruleset:'premium-v2',prompt:'reader-depth-v2',schema:outline.version}};
- const sections=drafts.flatMap(p=>p.sections||[]);
+ const drafted=new Map(drafts.flatMap(p=>p.sections||[]).map(section=>[section.id,section]));
+ const sections=IDS.map(id=>drafted.get(id));
  // Select the cover only after all 12 complete chapters. The final local quality
  // gate below remains mandatory; no automatic paid rewrite or retry is issued.
  const summaryPrompt={...base,stage:'synthesis',requestedSections:[],includeFinal:true,includeCover:true,completedReport:{meta,sections},rules:{...summaryRules,sections:[],returnOnlyRequestedSections:true,finalEditingTask:'완성된 12개 장에서 가장 중요한 장점과 손해를 줄 수 있는 행동을 연결해 총평을 쓴다. 새로운 성격을 만들어내거나 장별 요약을 나열하지 않는다. 한계 안내는 총평 본문에 한 번만 쓰고 closingQuestion은 반드시 사람에 대한 결론으로 끝낸다. 같은 결론으로 도입·요약·마지막 문장을 세 번 쓰지 않는다. 실질적인 새 조언이 없으면 routines는 빈 배열로 반환한다. 억지로 교훈을 붙이지 않는다.'},output:{...base.output,requestedSections:[],cover:'required',finalJudgment:'required'}};
