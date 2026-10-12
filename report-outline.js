@@ -1,28 +1,28 @@
 /* Concise report outline: merge overlapping reader questions. */
 const topics={
   "saju_core": {
-    "temperament": "일간·월지·십성 배치가 각각 뜻하는 성향과 반대 근거",
-    "motivation": "원국에서 서로 돕거나 부딪히는 명리 관계와 일상 반응",
-    "strength": "계산 근거가 뒷받침하는 강점·약점과 단정할 수 없는 부분"
+    "temperament": "사주에서 성격을 판단하는 핵심 근거",
+    "motivation": "타고난 장점과 내 안에서 부딪히는 성향",
+    "strength": "두드러진 장점과 실제로 불리한 점"
   },
   "mbti_contradiction": {
-    "agreement": "입력 MBTI의 정보 수집·판단 선호가 만나는 방식과 사주 해석의 공통점",
-    "difference": "MBTI 선호와 원국 해석이 충돌하거나 서로 보완하는 조건 및 예상 밖의 반응",
+    "agreement": "MBTI로 본 생각과 결정 방식",
+    "difference": "사주와 MBTI가 다른 이유와 의외의 반응",
   },
   "decision": {
     "approach": "정보를 모으고 결정을 내리는 방식",
     "followthrough": "손해와 반대 의견을 고려해 결정을 미루거나 번복하는 상황"
   },
   "money": {
-    "earning": "수입을 얻는 방식에 관해 원국에서 해석 가능한 점과 해석 불가능한 점",
-    "spending": "돈을 쓰는 동기와 저축·소비를 구분해 해석할 근거",
-    "risk": "금전 위험을 받아들이는 방식과 불리한 선택이 발생할 수 있는 조건"
+    "earning": "돈을 버는 방식에서 드러나는 특징",
+    "spending": "돈을 쓰거나 모을 때 달라지는 판단",
+    "risk": "금전 문제에서 약점이 드러나는 상황"
   },
   "career": {
-    "workstyle": "원국과 MBTI로 해석하는 작업의 시작·집중·완료 방식의 차이",
-    "teamwork": "협업에서 맡으려는 역할과 타인과 부딪히는 구체적인 지점",
-    "growth": "새 업무를 익히는 과정과 성과를 평가받을 때의 반응",
-    "change": "조직에 남을 때와 독립할 때 각각 유리하거나 불리한 조건"
+    "workstyle": "일을 시작하고 끝내는 방식",
+    "teamwork": "동료와 협업할 때 강점과 갈등",
+    "growth": "새로운 일을 배우고 평가받을 때",
+    "change": "조직생활과 독립 중 고려할 차이"
   },
   "relationship": {
     "closeness": "친구·연인·가족과 가까워지고 관계를 지속하는 방식",
@@ -42,16 +42,16 @@ const topics={
     "impact": "변화의 의미와 해석할 수 있는 범위·한계",
   },
   "year_2027_money": {
-    "change": "2027년 세운·대운의 금전 관련 십성과 평소 재물 해석의 차이",
-    "action": "그해 재물 해석의 근거가 실제로 뒷받침하는 유리함·불리함과 한계"
+    "change": "2027년에 돈을 바라보는 관점이 달라지는 이유",
+    "action": "돈과 관련해 유리한 점과 주의할 점"
   },
   "year_2027_career": {
-    "change": "2027년 관성·식상 등 계산된 직업 관련 항목이 평소와 달라지는 부분",
-    "action": "그해 직업 해석에서 역할·평가·배움 중 어느 문제가 강조되는지"
+    "change": "2027년에 직업과 일의 해석이 달라지는 이유",
+    "action": "직장에서 더 눈여겨볼 역할과 변화"
   },
   "year_2027_relationship": {
-    "change": "2027년 세운과 원국의 관계에서 확인되는 대인관계 해석의 변화",
-    "action": "만남·갈등·거리감 가운데 실제 계산 근거가 있는 해석과 없는 해석"
+    "change": "2027년에 사람을 대하는 방식의 변화",
+    "action": "새로운 만남과 가까운 관계에서 주의할 점"
   }
 };
 module.exports={topics,version:'concise-v2'};
