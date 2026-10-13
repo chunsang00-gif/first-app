@@ -49,8 +49,8 @@ async function generate(input,callModel,onProgress=()=>{}){const packet=facts.bu
  const groups=[['saju_core','mbti_contradiction'],['decision','year_2027'],['money','year_2027_money'],['career','year_2027_career'],['relationship','year_2027_relationship'],['stress','integrated_judgment']];
  const noMbti=packet.person?.mbti==='모름';
  const unknownMbtiGoals={
-  mbti_contradiction:'MBTI가 입력되지 않았다. 유형을 추정하거나 MBTI를 분석하지 않는다. 대신 원국의 서로 다른 두 위치와 십성 근거를 대조해 겉으로 보이는 반응과 혼자 결정할 때의 반응이 달라질 수 있는 조건을 설명한다. 차이를 만들 근거가 없으면 같다고 설명한다.',
-  integrated_judgment:'MBTI가 입력되지 않았다. MBTI 선호를 가정하지 않는다. 원국에서 실제 확인된 서로 다른 위치·십성의 관계를 하나의 선택 상황에 적용해 강점과 약점이 바뀌는 경계를 종합한다. 앞 장의 결론을 단순 반복하지 않는다.'
+  mbti_contradiction:'성격유형 정보가 입력되지 않았다. 유형을 추정하거나 입력되지 않은 유형을 분석하지 않는다. 대신 원국의 서로 다른 두 위치와 십성 근거를 대조해 겉으로 보이는 반응과 혼자 결정할 때의 반응이 달라질 수 있는 조건을 설명한다. 차이를 만들 근거가 없으면 같다고 설명한다.',
+  integrated_judgment:'성격유형 정보가 입력되지 않았다. 입력되지 않은 성격 선호를 가정하지 않는다. 원국에서 실제 확인된 서로 다른 위치·십성의 관계를 하나의 선택 상황에 적용해 강점과 약점이 바뀌는 경계를 종합한다. 앞 장의 결론을 단순 반복하지 않는다.'
  };
  const noMbtiSectionGoals={
   ...Object.fromEntries(Object.entries(premiumGoals).map(([id,goal])=>[id,goal])),
@@ -58,7 +58,7 @@ async function generate(input,callModel,onProgress=()=>{}){const packet=facts.bu
   decision:'사주 원국에서 실제 계산된 식상·인성·관성의 위치를 확인하고 정보를 얻는 순서, 결정을 내리는 기준, 판단을 바꾸는 상황을 서로 구분한다. 계산에 없는 십성을 만들지 않고 실제 경험을 단정하지 않는다.',
   money:'원국의 재성·식상·관성 중 실제 계산된 위치를 확인해 벌기·쓰기·모으기·함께 쓰기의 해석을 분리한다. 입력하지 않은 심리유형이나 소비 이력을 추정하지 않는다.',
   career:'원국에서 확인된 관성·인성·식상의 위치와 천간·지장간 차이를 살펴 규칙·학습·결과 표현·협업의 조건을 구분한다. 실제 직업·성과는 추정하지 않는다.',
-  relationship:'원국 일지와 실제 계산된 십성·지지 관계를 바탕으로 친밀감·표현·갈등·거절의 서로 다른 상황을 해석한다. MBTI 유형이나 실제 연애·가족사를 추정하지 않는다.',
+  relationship:'원국 일지와 실제 계산된 십성·지지 관계를 바탕으로 친밀감·표현·갈등·거절의 서로 다른 상황을 해석한다. 입력되지 않은 성격 유형이나 실제 연애·가족사를 추정하지 않는다.',
   stress:'원국의 확인된 근거로 평소 유리한 반응과 압박 상황에서 불리해질 수 있는 반응을 구분한다. 건강 증상이나 실제 경험을 만들어내지 않는다.'
  };
  const scopedGoals=(ids)=>Object.fromEntries(ids.map(id=>[id,noMbti?noMbtiSectionGoals[id]:premiumGoals[id]]));
