@@ -59,7 +59,7 @@ async function generate(input,callModel,onProgress=()=>{}){const packet=facts.bu
   money:'원국의 재성·식상·관성 중 실제 계산된 위치를 확인해 벌기·쓰기·모으기·함께 쓰기의 해석을 분리한다. 입력되지 않은 소비 이력이나 성격 특성을 단정하지 않는다.',
   career:'원국에서 확인된 관성·인성·식상의 위치와 천간·지장간 차이를 살펴 규칙·학습·결과 표현·협업의 조건을 구분한다. 실제 직업·성과는 추정하지 않는다.',
   relationship:'원국 일지와 실제 계산된 십성·지지 관계를 바탕으로 친밀감·표현·갈등·거절의 서로 다른 상황을 해석한다. 입력되지 않은 성격 유형이나 실제 연애·가족사를 추정하지 않는다.',
-  stress:'원국의 확인된 근거로 평소 유리한 반응과 압박 상황에서 불리해질 수 있는 반응을 구분한다. 건강 증상이나 실제 경험을 만들어내지 않는다.'
+  stress:'원국의 실제 십성 위치와 월지의 계절 조건, 확인된 지지 관계를 각각 살펴 평소 유리한 반응과 압박 상황에서 불리해질 수 있는 반응을 구분한다. 촉박한 결정, 갑작스러운 일정 변경, 의견 충돌을 같은 반응으로 취급하지 않고 근거가 있는 상황만 선택한다. 건강 증상이나 실제 경험을 만들어내지 않는다.'
  };
  const scopedGoals=(ids)=>Object.fromEntries(ids.map(id=>[id,noMbti?noMbtiSectionGoals[id]:premiumGoals[id]]));
  const validateBatch=(result,ids)=>{
