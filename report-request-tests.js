@@ -88,6 +88,14 @@ const {createQueue,retryDelay,rateLimitKind}=require('./report-request-control')
  assert.equal(unknownSynthesisCalls,7,'unknown MBTI must reach all six body batches and synthesis');
  assert(unknownSynthesisSeen,'unknown MBTI synthesis payload must be inspected');
  assert.equal(unknownResult.status,'rejected','mock narrative must never be accepted as a paid report');
+ const qualityGate=require('./report-quality-node');
+ const unknownPacket=require('./report-facts-node').build({calendar:'solar',birthDate:'1994-11-09',birthTime:'18:20',gender:'female',mbti:'모름',name:'검증라'},2027);
+ const unknownReport={meta:{name:'검증라',mbti:'모름',chart:unknownPacket.chart,targetYear:2027},cover:{headline:'INTJ로 보는 나',description:'사주 풀이',keywords:['사주','해석','성향']},sections:unknownResult.report.sections,finalJudgment:unknownResult.report.finalJudgment};
+ assert(qualityGate.validate(unknownReport,unknownPacket).errors.some(x=>x.includes('unknown MBTI')),'invented MBTI type must be rejected in visible paid report');
+ unknownReport.cover.headline='사주로 보는 나';
+ unknownReport.sections[0].body[0]+=' MBTI는 입력되지 않았습니다.';
+ assert(qualityGate.validate(unknownReport,unknownPacket).errors.some(x=>x.includes('unknown MBTI')),'unknown MBTI discussion must also be rejected in body');
+
 
  assert.equal(captured[0].facts.person.name,'검증가');
  let mismatchCalls=0;
