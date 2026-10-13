@@ -41,6 +41,11 @@ async function qaHandler(req,res){
  if(req.method==='GET')return json(res,200,qaJob?{...qaJob,report:qaJob.result?.report||null,qa:qaJob.result?.qa||null,result:undefined}:{status:'idle'});
  if(req.method!=='POST')return json(res,405,{status:'blocked'});
  if(qaJob)return json(res,409,{status:'blocked',message:'This server instance has already used its one QA attempt',state:qaJob.status});
+ // Persist the spent marker before the first paid call; fail closed across restarts.
+ const marker=process.env.REPORT_QA_MARKER_FILE;
+ if(!marker||!path.isAbsolute(marker))return json(res,503,{status:'blocked',message:'Persistent QA marker path is required'});
+ try{fs.mkdirSync(path.dirname(marker),{recursive:true});fs.writeFileSync(marker,JSON.stringify({startedAt:new Date().toISOString()}),{flag:'wx',mode:0o600});}
+ catch(err){return json(res,409,{status:'blocked',message:'QA already used or marker storage unavailable'});}
  const c=diagnostics.configuration();
  if(!c.configured)return json(res,503,{status:'failed',issues:c.issues});
  qaJob={status:'processing',createdAt:Date.now(),calls:0};
