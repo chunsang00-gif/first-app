@@ -67,6 +67,28 @@ const {createQueue,retryDelay,rateLimitKind}=require('./report-request-control')
  assert.notDeepEqual(captured[0].analysisGuidance.mbtiReference.preferences,captured[1].analysisGuidance.mbtiReference.preferences,'different MBTI must produce different interpretation guidance');
  assert.notDeepEqual(captured[0].facts.chart,captured[2].facts.chart,'different birth information must change chart evidence');
  assert.equal(captured[3].analysisGuidance.mbtiReference,null,'unknown MBTI must not be inferred');
+ assert.equal(captured[3].rules.integrateMbti,false,'unknown MBTI must explicitly disable integration at first paid call');
+ // Also inspect the synthesis payload for a no-MBTI customer without contacting the provider.
+ let unknownSynthesisCalls=0,unknownSynthesisSeen=false;
+ const unknownResult=await contract.generate({calendar:'solar',birthDate:'1994-11-09',birthTime:'18:20',gender:'female',mbti:'모름',name:'검증라'},async prompt=>{
+  unknownSynthesisCalls++;
+  assert.equal(prompt.rules.integrateMbti,false,'unknown MBTI must remain disabled at every paid stage');
+  if(prompt.stage==='synthesis'){
+   unknownSynthesisSeen=true;
+   assert.equal(prompt.facts.person.mbti,'모름');
+   return {cover:null,finalJudgment:{body:['검증용 결론'],closingQuestion:'검증용 최종 결론입니다.',afterClosingText:''}};
+  }
+  return {sections:prompt.requestedSections.map(id=>({
+   id,title:id,keyJudgment:id,bodyTopics:Object.keys(outline.topics[id]),
+   bodyLabels:Object.values(outline.topics[id]),
+   body:Object.keys(outline.topics[id]).map(topic=>id+' '+topic+'에 관한 검증용 모의 문장입니다.'),
+   evidence:[id+'의 명리학 계산 근거를 검증하는 모의 데이터입니다.']
+  }))};
+ });
+ assert.equal(unknownSynthesisCalls,7,'unknown MBTI must reach all six body batches and synthesis');
+ assert(unknownSynthesisSeen,'unknown MBTI synthesis payload must be inspected');
+ assert.equal(unknownResult.status,'rejected','mock narrative must never be accepted as a paid report');
+
  assert.equal(captured[0].facts.person.name,'검증가');
  let mismatchCalls=0;
  await assert.rejects(contract.generate({calendar:'solar',birthDate:'1990-06-15',unknownBirthTime:true,gender:'male',mbti:'INFP'},async prompt=>{
