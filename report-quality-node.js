@@ -293,6 +293,21 @@ function validate(r,packet){
  const tokens=s=>new Set(norm(s).split(/[^가-힣A-Za-z0-9]+/).filter(x=>x.length>=3));
  const similarity=(a,b)=>{const A=tokens(a),B=tokens(b);if(!A.size||!B.size)return 0;const common=[...A].filter(x=>B.has(x)).length;return common/Math.max(1,Math.min(A.size,B.size))};
  for(let i=0;i<sectionTexts.length;i++)for(let j=i+1;j<sectionTexts.length;j++){const sim=similarity(sectionTexts[i],sectionTexts[j]);if(sim>.58)errors.push(`section insight overlap: ${IDS[i]} / ${IDS[j]}`);else if(sim>.45)warnings.push(`section similarity review: ${IDS[i]} / ${IDS[j]}`)}
+ // Catch a semantic thesis recycled through unrelated chapters, even with new nouns.
+ // Require both halves of a motif in the same section; single shared words are not evidence.
+ const recycledMotifs=[
+  {name:'logic-and-proof',a:/논리|근거|이유|설명/,b:/납득|확인|검토|질문/},
+  {name:'responsibility-and-rules',a:/책임|규칙|절차|기준/,b:/확인|설명|납득|검토/}
+ ];
+ for(const motif of recycledMotifs){
+  const owners=r.sections.filter(s=>{
+   const prose=norm([s.keyJudgment,...(s.body||[])].join(' '));
+   return motif.a.test(prose)&&motif.b.test(prose);
+  }).map(s=>s.id);
+  // Five distinct chapters repeating the same causal explanation is not 12 insights.
+  if(owners.length>=5)errors.push('cross-chapter recycled thesis ('+motif.name+'): '+owners.join(' / '));
+  else if(owners.length===4)warnings.push('cross-chapter motif review ('+motif.name+'): '+owners.join(' / '));
+ }
  const yearIds=new Set(['year_2027','year_2027_money','year_2027_career','year_2027_relationship']);
  r.sections.filter(s=>yearIds.has(s.id)).forEach(s=>{const t=norm((Array.isArray(s.body)?s.body.join(' '):s.body)+' '+s.keyJudgment);if(!/(2027|올해|평소|기존|더 |강해|약해|달라|변화|비교|반복|유지)/.test(t))errors.push(`${s.id}: 2027 comparison missing`);if(/(반드시|확실히|틀림없이).{0,12}(합격|이직|취업|연애|결혼|수입|돈|성공)/.test(t))errors.push(`${s.id}: deterministic event prediction`)});
  // Conservative paraphrase detection: catch near-identical conclusions even when
