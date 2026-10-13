@@ -14,6 +14,13 @@ const injectors=[
  (r,t)=>r.finalJudgment.closingQuestion=t
 ];
 for(const set of injectors){const r=fixture();set(r,'핵심  성향');if(r.cover)r.cover={headline:'제목',description:'설명',keywords:['하나','둘','셋'],...r.cover};assert(quality.validate(r).errors.includes('unnatural Korean: 핵심 성향'));}
+// Regression: repeated causal thesis across five unrelated chapters is rejected.
+const recycled=fixture();
+for(let i=0;i<5;i++)recycled.sections[i].body=['이유와 논리를 먼저 확인하고 설명을 납득해야 결정합니다.'];
+assert(quality.validate(recycled).errors.some(x=>x.startsWith('cross-chapter recycled thesis (logic-and-proof)')));
+const notRecycled=fixture();
+for(let i=0;i<3;i++)notRecycled.sections[i].body=['이유와 논리를 먼저 확인하고 설명을 납득해야 결정합니다.'];
+assert(!quality.validate(notRecycled).errors.some(x=>x.startsWith('cross-chapter recycled thesis')));
 const editorial=require('./report-editorial');
 assert(editorial.wordingErrors(['우선할\n방향']).length);
 assert(editorial.wordingErrors(['핵심\u200B성향']).length);
