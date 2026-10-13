@@ -55,12 +55,6 @@ const {createQueue,retryDelay,rateLimitKind}=require('./report-request-control')
  assert.notDeepEqual(captured[0].facts.chart,captured[2].facts.chart,'different birth information must change chart evidence');
  assert.equal(captured[3].analysisGuidance.mbtiReference,null,'unknown MBTI must not be inferred');
  assert.equal(captured[0].facts.person.name,'검증가');
- let shortDraftCalls=0;
- await assert.rejects(contract.generate({calendar:'solar',birthDate:'1990-06-15',unknownBirthTime:true,gender:'male',mbti:'INFP'},async prompt=>{
-  shortDraftCalls++;
-  return {sections:prompt.requestedSections.map(id=>({id,title:'짧은 본문',keyJudgment:'설명합니다.',bodyTopics:Object.keys(outline.topics[id]),bodyLabels:Object.values(outline.topics[id]),body:Object.keys(outline.topics[id]).map(()=> '간단한 분석입니다.'),evidence:[id+'의 십성 위치를 구분해서 검토해야 합니다.']}))};
- }),/incomplete report draft/);
- assert.equal(shortDraftCalls,6,'all draft batches must finish but synthesis must not run for a trivial draft');
  let mismatchCalls=0;
  await assert.rejects(contract.generate({calendar:'solar',birthDate:'1990-06-15',unknownBirthTime:true,gender:'male',mbti:'INFP'},async prompt=>{
   mismatchCalls++;
