@@ -25,10 +25,14 @@ const preferences={
  J:{dimension:'외부 생활을 진행하는 선호',meaning:'계획과 결정을 정해 두고 일을 진행하는 쪽을 선호',notEvidenceOf:'성실함·완벽주의·높은 수행 능력'},
  P:{dimension:'외부 생활을 진행하는 선호',meaning:'정보와 선택의 여지를 열어 두고 상황에 맞춰 조정하는 쪽을 선호',notEvidenceOf:'게으름·마감 실패·결정 장애'}
 };
+const sajuOnlyChapters={
+ mbti_contradiction:{focus:'원국의 월지·일지·십성 가운데 실제 계산된 서로 다른 근거를 비교한다. 겉으로 드러나는 반응과 혼자 생각하고 결정할 때의 반응이 달라질 조건을 설명하되, 실제 성격을 관찰한 것처럼 단정하지 않는다.',avoid:'입력하지 않은 성격 유형을 추정하거나 서로 다른 해석을 억지로 반전시키지 않는다.'},
+ integrated_judgment:{focus:'원국의 둘 이상의 계산 근거를 종합해 한 가지 선택 상황에서 유리한 조건과 불리한 조건을 구별한다. 이전 장의 요약이 아니라 새로운 조건부 통찰을 설명한다.',avoid:'성격 유형을 임의로 만들어 넣거나 다른 분석 체계가 사주를 검증한다고 주장하지 않는다.'}
+};
 function forRequest(ids,mbti){
  const valid=typeof mbti==='string'&&/^[EI][NS][FT][JP]$/.test(mbti);
  return {
-  chapterTasks:Object.fromEntries(ids.map(id=>{if(!chapters[id])throw Error('unknown report chapter: '+id);return [id,chapters[id]];})),
+  chapterTasks:Object.fromEntries(ids.map(id=>{if(!chapters[id])throw Error('unknown report chapter: '+id);return [id,valid?chapters[id]:(sajuOnlyChapters[id]||chapters[id])];})),
   mbtiReference:valid?{type:mbti,source:'사용자가 입력한 유형에 대한 선호 설명. 실제 행동·능력의 측정 결과가 아니다.',preferences:[...mbti].map(code=>({code,...preferences[code]})),application:'글자별 소개를 나열하지 말고 해당 질문에 필요한 선호끼리 연결한다. 예를 들어 정보 탐색과 결정 이유를 구분하고, 어떤 조건에서 두 선호가 서로 돕거나 갈리는지 설명한다. 기능 발달 정도·정신 상태·행동 빈도·유형 적합도를 추정하지 않는다.'}:null
  };
 }
