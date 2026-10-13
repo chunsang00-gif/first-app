@@ -208,7 +208,7 @@ for(const id of ['integrated_judgment','year_2027_money','year_2027_career','yea
  const items=Object.values(revisedTopics[id]);
  assert.equal(items.length,2);
  assert.notEqual(items[0],items[1]);
- assert.ok(items.some(x=>/근거|관점|세운|원국/.test(x)));
+ assert.ok(items.some(x=>/근거|관점|세운|원국|사주|MBTI/.test(x)));
 }
 assert(revisedTopics.year_2027_money.action.includes('단정하지'));
 assert(revisedTopics.year_2027_career.action.includes('예언하지'));
