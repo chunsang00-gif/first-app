@@ -20,6 +20,29 @@ const {createQueue,retryDelay,rateLimitKind}=require('./report-request-control')
  assert(mockedReport.qa.errors.length>0,'placeholder report should produce concrete quality failures');
  assert.equal(calls,7);assert(!stages.some(x=>x.stage==='edit'));assert(stages.some(x=>x.stage==='body'&&x.completed===12));
  let failedCalls=0;await assert.rejects(contract.generate({calendar:'solar',birthDate:'1990-06-15',unknownBirthTime:true,gender:'male',mbti:'INFP'},async()=>{failedCalls++;throw Error('AI report service token rate limit')}));assert.equal(failedCalls,1);
+ // Compare the exact first paid-generation payloads across distinct inputs.
+ // Names are display-only: they must not change calculated chart evidence.
+ const captured=[];
+ const samples=[
+  {calendar:'solar',birthDate:'1990-05-15',birthTime:'10:30',gender:'male',mbti:'INTJ',name:'검증가'},
+  {calendar:'solar',birthDate:'1990-05-15',birthTime:'10:30',gender:'male',mbti:'ENFP',name:'검증나'},
+  {calendar:'solar',birthDate:'1994-11-09',birthTime:'18:20',gender:'female',mbti:'INTJ',name:'검증다'},
+  {calendar:'solar',birthDate:'1994-11-09',birthTime:'18:20',gender:'female',mbti:'모름',name:'검증라'}
+ ];
+ for(const sample of samples){
+  let first=null;
+  await assert.rejects(contract.generate(sample,async prompt=>{first=prompt;throw Error('offline personalization capture');}),/offline personalization capture/);
+  assert(first&&first.stage==='body','first model request must be capturable without provider calls');
+  assert.deepEqual(first.requestedSections,['saju_core','mbti_contradiction']);
+  assert.equal(first.facts.person.mbti,sample.mbti);
+  assert.equal(first.analysisGuidance.mbtiReference?.type||'모름',sample.mbti);
+  captured.push(first);
+ }
+ assert.deepEqual(captured[0].facts.chart,captured[1].facts.chart,'MBTI alone must not alter the birth chart');
+ assert.notDeepEqual(captured[0].analysisGuidance.mbtiReference.preferences,captured[1].analysisGuidance.mbtiReference.preferences,'different MBTI must produce different interpretation guidance');
+ assert.notDeepEqual(captured[0].facts.chart,captured[2].facts.chart,'different birth information must change chart evidence');
+ assert.equal(captured[3].analysisGuidance.mbtiReference,null,'unknown MBTI must not be inferred');
+ assert.equal(captured[0].facts.person.name,'검증가');
  let mismatchCalls=0;
  await assert.rejects(contract.generate({calendar:'solar',birthDate:'1990-06-15',unknownBirthTime:true,gender:'male',mbti:'INFP'},async prompt=>{
   mismatchCalls++;
