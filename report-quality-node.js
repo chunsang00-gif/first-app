@@ -206,6 +206,14 @@ function validate(r,packet){
    warnings.push(s.id+': evidence has no identifiable saju element');
 
  });
+ // A paid report must be bound to the exact calculation it was generated for.
+ // Otherwise a valid-looking report from another customer can pass prose checks.
+ if(packet?.status==='ready'){
+  if(r.meta?.mbti!==packet.person?.mbti)errors.push('personalization: report MBTI differs from validated input');
+  if(r.meta?.name!==packet.person?.name)errors.push('personalization: report display name differs from validated input');
+  if(JSON.stringify(r.meta?.chart)!==JSON.stringify(packet.chart))errors.push('personalization: report chart differs from calculated chart');
+  if(r.meta?.targetYear!==packet.targetYear?.year)errors.push('personalization: report target year differs from calculated year');
+ }
  const readable=[r.cover?.headline,r.cover?.description,...(r.cover?.highlights||[]).flatMap(h=>[h.title,h.description]),...(r.cover?.keywords||[]),...r.sections.flatMap(s=>[s.title,s.keyJudgment,...(s.body||[]),...(s.bodyLabels||[]),...(s.evidence||[])]),...(r.finalJudgment?.body||[]),r.finalJudgment?.headline,...(r.finalJudgment?.strengths||[]),...(r.finalJudgment?.watchouts||[]),...(r.finalJudgment?.routines||[]).flatMap(x=>[x.trigger,x.action,x.reason]),r.finalJudgment?.closingQuestion].filter(Boolean);
  const all=norm(readable.join(' '));
  // Paid-report acceptance requires the reader-facing analysis, not only hidden evidence,
