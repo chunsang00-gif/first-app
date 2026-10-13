@@ -73,6 +73,12 @@ const {createQueue,retryDelay,rateLimitKind}=require('./report-request-control')
  const unknownResult=await contract.generate({calendar:'solar',birthDate:'1994-11-09',birthTime:'18:20',gender:'female',mbti:'모름',name:'검증라'},async prompt=>{
   unknownSynthesisCalls++;
   assert.equal(prompt.rules.integrateMbti,false,'unknown MBTI must remain disabled at every paid stage');
+  if(prompt.stage==='body'){
+   for(const [id,goal] of Object.entries(prompt.rules.sectionGoals)){
+    assert(goal.length>=80,'unknown MBTI must retain detailed chapter goal for '+id);
+    assert(!/MBTI|심리유형/.test(goal),'unknown MBTI chapter goal must not ask for personality-type interpretation: '+id);
+   }
+  }
   if(prompt.stage==='synthesis'){
    unknownSynthesisSeen=true;
    assert.equal(prompt.facts.person.mbti,'모름');
