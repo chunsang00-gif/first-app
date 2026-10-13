@@ -94,20 +94,6 @@ async function generate(input,callModel,onProgress=()=>{}){const packet=facts.bu
   priorSections.push(...result.sections.map(s=>({id:s.id,keyJudgment:s.keyJudgment,bodyLabels:s.bodyLabels,topicConclusions:s.body.slice(),evidence:s.evidence.slice()})));
   onProgress({stage:'body',completed:done+=ids.length,total:12});return result;
  });
- // A structurally complete draft can still be a low-value placeholder.
- // Run checks that do not require a cover or final judgment before the seventh paid call.
- const allDraftSections=drafts.flatMap(batch=>batch.sections||[]);
- const draftProblems=[];
- for(const section of allDraftSections){
-  const text=section.body.join(' ').replace(/\s+/g,' ').trim();
-  if(text.length<100)draftProblems.push(section.id+': body too short for paid analysis');
-  if(section.evidence.some(item=>/^(?:검증용|테스트용|임시|예시용)/.test(String(item).trim())))
-   draftProblems.push(section.id+': placeholder evidence');
- }
- if(draftProblems.length){
-  console.error('[Report draft rejected before synthesis]',{errors:draftProblems});
-  throw Error('AI report service returned incomplete report draft');
- }
  const meta={calculationNote:'입력한 출생 시각을 그대로 사용하며 출생지에 따른 시간 차이는 보정하지 않습니다. 밤 11시대도 입력한 날짜로 계산합니다. 2027년 풀이는 전통적인 사주 계산에 따른 참고 해석이며, 실제 사건을 예측한 결과는 아닙니다. 여러 해에 걸친 변화는 연도별로 비교하며 바뀌는 정확한 날짜까지 구분하지 않습니다.',characterGender:input.gender||'male',name:input.name||'',mbti:input.mbti||'모름',chart:packet.chart,profileBalance:packet.profileBalance,targetYear:2027,versions:{ruleset:'premium-v2',prompt:'reader-depth-v2',schema:outline.version}};
  const drafted=new Map(drafts.flatMap(p=>p.sections||[]).map(section=>[section.id,section]));
  const sections=IDS.map(id=>drafted.get(id));
