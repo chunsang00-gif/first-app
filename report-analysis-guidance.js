@@ -58,7 +58,25 @@ function preflight(packet){
  const plans=Object.fromEntries(Object.entries(chapterBlueprint).map(([id,plan])=>{
   const value=evidenceAt(packet,plan.primary);
   const present=value!=null&&(!Array.isArray(value)||value.length>0)&&value!=='모름';
-  return [id,{...plan,evidencePresent:present,requiredMode:present?'explain-with-limits':'state-insufficient-evidence',noRecycledThesis:true}];
+  // An empty clash list is an actual negative calculation result, NOT proof
+  // that nothing can be interpreted about the whole year or relationship.
+  const negativeEvidence=Array.isArray(value)&&value.length===0;
+  const fallbackPaths={
+   relationship:['facts.tenGods.day','facts.tenGods.month'],
+   stress:['facts.tenGods.day','facts.structuralEvidence.monthCommand'],
+   year_2027_money:['facts.annualTenGods','facts.tenGods.month'],
+   year_2027_career:['facts.annualTenGods','facts.structuralEvidence.visibleStems'],
+   year_2027_relationship:['facts.annualTenGods','facts.tenGods.day']
+  };
+  const availableFallbacks=(fallbackPaths[id]||[]).filter(path=>{
+   const item=evidenceAt(packet,path);
+   return item!=null&&(!Array.isArray(item)||item.length>0);
+  });
+  return [id,{...plan,evidencePresent:present,negativeEvidence,
+   fallbackEvidencePaths:availableFallbacks,
+   requiredMode:present?'explain-with-limits':availableFallbacks.length?'use-fallback-with-limits':'state-insufficient-evidence',
+   evidenceBoundary:negativeEvidence?'목록이 비어 있다는 사실은 계산한 그 관계만 확인되지 않았다는 뜻이다. 다른 관계나 실제 사건의 부재를 뜻하지 않는다.':'',
+   noRecycledThesis:true}];
  }));
  const questions=Object.values(plans).map(x=>x.question);
  if(new Set(questions).size!==questions.length)throw Error('Report blueprint repeats an analysis question');
