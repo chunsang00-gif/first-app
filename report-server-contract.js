@@ -109,6 +109,21 @@ async function generate(input,callModel,onProgress=()=>{}){const packet=facts.bu
   // The final full-report editorial gate still runs after synthesis.
   const preliminary=quality.verifyEvidenceAgainstFacts({sections:result.sections},packet);
   if(preliminary.errors.length){console.error('[Report batch factual mismatch]',{requestedIds:ids,errors:preliminary.errors});throw Error('AI report service returned factually inconsistent report data')}
+  // Reject reader-visible defects from the first paid QA before buying more chapters.
+  // Internal evidence keeps original Hanja; only reader-facing prose is checked.
+  const earlyEditorial=[];
+  const editable=require('./report-editorial');
+  for(const s of result.sections){
+   const displayed=[s.title,s.keyJudgment,...(s.bodyLabels||[]),...(s.body||[])];
+   for(const problem of editable.wordingErrors(displayed))
+    earlyEditorial.push(s.id+': '+problem);
+   if(!['saju_core','year_2027'].includes(s.id)&&/[\u3400-\u4dbf\u4e00-\u9fff]/.test(displayed.join(' ')))
+    earlyEditorial.push(s.id+': unnecessary Hanja in general-audience prose');
+  }
+  if(earlyEditorial.length){
+   console.error('[Report batch reader quality mismatch]',{requestedIds:ids,errors:earlyEditorial});
+   throw Error('AI report service returned reader-facing editorial defects');
+  }
   // Reusing a substantive evidence sentence across chapters is report padding.
   // Catch it before buying the next batch instead of waiting for final QA.
   const priorEvidence=new Map();
