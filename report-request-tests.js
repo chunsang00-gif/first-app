@@ -20,6 +20,13 @@ const {createQueue,retryDelay,rateLimitKind}=require('./report-request-control')
  assert(mockedReport.qa.errors.length>0,'placeholder report should produce concrete quality failures');
  assert.equal(calls,7);assert(!stages.some(x=>x.stage==='edit'));assert(stages.some(x=>x.stage==='body'&&x.completed===12));
  let failedCalls=0;await assert.rejects(contract.generate({calendar:'solar',birthDate:'1990-06-15',unknownBirthTime:true,gender:'male',mbti:'INFP'},async()=>{failedCalls++;throw Error('AI report service token rate limit')}));assert.equal(failedCalls,1);
+ let mismatchCalls=0;
+ await assert.rejects(contract.generate({calendar:'solar',birthDate:'1990-06-15',unknownBirthTime:true,gender:'male',mbti:'INFP'},async prompt=>{
+  mismatchCalls++;
+  return {sections:prompt.requestedSections.map(id=>({id,title:'계산값 검증',keyJudgment:'월간의 정관이 확인됩니다.',bodyTopics:Object.keys(outline.topics[id]),bodyLabels:Object.values(outline.topics[id]),body:Object.keys(outline.topics[id]).map(()=> '월간의 정관이 확인됩니다.'),evidence:['월간의 정관'] }))};
+ }),/factually inconsistent report data/);
+ assert.equal(mismatchCalls,1,'factually incorrect first batch must not trigger six additional paid calls');
+ assert.equal(require('./report-diagnostics').failureCode('AI report service returned factually inconsistent report data'),'REPORT_FACT_MISMATCH');
  let emptyCalls=0;await assert.rejects(contract.generate({calendar:'solar',birthDate:'1990-06-15',unknownBirthTime:true,gender:'male',mbti:'INFP'},async()=>{emptyCalls++;return {sections:[]}}));assert.equal(emptyCalls,1);
  const originalFetch=global.fetch,originalKey=process.env.OPENAI_API_KEY,originalModel=process.env.REPORT_MODEL;let providerCalls=0;
  try{process.env.OPENAI_API_KEY='local-test-placeholder';process.env.REPORT_MODEL='local-test-model';global.fetch=async()=>{providerCalls++;return {ok:false,status:429,json:async()=>({error:{code:'rate_limit_exceeded',message:'tokens per min'}})}};await assert.rejects(require('./server').callOpenAI({}),/token rate limit/);assert.equal(providerCalls,1)}finally{global.fetch=originalFetch;for(const [key,value] of [['OPENAI_API_KEY',originalKey],['REPORT_MODEL',originalModel]])if(value===undefined)delete process.env[key];else process.env[key]=value}
