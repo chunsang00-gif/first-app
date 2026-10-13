@@ -7,6 +7,8 @@ const {validateInput}=require('./input-validation');
 const input={calendar:'solar',birthDate:'1990-06-15',birthTime:'12:00',gender:'male',mbti:'INFP'};
 assert.deepEqual(validateInput(input),[]);
 for(const changes of [{birthDate:'2999-01-01'},{birthDate:'2027-02-30'},{birthDate:'2000-02-30'},{birthTime:'25:00'},{calendar:'other'},{gender:'other'},{mbti:'XXXX'},{unknownBirthTime:'yes'},{birthDate:'2000-13-01'},{calendar:'lunar',birthDate:'2026-02-01',leapMonth:true}])assert(validateInput({...input,...changes}).length,JSON.stringify(changes));
+assert.deepEqual(validateInput({...input,calendar:'lunar',birthDate:'2026-09-01',leapMonth:false}),[],'past lunar date must not be rejected by lexical solar comparison');
+assert(validateInput({...input,calendar:'lunar',birthDate:'2026-12-01',leapMonth:false}).length,'future lunar date must be rejected after solar conversion');
 assert.deepEqual(validateInput({...input,birthTime:'',unknownBirthTime:true}),[]);
 const outline=require('./report-outline'),wire=require('./report-wire'),schema=require('./report-schema.json');
 const ids=Object.keys(outline.topics),prompt={requestedSections:ids};
