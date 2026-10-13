@@ -33,7 +33,7 @@ function qaAuthorized(req){
  const a=Buffer.from(secret),b=Buffer.from(provided);
  return a.length===b.length&&qaCrypto.timingSafeEqual(a,b);
 }
-function qaEnabled(){return process.env.REPORT_QA_ENABLED==='true'&&process.env.REPORT_QA_ADMIN_TOKEN?.length>=32&&process.env.RENDER==='true'}
+function qaEnabled(){return process.env.REPORT_QA_ENABLED==='true'&&process.env.REPORT_QA_ADMIN_TOKEN?.length>=32&&process.env.RENDER==='true'&&process.env.REPORT_STORAGE_DIR&&process.env.REPORT_QA_MARKER_FILE?.startsWith(path.resolve(process.env.REPORT_STORAGE_DIR)+path.sep)}
 const qaSample={calendar:'solar',birthDate:'1990-05-15',birthTime:'10:30',gender:'male',birthplace:'서울',mbti:'INTJ',name:'검증용'};
 async function qaHandler(req,res){
  if(!qaEnabled())return json(res,404,{status:'missing'});
