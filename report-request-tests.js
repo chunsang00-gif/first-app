@@ -18,6 +18,18 @@ const {createQueue,retryDelay,rateLimitKind}=require('./report-request-control')
  assert.equal(p.stage,'body');assert.equal(p.priorSections.length,(calls-1)*2);assert.deepEqual(p.requestedSections,[['saju_core','mbti_contradiction'],['decision','year_2027'],['money','year_2027_money'],['career','year_2027_career'],['relationship','year_2027_relationship'],['stress','integrated_judgment']][calls-1]);assert(p.editorialTask.includes('최종 본문'));assert.deepEqual(Object.keys(p.rules.topicPlan),p.requestedSections);assert(!('summaryRule' in p.rules));return {sections:p.requestedSections.map(id=>({id,title:id,keyJudgment:id,bodyTopics:Object.keys(outline.topics[id]),bodyLabels:Object.values(outline.topics[id]),body:Object.keys(outline.topics[id]).map(t=>`${id} ${t} 검증용 설명`),evidence:['검증용 사주 근거입니다.']}))}},p=>stages.push(p));
  assert.equal(mockedReport.status,'rejected','placeholder prose must never be accepted as a paid report');
  assert(mockedReport.qa.errors.length>0,'placeholder report should produce concrete quality failures');
+ // A report created for one person must be rejected when checked against another.
+ const qualityGate=require('./report-quality-node');
+ const inputA={calendar:'solar',birthDate:'1990-05-15',birthTime:'10:30',gender:'male',mbti:'INTJ',name:'검증가'};
+ const inputB={calendar:'solar',birthDate:'1994-11-09',birthTime:'18:20',gender:'female',mbti:'ENFP',name:'검증나'};
+ const factsA=require('./report-facts-node').build(inputA,2027),factsB=require('./report-facts-node').build(inputB,2027);
+ const swapped={...mockedReport.report,meta:{...mockedReport.report.meta,chart:factsA.chart,mbti:'INTJ',name:'검증가',targetYear:2027}};
+ const crossUserErrors=qualityGate.validate(swapped,factsB).errors;
+ assert(crossUserErrors.some(x=>x.includes('report chart differs')),'swapped Saju chart must be rejected');
+ assert(crossUserErrors.some(x=>x.includes('report MBTI differs')),'swapped MBTI must be rejected');
+ assert(crossUserErrors.some(x=>x.includes('report display name differs')),'swapped display name must be rejected');
+ const wrongYear={...swapped,meta:{...swapped.meta,targetYear:2028}};
+ assert(qualityGate.validate(wrongYear,factsA).errors.some(x=>x.includes('target year differs')),'wrong report year must be rejected');
  assert.equal(calls,7);assert(!stages.some(x=>x.stage==='edit'));assert(stages.some(x=>x.stage==='body'&&x.completed===12));
  let failedCalls=0;await assert.rejects(contract.generate({calendar:'solar',birthDate:'1990-06-15',unknownBirthTime:true,gender:'male',mbti:'INFP'},async()=>{failedCalls++;throw Error('AI report service token rate limit')}));assert.equal(failedCalls,1);
  // Compare the exact first paid-generation payloads across distinct inputs.
