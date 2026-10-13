@@ -50,6 +50,19 @@ const {createQueue,retryDelay,rateLimitKind}=require('./report-request-control')
   assert.equal(first.analysisGuidance.mbtiReference?.type||'모름',sample.mbti);
   captured.push(first);
  }
+ // Paid requests must preserve the same birth facts while changing only the MBTI reference.
+ // This offline comparison inspects actual model payloads, not invented sample prose.
+ for(const prompt of captured){
+  assert.deepEqual(Object.keys(prompt.rules.sectionGoals),prompt.requestedSections,'batch should receive only its own chapter goals');
+  assert.deepEqual(Object.keys(prompt.rules.topicPlan),prompt.requestedSections,'batch topic plan must match requested chapters');
+  assert(prompt.facts.facts.tenGods,'the model must receive computed ten-god evidence');
+  assert(prompt.facts.facts.structuralEvidence,'the model must receive computed structural Saju evidence');
+  assert(prompt.facts.facts.annualTenGods,'the model must receive computed annual ten-god evidence');
+ }
+ assert.equal(captured[0].facts.facts.tenGods.day.stem,captured[1].facts.facts.tenGods.day.stem,'MBTI must not change the day stem');
+ assert.notDeepEqual(captured[0].analysisGuidance.mbtiReference,captured[1].analysisGuidance.mbtiReference,'different MBTI must change the model reference');
+ assert.notDeepEqual(captured[0].facts.facts.tenGods,captured[2].facts.facts.tenGods,'different birth charts must change computed ten-god evidence');
+ assert.equal(captured[3].rules.integrateMbti,false,'unknown MBTI must not be interpreted as a known type');
  assert.deepEqual(captured[0].facts.chart,captured[1].facts.chart,'MBTI alone must not alter the birth chart');
  assert.notDeepEqual(captured[0].analysisGuidance.mbtiReference.preferences,captured[1].analysisGuidance.mbtiReference.preferences,'different MBTI must produce different interpretation guidance');
  assert.notDeepEqual(captured[0].facts.chart,captured[2].facts.chart,'different birth information must change chart evidence');
