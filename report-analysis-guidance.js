@@ -53,6 +53,22 @@ const chapterBlueprint={
  year_2027_career:{question:'연간 자료에서 업무·배움 해석에 연결할 수 있는 부분은 무엇인가?',primary:'fortune.activeDecade',lens:'일과 시기 구별'},
  year_2027_relationship:{question:'연간의 실제 지지 충 관계가 사적인 관계에 말해 주는 것과 못 말하는 것은?',primary:'facts.targetYearRelations',lens:'연간 관계의 계산 범위'}
 };
+// Topic ownership is a fixed editorial distinction, not a claim about a person.
+// This prevents the same topic answer being requested by multiple chapters.
+const topicEvidencePaths={
+ saju_core:{temperament:'facts.structuralEvidence.monthCommand',motivation:'facts.tenGods.day',strength:'facts.structuralEvidence.dayMasterRoots'},
+ mbti_contradiction:{agreement:'person.mbti',difference:'facts.tenGods.month'},
+ decision:{approach:'facts.tenGods.day',followthrough:'facts.natalClashes'},
+ money:{earning:'facts.tenGods.month',spending:'facts.tenGods.day',risk:'facts.natalClashes'},
+ career:{workstyle:'facts.structuralEvidence.visibleStems',teamwork:'facts.tenGods.month',growth:'facts.structuralEvidence.monthCommand',change:'fortune.activeDecade'},
+ relationship:{closeness:'facts.tenGods.day.hiddenStems',expression:'facts.tenGods.month',conflict:'facts.natalClashes'},
+ stress:{trigger:'facts.natalClashes',response:'facts.tenGods.day'},
+ integrated_judgment:{insight:'facts.tenGods',tradeoff:'facts.structuralEvidence.monthCommand'},
+ year_2027:{change:'facts.annualTenGods',impact:'facts.targetYearRelations'},
+ year_2027_money:{change:'facts.annualTenGods',action:'facts.tenGods.month'},
+ year_2027_career:{change:'fortune.activeDecade',action:'facts.annualTenGods'},
+ year_2027_relationship:{change:'facts.targetYearRelations',action:'facts.annualTenGods'}
+};
 const evidenceAt=(obj,path)=>path.split('.').reduce((v,k)=>v==null?undefined:v[k],obj);
 function preflight(packet){
  const plans=Object.fromEntries(Object.entries(chapterBlueprint).map(([id,plan])=>{
@@ -78,6 +94,18 @@ function preflight(packet){
    evidenceBoundary:negativeEvidence?'목록이 비어 있다는 사실은 계산한 그 관계만 확인되지 않았다는 뜻이다. 다른 관계나 실제 사건의 부재를 뜻하지 않는다.':'',
    noRecycledThesis:true}];
  }));
+ const topics=require('./report-outline').topics;
+ for(const [id,plan] of Object.entries(plans)){
+  const definitions=topics[id]||{},paths=topicEvidencePaths[id]||{};
+  if(JSON.stringify(Object.keys(definitions))!==JSON.stringify(Object.keys(paths)))
+   throw Error('Missing or unexpected topic evidence mapping: '+id);
+  plan.topicTasks=Object.fromEntries(Object.entries(definitions).map(([key,question])=>{
+   const primary=paths[key],value=evidenceAt(packet,primary);
+   const available=value!=null&&value!=='모름'&&(!Array.isArray(value)||value.length>0);
+   return [key,{question,primaryEvidencePath:primary,evidencePresent:available,
+    interpretationBoundary:available?'전통적 해석의 연결 가능성만 설명하고 실제 행동으로 입증된 것처럼 단정하지 않는다.':'근거가 없으면 다른 세부 항목의 성격 설명으로 채우지 말고 이 질문에서 판단할 수 없는 범위를 밝힌다.'}];
+  }));
+ }
  const questions=Object.values(plans).map(x=>x.question);
  if(new Set(questions).size!==questions.length)throw Error('Report blueprint repeats an analysis question');
  if(Object.keys(plans).length!==12)throw Error('Report blueprint must cover twelve chapters');
