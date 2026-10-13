@@ -77,7 +77,21 @@ async function generate(input,callModel,onProgress=()=>{}){const packet=facts.bu
   // The final full-report editorial gate still runs after synthesis.
   const preliminary=quality.verifyEvidenceAgainstFacts({sections:result.sections},packet);
   if(preliminary.errors.length){console.error('[Report batch factual mismatch]',{requestedIds:ids,errors:preliminary.errors});throw Error('AI report service returned factually inconsistent report data')}
-  priorSections.push(...result.sections.map(s=>({id:s.id,keyJudgment:s.keyJudgment,bodyLabels:s.bodyLabels,topicConclusions:s.body.slice()})));
+  // Reusing a substantive evidence sentence across chapters is report padding.
+  // Catch it before buying the next batch instead of waiting for final QA.
+  const priorEvidence=new Map();
+  for(const section of priorSections)for(const item of section.evidence||[]){
+   const key=String(item||'').replace(/\s+/g,' ').trim().replace(/[.!?。！？]+$/,'');
+   if(key.length>=24)priorEvidence.set(key,section.id);
+  }
+  for(const section of result.sections)for(const item of section.evidence||[]){
+   const key=String(item||'').replace(/\s+/g,' ').trim().replace(/[.!?。！？]+$/,'');
+   if(key.length<24)continue;
+   const owner=priorEvidence.get(key);
+   if(owner&&owner!==section.id)throw Error('AI report service returned repeated chapter evidence');
+   priorEvidence.set(key,section.id);
+  }
+  priorSections.push(...result.sections.map(s=>({id:s.id,keyJudgment:s.keyJudgment,bodyLabels:s.bodyLabels,topicConclusions:s.body.slice(),evidence:s.evidence.slice()})));
   onProgress({stage:'body',completed:done+=ids.length,total:12});return result;
  });
  const meta={calculationNote:'입력한 출생 시각을 그대로 사용하며 출생지에 따른 시간 차이는 보정하지 않습니다. 밤 11시대도 입력한 날짜로 계산합니다. 2027년 풀이는 전통적인 사주 계산에 따른 참고 해석이며, 실제 사건을 예측한 결과는 아닙니다. 여러 해에 걸친 변화는 연도별로 비교하며 바뀌는 정확한 날짜까지 구분하지 않습니다.',characterGender:input.gender||'male',name:input.name||'',mbti:input.mbti||'모름',chart:packet.chart,profileBalance:packet.profileBalance,targetYear:2027,versions:{ruleset:'premium-v2',prompt:'reader-depth-v2',schema:outline.version}};
