@@ -219,6 +219,22 @@ for(const a of ['I','E'])for(const b of ['S','N'])for(const c of ['T','F'])for(c
  assert(dryRun.qa.errors.length>0);
  assert.equal(dryRun.report.sections.reduce((count,section)=>count+section.body.length,0),29);
  assert.equal(calls,7);assert.equal(seen.filter(s=>s==='body').length,6);assert.equal(seen[6],'synthesis');
+ // A repetitive full draft must be rejected before the seventh paid synthesis call.
+ let preflightCalls=0;
+ const preflight=await sandbox.module.exports.generate({mbti:'ISFP'},async p=>{
+  preflightCalls++;
+  if(p.stage==='synthesis')throw Error('Synthesis must be skipped for repetitive draft');
+  return {sections:p.requestedSections.map(id=>({
+   id,title:'서로 다른 제목 '+id,keyJudgment:'논리적인 근거를 확인하고 설명을 납득해야 결정합니다.',
+   evidence:['원국의 일간 계산 근거 '+id],bodyTopics:Object.keys(outline.topics[id]),
+   bodyLabels:Object.values(outline.topics[id]),
+   body:Object.keys(outline.topics[id]).map((_,i)=>'서로 다른 주제 '+id+i+'에서 논리와 근거를 확인하고 설명에 납득해야 합니다.')
+  }))};
+ });
+ assert.equal(preflight.status,'rejected');
+ assert.equal(preflight.stoppedBeforeSynthesis,true);
+ assert.equal(preflightCalls,6);
+ assert(preflight.qa.errors.some(e=>e.startsWith('cross-chapter recycled thesis')));
  console.log('PASS editorial phrases, repetitive templates, natural phrasing, active body/summary rules, topic memory, 29 topics and seven calls; no paid API');
 })().catch(e=>{console.error(e);process.exitCode=1});
 
