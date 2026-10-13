@@ -63,7 +63,7 @@ async function generate(input,callModel,onProgress=()=>{}){const packet=facts.bu
   }
   return result;
  };
- const request=(ids,extra={})=>({...base,...extra,analysisGuidance:analysisGuidance.forRequest(ids,packet.person?.mbti),requestedSections:ids,includeFinal:false,includeCover:false,rules:{...base.rules,...extra.rules,sections:ids,topicPlan:Object.fromEntries(ids.map(id=>[id,outline.topics[id]])),returnOnlyRequestedSections:true},output:{...base.output,requestedSections:ids,cover:'null',finalJudgment:'null'}});
+ const request=(ids,extra={})=>({...base,...extra,analysisGuidance:analysisGuidance.forRequest(ids,packet.person?.mbti),requestedSections:ids,includeFinal:false,includeCover:false,rules:{...base.rules,...extra.rules,sections:ids,sectionGoals:Object.fromEntries(ids.map(id=>[id,premiumGoals[id]])),topicPlan:Object.fromEntries(ids.map(id=>[id,outline.topics[id]])),returnOnlyRequestedSections:true},output:{...base.output,requestedSections:ids,cover:'null',finalJudgment:'null'}});
  let done=0;onProgress({stage:'body',completed:0,total:12});
  // Preserve complete earlier paragraphs: later sentences can contain the repeated
  // consequence or advice. No extra model call is used to summarize or rewrite them.
