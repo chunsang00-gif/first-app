@@ -45,6 +45,12 @@ assert(repetitionErrors.some(x=>x.startsWith('cross-chapter recycled thesis (res
 const annualOverreach=fixture();
 annualOverreach.sections[9].body=['원국의 식상이 두드러지지 않으므로, 이 해에는 돈을 새롭게 벌기보다 현재 가진 자원 관리와 지출 통제에 관심이 쏠릴 수 있습니다.'];
 assert(quality.validate(annualOverreach).errors.includes('year_2027_money: unsupported earnings inference from food-god presence'));
+// Plain-language rule applies to every chapter, including natal and yearly overview.
+for(const id of ['saju_core','year_2027']){
+ const sample=fixture();
+ sample.sections.find(s=>s.id===id).body=['경금(庚)을 검토합니다.'];
+ assert(quality.validate(sample).errors.includes(id+': unnecessary Hanja in general-audience prose'));
+}
 const editorial=require('./report-editorial');
 assert(editorial.wordingErrors(['우선할\n방향']).length);
 assert(editorial.wordingErrors(['핵심\u200B성향']).length);
