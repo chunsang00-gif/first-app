@@ -9,6 +9,7 @@ const {generate}=require('./report-server-contract');
 const {callOpenAI}=require('./server');
 const input={calendar:'solar',birthDate:'1990-05-15',birthTime:'10:30',gender:'male',birthplace:'서울',mbti:'INTJ',name:'검증용'};
 const output=process.env.REPORT_QA_OUTPUT;
+if(process.env.REPORT_QA_CONFIRM!=='RUN_ONE_PAID_SAMPLE')throw Error('Explicit one-sample paid QA confirmation required');
 if(!output||!path.isAbsolute(output))throw Error('Set REPORT_QA_OUTPUT to an absolute private file path');
 if(!process.env.OPENAI_API_KEY||!process.env.REPORT_MODEL)throw Error('OpenAI key and model must be configured');
 if(validateInput(input).length)throw Error('QA sample input invalid');
