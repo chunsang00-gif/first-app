@@ -21,6 +21,27 @@ assert(quality.validate(recycled).errors.some(x=>x.startsWith('cross-chapter rec
 const notRecycled=fixture();
 for(let i=0;i<3;i++)notRecycled.sections[i].body=['이유와 논리를 먼저 확인하고 설명을 납득해야 결정합니다.'];
 assert(!quality.validate(notRecycled).errors.some(x=>x.startsWith('cross-chapter recycled thesis')));
+// Reproduces the paid QA rejection pattern without publishing customer report data.
+// A single thesis reworded for every chapter must fail even when sentences differ.
+const domainRepetition=fixture();
+const sameThesis=[
+ '논리적인 이유를 스스로 확인하고 설명을 납득해야 다음 단계로 갑니다.',
+ '주어진 근거를 확인하고 그 이유가 납득되는지 검토합니다.',
+ '선택을 바꾸기 전에 논리와 설명이 충분한지 확인합니다.',
+ '지출할 때 이유와 근거를 따져 납득하고 결정합니다.',
+ '일의 논리와 근거를 확인한 뒤 설명을 받아들입니다.',
+ '상대가 한 설명의 이유를 확인하고 납득하려고 합니다.',
+ '압박을 받으면 논리와 이유를 반복해서 확인합니다.',
+ '중요한 선택에서도 근거와 설명을 검토해 납득합니다.',
+ '2027년에는 규칙과 책임의 근거를 확인합니다.',
+ '2027년 돈에서는 책임과 규칙을 검토합니다.',
+ '2027년 업무에서는 책임과 기준을 확인합니다.',
+ '2027년 관계에서는 규칙과 책임의 설명을 확인합니다.'
+];
+domainRepetition.sections.forEach((s,i)=>s.body=[sameThesis[i]]);
+const repetitionErrors=quality.validate(domainRepetition).errors;
+assert(repetitionErrors.some(x=>x.startsWith('cross-chapter recycled thesis (logic-and-proof)')));
+assert(repetitionErrors.some(x=>x.startsWith('cross-chapter recycled thesis (responsibility-and-rules)')));
 const editorial=require('./report-editorial');
 assert(editorial.wordingErrors(['우선할\n방향']).length);
 assert(editorial.wordingErrors(['핵심\u200B성향']).length);
