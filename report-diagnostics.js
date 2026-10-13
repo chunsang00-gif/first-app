@@ -20,6 +20,7 @@ function failureCode(message){
  if(m.includes('output token limit'))return 'MODEL_OUTPUT_TOKEN_LIMIT';
  if(m.includes('content filter'))return 'MODEL_CONTENT_FILTER';
  if(m.includes('invalid report structure'))return 'REPORT_STRUCTURE_INVALID';
+ if(m.includes('factually inconsistent report data'))return 'REPORT_FACT_MISMATCH';
  if(m.includes('incomplete report'))return 'MODEL_INCOMPLETE_OUTPUT';
  if(m.includes('timed out'))return 'MODEL_TIMEOUT';
  if(m.includes('no output'))return 'MODEL_EMPTY_OUTPUT';
@@ -43,6 +44,7 @@ function messageFor(code){
  if(code==='MODEL_OUTPUT_TOKEN_LIMIT')return 'AI 응답 길이 제한으로 풀이가 중단됐습니다. 자동으로 다시 생성하지 않습니다. 운영자가 생성 설정을 확인해야 합니다.';
  if(code==='MODEL_CONTENT_FILTER')return 'AI 서비스가 응답 생성을 중단했습니다. 자동으로 다시 생성하지 않습니다. 운영자가 요청 내용을 확인해야 합니다.';
  if(code==='REPORT_STRUCTURE_INVALID')return '풀이의 필수 항목이 빠져 결과를 표시하지 못했습니다. 운영자가 응답 형식을 확인해야 합니다.';
+ if(code==='REPORT_FACT_MISMATCH')return '풀이 내용이 계산된 사주 정보와 일치하지 않아 생성을 중단했습니다. 추가 AI 비용이 발생하지 않도록 자동 재시도하지 않습니다.';
  if(code==='MODEL_INCOMPLETE_OUTPUT')return 'AI 응답이 끝까지 생성되지 않았습니다. 자동으로 다시 생성하지 않습니다. 운영자가 중단 원인을 확인해야 합니다.';
  if(code==='MODEL_LIMIT_REACHED')return '분석 서비스의 사용 한도에 도달했습니다. 잠시 후 다시 시도해 주세요.';
  if(code==='MODEL_TIMEOUT')return '분석 시간이 초과됐습니다. 입력 정보는 그대로 두고 다시 시도해 주세요.';
