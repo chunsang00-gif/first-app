@@ -197,6 +197,10 @@ vm.runInNewContext(fs.readFileSync(require.resolve('./report-server-contract'),'
 const guidance=require('./report-analysis-guidance');
 const blueprint=guidance.preflight({person:{mbti:'ISFP'},facts:{structuralEvidence:{monthCommand:{branch:'子'},visibleStems:[{stem:'甲'}]},tenGods:{day:{stem:'甲',hiddenStems:[]},month:{stem:'乙'}},natalClashes:[],annualTenGods:{stem:'丁',hiddenStems:[]},targetYearRelations:[]},fortune:{activeDecade:null}});
 assert.equal(Object.keys(blueprint).length,12);
+assert.equal(Object.values(blueprint).reduce((count,chapter)=>count+Object.keys(chapter.topicTasks).length,0),29);
+assert.equal(blueprint.money.topicTasks.earning.primaryEvidencePath,'facts.tenGods.month');
+assert.equal(blueprint.year_2027_relationship.topicTasks.change.evidencePresent,false);
+assert.equal(blueprint.year_2027_relationship.topicTasks.action.evidencePresent,true);
 assert.equal(new Set(Object.values(blueprint).map(x=>x.question)).size,12);
 assert.equal(blueprint.year_2027_relationship.requiredMode,'use-fallback-with-limits');
 assert(blueprint.year_2027_relationship.negativeEvidence);
