@@ -219,6 +219,21 @@ for(const a of ['I','E'])for(const b of ['S','N'])for(const c of ['T','F'])for(c
  assert(dryRun.qa.errors.length>0);
  assert.equal(dryRun.report.sections.reduce((count,section)=>count+section.body.length,0),29);
  assert.equal(calls,7);assert.equal(seen.filter(s=>s==='body').length,6);assert.equal(seen[6],'synthesis');
+ // Detect a known live-QA phrase before any subsequent provider request.
+ let earlyCalls=0;
+ await assert.rejects(
+  sandbox.module.exports.generate({mbti:'ISFP'},async p=>{
+   earlyCalls++;
+   return {sections:p.requestedSections.map(id=>({
+    id,title:'제목',keyJudgment:'직접 실행으로 연결합니다.',
+    evidence:['계산한 사주 항목의 설명입니다.'],bodyTopics:Object.keys(outline.topics[id]),
+    bodyLabels:Object.values(outline.topics[id]),
+    body:Object.keys(outline.topics[id]).map(()=>'문장입니다.')
+   }))};
+  }),
+  /reader-facing editorial defects/
+ );
+ assert.equal(earlyCalls,1);
  // A repetitive full draft must be rejected before the seventh paid synthesis call.
  let preflightCalls=0;
  const preflight=await sandbox.module.exports.generate({mbti:'ISFP'},async p=>{
