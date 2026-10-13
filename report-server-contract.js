@@ -61,6 +61,16 @@ async function generate(input,callModel,onProgress=()=>{}){const packet=facts.bu
   relationship:'원국 일지와 실제 계산된 십성·지지 관계를 바탕으로 친밀감·표현·갈등·거절의 서로 다른 상황을 해석한다. 입력되지 않은 성격 유형이나 실제 연애·가족사를 추정하지 않는다.',
   stress:'원국의 실제 십성 위치와 월지의 계절 조건, 확인된 지지 관계를 각각 살펴 평소 유리한 반응과 압박 상황에서 불리해질 수 있는 반응을 구분한다. 촉박한 결정, 갑작스러운 일정 변경, 의견 충돌을 같은 반응으로 취급하지 않고 근거가 있는 상황만 선택한다. 건강 증상이나 실제 경험을 만들어내지 않는다.'
  };
+ const sajuOnlyTopics={
+  mbti_contradiction:{
+   agreement:'원국에서 밖으로 드러나기 쉬운 반응을 뒷받침하는 계산 근거',
+   difference:'같은 원국에서 혼자 판단할 때 달라질 수 있는 반응과 그 조건'
+  },
+  integrated_judgment:{
+   insight:'원국의 서로 다른 두 근거를 함께 읽을 때 드러나는 새로운 선택 조건',
+   tradeoff:'같은 강점이 불리해지는 상황과 실제로 구분해 볼 행동'
+  }
+ };
  const scopedGoals=(ids)=>Object.fromEntries(ids.map(id=>[id,noMbti?noMbtiSectionGoals[id]:premiumGoals[id]]));
  const validateBatch=(result,ids)=>{
   const fail=(reason,info={})=>{console.error('[Report batch incomplete]',{reason,requestedIds:ids,...info});throw Error('AI report service returned invalid report structure')};
@@ -78,7 +88,7 @@ async function generate(input,callModel,onProgress=()=>{}){const packet=facts.bu
   }
   return result;
  };
- const request=(ids,extra={})=>({...base,...extra,analysisGuidance:analysisGuidance.forRequest(ids,packet.person?.mbti),requestedSections:ids,includeFinal:false,includeCover:false,rules:{...base.rules,...extra.rules,sections:ids,sectionGoals:scopedGoals(ids),topicPlan:Object.fromEntries(ids.map(id=>[id,outline.topics[id]])),returnOnlyRequestedSections:true},output:{...base.output,requestedSections:ids,cover:'null',finalJudgment:'null'}});
+ const request=(ids,extra={})=>({...base,...extra,analysisGuidance:analysisGuidance.forRequest(ids,packet.person?.mbti),requestedSections:ids,includeFinal:false,includeCover:false,rules:{...base.rules,...extra.rules,sections:ids,sectionGoals:scopedGoals(ids),topicPlan:Object.fromEntries(ids.map(id=>[id,noMbti&&sajuOnlyTopics[id]?sajuOnlyTopics[id]:outline.topics[id]])),returnOnlyRequestedSections:true},output:{...base.output,requestedSections:ids,cover:'null',finalJudgment:'null'}});
  let done=0;onProgress({stage:'body',completed:0,total:12});
  // Preserve complete earlier paragraphs: later sentences can contain the repeated
  // consequence or advice. No extra model call is used to summarize or rewrite them.
