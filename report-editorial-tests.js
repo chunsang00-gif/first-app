@@ -175,7 +175,7 @@ for(const a of ['I','E'])for(const b of ['S','N'])for(const c of ['T','F'])for(c
   assert.deepEqual(Object.keys(p.analysisGuidance.chapterTasks),Array.from(p.requestedSections));
   assert.equal(p.analysisGuidance.mbtiReference.type,'ISFP');
   assert.equal(p.analysisGuidance.mbtiReference.preferences.map(x=>x.code).join(''),'ISFP');
-  return {sections:p.requestedSections.map(id=>({id,title:'제목',keyJudgment:'핵심',evidence:['계산한 사주 항목의 설명입니다.'],bodyTopics:Object.keys(outline.topics[id]),bodyLabels:Object.values(outline.topics[id]),body:Object.keys(outline.topics[id]).map((_,i)=>'첫 번째 결론 '+i+'. 이어지는 설명입니다. 이 문장은 실제 사주 풀이가 아니라 생성 단계에서 본문과 소제목의 순서가 유지되는지 확인하기 위한 모의 설명입니다. 각 장의 내용이 모두 다르다고 주장하지 않으며, 최종 품질 검사에서 거절되어야 하는 원고입니다.')}))};
+  return {sections:p.requestedSections.map(id=>({id,title:'제목',keyJudgment:'핵심',evidence:['계산한 사주 항목의 설명입니다.'],bodyTopics:Object.keys(outline.topics[id]),bodyLabels:Object.values(outline.topics[id]),body:Object.keys(outline.topics[id]).map((_,i)=>'첫 번째 결론 '+i+'. 이어지는 설명입니다.')}))};
  });
  // The mock intentionally contains placeholder evidence and no cover.
  // Never mistake completed provider calls for a publishable report.
