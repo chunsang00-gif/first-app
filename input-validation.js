@@ -9,10 +9,10 @@ function validateInput(input){
  if(typeof input.birthDate!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(input.birthDate))errors.push('생년월일을 확인해 주세요.');
  else{
   const [y,m,d]=input.birthDate.split('-').map(Number);
-  if(y<1900||input.birthDate>new Date().toISOString().slice(0,10)||m<1||m>12||d<1||d>31)errors.push('생년월일을 확인해 주세요.');
+  if(y<1900||m<1||m>12||d<1||d>31)errors.push('생년월일을 확인해 주세요.');
   else try{
-   if(input.calendar==='lunar'){const lunar=Lunar.fromYmd(y,input.leapMonth?-m:m,d);if(lunar.getYear()!==y||lunar.getMonth()!==(input.leapMonth?-m:m)||lunar.getDay()!==d)throw Error();}
-   else if(Solar.fromYmd(y,m,d).toYmd()!==input.birthDate||d>new Date(Date.UTC(y,m,0)).getUTCDate())throw Error();
+   if(input.calendar==='lunar'){const lunar=Lunar.fromYmd(y,input.leapMonth?-m:m,d);if(lunar.getYear()!==y||lunar.getMonth()!==(input.leapMonth?-m:m)||lunar.getDay()!==d||lunar.getSolar().toYmd()>new Date().toISOString().slice(0,10))throw Error();}
+   else if(Solar.fromYmd(y,m,d).toYmd()!==input.birthDate||d>new Date(Date.UTC(y,m,0)).getUTCDate()||input.birthDate>new Date().toISOString().slice(0,10))throw Error();
   }catch{errors.push('달력에 없는 날짜입니다. 음력이라면 윤달 선택도 확인해 주세요.');}
  }
  if(input.unknownBirthTime!==undefined&&typeof input.unknownBirthTime!=='boolean')errors.push('출생시간 모름 여부를 확인해 주세요.');
