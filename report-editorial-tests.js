@@ -195,6 +195,12 @@ assert(target.innerHTML.indexOf('가장 중요한 결론')<target.innerHTML.inde
 const sandbox={module:{exports:{}},process:{env:{}},require:n=>n==='./report-facts-node'?{build:()=>({status:'ready',person:{mbti:'ISFP'}})}:require(n)};
 vm.runInNewContext(fs.readFileSync(require.resolve('./report-server-contract'),'utf8'),sandbox);
 const guidance=require('./report-analysis-guidance');
+const blueprint=guidance.preflight({person:{mbti:'ISFP'},facts:{structuralEvidence:{monthCommand:{branch:'子'},visibleStems:[{stem:'甲'}]},tenGods:{day:{stem:'甲',hiddenStems:[]},month:{stem:'乙'}},natalClashes:[],annualTenGods:{stem:'丁',hiddenStems:[]},targetYearRelations:[]},fortune:{activeDecade:null}});
+assert.equal(Object.keys(blueprint).length,12);
+assert.equal(new Set(Object.values(blueprint).map(x=>x.question)).size,12);
+assert.equal(blueprint.year_2027_relationship.requiredMode,'state-insufficient-evidence');
+assert.equal(blueprint.year_2027_career.requiredMode,'state-insufficient-evidence');
+assert.equal(blueprint.year_2027.requiredMode,'explain-with-limits');
 assert.equal(guidance.forRequest(['saju_core'],'모름').mbtiReference,null);
 assert.equal(guidance.forRequest(['saju_core'],'INVALID').mbtiReference,null);
 for(const a of ['I','E'])for(const b of ['S','N'])for(const c of ['T','F'])for(const d of ['J','P']){const type=a+b+c+d; const ref=guidance.forRequest(['decision'],type).mbtiReference; assert.equal(ref.preferences.map(x=>x.code).join(''),type);assert.equal(ref.preferences.length,4);}
@@ -211,7 +217,9 @@ for(const a of ['I','E'])for(const b of ['S','N'])for(const c of ['T','F'])for(c
   assert(p.rules.integrationContrastRule.includes('MBTI를 사주 결론의 검증이나 증거로 쓰지 않는다'));
   assert(p.rules.readerProofRule.includes('불필요한 한자'));
   assert(p.rules.annualDeltaRule.includes('변화가 확인되지 않는다고'));
-  assert(p.rules.mbtiDepthRule);assert.equal(p.priorSections.length,(calls-1)*2);
+  assert.equal(Object.keys(p.analysisGuidance.editorialBlueprint).length,p.requestedSections.length);
+   assert(p.analysisGuidance.editorialBlueprint[p.requestedSections[0]].question);
+   assert(p.rules.mbtiDepthRule);assert.equal(p.priorSections.length,(calls-1)*2);
   if(calls>1){assert(p.priorSections.every(s=>s.topicConclusions.length===s.bodyLabels.length)); assert(p.priorSections.every(s=>s.topicConclusions.every(t=>t.includes('이어지는 설명입니다.'))));}
   assert.deepEqual(Object.keys(p.analysisGuidance.chapterTasks),Array.from(p.requestedSections));
   assert.equal(p.analysisGuidance.mbtiReference.type,'ISFP');
