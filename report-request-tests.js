@@ -62,7 +62,7 @@ const {createQueue,retryDelay,rateLimitKind}=require('./report-request-control')
  assert.equal(captured[0].facts.facts.tenGods.day.stem,captured[1].facts.facts.tenGods.day.stem,'MBTI must not change the day stem');
  assert.notDeepEqual(captured[0].analysisGuidance.mbtiReference,captured[1].analysisGuidance.mbtiReference,'different MBTI must change the model reference');
  assert.notDeepEqual(captured[0].facts.facts.tenGods,captured[2].facts.facts.tenGods,'different birth charts must change computed ten-god evidence');
- assert.equal(captured[3].rules.mbtiOptionalRule.includes('MBTI가 모름이면'),true,'unknown MBTI must follow the explicit no-inference policy');
+ assert.equal(captured[3].rules.mbtiOptionalRule.includes('MBTI가 모름이면'),true,'unknown MBTI must follow the explicit no-inference policy');assert.equal(captured[3].rules.integrateMbti,false,'unknown MBTI must explicitly disable MBTI integration');for(const prompt of captured.slice(0,3))assert.equal(prompt.rules.integrateMbti,true,'known MBTI must explicitly enable integration');
  assert.deepEqual(captured[0].facts.chart,captured[1].facts.chart,'MBTI alone must not alter the birth chart');
  assert.notDeepEqual(captured[0].analysisGuidance.mbtiReference.preferences,captured[1].analysisGuidance.mbtiReference.preferences,'different MBTI must produce different interpretation guidance');
  assert.notDeepEqual(captured[0].facts.chart,captured[2].facts.chart,'different birth information must change chart evidence');
