@@ -53,6 +53,7 @@ async function generate(input,callModel,onProgress=()=>{}){const packet=facts.bu
  for(const key of reviewKeys)summaryRules[key]=base.rules[key];
  base.rules=Object.fromEntries([...activeRuleKeys,...reviewKeys].map(key=>[key,base.rules[key]]));
  base.rules.avoidPhrases=quality.forbiddenPhrases;summaryRules.avoidPhrases=quality.forbiddenPhrases;
+ const editorialBlueprint=analysisGuidance.preflight(packet);
  const groups=[['saju_core','mbti_contradiction'],['decision','year_2027'],['money','year_2027_money'],['career','year_2027_career'],['relationship','year_2027_relationship'],['stress','integrated_judgment']];
  const noMbti=packet.person?.mbti==='모름';
  const unknownMbtiGoals={
@@ -95,7 +96,7 @@ async function generate(input,callModel,onProgress=()=>{}){const packet=facts.bu
   }
   return result;
  };
- const request=(ids,extra={})=>({...base,...extra,analysisGuidance:analysisGuidance.forRequest(ids,packet.person?.mbti),requestedSections:ids,includeFinal:false,includeCover:false,rules:{...base.rules,...extra.rules,sections:ids,sectionGoals:scopedGoals(ids),topicPlan:Object.fromEntries(ids.map(id=>[id,noMbti&&sajuOnlyTopics[id]?sajuOnlyTopics[id]:outline.topics[id]])),returnOnlyRequestedSections:true},output:{...base.output,requestedSections:ids,cover:'null',finalJudgment:'null'}});
+ const request=(ids,extra={})=>({...base,...extra,analysisGuidance:{...analysisGuidance.forRequest(ids,packet.person?.mbti),editorialBlueprint:Object.fromEntries(ids.map(id=>[id,editorialBlueprint[id]]))},requestedSections:ids,includeFinal:false,includeCover:false,rules:{...base.rules,...extra.rules,sections:ids,sectionGoals:scopedGoals(ids),topicPlan:Object.fromEntries(ids.map(id=>[id,noMbti&&sajuOnlyTopics[id]?sajuOnlyTopics[id]:outline.topics[id]])),returnOnlyRequestedSections:true},output:{...base.output,requestedSections:ids,cover:'null',finalJudgment:'null'}});
  let done=0;onProgress({stage:'body',completed:0,total:12});
  // Preserve complete earlier paragraphs: later sentences can contain the repeated
  // consequence or advice. No extra model call is used to summarize or rewrite them.
@@ -103,6 +104,7 @@ async function generate(input,callModel,onProgress=()=>{}){const packet=facts.bu
  const drafts=await mapLimited(groups,async ids=>{
   const result=validateBatch(await callModel(request(ids,{
    stage:'body',priorSections:priorSections.slice(),
+   planningInstruction:'각 장은 editorialBlueprint의 서로 다른 질문을 먼저 해결한다. primary 근거가 없을 때는 requiredMode에 따라 근거 부족을 밝히고 성격이나 사건을 꾸며내지 않는다. 다른 장의 질문을 답하거나 논리·근거·책임 같은 표현을 분야만 바꾸어 반복하지 않는다.',
    editorialTask:'이 응답은 결제 고객에게 제공할 최종 본문 원고다. 각 topicPlan 질문에 계산된 근거가 실제로 답할 수 있는 부분을 먼저 선정하고, 해석의 이유·서로 다른 근거의 충돌·불리한 부분까지 읽는 사람이 이해할 수 있도록 완결된 문장으로 설명한다. 사주 원국 장에서는 일간·월지·십성의 실제 값과 위치를 본문에서 밝히고 처음 나오는 명리 용어를 괄호로 풀어 쓴다. MBTI 장에서는 정보를 받아들이는 선호와 판단 선호가 만나는 조건을 분석하고 실제 성격을 측정했다고 주장하지 않는다. 돈은 수입·지출·위험, 직업은 역할·학습·조직, 관계는 친밀감·표현·갈등으로 서로 다른 질문에 답한다. 2027년은 계산된 세운과 대운을 해당 분야에 연결할 수 있을 때만 평소와 다른 점을 밝힌다. priorSections와 같은 반응이나 조언을 직업·돈·관계라는 명사만 바꾸어 반복하지 않는다. 유효한 새 해석이 없으면 지어내지 말고 그 질문에 답할 수 있는 근거만 정확히 제시한다. 일반적 계약서 확인이나 소통하라는 상투적 조언, 사용자 과거 경험의 창작은 금지한다. 필수 bodyTopics 순서를 지키되 한 줄짜리 요약으로 분석을 대체하지 않고 한국어 문맥과 조사·서술어 호응을 점검한다. 별도 유료 재작성 호출은 하지 않는다.'
   })),ids);
   // Reject incomplete or unsupported model output before spending another provider call.
