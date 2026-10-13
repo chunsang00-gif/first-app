@@ -1,10 +1,16 @@
 name: One-time paid report QA
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - fix-saju-tone-20261010
+    paths:
+      - .qa-run-once-20261014
 permissions:
   contents: read
 jobs:
   report-qa:
+    if: github.event_name == 'workflow_dispatch' || github.event.head_commit.message == 'RUN_APPROVED_QA_ONCE_20261014'
     runs-on: ubuntu-latest
     timeout-minutes: 25
     env:
