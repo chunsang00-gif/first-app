@@ -308,6 +308,15 @@ function validate(r,packet){
   if(owners.length>=5)errors.push('cross-chapter recycled thesis ('+motif.name+'): '+owners.join(' / '));
   else if(owners.length===4)warnings.push('cross-chapter motif review ('+motif.name+'): '+owners.join(' / '));
  }
+ // Annual domain assertions require more than a named ten-god. Flag observed
+ // overreach from paid QA, not the traditional vocabulary itself.
+ for(const section of r.sections.filter(s=>/^year_2027/.test(s.id))){
+  const body=norm([section.keyJudgment,...(section.body||[])].join(' '));
+  if(/식상.{0,25}(?:두드러지지|약하|적으|부족하).{0,85}(?:돈을 새롭게 벌기보다|수입보다|지출 통제|자원 관리)/.test(body))
+   errors.push(section.id+': unsupported earnings inference from food-god presence');
+  if(/(?:충(?:돌)?|합충|관계).{0,25}(?:없|계산되지|나타나지).{0,75}(?:큰 변화가 없|변화가 약하|책임.*관리)/.test(body))
+   warnings.push(section.id+': absence of calculated clash alone does not support an annual-domain conclusion');
+ }
  const yearIds=new Set(['year_2027','year_2027_money','year_2027_career','year_2027_relationship']);
  r.sections.filter(s=>yearIds.has(s.id)).forEach(s=>{const t=norm((Array.isArray(s.body)?s.body.join(' '):s.body)+' '+s.keyJudgment);if(!/(2027|올해|평소|기존|더 |강해|약해|달라|변화|비교|반복|유지)/.test(t))errors.push(`${s.id}: 2027 comparison missing`);if(/(반드시|확실히|틀림없이).{0,12}(합격|이직|취업|연애|결혼|수입|돈|성공)/.test(t))errors.push(`${s.id}: deterministic event prediction`)});
  // Conservative paraphrase detection: catch near-identical conclusions even when
