@@ -234,7 +234,7 @@ function validate(r,packet){
  // This checks customer-visible prose as well as the synthesis, not just request flags.
  if(packet?.person?.mbti==='모름'){
   const visible=[r.cover?.headline,r.cover?.description,...(r.cover?.highlights||[]).flatMap(x=>[x.title,x.description]),...r.sections.flatMap(x=>[x.title,x.keyJudgment,...(x.body||[]),...(x.bodyLabels||[])]),r.finalJudgment?.headline,...(r.finalJudgment?.body||[]),r.finalJudgment?.closingQuestion].filter(Boolean).join(' ');
-  if(/\\b(?:[IE][NS][FT][JP]|MBTI)\\b/i.test(visible))
+  if(/\b(?:[IE][NS][FT][JP]|MBTI)\b/i.test(visible))
    errors.push('personalization: unknown MBTI must not appear as a claimed type or analysis');
  }
  // A seasonal annual pillar must never be sold as a January-to-December guarantee.
