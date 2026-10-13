@@ -36,4 +36,33 @@ function forRequest(ids,mbti){
   mbtiReference:valid?{type:mbti,source:'사용자가 입력한 유형에 대한 선호 설명. 실제 행동·능력의 측정 결과가 아니다.',preferences:[...mbti].map(code=>({code,...preferences[code]})),application:'글자별 소개를 나열하지 말고 해당 질문에 필요한 선호끼리 연결한다. 예를 들어 정보 탐색과 결정 이유를 구분하고, 어떤 조건에서 두 선호가 서로 돕거나 갈리는지 설명한다. 기능 발달 정도·정신 상태·행동 빈도·유형 적합도를 추정하지 않는다.'}:null
  };
 }
-module.exports={forRequest};
+
+// Deterministic editorial blueprint created BEFORE any paid writing call.
+// This is not a fabricated interpretation: fields refer only to calculated facts.
+const chapterBlueprint={
+ saju_core:{question:'태어난 사주에서 서로 다른 성향을 설명하는 계산된 요소는 무엇인가?',primary:'facts.structuralEvidence.monthCommand',lens:'기본 명리 근거 설명'},
+ mbti_contradiction:{question:'입력 MBTI가 선호하는 정보 처리와 사주 해석의 설명 범위는 어디서 다르나?',primary:'person.mbti',lens:'두 설명 체계의 차이'},
+ decision:{question:'선택지를 비교하는 선호와 결정을 고치는 조건을 어떻게 구분할까?',primary:'facts.tenGods.day',lens:'정보 탐색과 선택 변경'},
+ money:{question:'돈을 얻는 활동과 쓰고 보유하는 판단은 어떻게 별도로 해석할까?',primary:'facts.tenGods.month',lens:'금전 관련 전통 해석의 범위'},
+ career:{question:'배우기·수행하기·함께 일하기를 어떤 근거로 구별할까?',primary:'facts.structuralEvidence.visibleStems',lens:'과업과 협업'},
+ relationship:{question:'가까워짐·애정 표현·의견 충돌의 서로 다른 조건은 무엇인가?',primary:'facts.tenGods.day.hiddenStems',lens:'사적인 관계'},
+ stress:{question:'압박 시 바뀌는 반응은 평소 반응과 어떻게 다른가?',primary:'facts.natalClashes',lens:'갈등 상황과 해석의 한계'},
+ integrated_judgment:{question:'앞서 서로 다르게 설명된 두 관점을 결합하면 무엇이 새로 남는가?',primary:'facts.tenGods',lens:'교차 해석과 근거 강도'},
+ year_2027:{question:'2027년의 실제 연간 십성과 원국 관계에서 계산된 차이는 무엇인가?',primary:'facts.annualTenGods',lens:'연간 계산과 해석 한계'},
+ year_2027_money:{question:'연간 자료에서 금전 해석에 직접 연결할 수 있는 부분은 무엇인가?',primary:'facts.annualTenGods.hiddenStems',lens:'연간 금전 관련성'},
+ year_2027_career:{question:'연간 자료에서 업무·배움 해석에 연결할 수 있는 부분은 무엇인가?',primary:'fortune.activeDecade',lens:'일과 시기 구별'},
+ year_2027_relationship:{question:'연간의 실제 지지 충 관계가 사적인 관계에 말해 주는 것과 못 말하는 것은?',primary:'facts.targetYearRelations',lens:'연간 관계의 계산 범위'}
+};
+const evidenceAt=(obj,path)=>path.split('.').reduce((v,k)=>v==null?undefined:v[k],obj);
+function preflight(packet){
+ const plans=Object.fromEntries(Object.entries(chapterBlueprint).map(([id,plan])=>{
+  const value=evidenceAt(packet,plan.primary);
+  const present=value!=null&&(!Array.isArray(value)||value.length>0)&&value!=='모름';
+  return [id,{...plan,evidencePresent:present,requiredMode:present?'explain-with-limits':'state-insufficient-evidence',noRecycledThesis:true}];
+ }));
+ const questions=Object.values(plans).map(x=>x.question);
+ if(new Set(questions).size!==questions.length)throw Error('Report blueprint repeats an analysis question');
+ if(Object.keys(plans).length!==12)throw Error('Report blueprint must cover twelve chapters');
+ return plans;
+}
+module.exports={forRequest,preflight};
