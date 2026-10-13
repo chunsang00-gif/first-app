@@ -21,6 +21,22 @@ const cases=[
 ];
 cases.forEach(({label,input})=>run('matrix '+label,()=>{const r=F.build(input);assert.equal(r.status,'ready');assert.ok(r.chart.year&&r.chart.month&&r.chart.day);if(input.unknownBirthTime)assert.equal(r.chart.hour,null);else assert.ok(r.chart.hour);assert.equal(r.calculationInput.mbti,input.mbti);assert.equal(r.constraints.nameAnalysisEnabled,false)}));
 
+
+run('all 16 MBTI types and unknown type across 4 birth conditions',()=>{
+ const types=['INTJ','INTP','ENTJ','ENTP','INFJ','INFP','ENFJ','ENFP','ISTJ','ISTP','ESTJ','ESTP','ISFJ','ISFP','ESFJ','ESFP','모름'];
+ const profiles=[sample,{...sample,gender:'male',birthDate:'1990-05-15',birthTime:'10:30'},{...sample,calendar:'lunar',birthDate:'1995-05-12',birthTime:'14:20'},{...sample,birthTime:'',unknownBirthTime:true}];
+ const guide=require('./report-analysis-guidance');
+ const ids=Q.IDS;
+ for(const profile of profiles)for(const mbti of types){
+  const input={...profile,mbti},result=F.build(input);
+  assert.equal(result.status,'ready',JSON.stringify(input));
+  assert.equal(Boolean(result.chart.hour),!input.unknownBirthTime);
+  const g=guide.forRequest(ids,mbti);
+  assert.equal(Boolean(g.mbtiReference),mbti!=='모름');
+  assert.equal(Object.keys(g.chapterTasks).length,12);
+ }
+});
+
 function mockReport(){
  const bodies={
   saju_core:'원국의 중심축과 오행 분포를 기준으로 기본 반응의 방향을 설명합니다. 일간의 성질과 월지의 계절 조건이 어떤 긴장을 만드는지 계산 사실을 중심으로 풀어냅니다. 강약을 좋고 나쁨으로 단정하지 않고 반복해서 나타나는 반응 구조와 우선순위를 구분합니다.',
