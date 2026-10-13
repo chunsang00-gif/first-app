@@ -74,6 +74,15 @@ const {createQueue,retryDelay,rateLimitKind}=require('./report-request-control')
   unknownSynthesisCalls++;
   assert.equal(prompt.rules.integrateMbti,false,'unknown MBTI must remain disabled at every paid stage');
   if(prompt.stage==='body'){
+   for(const id of prompt.requestedSections){
+    if(id==='mbti_contradiction'||id==='integrated_judgment'){
+     const questions=Object.values(prompt.rules.topicPlan[id]).join(' ');
+     assert(!/MBTI/.test(questions),'unknown MBTI must use Saju-only reader questions: '+id);
+     assert(!/MBTI/.test(prompt.analysisGuidance.chapterTasks[id].focus),'unknown MBTI must use Saju-only analysis tasks: '+id);
+    }
+   }
+  }
+  if(prompt.stage==='body'){
    for(const [id,goal] of Object.entries(prompt.rules.sectionGoals)){
     assert(goal.length>=80,'unknown MBTI must retain detailed chapter goal for '+id);
     assert(!/MBTI|심리유형/.test(goal),'unknown MBTI chapter goal must not ask for personality-type interpretation: '+id);
