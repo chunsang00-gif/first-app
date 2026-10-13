@@ -131,6 +131,21 @@ async function generate(input,callModel,onProgress=()=>{}){const packet=facts.bu
  const sections=IDS.map(id=>drafted.get(id));
  // Select the cover only after all 12 complete chapters. The final local quality
  // gate below remains mandatory; no automatic paid rewrite or retry is issued.
+ // Stop before paying for synthesis when chapters already recycle the same thesis.
+ // No extra model call, and the rejected draft remains available for operator QA.
+ const bodyTextBySection=sections.map(s=>({id:s.id,text:[s.keyJudgment,...(s.body||[])].join(' ')}));
+ const repeatedThemes=[
+  {name:'logic-and-proof',a:/논리|근거|이유|설명/,b:/납득|확인|검토|질문/},
+  {name:'responsibility-and-rules',a:/책임|규칙|절차|기준/,b:/확인|설명|납득|검토/}
+ ];
+ const repeatedErrors=repeatedThemes.flatMap(theme=>{
+  const owners=bodyTextBySection.filter(s=>theme.a.test(s.text)&&theme.b.test(s.text)).map(s=>s.id);
+  return owners.length>=5?['cross-chapter recycled thesis ('+theme.name+'): '+owners.join(' / ')]:[];
+ });
+ if(repeatedErrors.length){
+  const report={meta,sections,cover:null,finalJudgment:null};
+  return {status:'rejected',report,qa:{pass:false,errors:repeatedErrors,warnings:[]},headingRepairs:[],stoppedBeforeSynthesis:true};
+ }
  const summaryPrompt={...base,stage:'synthesis',requestedSections:[],includeFinal:true,includeCover:true,completedReport:{meta,sections},rules:{...summaryRules,sections:[],returnOnlyRequestedSections:true,finalEditingTask:'완성된 12개 장에서 가장 중요한 장점과 손해를 줄 수 있는 행동을 연결해 총평을 쓴다. 새로운 성격을 만들어내거나 장별 요약을 나열하지 않는다. 한계 안내는 총평 본문에 한 번만 쓰고 closingQuestion은 반드시 사람에 대한 결론으로 끝낸다. 같은 결론으로 도입·요약·마지막 문장을 세 번 쓰지 않는다. 실질적인 새 조언이 없으면 routines는 빈 배열로 반환한다. 억지로 교훈을 붙이지 않는다.'},output:{...base.output,requestedSections:[],cover:'required',finalJudgment:'required'}};
  onProgress({stage:'synthesis',completed:0,total:1});
  let summary=await callModel(summaryPrompt);
