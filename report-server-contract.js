@@ -47,6 +47,12 @@ async function generate(input,callModel,onProgress=()=>{}){const packet=facts.bu
  base.rules=Object.fromEntries([...activeRuleKeys,...reviewKeys].map(key=>[key,base.rules[key]]));
  base.rules.avoidPhrases=quality.forbiddenPhrases;summaryRules.avoidPhrases=quality.forbiddenPhrases;
  const groups=[['saju_core','mbti_contradiction'],['decision','year_2027'],['money','year_2027_money'],['career','year_2027_career'],['relationship','year_2027_relationship'],['stress','integrated_judgment']];
+ const noMbti=packet.person?.mbti==='모름';
+ const unknownMbtiGoals={
+  mbti_contradiction:'MBTI가 입력되지 않았다. 유형을 추정하거나 MBTI를 분석하지 않는다. 대신 원국의 서로 다른 두 위치와 십성 근거를 대조해 겉으로 보이는 반응과 혼자 결정할 때의 반응이 달라질 수 있는 조건을 설명한다. 차이를 만들 근거가 없으면 같다고 설명한다.',
+  integrated_judgment:'MBTI가 입력되지 않았다. MBTI 선호를 가정하지 않는다. 원국에서 실제 확인된 서로 다른 위치·십성의 관계를 하나의 선택 상황에 적용해 강점과 약점이 바뀌는 경계를 종합한다. 앞 장의 결론을 단순 반복하지 않는다.'
+ };
+ const scopedGoals=(ids)=>Object.fromEntries(ids.map(id=>[id,noMbti?(unknownMbtiGoals[id]||premiumGoals[id].replace(/MBTI[^.]*\\./g,'').trim()):premiumGoals[id]]));
  const validateBatch=(result,ids)=>{
   const fail=(reason,info={})=>{console.error('[Report batch incomplete]',{reason,requestedIds:ids,...info});throw Error('AI report service returned invalid report structure')};
   if(!Array.isArray(result?.sections))fail('sections not array');
@@ -63,7 +69,7 @@ async function generate(input,callModel,onProgress=()=>{}){const packet=facts.bu
   }
   return result;
  };
- const request=(ids,extra={})=>({...base,...extra,analysisGuidance:analysisGuidance.forRequest(ids,packet.person?.mbti),requestedSections:ids,includeFinal:false,includeCover:false,rules:{...base.rules,...extra.rules,sections:ids,sectionGoals:Object.fromEntries(ids.map(id=>[id,premiumGoals[id]])),topicPlan:Object.fromEntries(ids.map(id=>[id,outline.topics[id]])),returnOnlyRequestedSections:true},output:{...base.output,requestedSections:ids,cover:'null',finalJudgment:'null'}});
+ const request=(ids,extra={})=>({...base,...extra,analysisGuidance:analysisGuidance.forRequest(ids,packet.person?.mbti),requestedSections:ids,includeFinal:false,includeCover:false,rules:{...base.rules,...extra.rules,sections:ids,sectionGoals:scopedGoals(ids),topicPlan:Object.fromEntries(ids.map(id=>[id,outline.topics[id]])),returnOnlyRequestedSections:true},output:{...base.output,requestedSections:ids,cover:'null',finalJudgment:'null'}});
  let done=0;onProgress({stage:'body',completed:0,total:12});
  // Preserve complete earlier paragraphs: later sentences can contain the repeated
  // consequence or advice. No extra model call is used to summarize or rewrite them.
