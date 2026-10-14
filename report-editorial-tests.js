@@ -195,7 +195,7 @@ assert(target.innerHTML.indexOf('가장 중요한 결론')<target.innerHTML.inde
 const sandbox={module:{exports:{}},process:{env:{}},require:n=>n==='./report-facts-node'?{build:()=>({status:'ready',person:{mbti:'ISFP'}})}:require(n)};
 vm.runInNewContext(fs.readFileSync(require.resolve('./report-server-contract'),'utf8'),sandbox);
 const repeatedTopics=sandbox.module.exports.findRepeatedTopicContent;
-const shared='시간을 충분히 들여 여러 선택지의 장단점을 비교하며 결정을 고른 뒤에는 주변 상황과 필요한 절차를 다시 검토한다.';
+const shared='시간을 충분히 들여 여러 선택지의 장단점을 비교하며 결정을 고른 뒤에는 주변 상황과 필요한 절차를 다시 검토한다. 이 과정을 마치면 다른 사람에게도 선택의 이유를 충분히 설명하려고 한다.';
 assert(repeatedTopics([{id:'decision',bodyTopics:['approach'],body:[shared]},{id:'career',bodyTopics:['workstyle'],body:[shared]}]).some(x=>x.includes('repeated topic paragraph')));
 assert.equal(repeatedTopics([{id:'decision',bodyTopics:['approach'],body:[shared]},{id:'career',bodyTopics:['workstyle'],body:['새로운 과업을 배우는 과정에서는 이미 정해진 역할을 먼저 이해한 다음 실제 결과를 확인한다.']}]).length,0);
 const guidance=require('./report-analysis-guidance');
