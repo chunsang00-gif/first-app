@@ -50,6 +50,12 @@ const {createQueue,retryDelay,rateLimitKind}=require('./report-request-control')
   assert.equal(limitedPlan[id].annualDomainEvidence.relevant,false,id+': no direct annual domain evidence');
   assert(Object.values(limitedPlan[id].topicTasks).every(t=>t.mode==='state-limits'),id+': natal fallback must not turn missing annual evidence into predictions');
  }
+ // A shared annual stem alone must not create a separate career fortune.
+ const stemOnly={...annualSample,facts:{...annualSample.facts,annualTenGods:{stemTenGod:'정관',hiddenStems:[]},targetYearRelations:[]}};
+ const stemOnlyPlan=require('./report-analysis-guidance').preflight(stemOnly);
+ assert.equal(stemOnlyPlan.year_2027_career.annualDomainEvidence.relevant,false,'single shared annual stem must remain in the annual overview');
+ const extraCareer={...annualSample,facts:{...annualSample.facts,annualTenGods:{stemTenGod:'정관',hiddenStems:[{tenGod:'편인'}]},targetYearRelations:[]}};
+ assert.equal(require('./report-analysis-guidance').preflight(extraCareer).year_2027_career.annualDomainEvidence.relevant,true,'distinct annual hidden-stem relationship can support further career interpretation');
  const relationshipEvidence=annualPlan.year_2027_relationship.annualDomainEvidence;
  assert(!relationshipEvidence.matchedTenGods.some(x=>/정관|편관|정재|편재/.test(x)),'official and wealth ten-gods alone cannot be used to invent annual relationship events');
  for(const [id,pattern] of [['year_2027_money',/^(?:재성|식상|정재|편재|식신|상관)$/],['year_2027_career',/^(?:관성|인성|정관|편관|정인|편인)$/]]){
