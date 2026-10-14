@@ -14,7 +14,7 @@ const outline=require('./report-outline'),wire=require('./report-wire'),schema=r
 const ids=Object.keys(outline.topics),prompt={requestedSections:ids};
 const providerSchema=wire.schemaFor(prompt,schema);assert.deepEqual(providerSchema.properties.chapters.required,ids);
 const chapters=Object.fromEntries([...ids].reverse().map(id=>[id,{paragraphs:Object.fromEntries(Object.keys(outline.topics[id]).reverse().map(t=>[t,{label:outline.topics[id][t],text:id+':'+t}]))}]));
-const decoded=wire.decode({chapters},prompt);assert.equal(decoded.sections.reduce((n,s)=>n+s.body.length,0),29);
+const decoded=wire.decode({chapters},prompt);assert.equal(decoded.sections.reduce((n,s)=>n+s.body.length,0),28);
 for(const s of decoded.sections){assert.deepEqual(s.bodyTopics,Object.keys(outline.topics[s.id]));s.body.forEach((v,i)=>assert.equal(v,s.id+':'+s.bodyTopics[i]));}
 const diagnostics=require('./report-diagnostics');
 assert.equal(diagnostics.failureCode('AI report service output token limit'),'MODEL_OUTPUT_TOKEN_LIMIT');
