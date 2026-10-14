@@ -118,6 +118,29 @@ function preflight(packet){
     interpretationBoundary:mode==='use-primary'?'전통적 해석의 연결 가능성만 설명하고 실제 행동으로 입증된 것처럼 단정하지 않는다.':mode==='use-verified-fallback'?'우선 계산값이 없으므로 실제 확인된 보조 근거만 사용한다. 보조 근거를 주된 근거처럼 말하거나 사건을 단정하지 않는다.':'다른 세부 항목의 성격 설명으로 채우지 말고 이 질문에서 판단할 수 없는 범위를 밝힌다.'}];
   }));
  }
+ // Build an evidence-allocation ledger in actual model generation order.
+ // One calculated fact may answer more than one question, but the same
+ // interpretation is not a second paid insight. Every reuse gets a distinct
+ // question and an explicit ban on recycling the first owner's conclusion.
+ const writingOrder=['saju_core','mbti_contradiction','decision','stress','money','career','relationship','integrated_judgment','year_2027','year_2027_money','year_2027_career','year_2027_relationship'];
+ const allocated=new Map();
+ for(const id of writingOrder){
+  const tasks=plans[id]?.topicTasks||{};
+  for(const [topic,task] of Object.entries(tasks)){
+   const paths=[task.primaryEvidencePath,...(task.verifiedFallbackPaths||[])].filter(Boolean);
+   const prior=paths.flatMap(path=>(allocated.get(path)||[]).map(owner=>({path,chapter:owner.chapter,topic:owner.topic,question:owner.question})));
+   task.evidenceReuseBoundary=prior.length?{
+    priorOwners:prior,
+    distinctQuestion:task.question,
+    rule:'이 계산값은 위 항목에서 이미 사용됐다. 앞 항목의 행동 결론을 다시 쓰지 말고, 현재 질문에 직접 연결되는 서로 다른 전통적 의미가 확인될 때만 설명한다. 새로운 의미가 없으면 이 질문에 대한 추가 판단 근거가 부족하다고 명확히 적는다.'
+   }:null;
+   for(const path of paths){
+    const owners=allocated.get(path)||[];
+    owners.push({chapter:id,topic,question:task.question});
+    allocated.set(path,owners);
+   }
+  }
+ }
  // Annual domain gates are calculated facts, never predicted real-life events.
  // The annual stem is shared across domains, so it alone cannot justify
  // three independent predictions. Require a distinct supported connection.
