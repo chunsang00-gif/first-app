@@ -58,6 +58,25 @@ function findRepeatedAdvice(sections){
  }
  return hits;
 }
+// A shared calculation is allowed, but repeating the same conclusion with the
+// same evidence in another chapter is not a second paid insight.
+function findReusedEvidenceConclusions(sections){
+ const seen=new Map(),errors=[];
+ const norm=x=>String(x||'').normalize('NFKC').replace(/[\\s.,!?。！？"'“”‘’·:;()[\\]]/g,'');
+ for(const section of sections||[]){
+  const judgment=norm(section?.keyJudgment);
+  if(judgment.length<24)continue;
+  for(const raw of section.evidence||[]){
+   const evidence=norm(raw);
+   if(evidence.length<12)continue;
+   const key=evidence+'|'+judgment;
+   const previous=seen.get(key);
+   if(previous&&previous!==section.id)errors.push('reused evidence and conclusion: '+previous+' / '+section.id);
+   else seen.set(key,section.id);
+  }
+ }
+ return [...new Set(errors)];
+}
 function findRecycledThemes(sections){
  const themes=[
   {name:'logic-and-proof',a:/논리|근거|이유|설명/,b:/납득|확인|검토|질문/},
@@ -284,7 +303,7 @@ async function generate(input,callModel,onProgress=()=>{},onValidatedBatch=()=>{
   }
   const combined=[...priorSections.map(s=>({id:s.id,keyJudgment:s.keyJudgment,body:s.topicConclusions,bodyTopics:s.bodyTopics})),...verified.sections];
   if(findRepeatedTopicContent(combined).length)throw Error('QA resume repeated topic explanations');
-  if(findRecycledThemes(combined).length)throw Error('QA resume recycled chapter thesis');
+  if(findRecycledThemes(combined).length||findReusedEvidenceConclusions(combined).length)throw Error('QA resume recycled chapter thesis');
   const evidenceOwners=new Map();
   for(const section of [...priorSections,...verified.sections]){
    for(const item of section.evidence||[]){
@@ -371,7 +390,7 @@ async function generate(input,callModel,onProgress=()=>{},onValidatedBatch=()=>{
  // No extra model call, and the rejected draft remains available for operator QA.
  const paraphraseErrors=findParaphrasedTopicContent(sections);
  const adviceWarnings=findRepeatedAdvice(sections);
- const repeatedErrors=findRecycledThemes(sections);
+ const repeatedErrors=[...findRecycledThemes(sections),...findReusedEvidenceConclusions(sections)];
  if(repeatedErrors.length){
   const report={meta,sections,cover:null,finalJudgment:null};
   return {status:'rejected',report,qa:{pass:false,errors:repeatedErrors,warnings:adviceWarnings},headingRepairs:[],stoppedBeforeSynthesis:true};
@@ -387,6 +406,6 @@ async function generate(input,callModel,onProgress=()=>{},onValidatedBatch=()=>{
 
  return qa.pass?{status:'ready',report,qa,headingRepairs}:{status:'rejected',report,qa,headingRepairs};
 }
-module.exports={enforceAnnualEvidenceLimits,narrativeMotifLedger,IDS,validateShape,buildPrompt,generate,findRepeatedTopicContent,findRecycledThemes,findParaphrasedTopicContent,findRepeatedAdvice};
+module.exports={findReusedEvidenceConclusions,enforceAnnualEvidenceLimits,narrativeMotifLedger,IDS,validateShape,buildPrompt,generate,findRepeatedTopicContent,findRecycledThemes,findParaphrasedTopicContent,findRepeatedAdvice};
 
 
