@@ -33,5 +33,6 @@ jobs:
           path: |
             private-qa-report.json
             private-qa-report-checkpoint.json
+            private-qa-report-raw-calls.json
           if-no-files-found: ignore
           retention-days: 1
