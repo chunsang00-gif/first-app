@@ -8,8 +8,13 @@ function schemaFor(prompt,reportSchema){
  const section=reportSchema.properties.sections.items.properties;
  const chapters=Object.fromEntries(prompt.requestedSections.map(id=>{
   if(!topics[id])throw Error('unknown report section');
+  const plan=prompt.analysisGuidance?.editorialBlueprint?.[id]?.topicTasks||{};
+  const keys=Object.keys(topics[id]);
+  const anchor=keys.find(k=>plan[k]?.mode==='use-primary')||keys.find(k=>plan[k]?.mode==='use-verified-fallback')||keys[0];
+  // A paid chapter cannot consist entirely of null topics. When no interpretive
+  // basis exists, the anchor must explain the specific limit, not invent behavior.
   return [id,object({title:section.title,keyJudgment:section.keyJudgment,evidence:section.evidence,mood:section.mood,
-   paragraphs:object(Object.fromEntries(Object.keys(topics[id]).map(topic=>[topic,{anyOf:[object({label:{type:'string'},text:{type:'string'}}),{type:'null'}]}])))})];
+   paragraphs:object(Object.fromEntries(keys.map(topic=>[topic,topic===anchor?object({label:{type:'string'},text:{type:'string'}}):{anyOf:[object({label:{type:'string'},text:{type:'string'}}),{type:'null'}]}])))})];
  }));
  return object({chapters:object(chapters),finalJudgment:prompt.includeFinal?reportSchema.properties.finalJudgment:{type:'null'},cover:prompt.includeCover?reportSchema.properties.cover:{type:'null'}});
 }
@@ -25,5 +30,5 @@ function decode(value,prompt){
  });
  return {sections,finalJudgment:value.finalJudgment,cover:value.cover};
 }
-const instruction='The JSON schema is the authoritative transport format: return chapters keyed by requested section ID, with paragraphs keyed by every topicPlan key. For each topic return either an object with label and text when supported by distinct calculated evidence, or null when it would repeat another topic or lack direct grounds. At least one non-null topic is required in every chapter. Never invent interpretations to fill slots. Do not return sections/body/bodyLabels/bodyTopics arrays; the server reconstructs those arrays. For synthesis, chapters must be an empty object. All editorial and factual rules still apply.';
+const instruction='The JSON schema is the authoritative transport format: return chapters keyed by requested section ID, with paragraphs keyed by every topicPlan key. For each topic return either an object with label and text when supported by distinct calculated evidence, or null when it would repeat another topic or lack direct grounds. The schema requires one evidence-selected anchor paragraph per chapter; explain a specific evidence limit there if needed, without inventing traits. Other topics may be null. Never invent interpretations to fill slots. Do not return sections/body/bodyLabels/bodyTopics arrays; the server reconstructs those arrays. For synthesis, chapters must be an empty object. All editorial and factual rules still apply.';
 module.exports={schemaFor,decode,instruction};
