@@ -187,7 +187,24 @@ async function generate(input,callModel,onProgress=()=>{},onValidatedBatch=()=>{
   }
   return result;
  };
- const request=(ids,extra={})=>({...base,...extra,analysisGuidance:{...analysisGuidance.forRequest(ids,packet.person?.mbti),editorialBlueprint:Object.fromEntries(ids.map(id=>[id,editorialBlueprint[id]]))},requestedSections:ids,includeFinal:false,includeCover:false,rules:{...base.rules,...extra.rules,sections:ids,sectionGoals:scopedGoals(ids),annualDomainScopes:Object.fromEntries(ids.filter(id=>annualDomainScopes[id]).map(id=>[id,annualDomainScopes[id]])),topicPlan:Object.fromEntries(ids.map(id=>[id,noMbti&&sajuOnlyTopics[id]?sajuOnlyTopics[id]:outline.topics[id]])),returnOnlyRequestedSections:true},output:{...base.output,requestedSections:ids,cover:'null',finalJudgment:'null'}});
+ // Assign one chapter the responsibility for each explanation before any model calls.
+ // Later chapters receive concrete exclusions, rather than a vague "avoid repetition".
+ const chapterOwnership={
+  saju_core:{owns:'출생 사주 위치의 뜻과 기본 반응',excludes:['직업 성과','소비 이력','2027 사건']},
+  mbti_contradiction:{owns:'입력 MBTI 선호와 사주 풀이의 일치·불일치',excludes:['일반적인 자기계발 조언']},
+  decision:{owns:'정보 수집·선택·판단 변경의 순서',excludes:['직장 역할 분담','금전 관리']},
+  stress:{owns:'압박 직후의 반응과 회복 조건',excludes:['평상시 결단력 반복','관계 일반론']},
+  money:{owns:'수입·지출·저축·공동 비용의 구별',excludes:['일터 책임감','대인관계 소통법']},
+  career:{owns:'업무 학습·역할·협업·피드백의 차이',excludes:['돈 관리 습관','연애·친구 관계']},
+  relationship:{owns:'친밀감 형성·감정 표현·갈등 해결의 차이',excludes:['직장 규칙','소비 습관']},
+  integrated_judgment:{owns:'사주와 MBTI가 다른 판단을 낳는 구체적인 경계',excludes:['앞 장의 결론 재진술']},
+  year_2027:{owns:'2027 세운과 원국의 차이 자체',excludes:['평생 성격 재설명','금전·직업·관계의 세부 사건']},
+  year_2027_money:{owns:'2027년에 새로 계산된 금전 관련 근거 또는 근거 부족',excludes:['평생 돈 습관 반복','직업상의 책임']},
+  year_2027_career:{owns:'2027년에 새로 계산된 업무 관련 근거 또는 근거 부족',excludes:['평생 직업 성향 반복','돈 관련 규칙']},
+  year_2027_relationship:{owns:'2027년에 새로 계산된 관계 관련 근거 또는 근거 부족',excludes:['평생 대인관계 성격 반복','직업의 역할 분담']}
+ };
+ const chapterPlan=Object.fromEntries(IDS.map(id=>[id,{...chapterOwnership[id],topicTasks:editorialBlueprint[id]?.topicTasks||null,generationMode:editorialBlueprint[id]?.generationMode||'evidence-grounded'}]));
+ const request=(ids,extra={})=>({...base,...extra,analysisGuidance:{...analysisGuidance.forRequest(ids,packet.person?.mbti),editorialBlueprint:Object.fromEntries(ids.map(id=>[id,editorialBlueprint[id]]))},requestedSections:ids,includeFinal:false,includeCover:false,rules:{...base.rules,...extra.rules,sections:ids,chapterOwnershipPlan:Object.fromEntries(ids.map(id=>[id,chapterPlan[id]])),previousChapterOwnership:Object.fromEntries(priorSections.map(s=>[s.id,chapterOwnership[s.id]])),sectionGoals:scopedGoals(ids),annualDomainScopes:Object.fromEntries(ids.filter(id=>annualDomainScopes[id]).map(id=>[id,annualDomainScopes[id]])),topicPlan:Object.fromEntries(ids.map(id=>[id,noMbti&&sajuOnlyTopics[id]?sajuOnlyTopics[id]:outline.topics[id]])),returnOnlyRequestedSections:true},output:{...base.output,requestedSections:ids,cover:'null',finalJudgment:'null'}});
  let done=0;onProgress({stage:'body',completed:0,total:12});
  // Preserve complete earlier paragraphs: later sentences can contain the repeated
  // consequence or advice. No extra model call is used to summarize or rewrite them.
