@@ -323,6 +323,16 @@ const {createQueue,retryDelay,rateLimitKind}=require('./report-request-control')
  assert(audit.inspect({...validAuditPayload,rules:{...validAuditPayload.rules,paragraphGuide:'각 장마다 문단을 강제'}}).some(x=>x.includes('paragraph instruction')),'overriding null policy is rejected');
  const groundedAudit={...validAuditPayload,facts:{facts:{tenGods:{day:{}},structuralEvidence:{}}},analysisGuidance:{editorialBlueprint:{saju_core:{hasGroundedTopic:false,topicTasks:{},anchorTopic:null}}}};
  assert(audit.inspect(groundedAudit).some(x=>x.includes('ungrounded chapter')),'missing calculation evidence blocks provider request');
+ // A complete evidence plan is not enough: the model's final topicPlan
+ // must use the same question keys as the strict provider schema.
+ const topicsForAudit=require('./report-outline').topics.saju_core;
+ const topicPlanAudit={...groundedAudit,rules:{...groundedAudit.rules,topicPlan:{saju_core:{invalidTopic:'not in schema'}}},
+  analysisGuidance:{editorialBlueprint:{saju_core:{
+   hasGroundedTopic:true,anchorTopic:Object.keys(topicsForAudit)[0],
+   activeTopicKeys:Object.keys(topicsForAudit),
+   topicTasks:Object.fromEntries(Object.keys(topicsForAudit).map(t=>[t,{mode:'use-primary'}]))
+  }}}};
+ assert(audit.inspect(topicPlanAudit).some(x=>x.includes('model topic not in transport schema')),'model/schema question mismatch must fail before any paid call');
  const blueprintAudit={...groundedAudit,analysisGuidance:{editorialBlueprint:{saju_core:{hasGroundedTopic:true,anchorTopic:'wrong',activeTopicKeys:['wrong'],topicTasks:{wrong:{mode:'use-primary'}}}}}};
  assert(audit.inspect(blueprintAudit).some(x=>x.includes('plan/outline topic mismatch')||x.includes('invalid transport plan')),'stale topic plan cannot reach model');
  assert(audit.inspect(blueprintAudit).some(x=>x.includes('noncanonical anchor selection'))===false,'anchor check should compare supported plan entries, not fictional keys');
