@@ -202,6 +202,14 @@ assert(themeAudit(['a','b','c','d','e'].map(patterned)).some(x=>x.includes('resp
 const distinctJudgments=['사주의 월지와 일간이 나타내는 계산값을 설명합니다.','입력된 성격 선호의 한계를 비교합니다.','변경할 선택 조건을 구분합니다.','지출과 보유에 관한 해석을 나눕니다.','실제 맡은 업무는 추정하지 않습니다.'];
 const vocabularyHeavy='논리와 근거를 설명하고 책임과 규칙을 확인하지만 이 말은 일반적인 배경 설명일 뿐입니다.';
 assert.equal(themeAudit(distinctJudgments.map((keyJudgment,i)=>({id:'chapter'+i,keyJudgment,body:[vocabularyHeavy]}))).length,0,'Shared body vocabulary must not be treated as repeated chapter conclusions');
+const annualRepeated=[
+ {id:'year_2027_money',keyJudgment:'2027년에는 공식적 책임과 관리 기준이 중요해집니다.'},
+ {id:'year_2027_career',keyJudgment:'2027년에는 사회적 역할과 규칙을 중시합니다.'},
+ {id:'year_2027_relationship',keyJudgment:'2027년 관계에서는 책임 분배와 관리가 강조됩니다.'}
+];
+assert(themeAudit(annualRepeated).some(x=>x.includes('2027 domain chapters repeat')));
+assert.equal(themeAudit([annualRepeated[0],{id:'year_2027_career',keyJudgment:'2027년 업무에서 새로 계산된 십성을 확인합니다.'},{id:'year_2027_relationship',keyJudgment:'해당 연간 지지와 원국에 충이 계산되지 않았습니다.'}]).length,0);
+
 
 
 const shared='시간을 충분히 들여 여러 선택지의 장단점을 비교하며 결정을 고른 뒤에는 주변 상황과 필요한 절차를 다시 검토한다. 이 과정을 마치면 다른 사람에게도 선택의 이유를 충분히 설명하려고 한다.';
