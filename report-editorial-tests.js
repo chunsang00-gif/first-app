@@ -204,6 +204,15 @@ const sandbox={module:{exports:{}},process:{env:{}},require:n=>n==='./report-fac
 vm.runInNewContext(fs.readFileSync(require.resolve('./report-server-contract'),'utf8'),sandbox);
 const repeatedTopics=sandbox.module.exports.findRepeatedTopicContent;
 const paraphrases=sandbox.module.exports.findParaphrasedTopicContent;
+const adviceAudit=sandbox.module.exports.findRepeatedAdvice;
+const recurring=[
+ {id:'money',body:['돈을 쓰기 전에 기준을 확인하고 결정을 내립니다.']},
+ {id:'career',body:['직업을 선택할 때 근거를 검토한 다음 판단합니다.']},
+ {id:'relationship',body:['관계에서 선택하기 전에 서로 확인하는 것이 중요합니다.']}
+];
+assert(adviceAudit(recurring).some(x=>x.includes('verify-before-deciding')));
+assert.equal(adviceAudit([{id:'money',body:['지출을 기록합니다.']},{id:'career',body:['업무 일정을 계획합니다.']},{id:'relationship',body:['상대의 말을 듣습니다.']}]).length,0);
+
 const overlapA='생각을 충분히 정리하고 자료를 확인한 뒤에 결정하는 방식이 반복됩니다. 상대방의 설명을 듣고 책임지는 범위를 구별한 다음 다시 검토하는 행동이 나타납니다.';
 const overlapB='자료를 확인하고 생각을 충분히 정리한 뒤에 결정하는 방식이 나타납니다. 다시 검토하는 행동이 반복되며 상대방의 설명을 듣고 책임지는 범위를 구별합니다.';
 const distinct='2027년 계절에 해당하는 월별 지지의 충합은 실제로 계산되지 않았으며 예측할 수 없는 미래 사건과 구별해야 합니다. 그 대신 입력 시각에 따른 한계를 정확히 밝힙니다.';
