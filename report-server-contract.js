@@ -205,7 +205,6 @@ async function generate(input,callModel,onProgress=()=>{}){const packet=facts.bu
    priorEvidence.set(key,section.id);
   }
   const topicDuplicates=findRepeatedTopicContent([...priorSections.map(s=>({id:s.id,body:s.topicConclusions,bodyTopics:s.bodyTopics})),...result.sections]);
-  topicDuplicates.push(...findParaphrasedTopicContent([...priorSections.map(s=>({id:s.id,body:s.topicConclusions,bodyTopics:s.bodyTopics})),...result.sections]));
   if(topicDuplicates.length){
    console.error('[Report batch repeated topics]',{requestedIds:ids,errors:topicDuplicates});
    throw Error('AI report service returned duplicated topic explanations');
@@ -225,7 +224,7 @@ async function generate(input,callModel,onProgress=()=>{}){const packet=facts.bu
  // gate below remains mandatory; no automatic paid rewrite or retry is issued.
  // Stop before paying for synthesis when chapters already recycle the same thesis.
  // No extra model call, and the rejected draft remains available for operator QA.
- const repeatedErrors=findRecycledThemes(sections);
+ const repeatedErrors=[...findRecycledThemes(sections),...findParaphrasedTopicContent(sections)];
  if(repeatedErrors.length){
   const report={meta,sections,cover:null,finalJudgment:null};
   return {status:'rejected',report,qa:{pass:false,errors:repeatedErrors,warnings:[]},headingRepairs:[],stoppedBeforeSynthesis:true};
