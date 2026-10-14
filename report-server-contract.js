@@ -51,8 +51,8 @@ function findRepeatedAdvice(sections){
  for(const rule of rules){
   const owners=[];
   for(const section of sections){
-   const body=[section.keyJudgment,...(section.body||[])].join(' ');
-   if(rule.action.test(body)&&rule.condition.test(body))owners.push(section.id);
+   const sentences=[section.keyJudgment,...(section.body||[])].flatMap(part=>String(part||'').split(/[.!?。！？\\n]+/)).map(s=>s.trim()).filter(Boolean);
+   if(sentences.some(sentence=>rule.action.test(sentence)&&rule.condition.test(sentence)))owners.push(section.id);
   }
   if(new Set(owners).size>=3)hits.push('repeated advice motif ('+rule.id+'): '+[...new Set(owners)].join(' / '));
  }
