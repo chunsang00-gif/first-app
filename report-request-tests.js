@@ -269,6 +269,25 @@ const {createQueue,retryDelay,rateLimitKind}=require('./report-request-control')
  }finally{global.fetch=savedFetch;for(const [key,value] of [['OPENAI_API_KEY',savedKey],['REPORT_MODEL',savedModel]])if(value===undefined)delete process.env[key];else process.env[key]=value}
  assert.equal(require('./report-schema.json').properties.finalJudgment.properties.routines.minItems,0);
  assert.equal(require('./report-schema.json').properties.sections.items.properties.body.minItems,1);
+ // Whole-planner/schema offline matrix: diverse persons and missing birth time.
+ for(const sample of [
+  {calendar:'solar',birthDate:'1990-05-15',birthTime:'10:30',gender:'male',mbti:'INTJ'},
+  {calendar:'solar',birthDate:'1994-11-09',birthTime:'18:20',gender:'female',mbti:'ISFP'},
+  {calendar:'solar',birthDate:'1990-06-15',unknownBirthTime:true,gender:'male',mbti:'INFP'},
+  {calendar:'solar',birthDate:'1990-05-15',birthTime:'10:30',gender:'male',mbti:'모름'}
+ ]){
+  const packet=require('./report-facts-node').build(sample,2027);
+  assert.equal(packet.status,'ready');
+  const plan=require('./report-analysis-guidance').preflight(packet);
+  const ids=Object.keys(plan).filter(id=>!/^year_2027_(money|career|relationship)$/.test(id)||plan[id].annualDomainEvidence?.relevant);
+  for(const id of ids){
+   assert(plan[id].hasGroundedTopic,'no paid chapter without evidence: '+id);
+   const schema=wire.schemaFor({requestedSections:[id],includeFinal:false,includeCover:false,analysisGuidance:{editorialBlueprint:{[id]:plan[id]}}},sampleWireSchema);
+   const props=schema.properties.chapters.properties[id].properties.paragraphs.properties;
+   assert.equal(props[plan[id].anchorTopic].type,'object','schema must require the shared evidence anchor: '+id);
+   assert.equal(Object.keys(props).length,Object.keys(outlineForWire[id]).length,'all topic names retained in transport: '+id);
+  }
+ }
  console.log('PASS no automatic provider retry, no follow-up batches after failure, no continuation after missing topics');
  console.log('PASS shared request queue, failure recovery, Retry-After seconds/date, all 29 topics, 7 model calls, no full rewrite, synthesis after all chapters');
 })().catch(e=>{console.error(e);process.exitCode=1});
