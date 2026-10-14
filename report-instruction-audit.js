@@ -30,7 +30,9 @@ function inspect(prompt){
    // Fail closed if the actual provider schema cannot represent the planned output.
    const reportSchema=require('./report-schema.json');
    const wire=require('./report-wire');
-   const transport=wire.schemaFor({requestedSections:[id],includeFinal:false,includeCover:false,analysisGuidance:{editorialBlueprint:{[id]:plan}}},reportSchema);
+   let transport;
+   try{transport=wire.schemaFor({requestedSections:[id],includeFinal:false,includeCover:false,analysisGuidance:{editorialBlueprint:{[id]:plan}}},reportSchema)}
+   catch(err){errors.push('invalid transport plan: '+id+': '+err.message);continue}
    const slots=transport.properties.chapters.properties[id].properties.paragraphs.properties;
    for(const [topic,task] of Object.entries(plan.topicTasks||{})){
     const slot=slots[topic];
