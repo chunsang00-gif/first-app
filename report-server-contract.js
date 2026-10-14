@@ -250,8 +250,12 @@ async function generate(input,callModel,onProgress=()=>{},onValidatedBatch=()=>{
   const uses=[];
   for(const previous of priorSections){
    const tasks=editorialBlueprint[previous.id]?.topicTasks||{};
-   Object.keys(tasks).forEach((topic,index)=>{
+   Object.keys(tasks).forEach(topic=>{
     const entry=tasks[topic];
+    const index=Array.isArray(previous.bodyTopics)?previous.bodyTopics.indexOf(topic):-1;
+    // A skipped optional topic has no conclusion to reuse. Never attach the
+    // next topic's conclusion to its evidence path.
+    if(index<0) return;
     const paths=[entry.primaryEvidencePath,...(entry.verifiedFallbackPaths||[])].filter(p=>needed.has(p));
     for(const path of paths)uses.push({path,chapter:previous.id,topic,previousConclusion:String(previous.topicConclusions?.[index]||previous.keyJudgment||'').slice(0,240)});
    });
