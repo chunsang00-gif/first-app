@@ -178,6 +178,13 @@ run('paid quality gate permits distinct chapter evidence',()=>{
  assert.ok(!q.errors.some(x=>x.includes('reused evidence across chapters')),JSON.stringify(q.errors));
 });
 
+run('ordinary saju energy terminology is not an automatic quality rejection',()=>{
+ const report=mockReport();
+ const section=report.sections.find(x=>x.id==='mbti_contradiction');
+ section.body[0]='사주에서 화의 기운이 드러난다는 말은 계산된 오행 관계를 가리킵니다. MBTI와는 서로 다른 설명입니다.';
+ const result=Q.validate(report);
+ assert(!result.errors.some(x=>x.includes('abstract wording: 기운이')),'legitimate saju term must not trigger a blanket phrase ban');
+});
 run('MBTI paid chapter must visibly compare MBTI preference and calculated saju',()=>{
  const packet=F.build({calendar:'solar',birthDate:'1990-05-15',birthTime:'10:30',birthplace:'서울',gender:'male',mbti:'INTJ'});
  const report=mockReport();
