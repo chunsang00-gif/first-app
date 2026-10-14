@@ -178,6 +178,17 @@ run('paid quality gate permits distinct chapter evidence',()=>{
  assert.ok(!q.errors.some(x=>x.includes('reused evidence across chapters')),JSON.stringify(q.errors));
 });
 
+run('natal terminology can be explained in plain Korean without parentheses',()=>{
+ const packet=F.build({calendar:'solar',birthDate:'1990-05-15',birthTime:'10:30',birthplace:'서울',gender:'male',mbti:'INTJ'});
+ const report=mockReport();
+ const core=report.sections.find(x=>x.id==='saju_core');
+ core.body=['일간은 태어난 날의 하늘 글자를 뜻하며 전통적으로 자신을 설명할 때 기준으로 삼는 글자입니다. 월지는 태어난 달의 계절을 가리키는 글자입니다. 계산 근거와 실제 성격을 동일하게 확정할 수는 없습니다.'];
+ const checked=Q.validate(report,packet);
+ assert(!checked.errors.includes('saju_core: reader-facing natal analysis does not explain technical terms'));
+ core.body=['일간과 월지는 본인의 성격을 보여줍니다.'];
+ const unglossed=Q.validate(report,packet);
+ assert(unglossed.errors.includes('saju_core: reader-facing natal analysis does not explain technical terms'));
+});
 run('ordinary saju energy terminology is not an automatic quality rejection',()=>{
  const report=mockReport();
  const section=report.sections.find(x=>x.id==='mbti_contradiction');
