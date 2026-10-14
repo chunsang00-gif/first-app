@@ -32,7 +32,17 @@ if(resumePath){
   calls++;
   if(calls>7)throw Error('QA call cap exceeded');
   console.log('AI call '+calls+'/7, stage '+prompt.stage);
-  return callOpenAI(prompt);
+  const response=await callOpenAI(prompt);
+  // Preserve the paid response before downstream validation can reject it.
+  // This is a private diagnostic record, never a public log or automatic retry.
+  const rawFile=path.join(path.dirname(output),path.basename(output,'.json')+'-raw-calls.json');
+  const history=fs.existsSync(rawFile)?JSON.parse(fs.readFileSync(rawFile,'utf8')):{fingerprint,sample:input,calls:[]};
+  if(history.fingerprint!==fingerprint)throw Error('QA raw-call fingerprint mismatch');
+  history.calls.push({number:calls,stage:prompt.stage,requestedSections:prompt.requestedSections||[],response});
+  fs.writeFileSync(rawFile,JSON.stringify(history,null,2),{mode:0o600});
+  fs.chmodSync(rawFile,0o600);
+  console.log('Saved private QA model response:',calls);
+  return response;
  },()=>{},async batch=>{
   // Persist only batches that passed structural, factual, and reader checks.
   // This is diagnostic evidence, not an automatic paid retry or resume.
