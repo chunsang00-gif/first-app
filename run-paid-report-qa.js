@@ -3,6 +3,7 @@
 // No HTTP endpoint, no purchase bypass, no automatic retries.
 const fs=require('node:fs');
 const path=require('node:path');
+const crypto=require('node:crypto');
 const {build}=require('./report-facts-node');
 const {validateInput}=require('./input-validation');
 const {generate}=require('./report-server-contract');
@@ -16,6 +17,15 @@ if(!process.env.OPENAI_API_KEY||!process.env.REPORT_MODEL)throw Error('OpenAI ke
 if(validateInput(input).length)throw Error('QA sample input invalid');
 const packet=build(input,2027);
 if(packet.status!=='ready')throw Error('QA sample calculation failed');
+const fingerprint=crypto.createHash('sha256').update(JSON.stringify({input,chart:packet.chart,annual:packet.facts?.annualTenGods,model:process.env.REPORT_MODEL})).digest('hex');
+const resumePath=process.env.REPORT_QA_RESUME_FILE;
+let resumeBatches=[];
+if(resumePath){
+ const previous=JSON.parse(fs.readFileSync(resumePath,'utf8'));
+ if(previous.fingerprint!==fingerprint||!Array.isArray(previous.batches))throw Error('QA resume fingerprint or batches mismatch');
+ resumeBatches=previous.batches;
+ console.log('Validated resume metadata; cached batches:',resumeBatches.length);
+}
 (async()=>{
  let calls=0;
  const result=await generate(input,async prompt=>{
@@ -26,12 +36,12 @@ if(packet.status!=='ready')throw Error('QA sample calculation failed');
  },()=>{},async batch=>{
   // Persist only batches that passed structural, factual, and reader checks.
   // This is diagnostic evidence, not an automatic paid retry or resume.
-  const previous=fs.existsSync(checkpoint)?JSON.parse(fs.readFileSync(checkpoint,'utf8')):{sample:input,batches:[]};
+  const previous=fs.existsSync(checkpoint)?JSON.parse(fs.readFileSync(checkpoint,'utf8')):{fingerprint,sample:input,batches:resumeBatches.slice()};
   previous.batches.push(batch);
   fs.writeFileSync(checkpoint,JSON.stringify(previous,null,2),{mode:0o600});
   fs.chmodSync(checkpoint,0o600);
   console.log('Saved validated QA batch; sections:',batch.completedSections);
- });
+ },resumeBatches);
  const file=path.resolve(output);
  fs.writeFileSync(file,JSON.stringify({sample:input,status:result.status,calls,qa:result.qa,report:result.report},null,2),{flag:'wx',mode:0o600});
  console.log('QA result saved to private path: '+file);
