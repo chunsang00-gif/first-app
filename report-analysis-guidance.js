@@ -118,6 +118,24 @@ function preflight(packet){
     interpretationBoundary:mode==='use-primary'?'전통적 해석의 연결 가능성만 설명하고 실제 행동으로 입증된 것처럼 단정하지 않는다.':mode==='use-verified-fallback'?'우선 계산값이 없으므로 실제 확인된 보조 근거만 사용한다. 보조 근거를 주된 근거처럼 말하거나 사건을 단정하지 않는다.':'다른 세부 항목의 성격 설명으로 채우지 말고 이 질문에서 판단할 수 없는 범위를 밝힌다.'}];
   }));
  }
+ // Annual domain gates are calculated facts, never predicted real-life events.
+ // The annual stem is shared across domains, so it alone cannot justify
+ // three independent predictions. Require a distinct supported connection.
+ const annual=packet.facts?.annualTenGods;
+ const domains={
+  year_2027_money:{related:/재성|식상|정재|편재|식신|상관/,question:'금전'},
+  year_2027_career:{related:/관성|인성|정관|편관|정인|편인/,question:'일'},
+  year_2027_relationship:{related:/비견|겁재|정관|편관|정재|편재/,question:'관계'}
+ };
+ const annualLabels=[annual?.stemTenGod,...(annual?.hiddenStems||[]).map(x=>x.tenGod)].filter(Boolean).join(' ');
+ for(const [id,domain] of Object.entries(domains)){
+  const plan=plans[id];
+  const explicitRelation=id==='year_2027_relationship'&&(packet.facts?.targetYearRelations||[]).some(x=>x.between==='day');
+  const relevant=domain.related.test(annualLabels)||explicitRelation;
+  plan.annualDomainEvidence={relevant,source:relevant?(explicitRelation?'facts.targetYearRelations:day':'facts.annualTenGods'):'none',
+   rule:relevant?'계산된 관계만 설명하고 실제 사건이나 시기를 단정하지 않는다.':'해당 분야의 직접적인 연간 근거가 확인되지 않았다. 공통 책임·관리 성격 설명을 그 분야만의 새 운세로 쓰지 않는다.'};
+  if(!relevant)for(const task of Object.values(plan.topicTasks))task.annualDomainLimit='분야별 운세를 새로 예언하지 않고 계산상 직접 근거가 없음을 알린다.';
+ }
  const questions=Object.values(plans).map(x=>x.question);
  if(new Set(questions).size!==questions.length)throw Error('Report blueprint repeats an analysis question');
  if(Object.keys(plans).length!==12)throw Error('Report blueprint must cover twelve chapters');
