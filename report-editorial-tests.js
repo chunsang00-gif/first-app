@@ -320,7 +320,7 @@ for(const a of ['I','E'])for(const b of ['S','N'])for(const c of ['T','F'])for(c
 
    assert(p.analysisGuidance.editorialBlueprint[p.requestedSections[0]].question);
    assert(p.rules.mbtiDepthRule);assert.equal(p.priorSections.length,(calls-1)*2);
-  if(calls>1){assert(p.priorSections.every(s=>s.topicConclusions.length===s.bodyLabels.length)); assert(p.priorSections.every(s=>s.topicConclusions.every(t=>t.includes('이어지는 설명입니다.'))));}
+  if(calls>1){assert(p.priorSections.every(s=>s.topicConclusions.length===s.bodyLabels.length)); assert(p.priorSections.every(s=>s.topicConclusions.every(t=>t.includes('이어지는 설명입니다.')||(/^year_2027_(money|career|relationship)$/.test(s.id)&&t.includes('2027년')))),'unsupported annual paragraphs are replaced by grounded limits');}
   assert.deepEqual(Object.keys(p.analysisGuidance.chapterTasks),Array.from(p.requestedSections));
   assert.equal(p.analysisGuidance.mbtiReference.type,'ISFP');
   assert.equal(p.analysisGuidance.mbtiReference.preferences.map(x=>x.code).join(''),'ISFP');
