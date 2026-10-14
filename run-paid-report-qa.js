@@ -27,6 +27,12 @@ if(resumePath){
  resumeBatches=previous.batches;
  console.log('Validated resume metadata; cached batches:',resumeBatches.length);
 }
+// Never silently append to an old run: stale checkpoints could be mistaken for
+// verified chapters from the current run. A resume must explicitly name its source.
+if(!resumePath&&checkpoint&&fs.existsSync(checkpoint))
+ throw Error('Existing QA checkpoint: move it aside or explicitly set REPORT_QA_RESUME_FILE before a paid call');
+if(resumePath&&checkpoint&&fs.existsSync(checkpoint)&&path.resolve(resumePath)!==path.resolve(checkpoint))
+ throw Error('Existing output checkpoint conflicts with the selected resume file');
 (async()=>{
  let calls=0;
  const result=await generate(input,async prompt=>{
