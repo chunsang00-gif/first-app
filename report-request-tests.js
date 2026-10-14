@@ -6,6 +6,12 @@ const {createQueue,retryDelay,rateLimitKind}=require('./report-request-control')
  assert.equal(rateLimitKind('tokens per min: Limit 10,000, Used 0, Requested 12,300','rate_limit_exceeded'),'request exceeds token limit');
  assert.equal(rateLimitKind('tokens per min: Limit 30,000, Used 29,000, Requested 2,000','rate_limit_exceeded'),'token rate limit');
  assert.equal(rateLimitKind('', 'insufficient_quota'),'quota exhausted');
+ const mbtiGuidance=require('./report-analysis-guidance').forRequest(['mbti_contradiction','integrated_judgment'],'ISFP').mbtiReference;
+ assert.equal(mbtiGuidance.type,'ISFP');
+ assert(mbtiGuidance.application.includes('구체적인 선택 상황'));
+ assert(mbtiGuidance.application.includes('실제 계산된 사주 항목'));
+ assert(mbtiGuidance.application.includes('비교 한계'));
+ assert.equal(require('./report-analysis-guidance').forRequest(['mbti_contradiction'],'모름').mbtiReference,null);
  const wire=require('./report-wire');
  const outlineForWire=require('./report-outline').topics;
  const sampleWireSchema={properties:{sections:{items:{properties:{title:{type:'string'},keyJudgment:{type:'string'},evidence:{type:'array',items:{type:'string'}},mood:{type:'string'}}}},finalJudgment:{type:'object'},cover:{type:'object'}}};
