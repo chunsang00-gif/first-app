@@ -9,6 +9,11 @@ assert.equal(offlineResult.topicCount,2);
 assert(offlineResult.originalErrors.includes('historic rejection'));
 assert.throws(()=>offlineReplay({report:{sections:null}}),/report.sections/);
 
+const hanjaFindings=require('./inspect-paid-qa').inspect({calls:[{number:6,response:{sections:[{id:'year_2027_career',title:'직업운',keyJudgment:'丁未년 직업 판단',body:['한글 문장'],bodyLabels:['관계']}]}}]});
+assert.equal(hanjaFindings.length,2);
+assert(hanjaFindings.every(x=>x.section==='year_2027_career'&&x.field==='keyJudgment'));
+assert.deepEqual(require('./inspect-paid-qa').inspect({calls:[{number:1,response:{sections:[{id:'career',body:['일반적인 문장']} ]}}]}),[]);
+assert.throws(()=>require('./inspect-paid-qa').inspect({}),/raw-calls/);
 const fixture=()=>({sections:quality.IDS.map((id,i)=>({id,title:'제목'+i,keyJudgment:'판정'+i,evidence:['계산한 사주 항목의 설명입니다.'],body:['문단'+i]})),finalJudgment:{body:['마지막 설명'],closingQuestion:'꼼꼼하게 확인하느라 결정을 늦출 때는, 오늘 확인할 내용을 먼저 정하는 것이 도움이 됩니다.',afterClosingText:''}});
 for(const phrase of require('./report-editorial').awkwardPhrases){const r=fixture();r.sections[0].body=[phrase];assert(quality.validate(r).errors.includes('unnatural Korean: '+phrase));}
 const injectors=[
