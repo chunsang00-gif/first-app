@@ -25,7 +25,13 @@ function findRecycledThemes(sections){
   {name:'responsibility-and-rules',a:/책임|규칙|절차|기준/,b:/확인|설명|납득|검토/}
  ];
  return themes.flatMap(theme=>{
-  const owners=sections.filter(s=>theme.a.test([s.keyJudgment,...(s.body||[])].join(' '))&&theme.b.test([s.keyJudgment,...(s.body||[])].join(' '))).map(s=>s.id);
+  // Count the repeated thesis only when BOTH motifs appear in the chapter's
+  // own main conclusion. Shared technical vocabulary in long body sections
+  // cannot, by itself, convict a genuinely different chapter.
+  const owners=sections.filter(s=>{
+   const thesis=String(s.keyJudgment||'');
+   return theme.a.test(thesis)&&theme.b.test(thesis);
+  }).map(s=>s.id);
   return owners.length>=5?['cross-chapter recycled thesis ('+theme.name+'): '+owners.join(' / ')]:[];
  });
 }
