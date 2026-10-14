@@ -314,6 +314,15 @@ const {createQueue,retryDelay,rateLimitKind}=require('./report-request-control')
    assert.equal(Object.keys(props).length,Object.keys(outlineForWire[id]).length,'all topic names retained in transport: '+id);
   }
  }
+ const audit=require('./report-instruction-audit');
+ const validAuditPayload={stage:'body',requestedSections:['saju_core'],facts:{facts:{}},analysisGuidance:{editorialBlueprint:{}},
+  rules:{paragraphGuide:'state-limits 항목은 null로 둔다',tone:'전통 해석과 사실을 구별한다',narrativeRule:'근거 없으면 문단 수를 강요하지 않는다'},
+  planningInstruction:'state-limits 항목은 null'};
+ assert.deepEqual(audit.inspect(validAuditPayload),[],'valid complete instructions pass');
+ assert(audit.inspect({...validAuditPayload,rules:{...validAuditPayload.rules,narrativeRule:'12개 장과 29개 항목을 모두 채운다'}}).some(x=>x.includes('obsolete forced quota')),'old fixed-quantity prompt is rejected');
+ assert(audit.inspect({...validAuditPayload,rules:{...validAuditPayload.rules,paragraphGuide:'각 장마다 문단을 강제'}}).some(x=>x.includes('paragraph instruction')),'overriding null policy is rejected');
+ const groundedAudit={...validAuditPayload,facts:{facts:{tenGods:{day:{}},structuralEvidence:{}}},analysisGuidance:{editorialBlueprint:{saju_core:{hasGroundedTopic:false,topicTasks:{},anchorTopic:null}}}};
+ assert(audit.inspect(groundedAudit).some(x=>x.includes('ungrounded chapter')),'missing calculation evidence blocks provider request');
  console.log('PASS no automatic provider retry, no follow-up batches after failure, no continuation after missing topics');
  console.log('PASS shared request queue, failure recovery, Retry-After seconds/date, all 29 topics, 7 model calls, no full rewrite, synthesis after all chapters');
 })().catch(e=>{console.error(e);process.exitCode=1});
