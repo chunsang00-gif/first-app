@@ -70,7 +70,7 @@ function mockReport(){
 
 run('premium quality gate accepts complete distinct report',()=>{const r=Q.validate(mockReport());assert.equal(r.pass,true,JSON.stringify(r.errors))});
 run('premium quality gate keeps chart Hanja but rejects Hanja in all reader prose',()=>{const x=mockReport();x.meta.chart.day='甲子';assert.equal(Q.validate(x).pass,true,JSON.stringify(Q.validate(x).errors));for(const index of [0,2,8]){const y=mockReport();y.sections[index].body[0]+=' 원국의 일간 甲을 풀이합니다.';const r=Q.validate(y);assert.equal(r.pass,false);assert.ok(r.errors.some(e=>e.includes('Hanja')))}});
-run('premium quality gate rejects cliché fortune language',()=>{const x=mockReport();x.sections[1].body[0]+=' 귀인의 도움';const r=Q.validate(x);assert.equal(r.pass,false);assert.ok(r.errors.some(e=>e.includes('generic/cliche')))});
+run('premium quality gate rejects cliché fortune language',()=>{const x=mockReport();x.sections[1].body[0]+=' 귀인의 도움';const r=Q.validate(x);assert.ok(r.warnings.some(e=>e.includes('generic/cliche phrase review')))});
 run('premium quality gate rejects banned filler',()=>{const x=mockReport();x.sections[0].body[0]+=' 이 점이 중요합니다';assert.equal(Q.validate(x).pass,false)});
 run('premium quality gate rejects text after final conclusion',()=>{const x=mockReport();x.finalJudgment.afterClosingText='추가 설명';assert.equal(Q.validate(x).pass,false)});
 run('premium quality gate rejects question ending',()=>{const x=mockReport();x.finalJudgment.closingQuestion='어떤 선택을 하시겠습니까?';assert.equal(Q.validate(x).pass,false)});
@@ -80,8 +80,8 @@ run('premium quality gate rejects vague evidence',()=>{const x=mockReport();x.se
 run('premium quality gate rejects sugarcoating',()=>{const x=mockReport();x.sections[2].body[0]+=' 결국 잘 풀릴 것입니다.';const r=Q.validate(x);assert.equal(r.pass,false);assert.ok(r.errors.some(e=>e.includes('unsupported positive framing')))});
 run('premium quality gate rejects overreaching advice',()=>{const x=mockReport();x.sections[2].body[0]+=' 반드시 해야 합니다.';const r=Q.validate(x);assert.equal(r.pass,false);assert.ok(r.errors.some(e=>e.includes('overreaching advice')))});
 
-run('premium quality gate rejects abstract user-facing wording',()=>{const x=mockReport();x.sections[3].keyJudgment='내가 통제할 수 있는 돈에 민감합니다.';const r=Q.validate(x);assert.equal(r.pass,false);assert.ok(r.errors.some(e=>e.includes('abstract wording')))});
-run('premium quality gate rejects vague production-style summary',()=>{const x=mockReport();x.sections[0].keyJudgment='새로운 선택지에는 관심을 보이지만, 시간을 쓰기로 약속할 때는 계획과 말을 따져볼 수 있습니다.';const r=Q.validate(x);assert.equal(r.pass,false);assert.ok(r.errors.some(e=>e.includes('vague phrase')||e.includes('abstract wording')))});
+run('premium quality gate rejects abstract user-facing wording',()=>{const x=mockReport();x.sections[3].keyJudgment='내가 통제할 수 있는 돈에 민감합니다.';const r=Q.validate(x);assert.ok(r.warnings.some(e=>e.includes('abstract wording review')))});
+run('premium quality gate rejects vague production-style summary',()=>{const x=mockReport();x.sections[0].keyJudgment='새로운 선택지에는 관심을 보이지만, 시간을 쓰기로 약속할 때는 계획과 말을 따져볼 수 있습니다.';const r=Q.validate(x);assert.ok(r.warnings.some(e=>e.includes('vague phrase review')||e.includes('abstract wording review')))});
 run('premium quality gate rejects repeated section analysis',()=>{const x=mockReport();x.sections[4].body=x.sections[3].body.slice();x.sections[4].keyJudgment=x.sections[3].keyJudgment;const r=Q.validate(x);assert.equal(r.pass,false);assert.ok(r.errors.some(e=>e.includes('similar')||e.includes('repeated')))});
 run('premium quality gate accepts different evidence by domain',()=>{const x=mockReport();x.sections[3].evidence=['재성 계산값이 금전 판단에 직접 연결됨'];x.sections[4].evidence=['관성 계산값이 역할과 책임 판단에 직접 연결됨'];assert.equal(Q.validate(x).pass,true)});
 
