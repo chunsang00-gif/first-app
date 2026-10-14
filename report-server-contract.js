@@ -99,7 +99,7 @@ function narrativeMotifLedger(sections){
 // A missing *domain-specific* annual calculation cannot be turned into a paid
 // prediction by borrowing natal traits or generic annual responsibility motifs.
 // Replace unsupported domain prose deterministically, with no new model call.
-function enforceAnnualEvidenceLimits(result,plans){
+function enforceAnnualEvidenceLimits(result,plans,packet){
  const limits={
   year_2027_money:{field:'금전',title:'2027년 금전 변화는 확인할 근거가 부족합니다',judgment:'2027년 계산만으로 수입이나 지출이 평소와 달라진다고 판단할 직접 근거가 없습니다.',first:'2027년 계산에서 금전 분야에 바로 연결되는 관계가 확인되지 않았습니다. 출생 사주에서 돈을 다루는 태도를 해석할 수 있어도, 그것만으로 올해의 수입이나 지출이 달라진다고 말할 수 없습니다.',second:'올해 특정 금전 기회나 손실이 생길지, 언제 얼마가 움직일지는 이 자료로 알 수 없습니다. 실제 소득이나 지출 자료가 없으므로 금액과 시기를 만들어 예측하지 않습니다.'},
   year_2027_career:{field:'직업',title:'2027년 직업 변화는 계산만으로 단정할 수 없습니다',judgment:'2027년 계산에서 새로운 업무나 직위 변화를 뒷받침할 직접적인 근거가 확인되지 않았습니다.',first:'2027년 계산값 중 직업 분야의 변화를 독립적으로 설명할 만한 관계가 확인되지 않았습니다. 평소 일하는 방식에 대한 사주 풀이는 가능하지만, 그것을 올해 새로운 업무나 평가가 생긴다는 뜻으로 바꾸지 않습니다.',second:'승진이나 이직, 맡는 업무가 바뀌는 시기는 실제 채용·조직 상황을 알아야 검토할 수 있습니다. 현재 계산만으로 어떤 변화가 일어난다고 결론 내릴 수 없습니다.'},
@@ -108,7 +108,13 @@ function enforceAnnualEvidenceLimits(result,plans){
  return {...result,sections:(result.sections||[]).map(s=>{
   const plan=plans[s.id],v=limits[s.id];
   if(!v||plan?.generationMode!=='evidence-limit-only')return s;
-  return {...s,title:v.title,keyJudgment:v.judgment,bodyLabels:['올해 '+v.field+' 분야에서 확인된 계산의 범위','올해 '+v.field+' 분야에서 확인할 수 없는 실제 사건'],body:[v.first,v.second],evidence:['2027년의 계산에서 '+v.field+' 분야에 직접 연결되는 연간 근거가 확인되지 않았습니다.'],mood:'cautious'};
+  // Explain which personal annual calculation was actually checked. A generic
+  // limitation template alone is not a paid interpretation.
+  const stemTenGod=packet?.facts?.annualTenGods?.stemTenGod;
+  const label=typeof stemTenGod==='string'&&/^(?:비견|겁재|식신|상관|편재|정재|편관|정관|편인|정인)$/.test(stemTenGod)?stemTenGod:null;
+  const personallyGrounded=label?'2027년의 하늘 글자는 이 사람의 출생 사주와 비교하면 '+label+'으로 분류됩니다. '+(plan.annualDomainEvidence?.source==='none'?'하지만 이 분류만으로 '+v.field+' 분야의 사건이나 변화가 확인되는 것은 아닙니다.':'이 분류만으로 사건의 발생을 확정하지 않습니다.'):'';
+  const extraEvidence=label?['2027년 연간 십성: '+label+' (출생 일간을 기준으로 계산한 관계)']:[];
+  return {...s,title:v.title,keyJudgment:v.judgment,bodyLabels:['2027년 '+v.field+' 관련 계산 확인','2027년 '+v.field+' 사건의 판단 한계'],body:[personallyGrounded+v.first,v.second],evidence:[...extraEvidence,'2027년의 계산에서 '+v.field+' 분야에 직접 연결되는 연간 근거가 확인되지 않았습니다.'],mood:'cautious'};
  })};
 }
 async function generate(input,callModel,onProgress=()=>{},onValidatedBatch=()=>{},resumeBatches=[]){const packet=facts.build(input,2027);if(packet.status!=='ready')return {status:'blocked',packet};const base=buildPrompt(packet);
@@ -293,7 +299,7 @@ async function generate(input,callModel,onProgress=()=>{},onValidatedBatch=()=>{
    planningInstruction:'각 장은 editorialBlueprint의 서로 다른 질문을 먼저 해결한다. 특히 editorialBlueprint[id].topicTasks의 세부 항목마다 서로 다른 질문·primaryEvidencePath·mode를 먼저 확인한다. mode가 use-verified-fallback이면 verifiedFallbackPaths의 실제 계산 근거만 제한적으로 해석한다. mode가 state-limits이면 장황한 일반론으로 채우지 말고 해석할 수 없는 부분을 분명하게 알린다. 2027년 금전·일·관계 장은 editorialBlueprint[id].annualDomainEvidence.relevant를 반드시 확인한다. generationMode가 evidence-limit-only이면 두 세부 항목을 예언이나 성격 일반론으로 채우지 말고 독립 계산 정보의 부족과 분야별로 확인할 수 없는 범위를 각각 짧고 명확하게 설명한다. false면 근거 없는 금전 기회·승진·결혼 예측이나 공통 책임 성향을 꾸며 쓰지 않고 직접 근거가 없는 이유를 설명한다. 같은 명리 계산값을 여러 항목에서 사용해도 같은 행동 결론을 재생산하면 안 된다. 근거가 약한 항목은 장황한 성격 반복이 아니라 해당 질문에서 알 수 없는 범위를 명확히 쓴다. primary 근거가 없더라도 fallbackEvidencePaths에 실제 존재하는 계산 항목이 있으면 그것만 사용하여 제한적으로 풀이한다. negativeEvidence는 해당 충 관계가 계산되지 않았다는 뜻이지 모든 인간관계·연운의 변화가 없다는 뜻이 아니다. 대체 근거도 없으면 requiredMode에 따라 부족한 부분을 밝혀라. 근거가 없다고 성격이나 사건을 꾸며내지 않는다. 다른 장의 질문을 답하거나 논리·근거·책임 같은 표현을 분야만 바꾸어 반복하지 않는다.',
    editorialTask:'이 응답은 결제 고객에게 제공할 최종 본문 원고다. 각 topicPlan 질문에 계산된 근거가 실제로 답할 수 있는 부분을 먼저 선정하고, 해석의 이유·서로 다른 근거의 충돌·불리한 부분까지 읽는 사람이 이해할 수 있도록 완결된 문장으로 설명한다. 사주 원국 장에서는 일간·월지·십성의 실제 값과 위치를 본문에서 밝히고 처음 나오는 명리 용어를 괄호로 풀어 쓴다. MBTI 장에서는 정보를 받아들이는 선호와 판단 선호가 만나는 조건을 분석하고 실제 성격을 측정했다고 주장하지 않는다. 돈은 수입·지출·위험, 직업은 역할·학습·조직, 관계는 친밀감·표현·갈등으로 서로 다른 질문에 답한다. 2027년은 계산된 세운과 대운을 해당 분야에 연결할 수 있을 때만 평소와 다른 점을 밝힌다. priorSections와 같은 반응이나 조언을 직업·돈·관계라는 명사만 바꾸어 반복하지 않는다. 유효한 새 해석이 없으면 지어내지 말고 그 질문에 답할 수 있는 근거만 정확히 제시한다. 일반적 계약서 확인이나 소통하라는 상투적 조언, 사용자 과거 경험의 창작은 금지한다. 필수 bodyTopics 순서를 지키되 한 줄짜리 요약으로 분석을 대체하지 않고 한국어 문맥과 조사·서술어 호응을 점검한다. 별도 유료 재작성 호출은 하지 않는다.'
   }));
-  const result=validateBatch(enforceAnnualEvidenceLimits(modelResult,editorialBlueprint),ids);
+  const result=validateBatch(enforceAnnualEvidenceLimits(modelResult,editorialBlueprint,packet),ids);
   // Reject incomplete or unsupported model output before spending another provider call.
   // The final full-report editorial gate still runs after synthesis.
   const preliminary=quality.verifyEvidenceAgainstFacts({sections:result.sections},packet);
