@@ -10,7 +10,9 @@ function schemaFor(prompt,reportSchema){
   if(!topics[id])throw Error('unknown report section');
   const plan=prompt.analysisGuidance?.editorialBlueprint?.[id]?.topicTasks||{};
   const keys=Object.keys(topics[id]);
-  const anchor=keys.find(k=>plan[k]?.mode==='use-primary')||keys.find(k=>plan[k]?.mode==='use-verified-fallback')||keys[0];
+  const plannedAnchor=prompt.analysisGuidance?.editorialBlueprint?.[id]?.anchorTopic;
+  const anchor=plannedAnchor||keys.find(k=>plan[k]?.mode==='use-primary')||keys.find(k=>plan[k]?.mode==='use-verified-fallback')||keys[0];
+  if(plannedAnchor&&!keys.includes(plannedAnchor))throw Error('Invalid report chapter writing plan');
   // A paid chapter cannot consist entirely of null topics. When no interpretive
   // basis exists, the anchor must explain the specific limit, not invent behavior.
   return [id,object({title:section.title,keyJudgment:section.keyJudgment,evidence:section.evidence,mood:section.mood,
