@@ -155,7 +155,7 @@ function verifyEvidenceAgainstFacts(report,packet){
   if(!policy)continue;
   const dayClash=section.id==='year_2027_relationship'&&(packet?.facts?.targetYearRelations||[]).some(x=>x.type==='충'&&x.between==='day');
   const hasDomainEvidence=policy.related.test(annualLabels)||dayClash;
-  for(const paragraph of [section.keyJudgment,...(section.body||[])].map(norm)){
+  for(const paragraph of [section.title,section.keyJudgment,...(section.body||[]),...(section.evidence||[])].map(norm)){
    // Match and assess each sentence separately: a disclaimer in a later
    // sentence cannot legalize an earlier unqualified prediction.
    for(const sentence of paragraph.split(/[.!?。！？\n]+/).filter(Boolean)){
