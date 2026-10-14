@@ -25,7 +25,7 @@ const {createQueue,retryDelay,rateLimitKind}=require('./report-request-control')
  assert(generatedWireSchema.properties.chapters.properties.saju_core.properties.paragraphs.properties[nextTopic].anyOf.some(x=>x.type==='null'),'non-anchor topic can still be null');
  const stressWire=wire.schemaFor({requestedSections:['stress'],includeFinal:false,includeCover:false,analysisGuidance:{editorialBlueprint:{stress:{topicTasks:{trigger:{mode:'state-limits'},response:{mode:'use-primary'}}}}}},sampleWireSchema);
  const stressFields=stressWire.properties.chapters.properties.stress.properties.paragraphs.properties;
- assert(stressFields.trigger.anyOf.some(x=>x.type==='null'),'unsupported stress trigger may be skipped');
+ assert.equal(stressFields.trigger.type,'null','unsupported stress trigger must be null, not an invented narrative');
  assert.equal(stressFields.response.type,'object','the actually supported stress response must anchor the chapter');
  const decoded=wire.decode({chapters:{saju_core:{title:'기본 성향',keyJudgment:'판단을 확인합니다',evidence:['일간'],mood:'reflective',paragraphs:Object.fromEntries(Object.keys(outlineForWire.saju_core).map(t=>[t,t===oneTopic?{label:'핵심',text:'계산된 근거를 설명합니다'}:null]))}},cover:null,finalJudgment:null},wirePrompt);
  assert.deepEqual(decoded.sections[0].bodyTopics,[oneTopic],'null topics are omitted');
