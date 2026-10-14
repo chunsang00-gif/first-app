@@ -199,6 +199,10 @@ const themeAudit=sandbox.module.exports.findRecycledThemes;
 const patterned=(id)=>({id,keyJudgment:'책임과 기준에 따라 다시 확인합니다.',body:['업무를 맡을 때 기존 규칙을 설명하고 검토합니다.']});
 assert.equal(themeAudit(['a','b','c','d'].map(patterned)).length,0);
 assert(themeAudit(['a','b','c','d','e'].map(patterned)).some(x=>x.includes('responsibility-and-rules')));
+const distinctJudgments=['사주의 월지와 일간이 나타내는 계산값을 설명합니다.','입력된 성격 선호의 한계를 비교합니다.','변경할 선택 조건을 구분합니다.','지출과 보유에 관한 해석을 나눕니다.','실제 맡은 업무는 추정하지 않습니다.'];
+const vocabularyHeavy='논리와 근거를 설명하고 책임과 규칙을 확인하지만 이 말은 일반적인 배경 설명일 뿐입니다.';
+assert.equal(themeAudit(distinctJudgments.map((keyJudgment,i)=>({id:'chapter'+i,keyJudgment,body:[vocabularyHeavy]}))).length,0,'Shared body vocabulary must not be treated as repeated chapter conclusions');
+
 
 const shared='시간을 충분히 들여 여러 선택지의 장단점을 비교하며 결정을 고른 뒤에는 주변 상황과 필요한 절차를 다시 검토한다. 이 과정을 마치면 다른 사람에게도 선택의 이유를 충분히 설명하려고 한다.';
 assert(repeatedTopics([{id:'decision',bodyTopics:['approach'],body:[shared]},{id:'career',bodyTopics:['workstyle'],body:[shared]}]).some(x=>x.includes('repeated topic paragraph')));
