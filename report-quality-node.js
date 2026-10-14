@@ -194,10 +194,11 @@ function verifyEvidenceAgainstFacts(report,packet){
 function validate(r,packet){
  const errors=[],warnings=[];
  if(!r||!Array.isArray(r.sections))return {pass:false,errors:['sections missing'],warnings};
- if(r.sections.length!==12)errors.push(`sections must be 12, got ${r.sections.length}`);
+ const orderedIds=r.sections.map(s=>s?.id);
+ if(!orderedIds.length||!orderedIds.includes('saju_core'))errors.push('core section required');
+ if(orderedIds.some(id=>!IDS.includes(id))||JSON.stringify(orderedIds)!==JSON.stringify(IDS.filter(id=>orderedIds.includes(id))))errors.push('section id/order mismatch');
  r.sections.forEach((s,i)=>{
   if(!s||typeof s!=='object'){errors.push(`section ${i+1} invalid`);return}
-  if(s.id!==IDS[i])errors.push(`section ${i+1} id/order mismatch`);
   if(['depth-v2','concise-v1','concise-v2','concise-v3'].includes(r.meta?.versions?.schema)){
    const keys=Object.keys(require('./report-outline').topics[s.id]||{});
    if(!Array.isArray(s.bodyTopics)||!s.bodyTopics.length||s.bodyTopics.some(t=>!keys.includes(t))||JSON.stringify(s.bodyTopics)!==JSON.stringify(keys.filter(t=>s.bodyTopics.includes(t))))errors.push(s.id+': topics unknown or reordered');
