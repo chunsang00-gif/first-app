@@ -292,6 +292,15 @@ for(const a of ['I','E'])for(const b of ['S','N'])for(const c of ['T','F'])for(c
   assert(p.rules.readerProofRule.includes('불필요한 한자'));
   assert(p.rules.annualDeltaRule.includes('변화가 확인되지 않는다고'));
   assert.equal(Object.keys(p.analysisGuidance.editorialBlueprint).length,p.requestedSections.length);
+  const annualIds=['year_2027_money','year_2027_career','year_2027_relationship'];
+  const expectedAnnual=p.requestedSections.filter(id=>annualIds.includes(id));
+  assert.deepEqual(Object.keys(p.rules.annualDomainScopes),expectedAnnual);
+  for(const id of expectedAnnual){
+   const scope=p.rules.annualDomainScopes[id];
+   assert(scope.length>30);
+   assert(scope.includes(id==='year_2027_money'?'수입':id==='year_2027_career'?'업무':'친밀감'));
+  }
+
    assert(p.analysisGuidance.editorialBlueprint[p.requestedSections[0]].question);
    assert(p.rules.mbtiDepthRule);assert.equal(p.priorSections.length,(calls-1)*2);
   if(calls>1){assert(p.priorSections.every(s=>s.topicConclusions.length===s.bodyLabels.length)); assert(p.priorSections.every(s=>s.topicConclusions.every(t=>t.includes('이어지는 설명입니다.'))));}
