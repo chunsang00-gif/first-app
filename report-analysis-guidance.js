@@ -56,7 +56,7 @@ const chapterBlueprint={
 // Topic ownership is a fixed editorial distinction, not a claim about a person.
 // This prevents the same topic answer being requested by multiple chapters.
 const topicEvidencePaths={
- saju_core:{temperament:'facts.structuralEvidence.monthCommand',motivation:'facts.tenGods.day',strength:'facts.structuralEvidence.dayMasterRoots'},
+ saju_core:{temperament:'facts.structuralEvidence.monthCommand',strength:'facts.structuralEvidence.dayMasterRoots'},
  mbti_contradiction:{agreement:'person.mbti',difference:'facts.tenGods.month'},
  decision:{approach:'facts.tenGods.day',followthrough:'facts.natalClashes'},
  money:{earning:'facts.tenGods.month',spending:'facts.tenGods.day',risk:'facts.natalClashes'},
