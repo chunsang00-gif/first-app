@@ -1,8 +1,7 @@
 /* Concise report outline: merge overlapping reader questions. */
 const topics={
   "saju_core": {
-    "temperament": "사주에서 성격을 판단하는 핵심 근거",
-    "motivation": "원국의 서로 다른 위치가 같은 상황을 다르게 설명하는 조건",
+    "temperament": "원국의 일간·월지와 서로 다른 위치를 대조하여 기본 성향과 내적 차이를 함께 설명",
     "strength": "원국 해석에서 확인되는 유리한 조건과 불리한 조건의 구체적 구별"
   },
   "mbti_contradiction": {
@@ -54,4 +53,4 @@ const topics={
     "action": "결혼·이별을 예언하지 않고 관계의 거리감·갈등을 검토할 수 있는 조건"
   }
 };
-module.exports={topics,version:'concise-v2'};
+module.exports={topics,version:'concise-v3'};
