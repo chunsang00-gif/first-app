@@ -29,6 +29,18 @@ function inspect(prompt){
    const active=new Set(plan.activeTopicKeys||[]);
    for(const [topic,t] of Object.entries(plan.topicTasks||{}))if(t.mode==='state-limits'&&active.has(topic))errors.push('unsupported active topic: '+id+'/'+topic);
    if(/^year_2027_(money|career|relationship)$/.test(id)&&!plan.annualDomainEvidence?.relevant)errors.push('ungrounded annual domain: '+id);
+   // Compare the complete writing plan with the exact strict transport schema.
+   // This catches disagreements before a paid provider can return an empty chapter.
+   if(plan.anchorTopic&&plan.topicTasks){
+    const expectedTopics=Object.keys(require('./report-outline').topics[id]||{});
+    const taskTopics=Object.keys(plan.topicTasks);
+    if(JSON.stringify(expectedTopics)!==JSON.stringify(taskTopics))errors.push('plan/outline topic mismatch: '+id);
+    const activeExpected=taskTopics.filter(topic=>plan.topicTasks[topic].mode!=='state-limits');
+    if(JSON.stringify(activeExpected)!==JSON.stringify(plan.activeTopicKeys))errors.push('active topic/order mismatch: '+id);
+    const primary=taskTopics.find(t=>plan.topicTasks[t].mode==='use-primary');
+    const fallback=taskTopics.find(t=>plan.topicTasks[t].mode==='use-verified-fallback');
+    if(plan.anchorTopic!==(primary||fallback||null))errors.push('noncanonical anchor selection: '+id);
+   }
   }
  }
  if(prompt?.stage==='synthesis'){
