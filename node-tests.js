@@ -178,6 +178,19 @@ run('paid quality gate permits distinct chapter evidence',()=>{
  assert.ok(!q.errors.some(x=>x.includes('reused evidence across chapters')),JSON.stringify(q.errors));
 });
 
+run('MBTI paid chapter must visibly compare MBTI preference and calculated saju',()=>{
+ const packet=F.build({calendar:'solar',birthDate:'1990-05-15',birthTime:'10:30',birthplace:'서울',gender:'male',mbti:'INTJ'});
+ const report=mockReport();
+ const section=report.sections.find(x=>x.id==='mbti_contradiction');
+ section.keyJudgment='상황에 따라 결정을 바꾸는 방식을 설명합니다.';
+ section.body=['같은 일을 선택할 때 이유를 꼼꼼히 살핍니다.'];
+ const missing=Q.validate(report,packet).errors;
+ assert(missing.includes('mbti comparison: visible MBTI preference interpretation missing'));
+ assert(missing.includes('mbti comparison: visible calculated saju comparison missing'));
+ section.body=['MBTI에서 사고형과 판단형은 정보를 비교하고 결론을 정하는 선호를 설명합니다. 사주에서 월지와 일간은 전통적으로 다른 질문에 답합니다.'];
+ const checked=Q.validate(report,packet).errors;
+ assert(!checked.some(x=>x.startsWith('mbti comparison:')));
+});
 run('reference case locks four pillars and 2027 annual stem relationships',()=>{
  const p=F.build({calendar:'solar',birthDate:'1990-05-15',birthTime:'10:30',birthplace:'서울',gender:'male',mbti:'INTJ'});
  assert.equal(p.status,'ready');
