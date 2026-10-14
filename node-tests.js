@@ -188,6 +188,9 @@ run('MBTI paid chapter must visibly compare MBTI preference and calculated saju'
  assert(missing.includes('mbti comparison: visible MBTI preference interpretation missing'));
  assert(missing.includes('mbti comparison: visible calculated saju comparison missing'));
  section.body=['MBTI에서 사고형과 판단형은 정보를 비교하고 결론을 정하는 선호를 설명합니다. 사주에서 월지와 일간은 전통적으로 다른 질문에 답합니다.'];
+ section.body=['MBTI 사고형은 판단 이유를 따지는 선호입니다. 사주 월지는 태어난 계절의 조건을 뜻합니다.'];
+ assert(Q.validate(report,packet).errors.includes('mbti comparison: no explicit relation between the two interpretations'),'naming both systems without comparing them must fail');
+ section.body=['MBTI 사고형의 판단 선호와 사주 월지의 해석은 같은 선택 상황을 서로 다른 관점에서 설명합니다.'];
  const checked=Q.validate(report,packet).errors;
  assert(!checked.some(x=>x.startsWith('mbti comparison:')));
 });
