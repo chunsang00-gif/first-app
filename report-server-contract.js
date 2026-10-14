@@ -163,12 +163,7 @@ async function generate(input,callModel,onProgress=()=>{}){const packet=facts.bu
    tradeoff:'같은 강점이 불리해지는 상황과 실제로 구분해 볼 행동'
   }
  };
- const domainBoundaries={
-  year_2027_money:'금전 질문만 다룬다. 계산 근거가 있을 때 수입·지출·자산 판단의 범위를 구별하고, 없으면 금전 사건을 예언하지 않는다. 직장 내 역할이나 관계에서의 설득·책임 조언으로 분량을 채우지 않는다.',
-  year_2027_career:'직업 질문만 다룬다. 계산 근거가 있을 때 업무 배치·직업 선택·역할 변화의 해석 한계를 구별하고, 없으면 승진·이직을 예언하지 않는다. 소비 관리나 인간관계 조언으로 분량을 채우지 않는다.',
-  year_2027_relationship:'관계 질문만 다룬다. 계산 근거가 있을 때 친밀감·갈등·상대와의 거리 조절에 관한 해석 범위를 구별하고, 없으면 만남·결혼·이별을 예언하지 않는다. 재정 계획이나 직무 책임 설명으로 분량을 채우지 않는다.'
- };
- const scopedGoals=(ids)=>Object.fromEntries(ids.map(id=>[id,(noMbti?noMbtiSectionGoals[id]:premiumGoals[id])+(domainBoundaries[id]?' '+domainBoundaries[id]:'')]));
+ const scopedGoals=(ids)=>Object.fromEntries(ids.map(id=>[id,noMbti?noMbtiSectionGoals[id]:premiumGoals[id]]));
  const validateBatch=(result,ids)=>{
   const fail=(reason,info={})=>{console.error('[Report batch incomplete]',{reason,requestedIds:ids,...info});throw Error('AI report service returned invalid report structure')};
   if(!Array.isArray(result?.sections))fail('sections not array');
