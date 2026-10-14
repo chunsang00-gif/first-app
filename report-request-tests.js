@@ -323,6 +323,10 @@ const {createQueue,retryDelay,rateLimitKind}=require('./report-request-control')
  assert(audit.inspect({...validAuditPayload,rules:{...validAuditPayload.rules,paragraphGuide:'각 장마다 문단을 강제'}}).some(x=>x.includes('paragraph instruction')),'overriding null policy is rejected');
  const groundedAudit={...validAuditPayload,facts:{facts:{tenGods:{day:{}},structuralEvidence:{}}},analysisGuidance:{editorialBlueprint:{saju_core:{hasGroundedTopic:false,topicTasks:{},anchorTopic:null}}}};
  assert(audit.inspect(groundedAudit).some(x=>x.includes('ungrounded chapter')),'missing calculation evidence blocks provider request');
+ const blueprintAudit={...groundedAudit,analysisGuidance:{editorialBlueprint:{saju_core:{hasGroundedTopic:true,anchorTopic:'wrong',activeTopicKeys:['wrong'],topicTasks:{wrong:{mode:'use-primary'}}}}}};
+ assert(audit.inspect(blueprintAudit).some(x=>x.includes('plan/outline topic mismatch')),'stale topic plan cannot reach model');
+ assert(audit.inspect(blueprintAudit).some(x=>x.includes('noncanonical anchor selection'))===false,'anchor check should compare supported plan entries, not fictional keys');
+
  console.log('PASS no automatic provider retry, no follow-up batches after failure, no continuation after missing topics');
  console.log('PASS shared request queue, failure recovery, Retry-After seconds/date, all 29 topics, 7 model calls, no full rewrite, synthesis after all chapters');
 })().catch(e=>{console.error(e);process.exitCode=1});
