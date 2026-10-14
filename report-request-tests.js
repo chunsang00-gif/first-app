@@ -99,7 +99,16 @@ const {createQueue,retryDelay,rateLimitKind}=require('./report-request-control')
  assert.equal(normalized.sections[0].bodyLabels.length,1,'fallback label must match its paragraph');
  assert.equal(contract.enforceAnnualEvidenceLimits(limitedResponse,{year_2027_relationship:{generationMode:'evidence-grounded'}}).sections[0].keyJudgment,limitedResponse.sections[0].keyJudgment,'supported annual chapter must retain model interpretation');
  const sampleInput={calendar:'solar',birthDate:'1990-06-15',unknownBirthTime:true,gender:'male',mbti:'INFP'};
- const blueprint=require('./report-analysis-guidance').preflight(require('./report-facts-node').build(sampleInput,2027));
+ const blueprint=require('./report-analysis-guidance').preflight(require('./report-facts-node').build(sampleInput,2027)); 
+  const canonicalPlan=require('./report-analysis-guidance').preflight(require('./report-facts-node').build(sampleInput,2027));
+  for(const [id,chapter] of Object.entries(canonicalPlan)){
+   const tasks=Object.entries(chapter.topicTasks);
+   const expectedAnchor=tasks.find(([,t])=>t.mode==='use-primary')||tasks.find(([,t])=>t.mode==='use-verified-fallback');
+   assert.equal(chapter.anchorTopic,expectedAnchor?.[0]||null,'chapter anchor must be derived from available evidence: '+id);
+   assert.deepEqual(chapter.activeTopicKeys,tasks.filter(([,t])=>t.mode!=='state-limits').map(([k])=>k),'only grounded topics may be active: '+id);
+   assert.equal(chapter.hasGroundedTopic,!!expectedAnchor,'preflight gate must agree with model plan: '+id);
+  }
+
  const originalBatches=[['saju_core','mbti_contradiction'],['decision','stress'],['money','career'],['relationship','integrated_judgment'],['year_2027','year_2027_money'],['year_2027_career','year_2027_relationship']];
  const expectedBatches=originalBatches.map(ids=>ids.filter(id=>!['year_2027_money','year_2027_career','year_2027_relationship'].includes(id)||blueprint[id]?.annualDomainEvidence?.relevant)).filter(ids=>ids.length);
  const expectedCount=expectedBatches.flat().length;
