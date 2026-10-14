@@ -347,6 +347,18 @@ function validate(r,packet){
   if(owners.length>=5)errors.push('cross-chapter recycled thesis ('+motif.name+'): '+owners.join(' / '));
   else if(owners.length===4)warnings.push('cross-chapter motif review ('+motif.name+'): '+owners.join(' / '));
  }
+ // Paid QA regression: money, career and relationship must not sell the
+ // same central thesis as three distinct insights. Inspect key judgments only,
+ // so ordinary shared vocabulary in explanatory body text remains permissible.
+ const customerDomains=new Set(['money','career','relationship','year_2027_money','year_2027_career','year_2027_relationship']);
+ for(const motif of recycledMotifs){
+  const owners=r.sections.filter(section=>{
+   if(!customerDomains.has(section.id))return false;
+   const thesis=norm(section.keyJudgment||'');
+   return motif.a.test(thesis)&&motif.b.test(thesis);
+  }).map(section=>section.id);
+  if(owners.length>=3)errors.push('cross-domain recycled key judgment ('+motif.name+'): '+owners.join(' / '));
+ }
  // Annual domain assertions require more than a named ten-god. Flag observed
  // overreach from paid QA, not the traditional vocabulary itself.
  for(const section of r.sections.filter(s=>/^year_2027/.test(s.id))){
