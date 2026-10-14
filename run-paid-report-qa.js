@@ -8,6 +8,7 @@ const {build}=require('./report-facts-node');
 const {validateInput}=require('./input-validation');
 const {generate}=require('./report-server-contract');
 const {callOpenAI}=require('./server');
+const {inspect}=require('./inspect-paid-qa');
 const input={calendar:'solar',birthDate:'1990-05-15',birthTime:'10:30',gender:'male',birthplace:'서울',mbti:'INTJ',name:'검증용'};
 const output=process.env.REPORT_QA_OUTPUT;
 const checkpoint=output?path.join(path.dirname(output),path.basename(output,'.json')+'-checkpoint.json'):null;
@@ -42,6 +43,11 @@ if(resumePath){
   fs.writeFileSync(rawFile,JSON.stringify(history,null,2),{mode:0o600});
   fs.chmodSync(rawFile,0o600);
   console.log('Saved private QA model response:',calls);
+  const findings=inspect(history);
+  const findingsFile=path.join(path.dirname(output),path.basename(output,'.json')+'-hanja-findings.json');
+  fs.writeFileSync(findingsFile,JSON.stringify({findings},null,2),{mode:0o600});
+  fs.chmodSync(findingsFile,0o600);
+  if(findings.length)console.log('Private Hanja findings recorded:',findings.length);
   return response;
  },()=>{},async batch=>{
   // Persist only batches that passed structural, factual, and reader checks.
