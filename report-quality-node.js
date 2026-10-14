@@ -154,10 +154,15 @@ function verifyEvidenceAgainstFacts(report,packet){
   const policy=annualDomains[section.id];
   if(!policy)continue;
   const dayClash=section.id==='year_2027_relationship'&&(packet?.facts?.targetYearRelations||[]).some(x=>x.type==='충'&&x.between==='day');
-  if(policy.related.test(annualLabels)||dayClash)continue;
-  for(const sentence of [section.keyJudgment,...(section.body||[])].map(norm)){
-   if(policy.forecast.test(sentence)&&!/(?:단정할 수 없|예측할 수 없|확인할 수 없|의미하지 않|보장하지 않)/.test(sentence))
-    errors.push(section.id+': unsupported 2027 domain outcome prediction');
+  const hasDomainEvidence=policy.related.test(annualLabels)||dayClash;
+  for(const paragraph of [section.keyJudgment,...(section.body||[])].map(norm)){
+   // Match and assess each sentence separately: a disclaimer in a later
+   // sentence cannot legalize an earlier unqualified prediction.
+   for(const sentence of paragraph.split(/[.!?。！？\\n]+/).filter(Boolean)){
+    if(!policy.forecast.test(sentence))continue;
+    const qualified=/(?:단정할 수 없|예측할 수 없|확인할 수 없|의미하지 않|보장하지 않)/.test(sentence);
+    if(!qualified)errors.push(section.id+': '+(hasDomainEvidence?'categorical':'unsupported')+' 2027 domain outcome prediction');
+   }
   }
  }
  const annualGod=packet?.facts?.annualTenGods?.stemTenGod;
