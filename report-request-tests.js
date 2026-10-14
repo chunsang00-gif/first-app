@@ -37,6 +37,10 @@ const {createQueue,retryDelay,rateLimitKind}=require('./report-request-control')
  assert.deepEqual(resumeCalls,['year_2027_career,year_2027_relationship','synthesis'],'resume must skip five provider body calls');
  assert.equal(resumed.status,'rejected','resume does not bypass final quality gate');
  await assert.rejects(contract.generate({calendar:'solar',birthDate:'1990-06-15',unknownBirthTime:true,gender:'male',mbti:'INFP'},async()=>{throw Error('provider must not be called')},()=>{},()=>{},[checkpoints[1]]),/order mismatch/,'non-prefix checkpoint must fail closed');
+ // Tampered checkpoints must fail before any paid provider call.
+ const duplicateCheckpoints=JSON.parse(JSON.stringify(checkpoints.slice(0,2)));
+ duplicateCheckpoints[1].sections[0].body=duplicateCheckpoints[0].sections[0].body.slice();
+ await assert.rejects(contract.generate({calendar:'solar',birthDate:'1990-06-15',unknownBirthTime:true,gender:'male',mbti:'INFP'},async()=>{throw Error('provider must not be called')},()=>{},()=>{},duplicateCheckpoints),/QA resume repeated topic explanations|QA resume recycled chapter thesis/,'reused duplicate chapter text must be rejected before spending');
  assert.equal(mockedReport.status,'rejected','placeholder prose must never be accepted as a paid report');
  assert(mockedReport.qa.errors.length>0,'placeholder report should produce concrete quality failures');
  // A report created for one person must be rejected when checked against another.
