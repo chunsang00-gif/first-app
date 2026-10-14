@@ -16,6 +16,10 @@ assert.deepEqual(require('./inspect-paid-qa').inspect({calls:[{number:1,response
 assert.throws(()=>require('./inspect-paid-qa').inspect({}),/raw-calls/);
 const fixture=()=>({sections:quality.IDS.map((id,i)=>({id,title:'제목'+i,keyJudgment:'판정'+i,evidence:['계산한 사주 항목의 설명입니다.'],body:['문단'+i]})),finalJudgment:{body:['마지막 설명'],closingQuestion:'꼼꼼하게 확인하느라 결정을 늦출 때는, 오늘 확인할 내용을 먼저 정하는 것이 도움이 됩니다.',afterClosingText:''}});
 for(const phrase of require('./report-editorial').awkwardPhrases){const r=fixture();r.sections[0].body=[phrase];assert(quality.validate(r).errors.includes('unnatural Korean: '+phrase));}
+for(const field of ['title','keyJudgment','bodyLabels','body']){
+ const report=fixture();report.sections[0][field]=field==='bodyLabels'||field==='body'?['丁未년 설명']:'丁未년 설명';
+ assert(quality.validate(report).errors.includes('saju_core: unnecessary Hanja in general-audience prose'),field+': Hanja must fail reader quality gate');
+}
 const injectors=[
  (r,t)=>r.sections[0].title=t,(r,t)=>r.sections[0].keyJudgment=t,
  (r,t)=>r.sections[0].bodyLabels=[t],(r,t)=>r.sections[0].evidence=[t],
