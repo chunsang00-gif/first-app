@@ -2,6 +2,9 @@
 // Required object keys make the 35 topics structural requirements. Parallel
 // arrays cannot guarantee equal lengths or the association of text and topic.
 const {topics}=require('./report-outline');
+const reader=require('./report-reader-policy');
+const visible=s=>reader.describe(s,reader.readerField);
+const paragraph=()=>object({label:visible({type:'string'}),text:visible({type:'string'})});
 const object=properties=>({type:'object',additionalProperties:false,required:Object.keys(properties),properties});
 function schemaFor(prompt,reportSchema){
  if(!Array.isArray(prompt?.requestedSections))return reportSchema;
@@ -15,10 +18,10 @@ function schemaFor(prompt,reportSchema){
   if(plannedAnchor&&!keys.includes(plannedAnchor))throw Error('Invalid report chapter writing plan');
   // A paid chapter cannot consist entirely of null topics. When no interpretive
   // basis exists, the anchor must explain the specific limit, not invent behavior.
-  return [id,object({title:section.title,keyJudgment:section.keyJudgment,evidence:section.evidence,mood:section.mood,
-   paragraphs:object(Object.fromEntries(keys.map(topic=>[topic,topic===anchor?object({label:{type:'string'},text:{type:'string'}}):plan[topic]?.mode==='state-limits'?{type:'null'}:{anyOf:[object({label:{type:'string'},text:{type:'string'}}),{type:'null'}]}])))})];
+  return [id,object({title:visible(section.title),keyJudgment:visible(section.keyJudgment),evidence:reader.describe(section.evidence,reader.evidenceField),mood:section.mood,
+   paragraphs:object(Object.fromEntries(keys.map(topic=>[topic,topic===anchor?paragraph():plan[topic]?.mode==='state-limits'?{type:'null'}:{anyOf:[paragraph(),{type:'null'}]}])))})];
  }));
- return object({chapters:object(chapters),finalJudgment:prompt.includeFinal?reportSchema.properties.finalJudgment:{type:'null'},cover:prompt.includeCover?reportSchema.properties.cover:{type:'null'}});
+ return object({chapters:object(chapters),finalJudgment:prompt.includeFinal?visible(reportSchema.properties.finalJudgment):{type:'null'},cover:prompt.includeCover?visible(reportSchema.properties.cover):{type:'null'}});
 }
 function decode(value,prompt){
  if(!Array.isArray(prompt?.requestedSections))return value;

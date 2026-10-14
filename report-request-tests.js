@@ -284,14 +284,26 @@ const {createQueue,retryDelay,rateLimitKind}=require('./report-request-control')
   for(const [key,value] of [['OPENAI_API_KEY',beforeSplitKey],['REPORT_MODEL',beforeSplitModel]])if(value===undefined)delete process.env[key];else process.env[key]=value;
  }
  // Verify that actual OpenAI requests contain no unsupported JSON Schema bounds.
- let sentSchema=null;
+ let sentSchema=null,sentSystem=null;
  const savedFetch=global.fetch,savedKey=process.env.OPENAI_API_KEY,savedModel=process.env.REPORT_MODEL;
  try{
   process.env.OPENAI_API_KEY='local-test-placeholder';process.env.REPORT_MODEL='local-test-model';
-  global.fetch=async(_url,opts)=>{sentSchema=JSON.parse(opts.body).text.format.schema;return {ok:true,json:async()=>({output_text:JSON.stringify({chapters:{saju_core:{paragraphs:Object.fromEntries(Object.keys(outline.topics.saju_core).map(t=>[t,{label:t,text:t}]))}},cover:null,finalJudgment:null})})}};
+  global.fetch=async(_url,opts)=>{sentSchema=JSON.parse(opts.body).text.format.schema;sentSystem=JSON.parse(opts.body).input[0];return {ok:true,json:async()=>({output_text:JSON.stringify({chapters:{saju_core:{paragraphs:Object.fromEntries(Object.keys(outline.topics.saju_core).map(t=>[t,{label:t,text:t}]))}},cover:null,finalJudgment:null})})}};
   await require('./server').callOpenAI({requestedSections:['saju_core'],includeFinal:false,includeCover:false});
   const walk=x=>{if(!x||typeof x!=='object')return;for(const [k,v] of Object.entries(x)){assert(!['minItems','maxItems','minLength','maxLength','$schema'].includes(k),'unsupported strict schema keyword '+k);walk(v)}};
+  assert.equal(sentSystem.role,'system');assert(sentSystem.content.includes(require('./report-reader-policy').systemInstruction),'actual provider system message must carry reader policy');
   walk(sentSchema);assert.deepEqual(sentSchema.properties.chapters.required,['saju_core']);const chapter=sentSchema.properties.chapters.properties.saju_core;assert(chapter.properties.title);assert(chapter.required.includes('title'));assert.deepEqual(chapter.properties.paragraphs.required,Object.keys(outline.topics.saju_core));
+  const readerPolicy=require('./report-reader-policy');
+  assert(chapter.properties.title.description.includes(readerPolicy.readerField));
+  assert(chapter.properties.keyJudgment.description.includes(readerPolicy.readerField));
+  assert(chapter.properties.evidence.items.description.includes(readerPolicy.evidenceField));
+  const firstParagraph=chapter.properties.paragraphs.properties.temperament;
+  assert(firstParagraph.properties.text.description.includes(readerPolicy.readerField));
+  assert(firstParagraph.properties.label.description.includes(readerPolicy.readerField));
+  assert.equal(require('./report-schema.json').properties.sections.items.properties.title.description,undefined,'schema annotation must not mutate canonical schema');
+  const summarySchema=wire.schemaFor({requestedSections:[],includeFinal:true,includeCover:true},require('./report-schema.json'));
+  assert(summarySchema.properties.cover.properties.headline.description.includes(readerPolicy.readerField));
+  assert(summarySchema.properties.finalJudgment.properties.body.items.description.includes(readerPolicy.readerField));
  }finally{global.fetch=savedFetch;for(const [key,value] of [['OPENAI_API_KEY',savedKey],['REPORT_MODEL',savedModel]])if(value===undefined)delete process.env[key];else process.env[key]=value}
  assert.equal(require('./report-schema.json').properties.finalJudgment.properties.routines.minItems,0);
  assert.equal(require('./report-schema.json').properties.sections.items.properties.body.minItems,1);
