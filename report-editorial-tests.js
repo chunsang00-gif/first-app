@@ -215,6 +215,11 @@ assert.equal(themeAudit([annualRepeated[0],{id:'year_2027_career',keyJudgment:'2
 const shared='시간을 충분히 들여 여러 선택지의 장단점을 비교하며 결정을 고른 뒤에는 주변 상황과 필요한 절차를 다시 검토한다. 이 과정을 마치면 다른 사람에게도 선택의 이유를 충분히 설명하려고 한다.';
 assert(repeatedTopics([{id:'decision',bodyTopics:['approach'],body:[shared]},{id:'career',bodyTopics:['workstyle'],body:[shared]}]).some(x=>x.includes('repeated topic paragraph')));
 assert.equal(repeatedTopics([{id:'decision',bodyTopics:['approach'],body:[shared]},{id:'career',bodyTopics:['workstyle'],body:['새로운 과업을 배우는 과정에서는 이미 정해진 역할을 먼저 이해한 다음 실제 결과를 확인한다.']}]).length,0);
+const unsupportedAnnualPacket={facts:{tenGods:{},annualTenGods:{stemTenGod:'비견',hiddenStems:[]},targetYearRelations:[]}};
+const unsupportedAnnualReport={sections:[{id:'year_2027_money',keyJudgment:'2027년 수입이 늘어납니다.',body:[]}]};
+assert(quality.verifyEvidenceAgainstFacts(unsupportedAnnualReport,unsupportedAnnualPacket).errors.some(x=>x.includes('unsupported 2027 domain outcome prediction')));
+unsupportedAnnualReport.sections[0].keyJudgment='2027년 수입이 늘어난다고 단정할 수 없습니다.';
+assert(!quality.verifyEvidenceAgainstFacts(unsupportedAnnualReport,unsupportedAnnualPacket).errors.some(x=>x.includes('unsupported 2027 domain outcome prediction')));
 const guidance=require('./report-analysis-guidance');
 const blueprint=guidance.preflight({person:{mbti:'ISFP'},facts:{structuralEvidence:{monthCommand:{branch:'子'},visibleStems:[{stem:'甲'}]},tenGods:{day:{stem:'甲',hiddenStems:[]},month:{stem:'乙'}},natalClashes:[],annualTenGods:{stem:'丁',hiddenStems:[]},targetYearRelations:[]},fortune:{activeDecade:null}});
 assert.equal(Object.keys(blueprint).length,12);
