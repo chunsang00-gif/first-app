@@ -30,6 +30,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: premium-report-qa
-          path: private-qa-report.json
+          path: |
+            private-qa-report.json
+            private-qa-report-checkpoint.json
           if-no-files-found: ignore
           retention-days: 1
