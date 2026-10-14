@@ -219,6 +219,9 @@ const unsupportedAnnualPacket={facts:{tenGods:{},annualTenGods:{stemTenGod:'비�
 const unsupportedAnnualReport={sections:[{id:'year_2027_money',keyJudgment:'2027년 수입이 늘어납니다.',body:[]}]};
 assert(quality.verifyEvidenceAgainstFacts(unsupportedAnnualReport,unsupportedAnnualPacket).errors.some(x=>x.includes('unsupported 2027 domain outcome prediction')));
 const supportedButNotGuaranteed={facts:{tenGods:{},annualTenGods:{stemTenGod:'정재',hiddenStems:[]},targetYearRelations:[]}};
+assert(quality.verifyEvidenceAgainstFacts({sections:[{id:'year_2027_money',title:'2027년 수입이 늘어납니다.',keyJudgment:'계산 근거를 설명합니다.',body:[]}]},supportedButNotGuaranteed).errors.some(x=>x.includes('categorical 2027 domain outcome prediction')));
+assert(quality.verifyEvidenceAgainstFacts({sections:[{id:'year_2027_money',title:'금전 해석',keyJudgment:'계산 근거를 설명합니다.',body:[],evidence:['2027년 수입이 늘어납니다.']}]},supportedButNotGuaranteed).errors.some(x=>x.includes('categorical 2027 domain outcome prediction')));
+
 assert(quality.verifyEvidenceAgainstFacts({sections:[{id:'year_2027_money',keyJudgment:'2027년 수입이 늘어납니다.',body:[]}]},supportedButNotGuaranteed).errors.some(x=>x.includes('categorical 2027 domain outcome prediction')));
 assert(quality.verifyEvidenceAgainstFacts({sections:[{id:'year_2027_money',keyJudgment:'2027년 수입이 늘어납니다. 하지만 예측할 수 없습니다.',body:[]}]},supportedButNotGuaranteed).errors.some(x=>x.includes('categorical 2027 domain outcome prediction')));
 unsupportedAnnualReport.sections[0].keyJudgment='2027년 수입이 늘어난다고 단정할 수 없습니다.';
