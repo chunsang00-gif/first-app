@@ -65,7 +65,7 @@ function findReusedEvidenceConclusions(sections){
  const norm=x=>String(x||'').normalize('NFKC').replace(/[\\s.,!?。！？"'“”‘’·:;()[\\]]/g,'');
  for(const section of sections||[]){
   const judgment=norm(section?.keyJudgment);
-  if(judgment.length<24)continue;
+  if(judgment.length<14)continue;
   for(const raw of section.evidence||[]){
    const evidence=norm(raw);
    if(evidence.length<12)continue;
