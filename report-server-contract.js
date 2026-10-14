@@ -79,7 +79,11 @@ function findRecycledThemes(sections){
    const thesis=String(s.keyJudgment||'');
    return theme.a.test(thesis)&&theme.b.test(thesis);
   }).map(s=>s.id);
-  return owners.length>=5?['cross-chapter recycled thesis ('+theme.name+'): '+owners.join(' / ')]:[];
+  // Three different customer domains presenting the same causal claim is already
+  // report padding. Do not wait for five chapters to repeat it.
+  const customerDomains=['money','career','relationship','year_2027_money','year_2027_career','year_2027_relationship'];
+  const distinctDomains=owners.filter(id=>customerDomains.includes(id));
+  return owners.length>=5||distinctDomains.length>=3?['cross-chapter recycled thesis ('+theme.name+'): '+owners.join(' / ')]:[];
  })];
 }
 // Track repeated causal claims from generated chapter conclusions, not word lists.
