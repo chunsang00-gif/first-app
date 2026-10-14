@@ -26,6 +26,16 @@ function inspect(prompt){
    const plan=prompt.analysisGuidance?.editorialBlueprint?.[id];
    if(!plan?.hasGroundedTopic||!plan?.anchorTopic){errors.push('ungrounded chapter: '+id);continue}
    if(!['use-primary','use-verified-fallback'].includes(plan.topicTasks?.[plan.anchorTopic]?.mode))errors.push('ungrounded chapter anchor: '+id);
+   // The final model question map must be compatible with the chapter's
+   // validated topic IDs. A mismatched prompt can waste a call even if the
+   // transport schema and evidence blueprint are individually valid.
+   const writingTopics=rules.topicPlan?.[id];
+   if(!writingTopics||typeof writingTopics!=='object')errors.push('missing model topic plan: '+id);
+   else {
+    const validTopicIds=Object.keys(require('./report-outline').topics[id]||{});
+    for(const topic of Object.keys(writingTopics))if(!validTopicIds.includes(topic))errors.push('model topic not in transport schema: '+id+'/'+topic);
+    for(const topic of validTopicIds)if(!Object.hasOwn(writingTopics,topic))errors.push('transport topic missing from model prompt: '+id+'/'+topic);
+   }
    const active=new Set(plan.activeTopicKeys||[]);
    // Fail closed if the actual provider schema cannot represent the planned output.
    const reportSchema=require('./report-schema.json');
