@@ -224,7 +224,8 @@ async function generate(input,callModel,onProgress=()=>{}){const packet=facts.bu
  // gate below remains mandatory; no automatic paid rewrite or retry is issued.
  // Stop before paying for synthesis when chapters already recycle the same thesis.
  // No extra model call, and the rejected draft remains available for operator QA.
- const repeatedErrors=[...findRecycledThemes(sections),...findParaphrasedTopicContent(sections)];
+ const paraphraseErrors=findParaphrasedTopicContent(sections);
+ const repeatedErrors=findRecycledThemes(sections);
  if(repeatedErrors.length){
   const report={meta,sections,cover:null,finalJudgment:null};
   return {status:'rejected',report,qa:{pass:false,errors:repeatedErrors,warnings:[]},headingRepairs:[],stoppedBeforeSynthesis:true};
@@ -235,6 +236,7 @@ async function generate(input,callModel,onProgress=()=>{}){const packet=facts.bu
  let report={meta,sections,cover:summary.cover,finalJudgment:summary.finalJudgment};
  const headingRepairs=require('./report-heading-review').repair(report);
  let shape=validateShape(report),qa=shape.pass?quality.validate(report,packet):shape;
+ if(paraphraseErrors.length)qa={...qa,pass:false,errors:[...(qa.errors||[]),...paraphraseErrors]};
 
  return qa.pass?{status:'ready',report,qa,headingRepairs}:{status:'rejected',report,qa,headingRepairs};
 }
