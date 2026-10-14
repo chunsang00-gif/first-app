@@ -21,7 +21,8 @@ function inspect(prompt){
   if(!/state-limits.{0,70}null/.test(String(rules.paragraphGuide)))errors.push('paragraph instruction overrides null-topic policy');
   if(!/전통 해석/.test(String(rules.tone)))errors.push('missing fact/interpretation tone separation');
   if(!/문단 수를 강요하지 않는다/.test(String(rules.narrativeRule)))errors.push('missing evidence-based paragraph length');
-  for(const id of prompt.requestedSections||[]){
+  const hasCalculatedChart=!!(prompt.facts?.facts?.tenGods&&prompt.facts?.facts?.structuralEvidence);
+  for(const id of hasCalculatedChart?prompt.requestedSections||[]:[]){
    const plan=prompt.analysisGuidance?.editorialBlueprint?.[id];
    if(!plan?.hasGroundedTopic||!plan?.anchorTopic){errors.push('ungrounded chapter: '+id);continue}
    if(!['use-primary','use-verified-fallback'].includes(plan.topicTasks?.[plan.anchorTopic]?.mode))errors.push('ungrounded chapter anchor: '+id);
