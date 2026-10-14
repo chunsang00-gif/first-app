@@ -82,7 +82,7 @@ function findRecycledThemes(sections){
   return owners.length>=5?['cross-chapter recycled thesis ('+theme.name+'): '+owners.join(' / ')]:[];
  })];
 }
-async function generate(input,callModel,onProgress=()=>{},onValidatedBatch=()=>{}){const packet=facts.build(input,2027);if(packet.status!=='ready')return {status:'blocked',packet};const base=buildPrompt(packet);
+async function generate(input,callModel,onProgress=()=>{},onValidatedBatch=()=>{},resumeBatches=[]){const packet=facts.build(input,2027);if(packet.status!=='ready')return {status:'blocked',packet};const base=buildPrompt(packet);
  Object.assign(base.rules,{profileScoreRule:'profileBalance는 계산된 오행 분포와 MBTI에 정해진 가중치를 더한 화면용 상대 지표다. 관찰한 행동 빈도, 심리검사 결과, 능력, 성공률을 나타내지 않는다. 본문과 evidence에서 이 점수 자체를 성격 결론의 근거로 사용하거나 숫자로 심리 특성을 입증하지 않는다. 원래 사주 계산값과 입력 MBTI를 직접 검토한다.',confidenceStyleRule:'사주와 MBTI가 실제 개인의 행동이나 미래를 확정하지 않는다는 안내는 종합 또는 최종 정리에 한 번 명확히 둔다. 각 문단에서 같은 한계 문장을 반복해 통찰을 흐리지 않는다. 예시는 예를 들어라는 표현으로 구분하고, 근거가 있는 해석은 구체적 행동으로 명확히 쓴다. 실제 사건 예언·재산·건강은 단정하지 않는다. 근거 부족이 특정 판단에 중요한 경우만 그 이유를 한 문장으로 밝힌다.',paragraphGuide:'각 장은 report-outline의 질문마다 본문 문단 하나와 bodyLabel 하나를 작성한다. 분량을 채우기 위해 불필요한 문단을 추가하지 않는다.',tone:'명확하고 구체적인 한국어. 근거 있는 강점은 선명하게 강조하고 주의점은 실제 손해와 행동 변화로 설명한다. 사람을 비난하거나 훈계하지 않는다. 과장과 미래 단정 금지.',titleRule:'title은 한국어로 작성한다. 10~30자 내외의 구체적이고 기억에 남는 제목으로 결론의 핵심을 보여준다. 제목은 본문에서 근거와 행동 예시로 설명하며 자극적인 단정이나 근거 없는 찬사를 금지한다.', narrativeRule:'본문은 목차에 지정된 질문에만 답한다. 사주 원국 장은 확인된 명리 용어·위치·쉬운 뜻을 본문에 설명한 뒤 장단점을 구체화한다. MBTI 장은 유형 네 글자를 나열하는 대신 정보 탐색·결정·외부 생활 선호의 상호작용을 별도로 분석한 뒤 사주와 비교한다. 다른 장은 원국 해석을 다시 설명하지 않고 해당 영역만의 새로운 조건·행동·불리함을 제시한다. 모든 장에 기계적으로 장점·단점·조언을 하나씩 강요하지 않는다. bodyLabels는 body와 개수가 같고 각각 내용을 정확히 요약한 짧은 한국어 소제목이다. 내부 필드명을 쓰지 않는다.', moodRule:'mood는 본문의 핵심 정서에 맞춰 confident(명확한 실행), reflective(이해·성찰), encouraging(근거 있는 강점·회복), cautious(주의·손실)을 선택한다. 분야 이름에 고정하지 않는다.', coverRule:'includeCover일 때 cover를 작성한다. 메인은 평생의 기본 성향과 MBTI 통합을 요약하고 2027년의 배움·책임 같은 연간 해석을 메인 성격으로 대신 쓰지 않는다. headline은 사주와 입력 MBTI를 함께 검토한 그 사람의 핵심을 12~30자 내외로 드러내는 기억에 남는 한국어 문구다. description은 그 핵심이 실제 어떤 행동으로 드러나는지 1~2문장으로 설명한다. cover 문구와 saju_core·mbti_contradiction·integrated_judgment의 title 및 keyJudgment가 서로 같거나 바꿔쓰기만 되지 않도록 한다. 세 카드가 각각 기본 반응·의외의 차이·통합 활용법을 담게 한다. keywords는 입력 사실과 해석에 근거한 구체적인 특징 3~5개, 각 2~9자, # 없이 작성. 기본성향 같은 섹션명 금지. includeCover가 아니면 cover는 null.', finalRule:'finalJudgment는 핵심을 압축한 headline, 근거가 있는 strengths와 watchouts, 구체적 routines를 포함한다. routines 각 항목은 trigger(어떤 상황에서), action(어떤 행동을), reason(왜 도움이 되는지)을 적는다. 본인의 선호를 지우거나 고치라는 훈계가 아니라 강점을 살리고 손해를 줄이는 작은 실험으로 제안한다. 일반적인 긍정적 생각·자신을 믿으라는 말 금지. closingQuestion에는 질문이 아닌 최종 결론을 작성하고 그 뒤에는 텍스트가 없다.'});
  Object.assign(base.rules,{
   // Domain-exclusive interpretation ledger: disallow one personality thesis in twelve disguises.
@@ -190,7 +190,25 @@ async function generate(input,callModel,onProgress=()=>{},onValidatedBatch=()=>{
  // Preserve complete earlier paragraphs: later sentences can contain the repeated
  // consequence or advice. No extra model call is used to summarize or rewrite them.
  const priorSections=[];
- const drafts=await mapLimited(groups,async ids=>{
+ // Resume is opt-in. Only a contiguous prefix of the current generation plan
+ // may be reused; every cached section must pass the same structural checks.
+ if(!Array.isArray(resumeBatches)||resumeBatches.length>groups.length)throw Error('Invalid QA resume batch count');
+ const restored=[];
+ for(let i=0;i<resumeBatches.length;i++){
+  const ids=groups[i],batch=resumeBatches[i];
+  if(JSON.stringify(batch?.ids)!==JSON.stringify(ids))throw Error('QA resume batch order mismatch');
+  const verified=validateBatch({sections:batch.sections},ids);
+  const factual=quality.verifyEvidenceAgainstFacts({sections:verified.sections},packet);
+  if(factual.errors.length)throw Error('QA resume factual mismatch: '+factual.errors.join('; '));
+  const editable=require('./report-editorial');
+  for(const s of verified.sections){
+   const displayed=[s.title,s.keyJudgment,...(s.bodyLabels||[]),...(s.body||[])];
+   if(editable.wordingErrors(displayed).length||/[\u3400-\u4dbf\u4e00-\u9fff]/.test(displayed.join(' ')))throw Error('QA resume editorial mismatch');
+  }
+  restored.push(verified);
+  priorSections.push(...verified.sections.map(s=>({id:s.id,keyJudgment:s.keyJudgment,bodyLabels:s.bodyLabels,bodyTopics:s.bodyTopics,topicConclusions:s.body.slice(),evidence:s.evidence.slice()})));
+ }
+ const drafts=[...restored,...await mapLimited(groups.slice(restored.length),async ids=>{
   const result=validateBatch(await callModel(request(ids,{
    stage:'body',priorSections:priorSections.slice(),
    priorChapterConclusions:priorSections.map(s=>({chapterId:s.id,judgment:s.keyJudgment,topicConclusions:s.topicConclusions})),
@@ -245,7 +263,7 @@ async function generate(input,callModel,onProgress=()=>{},onValidatedBatch=()=>{
   priorSections.push(...result.sections.map(s=>({id:s.id,keyJudgment:s.keyJudgment,bodyLabels:s.bodyLabels,bodyTopics:s.bodyTopics,topicConclusions:s.body.slice(),evidence:s.evidence.slice()})));
   await onValidatedBatch({ids:ids.slice(),sections:result.sections,completedSections:priorSections.length});
   onProgress({stage:'body',completed:done+=ids.length,total:12});return result;
- });
+ })];
  const meta={calculationNote:'입력한 출생 시각을 그대로 사용하며 출생지에 따른 시간 차이는 보정하지 않습니다. 밤 11시대도 입력한 날짜로 계산합니다. 2027년 풀이는 전통적인 사주 계산에 따른 참고 해석이며, 실제 사건을 예측한 결과는 아닙니다. 여러 해에 걸친 변화는 연도별로 비교하며 바뀌는 정확한 날짜까지 구분하지 않습니다.',characterGender:input.gender||'male',name:input.name||'',mbti:input.mbti||'모름',chart:packet.chart,profileBalance:packet.profileBalance,targetYear:2027,versions:{ruleset:'premium-v2',prompt:'reader-depth-v2',schema:outline.version}};
  const drafted=new Map(drafts.flatMap(p=>p.sections||[]).map(section=>[section.id,section]));
  const sections=IDS.map(id=>drafted.get(id));
