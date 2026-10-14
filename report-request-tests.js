@@ -21,6 +21,10 @@ const {createQueue,retryDelay,rateLimitKind}=require('./report-request-control')
  // 2027 money/career/relationship must not all claim the same annual ten-god.
  const annualSample=require('./report-facts-node').build({calendar:'solar',birthDate:'1990-05-15',birthTime:'10:30',gender:'male',mbti:'INTJ'},2027);
  const annualPlan=require('./report-analysis-guidance').preflight(annualSample);
+ const sharedMoney=annualPlan.money.topicTasks.earning.evidenceReuseBoundary;
+ assert(sharedMoney&&sharedMoney.priorOwners.some(x=>x.chapter==='mbti_contradiction'),'reused natal evidence must identify its first owner before drafting');
+ assert(sharedMoney.distinctQuestion===annualPlan.money.topicTasks.earning.question,'reused evidence must carry a distinct question');
+ assert.equal(annualPlan.saju_core.topicTasks.temperament.evidenceReuseBoundary,null,'original evidence owner must not claim prior reuse');
  const relationshipEvidence=annualPlan.year_2027_relationship.annualDomainEvidence;
  assert(!relationshipEvidence.matchedTenGods.some(x=>/정관|편관|정재|편재/.test(x)),'official and wealth ten-gods alone cannot be used to invent annual relationship events');
  for(const [id,pattern] of [['year_2027_money',/^(?:재성|식상|정재|편재|식신|상관)$/],['year_2027_career',/^(?:관성|인성|정관|편관|정인|편인)$/]]){
