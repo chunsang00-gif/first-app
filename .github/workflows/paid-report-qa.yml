@@ -1,6 +1,11 @@
 name: One-time paid report QA
 on:
   workflow_dispatch:
+    inputs:
+      paid_qa_confirmation:
+        description: 'Paid API calls (up to 7). Type RUN_ONE_PAID_SAMPLE to authorize this run.'
+        required: true
+        type: string
 permissions:
   contents: read
 jobs:
@@ -11,7 +16,7 @@ jobs:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       REPORT_MODEL: ${{ vars.REPORT_MODEL }}
       REPORT_QA_OUTPUT: ${{ github.workspace }}/private-qa-report.json
-      REPORT_QA_CONFIRM: RUN_ONE_PAID_SAMPLE
+      REPORT_QA_CONFIRM: ${{ inputs.paid_qa_confirmation }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -21,6 +26,7 @@ jobs:
       - name: Verify configuration without exposing secrets
         shell: bash
         run: |
+          test "$REPORT_QA_CONFIRM" = "RUN_ONE_PAID_SAMPLE" || { echo "Paid QA was not explicitly authorized"; exit 1; }
           test -n "$OPENAI_API_KEY" || { echo "Missing OPENAI_API_KEY secret"; exit 1; }
           test -n "$REPORT_MODEL" || { echo "Missing REPORT_MODEL variable"; exit 1; }
       - name: Generate exactly one QA sample (up to 7 model calls)
