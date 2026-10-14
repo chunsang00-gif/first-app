@@ -53,4 +53,4 @@ const topics={
     "action": "결혼·이별을 예언하지 않고 관계의 거리감·갈등을 검토할 수 있는 조건"
   }
 };
-module.exports={topics,version:'concise-v2'};
+module.exports={topics,version:'concise-v3'};
