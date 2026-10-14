@@ -1,0 +1,45 @@
+name: One-time paid report QA
+on:
+  workflow_dispatch:
+    inputs:
+      paid_qa_confirmation:
+        description: 'Paid API calls (up to 7). Type RUN_ONE_PAID_SAMPLE to authorize this run.'
+        required: true
+        type: string
+permissions:
+  contents: read
+jobs:
+  report-qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      REPORT_MODEL: ${{ vars.REPORT_MODEL }}
+      REPORT_QA_OUTPUT: ${{ github.workspace }}/private-qa-report.json
+      REPORT_QA_CONFIRM: ${{ inputs.paid_qa_confirmation }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-audit --no-fund
+      - name: Verify configuration without exposing secrets
+        shell: bash
+        run: |
+          test "$REPORT_QA_CONFIRM" = "RUN_ONE_PAID_SAMPLE" || { echo "Paid QA was not explicitly authorized"; exit 1; }
+          test -n "$OPENAI_API_KEY" || { echo "Missing OPENAI_API_KEY secret"; exit 1; }
+          test -n "$REPORT_MODEL" || { echo "Missing REPORT_MODEL variable"; exit 1; }
+      - name: Generate exactly one QA sample (up to 7 model calls)
+        run: node run-paid-report-qa.js
+      - name: Upload private QA report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: premium-report-qa
+          path: |
+            private-qa-report.json
+            private-qa-report-checkpoint.json
+            private-qa-report-raw-calls.json
+            private-qa-report-hanja-findings.json
+          if-no-files-found: ignore
+          retention-days: 1

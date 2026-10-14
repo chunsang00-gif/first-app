@@ -11,7 +11,7 @@ now+=1000001;assert.equal(stats.snapshot().averageSeconds,null);
 assert.equal(createTiming().snapshot().sampleCount,0);
 (async()=>{
  let clock=1000,finish,fail;
- const server={module:{exports:{}},__dirname:__dirname,process:{env:{}},Date:{now:()=>clock},URL,console:{error(){},warn(){}},require:n=>{
+ const server={module:{exports:{}},__dirname:__dirname,process:{env:{REPORT_MODEL_URL:'http://127.0.0.1:3211/report'}},Date:{now:()=>clock},URL,console:{error(){},warn(){}},require:n=>{
   if(n==='./report-facts-node')return {};
   if(n==='./report-diagnostics')return {configuration:()=>({configured:true}),failureCode:()=> 'FAILED',messageFor:()=> 'failed'};
   if(n==='./report-server-contract')return {generate:()=>new Promise((resolve,reject)=>{finish=resolve;fail=reject;})};
@@ -20,9 +20,9 @@ assert.equal(createTiming().snapshot().sampleCount,0);
   return require(n);
  }};
  vm.runInNewContext(fs.readFileSync(require.resolve('./server'),'utf8'),server);
- async function request(method,url,data){const req=new EventEmitter();req.method=method;req.url=url;let output;const res={writeHead(code){this.code=code},end(s){output={code:this.code,...JSON.parse(s)}}};const p=server.module.exports.handler(req,res);if(method==='POST'){req.emit('data',JSON.stringify(data));req.emit('end');}await p;return output;}
- const payload={analysisInput:{status:'ready',calculationInput:{}}};
- const first=await request('POST','/api/report',payload);assert.equal(first.timing.averageSeconds,null);
+ async function request(method,url,data){const req=new EventEmitter();req.method=method;req.url=url;req.socket={remoteAddress:'127.0.0.1'};let output;const res={writeHead(code){this.code=code},end(s){output={code:this.code,...JSON.parse(s)}}};const p=server.module.exports.handler(req,res);if(method==='POST'){req.emit('data',JSON.stringify(data));req.emit('end');}await p;return output;}
+ const payload={analysisInput:{status:'ready',calculationInput:{calendar:'solar',birthDate:'1990-06-15',unknownBirthTime:true,gender:'male',mbti:'INFP'}}};
+ const first=await request('POST','/api/report',{...payload,requestId:'one-delivery-test-0001'});const duplicate=await request('POST','/api/report',{...payload,requestId:'one-delivery-test-0001'});assert.equal(duplicate.jobId,first.jobId);assert.equal(first.timing.averageSeconds,null);
  clock=31000;const loading=await request('GET','/api/report-status?id='+first.jobId);assert.equal(loading.timing.elapsedSeconds,30);
  clock=121000;finish({status:'ready',report:{}});await Promise.resolve();
  const second=await request('POST','/api/report',payload);assert.equal(second.timing.averageSeconds,120);assert.equal(second.timing.sampleCount,1);
@@ -40,5 +40,7 @@ assert.equal(createTiming().snapshot().sampleCount,0);
  const body={innerHTML:'',querySelector(){return null}};const ui={window:{REPORT_API:api.window.REPORT_API,CHARACTER_ASSETS:{state:()=>''},REPORT_RENDERER:{render(){}}},REPORT_API:{generate:async()=>({status:'ready',report:{}})},sessionStorage:{getItem:()=>null},setInterval:()=>1,clearInterval(){},fetch:async()=>({ok:true,json:async()=>({status:'ready'})}),document:{querySelector:s=>s==='#reportBody'?body:null,querySelectorAll:()=>[],getElementById:()=>null,addEventListener(){}}};
  vm.runInNewContext(fs.readFileSync(require.resolve('./live-report-ui'),'utf8'),ui);
  await ui.window.LIVE_REPORT_UI.run();assert(body.innerHTML.includes('analysis-average'));assert(body.innerHTML.includes('평균 약 2분'));assert(body.innerHTML.includes('1건 기준'));
+ const resumed=await api.window.REPORT_API.resume();assert.equal(resumed.status,'ready');assert.equal(requests,3,'completed reload must not issue another request');
  console.log('PASS real-duration mean, bounded/expired samples, restart reset, failed/rejected exclusions, status timing, existing polling only, average loading text; no paid API');
 })().catch(e=>{console.error(e);process.exitCode=1});
+

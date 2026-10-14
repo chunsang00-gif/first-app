@@ -11,8 +11,8 @@ function balance(chart,mbti){
  const known=/^[EI][NS][FT][JP]$/.test(mbti||''); const bump=(cond,n)=>known&&cond?n:0;
  return {
   mode:known?'saju-mbti':'saju-only',
-  note:known?'내 결과 안에서 5가지 성향을 비교한 값':'사주 결과 안에서 5가지 성향을 비교한 값',
-  scaleLabel:'높을수록 이 성향이 더 자주 드러남',
+  note:known?'사주와 MBTI를 정해진 규칙으로 표시한 참고 지표':'사주 결과를 정해진 규칙으로 표시한 참고 지표',
+  scaleLabel:'성격·능력·행동 빈도를 측정한 점수가 아닙니다',
   axes:{
    relationship:clamp(48+counts.wood*6+counts.fire*5+bump(/[EF]/.test(mbti),8)),
    achievement:clamp(48+counts.metal*6+counts.fire*5+bump(/[TJ]/.test(mbti),7)),
@@ -35,6 +35,28 @@ function interpretationFacts(chart,annual){
  return {dayMaster:day,monthBranch:branch(chart.month),tenGods:Object.fromEntries(entries.map(([position,p])=>[position,{stem:p[0],stemTenGod:position==='day'?'일간':tenGod(day,p[0]),hiddenStems:(hidden[branch(p)]||[]).map(stem=>({stem,tenGod:tenGod(day,stem)}))}])),natalClashes,annualTenGods:{stem:annual[0],stemTenGod:tenGod(day,annual[0]),hiddenStems:(hidden[branch(annual)]||[]).map(stem=>({stem,tenGod:tenGod(day,stem)}))},tenGodGlossary:glossary,limits:['십성은 일간과 각 천간의 관계를 분류한 값이며 관찰된 성격이나 능력이 아님','지장간 목록은 출현 여부이며 가중치·월령을 반영한 강약 판정이 아님','신강·신약·용신은 이 계산에서 판정하지 않음','targetYearRelations가 빈 배열이면 검사한 연간 지지 충이 없다는 뜻이며 모든 연간 관계가 없다는 뜻은 아님']};
 }
 
+// Deterministic evidence for interpretation; never infer a definitive strength or useful god.
+const branchRoot={子:'癸',丑:'己',寅:'甲',卯:'乙',辰:'戊',巳:'丙',午:'丁',未:'己',申:'庚',酉:'辛',戌:'戊',亥:'壬'};
+const stemYinYang={甲:'yang',乙:'yin',丙:'yang',丁:'yin',戊:'yang',己:'yin',庚:'yang',辛:'yin',壬:'yang',癸:'yin'};
+function structuralEvidence(chart){
+ const day=chart.day[0],dayElement=stemElement[day],month=branch(chart.month);
+ const roots=Object.entries(chart).filter(([,p])=>p).map(([position,p])=>({
+  position,branch:branch(p),hiddenStems:hidden[branch(p)]||[],
+  sameElementStems:(hidden[branch(p)]||[]).filter(stem=>stemElement[stem]===dayElement)
+ }));
+ const monthRoot=branchRoot[month];
+ const visible=Object.entries(chart).filter(([,p])=>p).map(([position,p])=>({
+  position,stem:p[0],element:stemElement[p[0]],yinYang:stemYinYang[p[0]],
+  tenGod:position==='day'?'일간':tenGod(day,p[0])
+ }));
+ return {monthCommand:{branch:month,mainHiddenStem:monthRoot,mainHiddenStemTenGod:tenGod(day,monthRoot),
+  note:'월지의 본기만 표시. 절입 경계·사령 분수·격국·득령 판단을 대신하지 않음'},
+  dayMasterRoots:roots,
+  visibleStems:visible,
+  interpretationLimits:['같은 오행의 지장간 존재는 통근 검토용 사실이며 뿌리의 강도·신강약을 확정하지 않음',
+   '월지 본기는 월령 전체의 강약이나 격국·용신을 확정하지 않음',
+   '형·파·해·합과 그 성립 조건은 이 자료에서 계산하지 않으므로 임의로 단정하지 않음']};
+}
 function branch(p){return p?.slice(-1)}
-function build(input,targetYear=2027){const c=pipeline.calculate(input,targetYear);if(!pipeline.canAnalyze(c))return {status:'blocked',calculation:c};const chart=c.chart,yearBranch=branch(c.targetYear.pillar),relations=[];for(const [k,p] of Object.entries(chart)){if(!p)continue;const b=branch(p);if(b!==yearBranch&&clashes.some(x=>x.includes(b)&&x.includes(yearBranch)))relations.push({type:'충',between:k,branches:b+yearBranch})}return {status:'ready',schemaVersion:'analysis-facts-v1.3',calculationRuleset:c.ruleset,calculationInput:{calendar:input.calendar,birthDate:input.birthDate,birthTime:input.birthTime,birthplace:input.birthplace,unknownBirthTime:Boolean(input.unknownBirthTime),leapMonth:Boolean(input.leapMonth),gender:input.gender,mbti:input.mbti||'모름',name:input.name||''},person:{gender:input.gender,mbti:input.mbti||'모름',name:input.name||''},chart,profileBalance:balance(chart,input.mbti),targetYear:c.targetYear,facts:{...interpretationFacts(chart,c.targetYear.pillar),hiddenStems:Object.fromEntries(Object.entries(chart).filter(([,p])=>p).map(([k,p])=>[k,hidden[branch(p)]||[]])),targetYearRelations:relations},fortune:c.fortune,constraints:{factsOnly:true,noPersonalHistoryInference:true,noDeterministicPrediction:true,nameAnalysisEnabled:false,forbiddenNameMethods:['name-analysis','stroke-numerology','phonetic-five-elements','resource-five-elements','name-causes-destiny']}}}
+function build(input,targetYear=2027){const c=pipeline.calculate(input,targetYear);if(!pipeline.canAnalyze(c))return {status:'blocked',calculation:c};const chart=c.chart,yearBranch=branch(c.targetYear.pillar),relations=[];for(const [k,p] of Object.entries(chart)){if(!p)continue;const b=branch(p);if(b!==yearBranch&&clashes.some(x=>x.includes(b)&&x.includes(yearBranch)))relations.push({type:'충',between:k,branches:b+yearBranch})}return {status:'ready',schemaVersion:'analysis-facts-v1.4',calculationRuleset:c.ruleset,calculationPolicy:{timeBasis:'entered-clock-time',timezoneConversion:false,longitudeCorrection:false,trueSolarTime:false,lateZiDayBoundary:'civil-day-sect-2',annualPillarBoundary:'ipchun-solar-term',annualPillarScope:'target-year seasonal pillar, not every Gregorian calendar date',birthplaceUsedForCalculation:false,note:'입력한 출생 시각을 그대로 사용하며 출생지·경도·진태양시 보정은 적용하지 않음. 해외 출생 및 시주 경계 사례는 별도 확인 필요'},calculationInput:{calendar:input.calendar,birthDate:input.birthDate,birthTime:input.birthTime,birthplace:input.birthplace,unknownBirthTime:Boolean(input.unknownBirthTime),leapMonth:Boolean(input.leapMonth),gender:input.gender,mbti:input.mbti||'모름',name:input.name||''},person:{gender:input.gender,mbti:input.mbti||'모름',name:input.name||''},chart,profileBalance:balance(chart,input.mbti),targetYear:c.targetYear,facts:{...interpretationFacts(chart,c.targetYear.pillar),structuralEvidence:structuralEvidence(chart),hiddenStems:Object.fromEntries(Object.entries(chart).filter(([,p])=>p).map(([k,p])=>[k,hidden[branch(p)]||[]])),targetYearRelations:relations},fortune:{...c.fortune,decades:(c.fortune.decades||[]).map(d=>({...d,stemTenGod:tenGod(chart.day[0],d.pillar[0])})),activeDecade:(c.fortune.decades||[]).filter(d=>d.startYear<=targetYear&&d.endYear>=targetYear).map(d=>({...d,stemTenGod:tenGod(chart.day[0],d.pillar[0])}))[0]||null},constraints:{factsOnly:true,noPersonalHistoryInference:true,noDeterministicPrediction:true,nameAnalysisEnabled:false,forbiddenNameMethods:['name-analysis','stroke-numerology','phonetic-five-elements','resource-five-elements','name-causes-destiny']}}}
 module.exports={build};

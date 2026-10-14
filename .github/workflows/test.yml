@@ -1,7 +1,7 @@
 name: saju-mbti-tests
 on:
   push:
-    branches: [saju-mbti-app]
+    branches: [saju-mbti-app, fix-saju-tone-20261010]
   pull_request:
     branches: [saju-mbti-app]
   workflow_dispatch:
@@ -18,3 +18,10 @@ jobs:
       - run: node character-assets-test.js
       - run: npm test
       - run: npm run smoke
+      - name: Check public Render deployment revision (informational)
+        env:
+          EXPECTED_DEPLOY_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        continue-on-error: true
+        run: |
+          node -e "const u='https://first-app-n4ue.onrender.com/api/health';(async()=>{let last='unreachable';for(let i=0;i<4;i++){try{const r=await fetch(u,{signal:AbortSignal.timeout(12000)});const x=await r.json();last='HTTP '+r.status+' deployed '+(x.deployCommit||'unknown')+' expected '+process.env.EXPECTED_DEPLOY_SHA;console.log(last);if(x.deployCommit===process.env.EXPECTED_DEPLOY_SHA){console.log('PASS Render deployment matches checked commit');return}}catch(e){last=e.message;console.log('Render check '+(i+1)+': '+last)}await new Promise(done=>setTimeout(done,12000))}console.log('WARNING Render deployment not verified: '+last)})()"
+
