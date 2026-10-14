@@ -203,6 +203,13 @@ assert(target.innerHTML.indexOf('가장 중요한 결론')<target.innerHTML.inde
 const sandbox={module:{exports:{}},process:{env:{}},require:n=>n==='./report-facts-node'?{build:()=>({status:'ready',person:{mbti:'ISFP'}})}:require(n)};
 vm.runInNewContext(fs.readFileSync(require.resolve('./report-server-contract'),'utf8'),sandbox);
 const repeatedTopics=sandbox.module.exports.findRepeatedTopicContent;
+const paraphrases=sandbox.module.exports.findParaphrasedTopicContent;
+const overlapA='생각을 충분히 정리하고 자료를 확인한 뒤에 결정하는 방식이 반복됩니다. 상대방의 설명을 듣고 책임지는 범위를 구별한 다음 다시 검토하는 행동이 나타납니다.';
+const overlapB='자료를 확인하고 생각을 충분히 정리한 뒤에 결정하는 방식이 나타납니다. 다시 검토하는 행동이 반복되며 상대방의 설명을 듣고 책임지는 범위를 구별합니다.';
+const distinct='2027년 계절에 해당하는 월별 지지의 충합은 실제로 계산되지 않았으며 예측할 수 없는 미래 사건과 구별해야 합니다. 그 대신 입력 시각에 따른 한계를 정확히 밝힙니다.';
+assert(paraphrases([{id:'money',bodyTopics:['spending'],body:[overlapA]},{id:'career',bodyTopics:['workstyle'],body:[overlapB]}]).length>0);
+assert.equal(paraphrases([{id:'money',bodyTopics:['spending'],body:[overlapA]},{id:'career',bodyTopics:['workstyle'],body:[distinct]}]).length,0);
+
 const themeAudit=sandbox.module.exports.findRecycledThemes;
 const patterned=(id)=>({id,keyJudgment:'책임과 기준에 따라 다시 확인합니다.',body:['업무를 맡을 때 기존 규칙을 설명하고 검토합니다.']});
 assert.equal(themeAudit(['a','b','c','d'].map(patterned)).length,0);
