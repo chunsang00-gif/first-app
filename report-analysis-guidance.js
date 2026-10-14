@@ -181,6 +181,14 @@ function preflight(packet){
    task.interpretationBoundary='이 항목의 기존 원국 정보나 다른 분야의 연간 십성을 새 금전·직업·관계 변화의 직접 근거로 사용하지 않는다.';
   }
  }
+ // One canonical writing plan is shared by schema, model instructions and validation.
+ for(const [id,plan] of Object.entries(plans)){
+  const entries=Object.entries(plan.topicTasks);
+  const anchored=entries.find(([,t])=>t.mode==='use-primary')||entries.find(([,t])=>t.mode==='use-verified-fallback');
+  plan.anchorTopic=anchored?.[0]||null;
+  plan.activeTopicKeys=entries.filter(([,t])=>t.mode!=='state-limits').map(([key])=>key);
+  plan.hasGroundedTopic=!!anchored;
+ }
  const questions=Object.values(plans).map(x=>x.question);
  if(new Set(questions).size!==questions.length)throw Error('Report blueprint repeats an analysis question');
  if(Object.keys(plans).length!==12)throw Error('Report blueprint must cover twelve chapters');
