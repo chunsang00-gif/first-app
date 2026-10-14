@@ -27,6 +27,12 @@ const {createQueue,retryDelay,rateLimitKind}=require('./report-request-control')
  const stressFields=stressWire.properties.chapters.properties.stress.properties.paragraphs.properties;
  assert.equal(stressFields.trigger.type,'null','unsupported stress trigger must be null, not an invented narrative');
  assert.equal(stressFields.response.type,'object','the actually supported stress response must anchor the chapter');
+ const stressPrompt={requestedSections:['stress'],includeFinal:false,includeCover:false,analysisGuidance:{editorialBlueprint:{stress:{anchorTopic:'response',topicTasks:{trigger:{mode:'state-limits'},response:{mode:'use-primary'}}}}}};
+ const stressChapter=(trigger,response)=>({chapters:{stress:{title:'압박',keyJudgment:'조건을 구분합니다',evidence:['계산 근거'],mood:'reflective',paragraphs:{trigger,response}}},cover:null,finalJudgment:null});
+ assert.throws(()=>wire.decode(stressChapter(null,null),stressPrompt),/missing planned evidence anchor/,'all-null chapter must fail with exact chapter and anchor');
+ assert.throws(()=>wire.decode(stressChapter({label:'갈등',text:'실제 갈등을 추측합니다'},{label:'반응',text:'확인된 근거를 해석합니다'}),stressPrompt),/generated unsupported topic/,'provider output must not bypass unsupported-topic policy');
+ assert.deepEqual(wire.decode(stressChapter(null,{label:'반응',text:'확인된 근거를 해석합니다'}),stressPrompt).sections[0].bodyTopics,['response'],'valid evidence-backed chapter must decode');
+
  const decoded=wire.decode({chapters:{saju_core:{title:'기본 성향',keyJudgment:'판단을 확인합니다',evidence:['일간'],mood:'reflective',paragraphs:Object.fromEntries(Object.keys(outlineForWire.saju_core).map(t=>[t,t===oneTopic?{label:'핵심',text:'계산된 근거를 설명합니다'}:null]))}},cover:null,finalJudgment:null},wirePrompt);
  assert.deepEqual(decoded.sections[0].bodyTopics,[oneTopic],'null topics are omitted');
  assert.equal(decoded.sections[0].body.length,1,'one grounded explanation remains');
