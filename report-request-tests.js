@@ -187,6 +187,15 @@ const {createQueue,retryDelay,rateLimitKind}=require('./report-request-control')
   assert.deepEqual(first.requestedSections,['saju_core','mbti_contradiction']);
   assert.equal(first.facts.person.mbti,sample.mbti);
   assert.equal(first.analysisGuidance.mbtiReference?.type||'모름',sample.mbti);
+  // Audit the composed provider payload, not merely source-level templates.
+  const assembled=JSON.stringify({rules:first.rules,planningInstruction:first.planningInstruction,editorialTask:first.editorialTask,analysisGuidance:first.analysisGuidance});
+  assert(!assembled.includes('해당 장은 한 항목으로 계산 사실과 해석의 한계를 분명히 설명한다'),'an omitted annual chapter cannot simultaneously be required to contain a paragraph');
+  for(const id of first.requestedSections){
+   const chapter=first.analysisGuidance.editorialBlueprint[id];
+   assert(chapter.hasGroundedTopic&&chapter.anchorTopic,'written chapter must have canonical evidence anchor: '+id);
+   const stateLimited=Object.entries(chapter.topicTasks).filter(([,task])=>task.mode==='state-limits').map(([key])=>key);
+   assert(stateLimited.every(key=>!chapter.activeTopicKeys.includes(key)),'null-only topics cannot be active: '+id);
+  }
   captured.push(first);
  }
  // Paid requests must preserve the same birth facts while changing only the MBTI reference.
