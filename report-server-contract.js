@@ -96,6 +96,21 @@ function narrativeMotifLedger(sections){
  ];
  return patterns.map(p=>({motif:p.id,chapters:sections.filter(s=>p.first.test(String(s.keyJudgment||''))&&p.second.test(String(s.keyJudgment||''))).map(s=>s.id)})).filter(x=>x.chapters.length>=2);
 }
+// A missing *domain-specific* annual calculation cannot be turned into a paid
+// prediction by borrowing natal traits or generic annual responsibility motifs.
+// Replace unsupported domain prose deterministically, with no new model call.
+function enforceAnnualEvidenceLimits(result,plans){
+ const limits={
+  year_2027_money:{field:'금전',title:'2027년 금전 변화는 확인할 근거가 부족합니다',judgment:'2027년 계산만으로 수입이나 지출이 평소와 달라진다고 판단할 직접 근거가 없습니다.',first:'2027년 계산에서 금전 분야에 바로 연결되는 관계가 확인되지 않았습니다. 출생 사주에서 돈을 다루는 태도를 해석할 수 있어도, 그것만으로 올해의 수입이나 지출이 달라진다고 말할 수 없습니다.',second:'올해 특정 금전 기회나 손실이 생길지, 언제 얼마가 움직일지는 이 자료로 알 수 없습니다. 실제 소득이나 지출 자료가 없으므로 금액과 시기를 만들어 예측하지 않습니다.'},
+  year_2027_career:{field:'직업',title:'2027년 직업 변화는 계산만으로 단정할 수 없습니다',judgment:'2027년 계산에서 새로운 업무나 직위 변화를 뒷받침할 직접적인 근거가 확인되지 않았습니다.',first:'2027년 계산값 중 직업 분야의 변화를 독립적으로 설명할 만한 관계가 확인되지 않았습니다. 평소 일하는 방식에 대한 사주 풀이는 가능하지만, 그것을 올해 새로운 업무나 평가가 생긴다는 뜻으로 바꾸지 않습니다.',second:'승진이나 이직, 맡는 업무가 바뀌는 시기는 실제 채용·조직 상황을 알아야 검토할 수 있습니다. 현재 계산만으로 어떤 변화가 일어난다고 결론 내릴 수 없습니다.'},
+  year_2027_relationship:{field:'관계',title:'2027년 인간관계 사건을 예언할 근거는 부족합니다',judgment:'2027년 계산에서 가까운 사람과의 만남이나 갈등이 평소와 달라진다고 볼 직접 근거가 확인되지 않았습니다.',first:'2027년 계산에서 친밀한 관계의 변화를 직접 설명할 관계가 확인되지 않았습니다. 계산된 충이 없다는 사실만으로 갈등이 없거나 사이가 안정된다고 말할 수는 없습니다.',second:'연애·결혼·이별 또는 가족과의 거리가 달라질지는 이 계산만으로 알 수 없습니다. 직업에 관련된 규칙이나 책임의 의미를 인간관계에 옮겨 새로운 사건처럼 설명하지 않습니다.'}
+ };
+ return {...result,sections:(result.sections||[]).map(s=>{
+  const plan=plans[s.id],v=limits[s.id];
+  if(!v||plan?.generationMode!=='evidence-limit-only')return s;
+  return {...s,title:v.title,keyJudgment:v.judgment,bodyLabels:['올해 '+v.field+' 분야에서 확인된 계산의 범위','올해 '+v.field+' 분야에서 확인할 수 없는 실제 사건'],body:[v.first,v.second],evidence:['2027년의 계산에서 '+v.field+' 분야에 직접 연결되는 연간 근거가 확인되지 않았습니다.'],mood:'cautious'};
+ })};
+}
 async function generate(input,callModel,onProgress=()=>{},onValidatedBatch=()=>{},resumeBatches=[]){const packet=facts.build(input,2027);if(packet.status!=='ready')return {status:'blocked',packet};const base=buildPrompt(packet);
  Object.assign(base.rules,{profileScoreRule:'profileBalance는 계산된 오행 분포와 MBTI에 정해진 가중치를 더한 화면용 상대 지표다. 관찰한 행동 빈도, 심리검사 결과, 능력, 성공률을 나타내지 않는다. 본문과 evidence에서 이 점수 자체를 성격 결론의 근거로 사용하거나 숫자로 심리 특성을 입증하지 않는다. 원래 사주 계산값과 입력 MBTI를 직접 검토한다.',confidenceStyleRule:'사주와 MBTI가 실제 개인의 행동이나 미래를 확정하지 않는다는 안내는 종합 또는 최종 정리에 한 번 명확히 둔다. 각 문단에서 같은 한계 문장을 반복해 통찰을 흐리지 않는다. 예시는 예를 들어라는 표현으로 구분하고, 근거가 있는 해석은 구체적 행동으로 명확히 쓴다. 실제 사건 예언·재산·건강은 단정하지 않는다. 근거 부족이 특정 판단에 중요한 경우만 그 이유를 한 문장으로 밝힌다.',paragraphGuide:'각 장은 report-outline의 질문마다 본문 문단 하나와 bodyLabel 하나를 작성한다. 분량을 채우기 위해 불필요한 문단을 추가하지 않는다.',tone:'명확하고 구체적인 한국어. 근거 있는 강점은 선명하게 강조하고 주의점은 실제 손해와 행동 변화로 설명한다. 사람을 비난하거나 훈계하지 않는다. 과장과 미래 단정 금지.',titleRule:'title은 한국어로 작성한다. 10~30자 내외의 구체적이고 기억에 남는 제목으로 결론의 핵심을 보여준다. 제목은 본문에서 근거와 행동 예시로 설명하며 자극적인 단정이나 근거 없는 찬사를 금지한다.', narrativeRule:'본문은 목차에 지정된 질문에만 답한다. 사주 원국 장은 확인된 명리 용어·위치·쉬운 뜻을 본문에 설명한 뒤 장단점을 구체화한다. MBTI 장은 유형 네 글자를 나열하는 대신 정보 탐색·결정·외부 생활 선호의 상호작용을 별도로 분석한 뒤 사주와 비교한다. 다른 장은 원국 해석을 다시 설명하지 않고 해당 영역만의 새로운 조건·행동·불리함을 제시한다. 모든 장에 기계적으로 장점·단점·조언을 하나씩 강요하지 않는다. bodyLabels는 body와 개수가 같고 각각 내용을 정확히 요약한 짧은 한국어 소제목이다. 내부 필드명을 쓰지 않는다.', moodRule:'mood는 본문의 핵심 정서에 맞춰 confident(명확한 실행), reflective(이해·성찰), encouraging(근거 있는 강점·회복), cautious(주의·손실)을 선택한다. 분야 이름에 고정하지 않는다.', coverRule:'includeCover일 때 cover를 작성한다. 메인은 평생의 기본 성향과 MBTI 통합을 요약하고 2027년의 배움·책임 같은 연간 해석을 메인 성격으로 대신 쓰지 않는다. headline은 사주와 입력 MBTI를 함께 검토한 그 사람의 핵심을 12~30자 내외로 드러내는 기억에 남는 한국어 문구다. description은 그 핵심이 실제 어떤 행동으로 드러나는지 1~2문장으로 설명한다. cover 문구와 saju_core·mbti_contradiction·integrated_judgment의 title 및 keyJudgment가 서로 같거나 바꿔쓰기만 되지 않도록 한다. 세 카드가 각각 기본 반응·의외의 차이·통합 활용법을 담게 한다. keywords는 입력 사실과 해석에 근거한 구체적인 특징 3~5개, 각 2~9자, # 없이 작성. 기본성향 같은 섹션명 금지. includeCover가 아니면 cover는 null.', finalRule:'finalJudgment는 핵심을 압축한 headline, 근거가 있는 strengths와 watchouts, 구체적 routines를 포함한다. routines 각 항목은 trigger(어떤 상황에서), action(어떤 행동을), reason(왜 도움이 되는지)을 적는다. 본인의 선호를 지우거나 고치라는 훈계가 아니라 강점을 살리고 손해를 줄이는 작은 실험으로 제안한다. 일반적인 긍정적 생각·자신을 믿으라는 말 금지. closingQuestion에는 질문이나 안내문이 아니라 앞의 해석에서 확인한 그 사람의 장점과 주의점을 한 문장으로 연결한 최종 결론을 작성한다. 실제 검토에서 실패한 “이 보고서는 전통 사주 해석과 입력된 MBTI를 비교한 참고 자료입니다” 같은 자료 설명, 면책 안내, 독자에게 행동을 요구하는 상투적 문구로 끝내지 않는다. 한계 고지는 최종 결론 이전의 본문에 한 번만 배치하고, 최종 결론 뒤에는 텍스트가 없다.'});
  Object.assign(base.rules,{
@@ -270,14 +285,15 @@ async function generate(input,callModel,onProgress=()=>{},onValidatedBatch=()=>{
   priorSections.push(...verified.sections.map(s=>({id:s.id,keyJudgment:s.keyJudgment,bodyLabels:s.bodyLabels,bodyTopics:s.bodyTopics,topicConclusions:s.body.slice(),evidence:s.evidence.slice()})));
  }
  const drafts=[...restored,...await mapLimited(groups.slice(restored.length),async ids=>{
-  const result=validateBatch(await callModel(request(ids,{
+  const modelResult=await callModel(request(ids,{
    stage:'body',priorSections:priorSections.slice(),
    priorChapterConclusions:priorSections.map(s=>({chapterId:s.id,judgment:s.keyJudgment,topicConclusions:s.topicConclusions})),
    crossChapterNoveltyRule:'rules.reusedEvidenceWithPriorConclusions에는 이 장에서 다시 사용하려는 계산 근거와 이전 장의 실제 설명이 있다. 같은 계산값을 재사용할 때 이전 결론을 분야 이름만 바꿔 반복하지 말고 해당 질문에서 새롭게 설명할 수 있는 한계 또는 별도 근거를 구분한다. rules.alreadyRepeatedNarrativeMotifs에 표시된 논지가 이전 두 장 이상에서 반복되었다면 이번 장에서는 같은 원인-행동 결론을 쓰지 않는다. 별도 계산 근거가 없으면 예측을 만들어내지 말고 해당 장의 판단 한계를 짧게 밝힌다. 아래 priorChapterConclusions는 이미 고객에게 제공될 해석이다. 이번 장의 핵심 판단과 각 문단의 행동 결론을 이전 장과 하나씩 대조하라. 논리·근거를 확인한다, 기준·책임을 정리한다 같은 결론을 금전·직업·관계에 반복해서 쓰지 마라. 동일한 결론만 도출되면 근거가 허용하는 범위를 설명하고, 새로운 성격이나 사건을 꾸며내지 마라.',
 
    planningInstruction:'각 장은 editorialBlueprint의 서로 다른 질문을 먼저 해결한다. 특히 editorialBlueprint[id].topicTasks의 세부 항목마다 서로 다른 질문·primaryEvidencePath·mode를 먼저 확인한다. mode가 use-verified-fallback이면 verifiedFallbackPaths의 실제 계산 근거만 제한적으로 해석한다. mode가 state-limits이면 장황한 일반론으로 채우지 말고 해석할 수 없는 부분을 분명하게 알린다. 2027년 금전·일·관계 장은 editorialBlueprint[id].annualDomainEvidence.relevant를 반드시 확인한다. generationMode가 evidence-limit-only이면 두 세부 항목을 예언이나 성격 일반론으로 채우지 말고 독립 계산 정보의 부족과 분야별로 확인할 수 없는 범위를 각각 짧고 명확하게 설명한다. false면 근거 없는 금전 기회·승진·결혼 예측이나 공통 책임 성향을 꾸며 쓰지 않고 직접 근거가 없는 이유를 설명한다. 같은 명리 계산값을 여러 항목에서 사용해도 같은 행동 결론을 재생산하면 안 된다. 근거가 약한 항목은 장황한 성격 반복이 아니라 해당 질문에서 알 수 없는 범위를 명확히 쓴다. primary 근거가 없더라도 fallbackEvidencePaths에 실제 존재하는 계산 항목이 있으면 그것만 사용하여 제한적으로 풀이한다. negativeEvidence는 해당 충 관계가 계산되지 않았다는 뜻이지 모든 인간관계·연운의 변화가 없다는 뜻이 아니다. 대체 근거도 없으면 requiredMode에 따라 부족한 부분을 밝혀라. 근거가 없다고 성격이나 사건을 꾸며내지 않는다. 다른 장의 질문을 답하거나 논리·근거·책임 같은 표현을 분야만 바꾸어 반복하지 않는다.',
    editorialTask:'이 응답은 결제 고객에게 제공할 최종 본문 원고다. 각 topicPlan 질문에 계산된 근거가 실제로 답할 수 있는 부분을 먼저 선정하고, 해석의 이유·서로 다른 근거의 충돌·불리한 부분까지 읽는 사람이 이해할 수 있도록 완결된 문장으로 설명한다. 사주 원국 장에서는 일간·월지·십성의 실제 값과 위치를 본문에서 밝히고 처음 나오는 명리 용어를 괄호로 풀어 쓴다. MBTI 장에서는 정보를 받아들이는 선호와 판단 선호가 만나는 조건을 분석하고 실제 성격을 측정했다고 주장하지 않는다. 돈은 수입·지출·위험, 직업은 역할·학습·조직, 관계는 친밀감·표현·갈등으로 서로 다른 질문에 답한다. 2027년은 계산된 세운과 대운을 해당 분야에 연결할 수 있을 때만 평소와 다른 점을 밝힌다. priorSections와 같은 반응이나 조언을 직업·돈·관계라는 명사만 바꾸어 반복하지 않는다. 유효한 새 해석이 없으면 지어내지 말고 그 질문에 답할 수 있는 근거만 정확히 제시한다. 일반적 계약서 확인이나 소통하라는 상투적 조언, 사용자 과거 경험의 창작은 금지한다. 필수 bodyTopics 순서를 지키되 한 줄짜리 요약으로 분석을 대체하지 않고 한국어 문맥과 조사·서술어 호응을 점검한다. 별도 유료 재작성 호출은 하지 않는다.'
-  })),ids);
+  }));
+  const result=validateBatch(enforceAnnualEvidenceLimits(modelResult,editorialBlueprint),ids);
   // Reject incomplete or unsupported model output before spending another provider call.
   // The final full-report editorial gate still runs after synthesis.
   const preliminary=quality.verifyEvidenceAgainstFacts({sections:result.sections},packet);
@@ -357,6 +373,6 @@ async function generate(input,callModel,onProgress=()=>{},onValidatedBatch=()=>{
 
  return qa.pass?{status:'ready',report,qa,headingRepairs}:{status:'rejected',report,qa,headingRepairs};
 }
-module.exports={narrativeMotifLedger,IDS,validateShape,buildPrompt,generate,findRepeatedTopicContent,findRecycledThemes,findParaphrasedTopicContent,findRepeatedAdvice};
+module.exports={enforceAnnualEvidenceLimits,narrativeMotifLedger,IDS,validateShape,buildPrompt,generate,findRepeatedTopicContent,findRecycledThemes,findParaphrasedTopicContent,findRepeatedAdvice};
 
 
