@@ -24,7 +24,15 @@ function findRecycledThemes(sections){
   {name:'logic-and-proof',a:/논리|근거|이유|설명/,b:/납득|확인|검토|질문/},
   {name:'responsibility-and-rules',a:/책임|규칙|절차|기준/,b:/확인|설명|납득|검토/}
  ];
- return themes.flatMap(theme=>{
+ const annualDomainIds=['year_2027_money','year_2027_career','year_2027_relationship'];
+ const annualSections=sections.filter(s=>annualDomainIds.includes(s.id));
+ const formalResponsibilityRepetition=annualSections.length===3&&annualSections.every(s=>{
+  const judgment=String(s.keyJudgment||'');
+  return /책임|공식|역할|사회적/.test(judgment)&&/기준|규칙|확인|관리|분배/.test(judgment);
+ });
+ const annualErrors=formalResponsibilityRepetition?
+  ['2027 domain chapters repeat formal responsibility instead of distinct money, career and relationship analysis']:[];
+ return [...annualErrors,...themes.flatMap(theme=>{
   // Count the repeated thesis only when BOTH motifs appear in the chapter's
   // own main conclusion. Shared technical vocabulary in long body sections
   // cannot, by itself, convict a genuinely different chapter.
@@ -33,7 +41,7 @@ function findRecycledThemes(sections){
    return theme.a.test(thesis)&&theme.b.test(thesis);
   }).map(s=>s.id);
   return owners.length>=5?['cross-chapter recycled thesis ('+theme.name+'): '+owners.join(' / ')]:[];
- });
+ })];
 }
 async function generate(input,callModel,onProgress=()=>{}){const packet=facts.build(input,2027);if(packet.status!=='ready')return {status:'blocked',packet};const base=buildPrompt(packet);
  Object.assign(base.rules,{profileScoreRule:'profileBalance는 계산된 오행 분포와 MBTI에 정해진 가중치를 더한 화면용 상대 지표다. 관찰한 행동 빈도, 심리검사 결과, 능력, 성공률을 나타내지 않는다. 본문과 evidence에서 이 점수 자체를 성격 결론의 근거로 사용하거나 숫자로 심리 특성을 입증하지 않는다. 원래 사주 계산값과 입력 MBTI를 직접 검토한다.',confidenceStyleRule:'사주와 MBTI가 실제 개인의 행동이나 미래를 확정하지 않는다는 안내는 종합 또는 최종 정리에 한 번 명확히 둔다. 각 문단에서 같은 한계 문장을 반복해 통찰을 흐리지 않는다. 예시는 예를 들어라는 표현으로 구분하고, 근거가 있는 해석은 구체적 행동으로 명확히 쓴다. 실제 사건 예언·재산·건강은 단정하지 않는다. 근거 부족이 특정 판단에 중요한 경우만 그 이유를 한 문장으로 밝힌다.',paragraphGuide:'각 장은 report-outline의 질문마다 본문 문단 하나와 bodyLabel 하나를 작성한다. 분량을 채우기 위해 불필요한 문단을 추가하지 않는다.',tone:'명확하고 구체적인 한국어. 근거 있는 강점은 선명하게 강조하고 주의점은 실제 손해와 행동 변화로 설명한다. 사람을 비난하거나 훈계하지 않는다. 과장과 미래 단정 금지.',titleRule:'title은 한국어로 작성한다. 10~30자 내외의 구체적이고 기억에 남는 제목으로 결론의 핵심을 보여준다. 제목은 본문에서 근거와 행동 예시로 설명하며 자극적인 단정이나 근거 없는 찬사를 금지한다.', narrativeRule:'본문은 목차에 지정된 질문에만 답한다. 사주 원국 장은 확인된 명리 용어·위치·쉬운 뜻을 본문에 설명한 뒤 장단점을 구체화한다. MBTI 장은 유형 네 글자를 나열하는 대신 정보 탐색·결정·외부 생활 선호의 상호작용을 별도로 분석한 뒤 사주와 비교한다. 다른 장은 원국 해석을 다시 설명하지 않고 해당 영역만의 새로운 조건·행동·불리함을 제시한다. 모든 장에 기계적으로 장점·단점·조언을 하나씩 강요하지 않는다. bodyLabels는 body와 개수가 같고 각각 내용을 정확히 요약한 짧은 한국어 소제목이다. 내부 필드명을 쓰지 않는다.', moodRule:'mood는 본문의 핵심 정서에 맞춰 confident(명확한 실행), reflective(이해·성찰), encouraging(근거 있는 강점·회복), cautious(주의·손실)을 선택한다. 분야 이름에 고정하지 않는다.', coverRule:'includeCover일 때 cover를 작성한다. 메인은 평생의 기본 성향과 MBTI 통합을 요약하고 2027년의 배움·책임 같은 연간 해석을 메인 성격으로 대신 쓰지 않는다. headline은 사주와 입력 MBTI를 함께 검토한 그 사람의 핵심을 12~30자 내외로 드러내는 기억에 남는 한국어 문구다. description은 그 핵심이 실제 어떤 행동으로 드러나는지 1~2문장으로 설명한다. cover 문구와 saju_core·mbti_contradiction·integrated_judgment의 title 및 keyJudgment가 서로 같거나 바꿔쓰기만 되지 않도록 한다. 세 카드가 각각 기본 반응·의외의 차이·통합 활용법을 담게 한다. keywords는 입력 사실과 해석에 근거한 구체적인 특징 3~5개, 각 2~9자, # 없이 작성. 기본성향 같은 섹션명 금지. includeCover가 아니면 cover는 null.', finalRule:'finalJudgment는 핵심을 압축한 headline, 근거가 있는 strengths와 watchouts, 구체적 routines를 포함한다. routines 각 항목은 trigger(어떤 상황에서), action(어떤 행동을), reason(왜 도움이 되는지)을 적는다. 본인의 선호를 지우거나 고치라는 훈계가 아니라 강점을 살리고 손해를 줄이는 작은 실험으로 제안한다. 일반적인 긍정적 생각·자신을 믿으라는 말 금지. closingQuestion에는 질문이 아닌 최종 결론을 작성하고 그 뒤에는 텍스트가 없다.'});
