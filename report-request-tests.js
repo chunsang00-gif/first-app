@@ -125,7 +125,7 @@ const {createQueue,retryDelay,rateLimitKind}=require('./report-request-control')
   return {sections:prompt.requestedSections.map(id=>({
    id,title:id,keyJudgment:id,bodyTopics:Object.keys(outline.topics[id]),
    bodyLabels:Object.values(outline.topics[id]),
-   body:Object.keys(outline.topics[id]).map(topic=>id+' '+topic+'에 관한 검증용 모의 문장입니다.'),
+   body:Object.keys(outline.topics[id]).map(topic=>id+' '+topic+'에 관한 검증용 모의 문장(일반인용 용어 풀이 포함)입니다.'),
    evidence:[id+'의 명리학 계산 근거를 검증하는 모의 데이터입니다.']
   }))};
  });
