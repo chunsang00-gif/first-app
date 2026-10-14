@@ -262,7 +262,7 @@ function validate(r,packet){
   const coreText=norm((core?.body||[]).join(' '));
   if(!/(?:일간|월지|월간|일지|십성|지장간|비견|겁재|식신|상관|편재|정재|편관|정관|편인|정인)/.test(coreText))
    errors.push('saju_core: reader-facing natal analysis omits calculated Saju terms');
-  if(!/[（(][^)）]{3,}[)）]/.test(coreText))
+  if(!/(?:[（(][^)）]{3,}[)）]|(?:일간|월지|일지|월간|십성|지장간)(?:은|는|이란|란|의 뜻은)[^.!?]{0,100}(?:뜻|의미|가리키|말합니다|나타냅니다|일컬|글자|관계|기준)|(?:태어난 날|태어난 달|태어난 시각|계절을 나타내는|자신을 나타내는)[^.!?]{0,80}(?:글자|기둥|관계))/.test(coreText))
    errors.push('saju_core: reader-facing natal analysis does not explain technical terms');
   const year=r.sections.find(x=>x.id==='year_2027');
   const yearText=norm((year?.body||[]).join(' '));
