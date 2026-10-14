@@ -164,7 +164,15 @@ function preflight(packet){
    directDayRelation,
    interpretationFocus:id==='year_2027_money'?'원국과 비교한 금전 관련 계산 관계만 설명한다. 관성의 규칙·책임을 돈의 변화로 바꾸지 않는다.':id==='year_2027_career'?'직업·공적 역할과 직접 관련된 계산 관계만 설명한다. 재성만으로 직업 변화나 승진을 예측하지 않는다.':'일지와 2027년 지지의 직접 관계 또는 비견·겁재의 한정된 전통적 의미만 설명한다. 정관·정재를 근거로 상대의 마음·관계 변화를 예측하지 않는다.',
    rule:relevant?'표시된 계산 관계의 의미만 설명하고 다른 분야의 동일한 규칙·책임 결론을 다시 쓰지 않으며 실제 사건이나 시기를 단정하지 않는다.':'해당 분야의 직접적인 연간 근거가 확인되지 않았다. 공통 책임·관리 성격 설명을 그 분야만의 새 운세로 쓰지 않는다.'};
-  if(!relevant)for(const task of Object.values(plan.topicTasks))task.annualDomainLimit='분야별 운세를 새로 예언하지 않고 계산상 직접 근거가 없음을 알린다.';
+  if(!relevant)for(const task of Object.values(plan.topicTasks)){
+   // A shared annual pillar or natal fallback is NOT evidence of a new
+   // domain-specific 2027 prediction. Previously the task still advertised
+   // use-primary/use-fallback, contradicting the chapter's evidence limit.
+   task.originalEvidenceMode=task.mode;
+   task.mode='state-limits';
+   task.annualDomainLimit='분야별 운세를 새로 예언하지 않고 계산상 직접 근거가 없음을 알린다.';
+   task.interpretationBoundary='이 항목의 기존 원국 정보나 다른 분야의 연간 십성을 새 금전·직업·관계 변화의 직접 근거로 사용하지 않는다.';
+  }
  }
  const questions=Object.values(plans).map(x=>x.question);
  if(new Set(questions).size!==questions.length)throw Error('Report blueprint repeats an analysis question');
