@@ -42,6 +42,21 @@ function verifyEvidenceAgainstFacts(report,packet){
    }
   }
  }
+ // A coordinated phrase asserts the SAME ten-god at each named location.
+ // Checking only the last noun misses "월간과 월지의 편관".
+ const groupedPosition=/(연간|월간|일간|시간|연지|월지|일지|시지)(?:(?:\s*[·,/]\s*|\s*(?:과|와|및)\s*)(?:연간|월간|일간|시간|연지|월지|일지|시지))+(?:의|에는|에서|에|은|는|\s)*(?:지장간(?:의|에는|에)?\s*)?(비견|겁재|식신|상관|편재|정재|편관|정관|편인|정인)/g;
+ const branchKeys={연지:'year',월지:'month',일지:'day',시지:'hour'};
+ for(const section of sections)for(const passage of [...(section.evidence||[]),section.title,section.keyJudgment,...(section.body||[])]){
+  for(const match of norm(passage).matchAll(groupedPosition)){
+   for(const position of match[0].match(/연간|월간|일간|시간|연지|월지|일지|시지/g)||[]){
+    if(position==='연간'&&/^year_2027/.test(section.id))continue;
+    const stemKey=positionKeys[position],key=stemKey||branchKeys[position];
+    const value=tenGods[key];
+    const valid=stemKey?value?.stemTenGod===match[2]:value?.hiddenStems?.some(x=>x.tenGod===match[2]);
+    if(!valid)errors.push(section.id+': grouped '+position+' '+match[2]+' conflicts with calculated position');
+   }
+  }
+ }
  // Check explicit claims about the natal month main hidden stem against the deterministic evidence.
  const monthEvidence=packet?.facts?.structuralEvidence?.monthCommand;
  if(monthEvidence){

@@ -6,7 +6,7 @@ const topics={
   },
   "mbti_contradiction": {
     "agreement": "입력 MBTI의 정보 처리·판단 선호를 사주 계산과 구별하여 설명",
-    "difference": "두 해석이 같은 상황에서 설명하는 내용의 차이와 비교할 수 없는 범위",
+    "difference": "앞 항목과 같은 선택 상황에서 두 풀이가 달라지는 조건이 있는지 설명. 차이가 없다면 억지로 반전을 만들지 않음",
   },
   "decision": {
     "approach": "정보를 모으고 결정을 내리는 방식",

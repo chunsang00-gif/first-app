@@ -16,6 +16,11 @@ function inspect(prompt){
  const prose=JSON.stringify({rules,planningInstruction:prompt.planningInstruction,editorialTask:prompt.editorialTask,analysisGuidance:prompt.analysisGuidance})||'';
  for(const pattern of forbiddenFixedQuotas)if(pattern.test(prose))errors.push('obsolete forced quota: '+pattern.source);
  if(body){
+  const bindings=require('./report-fact-bindings');
+  if(prompt.facts?.facts?.tenGods){
+   if(JSON.stringify(prompt.factBindings)!==JSON.stringify(bindings.build(prompt.facts)))errors.push('missing or altered positional fact bindings');
+   if(prompt.factBindingRule!==bindings.instruction)errors.push('missing positional fact writing policy');
+  }
   if(!Array.isArray(prompt.requestedSections)||!prompt.requestedSections.length)errors.push('no requested chapters');
   if(!/state-limits.{0,60}null/.test(String(prompt.planningInstruction)))errors.push('missing null-topic writing policy');
   if(!/state-limits.{0,70}null/.test(String(rules.paragraphGuide)))errors.push('paragraph instruction overrides null-topic policy');
