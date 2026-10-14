@@ -193,7 +193,7 @@ async function generate(input,callModel,onProgress=()=>{},onValidatedBatch=()=>{
   const annual=editorialBlueprint[id]?.annualDomainEvidence;
   if(!annual?.relevant){
    editorialBlueprint[id].generationMode='evidence-limit-only';
-   editorialBlueprint[id].contentPolicy='해당 장은 한 항목으로 계산 사실과 해석의 한계를 분명히 설명한다. 기존 성격·책임·기준 설명을 다른 표현으로 채우지 않고, 2027년의 금전·직업·관계 사건을 암시하지 않는다. 근거를 만들어 긴 해석을 하지 않는다.';
+   editorialBlueprint[id].contentPolicy='이 장은 근거 부족으로 생성 목록에서 제외한다. 본문·목차·최종 정리에서 새로운 분야별 사건이나 예측을 만들지 않는다.';
   }else editorialBlueprint[id].generationMode='evidence-grounded';
  }
  // Skip annual subchapters when no direct annual domain evidence exists; retain yearly overview.
