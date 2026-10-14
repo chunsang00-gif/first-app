@@ -294,7 +294,7 @@ for(const a of ['I','E'])for(const b of ['S','N'])for(const c of ['T','F'])for(c
   assert.equal(Object.keys(p.analysisGuidance.editorialBlueprint).length,p.requestedSections.length);
   const annualIds=['year_2027_money','year_2027_career','year_2027_relationship'];
   const expectedAnnual=p.requestedSections.filter(id=>annualIds.includes(id));
-  assert.deepEqual(Object.keys(p.rules.annualDomainScopes),expectedAnnual);
+  assert.equal(JSON.stringify(Object.keys(p.rules.annualDomainScopes)),JSON.stringify(expectedAnnual));
   for(const id of expectedAnnual){
    const scope=p.rules.annualDomainScopes[id];
    assert(scope.length>30);
