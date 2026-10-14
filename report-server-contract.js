@@ -19,6 +19,25 @@ function findRepeatedTopicContent(sections){
  }
  return errors;
 }
+// Compare substantive interpretations across different topics, not merely shared words.
+function findParaphrasedTopicContent(sections){
+ const entries=[];
+ const stop=new Set(['그리고','하지만','그래서','때문에','경우에','합니다','있습니다','없습니다','것입니다','대해서','2027년','사람은','본인은','자신의','계산된','사주에서','해석은','중요합니다']);
+ const tokens=s=>[...new Set(String(s||'').normalize('NFKC').match(/[가-힣]{2,}/g)||[])].filter(w=>w.length>=3&&!stop.has(w));
+ for(const s of sections)for(let i=0;i<(s.body||[]).length;i++){
+  const content=String(s.body[i]||''),words=tokens(content);
+  if(content.length<75||words.length<9)continue;
+  entries.push({owner:s.id+':'+(s.bodyTopics?.[i]||i),words:new Set(words)});
+ }
+ const errors=[];
+ for(let i=0;i<entries.length;i++)for(let j=i+1;j<entries.length;j++){
+  const a=entries[i],b=entries[j];if(a.owner.split(':')[0]===b.owner.split(':')[0])continue;
+  const shared=[...a.words].filter(w=>b.words.has(w)).length;
+  const score=shared/Math.max(a.words.size,b.words.size);
+  if(shared>=9&&score>=0.78)errors.push('high lexical topic overlap: '+a.owner+' / '+b.owner);
+ }
+ return errors;
+}
 function findRecycledThemes(sections){
  const themes=[
   {name:'logic-and-proof',a:/논리|근거|이유|설명/,b:/납득|확인|검토|질문/},
@@ -186,6 +205,7 @@ async function generate(input,callModel,onProgress=()=>{}){const packet=facts.bu
    priorEvidence.set(key,section.id);
   }
   const topicDuplicates=findRepeatedTopicContent([...priorSections.map(s=>({id:s.id,body:s.topicConclusions,bodyTopics:s.bodyTopics})),...result.sections]);
+  topicDuplicates.push(...findParaphrasedTopicContent([...priorSections.map(s=>({id:s.id,body:s.topicConclusions,bodyTopics:s.bodyTopics})),...result.sections]));
   if(topicDuplicates.length){
    console.error('[Report batch repeated topics]',{requestedIds:ids,errors:topicDuplicates});
    throw Error('AI report service returned duplicated topic explanations');
@@ -219,6 +239,6 @@ async function generate(input,callModel,onProgress=()=>{}){const packet=facts.bu
 
  return qa.pass?{status:'ready',report,qa,headingRepairs}:{status:'rejected',report,qa,headingRepairs};
 }
-module.exports={IDS,validateShape,buildPrompt,generate,findRepeatedTopicContent,findRecycledThemes};
+module.exports={IDS,validateShape,buildPrompt,generate,findRepeatedTopicContent,findRecycledThemes,findParaphrasedTopicContent};
 
 
