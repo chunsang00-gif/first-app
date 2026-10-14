@@ -33,7 +33,7 @@ function forRequest(ids,mbti){
  const valid=typeof mbti==='string'&&/^[EI][NS][FT][JP]$/.test(mbti);
  return {
   chapterTasks:Object.fromEntries(ids.map(id=>{if(!chapters[id])throw Error('unknown report chapter: '+id);return [id,valid?chapters[id]:(sajuOnlyChapters[id]||chapters[id])];})),
-  mbtiReference:valid?{type:mbti,source:'사용자가 입력한 유형에 대한 선호 설명. 실제 행동·능력의 측정 결과가 아니다.',preferences:[...mbti].map(code=>({code,...preferences[code]})),application:'글자별 소개를 나열하지 말고 해당 질문에 필요한 선호끼리 연결한다. 예를 들어 정보 탐색과 결정 이유를 구분하고, 어떤 조건에서 두 선호가 서로 돕거나 갈리는지 설명한다. 기능 발달 정도·정신 상태·행동 빈도·유형 적합도를 추정하지 않는다.'}:null
+  mbtiReference:valid?{type:mbti,source:'사용자가 입력한 유형에 대한 선호 설명. 실제 행동·능력의 측정 결과가 아니다.',preferences:[...mbti].map(code=>({code,...preferences[code]})),application:'한 가지 구체적인 선택 상황을 정한 뒤 (1) MBTI 네 글자 중 해당 상황에 관련된 정보 처리 선호와 결정 선호 두 가지를 이름과 뜻으로 구분하고 (2) 실제 계산된 사주 항목과 전통적 의미를 별도로 밝히고 (3) 두 해석이 서로 다른 질문에 답하거나 같은 결론을 뒷받침할 때의 조건을 설명한다. 일치 또는 반전을 억지로 선언하지 않는다. MBTI는 입력된 선호이지 실제 행동 빈도·능력·성격의 검증 결과가 아니다. 해당 상황의 계산 근거가 부족하면 비교 한계를 한 문장으로 밝히고 새 성격을 만들어내지 않는다.'}:null
  };
 }
 
