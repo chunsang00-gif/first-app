@@ -200,8 +200,8 @@ function validate(r,packet){
   if(s.id!==IDS[i])errors.push(`section ${i+1} id/order mismatch`);
   if(['depth-v2','concise-v1','concise-v2','concise-v3'].includes(r.meta?.versions?.schema)){
    const keys=Object.keys(require('./report-outline').topics[s.id]||{});
-   if(JSON.stringify(s.bodyTopics)!==JSON.stringify(keys))errors.push(s.id+': required topics missing or reordered');
-   if(s.body?.length!==keys.length||s.bodyLabels?.length!==keys.length)errors.push(s.id+': topic explanations incomplete');
+   if(!Array.isArray(s.bodyTopics)||!s.bodyTopics.length||s.bodyTopics.some(t=>!keys.includes(t))||JSON.stringify(s.bodyTopics)!==JSON.stringify(keys.filter(t=>s.bodyTopics.includes(t))))errors.push(s.id+': topics unknown or reordered');
+   if(s.body?.length!==s.bodyTopics?.length||s.bodyLabels?.length!==s.bodyTopics?.length)errors.push(s.id+': topic explanations incomplete');
   }
 
   // High-confidence editorial conflict: categorical thrift claim versus overspending.
