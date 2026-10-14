@@ -27,6 +27,18 @@ function inspect(prompt){
    if(!plan?.hasGroundedTopic||!plan?.anchorTopic){errors.push('ungrounded chapter: '+id);continue}
    if(!['use-primary','use-verified-fallback'].includes(plan.topicTasks?.[plan.anchorTopic]?.mode))errors.push('ungrounded chapter anchor: '+id);
    const active=new Set(plan.activeTopicKeys||[]);
+   // Fail closed if the actual provider schema cannot represent the planned output.
+   const reportSchema=require('./report-schema.json');
+   const wire=require('./report-wire');
+   const transport=wire.schemaFor({requestedSections:[id],includeFinal:false,includeCover:false,analysisGuidance:{editorialBlueprint:{[id]:plan}}},reportSchema);
+   const slots=transport.properties.chapters.properties[id].properties.paragraphs.properties;
+   for(const [topic,task] of Object.entries(plan.topicTasks||{})){
+    const slot=slots[topic];
+    if(!slot){errors.push('missing transport slot: '+id+'/'+topic);continue}
+    if(topic===plan.anchorTopic&&slot.type!=='object')errors.push('nullable mandatory anchor: '+id+'/'+topic);
+    if(task.mode==='state-limits'&&topic!==plan.anchorTopic&&slot.type!=='null')errors.push('unsupported topic writable: '+id+'/'+topic);
+    if(task.mode!=='state-limits'&&topic!==plan.anchorTopic&&!slot.anyOf?.some(v=>v.type==='null'))errors.push('supported optional topic cannot be omitted: '+id+'/'+topic);
+   }
    for(const [topic,t] of Object.entries(plan.topicTasks||{}))if(t.mode==='state-limits'&&active.has(topic))errors.push('unsupported active topic: '+id+'/'+topic);
    if(/^year_2027_(money|career|relationship)$/.test(id)&&!plan.annualDomainEvidence?.relevant)errors.push('ungrounded annual domain: '+id);
    // Compare the complete writing plan with the exact strict transport schema.
