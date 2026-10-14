@@ -92,7 +92,7 @@ run('ten-god facts use chart stems and preserve unknown-time limitations',()=>{c
 run('same branch is never mislabeled as a clash',()=>{const p=F.build({...sample,birthDate:'1991-06-15'});assert(!p.facts.targetYearRelations.some(r=>r.between==='year'));for(const relation of p.facts.natalClashes)assert.notEqual(relation.branches[0],relation.branches[1])});
 run('expanded reports reject missing topic metadata and unmatched paragraphs',()=>{const r=mockReport();r.meta.versions.schema='depth-v2';const q=Q.validate(r);assert(q.errors.some(x=>x.includes('topics unknown or reordered')));assert(q.errors.some(x=>x.includes('topic explanations incomplete')))});
 
-run('curated cover copy goes through the same language checks',()=>{const r=mockReport();r.cover={headline:'핵심 제목',description:'핵심 설명',keywords:['하나','둘','셋'],highlights:[{sectionId:'money',title:'돈의 특징',description:'귀인의 도움으로 돈이 늘어납니다.'}]};assert(Q.validate(r).errors.some(e=>e.includes('generic/cliche')))});
+run('curated cover copy goes through the same language checks',()=>{const r=mockReport();r.cover={headline:'핵심 제목',description:'핵심 설명',keywords:['하나','둘','셋'],highlights:[{sectionId:'money',title:'돈의 특징',description:'귀인의 도움으로 돈이 늘어납니다.'}]};assert(Q.validate(r).warnings.some(e=>e.includes('generic/cliche phrase review')))});
 
 
 run('structural evidence matches known pillars and month root',()=>{
