@@ -122,18 +122,25 @@ function preflight(packet){
  // The annual stem is shared across domains, so it alone cannot justify
  // three independent predictions. Require a distinct supported connection.
  const annual=packet.facts?.annualTenGods;
+ // Assign a distinct calculated annual relationship to each domain.  A
+ // generic official/responsibility ten-god is not evidence of relationship
+ // events, and one annual keyword must not become three different forecasts.
  const domains={
-  year_2027_money:{related:/재성|식상|정재|편재|식신|상관/,question:'금전'},
-  year_2027_career:{related:/관성|인성|정관|편관|정인|편인/,question:'일'},
-  year_2027_relationship:{related:/비견|겁재|정관|편관|정재|편재/,question:'관계'}
+  year_2027_money:{related:/^(?:재성|식상|정재|편재|식신|상관)$/,question:'금전'},
+  year_2027_career:{related:/^(?:관성|인성|정관|편관|정인|편인)$/,question:'일'},
+  year_2027_relationship:{related:/^(?:비견|겁재)$/,question:'관계'}
  };
- const annualLabels=[annual?.stemTenGod,...(annual?.hiddenStems||[]).map(x=>x.tenGod)].filter(Boolean).join(' ');
+ const annualLabels=[annual?.stemTenGod,...(annual?.hiddenStems||[]).map(x=>x.tenGod)].filter(Boolean);
  for(const [id,domain] of Object.entries(domains)){
   const plan=plans[id];
-  const explicitRelation=id==='year_2027_relationship'&&(packet.facts?.targetYearRelations||[]).some(x=>x.between==='day');
-  const relevant=domain.related.test(annualLabels)||explicitRelation;
-  plan.annualDomainEvidence={relevant,source:relevant?(explicitRelation?'facts.targetYearRelations:day':'facts.annualTenGods'):'none',
-   rule:relevant?'계산된 관계만 설명하고 실제 사건이나 시기를 단정하지 않는다.':'해당 분야의 직접적인 연간 근거가 확인되지 않았다. 공통 책임·관리 성격 설명을 그 분야만의 새 운세로 쓰지 않는다.'};
+  const matches=[...new Set(annualLabels.filter(x=>domain.related.test(x)))];
+  const directDayRelation=id==='year_2027_relationship'&&(packet.facts?.targetYearRelations||[]).some(x=>x.between==='day');
+  const relevant=matches.length>0||directDayRelation;
+  const source=directDayRelation?'facts.targetYearRelations:day':matches.length?'facts.annualTenGods':'none';
+  plan.annualDomainEvidence={relevant,source,matchedTenGods:matches,
+   directDayRelation,
+   interpretationFocus:id==='year_2027_money'?'원국과 비교한 금전 관련 계산 관계만 설명한다. 관성의 규칙·책임을 돈의 변화로 바꾸지 않는다.':id==='year_2027_career'?'직업·공적 역할과 직접 관련된 계산 관계만 설명한다. 재성만으로 직업 변화나 승진을 예측하지 않는다.':'일지와 2027년 지지의 직접 관계 또는 비견·겁재의 한정된 전통적 의미만 설명한다. 정관·정재를 근거로 상대의 마음·관계 변화를 예측하지 않는다.',
+   rule:relevant?'표시된 계산 관계의 의미만 설명하고 다른 분야의 동일한 규칙·책임 결론을 다시 쓰지 않으며 실제 사건이나 시기를 단정하지 않는다.':'해당 분야의 직접적인 연간 근거가 확인되지 않았다. 공통 책임·관리 성격 설명을 그 분야만의 새 운세로 쓰지 않는다.'};
   if(!relevant)for(const task of Object.values(plan.topicTasks))task.annualDomainLimit='분야별 운세를 새로 예언하지 않고 계산상 직접 근거가 없음을 알린다.';
  }
  const questions=Object.values(plans).map(x=>x.question);
