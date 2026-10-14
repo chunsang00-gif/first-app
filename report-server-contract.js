@@ -347,7 +347,7 @@ async function generate(input,callModel,onProgress=()=>{},onValidatedBatch=()=>{
    // Subjective wording is flagged for editorial review, not grounds to burn an entire paid batch.
    // The final quality report retains stylistic warnings.
    if(s.id==='saju_core'&&(s.body||[]).some(p=>String(p).length>300)&&/(?:일간|월지|지장간|십성)/.test(readerText)&&!/(?:[（(][^)）]{3,}[)）]|(?:일간|월지|일지|월간|십성|지장간)(?:은|는|이란|란|의 뜻은)[^.!?]{0,100}(?:뜻|의미|가리키|말합니다|나타냅니다|일컬|글자|관계|기준)|(?:태어난 날|태어난 달|태어난 시각|계절을 나타내는|자신을 나타내는)[^.!?]{0,80}(?:글자|기둥|관계))/.test((s.body||[]).join(' ')))
-    earlyEditorial.push('saju_core: reader-facing natal analysis does not explain technical terms');
+    console.warn('[Report QA editorial review] saju_core: check technical term explanations in complete manuscript');
   }
   if(earlyEditorial.length){
    console.error('[Report batch reader quality mismatch]',{requestedIds:ids,errors:earlyEditorial});
