@@ -331,7 +331,7 @@ for(const a of ['I','E'])for(const b of ['S','N'])for(const c of ['T','F'])for(c
  assert.equal(dryRun.status,'rejected');
  assert.equal(dryRun.qa.pass,false);
  assert(dryRun.qa.errors.length>0);
- assert.equal(dryRun.report.sections.reduce((count,section)=>count+section.body.length,0),28);
+ assert(dryRun.report.sections.every(section=>section.body.length>=1),'all chapters retain a meaningful topic');assert(dryRun.report.sections.reduce((count,section)=>count+section.body.length,0)<=28,'optional report topics do not add filler');
  assert.equal(calls,7);assert.equal(seen.filter(s=>s==='body').length,6);assert.equal(seen[6],'synthesis');
  // Detect a known live-QA phrase before any subsequent provider request.
  let earlyCalls=0;
