@@ -264,6 +264,11 @@ const blueprint=guidance.preflight({person:{mbti:'ISFP'},facts:{structuralEviden
 assert.equal(Object.keys(blueprint).length,12);
 assert.equal(Object.values(blueprint).reduce((count,chapter)=>count+Object.keys(chapter.topicTasks).length,0),28);
 assert.equal(blueprint.money.topicTasks.earning.primaryEvidencePath,'facts.tenGods.month');
+for(const id of ['decision','money','relationship','stress'])for(const topic of Object.values(blueprint[id].topicTasks))if(topic.primaryEvidencePath==='facts.natalClashes'){
+ assert.equal(topic.mode,'state-limits','no calculated clash must not become inferred real-life conflict');
+ assert.equal(topic.evidenceReuseBoundary,null,'missing clash must not be assigned a phantom evidence owner');
+}
+
 assert.equal(blueprint.year_2027_relationship.topicTasks.change.evidencePresent,false);
 assert.equal(blueprint.year_2027_relationship.topicTasks.change.mode,'state-limits');
 assert(blueprint.year_2027_relationship.topicTasks.change.verifiedFallbackPaths.includes('facts.annualTenGods'));
