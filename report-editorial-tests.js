@@ -35,6 +35,14 @@ for(const set of injectors){const r=fixture();set(r,'핵심  성향');if(r.cover
 const recycled=fixture();
 for(let i=0;i<5;i++)recycled.sections[i].body=['이유와 논리를 먼저 확인하고 설명을 납득해야 결정합니다.'];
 assert(quality.validate(recycled).errors.some(x=>x.startsWith('cross-chapter recycled thesis (logic-and-proof)')));
+const threeDomainDuplicate=fixture();
+for(const id of ['money','career','relationship'])threeDomainDuplicate.sections.find(s=>s.id===id).keyJudgment='논리와 근거를 확인하고 납득하면 진행합니다.';
+assert(quality.validate(threeDomainDuplicate).errors.some(x=>x.startsWith('cross-domain recycled key judgment (logic-and-proof)')),'three paid domains must not recycle the same key thesis');
+const threeDomainDistinct=fixture();
+threeDomainDistinct.sections.find(s=>s.id==='money').keyJudgment='금전과 관련된 계산 항목이 소득의 실제 변화를 증명하지는 않습니다.';
+threeDomainDistinct.sections.find(s=>s.id==='career').keyJudgment='업무에서 배우는 과정과 선택할 역할의 조건을 나누어 해석합니다.';
+threeDomainDistinct.sections.find(s=>s.id==='relationship').keyJudgment='실제 상대의 감정을 사주만으로 알 수 없으며 대화 상황을 가정하지 않습니다.';
+assert(!quality.validate(threeDomainDistinct).errors.some(x=>x.startsWith('cross-domain recycled key judgment')),'different domain conclusions must not be rejected');
 const notRecycled=fixture();
 for(let i=0;i<3;i++)notRecycled.sections[i].body=['이유와 논리를 먼저 확인하고 설명을 납득해야 결정합니다.'];
 assert(!quality.validate(notRecycled).errors.some(x=>x.startsWith('cross-chapter recycled thesis')));
