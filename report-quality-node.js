@@ -142,6 +142,24 @@ function verifyEvidenceAgainstFacts(report,packet){
    }
   }
  }
+ // An unsupported domain-specific annual prediction must not pass merely
+ // because it avoids naming a calculated ten-god or branch relation.
+ const annualLabels=[packet?.facts?.annualTenGods?.stemTenGod,...(packet?.facts?.annualTenGods?.hiddenStems||[]).map(x=>x.tenGod)].filter(Boolean).join(' ');
+ const annualDomains={
+  year_2027_money:{related:/재성|식상|정재|편재|식신|상관/,forecast:/(?:2027년|내년).{0,30}(?:돈을 벌|수입이 늘|재물이 들어|금전운이 좋아|큰돈을 얻)/},
+  year_2027_career:{related:/관성|인성|정관|편관|정인|편인/,forecast:/(?:2027년|내년).{0,30}(?:승진하|승진운|취업하|이직에 성공|직장에서 인정받)/},
+  year_2027_relationship:{related:/비견|겁재|정관|편관|정재|편재/,forecast:/(?:2027년|내년).{0,30}(?:결혼하|결혼운|이별하|연인을 만나|연애운이 좋아)/}
+ };
+ for(const section of report.sections||[]){
+  const policy=annualDomains[section.id];
+  if(!policy)continue;
+  const dayClash=section.id==='year_2027_relationship'&&(packet?.facts?.targetYearRelations||[]).some(x=>x.type==='충'&&x.between==='day');
+  if(policy.related.test(annualLabels)||dayClash)continue;
+  for(const sentence of [section.keyJudgment,...(section.body||[])].map(norm)){
+   if(policy.forecast.test(sentence)&&!/(?:단정할 수 없|예측할 수 없|확인할 수 없|의미하지 않|보장하지 않)/.test(sentence))
+    errors.push(section.id+': unsupported 2027 domain outcome prediction');
+  }
+ }
  const annualGod=packet?.facts?.annualTenGods?.stemTenGod;
  const relations=packet?.facts?.targetYearRelations;
  const branchPosition={연지:'year',월지:'month',일지:'day',시지:'hour'};
