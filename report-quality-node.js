@@ -374,7 +374,7 @@ function validate(r,packet){
  if(!Array.isArray(r.finalJudgment?.body)||!r.finalJudgment.body.length)errors.push('final body missing');
  if(!norm(r.finalJudgment?.closingQuestion))errors.push('final conclusion missing');
  else if(/[?？]|(?:까요|습니까|무엇인가|어떠한가)\s*[.!。]?\s*$/.test(norm(r.finalJudgment.closingQuestion)))errors.push('final conclusion must not ask a question');
- else if(/^(?:이|본) 보고서는|^(?:이|본) 해석은|^전통 사주 해석|^사주와 MBTI는/.test(norm(r.finalJudgment.closingQuestion)))errors.push('final conclusion is disclaimer instead of personal insight');
+ else if(/^(?:이|본) 보고서는|^(?:이|본) 해석은|^전통 사주 해석|^사주와 MBTI는|참고\s*(?:자료|용)|실제\s*(?:사건|미래).*예측|결과를\s*보장하지/.test(norm(r.finalJudgment.closingQuestion)))errors.push('final conclusion is disclaimer instead of personal insight');
  if((r.finalJudgment?.afterClosingText||'')!=='')errors.push('text after final conclusion is forbidden');
  return {pass:errors.length===0,errors:[...new Set(errors)],warnings,issues};
 }
