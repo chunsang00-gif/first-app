@@ -251,7 +251,7 @@ async function generate(input,callModel,onProgress=()=>{},onValidatedBatch=()=>{
    const readerText=displayed.join(' ');
    for(const phrase of ['판단 기준','흐름이','구조가','구조를','기운이','따져볼'])
     if(readerText.includes(phrase))earlyEditorial.push(s.id+': abstract wording: '+phrase);
-   if(s.id==='saju_core'&&/(?:일간|월지|지장간|십성)/.test(readerText)&&!/[（(][^)）]{3,}[)）]/.test((s.body||[]).join(' ')))
+   if(s.id==='saju_core'&&(s.body||[]).some(p=>String(p).length>300)&&/(?:일간|월지|지장간|십성)/.test(readerText)&&!/[（(][^)）]{3,}[)）]/.test((s.body||[]).join(' ')))
     earlyEditorial.push('saju_core: reader-facing natal analysis does not explain technical terms');
   }
   if(earlyEditorial.length){
