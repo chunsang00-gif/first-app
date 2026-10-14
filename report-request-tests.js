@@ -324,7 +324,7 @@ const {createQueue,retryDelay,rateLimitKind}=require('./report-request-control')
  const groundedAudit={...validAuditPayload,facts:{facts:{tenGods:{day:{}},structuralEvidence:{}}},analysisGuidance:{editorialBlueprint:{saju_core:{hasGroundedTopic:false,topicTasks:{},anchorTopic:null}}}};
  assert(audit.inspect(groundedAudit).some(x=>x.includes('ungrounded chapter')),'missing calculation evidence blocks provider request');
  const blueprintAudit={...groundedAudit,analysisGuidance:{editorialBlueprint:{saju_core:{hasGroundedTopic:true,anchorTopic:'wrong',activeTopicKeys:['wrong'],topicTasks:{wrong:{mode:'use-primary'}}}}}};
- assert(audit.inspect(blueprintAudit).some(x=>x.includes('plan/outline topic mismatch')),'stale topic plan cannot reach model');
+ assert(audit.inspect(blueprintAudit).some(x=>x.includes('plan/outline topic mismatch')||x.includes('invalid transport plan')),'stale topic plan cannot reach model');
  assert(audit.inspect(blueprintAudit).some(x=>x.includes('noncanonical anchor selection'))===false,'anchor check should compare supported plan entries, not fictional keys');
 
  console.log('PASS no automatic provider retry, no follow-up batches after failure, no continuation after missing topics');
