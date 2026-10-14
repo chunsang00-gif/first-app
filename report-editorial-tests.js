@@ -57,7 +57,7 @@ assert(editorial.wordingErrors(['핵심\u200B성향']).length);
 assert.deepEqual(editorial.wordingErrors(['정인(배움과 보호를 뜻하는 십성)을 함께 살펴봅니다.','부탁을 거절하지 못해 자신의 일을 끝내지 못합니다.']),[]);
 // Concise reports must still contain every planned topic in its exact order.
 const concise=fixture();
-concise.meta={versions:{schema:'concise-v2'}};
+concise.meta={versions:{schema:'concise-v3'}};
 for(const section of concise.sections){
  const keys=Object.keys(outline.topics[section.id]);
  section.bodyTopics=keys;
