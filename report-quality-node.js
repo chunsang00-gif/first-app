@@ -205,6 +205,20 @@ function validate(r,packet){
    if(s.body?.length!==s.bodyTopics?.length||s.bodyLabels?.length!==s.bodyTopics?.length)errors.push(s.id+': topic explanations incomplete');
   }
 
+  // Historical paid QA failure: absence of a calculated branch clash is not
+  // evidence of calm relationships, hidden stress or lack of open conflict.
+  // Inspect the same sentence to avoid penalizing legitimate limits such as
+  // "충이 없어도 관계가 안정된다고 말할 수 없다".
+  const assertions=String([s.keyJudgment,...(Array.isArray(s.body)?s.body:[])].join(' ')).split(/[.!?。\\n]+/);
+  for(const sentence of assertions){
+   const negativeClash=/(?:충|충돌)(?:이|은|가|을)?\\s*(?:없|나타나지|계산되지|확인되지)|(?:충|충돌)\\s*(?:미검출|부재)/.test(sentence);
+   const inventedReaction=/(?:갈등|대립|마찰|문제)(?:보다는|보다|이|은|을)?\\s*(?:내면|속으로|피하|없|드러나지|적)|(?:내면|속으로)\\s*(?:피로|부담|쌓|누적)/.test(sentence);
+   const explicitLimit=/(?:말할 수 없|단정할 수 없|알 수 없|증명하지 않|의미하지 않|확정할 수 없)/.test(sentence);
+   if(negativeClash&&inventedReaction&&!explicitLimit){
+    errors.push(s.id+': missing calculated clash cannot establish personal conflict or hidden stress');
+    break;
+   }
+  }
   // High-confidence editorial conflict: categorical thrift claim versus overspending.
   // Avoid guessing broader psychological contradictions from isolated keywords.
   if(s.id==='money'||s.id==='year_2027_money'){
