@@ -2,6 +2,11 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const quality=require('./report-quality-node'),outline=require('./report-outline');
 const offlineReplay=require('./report-qa-replay').replay;
+const reader=require('./report-reader-policy');
+for(const text of ['상관(뜻을 풀어 쓴 설명)','원국을 보면','일간은','겁재가 있습니다','월지의 계산','2027년 세운','대운을 비교합니다'])assert(reader.errors([text]).length,text);
+for(const text of ['시간이 걸립니다.','통근 시간이 깁니다.','그 일과 상관없습니다.','그 일과 상관이 없습니다.','특정인의 경험을 만들지 않습니다.','정관 수술 여부는 입력받지 않았습니다.','두 해석을 함께 비교합니다.'])assert.deepEqual(reader.errors([text]),[],text);
+const visibleSetters=[r=>r.sections[0].title='원국',r=>r.sections[0].keyJudgment='원국',r=>r.sections[0].bodyLabels=['원국'],r=>r.sections[0].body=['원국'],r=>r.cover.keywords=['원국'],r=>r.cover.highlights=[{title:'원국'}],r=>r.finalJudgment.routines=[{reason:'원국'}],r=>r.finalJudgment.closingQuestion='원국'];
+for(const inject of visibleSetters){const r={sections:[{evidence:['원국 월간 겁재']}],cover:{},finalJudgment:{}};assert.deepEqual(reader.errors(reader.visibleFields(r)),[]);inject(r);assert(reader.errors(reader.visibleFields(r)).includes('reader jargon: 원국'));}
 const offlineFixture={status:'rejected',qa:{errors:['historic rejection']},report:{sections:[{id:'money',keyJudgment:'금전 기준을 확인합니다.',body:['돈은 관리합니다.']},{id:'career',keyJudgment:'역할 기준을 확인합니다.',body:['업무를 확인합니다.']}]}};
 const offlineResult=offlineReplay(offlineFixture);
 assert.equal(offlineResult.chapterCount,2);
@@ -54,7 +59,7 @@ assert(quality.validate(duplicateMainConclusion).errors.some(x=>x.includes('dupl
 const unrelatedParentheses=fixture();
 const chartSample=require('./report-facts-node').build({calendar:'solar',birthDate:'1990-05-15',birthTime:'10:30',gender:'male',mbti:'INTJ'},2027);
 unrelatedParentheses.sections.find(ch=>ch.id==='saju_core').body=['일간 경금은 성격을 뜻합니다. (주의해야 할 점)'];
-assert(quality.validate(unrelatedParentheses,chartSample).errors.includes('saju_core: reader-facing natal analysis does not explain technical terms'),'unrelated parentheses do not explain a technical term');
+assert(quality.validate(unrelatedParentheses,chartSample).errors.includes('reader jargon: 일간'),'unrelated parentheses do not explain a technical term');
 const unfoundedRelationship=fixture();
 unfoundedRelationship.sections.find(x=>x.id==='relationship').body=['원국에서는 지지 충이 확인되지 않아 겉으로 드러나는 극적인 갈등보다는 내면의 피로와 부담이 누적되는 쪽에 가깝습니다.'];
 assert(quality.validate(unfoundedRelationship).errors.some(x=>x.includes('missing calculated clash cannot establish personal conflict')),'historical paid QA unfounded hidden-stress inference must fail');
@@ -118,10 +123,10 @@ for(const section of concise.sections){
 assert(!quality.validate(concise).errors.some(e=>e.includes('required topics')||e.includes('topic explanations incomplete')));
 // A structurally complete, non-repetitive report should pass the server quality gate.
 const passing=structuredClone(concise);
-passing.cover={headline:'서로 다른 상황을 차근차근 살펴봅니다',description:'계산 자료를 바탕으로 각 주제의 차이를 설명합니다.',keywords:['사주 풀이','성향 분석','연간 변화'],highlights:[{sectionId:'saju_core',title:'타고난 반응',description:'사주 원국에서 드러나는 차이를 설명합니다.'},{sectionId:'career',title:'일하는 환경',description:'직장에서 나타날 수 있는 반응을 설명합니다.'},{sectionId:'year_2027',title:'2027년 해석',description:'세운과 원국의 관계를 설명합니다.'}]};
+passing.cover={headline:'서로 다른 상황을 차근차근 살펴봅니다',description:'계산 자료를 바탕으로 각 주제의 차이를 설명합니다.',keywords:['사주 풀이','성향 분석','연간 변화'],highlights:[{sectionId:'saju_core',title:'타고난 반응',description:'사주 풀이에서 드러나는 차이를 설명합니다.'},{sectionId:'career',title:'일하는 환경',description:'직장에서 나타날 수 있는 반응을 설명합니다.'},{sectionId:'year_2027',title:'2027년 해석',description:'2027년과 평소 풀이의 차이를 설명합니다.'}]};
 const topicsSample=['원국의 일간과 월지를 비교해 성향의 차이를 풀이합니다.','월지에 나타난 기운과 다른 자리의 관계를 함께 설명합니다.','십성의 위치에 따라 해석의 범위를 구분합니다.','실제 계산된 항목을 확인한 후 해당 주제를 풀이합니다.'];
 for(const [i,section] of passing.sections.entries()){
- section.title=['타고난 기질과 반응','사주와 성격 선호의 차이','결정할 때 살피는 점','돈을 사용할 때의 특징','일하는 환경과 역할','가까운 관계에서의 반응','압박을 받았을 때','사주와 성격의 종합','2027년 세운과 원국','2027년 돈 관련 해석','2027년 일 관련 해석','2027년 관계 관련 해석'][i];
+ section.title=['타고난 기질과 반응','사주와 성격 선호의 차이','결정할 때 살피는 점','돈을 사용할 때의 특징','일하는 환경과 역할','가까운 관계에서의 반응','압박을 받았을 때','사주와 성격의 종합','2027년과 평소의 차이','2027년 돈 관련 해석','2027년 일 관련 해석','2027년 관계 관련 해석'][i];
  section.keyJudgment=['감정을 표현하는 방식에 차이가 있습니다.','성향을 설명하는 두 관점은 같지 않습니다.','결정은 여러 조건을 비교해 이루어집니다.','지출과 관리 방식은 나누어 살펴야 합니다.','담당하는 역할에 따라 일하는 방식이 달라집니다.','가까운 사이에서 표현 방식이 달라집니다.','압박을 받는 상황을 구분해 살펴봅니다.','서로 다른 설명이 만나는 부분을 확인합니다.','2027년에는 평소와 다른 부분을 비교합니다.','2027년 돈에 관한 차이를 비교합니다.','2027년에는 직장 업무의 변화가 나타나는 이유를 살핍니다.','2027년에는 가족 및 지인과 만나는 방식을 따집니다.'][i];
  section.evidence=['월지와 일간의 관계를 바탕으로 '+section.title+' 주제의 전통적인 의미를 살펴봅니다.'];
  section.body=section.bodyTopics.map((_,j)=>{
@@ -134,7 +139,7 @@ for(const [i,section] of passing.sections.entries()){
    ['친구에게 다가가는 태도','가족을 챙기는 마음','서운함을 전하는 장면','연인과 다투는 상황'],
    ['긴장할 때 숨을 고르는 모습','휴식이 필요한 순간','피로를 느끼는 환경','스스로 진정하는 과정'],
    ['두 관점을 나란히 살피는 방법','상반된 신호가 나타나는 이유','복잡한 해석을 정돈하는 순서','전체를 관통하는 특징'],
-   ['세운의 간지를 해석하는 과정','연간 십성의 의미','원국과 달라지는 요소','이듬해를 바라보는 관점'],
+   ['2027년의 계산을 비교하는 과정','그해 계산에 담긴 뜻','태어난 때와 달라지는 점','이듬해를 바라보는 관점'],
    ['한 해 지출을 바라보는 관점','예산을 설정하는 순간','재정 계획을 바꾸는 이유','목돈을 고려하는 시기'],
    ['연간 직무 변화를 검토하는 일','동료와 책임을 나누는 경험','경력에 도움 되는 업무','새로운 일터를 알아보는 때'],
    ['오래된 인연을 만나는 상황','새로운 친구와 대화하는 장면','가까운 가족과 보내는 시간','함께하는 사람의 고민']
@@ -149,7 +154,7 @@ for(const [i,section] of passing.sections.entries()){
   ['애정의 깊이를 드러냅니다','서운한 감정을 표현합니다','친밀감을 나누는 방법입니다','갈등을 푸는 모습입니다'],
   ['신체 긴장을 경험합니다','수면과 휴식이 필요합니다','불안을 유발하는 장소입니다','진정을 돕는 일과입니다'],
   ['양쪽 자료를 대조합니다','차이가 생긴 근본 이유입니다','서로 모순된 부분을 밝힙니다','독립된 관찰 기준입니다'],
-  ['정미 세운의 구성입니다','화토 요소를 구분합니다','생극의 관계를 살핍니다','십간 관계를 확인합니다'],
+  ['2027년을 풀이하는 자료입니다','화토 요소를 구분합니다','생극의 관계를 살핍니다','십간 관계를 확인합니다'],
   ['연간 지출 계획을 점검합니다','금전 계약의 조건입니다','현금 보유량을 따집니다','재산 운용의 한계를 밝힙니다'],
   ['업무 변경을 고려합니다','승진이나 전환의 조건입니다','기술 개발에 관심을 둡니다','채용 일정을 확인합니다'],
   ['인연의 변화를 설명합니다','만남의 계기를 비교합니다','가족 사이 대화를 다룹니다','서로에게 바라는 점입니다']
@@ -240,6 +245,7 @@ const browserConcise=structuredClone(concise);assert(!client.window.REPORT_VALID
 vm.runInNewContext(fs.readFileSync(require.resolve('./report-renderer'),'utf8'),client);
 const target={innerHTML:'',closest(){return {classList:{add(){}}}},querySelectorAll(){return []},querySelector(){return null}};
 client.window.REPORT_RENDERER.render({...fixture(),meta:{}},target);
+assert(!target.innerHTML.includes('report-evidence'),'internal calculation evidence must not be rendered');
 assert(target.innerHTML.includes('종합 총평'));assert(target.innerHTML.includes('가장 중요한 결론'));
 assert(target.innerHTML.indexOf('가장 중요한 결론')<target.innerHTML.indexOf(fixture().finalJudgment.closingQuestion));
 // Exercise the actual pipeline without an API key, network, or calculation dependency.
@@ -363,7 +369,7 @@ for(const a of ['I','E'])for(const b of ['S','N'])for(const c of ['T','F'])for(c
   assert.deepEqual(Object.keys(p.analysisGuidance.chapterTasks),Array.from(p.requestedSections));
   assert.equal(p.analysisGuidance.mbtiReference.type,'ISFP');
   assert.equal(p.analysisGuidance.mbtiReference.preferences.map(x=>x.code).join(''),'ISFP');
-  return {sections:p.requestedSections.map(id=>({id,title:'제목',keyJudgment:'핵심',evidence:['계산한 사주 항목의 설명입니다.'],bodyTopics:Object.keys(outline.topics[id]),bodyLabels:Object.values(outline.topics[id]),body:Object.keys(outline.topics[id]).map((_,i)=>'첫 번째 결론 '+i+'. 이어지는 설명입니다.')}))};
+  return {sections:p.requestedSections.map(id=>({id,title:'제목',keyJudgment:'핵심',evidence:['계산한 사주 항목의 설명입니다.'],bodyTopics:Object.keys(outline.topics[id]),bodyLabels:Object.keys(outline.topics[id]).map((_,i)=>'검증 항목 '+i),body:Object.keys(outline.topics[id]).map((_,i)=>'첫 번째 결론 '+i+'. 이어지는 설명입니다.')}))};
  });
  // The mock intentionally contains placeholder evidence and no cover.
  // Never mistake completed provider calls for a publishable report.
@@ -380,7 +386,7 @@ for(const a of ['I','E'])for(const b of ['S','N'])for(const c of ['T','F'])for(c
    return {sections:p.requestedSections.map(id=>({
     id,title:'제목',keyJudgment:'직접 실행으로 연결합니다.',
     evidence:['계산한 사주 항목의 설명입니다.'],bodyTopics:Object.keys(outline.topics[id]),
-    bodyLabels:Object.values(outline.topics[id]),
+    bodyLabels:Object.keys(outline.topics[id]).map((_,i)=>'검증 항목 '+i),
     body:Object.keys(outline.topics[id]).map(()=>'문장입니다.')
    }))};
   }),
@@ -395,7 +401,7 @@ for(const a of ['I','E'])for(const b of ['S','N'])for(const c of ['T','F'])for(c
   return {sections:p.requestedSections.map(id=>({
    id,title:'서로 다른 제목 '+id,keyJudgment:'논리적인 근거를 확인하고 설명을 납득해야 결정합니다.',
    evidence:['원국의 일간 계산 근거 '+id],bodyTopics:Object.keys(outline.topics[id]),
-   bodyLabels:Object.values(outline.topics[id]),
+   bodyLabels:Object.keys(outline.topics[id]).map((_,i)=>'검증 항목 '+i),
    body:Object.keys(outline.topics[id]).map((_,i)=>'서로 다른 주제 '+id+i+'에서 논리와 근거를 확인하고 설명에 납득해야 합니다.')
   }))};
  }),/cross-chapter recycled thesis/);

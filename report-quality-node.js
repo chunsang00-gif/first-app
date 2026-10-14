@@ -284,19 +284,11 @@ function validate(r,packet){
  }
  const readable=[r.cover?.headline,r.cover?.description,...(r.cover?.highlights||[]).flatMap(h=>[h.title,h.description]),...(r.cover?.keywords||[]),...r.sections.flatMap(s=>[s.title,s.keyJudgment,...(s.body||[]),...(s.bodyLabels||[]),...(s.evidence||[])]),...(r.finalJudgment?.body||[]),r.finalJudgment?.headline,...(r.finalJudgment?.strengths||[]),...(r.finalJudgment?.watchouts||[]),...(r.finalJudgment?.routines||[]).flatMap(x=>[x.trigger,x.action,x.reason]),r.finalJudgment?.closingQuestion].filter(Boolean);
  const all=norm(readable.join(' '));
- // Paid-report acceptance requires the reader-facing analysis, not only hidden evidence,
- // to explain why the calculated chart supports the interpretation.
+ // Facts remain checked in internal evidence; visible prose must not require jargon.
+ errors.push(...require('./report-reader-policy').errors(require('./report-reader-policy').visibleFields(r)));
  if(packet?.status==='ready'&&packet?.facts?.tenGods){
-  const core=r.sections.find(x=>x.id==='saju_core');
-  const coreText=norm((core?.body||[]).join(' '));
-  if(!/(?:일간|월지|월간|일지|십성|지장간|비견|겁재|식신|상관|편재|정재|편관|정관|편인|정인)/.test(coreText))
-   errors.push('saju_core: reader-facing natal analysis omits calculated Saju terms');
-  if(!/(?:일간|월지|일지|월간|십성|지장간|비견|겁재|식신|상관|편재|정재|편관|정관|편인|정인)\s*[（(][^)）]{3,}[)）]|(?:일간|월지|일지|월간|십성|지장간)(?:은|는|이란|란|의 뜻은)[^.!?]{0,100}(?:뜻|의미|가리키|말합니다|나타냅니다|일컬|글자|관계|기준)|(?:태어난 날|태어난 달|태어난 시각|계절을 나타내는|자신을 나타내는)[^.!?]{0,80}(?:글자|기둥|관계)/.test(coreText))
-   errors.push('saju_core: reader-facing natal analysis does not explain technical terms');
   const year=r.sections.find(x=>x.id==='year_2027');
-  const yearText=norm((year?.body||[]).join(' '));
-  if(!/(?:2027|정미|丁未)/.test(yearText)||!/(?:세운|대운|십성|편관|정관|식신|상관|원국)/.test(yearText))
-   errors.push('year_2027: reader-facing fortune omits calculated annual context');
+  if(!/2027/.test([year?.title,...(year?.body||[])].join(' ')))errors.push('year_2027: reader-facing fortune omits target year');
  }
  // A seasonal annual pillar must never be sold as a January-to-December guarantee.
  // Only reject explicit full-calendar-year claims; ordinary '2027년' wording remains valid.

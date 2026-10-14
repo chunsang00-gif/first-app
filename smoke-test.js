@@ -2,7 +2,7 @@ const {spawn}=require('child_process');const assert=require('assert');const Q=re
 const IDS=Q.IDS;
 function mockReport(){
  const bodies={
-  saju_core:'일간(태어난 날의 천간)과 월지(태어난 달의 지지)를 구분해 원국의 기본 반응을 설명합니다. 일간의 성질과 월지의 계절 조건이 어떤 긴장을 만드는지 계산 사실을 중심으로 풀어냅니다. 강약을 좋고 나쁨으로 단정하지 않고 반복해서 나타나는 반응 구조와 우선순위를 구분합니다.',
+  saju_core:'새로운 일을 맡을 때 혼자 해 보는 경우와 다른 사람에게 방법을 묻는 경우를 나눠 설명합니다. 바로 답해야 하는 상황에서는 충분히 시간을 갖고 고를 때와 무엇이 달라지는지 살펴봅니다. 실제 개인에 대한 판단이 아닌 연결 상태 검사용 예문입니다.',
   mbti_contradiction:'겉으로 표현하는 반응과 사주 계산에서 읽히는 내부 반응이 같은 방향인지 비교합니다. 서로 어긋나는 지점에서는 한쪽을 정답으로 두지 않고 어떤 조건에서 표현 차이가 커지는지 분석합니다. 두 체계를 단순 대응하지 않는 것이 이 장의 핵심입니다.',
   decision:'선택 상황에서는 정보를 모으는 단계와 결론을 내리는 단계를 나누어 봅니다. 계산 근거가 가리키는 속도와 신중함이 실제 의사결정에서 어느 순서로 드러나는지 설명합니다. 결정을 미루는 경우와 빠르게 확정하는 경우의 조건 차이도 구분합니다.',
   money:'금전 영역은 수입 자체보다 비용 확대와 손실 허용 범위 그리고 같은 선택을 반복할 수 있는지를 중심으로 분석합니다. 사주 계산 근거와 성향 선호가 소비나 위험 판단에 어떤 기준을 더하는지 연결합니다. 다른 장의 성격 설명을 재사용하지 않습니다.',
@@ -10,13 +10,13 @@ function mockReport(){
   relationship:'관계에서는 친밀도 자체보다 정보 공유 시점과 역할 조정 방식을 봅니다. 갈등이 생길 때 설명을 먼저 하는지 결론을 먼저 내리는지, 상대와 기대치를 언제 맞추는지가 핵심입니다. 사주에서 읽히는 서로 다른 관계 반응이 강화되거나 엇갈리는 조건을 분리합니다.',
   stress:'압박이 커질 때 평소 반응에서 무엇이 먼저 변하는지 분석합니다. 판단 속도와 표현량 그리고 직접 챙기려는 일이 얼마나 늘어나는지를 근거에 연결합니다. 스트레스 해소법을 일반 조언으로 제시하지 않고 과부하 시 나타날 수 있는 변화만 다룹니다.',
   integrated_judgment:'앞 장의 결론을 합산하지 않고 두 체계를 함께 볼 때만 드러나는 함께 볼 때 새로 보이는 점을 정리합니다. 사주에서 서로 다른 반응이 동시에 나타날 때 무엇이 강화되고 무엇이 상쇄되는지를 구분합니다. 모순을 없애지 않고 조건별 역할 차이로 해석합니다.',
-  year_2027:'2027년 정미년 세운과 원국의 관계를 평생 성향과 구분해 비교합니다. 원국과 해당 연도를 비교해 평소보다 더 자주 드러날 반응과 덜 드러날 반응이 있는지 확인합니다. 변화 근거가 약하면 변화가 크다고 만들지 않고 기존 패턴이 유지되는 쪽으로 판정합니다.',
+  year_2027:'2027년의 계산 결과를 평생 성향과 구분해 비교합니다. 태어난 때와 해당 연도를 비교해 평소보다 더 자주 드러날 반응과 덜 드러날 반응이 있는지 확인합니다. 변화 근거가 약하면 변화가 크다고 만들지 않고 기존 패턴이 유지되는 쪽으로 판정합니다.',
   year_2027_money:'2027년 금전 판단은 평소 비용 기준과 비교해 손실 허용 범위와 반복 가능한 지출의 변화 여부를 봅니다. 해당 연도의 계산값이 책임이나 비용 부담을 더 키우는지 확인하고 근거가 약하면 기존 기준 유지로 설명합니다. 수입 증가 같은 사건은 확정하지 않습니다.',
   year_2027_career:'2027년 일에서는 평소 역할과 비교해 책임 범위와 판단권의 변화 가능성을 살핍니다. 연간 계산 근거가 기존 직업 성향을 더 강하게 만드는지 또는 다른 우선순위를 요구하는지 구분합니다. 이직이나 합격 같은 사건을 예측하지 않습니다.',
   year_2027_relationship:'2027년 관계는 평소 정보 공유와 역할 배분 방식에 연간 변화가 더해지는지를 봅니다. 시간 배분과 기대치 조정의 압력이 기존보다 강해지는지 비교하고 근거가 약하면 유지로 판정합니다. 특정 만남이나 결혼 같은 사건은 확정하지 않습니다.'
  };
  const judgments={
-  saju_core:'기본 반응의 중심은 원국의 계절 조건과 일간 관계에서 판정합니다.',
+  saju_core:'처음 해 보는 일을 맡을 때 무엇부터 확인하는지 설명합니다.',
   mbti_contradiction:'외부 표현과 내부 반응의 간격이 두 체계의 핵심 차이입니다.',
   decision:'결정 전 정보 수집과 결정 후 실행 속도를 분리해서 봐야 합니다.',
   money:'금전 판단은 비용 확대와 손실 허용 범위를 우선 확인합니다.',
@@ -29,7 +29,7 @@ function mockReport(){
   year_2027_career:'2027년 일은 평소 역할에서 책임과 판단권이 달라지는지를 비교합니다.',
   year_2027_relationship:'2027년 관계는 기존 정보 공유와 시간 배분의 변화를 비교합니다.'
  };
- return {meta:{name:'',mbti:'모름',chart:{year:'甲子',month:'甲子',day:'甲子',hour:'甲子',calculationStatus:'complete'},targetYear:2027,versions:{ruleset:'test',prompt:'test',schema:'test'}},sections:Q.IDS.map((id,i)=>({id,title:'테스트 '+(i+1),mood:['confident','reflective','encouraging','cautious'][i%4],bodyTopics:Object.keys(require('./report-outline').topics[id]),bodyLabels:Object.values(require('./report-outline').topics[id]),body:Object.values(require('./report-outline').topics[id]).map((topic,j)=>bodies[id].split(/(?<=다\.)\s+/)[j]||topic+'에 관한 독립적인 해석입니다.'),keyJudgment:judgments[id],evidence:['검증된 계산 사실 '+i]})),cover:{headline:'선택을 확인하고 행동으로 옮기는 사람',description:'테스트용 개인별 요약 설명입니다.',keywords:['직접확인','실행력','의견표현'],highlights:['money','relationship','career'].map(id=>({sectionId:id,title:'선별 '+id,description:judgments[id]}))},finalJudgment:{headline:'다음 선택에 강점을 쓰세요',strengths:['확인하고 실행하는 선택'],watchouts:['다른 의견을 늦게 듣는 선택'],routines:[{trigger:'결정하기 전',action:'반대 의견 한 가지를 먼저 확인해보세요',reason:'누락된 정보를 찾는 데 도움이 됩니다'}],body:['전체 판단을 종합합니다.'],closingQuestion:'서로 다른 의견을 들은 뒤 판단하면 놓치기 쉬운 문제를 줄일 수 있습니다.',afterClosingText:''}}}
+ return {meta:{name:'',mbti:'모름',chart:{year:'甲子',month:'甲子',day:'甲子',hour:'甲子',calculationStatus:'complete'},targetYear:2027,versions:{ruleset:'test',prompt:'test',schema:'test'}},sections:Q.IDS.map((id,i)=>({id,title:'테스트 '+(i+1),mood:['confident','reflective','encouraging','cautious'][i%4],bodyTopics:Object.keys(require('./report-outline').topics[id]),bodyLabels:Object.keys(require('./report-outline').topics[id]).map((_,i)=>'검증 항목 '+i),body:Object.keys(require('./report-outline').topics[id]).map((topic,j)=>bodies[id].split(/(?<=다\.)\s+/)[j]||topic+'에 관한 독립적인 해석입니다.'),keyJudgment:judgments[id],evidence:['검증된 계산 사실 '+i]})),cover:{headline:'선택을 확인하고 행동으로 옮기는 사람',description:'테스트용 개인별 요약 설명입니다.',keywords:['직접확인','실행력','의견표현'],highlights:['money','relationship','career'].map(id=>({sectionId:id,title:'선별 '+id,description:judgments[id]}))},finalJudgment:{headline:'다음 선택에 강점을 쓰세요',strengths:['확인하고 실행하는 선택'],watchouts:['다른 의견을 늦게 듣는 선택'],routines:[{trigger:'결정하기 전',action:'반대 의견 한 가지를 먼저 확인해보세요',reason:'누락된 정보를 찾는 데 도움이 됩니다'}],body:['전체 판단을 종합합니다.'],closingQuestion:'서로 다른 의견을 들은 뒤 판단하면 놓치기 쉬운 문제를 줄일 수 있습니다.',afterClosingText:''}}}
 
 assert.equal(Q.validate(mockReport()).pass,true,JSON.stringify(Q.validate(mockReport()).errors));
 const child=spawn(process.execPath,['server.js'],{env:{...process.env,PORT:'3210',REPORT_MODEL_URL:'http://127.0.0.1:3211/report'},stdio:'ignore'});

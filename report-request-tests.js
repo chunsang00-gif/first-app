@@ -132,7 +132,7 @@ const {createQueue,retryDelay,rateLimitKind}=require('./report-request-control')
   assert(p.rules.tone.includes('전통 해석')&&p.rules.tone.includes('단정'),'effective tone must distinguish interpretive tradition from fact');
   assert(p.rules.narrativeRule.includes('문단 수를 강요하지 않는다'),'effective narrative instructions must not enforce unsupported content quotas');
   assert(p.rules.paragraphGuide.includes('state-limits 항목은 null')&&!p.rules.paragraphGuide.includes('목차에 지정된 항목마다 독립적인 문단'),'paragraph instruction must agree with null-only output schema');assert(!p.rules.narrativeRule.includes('각 장은 3~4개의')&&!JSON.stringify(p).includes('12개 장은 같은 성향을'),'actual model must not enforce fixed chapter or paragraph quotas');assert(p.rules.narrativeRule.includes('전통적 의미')&&p.rules.narrativeRule.includes('관찰된 과거')&&p.rules.narrativeRule.includes('새롭고 독립된 설명'),'body payload must demand depth and protect against invented history and repetitions');assert.deepEqual(Object.keys(p.rules.sectionGoals),p.requestedSections,'do not spend provider tokens on unrelated chapter goals');for(const id of p.requestedSections)assert.equal(p.rules.sectionGoals[id],require('./report-prompt').sectionGoals[id]);}if(p.stage==='synthesis'){assert(p.rules.finalRule.includes('그 사람의 장점과 주의점을 한 문장으로 연결한 최종 결론'),'final synthesis must require a personalized ending');assert(p.rules.finalRule.includes('면책 안내'),'final synthesis must forbid generic disclaimer ending');assert.equal(p.rules.integrateMbti,true,'known MBTI must stay enabled during final synthesis');assert.equal(stages.filter(x=>x.stage==='body'&&x.completed===expectedCount).length,1);assert(p.completedReport.sections.every(s=>s.body.length>=1),'every chapter retains at least one grounded topic');assert(p.completedReport.sections.reduce((n,s)=>n+s.body.length,0)<=28,'optional topics must not add filler paragraphs');return {sections:[],cover:null,finalJudgment:{body:['전체 풀이 검증'],closingQuestion:'꼼꼼하게 확인하느라 결정을 늦출 때는, 오늘 확인할 내용을 먼저 정하는 것이 도움이 됩니다.',afterClosingText:''}}}
- assert.equal(p.stage,'body');assert.equal(p.priorSections.length,expectedBatches.slice(0,calls-1).flat().length);assert.deepEqual(p.requestedSections,expectedBatches[calls-1]);assert(p.editorialTask.includes('최종 본문'));assert.deepEqual(Object.keys(p.rules.topicPlan),p.requestedSections);assert(!('summaryRule' in p.rules));return {sections:p.requestedSections.map(id=>({id,title:id,keyJudgment:id,bodyTopics:Object.keys(outline.topics[id]),bodyLabels:Object.values(outline.topics[id]),body:Object.keys(outline.topics[id]).map(t=>`${id} ${t}에 대한 모의 설명(일반인을 위한 쉬운 뜻풀이)으로 이 문단은 실제 계산된 해석을 담고 있지 않습니다. 독자의 행동과 판단을 설명하는 충분한 근거가 없는 문장입니다.`),evidence:[id+'의 원국과 십성 관계를 구분해 확인하는 모의 분석 자료입니다.']}))}},p=>stages.push(p),batch=>checkpoints.push(batch));
+ assert.equal(p.stage,'body');assert.equal(p.priorSections.length,expectedBatches.slice(0,calls-1).flat().length);assert.deepEqual(p.requestedSections,expectedBatches[calls-1]);assert(p.editorialTask.includes('최종 본문'));assert.deepEqual(Object.keys(p.rules.topicPlan),p.requestedSections);assert(!('summaryRule' in p.rules));return {sections:p.requestedSections.map(id=>({id,title:id,keyJudgment:id,bodyTopics:Object.keys(outline.topics[id]),bodyLabels:Object.keys(outline.topics[id]).map((_,i)=>'검증 항목 '+i),body:Object.keys(outline.topics[id]).map(t=>`${id} ${t}에 대한 모의 설명(일반인을 위한 쉬운 뜻풀이)으로 이 문단은 실제 계산된 해석을 담고 있지 않습니다. 독자의 행동과 판단을 설명하는 충분한 근거가 없는 문장입니다.`),evidence:[id+'의 원국과 십성 관계를 구분해 확인하는 모의 분석 자료입니다.']}))}},p=>stages.push(p),batch=>checkpoints.push(batch));
  assert.equal(checkpoints.length,expectedBatches.length,'each verified body batch must be checkpointed once');
  assert.deepEqual(checkpoints.map(x=>x.completedSections),expectedBatches.map((_,i)=>expectedBatches.slice(0,i+1).flat().length));
  assert.deepEqual(checkpoints.flatMap(x=>x.ids),expectedBatches.flat(),'checkpoints follow generation order, not display order');
@@ -246,7 +246,7 @@ const {createQueue,retryDelay,rateLimitKind}=require('./report-request-control')
   }
   return {sections:prompt.requestedSections.map(id=>({
    id,title:id,keyJudgment:id,bodyTopics:Object.keys(outline.topics[id]),
-   bodyLabels:Object.values(outline.topics[id]),
+   bodyLabels:Object.keys(outline.topics[id]).map((_,i)=>'검증 항목 '+i),
    body:Object.keys(outline.topics[id]).map(topic=>id+' '+topic+'에 관한 검증용 모의 문장(일반인용 용어 풀이 포함)입니다.'),
    evidence:[id+'의 명리학 계산 근거를 검증하는 모의 데이터입니다.']
   }))};
@@ -260,14 +260,14 @@ const {createQueue,retryDelay,rateLimitKind}=require('./report-request-control')
  let mismatchCalls=0;
  await assert.rejects(contract.generate({calendar:'solar',birthDate:'1990-06-15',unknownBirthTime:true,gender:'male',mbti:'INFP'},async prompt=>{
   mismatchCalls++;
-  return {sections:prompt.requestedSections.map(id=>({id,title:'계산값 검증',keyJudgment:'월간의 정관이 확인됩니다.',bodyTopics:Object.keys(outline.topics[id]),bodyLabels:Object.values(outline.topics[id]),body:Object.keys(outline.topics[id]).map(()=> '월간의 정관이 확인됩니다.'),evidence:['월간의 정관'] }))};
+  return {sections:prompt.requestedSections.map(id=>({id,title:'계산값 검증',keyJudgment:'월간의 정관이 확인됩니다.',bodyTopics:Object.keys(outline.topics[id]),bodyLabels:Object.keys(outline.topics[id]).map((_,i)=>'검증 항목 '+i),body:Object.keys(outline.topics[id]).map(()=> '월간의 정관이 확인됩니다.'),evidence:['월간의 정관'] }))};
  }),/factually inconsistent report data/);
  assert.equal(mismatchCalls,1,'factually incorrect first batch must not trigger six additional paid calls');
  assert.equal(require('./report-diagnostics').failureCode('AI report service returned factually inconsistent report data'),'REPORT_FACT_MISMATCH');
  let duplicatedEvidenceCalls=0;
  await assert.rejects(contract.generate({calendar:'solar',birthDate:'1990-06-15',unknownBirthTime:true,gender:'male',mbti:'INFP'},async prompt=>{
   duplicatedEvidenceCalls++;
-  return {sections:prompt.requestedSections.map(id=>({id,title:'본문 증거 검증',keyJudgment:'설명한 내용을 검토합니다.',bodyTopics:Object.keys(outline.topics[id]),bodyLabels:Object.values(outline.topics[id]),body:Object.keys(outline.topics[id]).map(()=> '서로 다른 질문에 답하는 검증 문장입니다.'),evidence:['사주 계산값을 살펴보고 명리학의 위치를 확인한 검증용 근거 문장입니다.']}))};
+  return {sections:prompt.requestedSections.map(id=>({id,title:'본문 증거 검증',keyJudgment:'설명한 내용을 검토합니다.',bodyTopics:Object.keys(outline.topics[id]),bodyLabels:Object.keys(outline.topics[id]).map((_,i)=>'검증 항목 '+i),body:Object.keys(outline.topics[id]).map(()=> '서로 다른 질문에 답하는 검증 문장입니다.'),evidence:['사주 계산값을 살펴보고 명리학의 위치를 확인한 검증용 근거 문장입니다.']}))};
  }),/repeated chapter evidence/);
  assert.equal(duplicatedEvidenceCalls,1,'duplicate evidence in first batch must not incur further provider calls');
  let emptyCalls=0;await assert.rejects(contract.generate({calendar:'solar',birthDate:'1990-06-15',unknownBirthTime:true,gender:'male',mbti:'INFP'},async()=>{emptyCalls++;return {sections:[]}}));assert.equal(emptyCalls,1);
@@ -316,9 +316,11 @@ const {createQueue,retryDelay,rateLimitKind}=require('./report-request-control')
  }
  const audit=require('./report-instruction-audit');
  const validAuditPayload={stage:'body',requestedSections:['saju_core'],facts:{facts:{}},analysisGuidance:{editorialBlueprint:{}},
-  rules:{paragraphGuide:'state-limits 항목은 null로 둔다',tone:'전통 해석과 사실을 구별한다',narrativeRule:'근거 없으면 문단 수를 강요하지 않는다'},
+  rules:{hanjaPolicy:require('./report-reader-policy').instruction,paragraphGuide:'state-limits 항목은 null로 둔다',tone:'전통 해석과 사실을 구별한다',narrativeRule:'근거 없으면 문단 수를 강요하지 않는다'},
   planningInstruction:'state-limits 항목은 null'};
  assert.deepEqual(audit.inspect(validAuditPayload),[],'valid complete instructions pass');
+ assert(audit.inspect({...validAuditPayload,editorialTask:'핵심 명리 용어를 본문에 넣는다'}).includes('conflicting visible jargon instruction'));
+ assert(audit.inspect({...validAuditPayload,rules:{...validAuditPayload.rules,hanjaPolicy:'용어를 괄호로 설명한다'}}).includes('reader language policy replaced or missing'));
  assert(audit.inspect({...validAuditPayload,rules:{...validAuditPayload.rules,narrativeRule:'12개 장과 29개 항목을 모두 채운다'}}).some(x=>x.includes('obsolete forced quota')),'old fixed-quantity prompt is rejected');
  assert(audit.inspect({...validAuditPayload,rules:{...validAuditPayload.rules,paragraphGuide:'각 장마다 문단을 강제'}}).some(x=>x.includes('paragraph instruction')),'overriding null policy is rejected');
  const groundedAudit={...validAuditPayload,facts:{facts:{tenGods:{day:{}},structuralEvidence:{}}},analysisGuidance:{editorialBlueprint:{saju_core:{hasGroundedTopic:false,topicTasks:{},anchorTopic:null}}}};
