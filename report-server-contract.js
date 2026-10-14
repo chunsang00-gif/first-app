@@ -266,7 +266,8 @@ async function generate(input,callModel,onProgress=()=>{},onValidatedBatch=()=>{
  // Connect repeated calculated evidence to the ORIGINAL conclusion that used it.
  // Only send overlapping paths for the requested chapters; do not inflate every request.
  const reusedEvidenceFor=(ids)=>{
-  const needed=new Set(ids.flatMap(id=>Object.values(editorialBlueprint[id]?.topicTasks||{}).flatMap(t=>[t.primaryEvidencePath,...(t.verifiedFallbackPaths||[])])).filter(Boolean));
+  const activePaths=t=>t.mode==='use-primary'?[t.primaryEvidencePath]:t.mode==='use-verified-fallback'?(t.verifiedFallbackPaths||[]):[];
+  const needed=new Set(ids.flatMap(id=>Object.values(editorialBlueprint[id]?.topicTasks||{}).flatMap(activePaths)).filter(Boolean));
   const uses=[];
   for(const previous of priorSections){
    const tasks=editorialBlueprint[previous.id]?.topicTasks||{};
@@ -276,7 +277,7 @@ async function generate(input,callModel,onProgress=()=>{},onValidatedBatch=()=>{
     // A skipped optional topic has no conclusion to reuse. Never attach the
     // next topic's conclusion to its evidence path.
     if(index<0) return;
-    const paths=[entry.primaryEvidencePath,...(entry.verifiedFallbackPaths||[])].filter(p=>needed.has(p));
+    const paths=activePaths(entry).filter(p=>needed.has(p));
     for(const path of paths)uses.push({path,chapter:previous.id,topic,previousConclusion:String(previous.topicConclusions?.[index]||previous.keyJudgment||'').slice(0,240)});
    });
   }
