@@ -166,7 +166,7 @@ async function generate(input,callModel,onProgress=()=>{},onValidatedBatch=()=>{
  base.rules=Object.fromEntries([...activeRuleKeys,...reviewKeys].map(key=>[key,base.rules[key]]));
  base.rules.avoidPhrases=quality.forbiddenPhrases;summaryRules.avoidPhrases=quality.forbiddenPhrases;
  const editorialBlueprint=analysisGuidance.preflight(packet);
- const groups=[['saju_core','mbti_contradiction'],['decision','stress'],['money','career'],['relationship','integrated_judgment'],['year_2027','year_2027_money'],['year_2027_career','year_2027_relationship']];
+ let groups=[['saju_core','mbti_contradiction'],['decision','stress'],['money','career'],['relationship','integrated_judgment'],['year_2027','year_2027_money'],['year_2027_career','year_2027_relationship']];
  // Evidence-limited annual domains keep their chapters for compatibility, but
  // must not manufacture two lengthy predictions to fill the topic slots.
  for(const id of ['year_2027_money','year_2027_career','year_2027_relationship']){
@@ -176,6 +176,10 @@ async function generate(input,callModel,onProgress=()=>{},onValidatedBatch=()=>{
    editorialBlueprint[id].contentPolicy='해당 장은 한 항목으로 계산 사실과 해석의 한계를 분명히 설명한다. 기존 성격·책임·기준 설명을 다른 표현으로 채우지 않고, 2027년의 금전·직업·관계 사건을 암시하지 않는다. 근거를 만들어 긴 해석을 하지 않는다.';
   }else editorialBlueprint[id].generationMode='evidence-grounded';
  }
+ // Skip annual subchapters when no direct annual domain evidence exists; retain yearly overview.
+ const omittedAnnualIds=new Set(['year_2027_money','year_2027_career','year_2027_relationship'].filter(id=>editorialBlueprint[id]?.generationMode==='evidence-limit-only'));
+ groups=groups.map(batch=>batch.filter(id=>!omittedAnnualIds.has(id))).filter(batch=>batch.length);
+ const plannedIds=IDS.filter(id=>!omittedAnnualIds.has(id));
  const noMbti=packet.person?.mbti==='모름';
  const unknownMbtiGoals={
   mbti_contradiction:'성격유형 정보가 입력되지 않았다. 유형을 추정하거나 입력되지 않은 유형을 분석하지 않는다. 대신 원국의 서로 다른 두 위치와 십성 근거를 대조해 겉으로 보이는 반응과 혼자 결정할 때의 반응이 달라질 수 있는 조건을 설명한다. 차이를 만들 근거가 없으면 같다고 설명한다.',
@@ -255,7 +259,7 @@ async function generate(input,callModel,onProgress=()=>{},onValidatedBatch=()=>{
   return uses;
  };
  const request=(ids,extra={})=>({...base,...extra,analysisGuidance:{...analysisGuidance.forRequest(ids,packet.person?.mbti),editorialBlueprint:Object.fromEntries(ids.map(id=>[id,editorialBlueprint[id]]))},requestedSections:ids,includeFinal:false,includeCover:false,rules:{...base.rules,...extra.rules,sections:ids,chapterOwnershipPlan:Object.fromEntries(ids.map(id=>[id,chapterPlan[id]])),previousChapterOwnership:Object.fromEntries(priorSections.map(s=>[s.id,chapterOwnership[s.id]])),alreadyRepeatedNarrativeMotifs:narrativeMotifLedger(priorSections),reusedEvidenceWithPriorConclusions:reusedEvidenceFor(ids),sectionGoals:scopedGoals(ids),annualDomainScopes:Object.fromEntries(ids.filter(id=>annualDomainScopes[id]).map(id=>[id,annualDomainScopes[id]])),topicPlan:Object.fromEntries(ids.map(id=>[id,noMbti&&sajuOnlyTopics[id]?sajuOnlyTopics[id]:outline.topics[id]])),returnOnlyRequestedSections:true},output:{...base.output,requestedSections:ids,cover:'null',finalJudgment:'null'}});
- let done=0;onProgress({stage:'body',completed:0,total:12});
+ let done=0;onProgress({stage:'body',completed:0,total:plannedIds.length});
  // Preserve complete earlier paragraphs: later sentences can contain the repeated
  // consequence or advice. No extra model call is used to summarize or rewrite them.
  const priorSections=[];
@@ -352,11 +356,11 @@ async function generate(input,callModel,onProgress=()=>{},onValidatedBatch=()=>{
   }
   priorSections.push(...result.sections.map(s=>({id:s.id,keyJudgment:s.keyJudgment,bodyLabels:s.bodyLabels,bodyTopics:s.bodyTopics,topicConclusions:s.body.slice(),evidence:s.evidence.slice()})));
   await onValidatedBatch({ids:ids.slice(),sections:result.sections,completedSections:priorSections.length});
-  onProgress({stage:'body',completed:done+=ids.length,total:12});return result;
+  onProgress({stage:'body',completed:done+=ids.length,total:plannedIds.length});return result;
  })];
  const meta={calculationNote:'입력한 출생 시각을 그대로 사용하며 출생지에 따른 시간 차이는 보정하지 않습니다. 밤 11시대도 입력한 날짜로 계산합니다. 2027년 풀이는 전통적인 사주 계산에 따른 참고 해석이며, 실제 사건을 예측한 결과는 아닙니다. 여러 해에 걸친 변화는 연도별로 비교하며 바뀌는 정확한 날짜까지 구분하지 않습니다.',characterGender:input.gender||'male',name:input.name||'',mbti:input.mbti||'모름',chart:packet.chart,profileBalance:packet.profileBalance,targetYear:2027,versions:{ruleset:'premium-v2',prompt:'reader-depth-v2',schema:outline.version}};
  const drafted=new Map(drafts.flatMap(p=>p.sections||[]).map(section=>[section.id,section]));
- const sections=IDS.map(id=>drafted.get(id));
+ const sections=plannedIds.map(id=>drafted.get(id));
  // Select the cover only after all 12 complete chapters. The final local quality
  // gate below remains mandatory; no automatic paid rewrite or retry is issued.
  // Stop before paying for synthesis when chapters already recycle the same thesis.
@@ -368,7 +372,7 @@ async function generate(input,callModel,onProgress=()=>{},onValidatedBatch=()=>{
   const report={meta,sections,cover:null,finalJudgment:null};
   return {status:'rejected',report,qa:{pass:false,errors:repeatedErrors,warnings:adviceWarnings},headingRepairs:[],stoppedBeforeSynthesis:true};
  }
- const summaryPrompt={...base,stage:'synthesis',requestedSections:[],includeFinal:true,includeCover:true,completedReport:{meta,sections},rules:{...summaryRules,sections:[],returnOnlyRequestedSections:true,finalEditingTask:'완성된 12개 장에서 가장 중요한 장점과 손해를 줄 수 있는 행동을 연결해 총평을 쓴다. 새로운 성격을 만들어내거나 장별 요약을 나열하지 않는다. 한계 안내는 총평 본문에 한 번만 쓰고 closingQuestion은 반드시 사람에 대한 결론으로 끝낸다. 같은 결론으로 도입·요약·마지막 문장을 세 번 쓰지 않는다. 실질적인 새 조언이 없으면 routines는 빈 배열로 반환한다. 억지로 교훈을 붙이지 않는다.'},output:{...base.output,requestedSections:[],cover:'required',finalJudgment:'required'}};
+ const summaryPrompt={...base,stage:'synthesis',requestedSections:[],includeFinal:true,includeCover:true,completedReport:{meta,sections},rules:{...summaryRules,sections:[],returnOnlyRequestedSections:true,finalEditingTask:'완성된 장에서 가장 중요한 장점과 손해를 줄 수 있는 행동을 연결해 총평을 쓴다. 새로운 성격을 만들어내거나 장별 요약을 나열하지 않는다. 한계 안내는 총평 본문에 한 번만 쓰고 closingQuestion은 반드시 사람에 대한 결론으로 끝낸다. 같은 결론으로 도입·요약·마지막 문장을 세 번 쓰지 않는다. 실질적인 새 조언이 없으면 routines는 빈 배열로 반환한다. 억지로 교훈을 붙이지 않는다.'},output:{...base.output,requestedSections:[],cover:'required',finalJudgment:'required'}};
  onProgress({stage:'synthesis',completed:0,total:1});
  let summary=await callModel(summaryPrompt);
  let report={meta,sections,cover:summary.cover,finalJudgment:summary.finalJudgment};
