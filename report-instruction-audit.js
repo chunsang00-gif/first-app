@@ -71,6 +71,11 @@ function inspect(prompt){
   if(!prompt.includeFinal||!prompt.includeCover)errors.push('synthesis must generate final and cover');
   const sections=prompt.completedReport?.sections||[];
   if(!sections.length)errors.push('synthesis has no chapters');
+  const ids=sections.map(ch=>ch?.id);
+  const expected=require('./report-quality-node').IDS;
+  if(new Set(ids).size!==ids.length)errors.push('synthesis duplicates chapter');
+  if(JSON.stringify(ids)!==JSON.stringify(expected.filter(id=>ids.includes(id))))errors.push('synthesis chapter order mismatch');
+  if(!ids.includes('saju_core')||!ids.includes('year_2027'))errors.push('synthesis missing required chapters');
   if(/앞의 12개 장/.test(String(rules.finalRule)))errors.push('synthesis presumes 12 chapters');
  }
  return errors;
