@@ -25,6 +25,12 @@ const {createQueue,retryDelay,rateLimitKind}=require('./report-request-control')
  assert(sharedMoney&&sharedMoney.priorOwners.some(x=>x.chapter==='mbti_contradiction'),'reused natal evidence must identify its first owner before drafting');
  assert(sharedMoney.distinctQuestion===annualPlan.money.topicTasks.earning.question,'reused evidence must carry a distinct question');
  assert.equal(annualPlan.saju_core.topicTasks.temperament.evidenceReuseBoundary,null,'original evidence owner must not claim prior reuse');
+ const noAnnualSignal={...annualSample,facts:{...annualSample.facts,annualTenGods:{stemTenGod:'알수없음',hiddenStems:[]},targetYearRelations:[]}};
+ const limitedPlan=require('./report-analysis-guidance').preflight(noAnnualSignal);
+ for(const id of ['year_2027_money','year_2027_career','year_2027_relationship']){
+  assert.equal(limitedPlan[id].annualDomainEvidence.relevant,false,id+': no direct annual domain evidence');
+  assert(Object.values(limitedPlan[id].topicTasks).every(t=>t.mode==='state-limits'),id+': natal fallback must not turn missing annual evidence into predictions');
+ }
  const relationshipEvidence=annualPlan.year_2027_relationship.annualDomainEvidence;
  assert(!relationshipEvidence.matchedTenGods.some(x=>/정관|편관|정재|편재/.test(x)),'official and wealth ten-gods alone cannot be used to invent annual relationship events');
  for(const [id,pattern] of [['year_2027_money',/^(?:재성|식상|정재|편재|식신|상관)$/],['year_2027_career',/^(?:관성|인성|정관|편관|정인|편인)$/]]){
