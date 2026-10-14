@@ -35,6 +35,14 @@ for(const set of injectors){const r=fixture();set(r,'핵심  성향');if(r.cover
 const recycled=fixture();
 for(let i=0;i<5;i++)recycled.sections[i].body=['이유와 논리를 먼저 확인하고 설명을 납득해야 결정합니다.'];
 assert(quality.validate(recycled).errors.some(x=>x.startsWith('cross-chapter recycled thesis (logic-and-proof)')));
+// The production plan omits unsupported annual chapters. Overlap findings
+// must name actual section IDs, not their positions in a fixed twelve-item list.
+const omittedChapterOverlap=fixture();
+omittedChapterOverlap.sections=omittedChapterOverlap.sections.filter(s=>s.id!=='mbti_contradiction');
+const realOverlapIds=['decision','stress'];
+for(const id of realOverlapIds)omittedChapterOverlap.sections.find(s=>s.id===id).body=['서로 동일한 가상의 예문으로 문단의 단어들이 끝까지 반복되는 사례입니다.'];
+const omittedFindings=quality.validate(omittedChapterOverlap).errors;
+assert(omittedFindings.some(x=>x.includes('section insight overlap: decision / stress')),'overlap diagnostics must identify real section IDs after omissions');
 const threeDomainDuplicate=fixture();
 for(const id of ['money','career','relationship'])threeDomainDuplicate.sections.find(s=>s.id===id).keyJudgment='논리와 근거를 확인하고 납득하면 진행합니다.';
 assert(quality.validate(threeDomainDuplicate).errors.some(x=>x.startsWith('cross-domain recycled key judgment (logic-and-proof)')),'three paid domains must not recycle the same key thesis');
