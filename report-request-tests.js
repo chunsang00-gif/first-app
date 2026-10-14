@@ -60,6 +60,14 @@ const {createQueue,retryDelay,rateLimitKind}=require('./report-request-control')
   {id:'career',keyJudgment:'새 작업을 배우는 순서를 정한다'},
   {id:'relationship',keyJudgment:'서운한 마음을 말로 전한다'}
  ]).length,0,'distinct domain judgments must not be penalized');
+ assert(contract.findReusedEvidenceConclusions([
+  {id:'money',keyJudgment:'가격을 비교하고 지출을 결정합니다.',evidence:['월간에 계산된 같은 명리 관계의 설명입니다.']},
+  {id:'career',keyJudgment:'가격을 비교하고 지출을 결정합니다.',evidence:['월간에 계산된 같은 명리 관계의 설명입니다.']}
+ ]).length===1,'same evidence and conclusion must be rejected across chapters');
+ assert.equal(contract.findReusedEvidenceConclusions([
+  {id:'money',keyJudgment:'가격을 비교하고 지출을 결정합니다.',evidence:['월간에 계산된 같은 명리 관계의 설명입니다.']},
+  {id:'career',keyJudgment:'동료와 맡은 작업을 구분해서 처리합니다.',evidence:['월간에 계산된 같은 명리 관계의 설명입니다.']}
+ ]).length,0,'shared calculation with distinct conclusion remains permitted');
  const limitedResponse={sections:[{id:'year_2027_relationship',title:'2027년에 책임과 규칙이 중요해집니다',keyJudgment:'정관 기운 때문에 관계의 역할을 확인합니다',bodyTopics:['change','action'],bodyLabels:['역할','규칙'],body:['상대에게 규칙을 요구합니다','관계의 책임을 분배합니다'],evidence:['정관'],mood:'reflective'}]};
  const normalized=contract.enforceAnnualEvidenceLimits(limitedResponse,{year_2027_relationship:{generationMode:'evidence-limit-only'}});
  const grounded=contract.enforceAnnualEvidenceLimits(limitedResponse,{year_2027_relationship:{generationMode:'evidence-limit-only',annualDomainEvidence:{source:'none'}}},{facts:{annualTenGods:{stemTenGod:'정관'}}});
