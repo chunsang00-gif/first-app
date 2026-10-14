@@ -127,7 +127,8 @@ function preflight(packet){
  for(const id of writingOrder){
   const tasks=plans[id]?.topicTasks||{};
   for(const [topic,task] of Object.entries(tasks)){
-   const paths=[task.primaryEvidencePath,...(task.verifiedFallbackPaths||[])].filter(Boolean);
+   // A missing primary fact must not claim ownership or create a false reuse boundary.
+   const paths=(task.mode==='use-primary'?[task.primaryEvidencePath]:task.mode==='use-verified-fallback'?task.verifiedFallbackPaths:[]).filter(Boolean);
    const prior=paths.flatMap(path=>(allocated.get(path)||[]).map(owner=>({path,chapter:owner.chapter,topic:owner.topic,question:owner.question})));
    task.evidenceReuseBoundary=prior.length?{
     priorOwners:prior,
