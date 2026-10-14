@@ -205,6 +205,19 @@ async function generate(input,callModel,onProgress=()=>{},onValidatedBatch=()=>{
    const displayed=[s.title,s.keyJudgment,...(s.bodyLabels||[]),...(s.body||[])];
    if(editable.wordingErrors(displayed).length||/[\u3400-\u4dbf\u4e00-\u9fff]/.test(displayed.join(' ')))throw Error('QA resume editorial mismatch');
   }
+  const combined=[...priorSections.map(s=>({id:s.id,keyJudgment:s.keyJudgment,body:s.topicConclusions,bodyTopics:s.bodyTopics})),...verified.sections];
+  if(findRepeatedTopicContent(combined).length)throw Error('QA resume repeated topic explanations');
+  if(findRecycledThemes(combined).length)throw Error('QA resume recycled chapter thesis');
+  const evidenceOwners=new Map();
+  for(const section of [...priorSections,...verified.sections]){
+   for(const item of section.evidence||[]){
+    const key=String(item||'').replace(/\\s+/g,' ').trim().replace(/[.!?。！？]+$/,'');
+    if(key.length<24)continue;
+    const owner=evidenceOwners.get(key);
+    if(owner&&owner!==section.id)throw Error('QA resume repeated chapter evidence');
+    evidenceOwners.set(key,section.id);
+   }
+  }
   restored.push(verified);
   priorSections.push(...verified.sections.map(s=>({id:s.id,keyJudgment:s.keyJudgment,bodyLabels:s.bodyLabels,bodyTopics:s.bodyTopics,topicConclusions:s.body.slice(),evidence:s.evidence.slice()})));
  }
