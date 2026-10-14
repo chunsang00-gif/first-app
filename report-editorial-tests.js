@@ -232,6 +232,14 @@ assert(blueprint.year_2027_relationship.negativeEvidence);
 assert(blueprint.year_2027_relationship.fallbackEvidencePaths.includes('facts.annualTenGods'));
 assert.equal(blueprint.year_2027_career.requiredMode,'use-fallback-with-limits');
 assert.equal(blueprint.year_2027.requiredMode,'explain-with-limits');
+assert.equal(blueprint.year_2027_money.annualDomainEvidence.relevant,false);
+assert.equal(blueprint.year_2027_career.annualDomainEvidence.relevant,false);
+assert.equal(blueprint.year_2027_relationship.annualDomainEvidence.relevant,false);
+const special=guidance.preflight({person:{mbti:'ISFP'},facts:{annualTenGods:{stemTenGod:'정재',hiddenStems:[]},targetYearRelations:[{between:'day',type:'충'}]}});
+assert.equal(special.year_2027_money.annualDomainEvidence.relevant,true);
+assert.equal(special.year_2027_career.annualDomainEvidence.relevant,false);
+assert.equal(special.year_2027_relationship.annualDomainEvidence.relevant,true);
+
 assert.equal(guidance.forRequest(['saju_core'],'모름').mbtiReference,null);
 assert.equal(guidance.forRequest(['saju_core'],'INVALID').mbtiReference,null);
 for(const a of ['I','E'])for(const b of ['S','N'])for(const c of ['T','F'])for(const d of ['J','P']){const type=a+b+c+d; const ref=guidance.forRequest(['decision'],type).mbtiReference; assert.equal(ref.preferences.map(x=>x.code).join(''),type);assert.equal(ref.preferences.length,4);}
