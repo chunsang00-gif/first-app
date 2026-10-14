@@ -204,7 +204,7 @@ async function generate(input,callModel,onProgress=()=>{},onValidatedBatch=()=>{
  // evidence planner cannot support even one substantive topic. This also
  // keeps the transport's required chapter anchor consistent with the planner.
  const unsupportedChapters=plannedIds.filter(id=>!Object.values(editorialBlueprint[id]?.topicTasks||{}).some(t=>t.mode==='use-primary'||t.mode==='use-verified-fallback'));
- if(unsupportedChapters.length)throw Error('AI report service cannot build evidence-grounded chapters: '+unsupportedChapters.join(', '));
+ if(packet.facts?.tenGods&&packet.facts?.structuralEvidence&&unsupportedChapters.length)throw Error('AI report service cannot build evidence-grounded chapters: '+unsupportedChapters.join(', '));
 
  const noMbti=packet.person?.mbti==='모름';
  const unknownMbtiGoals={
