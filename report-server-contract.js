@@ -26,7 +26,7 @@ function findParaphrasedTopicContent(sections){
  const tokens=s=>[...new Set(String(s||'').normalize('NFKC').match(/[가-힣]{2,}/g)||[])].filter(w=>w.length>=3&&!stop.has(w));
  for(const s of sections)for(let i=0;i<(s.body||[]).length;i++){
   const content=String(s.body[i]||''),words=tokens(content);
-  if(content.length<75||words.length<9)continue;
+  if(content.length<75||words.length<8)continue;
   entries.push({owner:s.id+':'+(s.bodyTopics?.[i]||i),words:new Set(words)});
  }
  const errors=[];
@@ -34,7 +34,7 @@ function findParaphrasedTopicContent(sections){
   const a=entries[i],b=entries[j];if(a.owner.split(':')[0]===b.owner.split(':')[0])continue;
   const shared=[...a.words].filter(w=>b.words.has(w)).length;
   const score=shared/Math.max(a.words.size,b.words.size);
-  if(shared>=9&&score>=0.78)errors.push('high lexical topic overlap: '+a.owner+' / '+b.owner);
+  if(shared>=6&&score>=0.6)errors.push('high lexical topic overlap: '+a.owner+' / '+b.owner);
  }
  return errors;
 }
