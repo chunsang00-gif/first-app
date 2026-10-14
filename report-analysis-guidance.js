@@ -158,8 +158,11 @@ function preflight(packet){
   const plan=plans[id];
   const matches=[...new Set(annualLabels.filter(x=>domain.related.test(x)))];
   const directDayRelation=id==='year_2027_relationship'&&(packet.facts?.targetYearRelations||[]).some(x=>x.between==='day');
-  const relevant=matches.length>0||directDayRelation;
-  const source=directDayRelation?'facts.targetYearRelations:day':matches.length?'facts.annualTenGods':'none';
+  // The annual stem is already explained in year_2027. A career chapter
+  // supported ONLY by that same stem adds no independent annual evidence.
+  const careerStemOnly=id==='year_2027_career'&&matches.length===1&&matches[0]===annual?.stemTenGod;
+  const relevant=(matches.length>0||directDayRelation)&&!careerStemOnly;
+  const source=directDayRelation?'facts.targetYearRelations:day':relevant?'facts.annualTenGods':'none';
   plan.annualDomainEvidence={relevant,source,matchedTenGods:matches,
    directDayRelation,
    interpretationFocus:id==='year_2027_money'?'원국과 비교한 금전 관련 계산 관계만 설명한다. 관성의 규칙·책임을 돈의 변화로 바꾸지 않는다.':id==='year_2027_career'?'직업·공적 역할과 직접 관련된 계산 관계만 설명한다. 재성만으로 직업 변화나 승진을 예측하지 않는다.':'일지와 2027년 지지의 직접 관계 또는 비견·겁재의 한정된 전통적 의미만 설명한다. 정관·정재를 근거로 상대의 마음·관계 변화를 예측하지 않는다.',
