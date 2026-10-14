@@ -129,7 +129,7 @@ async function generate(input,callModel,onProgress=()=>{}){const packet=facts.bu
  base.rules=Object.fromEntries([...activeRuleKeys,...reviewKeys].map(key=>[key,base.rules[key]]));
  base.rules.avoidPhrases=quality.forbiddenPhrases;summaryRules.avoidPhrases=quality.forbiddenPhrases;
  const editorialBlueprint=analysisGuidance.preflight(packet);
- const groups=[['saju_core','mbti_contradiction'],['decision','year_2027'],['money','year_2027_money'],['career','year_2027_career'],['relationship','year_2027_relationship'],['stress','integrated_judgment']];
+ const groups=[['saju_core','mbti_contradiction'],['decision','stress'],['money','career'],['relationship','integrated_judgment'],['year_2027','year_2027_money'],['year_2027_career','year_2027_relationship']];
  // Evidence-limited annual domains keep their chapters for compatibility, but
  // must not manufacture two lengthy predictions to fill the topic slots.
  for(const id of ['year_2027_money','year_2027_career','year_2027_relationship']){
