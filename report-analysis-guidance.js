@@ -13,7 +13,7 @@ const chapters={
  year_2027:{focus:'계산된 원국·세운·대운의 차이를 내부에서 확인하고, 독자에게는 2027년 정미년 세운과 실제 계산된 대운의 관계를 필요한 명리 용어와 괄호 설명으로 풀어 쓴다. 그 근거가 평소와 비교해 어떤 판단 차이를 낳는지 설명한다. 차이를 말할 근거가 약하면 변화를 꾸미지 않는다.',avoid:'모든 원국에 책임과 평가가 늘어난다고 쓰지 않는다. 대운 교체일을 모르면 연초부터 바뀐다고 단정하지 않는다.'},
  year_2027_money:{focus:'2027년 계산 요소 중 금전 해석과 관련되는 근거를 먼저 고른다. 평소의 돈 풀이와 무엇이 달라지는지 설명하며 차이가 약하면 간결하게 끝낸다.',avoid:'계약·해지 비용·공동투자를 정해진 결론처럼 쓰지 않는다. 수입 증가나 손실을 예고하지 않는다.'},
  year_2027_career:{focus:'2027년 계산 요소를 업무·배움·역할 등 관련 있는 문제와 연결하고 평소 직업 풀이와 달라지는 점을 설명한다.',avoid:'항상 책임·결정 권한을 결론으로 삼거나 승진·이직을 확정하지 않는다.'},
- year_2027_relationship:{focus:'2027년 계산 요소와 가까운 사람에게 반응하는 방식의 연결 근거가 있을 때만 변화 해석을 쓴다.',avoid:'항상 바빠져 연락이 줄어든다고 가정하지 않는다. 만남·결혼·이별 사건을 예언하지 않는다.'}
+ year_2027_relationship:{focus:'2027년과 일지의 직접 관계가 계산된 경우에도 상대의 실제 감정, 만남, 거리감의 변화를 관찰한 것처럼 단정하지 않는다. 관계 변화의 전통적인 해석 범위와 알 수 없는 실제 사건을 구별한다.',avoid:'항상 바빠져 연락이 줄어든다고 가정하지 않는다. 만남·결혼·이별 사건을 예언하지 않는다.'}
 };
 const preferences={
  I:{dimension:'관심과 생각을 정리하는 선호',meaning:'혼자 숙고하는 과정에 더 편안함을 느끼는 선호',notEvidenceOf:'말수가 적음·대인기피·의견을 말하지 않음'},
@@ -157,12 +157,15 @@ function preflight(packet){
  for(const [id,domain] of Object.entries(domains)){
   const plan=plans[id];
   const matches=[...new Set(annualLabels.filter(x=>domain.related.test(x)))];
-  const directDayRelation=id==='year_2027_relationship'&&(packet.facts?.targetYearRelations||[]).some(x=>x.between==='day');
-  // The annual stem is already explained in year_2027. A career chapter
-  // supported ONLY by that same stem adds no independent annual evidence.
-  const careerStemOnly=id==='year_2027_career'&&matches.length===1&&matches[0]===annual?.stemTenGod;
-  const relevant=(matches.length>0||directDayRelation)&&!careerStemOnly;
-  const source=directDayRelation?'facts.targetYearRelations:day':relevant?'facts.annualTenGods':'none';
+  const dayRelations=(packet.facts?.targetYearRelations||[]).filter(x=>x.between==='day');
+  const directDayRelation=id==='year_2027_relationship'&&dayRelations.length>0;
+  // An annual stem or a hidden-stem label, by itself, is SHARED context
+  // already covered in the yearly overview. Its mere presence cannot justify
+  // charging for a separate domain forecast or a behavioural claim.
+  // A distinct domain-specific relation must be computed first.
+  const verifiedDomainRelation=directDayRelation;
+  const relevant=verifiedDomainRelation;
+  const source=directDayRelation?'facts.targetYearRelations:day':'none';
   plan.annualDomainEvidence={relevant,source,matchedTenGods:matches,
    directDayRelation,
    interpretationFocus:id==='year_2027_money'?'원국과 비교한 금전 관련 계산 관계만 설명한다. 관성의 규칙·책임을 돈의 변화로 바꾸지 않는다.':id==='year_2027_career'?'직업·공적 역할과 직접 관련된 계산 관계만 설명한다. 재성만으로 직업 변화나 승진을 예측하지 않는다.':'일지와 2027년 지지의 직접 관계 또는 비견·겁재의 한정된 전통적 의미만 설명한다. 정관·정재를 근거로 상대의 마음·관계 변화를 예측하지 않는다.',
