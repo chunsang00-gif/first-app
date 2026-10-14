@@ -102,8 +102,20 @@ function preflight(packet){
   plan.topicTasks=Object.fromEntries(Object.entries(definitions).map(([key,question])=>{
    const primary=paths[key],value=evidenceAt(packet,primary);
    const available=value!=null&&value!=='모름'&&(!Array.isArray(value)||value.length>0);
+   // Missing a clash or a decade does not erase other real natal/year facts.
+   // A topic may use a verified fallback without repeating another topic's conclusion.
+   const candidates=primary==='facts.natalClashes'?['facts.tenGods.day','facts.structuralEvidence.monthCommand']:
+    primary==='fortune.activeDecade'?['facts.annualTenGods','facts.structuralEvidence.visibleStems']:
+    primary==='facts.targetYearRelations'?['facts.annualTenGods','facts.tenGods.day']:
+    primary==='facts.tenGods.day.hiddenStems'?['facts.tenGods.day']:[];
+   const verifiedFallbackPaths=available?[]:candidates.filter(path=>{
+    const fact=evidenceAt(packet,path);
+    return fact!=null&&fact!=='모름'&&(!Array.isArray(fact)||fact.length>0);
+   });
+   const mode=available?'use-primary':verifiedFallbackPaths.length?'use-verified-fallback':'state-limits';
    return [key,{question,primaryEvidencePath:primary,evidencePresent:available,
-    interpretationBoundary:available?'전통적 해석의 연결 가능성만 설명하고 실제 행동으로 입증된 것처럼 단정하지 않는다.':'근거가 없으면 다른 세부 항목의 성격 설명으로 채우지 말고 이 질문에서 판단할 수 없는 범위를 밝힌다.'}];
+    verifiedFallbackPaths,mode,negativeEvidence:Array.isArray(value)&&value.length===0,
+    interpretationBoundary:mode==='use-primary'?'전통적 해석의 연결 가능성만 설명하고 실제 행동으로 입증된 것처럼 단정하지 않는다.':mode==='use-verified-fallback'?'우선 계산값이 없으므로 실제 확인된 보조 근거만 사용한다. 보조 근거를 주된 근거처럼 말하거나 사건을 단정하지 않는다.':'다른 세부 항목의 성격 설명으로 채우지 말고 이 질문에서 판단할 수 없는 범위를 밝힌다.'}];
   }));
  }
  const questions=Object.values(plans).map(x=>x.question);
