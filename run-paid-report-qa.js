@@ -9,6 +9,7 @@ const {generate}=require('./report-server-contract');
 const {callOpenAI}=require('./server');
 const input={calendar:'solar',birthDate:'1990-05-15',birthTime:'10:30',gender:'male',birthplace:'서울',mbti:'INTJ',name:'검증용'};
 const output=process.env.REPORT_QA_OUTPUT;
+const checkpoint=output?path.join(path.dirname(output),path.basename(output,'.json')+'-checkpoint.json'):null;
 if(process.env.REPORT_QA_CONFIRM!=='RUN_ONE_PAID_SAMPLE')throw Error('Explicit one-sample paid QA confirmation required');
 if(!output||!path.isAbsolute(output))throw Error('Set REPORT_QA_OUTPUT to an absolute private file path');
 if(!process.env.OPENAI_API_KEY||!process.env.REPORT_MODEL)throw Error('OpenAI key and model must be configured');
@@ -22,6 +23,14 @@ if(packet.status!=='ready')throw Error('QA sample calculation failed');
   if(calls>7)throw Error('QA call cap exceeded');
   console.log('AI call '+calls+'/7, stage '+prompt.stage);
   return callOpenAI(prompt);
+ },()=>{},async batch=>{
+  // Persist only batches that passed structural, factual, and reader checks.
+  // This is diagnostic evidence, not an automatic paid retry or resume.
+  const previous=fs.existsSync(checkpoint)?JSON.parse(fs.readFileSync(checkpoint,'utf8')):{sample:input,batches:[]};
+  previous.batches.push(batch);
+  fs.writeFileSync(checkpoint,JSON.stringify(previous,null,2),{mode:0o600});
+  fs.chmodSync(checkpoint,0o600);
+  console.log('Saved validated QA batch; sections:',batch.completedSections);
  });
  const file=path.resolve(output);
  fs.writeFileSync(file,JSON.stringify({sample:input,status:result.status,calls,qa:result.qa,report:result.report},null,2),{flag:'wx',mode:0o600});
