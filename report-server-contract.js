@@ -172,6 +172,7 @@ async function generate(input,callModel,onProgress=()=>{},onValidatedBatch=()=>{
  Object.assign(base.rules,require('./report-editorial').rules);
  // Preserve the personalized conclusion contract after editorial rules override defaults.
  base.rules.finalRule += ' closingQuestion은 앞의 해석에서 확인한 그 사람의 장점과 주의점을 한 문장으로 연결한 최종 결론이다. 자료 설명이나 면책 안내로 끝내지 않는다.';
+ base.rules.narrativeRule += ' 각 항목은 실제 계산 근거의 전통적 의미를 쉽게 해설하고, 독자의 관찰된 과거를 만들어내지 않으며, 앞 장과 겹치지 않는 새롭고 독립된 설명만 남긴다.';
  base.promptVersion='reader-depth-v2';
  // Keep one authoritative instruction per concern. Repeating old policies inflates every request.
  const ruleKeys=['depthContract','sectionGoals','integrateMbti','factsOnly','noPersonalHistoryInference','noDeterministicPrediction','mbtiOptionalRule','hanjaPolicy','tone','titleRule','keyJudgmentRule','narrativeRule','paragraphGuide','domainUniquenessRule','evidenceRule','confidenceStyleRule','profileScoreRule','factCoverageRule','proofreadingRule','moodRule','namePolicy','avoidPhrases','depthVersion','diversityRule','coverEditingRule','year2027Rule','year2027ComparisonRule','year2027DomainRule','mbtiDepthRule','plainSentenceRule','concreteReviewRule','candidRule','weaknessActionRule','naturalKoreanRule','coverNaturalnessRule','decisiveSentenceRule','actionableMoneyRule','idiomaticWritingRule','everydayWordChoiceRule','coherenceRule','expressionPolicyRule','depthAndEvidenceRule','yearAndDecadeIntegrationRule','domainBoundaryRule','integrationContrastRule','readerProofRule','annualDeltaRule','liveQaCorrections','editorialVersion'];
