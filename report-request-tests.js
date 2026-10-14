@@ -139,7 +139,7 @@ const {createQueue,retryDelay,rateLimitKind}=require('./report-request-control')
  assert(crossUserErrors.some(x=>x.includes('report display name differs')),'swapped display name must be rejected');
  const wrongYear={...swapped,meta:{...swapped.meta,targetYear:2028}};
  assert(qualityGate.validate(wrongYear,factsA).errors.some(x=>x.includes('target year differs')),'wrong report year must be rejected');
- assert.equal(calls,7);assert(!stages.some(x=>x.stage==='edit'));assert(stages.some(x=>x.stage==='body'&&x.completed===expectedCount));
+ assert.equal(calls,expectedBatches.length+1);assert(!stages.some(x=>x.stage==='edit'));assert(stages.some(x=>x.stage==='body'&&x.completed===expectedCount));
  let failedCalls=0;await assert.rejects(contract.generate({calendar:'solar',birthDate:'1990-06-15',unknownBirthTime:true,gender:'male',mbti:'INFP'},async()=>{failedCalls++;throw Error('AI report service token rate limit')}));assert.equal(failedCalls,1);
  // Compare the exact first paid-generation payloads across distinct inputs.
  // Names are display-only: they must not change calculated chart evidence.
