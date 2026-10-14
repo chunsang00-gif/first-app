@@ -31,6 +31,14 @@ if(resumePath){
 // verified chapters from the current run. A resume must explicitly name its source.
 if(!resumePath&&checkpoint&&fs.existsSync(checkpoint))
  throw Error('Existing QA checkpoint: move it aside or explicitly set REPORT_QA_RESUME_FILE before a paid call');
+// Refuse overwrites of previous final/raw diagnostics, even when no checkpoint
+// exists (for example when the first paid response failed validation).
+if(!resumePath){
+ const base=path.join(path.dirname(output),path.basename(output,'.json'));
+ for(const existing of [output,base+'-raw-calls.json',base+'-hanja-findings.json']){
+  if(fs.existsSync(existing))throw Error('Existing QA artifact blocks a fresh paid run: '+path.basename(existing));
+ }
+}
 if(resumePath&&checkpoint&&fs.existsSync(checkpoint)&&path.resolve(resumePath)!==path.resolve(checkpoint))
  throw Error('Existing output checkpoint conflicts with the selected resume file');
 (async()=>{
