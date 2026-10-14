@@ -3,8 +3,8 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('nod
 const quality=require('./report-quality-node'),outline=require('./report-outline');
 const offlineReplay=require('./report-qa-replay').replay;
 const reader=require('./report-reader-policy');
-for(const text of ['상관(뜻을 풀어 쓴 설명)','원국을 보면','일간은','겁재가 있습니다','월지의 계산','2027년 세운','대운을 비교합니다'])assert(reader.errors([text]).length,text);
-for(const text of ['시간이 걸립니다.','통근 시간이 깁니다.','그 일과 상관없습니다.','그 일과 상관이 없습니다.','특정인의 경험을 만들지 않습니다.','정관 수술 여부는 입력받지 않았습니다.','두 해석을 함께 비교합니다.'])assert.deepEqual(reader.errors([text]),[],text);
+for(const text of ['상관(뜻을 풀어 쓴 설명)','원국을 보면','일간은','겁재가 있습니다','월지의 계산','2027년 세운','세운은 바뀝니다','세운의 관계','세운 천간','세운(한 해의 운)','대운을 비교합니다'])assert(reader.errors([text]).length,text);
+for(const text of ['자신이 세운 기준과 실제 행동이 다르게 나타나는 이유','계획을 세운다.','미리 세운 목표를 점검합니다.','서로 세운 약속을 지킵니다.','세운 기준을 바꿉니다.','시간이 걸립니다.','통근 시간이 깁니다.','그 일과 상관없습니다.','그 일과 상관이 없습니다.','특정인의 경험을 만들지 않습니다.','정관 수술 여부는 입력받지 않았습니다.','두 해석을 함께 비교합니다.'])assert.deepEqual(reader.errors([text]),[],text);
 const visibleSetters=[r=>r.sections[0].title='원국',r=>r.sections[0].keyJudgment='원국',r=>r.sections[0].bodyLabels=['원국'],r=>r.sections[0].body=['원국'],r=>r.cover.keywords=['원국'],r=>r.cover.highlights=[{title:'원국'}],r=>r.finalJudgment.routines=[{reason:'원국'}],r=>r.finalJudgment.closingQuestion='원국'];
 for(const inject of visibleSetters){const r={sections:[{evidence:['원국 월간 겁재']}],cover:{},finalJudgment:{}};assert.deepEqual(reader.errors(reader.visibleFields(r)),[]);inject(r);assert(reader.errors(reader.visibleFields(r)).includes('reader jargon: 원국'));}
 const offlineFixture={status:'rejected',qa:{errors:['historic rejection']},report:{sections:[{id:'money',keyJudgment:'금전 기준을 확인합니다.',body:['돈은 관리합니다.']},{id:'career',keyJudgment:'역할 기준을 확인합니다.',body:['업무를 확인합니다.']}]}};

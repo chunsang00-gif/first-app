@@ -13,15 +13,16 @@ async function replay(rawFile){
  let index=0;
  try{
   const result=await generate(archived.sample,async prompt=>{
-   const saved=archived.calls[index++];
+   const saved=archived.calls[index];
    if(!saved)throw Error('Archive exhausted before report validation completed');
    if(saved.stage!==prompt.stage||JSON.stringify(saved.requestedSections)!==JSON.stringify(prompt.requestedSections||[]))
     throw Error('Archived call order does not match current generation plan');
+   index++;
    return saved.response;
   });
   return {status:result.status,consumed:index,archived:archived.calls.length,errors:result.qa?.errors||[],warnings:result.qa?.warnings||[]};
  }catch(err){
-  return {status:'rejected-early',consumed:index,archived:archived.calls.length,reason:String(err.message||err)};
+  return {status:err.message==='Archive exhausted before report validation completed'?'incomplete-archive':'rejected-early',consumed:index,archived:archived.calls.length,reason:String(err.message||err)};
  }
 }
 if(require.main===module){
