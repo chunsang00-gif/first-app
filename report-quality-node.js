@@ -328,6 +328,17 @@ function validate(r,packet){
  banned.forEach(x=>{if(all.includes(x))errors.push(`banned tail/filler: ${x}`)});
  vague.forEach(x=>{if(all.includes(x))warnings.push(`vague phrase review: ${x}`)}); abstract.forEach(x=>{if(all.includes(x))warnings.push(`abstract wording review: ${x}`)});
  generic.forEach(x=>{if(all.includes(x))warnings.push(`generic/cliche phrase review: ${x}`)}); advice.forEach(x=>{if(all.includes(x))warnings.push(`generic advice review: ${x}`)}); sugar.forEach(x=>{if(all.includes(x))errors.push(`unsupported positive framing: ${x}`)}); meddling.forEach(x=>{if(all.includes(x))errors.push(`overreaching advice: ${x}`)}); universal.forEach(x=>{if(all.includes(x))errors.push(`could-apply-to-anyone wording: ${x}`)});
+ // Two chapters with the exact same substantive central conclusion are
+ // already duplicate paid content, regardless of which topic they belong to.
+ // Normalize harmless whitespace/punctuation but not meaning-bearing words.
+ const conclusionOwners=new Map();
+ for(const section of r.sections.filter(Boolean)){
+  const key=norm(String(section.keyJudgment||'')).replace(/[\s.,!?~·:;“”"'‘’()[\]{}]+/g,'').trim();
+  if(key.length<16)continue;
+  const prior=conclusionOwners.get(key);
+  if(prior&&prior!==section.id)errors.push('duplicated chapter key judgment: '+prior+' / '+section.id);
+  else conclusionOwners.set(key,section.id);
+ }
  const inspectedSections=r.sections.filter(Boolean);
  const sectionTexts=inspectedSections.map(s=>norm((Array.isArray(s.body)?s.body.join(' '):s.body)+' '+s.keyJudgment));
  const tokens=s=>new Set(norm(s).split(/[^가-힣A-Za-z0-9]+/).filter(x=>x.length>=3));
