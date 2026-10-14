@@ -116,6 +116,8 @@ async function generate(input,callModel,onProgress=()=>{},onValidatedBatch=()=>{
   finalRule:'전체 본문에서 중요한 강점·주의점·행동 루틴을 우선순위대로 선별한다. 앞 장을 하나씩 요약하는 나열이나 연간 운세 중심 결론을 피한다. 서로 다른 분야의 행동을 고르고 실제 상황·행동·이유를 연결한다. closingQuestion은 앞의 해석에서 확인한 그 사람의 장점과 주의점을 한 문장으로 연결한 최종 결론이다. 이 보고서는 참고 자료입니다 같은 자료 설명이나 면책 안내로 끝내지 않는다. closingQuestion 뒤에는 텍스트를 넣지 않는다.'
  });
  Object.assign(base.rules,require('./report-editorial').rules);
+ // Preserve the personalized conclusion contract after editorial rules override defaults.
+ base.rules.finalRule += ' closingQuestion은 앞의 해석에서 확인한 그 사람의 장점과 주의점을 한 문장으로 연결한 최종 결론이다. 자료 설명이나 면책 안내로 끝내지 않는다.';
  base.promptVersion='reader-depth-v2';
  // Keep one authoritative instruction per concern. Repeating old policies inflates every request.
  const ruleKeys=['depthContract','sectionGoals','integrateMbti','factsOnly','noPersonalHistoryInference','noDeterministicPrediction','mbtiOptionalRule','hanjaPolicy','tone','titleRule','keyJudgmentRule','narrativeRule','paragraphGuide','domainUniquenessRule','evidenceRule','confidenceStyleRule','profileScoreRule','factCoverageRule','proofreadingRule','moodRule','namePolicy','avoidPhrases','depthVersion','diversityRule','coverEditingRule','year2027Rule','year2027ComparisonRule','year2027DomainRule','mbtiDepthRule','plainSentenceRule','concreteReviewRule','candidRule','weaknessActionRule','naturalKoreanRule','coverNaturalnessRule','decisiveSentenceRule','actionableMoneyRule','idiomaticWritingRule','everydayWordChoiceRule','coherenceRule','expressionPolicyRule','depthAndEvidenceRule','yearAndDecadeIntegrationRule','domainBoundaryRule','integrationContrastRule','readerProofRule','annualDeltaRule','liveQaCorrections','editorialVersion'];
