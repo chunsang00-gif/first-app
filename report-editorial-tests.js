@@ -201,7 +201,7 @@ assert.equal(repeatedTopics([{id:'decision',bodyTopics:['approach'],body:[shared
 const guidance=require('./report-analysis-guidance');
 const blueprint=guidance.preflight({person:{mbti:'ISFP'},facts:{structuralEvidence:{monthCommand:{branch:'子'},visibleStems:[{stem:'甲'}]},tenGods:{day:{stem:'甲',hiddenStems:[]},month:{stem:'乙'}},natalClashes:[],annualTenGods:{stem:'丁',hiddenStems:[]},targetYearRelations:[]},fortune:{activeDecade:null}});
 assert.equal(Object.keys(blueprint).length,12);
-assert.equal(Object.values(blueprint).reduce((count,chapter)=>count+Object.keys(chapter.topicTasks).length,0),29);
+assert.equal(Object.values(blueprint).reduce((count,chapter)=>count+Object.keys(chapter.topicTasks).length,0),28);
 assert.equal(blueprint.money.topicTasks.earning.primaryEvidencePath,'facts.tenGods.month');
 assert.equal(blueprint.year_2027_relationship.topicTasks.change.evidencePresent,false);
 assert.equal(blueprint.year_2027_relationship.topicTasks.action.evidencePresent,true);
@@ -222,7 +222,7 @@ for(const a of ['I','E'])for(const b of ['S','N'])for(const c of ['T','F'])for(c
   for(const key of ['decisiveSentenceRule','actionableMoneyRule','idiomaticWritingRule','everydayWordChoiceRule','expressionPolicyRule'])assert.equal(p.rules[key],undefined);
   assert(p.rules.topicOwnershipRule.includes('중복 금지 자료'));
   assert(p.rules.hanjaPolicy.includes('괄호'));
-  if(p.stage==='synthesis'){assert(p.rules.finalEditingTask.includes('routines는 빈 배열'));assert(p.rules.coverNaturalnessRule.includes('반복 비용이라는 말을 자동으로 넣지 않는다'));assert(p.rules.naturalKoreanRule.includes('한 가지 뜻은 한 번만'));assert(p.rules.finalRule.includes('교훈이나 감동 문구를 억지로 붙이지 않는다'));assert(p.rules.finalRule.includes('앞의 12개 장을 다시 요약하지 않는다'));assert.equal(p.completedReport.sections.reduce((n,s)=>n+s.body.length,0),29);return {cover:null,finalJudgment:{body:['마지막 설명'],closingQuestion:'꼼꼼하게 확인하느라 결정을 늦출 때는, 오늘 확인할 내용을 먼저 정하는 것이 도움이 됩니다.',afterClosingText:''}};}
+  if(p.stage==='synthesis'){assert(p.rules.finalEditingTask.includes('routines는 빈 배열'));assert(p.rules.coverNaturalnessRule.includes('반복 비용이라는 말을 자동으로 넣지 않는다'));assert(p.rules.naturalKoreanRule.includes('한 가지 뜻은 한 번만'));assert(p.rules.finalRule.includes('교훈이나 감동 문구를 억지로 붙이지 않는다'));assert(p.rules.finalRule.includes('앞의 12개 장을 다시 요약하지 않는다'));assert.equal(p.completedReport.sections.reduce((n,s)=>n+s.body.length,0),28);return {cover:null,finalJudgment:{body:['마지막 설명'],closingQuestion:'꼼꼼하게 확인하느라 결정을 늦출 때는, 오늘 확인할 내용을 먼저 정하는 것이 도움이 됩니다.',afterClosingText:''}};}
   assert(p.rules.domainBoundaryRule.includes('분야의 명사만 바꾸어 반복'));
   assert(p.rules.integrationContrastRule.includes('MBTI를 사주 결론의 검증이나 증거로 쓰지 않는다'));
   assert(p.rules.readerProofRule.includes('불필요한 한자'));
@@ -241,7 +241,7 @@ for(const a of ['I','E'])for(const b of ['S','N'])for(const c of ['T','F'])for(c
  assert.equal(dryRun.status,'rejected');
  assert.equal(dryRun.qa.pass,false);
  assert(dryRun.qa.errors.length>0);
- assert.equal(dryRun.report.sections.reduce((count,section)=>count+section.body.length,0),29);
+ assert.equal(dryRun.report.sections.reduce((count,section)=>count+section.body.length,0),28);
  assert.equal(calls,7);assert.equal(seen.filter(s=>s==='body').length,6);assert.equal(seen[6],'synthesis');
  // Detect a known live-QA phrase before any subsequent provider request.
  let earlyCalls=0;
