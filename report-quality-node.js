@@ -360,6 +360,19 @@ function validate(r,packet){
   }).map(section=>section.id);
   if(owners.length>=3)errors.push('cross-domain recycled key judgment ('+motif.name+'): '+owners.join(' / '));
  }
+ // Compare the central conclusions across distinct customer domains even
+ // when they do not contain either hard-coded recycled motif.
+ // Only reject near-identical content words; related technical vocabulary alone
+ // is not enough to declare two different interpretations the same.
+ const domainSections=r.sections.filter(ch=>customerDomains.has(ch.id));
+ const thesisWords=ch=>new Set(norm(ch.keyJudgment||'').split(/[^가-힣A-Za-z0-9]+/).filter(word=>word.length>=3&&!/^(?:2027년|올해는|평소에|사주에서|때문에|하지만|그리고|그렇지만)$/.test(word)));
+ for(let i=0;i<domainSections.length;i++)for(let j=i+1;j<domainSections.length;j++){
+  const left=thesisWords(domainSections[i]),right=thesisWords(domainSections[j]);
+  if(left.size<5||right.size<5)continue;
+  const intersection=[...left].filter(word=>right.has(word)).length;
+  const overlap=intersection/Math.min(left.size,right.size);
+  if(intersection>=5&&overlap>=0.85)errors.push('cross-domain near-identical key judgment: '+domainSections[i].id+' / '+domainSections[j].id);
+ }
  // Annual domain assertions require more than a named ten-god. Flag observed
  // overreach from paid QA, not the traditional vocabulary itself.
  for(const section of r.sections.filter(s=>/^year_2027/.test(s.id))){
