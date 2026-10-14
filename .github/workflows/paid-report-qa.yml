@@ -34,5 +34,6 @@ jobs:
             private-qa-report.json
             private-qa-report-checkpoint.json
             private-qa-report-raw-calls.json
+            private-qa-report-hanja-findings.json
           if-no-files-found: ignore
           retention-days: 1
