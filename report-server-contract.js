@@ -184,6 +184,8 @@ async function generate(input,callModel,onProgress=()=>{},onValidatedBatch=()=>{
  const reviewKeys=['topicOwnershipRule','interpretationFirstRule','readerLanguageRule','internalEvidenceScopeRule'];
  for(const key of reviewKeys)summaryRules[key]=base.rules[key];
  base.rules=Object.fromEntries([...activeRuleKeys,...reviewKeys].map(key=>[key,base.rules[key]]));
+ // Final policy is applied AFTER all editorial overrides so no stale tone can replace it.
+ base.rules.tone += ' 계산 사실과 전통 해석을 구별하고 사주 해석을 실제 관찰 사실처럼 단정하지 않는다.';
  base.rules.avoidPhrases=quality.forbiddenPhrases;summaryRules.avoidPhrases=quality.forbiddenPhrases;
  const editorialBlueprint=analysisGuidance.preflight(packet);
  let groups=[['saju_core','mbti_contradiction'],['decision','stress'],['money','career'],['relationship','integrated_judgment'],['year_2027','year_2027_money'],['year_2027_career','year_2027_relationship']];
