@@ -20,6 +20,23 @@ const {createQueue,retryDelay,rateLimitKind}=require('./report-request-control')
  assert.deepEqual(checkpoints.map(x=>x.completedSections),[2,4,6,8,10,12]);
  assert.deepEqual(checkpoints.flatMap(x=>x.ids),[['saju_core','mbti_contradiction'],['decision','stress'],['money','career'],['relationship','integrated_judgment'],['year_2027','year_2027_money'],['year_2027_career','year_2027_relationship']].flat(),'checkpoints follow generation order, not display order');
  assert(checkpoints.every(x=>x.sections.length===2),'checkpoint contains exactly its validated sections');
+ // Resume five already validated batches: only the sixth body batch and synthesis
+ // may call the mock provider. Never spend calls on the cached ten chapters.
+ const resumeStages=[];const resumeCalls=[];
+ const resumed=await contract.generate({calendar:'solar',birthDate:'1990-06-15',unknownBirthTime:true,gender:'male',mbti:'INFP'},async p=>{
+  resumeCalls.push(p.stage==='body'?p.requestedSections.join(','):'synthesis');
+  if(p.stage==='body'){
+   assert.deepEqual(p.requestedSections,['year_2027_career','year_2027_relationship']);
+   assert.equal(p.priorSections.length,10,'resume must preserve ten earlier chapters');
+   return {sections:checkpoints[5].sections};
+  }
+  assert.equal(p.stage,'synthesis');
+  assert.equal(p.completedReport.sections.length,12);
+  return {sections:[],cover:null,finalJudgment:{body:['전체 풀이 검증'],closingQuestion:'꼼꼼하게 확인하느라 결정을 늦출 때는, 오늘 확인할 내용을 먼저 정하는 것이 도움이 됩니다.',afterClosingText:''}};
+ },p=>resumeStages.push(p),()=>{},checkpoints.slice(0,5));
+ assert.deepEqual(resumeCalls,['year_2027_career,year_2027_relationship','synthesis'],'resume must skip five provider body calls');
+ assert.equal(resumed.status,'rejected','resume does not bypass final quality gate');
+ await assert.rejects(contract.generate({calendar:'solar',birthDate:'1990-06-15',unknownBirthTime:true,gender:'male',mbti:'INFP'},async()=>{throw Error('provider must not be called')},()=>{},()=>{},[checkpoints[1]]),/order mismatch/,'non-prefix checkpoint must fail closed');
  assert.equal(mockedReport.status,'rejected','placeholder prose must never be accepted as a paid report');
  assert(mockedReport.qa.errors.length>0,'placeholder report should produce concrete quality failures');
  // A report created for one person must be rejected when checked against another.
