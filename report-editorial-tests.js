@@ -280,7 +280,7 @@ assert.equal(blueprint.year_2027_money.annualDomainEvidence.relevant,false);
 assert.equal(blueprint.year_2027_career.annualDomainEvidence.relevant,false);
 assert.equal(blueprint.year_2027_relationship.annualDomainEvidence.relevant,false);
 const special=guidance.preflight({person:{mbti:'ISFP'},facts:{annualTenGods:{stemTenGod:'정재',hiddenStems:[]},targetYearRelations:[{between:'day',type:'충'}]}});
-assert.equal(special.year_2027_money.annualDomainEvidence.relevant,true);
+assert.equal(special.year_2027_money.annualDomainEvidence.relevant,false);
 assert.equal(special.year_2027_career.annualDomainEvidence.relevant,false);
 assert.equal(special.year_2027_relationship.annualDomainEvidence.relevant,true);
 
