@@ -104,7 +104,7 @@ function preflight(packet){
    const available=value!=null&&value!=='모름'&&(!Array.isArray(value)||value.length>0);
    // Missing a clash or a decade does not erase other real natal/year facts.
    // A topic may use a verified fallback without repeating another topic's conclusion.
-   const candidates=primary==='facts.natalClashes'?['facts.tenGods.day','facts.structuralEvidence.monthCommand']:
+   const candidates=primary==='facts.natalClashes'?[]:
     primary==='fortune.activeDecade'?['facts.annualTenGods','facts.structuralEvidence.visibleStems']:
     primary==='facts.targetYearRelations'?['facts.annualTenGods','facts.tenGods.day']:
     primary==='facts.tenGods.day.hiddenStems'?['facts.tenGods.day']:[];
