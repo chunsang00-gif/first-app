@@ -49,6 +49,10 @@ const {createQueue,retryDelay,rateLimitKind}=require('./report-request-control')
  ]).length,0,'distinct domain judgments must not be penalized');
  const limitedResponse={sections:[{id:'year_2027_relationship',title:'2027년에 책임과 규칙이 중요해집니다',keyJudgment:'정관 기운 때문에 관계의 역할을 확인합니다',bodyTopics:['change','action'],bodyLabels:['역할','규칙'],body:['상대에게 규칙을 요구합니다','관계의 책임을 분배합니다'],evidence:['정관'],mood:'reflective'}]};
  const normalized=contract.enforceAnnualEvidenceLimits(limitedResponse,{year_2027_relationship:{generationMode:'evidence-limit-only'}});
+ const grounded=contract.enforceAnnualEvidenceLimits(limitedResponse,{year_2027_relationship:{generationMode:'evidence-limit-only',annualDomainEvidence:{source:'none'}}},{facts:{annualTenGods:{stemTenGod:'정관'}}});
+ assert(grounded.sections[0].body[0].includes('정관으로 분류됩니다'),'limited annual chapter must explain calculated personal evidence');
+ assert(grounded.sections[0].body[0].includes('관계 분야의 사건이나 변화가 확인되는 것은 아닙니다.'),'natal ten-god must not imply relationship event');
+ assert(!grounded.sections[0].body[0].includes('관계의 역할을 확인합니다'),'unsupported original model predictions must be replaced');
  assert(!normalized.sections[0].body.join(' ').includes('정관'),'unsupported 2027 relationship predictions must not survive generation');
  assert(normalized.sections[0].body[0].includes('충이 없다는 사실만으로'),'no-clash calculation is not proof of relationship stability');
  assert.deepEqual(normalized.sections[0].bodyTopics,['change','action'],'fallback preserves required topic order');
