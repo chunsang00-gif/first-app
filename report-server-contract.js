@@ -249,6 +249,8 @@ async function generate(input,callModel,onProgress=()=>{},onValidatedBatch=()=>{
     fail('paragraph/label count mismatch',{sectionId:section.id,expected:topics.length,paragraphCount:section.body?.length??null,labelCount:section.bodyLabels?.length??null});
    if(section.body.some(p=>typeof p!=='string'||!p.trim())||section.bodyLabels.some(p=>typeof p!=='string'||!p.trim()))
     fail('empty paragraph/label',{sectionId:section.id});
+   const anchor=editorialBlueprint[section.id]?.anchorTopic;
+   if(anchor&&!actualTopics.includes(anchor))fail('planned evidence anchor missing',{sectionId:section.id,anchor,actualTopics});
   }
   return result;
  };
