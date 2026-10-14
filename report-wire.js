@@ -16,7 +16,7 @@ function schemaFor(prompt,reportSchema){
   // A paid chapter cannot consist entirely of null topics. When no interpretive
   // basis exists, the anchor must explain the specific limit, not invent behavior.
   return [id,object({title:section.title,keyJudgment:section.keyJudgment,evidence:section.evidence,mood:section.mood,
-   paragraphs:object(Object.fromEntries(keys.map(topic=>[topic,topic===anchor?object({label:{type:'string'},text:{type:'string'}}):{anyOf:[object({label:{type:'string'},text:{type:'string'}}),{type:'null'}]}])))})];
+   paragraphs:object(Object.fromEntries(keys.map(topic=>[topic,topic===anchor?object({label:{type:'string'},text:{type:'string'}}):plan[topic]?.mode==='state-limits'?{type:'null'}:{anyOf:[object({label:{type:'string'},text:{type:'string'}}),{type:'null'}]}])))})];
  }));
  return object({chapters:object(chapters),finalJudgment:prompt.includeFinal?reportSchema.properties.finalJudgment:{type:'null'},cover:prompt.includeCover?reportSchema.properties.cover:{type:'null'}});
 }
@@ -32,5 +32,5 @@ function decode(value,prompt){
  });
  return {sections,finalJudgment:value.finalJudgment,cover:value.cover};
 }
-const instruction='The JSON schema is the authoritative transport format: return chapters keyed by requested section ID, with paragraphs keyed by every topicPlan key. For each topic return either an object with label and text when supported by distinct calculated evidence, or null when it would repeat another topic or lack direct grounds. The schema requires one evidence-selected anchor paragraph per chapter; explain a specific evidence limit there if needed, without inventing traits. Other topics may be null. Never invent interpretations to fill slots. Do not return sections/body/bodyLabels/bodyTopics arrays; the server reconstructs those arrays. For synthesis, chapters must be an empty object. All editorial and factual rules still apply.';
+const instruction='The JSON schema is the authoritative transport format: return chapters keyed by requested section ID, with paragraphs keyed by every topicPlan key. For each topic return either an object with label and text when supported by distinct calculated evidence, or null when it would repeat another topic or lack direct grounds. The schema requires one evidence-selected anchor paragraph per chapter; explain a specific evidence limit there if needed, without inventing traits. Topics marked state-limits by the canonical analysis plan MUST be null (except the mandatory anchor, which must explain the specific limit without inventing traits); other topics may be null. Never invent interpretations to fill slots. Do not return sections/body/bodyLabels/bodyTopics arrays; the server reconstructs those arrays. For synthesis, chapters must be an empty object. All editorial and factual rules still apply.';
 module.exports={schemaFor,decode,instruction};
