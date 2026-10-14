@@ -38,6 +38,26 @@ function findParaphrasedTopicContent(sections){
  }
  return errors;
 }
+// Offline semantic-role audit: groups equivalent advice across different chapters.
+// Conservative: a warning is only emitted when the same action and same decision
+// condition occur in at least three separate chapters.
+function findRepeatedAdvice(sections){
+ const rules=[
+  {id:'verify-before-deciding',action:/확인|검토|점검/,condition:/결정|판단|선택/},
+  {id:'explain-responsibility',action:/설명|정리|명확/,condition:/책임|역할|기준/},
+  {id:'set-boundaries',action:/구분|나누|정하/,condition:/범위|경계|책임/}
+ ];
+ const hits=[];
+ for(const rule of rules){
+  const owners=[];
+  for(const section of sections){
+   const body=[section.keyJudgment,...(section.body||[])].join(' ');
+   if(rule.action.test(body)&&rule.condition.test(body))owners.push(section.id);
+  }
+  if(new Set(owners).size>=3)hits.push('repeated advice motif ('+rule.id+'): '+[...new Set(owners)].join(' / '));
+ }
+ return hits;
+}
 function findRecycledThemes(sections){
  const themes=[
   {name:'logic-and-proof',a:/논리|근거|이유|설명/,b:/납득|확인|검토|질문/},
@@ -225,6 +245,7 @@ async function generate(input,callModel,onProgress=()=>{}){const packet=facts.bu
  // Stop before paying for synthesis when chapters already recycle the same thesis.
  // No extra model call, and the rejected draft remains available for operator QA.
  const paraphraseErrors=findParaphrasedTopicContent(sections);
+ const adviceWarnings=findRepeatedAdvice(sections);
  const repeatedErrors=findRecycledThemes(sections);
  if(repeatedErrors.length){
   const report={meta,sections,cover:null,finalJudgment:null};
@@ -240,6 +261,6 @@ async function generate(input,callModel,onProgress=()=>{}){const packet=facts.bu
 
  return qa.pass?{status:'ready',report,qa,headingRepairs}:{status:'rejected',report,qa,headingRepairs};
 }
-module.exports={IDS,validateShape,buildPrompt,generate,findRepeatedTopicContent,findRecycledThemes,findParaphrasedTopicContent};
+module.exports={IDS,validateShape,buildPrompt,generate,findRepeatedTopicContent,findRecycledThemes,findParaphrasedTopicContent,findRepeatedAdvice};
 
 
