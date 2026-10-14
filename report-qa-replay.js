@@ -9,8 +9,9 @@ function replay(payload){
  const sections=report.sections;
  const chapterErrors=contract.findRecycledThemes(sections);
  const topicErrors=contract.findRepeatedTopicContent(sections);
+ const adviceWarnings=contract.findRepeatedAdvice(sections);
  const result=quality.validate(report);
- return {status:payload.status||null,chapterCount:sections.length,topicCount:sections.reduce((n,s)=>n+(s.body||[]).length,0),originalErrors:payload?.qa?.errors||[],currentErrors:result.errors,themeErrors:chapterErrors,topicErrors};
+ return {status:payload.status||null,chapterCount:sections.length,topicCount:sections.reduce((n,s)=>n+(s.body||[]).length,0),originalErrors:payload?.qa?.errors||[],currentErrors:result.errors,themeErrors:chapterErrors,topicErrors,adviceWarnings};
 }
 if(require.main===module){
  const path=process.argv[2];
