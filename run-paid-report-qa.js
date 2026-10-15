@@ -9,7 +9,7 @@ const {validateInput}=require('./input-validation');
 const {generate}=require('./report-server-contract');
 const {callOpenAI}=require('./server');
 const {inspect}=require('./inspect-paid-qa');
-const input={calendar:'solar',birthDate:'1990-05-15',birthTime:'10:30',gender:'male',birthplace:'서울',mbti:'INTJ',name:'검증용'};
+const input={calendar:'lunar',leapMonth:false,birthDate:'1982-11-24',birthTime:'14:20',gender:'male',mbti:'ISFP',name:'검증용'};
 const output=process.env.REPORT_QA_OUTPUT;
 const checkpoint=output?path.join(path.dirname(output),path.basename(output,'.json')+'-checkpoint.json'):null;
 if(process.env.REPORT_QA_CONFIRM!=='RUN_ONE_PAID_SAMPLE')throw Error('Explicit one-sample paid QA confirmation required');
