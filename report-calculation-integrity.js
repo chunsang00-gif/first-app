@@ -94,6 +94,9 @@ function verify(packet){
   errors.push('incorrect-natal-branch-relations');
  if(!same(facts.targetYearBranchRelations,expectedYearRelations))
   errors.push('incorrect-2027-branch-relations');
+ const expectedContext=require('./report-branch-context').evaluate(chart,actualYear);
+ if(!same(facts.targetYearBranchContext,expectedContext))
+  errors.push('incorrect-2027-branch-interpretation-context');
  if(!same(expectedNatalRelations.pairs.filter(x=>x.type==='충').map(x=>({
   type:'충',positions:x.positions,branches:x.branches,
   note:'서로 마주 보는 지지 관계. 갈등이나 사건 발생을 확정하지 않음'
