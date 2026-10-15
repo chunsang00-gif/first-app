@@ -188,44 +188,59 @@ function preflight(packet){
    }
   }
  }
- // Annual domain gates are calculated facts, never predicted real-life events.
- // The annual stem is shared across domains, so it alone cannot justify
- // three independent predictions. Require a distinct supported connection.
+ // Annual domain relevance comes from the ONE deterministic interpretation
+ // core, not from chapter prompts or another guess inside the QA validator.
+ // A category comparison is traditional symbolism only; never an event,
+ // a physical relationship (충·합), an ability score or a prediction.
+ const annualCore=require('./report-interpretation-core').all(packet);
  const annual=packet.facts?.annualTenGods;
- // Assign a distinct calculated annual relationship to each domain.  A
- // generic official/responsibility ten-god is not evidence of relationship
- // events, and one annual keyword must not become three different forecasts.
- const domains={
-  year_2027_money:{related:/^(?:재성|식상|정재|편재|식신|상관)$/,question:'금전'},
-  year_2027_career:{related:/^(?:관성|인성|정관|편관|정인|편인)$/,question:'일'},
-  year_2027_relationship:{related:/^(?:비견|겁재)$/,question:'관계'}
+ const domainSpecs={
+  year_2027_money:{core:annualCore.money,related:/^(?:재성|식상|정재|편재|식신|상관)$/},
+  year_2027_career:{core:annualCore.career,related:/^(?:관성|인성|정관|편관|정인|편인)$/}
  };
  const annualLabels=[annual?.stemTenGod,...(annual?.hiddenStems||[]).map(x=>x.tenGod)].filter(Boolean);
- for(const [id,domain] of Object.entries(domains)){
-  const plan=plans[id];
-  const matches=[...new Set(annualLabels.filter(x=>domain.related.test(x)))];
-  const dayRelations=(packet.facts?.targetYearRelations||[]).filter(x=>x.between==='day');
-  const directDayRelation=id==='year_2027_relationship'&&dayRelations.length>0;
-  // An annual stem or a hidden-stem label, by itself, is SHARED context
-  // already covered in the yearly overview. Its mere presence cannot justify
-  // charging for a separate domain forecast or a behavioural claim.
-  // A distinct domain-specific relation must be computed first.
-  const verifiedDomainRelation=directDayRelation;
-  const relevant=verifiedDomainRelation;
-  const source=directDayRelation?'facts.targetYearRelations:day':'none';
-  plan.annualDomainEvidence={relevant,source,matchedTenGods:matches,
-   directDayRelation,
-   interpretationFocus:id==='year_2027_money'?'원국과 비교한 금전 관련 계산 관계만 설명한다. 관성의 규칙·책임을 돈의 변화로 바꾸지 않는다.':id==='year_2027_career'?'직업·공적 역할과 직접 관련된 계산 관계만 설명한다. 재성만으로 직업 변화나 승진을 예측하지 않는다.':'일지와 2027년 지지의 직접 관계 또는 비견·겁재의 한정된 전통적 의미만 설명한다. 정관·정재를 근거로 상대의 마음·관계 변화를 예측하지 않는다.',
-   rule:relevant?'표시된 계산 관계의 의미만 설명하고 다른 분야의 동일한 규칙·책임 결론을 다시 쓰지 않으며 실제 사건이나 시기를 단정하지 않는다.':'해당 분야의 직접적인 연간 근거가 확인되지 않았다. 공통 책임·관리 성격 설명을 그 분야만의 새 운세로 쓰지 않는다.'};
-  if(!relevant)for(const task of Object.values(plan.topicTasks)){
-   // A shared annual pillar or natal fallback is NOT evidence of a new
-   // domain-specific 2027 prediction. Previously the task still advertised
-   // use-primary/use-fallback, contradicting the chapter's evidence limit.
-   task.originalEvidenceMode=task.mode;
-   task.mode='state-limits';
-   task.annualDomainLimit='분야별 운세를 새로 예언하지 않고 계산상 직접 근거가 없음을 알린다.';
-   task.interpretationBoundary='이 항목의 기존 원국 정보나 다른 분야의 연간 십성을 새 금전·직업·관계 변화의 직접 근거로 사용하지 않는다.';
+ for(const [id,spec] of Object.entries(domainSpecs)){
+  const plan=plans[id],proof=spec.core;
+  plan.annualDomainEvidence={
+   relevant:proof.relevant,
+   source:proof.relevant?'annual-natal-symbolic-category-comparison':'none',
+   matchedTenGods:[...new Set(annualLabels.filter(x=>spec.related.test(x)))],
+   sourceIds:proof.sourceIds,
+   comparisons:proof.comparisons,
+   evidenceType:proof.evidenceType,
+   guaranteesRealWorldOutcome:false,
+   interpretationFocus:proof.rule,
+   rule:proof.rule
+  };
+  for(const [topic,task] of Object.entries(plan.topicTasks)){
+   // The sole anchor explains the calculated category comparison.
+   // A second paragraph cannot charge again for the same bare two rows.
+   const supported=proof.relevant&&topic==='change';
+   task.mode=supported?'use-primary':'state-limits';
+   task.evidencePresent=supported;
+   task.allowedSourceRefs=supported?proof.sourceIds:[];
+   task.requiredSourceKinds=supported?['annual','natal']:[];
+   task.annualDomainLimit=proof.rule;
+   task.interpretationBoundary=proof.rule;
+   task.verifiedFallbackPaths=[];
   }
+ }
+ const relationship=plans.year_2027_relationship;
+ const dayRelations=(packet.facts?.targetYearRelations||[]).filter(x=>x.type==='충'&&x.between==='day');
+ const dayRelated=dayRelations.length>0;
+ const relationshipMatches=[...new Set(annualLabels.filter(x=>/^(?:비견|겁재)$/.test(x)))];
+ relationship.annualDomainEvidence={
+  relevant:dayRelated,source:dayRelated?'facts.targetYearRelations:day':'none',
+  matchedTenGods:relationshipMatches,directDayRelation:dayRelated,
+  guaranteesRealWorldOutcome:false,
+  interpretationFocus:'2027년 지지가 태어난 날의 지지와 직접 충 관계인 경우만 계산 사실과 그 한계를 설명한다. 관계 변화나 상대의 감정을 예언하지 않는다.',
+  rule:dayRelated?'계산된 일지의 충 관계와 전통적 의미만 구별해 설명하고 실제 만남·이별·결혼을 단정하지 않는다.':'같은 연도의 일반 분류만으로 관계 사건이나 변화가 확인되었다고 쓰지 않는다.'
+ };
+ if(!dayRelated)for(const task of Object.values(relationship.topicTasks)){
+  task.mode='state-limits';
+  task.evidencePresent=false;
+  task.annualDomainLimit=relationship.annualDomainEvidence.rule;
+  task.interpretationBoundary=relationship.annualDomainEvidence.rule;
  }
  // One canonical writing plan is shared by schema, model instructions and validation.
  for(const [id,plan] of Object.entries(plans)){
