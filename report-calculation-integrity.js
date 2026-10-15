@@ -5,6 +5,7 @@
 const {LunarUtil}=require('lunar-javascript');
 const calendar=require('./calendar-provider-node');
 const pipeline=require('./production-pipeline-node');
+const relations=require('./report-branch-relations');
 const names={'比肩':'비견','劫财':'겁재','食神':'식신','伤官':'상관','偏财':'편재','正财':'정재','七杀':'편관','正官':'정관','偏印':'편인','正印':'정인'};
 const branches='子丑寅卯辰巳午未申酉戌亥',stems='甲乙丙丁戊己庚辛壬癸';
 const hidden={子:['癸'],丑:['己','癸','辛'],寅:['甲','丙','戊'],卯:['乙'],辰:['戊','乙','癸'],巳:['丙','戊','庚'],午:['丁','己'],未:['己','丁','乙'],申:['庚','壬','戊'],酉:['辛'],戌:['戊','辛','丁'],亥:['壬','甲']};
@@ -85,6 +86,21 @@ function verify(packet){
     note:'서로 마주 보는 지지 관계. 갈등이나 사건 발생을 확정하지 않음'});
  }
  if(!same(facts.natalClashes,natalClashes))errors.push('incorrect-natal-clashes');
+ // These fields are additive: existing 충-only consumers remain unchanged.
+ // Detect a stale or tampered relation table before the paid provider runs.
+ const expectedNatalRelations=relations.natal(chart);
+ const expectedYearRelations=relations.annual(chart,actualYear);
+ if(!same(facts.natalBranchRelations,expectedNatalRelations))
+  errors.push('incorrect-natal-branch-relations');
+ if(!same(facts.targetYearBranchRelations,expectedYearRelations))
+  errors.push('incorrect-2027-branch-relations');
+ if(!same(expectedNatalRelations.pairs.filter(x=>x.type==='충').map(x=>({
+  type:'충',positions:x.positions,branches:x.branches,
+  note:'서로 마주 보는 지지 관계. 갈등이나 사건 발생을 확정하지 않음'
+ })),natalClashes))errors.push('branch-table-disagrees-with-natal-clash-calculation');
+ if(!same(expectedYearRelations.pairs.filter(x=>x.type==='충').map(x=>({
+  type:'충',between:x.between,branches:x.branches
+ })),yearlyClashes))errors.push('branch-table-disagrees-with-annual-clash-calculation');
  const decade=packet.fortune||{};
  for(const period of decade.decades||[]){
   if(!valid(period.pillar)||period.stemTenGod!==tenGod(day,period.pillar[0]))
@@ -102,7 +118,7 @@ function verify(packet){
   }catch{errors.push('birth-input-calendar-unverifiable');}
  }else errors.push('missing-original-calculation-input');
  return {pass:errors.length===0,errors,version:'calculation-integrity-v1',
-  verified:['calendar-source-chart','year-pillar','natal-ten-gods','hidden-stems','year-ten-gods','computed-clashes','month-command','day-master-roots','visible-stems','decade-classifications','unknown-hour-policy'],
+  verified:['calendar-source-chart','year-pillar','natal-ten-gods','hidden-stems','year-ten-gods','computed-clashes','pairwise-branch-relations','complete-branch-groups','month-command','day-master-roots','visible-stems','decade-classifications','unknown-hour-policy'],
   limitations:['does-not-certify-all-traditional-schools','does-not-prove-real-world-outcomes']};
 }
 module.exports={verify};
