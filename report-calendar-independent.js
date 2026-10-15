@@ -5,7 +5,9 @@
 // 五虎遁 month stem: https://calcstandard.com/manseryeok/
 // 五鼠遁 hour stem: https://sajuclass.com/명리-사전/역법-명식/시두법/
 // The natal clock model is the app's documented uncorrected HH:MM, sect=2.
-// At 23:00–23:59 the hour stem follows the next-day stem, while the day\n// pillar stays on the civil day. Alternative Zi-hour conventions and\n// longitude/true-solar-time are NOT assessed here.
+// At 23:00–23:59 the hour stem follows the next-day stem, while the day
+// pillar stays on the civil day. Alternative Zi-hour conventions and
+// longitude/true-solar-time are NOT assessed here.
 const STEMS='甲乙丙丁戊己庚辛壬癸';
 const BRANCHES='子丑寅卯辰巳午未申酉戌亥';
 const MONTH_BRANCHES='寅卯辰巳午未申酉戌亥子丑';
@@ -45,7 +47,7 @@ function monthPillar(yearStem,monthBranch){
  return STEMS[(first+mi)%10]+monthBranch;
 }
 function hourPillar(dayStem,birthTime,lateZiNextDayStem=null){
- if(typeof birthTime!=='string'||!/^([01]\\d|2[0-3]):[0-5]\\d$/.test(birthTime))
+ if(typeof birthTime!=='string'||!/^([01]\d|2[0-3]):[0-5]\d$/.test(birthTime))
   throw Error('Invalid birth HH:MM');
  const hour=Number(birthTime.slice(0,2));
  // Pinned Sect=2: displayed 日柱 changes at 00:00, but 時干 in
