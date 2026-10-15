@@ -9,7 +9,7 @@ const category={
  'same-element':'peer',resource:'resource',output:'output',
  'day-controls':'wealth','control-on-day':'authority'
 };
-function build(chart){
+function build(chart,solarTermTiming=null){
  const month=season.evaluate(chart);
  const dayElement=month.dayElement,dayStem=month.dayStem;
  const entries=[];
@@ -54,9 +54,15 @@ function build(chart){
   hiddenStemCandidates:monthRows.map(row=>row.id),
   activeHiddenStemId:null,
   activeHiddenStemStatus:'unresolved',
-  preciseSolarTermElapsedTime:'not-calculated',
+  preciseSolarTermElapsedTime:solarTermTiming?.status==='resolved'?{
+   elapsedSeconds:solarTermTiming.elapsedSecondsSinceJie,
+   previousJie:solarTermTiming.previousJie,
+   nextJie:solarTermTiming.nextJie,
+   clockFrame:solarTermTiming.clockFrame
+  }:solarTermTiming?.status==='birth-clock-unknown'?'birth-clock-unknown':'not-calculated',
   hiddenStemGoverningDaysRule:'not-selected',
-  reason:'정확한 절입 경과와 사령 분일법·학파별 기준을 검증하지 않아 현재 사령하는 지장간을 정할 수 없음',
+  solarTermTimingEvidence:solarTermTiming?.status||'not-provided',
+  reason:'절입 경과를 측정하더라도 사령 분일법·학파별 규칙을 검증하고 선택하지 않았으므로 실제 사령 지장간을 정할 수 없음',
   monthMainStemIsNotActiveQiProof:true
  };
  return {
