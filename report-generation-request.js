@@ -4,7 +4,7 @@
 const reader=require('./report-reader-policy');
 const policy=[
  reader.instruction,
- '사주 기본 장의 temperament는 facts.seasonalEvidence, facts.qiEvidence, facts.stemConnections를 모두 인용하고, 사실상 투간은 동일 지장간 글자의 실제 천간 노출만, 통근은 같은 오행 지장간 존재만 기록하며 음양이 다른 글자를 같은 글자로 바꾸지 않는다. 출생시간 미상은 부재 확정으로 해석하지 않는다. facts.seasonalEvidence와 facts.qiEvidence를 함께 인용하고, 실제 출처 위치에 있는 생조·설기·극·재성·관성 관계를 구분한다. 지장간의 존재를 실제 사령·오행 강약의 수치로 단정하지 않는다. facts.seasonalEvidence를 인용해 태어난 달의 계절과 전환월 여부·일간과 계절 오행 관계를 설명한다. 전환월에 본기만으로 계절의 우세를 확정하거나 근거 없는 신강·신약·용신을 단정하지 않는다. '+
+ '사주 기본 장의 temperament는 facts.seasonalEvidence, facts.qiEvidence, facts.stemConnections를 모두 인용하고, 사실상 투간은 동일 지장간 글자의 실제 천간 노출만, 통근은 같은 오행 지장간 존재만 기록하며 음양이 다른 글자를 같은 글자로 바꾸지 않는다. 출생시간 미상은 부재 확정으로 해석하지 않는다. facts.rootConditions의 각 뿌리에 대해 원국 충과 2027년 세운 충을 구분하고, 충이 있어도 지장간이나 뿌리가 삭제되었다거나 강도 감소량이 확정되었다고 쓰지 않는다. 해당 근거를 확인할 때 facts.rootConditions를 명시적으로 인용한다. facts.seasonalEvidence와 facts.qiEvidence를 함께 인용하고, 실제 출처 위치에 있는 생조·설기·극·재성·관성 관계를 구분한다. 지장간의 존재를 실제 사령·오행 강약의 수치로 단정하지 않는다. facts.seasonalEvidence를 인용해 태어난 달의 계절과 전환월 여부·일간과 계절 오행 관계를 설명한다. 전환월에 본기만으로 계절의 우세를 확정하거나 근거 없는 신강·신약·용신을 단정하지 않는다. '+
  '계산 사실과 해석을 구분한다. 글자 개수나 이름만으로 능력·평판·실제 경험을 만들지 않는다. 계산하지 않은 강약·용신·합충·월별 시기를 추정하지 않는다. 예시는 가정임을 드러내고 실제 사건이나 미래 결과를 보장하지 않는다.',
  '2027년 관계 장은 실제 계산한 targetYearBranchContext.annualContext.day만 사용한다. directPairs의 충·육합이 있을 때에만 같은 위치의 다른 형·해·파와 경쟁 관계를 설명하며 관계표의 존재, 합화 성립, 실제 연애·결혼·이별은 각각 구분한다. interpretationPriority가 unresolved라면 어떤 관계가 더 강한지 단정하지 않는다. 2027년 금전·직업의 독립 해석은 annualScope.comparisons에 있는 연도·원국의 계산 분류 비교가 있을 때만 작성한다. 반드시 annualId와 natalId를 함께 refs에 기록하며 두 위치의 같은 전통 분류군을 대비한다. 같은 분류는 충이나 합 관계를 새로 계산한 뜻이 아니다. 수입·승진·평판·성과·이직 같은 실제 사건을 결론 내리지 않는다.',
  '본문 단계에서는 각 문단의 basis를 먼저 작성한다. refs의 실제 자료가 무엇을 말하는지 interpretation에, 적용 상황을 condition에, 그 자료로 말할 수 없는 점을 limit에 적는다. 이 자료가 독자의 성격을 입증한다고 쓰지 않는다. 그 후 label과 text에 필요한 이유와 상황을 자연스러운 한국어로 설명한다. basis의 전문용어를 독자용 글에 복사하지 않는다.',
@@ -18,7 +18,7 @@ function sources(prompt){
  const p=prompt.facts;
  // Export individual structural observations instead of one wide object
  // that could be cited for an unrelated personality claim.
- for(const path of ['facts.seasonalEvidence','facts.qiEvidence','facts.stemConnections','facts.structuralEvidence.monthCommand','facts.structuralEvidence.dayMasterRoots','facts.structuralEvidence.visibleStems','facts.natalClashes','facts.annualTenGods','facts.targetYearRelations','facts.targetYearBranchContext.annualContext.day','fortune.activeDecade']){
+ for(const path of ['facts.seasonalEvidence','facts.qiEvidence','facts.stemConnections','facts.rootConditions','facts.structuralEvidence.monthCommand','facts.structuralEvidence.dayMasterRoots','facts.structuralEvidence.visibleStems','facts.natalClashes','facts.annualTenGods','facts.targetYearRelations','facts.targetYearBranchContext.annualContext.day','fortune.activeDecade']){
   const value=path.split('.').reduce((v,k)=>v?.[k],p);
   if(value!=null)result[path]=value;
  }
@@ -106,6 +106,7 @@ function allowedRefs(payload,task,chapterId,topic){
    if(Object.hasOwn(payload.source,'facts.seasonalEvidence'))ids.add('facts.seasonalEvidence');
    if(Object.hasOwn(payload.source,'facts.qiEvidence'))ids.add('facts.qiEvidence');
    if(Object.hasOwn(payload.source,'facts.stemConnections'))ids.add('facts.stemConnections');
+   if(Object.hasOwn(payload.source,'facts.rootConditions'))ids.add('facts.rootConditions');
    for(const id of Object.keys(payload.source))if(id.startsWith('natal.month.'))ids.add(id);
   }
   if(path==='facts.structuralEvidence.dayMasterRoots')for(const id of Object.keys(payload.source))if(id.startsWith('natal.day.'))ids.add(id);
@@ -162,6 +163,8 @@ function restoreEvidence(value,prompt){
      throw Error('AI report service missing required month seasonal source: '+id+':'+topic);
     if(task.requiredSourceKinds?.includes('natal-month-position')&&!b.refs.some(ref=>ref.startsWith('natal.month.')))
      throw Error('AI report service missing month-position evidence: '+id+':'+topic);
+    if(task.requiredSourceKinds?.includes('root-condition')&&!b.refs.includes('facts.rootConditions'))
+     throw Error('AI report service missing verified root condition evidence: '+id+':'+topic);
     if(task.requiredSourceKinds?.includes('stem-linkage')&&!b.refs.includes('facts.stemConnections'))
      throw Error('AI report service missing required grounded stem connection evidence: '+id+':'+topic);
     if(task.requiredSourceKinds?.includes('qi-ledger')&&!b.refs.includes('facts.qiEvidence'))
