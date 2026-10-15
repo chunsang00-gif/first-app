@@ -48,6 +48,15 @@
 - 근거 표: [지지 관계 표](https://daysaju.com/guide/jiji), [명리학 육합 설명](https://www.sajustudy.com/59). 고전 관계 테이블의 **형식적 회원 여부**만 계산하며 다른 학파의 가중치와 전통적 성립 조건을 포괄 검증하지 않는다.
 - **중요:** 새로 계산된 지지 관계는 현재 **검증 가능한 입력 사실로만 보관**한다. 아직 명리적 해석 조건·우선순위 검증이 없는 관계를 무조건 새 유료 장의 근거로 판매하거나, AI가 사건으로 추정하도록 열어두지 않는다.
 
+## 지지 관계 해석 조건 및 우선순위 판단 (2026-10-15)
+- `report-branch-context.js`는 출생 당시 연·월·일·시의 **정확한 지지 위치**, 세운 위치, 월지, 완성된 삼합·방합 여부, 같은 지지에 겹치는 충·합·형·파·해를 모두 별도의 근거로 관리한다. 같은 글자라도 **원국 일지와 세운 지지는 다른 출처**다.
+- 검사 순서: ① 위치와 정확한 관계표 ② 월지 존재와 맥락 ③ 원국 및 세운의 완성된 세 글자 조합 ④ 같은 위치에서 겹치는 관계 ⑤ **합화·강약·작용 우선순위·길흉의 독립 검증**. 마지막 단계는 아직 `not-computed`이며 자동으로 '방합 승리/삼합 승리/충이 합을 깼다'로 판정하지 않는다.
+- `facts.targetYearBranchContext`는 이 조건과 미확인 내용을 저장하며 `report-calculation-integrity.js`가 입력 차트로 **다시 계산해 일치 여부를 검사**한다.
+- `report-analysis-guidance.js`와 `report-generation-request.js`는 세운-일지의 **직접 충 또는 육합**이 정확히 계산된 경우에 한하여, 독자용 `year_2027_relationship`에 이 위치 비교를 사용할 수 있다. 관계표상 **형·파·해만** 있는 경우는 명시적 검토 후보로 남고 독립된 연애·결혼 판단 장을 만들지 않는다. 같은 증거로 반복되는 두 번째 단락은 차단한다.
+- AI가 사용 가능한 인용 근거는 `facts.targetYearBranchContext.annualContext.day` 한 경로로 제한된다. `report-interpretation-invariants.js`에서 계획과 근거 일치를 유료 호출 전 재검증하고, `report-branch-claims.js`가 생성 문장의 **미검증 합화, 충·합 승패, 존재하지 않는 세운-원국 관계 단정**을 후단 검사한다.
+- '지지 관계 존재'는 **전통적 기호 비교의 사실**이지 실제로 인간관계가 좋아지거나 이별/결혼이 발생할 근거가 아니다. 월령에 따른 강약, 용신, 지지 사이의 영향력·우선순위, 학파별 합화 조건을 추정해서 채우지 않는다.
+- 근거: [육합 관계와 합화 조건 구분](https://wiki.openfate.ai/ko/bazi/relationships-compatibility/earthly-branch-six-combinations-in-bazi-compatibility), [중첩 관계와 월령의 평가 순서](https://sajuclass.com/%EC%A7%80%EC%A7%80%ED%95%A9/), [형·파·해의 학파별 차이](https://sajufortune.kr/knowledge/hap-chung-hyeong-pa-hae). 이 자료들 자체가 하나의 보편적 계산 우선순위를 증명하지는 않는다.
+
 ## 아직 계산되지 않거나 증명되지 않는 것
 - 신강/신약, 용신/기신 및 사령·월령의 상세한 강약 판정
 - 지지 관계 표에 없는 추가 학파별 관계·합화 성립 및 형·파·해의 해석 조건과 우선순위, 월별 미래 사건
