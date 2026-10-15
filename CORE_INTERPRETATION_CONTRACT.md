@@ -86,6 +86,13 @@
 - `report-solar-term-timing-tests.js`는 **실제 1990년 입춘 전후의 연주·월주 변경**, 초·분 해상도 차이, 출생시간 미상 당일 경계, 12개월 계절과 월주 일치, 음력 입력·원본 데이터 변조·유료 호출 전 차단을 GitHub 무료 CI에서 검사한다.
 - 계산 규약은 한국 표준시로 입력한 **그 시계시각**을 그대로 사용하는 기존 앱 정책이다. 출생지의 지역 표준시 환산, 경도·진태양시, 출생기록의 시계 오류 보정은 **적용되지 않는다**. 이러한 보정이 필요한 출생은 전문가 확인이나 사용자 명시적 입력 없이는 임의 환산하지 않는다.
 
+## 지장간 사령 분일표 교차 대조와 안전 분리 (2026-10-15)
+- `report-governing-day-method.js`는 [靈犀問道 人元司令 12달 분일표](https://asklingxi.com/zh-tw/wiki/bazi/renyuan-siling)의 **대략적인 30일 구간**을 출처·버전 `asklingxi-renyuan-siling-approx30-v1`에 묶은 **비채택 연구용 진단기**다. 시작은 앞 절입부터 흐른 하루(24시간) 기준으로 비교한다. 각 수치는 대략적인 전통 분일 모델이며 실제 천문 절기나 확정된 실사령 강도가 아니다.
+- `卯`월의 초기 `甲`, `午`월의 초기 `丙`, `酉`월의 초기 `庚`, `亥`월의 초기 `戊`, `子`월의 초기 `壬` 등은 **해당 전통 표에는 있어도 앱의 그 월지 지장간 목록에는 없다**. 이것은 계산 오류라기보다 별도의 잔여 계절 기운 설명일 수 있다. **어떤 경우에도 없는 `natal.month.hidden.*` 출처를 새로 만들어 뿌리로 사용하지 않는다.**
+- 실제 절입으로부터 경과한 날짜를 출처 표에 대조하되, 표의 날짜 구분 근처 ±1일은 `approximate-stage-boundary`로 표시한다. 출생시간 미상이면 `unknown-birth-clock`, 표의 글자가 월지 지장간에 없으면 `external-residual-not-natal-hidden`으로 표시한다. **이 값으로 실사령·신강·용신을 확정하지 않는다.**
+- 비채택 결과를 `facts.governingDayDiagnostic`로 **`facts.qiEvidence`와 분리해 보관**한다. `report-generation-request.js`가 모델에 전달하는 출처 목록에는 `governingDayDiagnostic`이 없으며, `report-qi-evidence-tests.js`와 `report-governing-day-method-tests.js`에서 유료 AI 요청에 연구용 값이 새어 나가지 않는지 검사한다. `report-calculation-integrity.js`는 위조·누락된 진단값을 확인하되 오류를 예외로 던지지 않고 사전 검증 실패로 반환한다.
+- **최종 채택 전 필수 조건:** 전통 분일법의 원전 근거 검증, 날짜 수 30일과 실제 절기 월 길이 차이 처리, 교계시각 포함 규칙, 상이한 학파별 표 비교, 사령과 투간·통근의 의미 구분, 전문가 사례 심사를 완료해야 한다. 완료 전 `activeHiddenStemId=null` 및 `canUseForPremiumInterpretation=false`를 지킨다.
+
 ## 아직 계산되지 않거나 증명되지 않는 것
 - 신강/신약, 용신/기신 및 사령·월령의 상세한 강약 판정
 - 지지 관계 표에 없는 추가 학파별 관계·합화 성립 및 형·파·해의 해석 조건과 우선순위, 월별 미래 사건
