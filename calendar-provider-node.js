@@ -29,6 +29,18 @@ function calculate(input){
  const chart={year:ec.getYear(),month:ec.getMonth(),day:ec.getDay(),
   hour:input.unknownBirthTime?null:ec.getTime()};
  let timing=solarTerms.inspect(solar);
+ if(!input.unknownBirthTime){
+  // Input has only HH:MM precision, while a Jie boundary has seconds.
+  // Never choose a natal month on a minute whose unknown seconds can
+  // straddle the exact boundary.
+  const birthMinute=solar.toYmdHms().slice(0,16);
+  if([timing.previousJie.localClock,timing.nextJie.localClock]
+    .some(clock=>clock.slice(0,16)===birthMinute))
+   return {status:'blocked_birth_minute_solar_term_boundary',
+    reason:'Birth minute overlaps the exact Jie boundary second',
+    solarDate:solar.toYmd(),lunarDate:lunar.toString(),
+    requestedBirthMinute:birthMinute};
+ }
  if(input.unknownBirthTime){
   // A noon-substituted birth time cannot silently choose a side of 立春 or
   // another Jie boundary. In particular, the birth year/month can change.
