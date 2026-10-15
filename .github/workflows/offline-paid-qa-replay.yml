@@ -1,0 +1,46 @@
+name: Replay archived paid QA without provider calls
+on:
+  push:
+    branches:
+      - fix-paid-qa-fact-bindings-20261014
+    paths:
+      - .github/workflows/offline-paid-qa-replay.yml
+permissions:
+  contents: read
+  actions: read
+jobs:
+  replay-previous-paid-response:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-audit --no-fund
+      - name: Retrieve prior private QA artifact from this repository
+        uses: actions/download-artifact@v4
+        with:
+          name: premium-report-qa
+          run-id: 38744366989
+          github-token: ${{ github.token }}
+          path: .private-replay
+      - name: Re-run same raw response against current generator without paying
+        shell: bash
+        run: |
+          set +e
+          node report-offline-replay.js .private-replay/private-qa-report-raw-calls.json > .private-replay/diagnosis.json
+          exit_code=$?
+          set -e
+          node - <<'NODE'
+          const fs=require('node:fs');
+          const value=JSON.parse(fs.readFileSync('.private-replay/diagnosis.json','utf8'));
+          const safe={status:value.status,firstFailure:value.firstFailure||null,
+            providerRequests:value.providerRequests,archivedCallsConsumed:value.archivedCallsConsumed,
+            archivedCallsAvailable:value.archivedCallsAvailable,releaseVerdict:value.releaseVerdict};
+          console.log('Offline archived-response diagnostic:',JSON.stringify(safe));
+          if(value.providerRequests!==0||value.archivedCallsConsumed!==1||
+             value.releaseVerdict!=='not-assessed'||value.status!=='stopped')
+           process.exit(1);
+          console.log('PASS real archived paid response replayed against latest pipeline without model requests');
+          NODE
