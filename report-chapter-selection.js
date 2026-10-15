@@ -1,7 +1,8 @@
 'use strict';
 // Deterministic zero-API paid report scope gate.
-// Do not sell invented chapters and do not sell a very thin "premium" report.
-const MINIMUM_CHAPTERS=6;
+// Select chapters for grounded reader questions, not to meet a page-count quota.
+// A paid report still needs distinct practical lenses, not six padded headings.
+const MINIMUM_PERSONAL_DOMAINS=2;
 const essential=new Set(['saju_core','year_2027']);
 const domains=new Set(['decision','money','career','relationship','stress']);
 function select(groups,blueprint){
@@ -31,9 +32,10 @@ function select(groups,blueprint){
  const filteredGroups=groups.map(batch=>batch.filter(id=>included.includes(id))).filter(batch=>batch.length);
  const issues=[];
  for(const id of essential)if(!included.includes(id))issues.push('required-chapter-unavailable:'+id);
- if(!included.some(id=>domains.has(id)))issues.push('no-personalized-life-domain');
- if(plannedIds.length<MINIMUM_CHAPTERS)issues.push('insufficient-premium-depth:'+plannedIds.length);
+ const supportedDomains=plannedIds.filter(id=>domains.has(id));
+ if(supportedDomains.length<MINIMUM_PERSONAL_DOMAINS)
+  issues.push('insufficient-distinct-life-domains:'+supportedDomains.length);
  return {canGenerate:issues.length===0,groups:filteredGroups,plannedIds,
-  omitted,issues,minimumChapters:MINIMUM_CHAPTERS};
+  omitted,issues,supportedDomains,minimumPersonalDomains:MINIMUM_PERSONAL_DOMAINS};
 }
-module.exports={select,MINIMUM_CHAPTERS};
+module.exports={select,MINIMUM_PERSONAL_DOMAINS};
