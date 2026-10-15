@@ -25,6 +25,13 @@ const wrongSource=structuredClone(canonical);
 wrongSource.year_2027_career.topicTasks.change.allowedSourceRefs=['natal.missing.stem'];
 assert(invariant.verify(base,wrongSource).errors.some(e=>e.startsWith('year-domain-source-mismatch:')));
 assert(invariant.verify(base,wrongSource).errors.some(e=>e.startsWith('unresolved-source-ids:')));
+const stale=structuredClone(canonical);
+stale.year_2027_money.requiredMode='use-fallback-with-limits';
+stale.year_2027_money.fallbackEvidencePaths=['facts.annualTenGods'];
+stale.year_2027_money.evidencePresent=true;
+const staleErrors=invariant.verify(base,stale).errors;
+for(const prefix of ['chapter-evidence-status-drift','chapter-required-mode-drift','chapter-fallback-drift'])
+ assert(staleErrors.some(e=>e.startsWith(prefix+':year_2027_money')),prefix+' must prevent paid call');
 const phantom=structuredClone(canonical);
 phantom.year_2027_money.topicTasks.action.evidencePresent=true;
 phantom.year_2027_money.topicTasks.action.evidenceReuseBoundary={rule:'unearned'};
