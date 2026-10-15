@@ -7,6 +7,7 @@ const seasonal=require('./report-seasonal-evidence');
 const facts=require('./report-facts-node');
 const integrity=require('./report-calculation-integrity');
 const guidance=require('./report-analysis-guidance');
+const binding=require('./report-fact-bindings');
 const invariant=require('./report-interpretation-invariants');
 const generation=require('./report-generation-request');
 const wire=require('./report-wire');
@@ -72,6 +73,16 @@ for(const input of [
  const packet=facts.build(input,2027);
  assert.equal(packet.status,'ready');
  assert.deepEqual(packet.facts.qiEvidence,qi.build(packet.chart));
+ const sourceRows=binding.build(packet);
+ const sourceIds=new Map(sourceRows.map(row=>[row.id,row]));
+ for(const row of packet.facts.qiEvidence.entries){
+  const actual=sourceIds.get(row.id);
+  assert(actual,'ledger must never contain unbound source ID '+row.id);
+  assert.equal(actual.stem,row.stem,'ledger may not move another stem into '+row.id);
+  assert(actual.tenGod,'ten-god classification must exist for positional stem '+row.id);
+ }
+ assert(!packet.facts.qiEvidence.entries.some(x=>x.id==='natal.day.stem'),
+  'the day stem anchors the chart instead of counting as evidence in its favor');
  assert.equal(integrity.verify(packet).pass,true,input.birthDate);
  if(input.unknownBirthTime)assert(!packet.facts.qiEvidence.entries.some(row=>row.position==='hour'));
  const plan=guidance.preflight(packet);
