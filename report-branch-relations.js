@@ -35,12 +35,14 @@ function branchesFrom(chart){
  }
  return result;
 }
-function groupRelations(rows){
+function groupRelations(rows,preferredPosition=null){
  const result=[];
  // Three DISTINCT source positions are necessary for an exact complete group.
  // This is a membership result, NOT an assessment of seasonal transformation.
  for(const [type,groups] of Object.entries(GROUPS))for(const group of groups){
-  const found=[...group].map(branch=>rows.find(row=>row.branch===branch));
+  const found=[...group].map(branch=>
+   rows.find(row=>row.branch===branch&&row.position===preferredPosition)||
+   rows.find(row=>row.branch===branch));
   if(found.every(Boolean)){
    result.push({type,branches:group,positions:found.map(x=>x.position),
     evidenceType:'complete-group-membership',transformation:'not-assessed'});
@@ -65,7 +67,7 @@ function annual(chart,annualPillar){
   type,branches:row.branch+annualRow.branch,between:row.position,
   evidenceType:'pair-table',transformation:'not-assessed'
  })));
- const groups=groupRelations([...rows,annualRow]).filter(row=>row.positions.includes('annual'));
+ const groups=groupRelations([...rows,annualRow],'annual').filter(row=>row.positions.includes('annual'));
  return {pairs,groups};
 }
 module.exports={natal,annual,pairRelations,TABLES,GROUPS};
