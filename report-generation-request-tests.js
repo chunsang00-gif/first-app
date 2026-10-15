@@ -25,6 +25,12 @@ const schema=require('./report-schema.json');
  assertDropped(p=>{p.task.chapters.mbti_contradiction.safety.avoid=''},'chapter-safety-dropped:mbti_contradiction');
  assertDropped(p=>{delete p.source['person.mbti']},'mbti-input-source-dropped-or-invented');
  assertDropped(p=>{p.task.comparisonContract=null},'independent-framework-contract-dropped');
+ assertDropped(p=>{p.task.chapters.saju_core.topics.temperament.citableFacts=[]},
+  'topic-citable-sources-drift:saju_core/temperament');
+ assertDropped(p=>{p.task.chapters.saju_core.topics.temperament.citableFacts
+  .find(x=>x.id==='natal.month.stem').tenGod='정관'},
+  'topic-citable-meaning-drift:saju_core/temperament');
+
 
  assert.equal(payload.task.editorialGoal,prompt.editorialTask,
   'actual body editorial instructions must survive the provider boundary');
