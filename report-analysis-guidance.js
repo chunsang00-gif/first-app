@@ -118,6 +118,38 @@ function preflight(packet){
     interpretationBoundary:mode==='use-primary'?'전통적 해석의 연결 가능성만 설명하고 실제 행동으로 입증된 것처럼 단정하지 않는다.':mode==='use-verified-fallback'?'우선 계산값이 없으므로 실제 확인된 보조 근거만 사용한다. 보조 근거를 주된 근거처럼 말하거나 사건을 단정하지 않는다.':'다른 세부 항목의 성격 설명으로 채우지 말고 이 질문에서 판단할 수 없는 범위를 밝힌다.'}];
   }));
  }
+ // Money interpretations require financially relevant calculated classifications,
+ // not the mere existence of a month/day pillar or an unrelated natal clash.
+ // These rows describe traditional symbolic associations, NOT actual spending
+ // habits, earnings, losses or financial performance.
+ const financeRows=[];
+ for(const position of ['year','month','day','hour']){
+  const group=packet.facts?.tenGods?.[position];
+  if(!group)continue;
+  if(group.stem&&group.stemTenGod)financeRows.push({id:'natal.'+position+'.stem',tenGod:group.stemTenGod});
+  for(const row of group.hiddenStems||[])if(row.stem&&row.tenGod)
+   financeRows.push({id:'natal.'+position+'.hidden.'+row.stem,tenGod:row.tenGod});
+ }
+ const financeKinds={
+  earning:new Set(['정재','편재','식신','상관']),
+  spending:new Set(['정재','편재'])
+ };
+ for(const [topic,kinds] of Object.entries(financeKinds)){
+  const task=plans.money.topicTasks[topic];
+  const ids=financeRows.filter(row=>kinds.has(row.tenGod)).map(row=>row.id);
+  task.allowedSourceRefs=[...new Set(ids)];
+  if(ids.length){
+   task.mode='use-primary';
+   task.interpretationBoundary='금전과 직접 관련된 계산 분류의 전통적 뜻만 설명한다. 실제 소득, 소비 습관, 절약 능력, 투자 성과는 확인되지 않았다. 범위를 벗어나는 개인 행동을 만들어내지 않는다.';
+  }else{
+   task.mode='state-limits';task.evidencePresent=false;
+   task.interpretationBoundary='금전 관련 계산 항목이 확인되지 않아 수입·소비 성향을 추측하지 않는다.';
+  }
+ }
+ // A natal clash is not a measured risk of monetary loss.
+ const moneyRisk=plans.money.topicTasks.risk;
+ moneyRisk.mode='state-limits';moneyRisk.evidencePresent=false;
+ moneyRisk.interpretationBoundary='원국의 지지 충돌 유무로 금전 손실, 부채, 투자 위험을 판정하지 않는다. 관련 독립 계산 관계가 없는 이 항목은 작성하지 않는다.';
  // Build an evidence-allocation ledger in actual model generation order.
  // One calculated fact may answer more than one question, but the same
  // interpretation is not a second paid insight. Every reuse gets a distinct
@@ -128,7 +160,7 @@ function preflight(packet){
   const tasks=plans[id]?.topicTasks||{};
   for(const [topic,task] of Object.entries(tasks)){
    // A missing primary fact must not claim ownership or create a false reuse boundary.
-   const paths=(task.mode==='use-primary'?[task.primaryEvidencePath]:task.mode==='use-verified-fallback'?task.verifiedFallbackPaths:[]).filter(Boolean);
+   const paths=(task.allowedSourceRefs?.length?task.allowedSourceRefs:task.mode==='use-primary'?[task.primaryEvidencePath]:task.mode==='use-verified-fallback'?task.verifiedFallbackPaths:[]).filter(Boolean);
    const prior=paths.flatMap(path=>(allocated.get(path)||[]).map(owner=>({path,chapter:owner.chapter,topic:owner.topic,question:owner.question})));
    task.evidenceReuseBoundary=prior.length?{
     priorOwners:prior,
