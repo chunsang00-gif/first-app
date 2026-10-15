@@ -149,9 +149,12 @@ function schema(prompt,transport){
 }
 // Source relevance is checked against the canonical per-topic plan, not merely source existence.
 function allowedRefs(payload,task,chapterId,topic){
- if(Array.isArray(task?.allowedSourceRefs))return new Set(task.allowedSourceRefs.filter(id=>Object.hasOwn(payload.source,id)));
- const paths=task?.mode==='use-primary'?[task.sourcePath]:task?.mode==='use-verified-fallback'?task.fallbackPaths||[]:[];
- const ids=new Set();
+ const explicit=Array.isArray(task?.allowedSourceRefs);
+ // Domain topics carry strict natal IDs. They must remain the ONLY Saju
+ // sources, but an optional user-entered MBTI comparison may be appended.
+ // Returning early here used to make the paid domain-MBTI bridge impossible.
+ const paths=explicit?[]:task?.mode==='use-primary'?[task.sourcePath]:task?.mode==='use-verified-fallback'?task.fallbackPaths||[]:[];
+ const ids=new Set(explicit?task.allowedSourceRefs.filter(id=>Object.hasOwn(payload.source,id)):[]);
  for(const path of paths){
   if(!path)continue;
   if(Object.hasOwn(payload.source,path))ids.add(path);
