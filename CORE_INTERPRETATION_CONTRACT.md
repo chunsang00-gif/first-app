@@ -93,6 +93,14 @@
 - 비채택 결과를 `facts.governingDayDiagnostic`로 **`facts.qiEvidence`와 분리해 보관**한다. `report-generation-request.js`가 모델에 전달하는 출처 목록에는 `governingDayDiagnostic`이 없으며, `report-qi-evidence-tests.js`와 `report-governing-day-method-tests.js`에서 유료 AI 요청에 연구용 값이 새어 나가지 않는지 검사한다. `report-calculation-integrity.js`는 위조·누락된 진단값을 확인하되 오류를 예외로 던지지 않고 사전 검증 실패로 반환한다.
 - **최종 채택 전 필수 조건:** 전통 분일법의 원전 근거 검증, 날짜 수 30일과 실제 절기 월 길이 차이 처리, 교계시각 포함 규칙, 상이한 학파별 표 비교, 사령과 투간·통근의 의미 구분, 전문가 사례 심사를 완료해야 한다. 완료 전 `activeHiddenStemId=null` 및 `canUseForPremiumInterpretation=false`를 지킨다.
 
+## 투간·통근의 검증된 위치 연결 (2026-10-15)
+- `report-stem-connections.js`는 서로 다른 **두 방향의 검사**를 구현한다. **투간(透干)**은 지장간에서 시작해 `甲` 같은 **동일한 천간 글자**가 실제 연·월·일·시 중 어느 겉천간에 있는지 확인한다. **통근(通根)**은 겉천간에서 시작해 실제 지지 지장간에 **같은 오행**이 있는지를 확인한다. 통근 결과에서도 **글자까지 일치**하는 경우와 **오행만 같고 음양이 다른** 경우를 엄격히 구별한다.
+- 모든 연결은 `natal.year/month/day/hour.stem`과 `natal.year/month/day/hour.hidden.<글자>` **개별 근거 ID**를 양쪽에 기록한다. 일간 자체는 근거가 되는 겉천간이지만 다른 겉천간과 역할을 분리한다. 같은 기둥에 뿌리가 있는지와 본기/중기/여기 위치도 기록하되, **동주 근거만으로 강함을 확정하지 않는다.**
+- 출생 시각이 없으면 시주를 제외하고 관찰된 연결만 만든다. 찾지 못한 투간·통근은 `unobserved-hour-not-excluded`로 표시해 **시주가 있을 경우 달라질 수 있는 부재 판정**을 보류한다.
+- `facts.stemConnections`는 `report-calculation-integrity.js`와 `report-interpretation-invariants.js`에서 원래 명식으로 독립 재검산하고 유료 AI 호출 전에 출처를 검사한다. `report-generation-request.js`는 `saju_core.temperament`에 **월령·오행 원장·출생월 위치·천간-지장간 연결**의 네 근거를 모두 인용하도록 요구한다. 단 하나를 누락해도 모델 생성 결과를 거부한다.
+- `report-stem-connections-tests.js`는 실제 양력·음력·시주 미상 및 합성 명식에서 정확한 투간과 같은 오행만의 뿌리, 음양 차이, 일간 역할, 출처 ID 일치, **근거 위조·누락 거부**를 검사한다. `npm test`에 편입했다.
+- **해석 한계:** 투간·통근은 기호와 위치의 대응일 뿐 **사령, 근의 세기, 합충으로 유지되는지, 최종 신강·신약·용신, 실제 성격·미래 결과**를 증명하지 않는다. 다른 학파의 통근 가중치는 미채택이다. 참고: [투간과 통근의 구분](https://wiki.openfate.ai/ko/bazi/hidden-stems-roots/exposed-stems-vs-roots) · [동주 통근의 범위와 한계](https://clarifyhk.com/learn/bazi/hidden-stems-roots/rooting-within-the-same-pillar).
+
 ## 아직 계산되지 않거나 증명되지 않는 것
 - 신강/신약, 용신/기신 및 사령·월령의 상세한 강약 판정
 - 지지 관계 표에 없는 추가 학파별 관계·합화 성립 및 형·파·해의 해석 조건과 우선순위, 월별 미래 사건
