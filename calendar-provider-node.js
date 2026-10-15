@@ -3,6 +3,7 @@
  * App convention: EightChar sect=2 => late Zi hour day pillar remains on civil day.
  */
 const {Solar,Lunar}=require('lunar-javascript');
+const solarTerms=require('./report-solar-term-timing');
 function parts(date,time='12:00'){
  if(typeof date!=='string'||!/^(\d{4})-(\d{2})-(\d{2})$/.test(date))throw Error('invalid birth date format');
  if(typeof time!=='string'||!/^([01]\d|2[0-3]):[0-5]\d$/.test(time))throw Error('invalid birth time format');
@@ -23,6 +24,36 @@ function makeSolar(input){
  if(p.d>maxDay)throw Error('invalid solar date');
  return Solar.fromYmdHms(p.y,p.m,p.d,p.h,p.mi,0);
 }
-function calculate(input){const solar=makeSolar(input),lunar=solar.getLunar(),ec=lunar.getEightChar();ec.setSect(2);const chart={year:ec.getYear(),month:ec.getMonth(),day:ec.getDay(),hour:input.unknownBirthTime?null:ec.getTime()};return {status:'complete',source:{library:'lunar-javascript',version:'1.7.7',license:'MIT',construction:'explicit-ymdhms',eightCharSect:2},solarDate:solar.toYmd(),lunarDate:lunar.toString(),chart}}
+function calculate(input){
+ const solar=makeSolar(input),lunar=solar.getLunar(),ec=lunar.getEightChar();ec.setSect(2);
+ const chart={year:ec.getYear(),month:ec.getMonth(),day:ec.getDay(),
+  hour:input.unknownBirthTime?null:ec.getTime()};
+ let timing=solarTerms.inspect(solar);
+ if(input.unknownBirthTime){
+  // A noon-substituted birth time cannot silently choose a side of 立春 or
+  // another Jie boundary. In particular, the birth year/month can change.
+  const range=solarTerms.exactDateRange(solar.getYear(),solar.getMonth(),solar.getDay());
+  const begin=range.beginning.getLunar().getEightChar();begin.setSect(2);
+  const end=range.ending.getLunar().getEightChar();end.setSect(2);
+  if(begin.getYear()!==end.getYear()||begin.getMonth()!==end.getMonth()||
+     begin.getDay()!==end.getDay())
+   return {status:'blocked_birth_time_solar_term_boundary',
+    reason:'Birth clock time is required on a calendar pillar boundary date',
+    solarDate:solar.toYmd(),lunarDate:lunar.toString(),
+    boundaryClockUnknown:true};
+  timing={...solarTerms.inspect(range.beginning),status:'birth-clock-unknown',
+   birthSolarLocal:null,elapsedSecondsSinceJie:null,
+   remainingSecondsUntilNextJie:null,
+   note:'출생 시각 미상으로 절입 경과 초는 확정하지 않음. 당일 출생 시각 전체 범위에서 연·월·일주가 같은지만 검증함'};
+ }
+ if(chart.month[1]!==timing.monthBranchFromJie)
+  return {status:'blocked_month_jie_mismatch',
+   reason:'Calendar month pillar and solar term branch disagree',
+   solarDate:solar.toYmd(),lunarDate:lunar.toString()};
+ return {status:'complete',
+  source:{library:'lunar-javascript',version:'1.7.7',license:'MIT',
+   construction:'explicit-ymdhms',eightCharSect:2},
+  solarDate:solar.toYmd(),lunarDate:lunar.toString(),chart,solarTermTiming:timing};
+}
 function fortune(input){if(input.unknownBirthTime)return {status:'unavailable_without_birth_time'};const solar=makeSolar(input),ec=solar.getLunar().getEightChar();ec.setSect(2);const yun=ec.getYun(input.gender==='male'?1:0,1);return {status:'complete',forward:yun.isForward(),decades:yun.getDaYun(12).map(d=>({index:d.getIndex(),pillar:d.getGanZhi(),startAge:d.getStartAge(),endAge:d.getEndAge(),startYear:d.getStartYear(),endYear:d.getEndYear()})).filter(d=>d.index>0&&d.pillar),start:{year:yun.getStartYear(),month:yun.getStartMonth(),day:yun.getStartDay(),hour:yun.getStartHour()},source:{method:'lunar-javascript EightChar.getYun',sect:1,rule:'3 days = 1 year convention'}}}
 module.exports={calculate,fortune};
