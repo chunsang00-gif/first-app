@@ -80,7 +80,7 @@ unknown.person.mbti='모름';
 const noHour=scenario(unknown);
 assert(!Object.keys(noHour.task.source).some(id=>id.startsWith('natal.hour.')));
 assert(!Object.hasOwn(noHour.task.source,'person.mbti'));
-assert(!noHour.task.chapters.career.topics.growth.allowedSourceRefs.length);
+assert(!noHour.task.task.chapters.career.topics.growth.allowedSourceRefs.length);
 assert.equal(noHour.plan.career.topicTasks.growth.mode,'state-limits');
 
 const sparse=structuredClone(base);
