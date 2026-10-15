@@ -14,7 +14,9 @@ const policy=[
 function sources(prompt){
  const result=Object.fromEntries((prompt.factBindings||require('./report-fact-bindings').build(prompt.facts)).map(row=>[row.id,row]));
  const p=prompt.facts;
- for(const path of ['facts.structuralEvidence','facts.natalClashes','facts.annualTenGods','facts.targetYearRelations','fortune.activeDecade']){
+ // Export individual structural observations instead of one wide object
+ // that could be cited for an unrelated personality claim.
+ for(const path of ['facts.structuralEvidence.monthCommand','facts.structuralEvidence.dayMasterRoots','facts.structuralEvidence.visibleStems','facts.natalClashes','facts.annualTenGods','facts.targetYearRelations','fortune.activeDecade']){
   const value=path.split('.').reduce((v,k)=>v?.[k],p);
   if(value!=null)result[path]=value;
  }
@@ -28,7 +30,14 @@ function compile(prompt){
  const task=prompt.stage==='body'?{
   chapters:Object.fromEntries(prompt.requestedSections.map(id=>{
    const p=prompt.analysisGuidance.editorialBlueprint[id];
-   return [id,{question:p.question,anchor:p.anchorTopic,topics:Object.fromEntries(Object.entries(p.topicTasks).map(([key,t])=>[key,{question:t.question,mode:t.mode,sourcePath:t.primaryEvidencePath,fallbackPaths:t.verifiedFallbackPaths}])),annualScope:p.annualDomainEvidence||null}];
+   return [id,{question:p.question,anchor:p.anchorTopic,
+    safety:{avoid:prompt.analysisGuidance.chapterTasks?.[id]?.avoid||'',evidenceBoundary:p.evidenceBoundary||''},
+    topics:Object.fromEntries(Object.entries(p.topicTasks).map(([key,t])=>[key,{
+     question:t.question,mode:t.mode,sourcePath:t.primaryEvidencePath,fallbackPaths:t.verifiedFallbackPaths,
+     interpretationBoundary:t.interpretationBoundary||'',
+     evidenceReuseBoundary:t.evidenceReuseBoundary?{rule:t.evidenceReuseBoundary.rule,priorOwners:t.evidenceReuseBoundary.priorOwners.map(x=>({chapter:x.chapter,topic:x.topic}))}:null,
+     annualDomainLimit:t.annualDomainLimit||null
+    }])),annualScope:p.annualDomainEvidence||null}];
   })),previousSections:prompt.priorSections||[],mbti:prompt.analysisGuidance.mbtiReference||null
  }:{completedReport:prompt.completedReport};
  return {version:'evidence-first-v1',stage:prompt.stage,targetYear:prompt.facts.targetYear,source,task};
@@ -64,7 +73,7 @@ function allowedRefs(payload,task){
  for(const path of paths){
   if(!path)continue;
   if(Object.hasOwn(payload.source,path))ids.add(path);
-  if(path.startsWith('facts.structuralEvidence.')&&Object.hasOwn(payload.source,'facts.structuralEvidence'))ids.add('facts.structuralEvidence');
+
   // A month-command interpretation may cite the actual month position, too.
   if(path==='facts.structuralEvidence.monthCommand')for(const id of Object.keys(payload.source))if(id.startsWith('natal.month.'))ids.add(id);
   if(path==='facts.structuralEvidence.dayMasterRoots')for(const id of Object.keys(payload.source))if(id.startsWith('natal.day.'))ids.add(id);
