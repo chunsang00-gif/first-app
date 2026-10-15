@@ -47,7 +47,17 @@ function compile(prompt){
 const object=properties=>({type:'object',additionalProperties:false,required:Object.keys(properties),properties});
 function schema(prompt,transport){
  const payload=compile(prompt);
- if(!payload||prompt.stage!=='body')return transport;
+ if(!payload)return transport;
+ if(prompt.stage==='synthesis'){
+  // Cover cards cannot link to a chapter excluded from this paid report.
+  const ids=(payload.task.completedReport?.sections||[]).map(s=>s.id);
+  const highlights=transport?.properties?.cover?.properties?.highlights?.items?.properties?.sectionId;
+  if(!highlights)return transport;
+  if(ids.length<3)throw Error('Insufficient supported chapters for a three-card premium cover');
+  const result=structuredClone(transport);
+  result.properties.cover.properties.highlights.items.properties.sectionId.enum=ids;
+  return result;
+ }
  const result=structuredClone(transport),ids=Object.keys(payload.source);
  if(!ids.length)throw Error('No verified sources for body writing');
  for(const [chapterId,chapter] of Object.entries(result.properties.chapters.properties)){
