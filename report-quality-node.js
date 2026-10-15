@@ -212,7 +212,8 @@ function verifyEvidenceAgainstFacts(report,packet){
    }
   }
  }
- return {errors:[...new Set(errors)],warnings:[...new Set(warnings)]};
+ for(const error of require('./report-branch-claims').check(report,packet))errors.push(error);
+  return {errors:[...new Set(errors)],warnings:[...new Set(warnings)]};
 }
 function validate(r,packet){
  const errors=[],warnings=[];
