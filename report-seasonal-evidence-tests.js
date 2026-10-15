@@ -86,7 +86,7 @@ for(const input of actualCases){
  assert.throws(()=>generation.restoreEvidence(build(['facts.structuralEvidence.monthCommand']),prompt),
   /missing required month seasonal source/);
  const tampered=structuredClone(packet);
- tampered.facts.seasonalEvidence.monthPhase='core';
+ tampered.facts.seasonalEvidence.monthPhase=expected.monthPhase==='core'?'transition':'core';
  assert(integrity.verify(tampered).errors.includes('incorrect-monthly-seasonal-evidence'));
 }
 console.log('PASS all 12 month branches, seasonal transition/root classification, real calendar inputs and required paid provider provenance; 0 paid calls');
