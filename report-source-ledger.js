@@ -14,7 +14,7 @@ function usedPaths(section,topic){
  if(!raw||!raw.includes(' / 해석: '))return [];
  const portion=raw.slice(prefix.length).split(' / 해석: ')[0];
  return [...new Set(portion.split('; ').map(segment=>segment.trim().split(/[ (]/,1)[0])
-  .filter(x=>/^(?:natal\.(?:year|month|day|hour)\.(?:stem|hidden\.[^\s;]+)|facts\.[a-zA-Z][\w.]*(?:\.[\w]+)*|fortune\.activeDecade|person\.mbti)$/.test(x))))];
+  .filter(x=>/^(?:natal\.(?:year|month|day|hour)\.(?:stem|hidden\.[^\s;]+)|facts\.[a-zA-Z][\w.]*(?:\.[\w]+)*|fortune\.activeDecade|person\.mbti)$/.test(x)))];
 }
 function reusedBefore(nextIds,blueprint,priorSections){
  const needed=new Set(nextIds.flatMap(id=>Object.values(blueprint[id]?.topicTasks||{})
