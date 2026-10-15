@@ -67,6 +67,16 @@
 - 전통 해석의 월령은 우선 기준이지만 **계절 하나로 신강·신약 판정이 확정되지 않는다**. 뿌리 위치, 지장간의 실제 사령 기간, 방합·합화·충의 효과, 다른 천간에 의한 생조·설기·극과 특수격 등은 별도의 성립 조건이 필요하다. [월령과 득령의 구별](https://wiki.openfate.ai/en/bazi/strength-month-command/receiving-month-command) · [월지의 지장간 뿌리와 한계](https://wiki.openfate.ai/en/bazi/hidden-stems-roots/month-command-roots)
 - **미완료:** 사령 교대 시각, 계절 강약의 실제 가중치, 학교별 득령 기준·통근 강도, 용신·기신과 용희신 판단. 알고리즘에 없는 최종 강약 판정을 AI에 맡겨 꾸미지 않는다.
 
+## 지장간 사령·생조·설기·극의 위치별 원장 (2026-10-15)
+- `report-qi-evidence.js`를 단일 오행 관계 원장으로 추가했다. 원래 네 기둥의 실제 위치(`natal.year/month/day/hour`)에 대해 **비견·겁재 계열(같은 오행), 인성 계열(생해 주는 오행), 식상 계열(설기), 재성 계열(내가 극함), 관성 계열(나를 극함)**이라는 다섯 방향을 **천간·지장간의 실제 위치**에 묶는다. 강약 점수와 운의 길흉을 산출하지 않는다.
+- **같은 오행의 지장간만 뿌리 위치로 기록한다.** 일간을 생해 주는 오행(인성)의 출현은 도움으로 기록하지만 그 자체를 같은 오행의 통근으로 과장하지 않는다. 일간 자신은 출처 기준이므로 '스스로 돕는 증거'로 중복 가산하지 않는다.
+- 월지의 본기/중기/여기 목록은 확인한다. 그러나 **그날 사령하는 지장간**은 단지 첫 글자를 복사해서 채우지 않는다. 정확한 절입 경과 시각과 채택·검증된 사령 분일법이 없으므로 `governance.activeHiddenStemId=null`, `activeHiddenStemStatus:'unresolved'`로 보존한다. 표준 계절 자료만으로 사령·신강·신약을 자동 확정하지 않는다.
+- `facts.qiEvidence`는 `report-calculation-integrity.js`에서 원래 차트로 재구성하여 변조를 차단한다. 모든 원장 항목의 `natal.*` ID와 천간 글자는 기존 `report-fact-bindings.js`의 검증된 원국 근거와 대응한다.
+- 기본 사주 첫 장의 모델 응답은 **① `facts.seasonalEvidence` ② `facts.qiEvidence` ③ 출생월의 위치(`natal.month.*`)**를 함께 인용해야 한다. `report-analysis-guidance.js`가 필요한 근거 종류를 고정하고 `report-interpretation-invariants.js`와 `report-generation-request.js`가 누락 시 각각 유료 호출 전/후에 중단한다.
+- `report-qi-evidence-tests.js`는 다섯 오행 관계별 실제 위치, 인성과 같은 오행 뿌리의 구별, 12개 월지, 10개 일간, 음력·양력·시주 미상 사례, 모델 인용 누락 및 계산 변조를 무료 CI에 고정한다.
+- **미완료:** 실사령의 절입 시각과 분일법, 지장간 실제 권한/투출 여부의 학파별 규칙, 통근 위치·조후·합충 개입에 따른 오행 강도, 특수격과 용신 최종 판단. 이 값이 확정되지 않은 상태에서 숫자 합산이나 임의 임계값으로 명식 강약을 만들지 않는다.
+- 참고: [월령은 최우선이지만 뿌리와 생조·설기·극을 함께 검토한다](https://wiki.openfate.ai/en/bazi/strength-month-command) · [일간 강약의 월령·근·투간 관계와 한계](https://multifate.com/guides/bazi/day-master-strength) · [관계 기호를 점수와 혼동하지 않는 주의](https://clarifyhk.com/learn/bazi/foundations/strength-weakness-in-bazi).
+
 ## 아직 계산되지 않거나 증명되지 않는 것
 - 신강/신약, 용신/기신 및 사령·월령의 상세한 강약 판정
 - 지지 관계 표에 없는 추가 학파별 관계·합화 성립 및 형·파·해의 해석 조건과 우선순위, 월별 미래 사건
