@@ -34,9 +34,11 @@ const empty=context.evaluate({year:'甲亥',month:'乙卯',day:'丙寅',hour:nul
 assert.equal(empty.annualContext.day.eligibleForLimitedDescription,false);
 assert(empty.annualContext.positions.year.contenders.length>=1);
 const existing=context.evaluate({year:'甲亥',month:'乙卯',day:'丙未',hour:null},'丁未');
-assert(existing.annualContext.positions.day.contenders.some(x=>x.type==='삼합'&&x.origin==='annual'));
+assert(existing.targetYearBranchRelations.groups.some(x=>x.type==='삼합'&&x.positions.includes('annual')),
+ 'an annual branch may join an existing triad without rewriting the day branch');
 assert(existing.annualContext.positions.day.contenders.some(x=>x.type==='삼합'&&x.origin==='natal'));
-assert(existing.annualContext.day.hasCompetingClaims);
+assert.equal(existing.annualContext.day.hasCompetingClaims,false,
+ 'the exact annual source cannot be falsely reassigned to an identical natal day branch');
 assert.equal(existing.reviewStages.find(x=>x.stage==='natal-and-annual-group-completion')
  .newlyCompletedByAnnual.length,0,'pre-existing trio is not a new annual event');
 assert.throws(()=>context.evaluate({year:'甲子',month:null,day:'丙午'},'丁未'),/required/);
