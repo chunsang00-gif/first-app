@@ -1,6 +1,6 @@
 'use strict';
 const assert=require('node:assert/strict');
-const {inspect,signatures}=require('./report-interpretation-overlap');
+const {inspect,signatures,coverage}=require('./report-interpretation-overlap');
 const source='natal.month.stem';
 const section=(id,topic,text,refs=[source])=>({
  id,bodyTopics:[topic],body:[text],
@@ -30,4 +30,9 @@ assert(!signatures('그 뜻으로 실제 행동을 판단할 수 없습니다.')
 assert(!signatures('돈을 얼마 벌 것인지는 확인할 수 없습니다.').size);
 // Paragraph-level evidence ownership: a preceding null topic never counts.
 assert.deepEqual(inspect([money,{...career,bodyTopics:['unrelated']}]),[]);
+const oldReport={sections:[{id:'money',bodyTopics:['earning'],body:['일반 설명'],evidence:['예전 QA는 자유로운 근거 문장을 기록했습니다.']}]};
+assert.equal(coverage(oldReport.sections).status,'no-canonical-source-data');
+assert.equal(coverage([money,career]).status,'canonical-source-data');
+assert.equal(coverage([money,noEvidence]).status,'partial-canonical-source-data');
+assert.equal(coverage([money,career]).withCitations,2);
 console.log('PASS deterministic repeated causal interpretation under shared verified facts; no paid API');
