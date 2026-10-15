@@ -59,6 +59,10 @@ function allowedRefs(payload,task){
  for(const path of paths){
   if(!path)continue;
   if(Object.hasOwn(payload.source,path))ids.add(path);
+  if(path.startsWith('facts.structuralEvidence.')&&Object.hasOwn(payload.source,'facts.structuralEvidence'))ids.add('facts.structuralEvidence');
+  // A month-command interpretation may cite the actual month position, too.
+  if(path==='facts.structuralEvidence.monthCommand')for(const id of Object.keys(payload.source))if(id.startsWith('natal.month.'))ids.add(id);
+  if(path==='facts.structuralEvidence.dayMasterRoots')for(const id of Object.keys(payload.source))if(id.startsWith('natal.day.'))ids.add(id);
   // Ten-god facts are exported as position-bound rows, not as facts.tenGods.*.
   const match=/^facts\.tenGods\.(year|month|day|hour)(?:\.(hiddenStems))?$/.exec(path);
   if(match)for(const id of Object.keys(payload.source)){
