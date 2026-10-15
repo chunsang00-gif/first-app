@@ -84,6 +84,10 @@ function verify(packet){
  let expectedLinks=null;
  try{expectedLinks=require('./report-stem-connections').build(chart)}catch{errors.push('incorrect-stem-connections')}
  if(expectedLinks&&!same(facts.stemConnections,expectedLinks))errors.push('incorrect-stem-connections');
+ let expectedRootConditions=null;
+ try{expectedRootConditions=require('./report-root-conditions').build(chart,actualYear)}
+ catch{errors.push('incorrect-positional-root-conditions')}
+ if(expectedRootConditions&&!same(facts.rootConditions,expectedRootConditions))errors.push('incorrect-positional-root-conditions');
  const expectedAnnual=expectedFor(actualYear,day,'annual');
  if(!same(facts.annualTenGods,expectedAnnual))errors.push('incorrect-annual-ten-gods');
  const yearlyClashes=[];
