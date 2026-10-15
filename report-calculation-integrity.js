@@ -81,6 +81,9 @@ function verify(packet){
  catch{errors.push('incorrect-governing-day-diagnostic')}
  if(expectedMethod&&!same(facts.governingDayDiagnostic,expectedMethod))
   errors.push('incorrect-governing-day-diagnostic');
+ let expectedLinks=null;
+ try{expectedLinks=require('./report-stem-connections').build(chart)}catch{errors.push('incorrect-stem-connections')}
+ if(expectedLinks&&!same(facts.stemConnections,expectedLinks))errors.push('incorrect-stem-connections');
  const expectedAnnual=expectedFor(actualYear,day,'annual');
  if(!same(facts.annualTenGods,expectedAnnual))errors.push('incorrect-annual-ten-gods');
  const yearlyClashes=[];
