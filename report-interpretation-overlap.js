@@ -46,4 +46,18 @@ function inspect(sections){
  }
  return [...new Set(errors)];
 }
-module.exports={inspect,signatures};
+function coverage(sections){
+ let paragraphsTotal=0,withCitations=0;
+ for(const section of sections||[]){
+  for(const paragraph of paragraphs(section)){
+   paragraphsTotal++;
+   if(paragraph.refs.length)withCitations++;
+  }
+ }
+ return {paragraphsTotal,withCitations,
+  reviewable:paragraphsTotal>0&&paragraphsTotal===withCitations,
+  status:paragraphsTotal===0?'no-paragraphs':
+   withCitations===0?'no-canonical-source-data':
+   withCitations<paragraphsTotal?'partial-canonical-source-data':'canonical-source-data'};
+}
+module.exports={inspect,signatures,coverage};
