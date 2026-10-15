@@ -31,7 +31,9 @@ async function stop(child){if(!child)return;
 }
 (async()=>{
  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'saju-private-provider-'));
- const mock=http.createServer((req,res)=>{mock.calls++;res.writeHead(200,{'content-type':'application/json'});res.end('{"chapters":')});
+ const mock=http.createServer((req,res)=>{mock.calls++;
+  if(mock.unconfirmed){res.writeHead(503);res.end('provider unavailable');return}
+  res.writeHead(200,{'content-type':'application/json'});res.end('{"chapters":')});
  mock.calls=0;let child=null,child2=null;
  try{
   await new Promise(r=>mock.listen(0,'127.0.0.1',r));
@@ -64,6 +66,26 @@ async function stop(child){if(!child)return;
   assert.throws(()=>create(dir).startProviderCall(id,1,{
    stage:'body',requestedSections:['saju_core'],identity:first.identity}),/EEXIST/);
   assert.throws(()=>create(dir).saveProviderResponse(id,1,{status:'overwritten'}),/cannot overwrite/);
+  // Server/provider failure is ambiguous: never invent a received response.
+  mock.unconfirmed=true;
+  const unknownRequest='offline-provider-uncertain-20261016';
+  const secondary=await fetch(srv.origin+'/api/report',{method:'POST',
+   headers:{'content-type':'application/json'},
+   body:JSON.stringify({analysisInput:packet,requestId:unknownRequest})});
+  assert.equal(secondary.status,202);
+  const uncertainId=(await secondary.json()).jobId;
+  let unknownResult;
+  for(let i=0;i<60;i++){
+   const t=await fetch(srv.origin+'/api/report-status?id='+uncertainId);
+   unknownResult=await t.json();
+   if(unknownResult.status==='failed')break;
+   await wait(90);
+  }
+  assert.equal(unknownResult.status,'failed');
+  assert.equal(create(dir).loadProviderCall(uncertainId,1).state,'started',
+   '503/unknown completion must remain ambiguous, not be marked received');
+  assert.equal(mock.calls,2);
+  
   await stop(child);child=null;
   env.PORT=String(await port());srv=await launch(env);child2=srv.child;
   const retry=await fetch(srv.origin+'/api/report',{method:'POST',
@@ -72,9 +94,16 @@ async function stop(child){if(!child)return;
   const restarted=await fetch(srv.origin+'/api/report-status?id='+id);
   assert.equal(restarted.status,422);
   assert.equal((await restarted.json()).status,'failed');
-  assert.equal(mock.calls,1,'restart cannot duplicate the provider request');
+  assert.equal(mock.calls,2,'restart cannot duplicate the provider request');
+  const uncertainRetry=await fetch(srv.origin+'/api/report',{method:'POST',
+   headers:{'content-type':'application/json'},
+   body:JSON.stringify({analysisInput:packet,requestId:'offline-provider-uncertain-20261016'})});
+  assert.equal(uncertainRetry.status,202);
+  assert.equal((await uncertainRetry.json()).jobId,uncertainId);
+  assert.equal(create(dir).loadProviderCall(uncertainId,1).state,'started');
+  assert.equal(mock.calls,2,'unconfirmed provider attempt must not auto-repeat');
   assert.deepEqual(create(dir).loadProviderCall(id,1),first);
-  console.log('PASS provider journal: attempt marker, malformed raw response persisted before validation, owner-only permissions, restart no retry');
+  console.log('PASS provider journal: malformed raw saved, ambiguous 503 attempt retained, owner-only files, restart no retry or leak');
  }finally{
   await stop(child);await stop(child2);
   if(mock.listening)await new Promise(r=>mock.close(r));
