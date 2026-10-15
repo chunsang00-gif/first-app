@@ -39,14 +39,19 @@ function schema(prompt,transport){
  if(!payload||prompt.stage!=='body')return transport;
  const result=structuredClone(transport),ids=Object.keys(payload.source);
  if(!ids.length)throw Error('No verified sources for body writing');
- for(const chapter of Object.values(result.properties.chapters.properties)){
+ for(const [chapterId,chapter] of Object.entries(result.properties.chapters.properties)){
   delete chapter.properties.evidence;
   chapter.required=chapter.required.filter(k=>k!=='evidence');
-  for(const slot of Object.values(chapter.properties.paragraphs.properties)){
+  for(const [topic,slot] of Object.entries(chapter.properties.paragraphs.properties)){
    const p=slot.anyOf?.find(x=>x.type==='object')||slot;
    if(p.type!=='object')continue;
-   const basis=object({refs:{type:'array',items:{type:'string',enum:ids}},interpretation:{type:'string'},condition:{type:'string'},limit:{type:'string'}});
-   basis.description='내부 근거 기록. 실제 자료의 의미와 해석의 연결, 적용 조건, 판단 한계를 구분한다. 독자용 본문이 아니다.';
+   const task=payload.task.chapters[chapterId]?.topics[topic];
+   if(!task)throw Error('Missing canonical topic plan: '+chapterId+':'+topic);
+   const permitted=[...allowedRefs(payload,task)];
+   if(task.mode!=='state-limits'&&!permitted.length)throw Error('Missing topic source mapping: '+chapterId+':'+topic);
+   const refs=task.mode==='state-limits'?ids:permitted;
+   const basis=object({refs:{type:'array',items:{type:'string',enum:refs}},interpretation:{type:'string'},condition:{type:'string'},limit:{type:'string'}});
+   basis.description='내부 근거 기록. 이 질문과 관련된 계산 참조만 선택한다. 실제 자료의 의미와 해석의 연결, 적용 조건, 판단 한계를 구분한다. 독자용 본문이 아니다.';
    p.properties={basis,...p.properties};p.required=['basis',...p.required];
   }
  }
