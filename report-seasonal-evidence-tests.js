@@ -4,6 +4,7 @@ const season=require('./report-seasonal-evidence');
 const facts=require('./report-facts-node');
 const integrity=require('./report-calculation-integrity');
 const guidance=require('./report-analysis-guidance');
+const invariant=require('./report-interpretation-invariants');
 const generation=require('./report-generation-request');
 const wire=require('./report-wire');
 const schema=require('./report-schema.json');
@@ -64,6 +65,11 @@ for(const input of actualCases){
  assert.equal(packet.facts.targetYearBranchContext.monthlyContext.monthPhase,expected.monthPhase);
  assert.equal(packet.facts.targetYearBranchContext.monthlyContext.seasonToDayRelation,expected.seasonToDayRelation);
  const blueprint=guidance.preflight(packet);
+ assert.equal(invariant.verify(packet,blueprint).pass,true,'seasonal source preflight must agree with derived facts');
+ const drift=structuredClone(blueprint);
+ drift.saju_core.topicTasks.temperament.requiredSourceKinds=[];
+ assert(invariant.verify(packet,drift).errors.includes('missing-canonical-seasonal-topic-requirement'),
+  'a dropped seasonal citation contract must block paid generation');
  const t=blueprint.saju_core.topicTasks.temperament;
  assert.equal(t.mode,'use-primary');
  assert.deepEqual(t.requiredSourceKinds,['seasonal']);
