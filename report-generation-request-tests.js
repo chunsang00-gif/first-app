@@ -15,6 +15,10 @@ const schema=require('./report-schema.json');
  const withReuse=generation.compile({...prompt,rules:{
   ...prompt.rules,reusedEvidenceWithPriorConclusions:[citationReuse]
  }});
+ for(const chapter of Object.values(payload.task.chapters))
+  for(const topic of Object.values(chapter.topics||{}))
+   assert(!Object.hasOwn(topic,'evidenceReuseBoundary'),
+    'future optional topics are not facts that someone already wrote about');
  assert.deepEqual(withReuse.task.reusedEvidence,[citationReuse],
   'actual reused calculated source path and previous conclusion must reach the model');
  assert(payload.task.chapters.mbti_contradiction.comparisonEvidence.includes('모두 인용한다'));
