@@ -63,8 +63,10 @@ function compile(prompt){
     // The original rules are NOT sent to the provider.
     analysisGoal:prompt.rules?.sectionGoals?.[id]||null,
     chartContrast:id==='saju_core'?require('./report-chart-contrast').build(prompt.facts):null,
-    comparisonEvidence: id==='mbti_contradiction'&&source['person.mbti']?
-     'MBTI 비교 문단은 입력된 MBTI 선호(person.mbti)와 실제 원국 위치(natal.*)를 모두 인용한다. 같은 결론이어도 된다. 사주가 확인한 실제 행동인 것처럼 쓰지 않는다.':null,
+    comparisonEvidence: source['person.mbti']&&['mbti_contradiction','integrated_judgment'].includes(id)?
+     (id==='mbti_contradiction'
+      ?'MBTI 비교에서는 사용자 입력 선호(person.mbti)와 실제 원국 위치(natal.*)를 함께 인용한다. 같은 결론이어도 된다. 실제 행동의 검증이나 두 체계의 인과 관계가 아니다.'
+      :'종합 해석에서는 MBTI 입력 선호(person.mbti)와 실제 원국 위치(natal.*)를 함께 인용한다. 앞선 비교 장의 결론을 재판매하지 않고 계산 근거가 허용하는 새 조건만 설명한다. 두 분석이 서로를 검증한다고 주장하지 않는다.'):null,
     safety:{avoid:prompt.analysisGuidance.chapterTasks?.[id]?.avoid||'',evidenceBoundary:p.evidenceBoundary||''},
     topics:Object.fromEntries(Object.entries(p.topicTasks).map(([key,t])=>[key,{
      question:t.question,mode:t.mode,sourcePath:t.primaryEvidencePath,fallbackPaths:t.verifiedFallbackPaths,allowedSourceRefs:t.allowedSourceRefs||null,requiredSourceKinds:t.requiredSourceKinds||[],
@@ -152,7 +154,7 @@ function allowedRefs(payload,task,chapterId,topic){
  }
  // A comparison must cite both the submitted MBTI preferences and
  // at least one exact natal row. It cannot compare one theory to itself.
- if(chapterId==='mbti_contradiction'&&payload.source['person.mbti']&&task.mode!=='state-limits'){
+ if(['mbti_contradiction','integrated_judgment'].includes(chapterId)&&payload.source['person.mbti']&&task.mode!=='state-limits'){
   ids.add('person.mbti');
   for(const id of Object.keys(payload.source))if(id.startsWith('natal.month.'))ids.add(id);
  }
@@ -186,7 +188,9 @@ function restoreEvidence(value,prompt){
     if(!/근거|확인|판단|자료|한계|부족|없|미상|알 수/.test(b.limit))throw Error('AI report service missing explicit evidence limit: '+id+':'+topic);
    }else{
     const allowed=allowedRefs(payload,task,id,topic);
-    if(payload.source['person.mbti']&&id==='mbti_contradiction'&&!(
+    // The integrated chapter must cite both frameworks, not a Saju-only
+    // source while implying that the MBTI comparison was substantiated.
+    if(payload.source['person.mbti']&&['mbti_contradiction','integrated_judgment'].includes(id)&&!(
      b.refs.includes('person.mbti')&&b.refs.some(ref=>ref.startsWith('natal.'))
     ))throw Error('AI report service missing dual MBTI/Saju evidence: '+id+':'+topic);
     if(!allowed.size||b.refs.some(ref=>!allowed.has(ref)))throw Error('AI report service unrelated paragraph basis: '+id+':'+topic);
