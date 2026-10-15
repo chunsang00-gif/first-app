@@ -48,4 +48,29 @@ assert.deepEqual(ledger.reusedBefore(['career'],blueprint,forged).map(x=>x.path)
 const legacy={id:'money',bodyTopics:['earning'],topicConclusions:['오래된 모의 문단'],evidence:['검증용 일반 설명']};
 assert.deepEqual(ledger.reusedBefore(['career'],blueprint,[legacy]),[],
  'a free-form explanation is not proof that the model cited a specific row');
+// A planned 'facts.tenGods.month' path and its exact 'natal.month.stem'
+// citation MUST have one identity. Both the provider and the ledger now
+// use the same canonical allowedRefs() resolver.
+const packet={person:{mbti:'모름'},targetYear:2027,
+ facts:{tenGods:{
+  month:{stem:'辛',stemTenGod:'겁재',hiddenStems:[]},
+  day:{stem:'庚',stemTenGod:'비견',hiddenStems:[]}
+ },structuralEvidence:{monthCommand:{stem:'辛'},dayMasterRoots:['庚'],visibleStems:['辛','庚']},
+ natalClashes:[],annualTenGods:{stemTenGod:'정관'},targetYearRelations:[]},fortune:{}};
+const planned={
+ saju_core:{question:'기본',anchorTopic:'temperament',topicTasks:{
+  temperament:{mode:'use-primary',primaryEvidencePath:'facts.tenGods.month'}
+ }},
+ decision:{question:'선택',anchorTopic:'approach',topicTasks:{
+  approach:{mode:'use-primary',primaryEvidencePath:'facts.tenGods.month'}
+ }}
+};
+const earlier=[{id:'saju_core',bodyTopics:['temperament'],
+ topicConclusions:['선택에 관한 기존 설명'],
+ evidence:['temperament: natal.month.stem (월간 辛 겁재) / 해석: 전통적 뜻 / 조건: 어떤 상황 / 한계: 개인 행동 미확인']}];
+assert.deepEqual(ledger.reusedBefore(['decision'],planned,earlier),[],
+ 'generic planned source path alone must not claim ownership');
+assert.deepEqual(ledger.reusedBefore(['decision'],planned,earlier,packet),[{
+ path:'natal.month.stem',chapter:'saju_core',topic:'temperament',previousConclusion:'선택에 관한 기존 설명'
+}],'canonical source resolver must identify the exact previously cited positional fact');
 console.log('PASS real citation provenance ledger, no unused/fabricated source ownership, no paid API');
