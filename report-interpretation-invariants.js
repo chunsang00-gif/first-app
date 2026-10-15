@@ -28,6 +28,9 @@ function verify(packet,plan){
   if(packet.facts.qiEvidence&&topic?.mode!=='state-limits'&&
      !topic?.requiredSourceKinds?.includes('qi-ledger'))
    errors.push('missing-canonical-qi-ledger-topic-requirement');
+  if(packet.facts.qiEvidence&&topic?.mode!=='state-limits'&&
+     !topic?.requiredSourceKinds?.includes('natal-month-position'))
+   errors.push('missing-canonical-month-position-topic-requirement');
  }
  for(const [domain,id] of Object.entries(annualIds)){
   const chapter=plan[id];
