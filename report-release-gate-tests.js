@@ -32,6 +32,20 @@ assert.equal(okay.humanReviewRequired,true);
 assert.deepEqual(okay.failedTechnicalChecks,[]);
 assert.equal(okay.sourceCoverage.status,'canonical-source-data');
 assert(okay.manualChecks.includes('depth-worth-paying-for'));
+// Product scope is about distinct analysis areas, not a minimum of six titles.
+const compact={...structuredClone(report),sections:report.sections.filter(s=>
+ ['saju_core','career','relationship','year_2027'].includes(s.id))};
+const compactScope={canGenerate:true,plannedIds:compact.sections.map(s=>s.id)};
+const compactResult=release.assess({report:compact,qa:{pass:true,errors:[]},packet,coverage:compactScope});
+assert.equal(compactResult.technicalChecks,'passed','two grounded practical domains do not require filler chapters');
+assert.equal(compactResult.releaseVerdict,'not-approved','technical success is never launch approval');
+const padded={...structuredClone(report),sections:[
+ 'saju_core','mbti_contradiction','decision','integrated_judgment','year_2027','year_2027_money'
+].map(makeSection)};
+const paddedScope={canGenerate:true,plannedIds:padded.sections.map(s=>s.id)};
+const paddedResult=release.assess({report:padded,qa:{pass:true,errors:[]},packet,coverage:paddedScope});
+assert(paddedResult.failedTechnicalChecks.includes('insufficient-premium-scope'),
+ 'six chapters with only one grounded practical domain must be rejected');
 const noSource=structuredClone(report);
 for(const s of noSource.sections)s.evidence=['월간은 나의 마음을 뜻합니다.'];
 const old=release.assess({report:noSource,qa:{pass:true},packet,coverage});
