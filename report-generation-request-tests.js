@@ -99,6 +99,7 @@ const schema=require('./report-schema.json');
   ...guidance.forRequest(scopedIds,prompt.facts.person?.mbti),
   editorialBlueprint:Object.fromEntries(scopedIds.map(id=>[id,allPlans[id]]))
  }};
+ checkCitable(moneyRequest,moneyPrompt);
  const moneySchema=generation.schema(moneyPrompt,wire.schemaFor(moneyPrompt,schema));
  const moneySlots=moneySchema.properties.chapters.properties.money.properties.paragraphs.properties;
  if(financialIds.length){
@@ -118,6 +119,39 @@ const schema=require('./report-schema.json');
 
  assert(!JSON.stringify(payload).includes('coverNaturalnessRule'));
  assert(JSON.stringify(payload).length<JSON.stringify(prompt).length*.65);
+ // The writer now receives per-topic source facts, not merely an opaque
+ // source path. They must be identical to the actual strict output schema.
+ const checkCitable=(compiled,scopedPrompt)=>{
+  const transport=generation.schema(scopedPrompt,wire.schemaFor(scopedPrompt,schema));
+  for(const [chapterId,chapter] of Object.entries(compiled.task.chapters)){
+   for(const [topicId,topic] of Object.entries(chapter.topics)){
+    const slot=transport.properties.chapters.properties[chapterId]
+     .properties.paragraphs.properties[topicId];
+    const selected=slot.anyOf?.find(x=>x.type==='object')||slot;
+    const ids=topic.citableFacts.map(x=>x.id);
+    if(selected.type==='null'){assert.deepEqual(ids,[]);continue;}
+    assert.deepEqual(ids,selected.properties.basis.properties.refs.items.enum,
+     chapterId+':'+topicId+' writer sources differ from provider schema');
+    for(const fact of topic.citableFacts){
+     assert(Object.hasOwn(compiled.source,fact.id));
+     const source=compiled.source[fact.id];
+     if(fact.id.startsWith('natal.')){
+      assert.equal(fact.position,source.position);
+      assert.equal(fact.layer,source.layer);
+      assert.equal(fact.tenGod,source.tenGod);
+      assert.equal(fact.traditionalMeaning,source.traditionalMeaning);
+      assert.equal(fact.traditionalMeaning,scopedPrompt.facts.facts.tenGodGlossary[source.tenGod]);
+     }
+    }
+   }
+  }
+ };
+ checkCitable(payload,prompt);
+ assert(payload.task.chapters.saju_core.topics.temperament.citableFacts.some(
+  x=>x.id==='natal.month.stem'&&x.position==='월간'),
+  'exact month-position ten-god must be surfaced where the writer needs it');
+ assert(generation.policy.includes('citableFacts'),
+  'system message must use the actual per-topic source/meaning table');
  const t=generation.schema(prompt,wire.schemaFor(prompt,schema));
  const chapters={};
  for(const id of prompt.requestedSections){
@@ -247,6 +281,7 @@ const schema=require('./report-schema.json');
  let unknownPrompt;
  await assert.rejects(generate({calendar:'solar',birthDate:'1990-05-15',unknownBirthTime:true,gender:'male',mbti:'모름'},async p=>{unknownPrompt=p;throw Error('OFFLINE_UNKNOWN');}),/OFFLINE_UNKNOWN/);
  const unknownPayload=generation.compile(unknownPrompt);
+ checkCitable(unknownPayload,unknownPrompt);
  assert.deepEqual(transportAudit.inspectTransport(unknownPrompt,unknownPayload),[]);
  assert(!Object.hasOwn(unknownPayload.source,'person.mbti'),'unknown MBTI must never create a preference source');
  assert(!Object.keys(unknownPayload.source).some(x=>x.startsWith('natal.hour.')),'unknown hour must not create birth-hour facts');
