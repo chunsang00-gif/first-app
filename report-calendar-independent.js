@@ -5,7 +5,7 @@
 // 五虎遁 month stem: https://calcstandard.com/manseryeok/
 // 五鼠遁 hour stem: https://sajuclass.com/명리-사전/역법-명식/시두법/
 // The natal clock model is the app's documented uncorrected HH:MM, sect=2.
-// Longitude/true-solar-time and disputed schools are NOT assessed here.
+// At 23:00–23:59 the hour stem follows the next-day stem, while the day\n// pillar stays on the civil day. Alternative Zi-hour conventions and\n// longitude/true-solar-time are NOT assessed here.
 const STEMS='甲乙丙丁戊己庚辛壬癸';
 const BRANCHES='子丑寅卯辰巳午未申酉戌亥';
 const MONTH_BRANCHES='寅卯辰巳午未申酉戌亥子丑';
@@ -44,12 +44,19 @@ function monthPillar(yearStem,monthBranch){
  const first=mod((yi%5)*2+2,10);
  return STEMS[(first+mi)%10]+monthBranch;
 }
-function hourPillar(dayStem,birthTime){
- if(typeof birthTime!=='string'||!/^([01]\d|2[0-3]):[0-5]\d$/.test(birthTime))
+function hourPillar(dayStem,birthTime,lateZiNextDayStem=null){
+ if(typeof birthTime!=='string'||!/^([01]\\d|2[0-3]):[0-5]\\d$/.test(birthTime))
   throw Error('Invalid birth HH:MM');
+ const hour=Number(birthTime.slice(0,2));
+ // Pinned Sect=2: displayed 日柱 changes at 00:00, but 時干 in
+ // late 子 (23:00-23:59) follows the next civil day's 五鼠遁 row.
+ if(hour===23){
+  if(!lateZiNextDayStem||STEMS.indexOf(lateZiNextDayStem)<0)
+   throw Error('Late Zi requires next civil day stem');
+  dayStem=lateZiNextDayStem;
+ }
  const dayIndex=STEMS.indexOf(dayStem);
  if(dayIndex<0)throw Error('Invalid day stem');
- const hour=Number(birthTime.slice(0,2));
  const hourIndex=Math.floor(((hour+1)%24)/2);
  return STEMS[(dayIndex%5*2+hourIndex)%10]+BRANCHES[hourIndex];
 }
@@ -62,7 +69,7 @@ function verify({solarDate,chart,solarTermTiming,birthTime,unknownBirthTime}){
    year:annualPillar(year),
    month:monthPillar(annualPillar(year)[0],solarTermTiming.monthBranchFromJie),
    day:dayPillar(solarDate),
-   hour:unknownBirthTime?null:hourPillar(dayPillar(solarDate)[0],birthTime)
+   hour:unknownBirthTime?null:hourPillar(dayPillar(solarDate)[0],birthTime,STEMS[mod(dayNumber(solarDate)+2,10)])
   };
   for(const key of ['year','month','day','hour']){
    if((chart[key]??null)!==(expected[key]??null))errors.push('independent-'+key+'-pillar-mismatch');
