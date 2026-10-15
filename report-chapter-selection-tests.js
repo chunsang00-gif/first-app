@@ -89,8 +89,10 @@ assert.throws(()=>selection.select([['saju_core'],['saju_core']],create()),/Dupl
   });
   assert.equal(response.status,'blocked');
   assert.equal(providerCalls,0,'must block before any billable provider invocation');
-  assert(response.coverage.omitted.some(x=>x.id==='money'));
-  assert(response.issues.some(x=>x.includes('insufficient-premium-depth')));
+  // A fabricated bare-minimum packet is no longer allowed to reach
+  // chapter selection: verify that calculation integrity rejects it first.
+  assert(response.calculationIntegrity?.errors.includes('invalid-chart-or-target-year'));
+  assert(response.issues.some(x=>x.includes('Calculated symbolic facts do not match source chart')));
  }finally{facts.build=actualBuild;}
- console.log('PASS paid chapter selection and production pre-provider block, no API calls');
+ console.log('PASS paid chapter selection and invalid-calculation pre-provider block, no API calls');
 })().catch(err=>{console.error(err);process.exitCode=1});
