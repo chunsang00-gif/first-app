@@ -84,6 +84,13 @@ const schema=require('./report-schema.json');
  assert(!Object.hasOwn(unknownPayload.source,'person.mbti'),'unknown MBTI must never create a preference source');
  assert(!Object.keys(unknownPayload.source).some(x=>x.startsWith('natal.hour.')),'unknown hour must not create birth-hour facts');
  assert(unknownPayload.task.chapters.mbti_contradiction.safety.avoid.includes('입력하지 않은 성격'),'saju-only guard must be preserved');
+ const unknownSchema=generation.schema(unknownPrompt,wire.schemaFor(unknownPrompt,schema));
+ const noMbtiSlots=unknownSchema.properties.chapters.properties.mbti_contradiction.properties.paragraphs.properties;
+ assert.equal(noMbtiSlots.agreement.type,'null','do not manufacture an MBTI agreement without submitted type');
+ assert.equal(noMbtiSlots.difference.type,'object','saju-only explanation can use the natal comparison question');
+ assert(!noMbtiSlots.difference.properties.basis.properties.refs.items.enum.includes('person.mbti'));
+ assert.equal(unknownPayload.task.chapters.mbti_contradiction.comparisonEvidence,null);
+
  const oldFetch=global.fetch,oldKey=process.env.OPENAI_API_KEY,oldModel=process.env.REPORT_MODEL;
  let calls=0;
  try{
