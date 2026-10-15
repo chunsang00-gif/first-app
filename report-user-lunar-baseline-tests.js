@@ -96,6 +96,18 @@ const refs=['facts.seasonalEvidence','facts.qiEvidence','facts.stemConnections',
  'facts.rootConditions','natal.month.stem'];
 assert.deepEqual(blueprint.saju_core.topicTasks.temperament.requiredSourceKinds,
  ['seasonal','qi-ledger','natal-month-position','stem-linkage','root-condition']);
+// Confirm the actual lunar 1982-11-24 14:20 ISFP case reaches the paid
+// integrated writer with TWO independent sources, not natal data alone.
+const integrationPrompt={stage:'body',facts:expected,requestedSections:['integrated_judgment'],
+ analysisGuidance:{...guidance.forRequest(['integrated_judgment'],'ISFP'),
+  editorialBlueprint:{integrated_judgment:blueprint.integrated_judgment}}};
+const integrationPayload=writer.compile(integrationPrompt);
+assert.equal(integrationPayload.source['person.mbti'].type,'ISFP');
+const integratedSlot=writer.schema(integrationPrompt,wire.schemaFor(integrationPrompt,schema))
+ .properties.chapters.properties.integrated_judgment.properties.paragraphs.properties
+ [blueprint.integrated_judgment.anchorTopic].properties.basis.properties.refs.items.enum;
+assert(integratedSlot.includes('person.mbti')&&integratedSlot.includes('natal.month.stem'),
+ 'user lunar ISFP combined insight must cite MBTI plus computed natal source');
 const prompt={stage:'body',facts:expected,requestedSections:['saju_core'],
  analysisGuidance:{...guidance.forRequest(['saju_core'],birth.mbti),
   editorialBlueprint:{saju_core:blueprint.saju_core}}};
