@@ -93,8 +93,8 @@ assert.equal(wealthPlan.topicTasks.earning.mode,'use-primary',
  'natal wealth is also legitimate earning-related symbolism');
 assert.equal(wealthPlan.topicTasks.spending.mode,'use-primary');
 assert.equal(wealthPlan.anchorTopic,'earning');
-assert(wealthPlan.topicTasks.spending.evidenceReuseBoundary?.priorOwners?.length>0,
- 'reusing wealth rows must carry a documented interpretation distinction');
+assert.equal(wealthPlan.topicTasks.spending.evidenceReuseBoundary,undefined,
+ 'a planned optional topic must not be treated as a previously published interpretation');
 assert.match(wealthPlan.topicTasks.spending.interpretationBoundary,/null로 생략/);
 assert(refs('money','earning').includes('natal.year.stem'));
 const unknown=structuredClone(base);
