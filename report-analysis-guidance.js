@@ -284,6 +284,10 @@ function preflight(packet){
    }
   }
  }
+ // When a REAL seasonal observation exists, the core month interpretation
+ // must cite it directly, not merely infer season from a hidden-stem name.
+ if(packet.facts?.seasonalEvidence&&plans.saju_core?.topicTasks?.temperament?.mode!=='state-limits')
+  plans.saju_core.topicTasks.temperament.requiredSourceKinds=['seasonal'];
  // One canonical writing plan is shared by schema, model instructions and validation.
  for(const [id,plan] of Object.entries(plans)){
   const entries=Object.entries(plan.topicTasks);
