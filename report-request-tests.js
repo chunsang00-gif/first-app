@@ -152,6 +152,25 @@ const {createQueue,retryDelay,rateLimitKind}=require('./report-request-control')
  assert.deepEqual(checkpoints.map(x=>x.completedSections),expectedBatches.map((_,i)=>expectedBatches.slice(0,i+1).flat().length));
  assert.deepEqual(checkpoints.flatMap(x=>x.ids),expectedBatches.flat(),'checkpoints follow generation order, not display order');
  assert(checkpoints.every((x,i)=>x.sections.length===expectedBatches[i].length),'checkpoint contains exactly its validated sections');
+ // Simulate process loss: serialize the same validated prefix, reopen its
+ // private storage, check the identity, and use ONLY the reloaded bytes below.
+ const durableFs=require('node:fs'),durableOs=require('node:os'),durablePath=require('node:path');
+ const directory=durableFs.mkdtempSync(durablePath.join(durableOs.tmpdir(),'saju-verified-resume-'));
+ const jobId='00000000-0000-4000-8000-000000000087';
+ const resumeInput={calendar:'solar',birthDate:'1990-06-15',unknownBirthTime:true,gender:'male',mbti:'INFP'};
+ let diskReloaded;
+ try{
+  const disk=require('./report-job-store').create(directory);
+  const identity=require('./report-checkpoint-identity').signature(resumeInput);
+  for(let index=0;index<checkpoints.length-1;index++)
+   disk.saveCheckpoint(jobId,{identity,batches:checkpoints.slice(0,index+1)});
+  const revived=require('./report-job-store').create(directory);
+  diskReloaded=require('./report-checkpoint-identity').resumeBatches(revived,jobId,resumeInput);
+  assert.deepEqual(diskReloaded,checkpoints.slice(0,-1),'restart must preserve each validated chapter, not invent regenerated ones');
+  assert.throws(()=>require('./report-checkpoint-identity').resumeBatches(revived,jobId,{...resumeInput,mbti:'ENFP'}),/contract changed/);
+  assert.throws(()=>disk.saveCheckpoint(jobId,{identity,batches:checkpoints.slice(0,2)}),/overwrite, gap/);
+  assert.equal(durableFs.statSync(durablePath.join(directory,'checkpoint-'+jobId+'.json')).mode&0o777,0o600);
+ }finally{durableFs.rmSync(directory,{recursive:true,force:true})}
  // Resume five already validated batches: only the sixth body batch and synthesis
  // may call the mock provider. Never spend calls on the cached ten chapters.
  const resumeStages=[];const resumeCalls=[];
@@ -165,7 +184,7 @@ const {createQueue,retryDelay,rateLimitKind}=require('./report-request-control')
   assert.equal(p.stage,'synthesis');
   assert.equal(p.completedReport.sections.length,expectedCount);
   return {sections:[],cover:null,finalJudgment:{body:['전체 풀이 검증'],closingQuestion:'꼼꼼하게 확인하느라 결정을 늦출 때는, 오늘 확인할 내용을 먼저 정하는 것이 도움이 됩니다.',afterClosingText:''}};
- },p=>resumeStages.push(p),()=>{},checkpoints.slice(0,-1));
+ },p=>resumeStages.push(p),()=>{},diskReloaded);
  assert.deepEqual(resumeCalls,[expectedBatches.at(-1).join(','),'synthesis'],'resume must skip five provider body calls');
  assert.equal(resumed.status,'rejected','resume does not bypass final quality gate');
  await assert.rejects(contract.generate({calendar:'solar',birthDate:'1990-06-15',unknownBirthTime:true,gender:'male',mbti:'INFP'},async()=>{throw Error('provider must not be called')},()=>{},()=>{},[checkpoints[1]]),/order mismatch/,'non-prefix checkpoint must fail closed');
