@@ -60,13 +60,34 @@ const create=()=>{
   p[id].hasGroundedTopic=false;
  const r=selection.select(groups,p);
  assert(!r.canGenerate,'a thin report is not sufficient for paid release');
- assert(r.issues.some(x=>x.startsWith('insufficient-premium-depth:')));
+ assert(r.issues.includes('insufficient-distinct-life-domains:1'));
 }
 {
  const p=create();p.money.topicTasks.first.mode='state-limits';
  const r=selection.select(groups,p);
  assert(r.omitted.some(x=>x.id==='money'),'a stale anchor without evidence must not pass');
  assert(r.canGenerate);
+}
+{
+ // Four grounded chapters covering two different real-life questions are
+ // preferable to padding the report with two unsupported headings.
+ const p=create();
+ const allowed=new Set(['saju_core','money','career','year_2027']);
+ for(const id of Object.keys(p))if(!allowed.has(id))p[id].hasGroundedTopic=false;
+ const r=selection.select(groups,p);
+ assert(r.canGenerate,'scope should follow grounded reader questions, not a quota of six headings');
+ assert.deepEqual(r.plannedIds,['saju_core','money','career','year_2027']);
+ assert.deepEqual(r.supportedDomains,['money','career']);
+ assert.equal(r.minimumPersonalDomains,2);
+}
+{
+ // Even many generic chapters cannot substitute for distinct practical areas.
+ const p=create();
+ for(const id of ['money','career','relationship','stress'])p[id].hasGroundedTopic=false;
+ const r=selection.select(groups,p);
+ assert(!r.canGenerate);
+ assert(r.issues.includes('insufficient-distinct-life-domains:1'));
+ assert(r.plannedIds.length>=6,'raw chapter count must not grant premium eligibility');
 }
 assert.throws(()=>selection.select([['saju_core'],['saju_core']],create()),/Duplicate/);
 // End-to-end unpaid gate: intercept the calculation packet and prove that
