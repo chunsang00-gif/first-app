@@ -87,10 +87,17 @@ const result=refs=>({chapters:{saju_core:{
  condition:'음력 변환과 절입 기준을 일치시켰습니다.',limit:'강약·용신·실제 미래는 확정하지 않았습니다.'}
  },strength:null}}}});
 assert.doesNotThrow(()=>writer.restoreEvidence(result(refs),prompt));
+const missingSourceMessages={
+ 'facts.seasonalEvidence':/missing required month seasonal source/,
+ 'facts.qiEvidence':/missing required positional qi evidence/,
+ 'facts.stemConnections':/missing required grounded stem connection evidence/,
+ 'facts.rootConditions':/missing verified root condition evidence/,
+ 'natal.month.stem':/missing month-position evidence/
+};
 for(const omitted of refs){
  const remaining=refs.filter(x=>x!==omitted);
  assert.throws(()=>writer.restoreEvidence(result(remaining),prompt),
-  /missing (?:required|verified)|unrelated paragraph basis/, 'missing '+omitted+' must reject the paid draft');
+  missingSourceMessages[omitted], 'missing '+omitted+' must reject the paid draft');
 }
 console.log('PASS USER_LUNAR_REFERENCE '+JSON.stringify({
  inputCalendar:birth.calendar,inputDate:birth.birthDate,normalizedSolarDate:normalized,
