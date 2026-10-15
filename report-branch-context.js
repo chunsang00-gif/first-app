@@ -13,6 +13,7 @@ function evaluate(chart,annualPillar){
  const natal=relations.natal(chart);
  const yearly=relations.annual(chart,annualPillar);
  const monthBranch=chart.month[1],dayBranch=chart.day[1],yearBranch=annualPillar[1];
+ const seasonal=require('./report-seasonal-evidence').evaluate(chart);
  const competingByPosition=Object.fromEntries(positions.filter(p=>chart[p]).map(position=>{
   const branch=chart[position][1];
   const contenders=[
@@ -63,7 +64,7 @@ function evaluate(chart,annualPillar){
  return {
   version:'position-context-v1',
   natalBranchRelations:natal,targetYearBranchRelations:yearly,
-  monthlyContext:{monthBranch,seasonalStrength:'not-assessed',stemExposure:'not-assessed'},
+  monthlyContext:{monthBranch,monthSeason:seasonal.monthSeason,monthPhase:seasonal.monthPhase,coreSeasonElement:seasonal.coreSeasonElement,seasonToDayRelation:seasonal.seasonToDayRelation,seasonalStrength:'not-assessed',stemExposure:'not-assessed'},
   annualContext:{annualBranch:yearBranch,positions:competingByPosition,day:comparison},
   interpretationPriority:'unresolved',transformation:'not-assessed',
   reviewStages:stages,
