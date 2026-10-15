@@ -13,7 +13,7 @@ const outcomes={
   /(?:큰돈|돈|재산|보너스|상여금|성과급)(?:을|이|가)?\s*(?:벌게\s*됩니다|받게\s*됩니다|얻습니다|들어옵니다|생깁니다)/
  ],
  career:[
-  /(?:승진|승격|취업|합격|이직|퇴사|전직|독립|창업|보직\s*변경)(?:을|에|이|가)?\s*(?:합니다|됩니다|하게\s*됩니다|하게\s*될\s*것입니다|에\s*성공합니다|이\s*확정됩니다)/,
+  /(?:승진|승격|취업|합격|이직|퇴사|전직|독립|창업|보직\s*변경)(?:을|에|이|가)?\s*(?:합니다|됩니다|할\s*것입니다|할\s*겁니다|하게\s*됩니다|하게\s*될\s*것입니다|에\s*성공합니다|이\s*확정됩니다)/,
   /(?:승진|승격|취업|합격|이직|전직)(?:이|가)?\s*(?:확정됩니다|성사됩니다)/
  ],
  relationship:[
@@ -31,11 +31,17 @@ function check(report){
  const sections=[
   ...(report?.sections||[]),
   ...(report?.cover?[{id:'cover',title:report.cover.headline,body:[report.cover.description,...(report.cover.highlights||[]).flatMap(x=>[x.title,x.description])]}]:[]),
-  ...(report?.finalJudgment?[{id:'finalJudgment',title:report.finalJudgment.headline,body:[...(report.finalJudgment.body||[]),report.finalJudgment.closingQuestion,...(report.finalJudgment.strengths||[]),...(report.finalJudgment.watchouts||[])]}]:[])
+  ...(report?.finalJudgment?[{id:'finalJudgment',title:report.finalJudgment.headline,body:[...(report.finalJudgment.body||[]),report.finalJudgment.closingQuestion,...(report.finalJudgment.strengths||[]),...(report.finalJudgment.watchouts||[])]}]:[]),
+  // A highlight linked to an annual chapter is itself in yearly scope,
+  // even when the short card says "승진합니다" without repeating "2027".
+  ...(report?.cover?.highlights||[])
+   .filter(card=>scope[card?.sectionId]||card?.sectionId==='year_2027')
+   .map(card=>({id:'cover',annualSource:card.sectionId,title:card.title,body:[card.description]}))
+ 
  ];
  for(const section of sections){
-  const domain=scope[section.id];
-  const annual=section.id==='year_2027';
+  const domain=scope[section.annualSource||section.id];
+  const annual=(section.annualSource||section.id)==='year_2027';
   const summary=section.id==='cover'||section.id==='finalJudgment';
   if(!domain&&!annual&&!summary)continue;
   for(const [field,parts] of [
@@ -43,7 +49,7 @@ function check(report){
    ['body',section.body||[]],['evidence',section.evidence||[]]
   ]){
    for(let i=0;i<parts.length;i++)for(const sentence of sentences(parts[i])){
-    if((annual||summary)&&!explicitYear.test(sentence))continue;
+    if(summary&&!section.annualSource&&!annual&&!explicitYear.test(sentence))continue;
     if(qualified.test(sentence))continue;
     for(const category of domain?[domain]:Object.keys(outcomes)){
      if(!outcomes[category].some(re=>re.test(sentence)))continue;
