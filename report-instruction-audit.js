@@ -136,6 +136,30 @@ function inspectTransport(prompt,actual){
    if(chapter.anchor!==plan?.anchorTopic||
      JSON.stringify(Object.keys(chapter.topics||{}))!==JSON.stringify(Object.keys(plan?.topicTasks||{})))
     errors.push('grounded-topic-plan-dropped:'+id);
+   // Verify the actual evidence/meaning table before an API call. Without
+   // this, a topic can describe an unrelated symbol despite strict response
+   // IDs, or a future compiler edit can silently discard the chart meaning.
+   const writer=require('./report-generation-request');
+   for(const [topicId,topic] of Object.entries(chapter.topics||{})){
+    const permitted=[...writer.allowedRefs(actual,topic,id,topicId)];
+    const candidates=topic.citableFacts;
+    if(!Array.isArray(candidates)||
+       JSON.stringify(candidates.map(x=>x.id))!==JSON.stringify(permitted)){
+     errors.push('topic-citable-sources-drift:'+id+'/'+topicId);
+     continue;
+    }
+    for(const candidate of candidates){
+     const truth=actual.source?.[candidate.id]||{};
+     if(candidate.position!==(truth.position||undefined)||
+        candidate.layer!==(truth.layer||undefined)||
+        candidate.tenGod!==(truth.tenGod||undefined)||
+        candidate.traditionalMeaning!==(truth.traditionalMeaning||undefined)||
+        (candidate.id==='person.mbti'&&candidate.inputType!==truth.type)){
+      errors.push('topic-citable-meaning-drift:'+id+'/'+topicId);
+      break;
+     }
+    }
+   }
   }
   const mbti=prompt.analysisGuidance?.mbtiReference;
   if(Boolean(actual.source?.['person.mbti'])!==Boolean(mbti))
