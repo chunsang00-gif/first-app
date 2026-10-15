@@ -21,6 +21,17 @@ const schema=require('./report-schema.json');
     'future optional topics are not facts that someone already wrote about');
  assert.deepEqual(withReuse.task.reusedEvidence,[citationReuse],
   'actual reused calculated source path and previous conclusion must reach the model');
+ // The upstream premium depth brief must reach the actual provider JSON.
+ // Otherwise the writer sees only topic titles despite the validated rules.
+ for(const [id,chapter] of Object.entries(payload.task.chapters)){
+  assert.equal(chapter.analysisGoal,prompt.rules.sectionGoals[id],
+   'premium depth guidance lost in provider compression: '+id);
+  assert(chapter.analysisGoal.length>70,'missing substantive guidance: '+id);
+ }
+ assert(payload.task.chapters.saju_core.analysisGoal.includes('통근'),
+  'calculation-based natal depth goal must reach the writer');
+ assert(payload.task.chapters.mbti_contradiction.analysisGoal.includes('MBTI'),
+  'independent MBTI reasoning must reach the writer');
  assert(payload.task.chapters.mbti_contradiction.comparisonEvidence.includes('모두 인용한다'));
  assert(!Object.hasOwn(payload.source,'facts.structuralEvidence'),'wide structural facts must not hide provenance');
  assert(payload.source['facts.structuralEvidence.monthCommand'],'month command must be separately identified');
@@ -133,9 +144,13 @@ const schema=require('./report-schema.json');
  assert.equal(limitedField.properties.refs.type,'null','not even a valid citation is allowed when evidence is insufficient');
  assert.equal(limitedField.properties.interpretation.type,'null','do not invent an interpretation with missing evidence');
  assert.equal(limitedField.properties.condition.type,'null','do not invent a supporting condition');
- const synthesis={...prompt,stage:'synthesis',requestedSections:[],completedReport:{sections:wire.decode(restored,prompt).sections}};
+ const synthesis={...prompt,stage:'synthesis',requestedSections:[],
+  completedReport:{sections:wire.decode(restored,prompt).sections},
+  rules:{...prompt.rules,finalEditingTask:'본문의 실제 근거에서 중복 없는 결론을 선별하고 사용자의 과거를 창작하지 않는다.'}};
  const summary=generation.compile(synthesis);
  assert.deepEqual(summary.task.completedReport,synthesis.completedReport);
+ assert.equal(summary.task.editorialGoal,synthesis.rules.finalEditingTask,
+  'final editorial goal must reach provider even when legacy rules are compressed');
  assert(summary.source['person.mbti']);
  assert.deepEqual(generation.schema(synthesis,t),t);
  // Two-chapter body fixture is not a valid three-card premium cover.
