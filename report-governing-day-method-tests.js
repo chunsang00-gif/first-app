@@ -47,8 +47,10 @@ assert.throws(()=>model.inspect({chart:{month:'甲寅'},hiddenStems:season.HIDDE
  timing:{status:'resolved',monthBranchFromJie:'寅',elapsedSecondsSinceJie:-1}}),/Negative/);
 const synthetic=qi.build({year:'甲寅',month:'乙亥',day:'甲子',hour:'壬午'},
  {status:'resolved',monthBranchFromJie:'亥',elapsedSecondsSinceJie:2*D});
-assert.equal(synthetic.governance.publishedMethodExploration.approximateStageCandidate.stem,'戊');
-assert.equal(synthetic.governance.publishedMethodExploration.status,'external-residual-not-natal-hidden');
+assert.equal(model.inspect({chart:{month:'乙亥'},hiddenStems:season.HIDDEN.亥,
+ timing:{status:'resolved',monthBranchFromJie:'亥',elapsedSecondsSinceJie:2*D}})
+ .approximateStageCandidate.stem,'戊');
+assert.equal(synthetic.governance.activeHiddenStemId,null);
 assert(!synthetic.entries.some(x=>x.id==='natal.month.hidden.戊'),
  'external prior-season residue must never get added to the natal fact ledger');
 assert.equal(synthetic.governance.activeHiddenStemId,null);
@@ -62,12 +64,14 @@ for(const input of [
  assert.equal(p.status,'ready',input.birthDate);
  const governance=p.facts.qiEvidence.governance;
  assert.equal(governance.activeHiddenStemId,null);
- assert.equal(governance.publishedMethodExploration.canUseForPremiumInterpretation,false);
- assert.equal(governance.publishedMethodExploration.activeQiDetermined,false);
+ assert.equal(p.facts.governingDayDiagnostic.canUseForPremiumInterpretation,false);
+ assert.equal(p.facts.governingDayDiagnostic.activeQiDetermined,false);
+ assert(!Object.hasOwn(governance,'publishedMethodExploration'),
+  'unadopted method must never leak into writer-exported qi evidence');
  assert.equal(integrity.verify(p).pass,true,input.birthDate);
  const fake=structuredClone(p);
- fake.facts.qiEvidence.governance.publishedMethodExploration.activeHiddenStemId=
+ fake.facts.governingDayDiagnostic.activeHiddenStemId=
   'natal.month.hidden.'+fake.chart.month[0];
- assert(integrity.verify(fake).errors.includes('incorrect-positional-qi-evidence'));
+ assert(integrity.verify(fake).errors.includes('incorrect-governing-day-diagnostic'));
 }
 console.log('PASS all 12 published approximate stages, external residual vs natal hidden distinctions and fail-closed paid interpretation policy; no API calls');
