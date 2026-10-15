@@ -122,7 +122,7 @@ async function runScenario(kind){
  const checks=[];
  try{
   if(kind!=='complete'){
-   await assert.rejects(generate(input,p=>callOpenAI(p,()=>{archived++})),/output token limit|invalid report structure/);
+   await assert.rejects(generate(input,p=>callOpenAI(p,()=>{archived++})),/output token limit|invalid report structure|missing grounded chapter/);
    assert.equal(calls,1,'must fail on first call, never buy another one');
    if(kind==='provider-limit')assert.equal(archived,1,'save incomplete API metadata');
    return;
