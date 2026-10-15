@@ -73,4 +73,10 @@ const relation=structuredClone(packet);
 relation.facts.targetYearRelations=[{type:'충',between:'day',branches:'丑未'}];
 assert.equal(guidance.preflight(relation).year_2027_relationship.annualDomainEvidence.relevant,true,
  'a calculated day-branch clash still has its distinct traditional evidence route');
+const relationPlan=guidance.preflight(relation).year_2027_relationship;
+assert.equal(relationPlan.anchorTopic,'change','legacy calculated day clash needs one anchor even when annualContext is absent');
+assert.equal(relationPlan.topicTasks.change.mode,'use-primary');
+assert.deepEqual(relationPlan.topicTasks.change.allowedSourceRefs,['facts.targetYearRelations']);
+assert.equal(relationPlan.topicTasks.action.mode,'state-limits','same day-branch evidence must not create a second paid paragraph');
+assert.equal(relationPlan.activeTopicKeys.length,1);
 console.log('PASS traceable annual-natal basis, typed traditional limits, no fake yearly money/career forecasts; zero paid calls');
