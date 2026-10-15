@@ -176,6 +176,17 @@ function preflight(packet){
    task.interpretationBoundary=rule.boundary;
   }
  }
+ // Earning and spending must not be separately sold from the same wealth
+ // classification. Output symbols can support a distinct production lens;
+ // wealth-only charts support the spending/holding lens, not a fabricated
+ // earning behavior. The original computed rows remain untouched.
+ const moneyEarning=plans.money.topicTasks.earning;
+ const outputRows=natalRows.filter(row=>['식신','상관'].includes(row.tenGod)).map(row=>row.id);
+ moneyEarning.allowedSourceRefs=outputRows;
+ moneyEarning.mode=outputRows.length?'use-primary':'state-limits';
+ moneyEarning.evidencePresent=outputRows.length>0;
+ moneyEarning.verifiedFallbackPaths=[];
+ moneyEarning.interpretationBoundary='실제로 계산된 식신·상관의 표현·생산 상징만 설명한다. 수입 능력이나 벌이 규모를 단정하지 않으며 재성만 있을 때 지출·보유 풀이를 수입 활동으로 복제하지 않는다.';
  // Annual domain relevance comes from the ONE deterministic interpretation
  // core, not from chapter prompts or another guess inside the QA validator.
  // A category comparison is traditional symbolism only; never an event,
