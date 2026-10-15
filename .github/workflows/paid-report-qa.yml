@@ -1,5 +1,12 @@
 name: One-time paid report QA
 on:
+  # Work-branch-only, one-commit trigger because connector cannot dispatch workflows.
+  # The job still checks the unique commit message and operator confirmation.
+  push:
+    branches:
+      - fix-paid-qa-fact-bindings-20261014
+    paths:
+      - .github/workflows/paid-report-qa.yml
   workflow_dispatch:
     inputs:
       paid_qa_confirmation:
@@ -10,19 +17,24 @@ permissions:
   contents: read
 jobs:
   report-qa:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'push' && github.event.head_commit.message == 'qa: one-time user-authorized premium run 20261015-2131')
     runs-on: ubuntu-latest
     timeout-minutes: 25
     env:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       REPORT_MODEL: ${{ vars.REPORT_MODEL }}
       REPORT_QA_OUTPUT: ${{ github.workspace }}/private-qa-report.json
-      REPORT_QA_CONFIRM: ${{ inputs.paid_qa_confirmation }}
+      REPORT_QA_CONFIRM: ${{ github.event_name == 'workflow_dispatch' && inputs.paid_qa_confirmation || (github.event_name == 'push' && github.event.head_commit.message == 'qa: one-time user-authorized premium run 20261015-2131' && 'RUN_ONE_PAID_SAMPLE' || '') }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
       - run: npm install --no-audit --no-fund
+      - name: Verify existing code before any paid calls
+        run: npm test
       - name: Verify configuration without exposing secrets
         shell: bash
         run: |
