@@ -331,7 +331,7 @@ assert.equal(blueprint.year_2027_relationship.topicTasks.change.mode,'state-limi
 assert(blueprint.year_2027_relationship.topicTasks.change.verifiedFallbackPaths.includes('facts.annualTenGods'));
 assert.equal(blueprint.year_2027_career.topicTasks.change.mode,'state-limits');
 assert.equal(blueprint.year_2027_relationship.topicTasks.action.mode,'state-limits');
-assert.equal(blueprint.year_2027_relationship.topicTasks.action.evidencePresent,true);
+assert.equal(blueprint.year_2027_relationship.topicTasks.action.evidencePresent,false,'unavailable annual relationship may not retain a phantom evidence-present flag');
 assert.equal(new Set(Object.values(blueprint).map(x=>x.question)).size,12);
 assert.equal(blueprint.year_2027_relationship.requiredMode,'use-fallback-with-limits');
 assert(blueprint.year_2027_relationship.negativeEvidence);
