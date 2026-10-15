@@ -16,11 +16,42 @@
  }
  scrollTo(0,0)
 }
-$('#next').onclick=()=>{
+$('#next').onclick=async()=>{
  const d=data();
  if(step===1){
   if(!d.birthDate||!d.birthplace||(!d.birthTime&&!d.unknownBirthTime)||!d.name)return alert('출생 정보와 이름을 확인해주세요.');
-  step=2;show();return
+  const button=$('#next');
+  if(button.disabled)return;
+  button.disabled=true;
+  const originalText=button.textContent;
+  button.textContent='입력한 날짜 확인 중';
+  try{
+   // Always validate the very same calendar, leap-month and birth-time
+   // fields that are later submitted for the report. No model/API charge.
+   const response=await fetch('/api/calculate',{method:'POST',
+    headers:{'content-type':'application/json'},
+    body:JSON.stringify(d)});
+   const checked=await response.json();
+   if(!response.ok||checked.status!=='ready'){
+    const issues=checked.errors||checked.calculation?.errors||[];
+    const reason=issues.length?issues.join(' / '):
+     checked.calculation?.reason||'생년월일·음력 윤달·출생시간을 다시 확인해 주세요.';
+    alert(reason);return;
+   }
+   // The calendar conversion belongs to the server, not browser guesses.
+   // Keep the user's original lunar date untouched for the report.
+   const current=data();
+   if(['calendar','birthDate','birthTime','leapMonth','unknownBirthTime'].some(k=>current[k]!==d[k])){
+    alert('입력 정보가 변경되었습니다. 다시 확인해 주세요.');return;
+   }
+   step=2;show();return;
+  }catch{
+   alert('계산 서버에서 생년월일을 확인하지 못했습니다. 다시 시도해 주세요.');
+   return;
+  }finally{
+   button.disabled=false;
+   button.textContent=originalText;
+  }
  }
  if(step===2){step=3;show();return}
 };
