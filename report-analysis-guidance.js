@@ -132,6 +132,14 @@ function preflight(packet){
  }
  // The second core topic owns actual natal root provenance, not personal
  // strength, personality advantages, or a made-up inner contradiction.
+ if(plans.saju_core.topicTasks.strength.mode!=='state-limits'){
+  // This is the SAME mandatory-root policy enforced by restoreEvidence.
+  // No provider request should ask for a source that is absent.
+  plans.saju_core.topicTasks.strength.requiredSourceKinds=[
+   ...(packet.facts?.stemConnections?['stem-linkage']:[]),
+   ...(packet.facts?.rootConditions?['root-condition']:[])
+  ];
+ }
  plans.saju_core.topicTasks.strength.interpretationBoundary=
   '일간과 같은 오행이 실제 발견된 숨은 글자 위치 및 원국 충이 겹치는 위치를 각각 구별한다. 근거는 출생 사주의 상징 관계이며 신강약·자기주장·내적 안정·실제 적응력의 관찰 결과가 아니다. 뿌리가 없으면 없는 것으로 설명하고 다른 숨은 글자를 뿌리처럼 인용하지 않는다.';
  // One deterministic eligibility planner for domain-specific writing.
