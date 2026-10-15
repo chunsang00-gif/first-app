@@ -104,4 +104,18 @@ for(const birth of [
  changedQi.facts.qiEvidence.governance.activeHiddenStemId='natal.month.hidden.甲';
  assert(integrity.verify(changedQi).errors.includes('incorrect-positional-qi-evidence'));
 }
-console.log('PASS exact Jie boundary seconds, LiChun year/month flips, noon-substitution prevention and original-input provenance; no paid API');
+// The real paid entry must reject a borderline timestamp before initiating
+// a single model call, not merely mark a warning in an intermediate object.
+(async()=>{
+ const generate=require('./report-server-contract').generate;
+ let modelCalls=0;
+ for(const uncertain of [
+  {...input({birthDate:cutoffDate,birthTime:'12:00'}),unknownBirthTime:true},
+  boundaryMinute
+ ]){
+  const result=await generate(uncertain,async()=>{modelCalls++;throw Error('unexpected paid API')});
+  assert.equal(result.status,'blocked');
+ }
+ assert.equal(modelCalls,0);
+ console.log('PASS exact Jie boundary seconds, LiChun year/month flips, noon-substitution prevention and original-input provenance; no paid API');
+})().catch(error=>{console.error(error);process.exitCode=1});
