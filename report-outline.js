@@ -1,8 +1,8 @@
 /* Concise report outline: merge overlapping reader questions. */
 const topics={
   "saju_core": {
-    "temperament": "원국의 일간·월지와 서로 다른 위치를 대조하여 기본 성향과 내적 차이를 함께 설명",
-    "strength": "원국 해석에서 확인되는 유리한 조건과 불리한 조건의 구체적 구별"
+    "temperament": "출생 사주에서 겉에 보이는 글자와 달의 숨은 글자 및 계절의 실제 계산 관계를 구별하여 각각의 전통적 뜻과 한계를 설명",
+    "strength": "태어난 날의 글자와 같은 오행의 뿌리가 실제로 어느 위치에 있는지, 뿌리에 충이 겹치는지 구별하되 성격과 강약을 확정하지 않음"
   },
   "mbti_contradiction": {
     "agreement": "입력 MBTI의 정보 처리·판단 선호를 사주 계산과 구별하여 설명",

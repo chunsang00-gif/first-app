@@ -52,7 +52,7 @@ function forRequest(ids,mbti){
 // Deterministic editorial blueprint created BEFORE any paid writing call.
 // This is not a fabricated interpretation: fields refer only to calculated facts.
 const chapterBlueprint={
- saju_core:{question:'태어난 사주에서 서로 다른 성향을 설명하는 계산된 요소는 무엇인가?',primary:'facts.structuralEvidence.monthCommand',lens:'기본 명리 근거 설명'},
+ saju_core:{question:'사주의 겉글자·숨은 글자·뿌리·충에서 계산으로 확인된 차이는 무엇인가?',primary:'facts.structuralEvidence.monthCommand',lens:'기본 명리 근거 설명'},
  mbti_contradiction:{question:'새로운 일을 맡을지 결정하는 상황에서 입력 MBTI의 선호와 이 사주의 풀이가 같은 선택을 설명하는가? 차이는 근거가 있을 때만 설명한다.',primary:'person.mbti',lens:'같은 선택 상황에서 두 풀이 비교'},
  decision:{question:'선택지를 비교하는 선호와 결정을 고치는 조건을 어떻게 구분할까?',primary:'facts.tenGods.day',lens:'정보 탐색과 선택 변경'},
  money:{question:'돈을 얻는 활동과 쓰고 보유하는 판단은 어떻게 별도로 해석할까?',primary:'facts.tenGods.month',lens:'금전 관련 전통 해석의 범위'},
@@ -130,6 +130,10 @@ function preflight(packet){
     interpretationBoundary:mode==='use-primary'?'전통적 해석의 연결 가능성만 설명하고 실제 행동으로 입증된 것처럼 단정하지 않는다.':mode==='use-verified-fallback'?'우선 계산값이 없으므로 실제 확인된 보조 근거만 사용한다. 보조 근거를 주된 근거처럼 말하거나 사건을 단정하지 않는다.':'다른 세부 항목의 성격 설명으로 채우지 말고 이 질문에서 판단할 수 없는 범위를 밝힌다.'}];
   }));
  }
+ // The second core topic owns actual natal root provenance, not personal
+ // strength, personality advantages, or a made-up inner contradiction.
+ plans.saju_core.topicTasks.strength.interpretationBoundary=
+  '일간과 같은 오행이 실제 발견된 숨은 글자 위치 및 원국 충이 겹치는 위치를 각각 구별한다. 근거는 출생 사주의 상징 관계이며 신강약·자기주장·내적 안정·실제 적응력의 관찰 결과가 아니다. 뿌리가 없으면 없는 것으로 설명하고 다른 숨은 글자를 뿌리처럼 인용하지 않는다.';
  // One deterministic eligibility planner for domain-specific writing.
  // A ten-god classification is a traditional symbol, never a measurement
  // of a person's actual wealth, work, relationships or stress responses.

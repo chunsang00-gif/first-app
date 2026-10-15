@@ -184,6 +184,17 @@ const schema=require('./report-schema.json');
  mixed.chapters.saju_core.paragraphs.temperament.basis.refs=['natal.month.stem','person.mbti'];
  assert.throws(()=>generation.restoreEvidence(mixed,prompt),/unrelated paragraph basis/);
  const allowed=t.properties.chapters.properties.saju_core.properties.paragraphs.properties.temperament.properties.basis.properties.refs.items.enum;
+ // The root topic must cite true day/hour positions, never unrelated day hidden stems.
+ const rootTopic=payload.task.chapters.saju_core.topics.strength;
+ const rootRefs=[...generation.allowedRefs(payload,rootTopic,'saju_core','strength')];
+ const observedRoots=payload.source['facts.stemConnections'].dayMasterRooting.sameElementRoots;
+ assert(rootRefs.includes('facts.stemConnections')&&rootRefs.includes('facts.rootConditions'));
+ for(const root of observedRoots)assert(rootRefs.includes(root.hiddenId),
+  'the observed root must be reachable via strict provider schema: '+root.hiddenId);
+ for(const id of Object.keys(payload.source).filter(id=>id.startsWith('natal.day.hidden.'))){
+  if(!observedRoots.some(root=>root.hiddenId===id))assert(!rootRefs.includes(id),
+   'unrelated hidden stems are not root provenance: '+id);
+ }
  assert(allowed.includes('natal.month.stem'));
  assert(allowed.includes('facts.seasonalEvidence'),'core month interpretation requires seasonal fact source');
  assert(allowed.includes('facts.qiEvidence'),'core month interpretation requires positional qi source');

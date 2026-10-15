@@ -201,7 +201,15 @@ function allowedRefs(payload,task,chapterId,topic){
    if(Object.hasOwn(payload.source,'facts.rootConditions'))ids.add('facts.rootConditions');
    for(const id of Object.keys(payload.source))if(id.startsWith('natal.month.'))ids.add(id);
   }
-  if(path==='facts.structuralEvidence.dayMasterRoots')for(const id of Object.keys(payload.source))if(id.startsWith('natal.day.'))ids.add(id);
+  if(path==='facts.structuralEvidence.dayMasterRoots'){
+   // An observed day/hour root is not every hidden stem in the day branch.
+   // The hour root was previously missing from the citation enum entirely.
+   if(Object.hasOwn(payload.source,'natal.day.stem'))ids.add('natal.day.stem');
+   for(const key of ['facts.stemConnections','facts.rootConditions'])
+    if(Object.hasOwn(payload.source,key))ids.add(key);
+   for(const root of payload.source['facts.stemConnections']?.dayMasterRooting?.sameElementRoots||[])
+    if(Object.hasOwn(payload.source,root.hiddenId))ids.add(root.hiddenId);
+  }
   // Ten-god facts are exported as position-bound rows, not as facts.tenGods.*.
   const match=/^facts\.tenGods\.(year|month|day|hour)(?:\.(hiddenStems))?$/.exec(path);
   if(match)for(const id of Object.keys(payload.source)){
@@ -267,6 +275,15 @@ function restoreEvidence(value,prompt){
       throw Error('AI report service domain MBTI comparison missing natal basis: '+id+':'+topic);
     }
     if(!allowed.size||b.refs.some(ref=>!allowed.has(ref)))throw Error('AI report service unrelated paragraph basis: '+id+':'+topic);
+    if(id==='saju_core'&&topic==='strength'){
+     // The model must show a real recorded root before discussing its meaning.
+     // Source IDs alone cannot validate every interpretation; human QA remains.
+     const required=['facts.structuralEvidence.dayMasterRoots','facts.stemConnections','facts.rootConditions'];
+     if(required.some(ref=>!b.refs.includes(ref)))throw Error('AI report service missing verified root provenance');
+     const roots=payload.source['facts.stemConnections']?.dayMasterRooting?.sameElementRoots||[];
+     if(roots.length&&!roots.some(root=>b.refs.includes(root.hiddenId)))
+      throw Error('AI report service missing actual root position');
+    }
     if(task.requiredSourceKinds?.includes('seasonal')&&!b.refs.includes('facts.seasonalEvidence'))
      throw Error('AI report service missing required month seasonal source: '+id+':'+topic);
     if(task.requiredSourceKinds?.includes('natal-month-position')&&!b.refs.some(ref=>ref.startsWith('natal.month.')))
