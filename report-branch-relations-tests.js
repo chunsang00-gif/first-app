@@ -34,6 +34,10 @@ const completeTriad=relation.annual({year:'甲亥',month:'乙卯',day:'丙午',h
 assert(completeTriad.groups.some(x=>x.type==='삼합'&&x.branches==='亥卯未'&&
  x.positions.includes('annual')&&x.evidenceType==='complete-group-membership'));
 assert(!completeTriad.groups.some(x=>x.type==='방합'),'incomplete season trio cannot become 방합');
+const duplicateAnnual=relation.annual({year:'甲亥',month:'乙卯',day:'丙未',hour:null},'丁未');
+assert(duplicateAnnual.groups.some(x=>x.type==='삼합'&&x.branches==='亥卯未'&&
+ x.positions.includes('annual')&&!x.positions.includes('day')),
+ 'the yearly branch must be an independent year fact even if the same natal branch appears');
 const completeSeason=relation.annual({year:'甲巳',month:'乙午',day:'丙戌',hour:null},'丁未');
 assert(completeSeason.groups.some(x=>x.type==='방합'&&x.branches==='巳午未'));
 assert(!completeSeason.groups.some(x=>x.type==='삼합'));
