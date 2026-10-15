@@ -8,7 +8,7 @@
   },
   "scripts": {
     "start": "node server.js",
-    "test": "node node-tests.js && node result-dashboard-tests.js && node share-export-tests.js && node report-request-tests.js && node report-generation-request-tests.js && node report-domain-evidence-tests.js && node report-chapter-selection-tests.js && node report-source-ledger-tests.js && node report-interpretation-overlap-tests.js && node report-annual-outcome-gate-tests.js && node report-fact-bindings-tests.js && node report-semantic-review-tests.js && node report-editorial-tests.js && node report-scope-tests.js && node report-timing-tests.js && node report-review-tests.js && node release-safety-tests.js",
+    "test": "node node-tests.js && node result-dashboard-tests.js && node share-export-tests.js && node report-request-tests.js && node report-generation-request-tests.js && node report-domain-evidence-tests.js && node report-chapter-selection-tests.js && node report-source-ledger-tests.js && node report-interpretation-overlap-tests.js && node report-annual-outcome-gate-tests.js && node report-release-gate-tests.js && node report-fact-bindings-tests.js && node report-semantic-review-tests.js && node report-editorial-tests.js && node report-scope-tests.js && node report-timing-tests.js && node report-review-tests.js && node release-safety-tests.js",
     "smoke": "node smoke-test.js"
   }
 }
