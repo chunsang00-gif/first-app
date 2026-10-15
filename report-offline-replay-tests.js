@@ -44,6 +44,17 @@ const sample={calendar:'lunar',leapMonth:false,birthDate:'1982-11-24',
   assert.equal(incomplete.stoppedAt,'provider-response-decoding');
   assert.equal(incomplete.archivedContractChanged,true,
    'historical provider input must not masquerade as a current schema response');
+  const invalidText=await replay({sample,calls:[{number:1,request:{stage:'body',
+   task:{chapters:{saju_core:{}}}},response:{status:'invalid_json',rawOutput:'{"broken":'}}]});
+  assert.equal(invalidText.archiveKind,'provider');
+  assert.equal(invalidText.firstFailure,'PROVIDER_INVALID_JSON');
+  assert.equal(invalidText.failureLayer,'provider-transport');
+  assert.equal(invalidText.archivedCallsConsumed,1);
+  const zeroText=await replay({sample,calls:[{number:1,request:{stage:'body',
+   task:{chapters:{saju_core:{}}}},response:{status:'empty_output',usage:{output_tokens:0}}}]});
+  assert.equal(zeroText.firstFailure,'PROVIDER_EMPTY_OUTPUT');
+  assert.equal(zeroText.failureLayer,'provider-transport');
+  assert.equal(zeroText.archivedCallsConsumed,1);
   assert.equal(called,0,'archive replay must never access network');
  }finally{global.fetch=oldFetch}
  console.log('PASS live/shared provider decoder and offline raw/provider archive replay, classified failure without billable calls');

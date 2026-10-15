@@ -20,7 +20,7 @@ function archive(input){
    if(!['body','synthesis'].includes(r.request?.stage)||
     (r.request.stage==='body'&&(!r.request.task?.chapters||
       !Array.isArray(Object.keys(r.request.task.chapters))))||
-    (!r.response.chapters&&!['incomplete'].includes(r.response.status)))
+    (!r.response.chapters&&!['incomplete','invalid_json','empty_output'].includes(r.response.status)))
     throw Error('OFFLINE_ARCHIVE_NOT_PROVIDER_CALLS');
   }
  }
@@ -31,6 +31,8 @@ function reason(message){
  if(message==='OFFLINE_REPLAY_REQUEST_DRIFT')return 'REQUEST_PLAN_CHANGED';
  if(message==='OFFLINE_REPLAY_NETWORK_BLOCKED')return 'NETWORK_BLOCKED';
  if(/output token limit/.test(message))return 'PROVIDER_TOKEN_LIMIT';
+ if(/invalid report data/.test(message))return 'PROVIDER_INVALID_JSON';
+ if(/returned no output/.test(message))return 'PROVIDER_EMPTY_OUTPUT';
  if(/content filter/.test(message))return 'PROVIDER_CONTENT_FILTER';
  if(/non-specific interpretation/.test(message))return 'NON_SPECIFIC_CONTENT';
  if(/reader-facing editorial defects/.test(message))return 'READER_COPY_REJECTED';
@@ -41,7 +43,7 @@ function reason(message){
  return 'OTHER_GENERATION_STOP';
 }
 const contentFailures=new Set(['NON_SPECIFIC_CONTENT','READER_COPY_REJECTED','DUPLICATE_CONTENT']);
-const providerFailures=new Set(['PROVIDER_TOKEN_LIMIT','PROVIDER_CONTENT_FILTER']);
+const providerFailures=new Set(['PROVIDER_TOKEN_LIMIT','PROVIDER_CONTENT_FILTER','PROVIDER_INVALID_JSON','PROVIDER_EMPTY_OUTPUT']);
 function layer(code){
  if(contentFailures.has(code))return 'editorial-content';
  if(providerFailures.has(code))return 'provider-transport';

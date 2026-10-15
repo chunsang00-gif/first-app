@@ -96,7 +96,7 @@ function synthesisResponse(p,strict){
 }
 async function runScenario(kind){
  const previousFetch=global.fetch,prevKey=process.env.OPENAI_API_KEY,prevModel=process.env.REPORT_MODEL;
- let calls=0,archived=0;const stages=[],requests=[];
+ let calls=0,archived=0;const stages=[],requests=[],snapshots=[];
  process.env.OPENAI_API_KEY='offline-only-not-a-real-key';
  process.env.REPORT_MODEL='gpt-4.1';
  global.fetch=async(url,options)=>{
@@ -112,19 +112,54 @@ async function runScenario(kind){
   if(calls===1&&kind==='provider-limit')
    return {ok:true,json:async()=>({status:'incomplete',incomplete_details:{reason:'max_output_tokens'},
      usage:{output_tokens:body.max_output_tokens},output:[]})};
+  if(calls===1&&kind==='provider-json-syntax')
+   return {ok:true,json:async()=>({output_text:'{"chapters":',usage:{output_tokens:52}})};
+  if(calls===1&&kind==='provider-empty')
+   return {ok:true,json:async()=>({output:[],usage:{output_tokens:12}})};
+  if(calls===2&&kind==='second-batch-json-syntax')
+   return {ok:true,json:async()=>({output_text:'{"chapters":',usage:{output_tokens:100}})};
   if(calls===1&&kind==='malformed')
    return {ok:true,json:async()=>({output_text:JSON.stringify({chapters:{},finalJudgment:null,cover:null})})};
   assert(body.max_output_tokens===outputLimit('gpt-4.1',{stage:p.stage,requestedSections:Object.keys(p.task.chapters||{})}));
   const generated=p.stage==='body'?bodyResponse(p,body.text.format.schema):
    synthesisResponse(p,body.text.format.schema);
+  if(kind==='synthesis-cover-missing'&&p.stage==='synthesis')generated.cover=null;
+  if(kind==='missing-anchor-basis'&&calls===1){
+   const id=Object.keys(generated.chapters)[0];
+   const topic=p.task.chapters[id].anchor;
+   delete generated.chapters[id].paragraphs[topic].basis;
+  }
   return {ok:true,json:async()=>({output_text:JSON.stringify(generated)})};
  };
  const checks=[];
  try{
   if(kind!=='complete'){
-   await assert.rejects(generate(input,p=>callOpenAI(p,()=>{archived++})),/output token limit|invalid report structure|missing grounded chapter/);
-   assert.equal(calls,1,'must fail on first call, never buy another one');
-   if(kind==='provider-limit')assert.equal(archived,1,'save incomplete API metadata');
+   const seen=[];
+   if(kind==='synthesis-cover-missing'){
+    const result=await generate(input,p=>callOpenAI(p,v=>{archived++;seen.push(v)}),
+      ()=>{},x=>{snapshots.push(x)});
+    assert.equal(result.status,'rejected','missing cover must never pass customer quality');
+    assert.equal(result.report.cover,null);
+    assert.equal(archived,calls);
+    assert.equal(stages.at(-1),'synthesis');
+    assert(snapshots.length>0);
+    return;
+   }
+   await assert.rejects(generate(input,p=>callOpenAI(p,v=>{archived++;seen.push(v)}),
+    ()=>{},x=>{snapshots.push(x)}),
+    /output token limit|invalid report structure|invalid report data|returned no output|missing grounded chapter|missing verified paragraph basis/);
+   const expectedCalls=kind==='second-batch-json-syntax'?2:1;
+   assert.equal(calls,expectedCalls,'must abort at the faulty call and never call later batches');
+   assert.equal(archived,calls,'every model response, even malformed/empty, must remain archived');
+   if(kind==='second-batch-json-syntax')assert.equal(snapshots.length,1,'validated prior batch remains checkpointed');
+   else assert.equal(snapshots.length,0,'no partial/invalid first chapter may be checkpointed');
+   if(kind==='provider-limit')assert.equal(seen[0].status,'incomplete');
+   if(kind==='provider-json-syntax'||kind==='second-batch-json-syntax'){
+    assert.equal(seen.at(-1).status,'invalid_json');
+    assert(seen.at(-1).rawOutput.startsWith('{'), 'paid malformed raw JSON retained');
+   }
+   if(kind==='provider-empty')assert.equal(seen[0].status,'empty_output');
+   if(kind==='missing-anchor-basis')assert(seen[0].chapters,'paid raw chapter retained before basis verification');
    return;
   }
   const output=await generate(input,p=>callOpenAI(p,()=>{archived++}),
@@ -154,5 +189,10 @@ async function runScenario(kind){
  await runScenario('complete');
  await runScenario('malformed');
  await runScenario('provider-limit');
- console.log('PASS no network and no paid calls: malformed provider JSON and token-limit abort before further batches');
+ await runScenario('provider-json-syntax');
+ await runScenario('provider-empty');
+ await runScenario('missing-anchor-basis');
+ await runScenario('second-batch-json-syntax');
+ await runScenario('synthesis-cover-missing');
+ console.log('PASS no actual API calls: token limit, invalid JSON, empty response, missing basis, second-batch abort/checkpoint, incomplete synthesis');
 })().catch(e=>{console.error(e);process.exitCode=1});
