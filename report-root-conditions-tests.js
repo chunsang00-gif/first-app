@@ -70,7 +70,13 @@ for(const input of cases){
   analysisGuidance:{...guidance.forRequest(['saju_core'],packet.person.mbti),
    editorialBlueprint:{saju_core:plan.saju_core}}};
  const compiled=writer.compile(prompt);
- assert.deepEqual(compiled.source['facts.rootConditions'],packet.facts.rootConditions);
+ assert.equal(compiled.source['facts.rootConditions'].version,packet.facts.rootConditions.version);
+ assert.equal(compiled.source['facts.rootConditions'].dayMasterRootCases.length,
+  packet.facts.rootConditions.dayMasterRootCases.length);
+ assert(!Object.hasOwn(compiled.source['facts.rootConditions'],'rootCases'),
+  'the writer must see only compact Day Master root evidence');
+ assert(compiled.source['facts.rootConditions'].dayMasterRootCases.every(
+  row=>row.actualRootStrength==='not-assessed'&&row.rootDeleted===false));
  const enums=writer.schema(prompt,wire.schemaFor(prompt,schema))
   .properties.chapters.properties.saju_core.properties.paragraphs.properties
   .temperament.properties.basis.properties.refs.items.enum;
@@ -85,7 +91,7 @@ for(const input of cases){
   'facts.rootConditions','natal.month.stem'];
  assert.doesNotThrow(()=>writer.restoreEvidence(fake(required),prompt));
  assert.throws(()=>writer.restoreEvidence(fake(required.filter(x=>x!=='facts.rootConditions')),prompt),
-  /missing required root condition evidence/);
+  /missing verified root condition evidence/);
  const modified=structuredClone(packet);
  modified.facts.rootConditions.rootDeletionPolicy='clash-erases-root';
  assert(integrity.verify(modified).errors.includes('incorrect-positional-root-conditions'));
