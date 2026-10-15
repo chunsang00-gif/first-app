@@ -109,6 +109,13 @@ const schema=require('./report-schema.json');
  assert.deepEqual(summary.task.completedReport,synthesis.completedReport);
  assert(summary.source['person.mbti']);
  assert.deepEqual(generation.schema(synthesis,t),t);
+ const completedIds=synthesis.completedReport.sections.map(section=>section.id);
+ const synthesisTransport=wire.schemaFor(synthesis,schema);
+ const synthesisSchema=generation.schema(synthesis,synthesisTransport);
+ const validHighlightIds=synthesisSchema.properties.cover.properties.highlights.items.properties.sectionId.enum;
+ assert.deepEqual(validHighlightIds,completedIds,'paid cover may reference only drafted chapters');
+ assert(!validHighlightIds.includes('year_2027'),'missing chapters must never appear in synthesis highlight choices');
+
  // The compact request must preserve missing-MBTI and unknown-hour boundaries.
  let unknownPrompt;
  await assert.rejects(generate({calendar:'solar',birthDate:'1990-05-15',unknownBirthTime:true,gender:'male',mbti:'모름'},async p=>{unknownPrompt=p;throw Error('OFFLINE_UNKNOWN');}),/OFFLINE_UNKNOWN/);
