@@ -40,7 +40,11 @@ function compile(prompt){
      evidenceReuseBoundary:t.evidenceReuseBoundary?{rule:t.evidenceReuseBoundary.rule,priorOwners:t.evidenceReuseBoundary.priorOwners.map(x=>({chapter:x.chapter,topic:x.topic}))}:null,
      annualDomainLimit:t.annualDomainLimit||null
     }])),annualScope:p.annualDomainEvidence||null}];
-  })),previousSections:prompt.priorSections||[],mbti:prompt.analysisGuidance.mbtiReference||null
+  })),previousSections:prompt.priorSections||[],
+  reusedEvidence:(prompt.rules?.reusedEvidenceWithPriorConclusions||[]).map(row=>({
+   path:row.path,chapter:row.chapter,topic:row.topic,previousConclusion:row.previousConclusion
+  })),
+  mbti:prompt.analysisGuidance.mbtiReference||null
  }:{completedReport:prompt.completedReport};
  return {version:'evidence-first-v1',stage:prompt.stage,targetYear:prompt.facts.targetYear,source,task};
 }
