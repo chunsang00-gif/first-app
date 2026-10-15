@@ -52,9 +52,10 @@ const {createQueue,retryDelay,rateLimitKind}=require('./report-request-control')
  // 2027 money/career/relationship must not all claim the same annual ten-god.
  const annualSample=require('./report-facts-node').build({calendar:'solar',birthDate:'1990-05-15',birthTime:'10:30',gender:'male',mbti:'INTJ'},2027);
  const annualPlan=require('./report-analysis-guidance').preflight(annualSample);
- const sharedMoney=annualPlan.money.topicTasks.earning.evidenceReuseBoundary;
- assert(sharedMoney&&sharedMoney.priorOwners.some(x=>x.chapter==='mbti_contradiction'),'reused natal evidence must identify its first owner before drafting');
- assert(sharedMoney.distinctQuestion===annualPlan.money.topicTasks.earning.question,'reused evidence must carry a distinct question');
+ const moneyFacts=annualPlan.money.topicTasks.earning;
+ assert(moneyFacts.allowedSourceRefs?.length,'money explanation must have financially classified natal evidence');
+ assert(moneyFacts.allowedSourceRefs.every(x=>x.startsWith('natal.')),'money cannot borrow generic structural labels');
+ assert.equal(annualPlan.money.topicTasks.risk.mode,'state-limits','a natal clash alone must not become a financial-loss prediction');
  assert.equal(annualPlan.saju_core.topicTasks.temperament.evidenceReuseBoundary,null,'original evidence owner must not claim prior reuse');
  const noAnnualSignal={...annualSample,facts:{...annualSample.facts,annualTenGods:{stemTenGod:'알수없음',hiddenStems:[]},targetYearRelations:[]}};
  const limitedPlan=require('./report-analysis-guidance').preflight(noAnnualSignal);
