@@ -87,7 +87,7 @@ for(const input of [
  if(input.unknownBirthTime)assert(!packet.facts.qiEvidence.entries.some(row=>row.position==='hour'));
  const plan=guidance.preflight(packet);
  assert.equal(invariant.verify(packet,plan).pass,true,'provider preflight must accept real calculated inputs');
- assert.deepEqual(plan.saju_core.topicTasks.temperament.requiredSourceKinds,['seasonal','qi-ledger']);
+ assert.deepEqual(plan.saju_core.topicTasks.temperament.requiredSourceKinds,['seasonal','qi-ledger','natal-month-position']);
  const prompt={stage:'body',facts:packet,requestedSections:['saju_core'],
   analysisGuidance:{...guidance.forRequest(['saju_core'],packet.person.mbti),
     editorialBlueprint:{saju_core:plan.saju_core}}};
