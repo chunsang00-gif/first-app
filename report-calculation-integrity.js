@@ -74,6 +74,13 @@ function verify(packet){
  try{expectedQi=require('./report-qi-evidence').build(chart,facts.solarTermTiming)}
  catch{errors.push('incorrect-positional-qi-evidence')}
  if(expectedQi&&!same(facts.qiEvidence,expectedQi))errors.push('incorrect-positional-qi-evidence');
+ let expectedMethod=null;
+ try{expectedMethod=require('./report-governing-day-method').inspect({
+  chart,timing:facts.solarTermTiming,hiddenStems:hidden[branch(chart.month)]
+ })}
+ catch{errors.push('incorrect-governing-day-diagnostic')}
+ if(expectedMethod&&!same(facts.governingDayDiagnostic,expectedMethod))
+  errors.push('incorrect-governing-day-diagnostic');
  const expectedAnnual=expectedFor(actualYear,day,'annual');
  if(!same(facts.annualTenGods,expectedAnnual))errors.push('incorrect-annual-ten-gods');
  const yearlyClashes=[];
