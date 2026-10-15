@@ -60,7 +60,8 @@ const allGroups=[
     'the provider must receive the intended dense-chapter budget');
    return {ok:true,json:async()=>({
     status:'incomplete',incomplete_details:{reason:'max_output_tokens'},
-    usage:{output_tokens:18000}
+    usage:{output_tokens:18000},
+    output:[{type:'message',content:[{type:'output_text',text:'{"chapters":{"saju_core":'}]}]
    })};
   };
   await assert.rejects(server.callOpenAI(first,value=>{archived.push(value)}),/output token limit/);
@@ -68,7 +69,8 @@ const allGroups=[
   assert.equal(archived.length,1,'even rejected paid output must be preserved exactly once');
   assert.deepEqual(archived[0],{
    status:'incomplete',incomplete_details:{reason:'max_output_tokens'},
-   usage:{output_tokens:18000},partialOutput:null
+   usage:{output_tokens:18000},
+   partialOutput:[{type:'message',content:[{type:'output_text',text:'{"chapters":{"saju_core":'}]}]
   },'incomplete response metadata must be available to the private QA artifact');
  }finally{
   global.fetch=saved.fetch;
