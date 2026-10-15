@@ -38,6 +38,15 @@ const schema=require('./report-schema.json');
  const allowed=t.properties.chapters.properties.saju_core.properties.paragraphs.properties.temperament.properties.basis.properties.refs.items.enum;
  assert(allowed.includes('natal.month.stem'));
  assert(!allowed.includes('person.mbti'),'provider should not offer unrelated citations for this topic');
+ // No-evidence anchors must not cite unrelated facts just to satisfy a required field.
+ const limitedPrompt=structuredClone(prompt);
+ limitedPrompt.analysisGuidance.editorialBlueprint.saju_core.topicTasks.temperament.mode='state-limits';
+ const ungrounded=structuredClone(raw);
+ assert.throws(()=>generation.restoreEvidence(ungrounded,limitedPrompt),/fabricated sources for unsupported topic/);
+ ungrounded.chapters.saju_core.paragraphs.temperament.basis.refs=[];
+ assert.doesNotThrow(()=>generation.restoreEvidence(ungrounded,limitedPrompt));
+ const limitedSchema=generation.schema(limitedPrompt,wire.schemaFor(limitedPrompt,schema));
+ assert(limitedSchema.properties.chapters.properties.saju_core.properties.paragraphs.properties.temperament.properties.basis.properties.refs.description.includes('빈 배열'));
  const synthesis={...prompt,stage:'synthesis',requestedSections:[],completedReport:{sections:wire.decode(restored,prompt).sections}};
  const summary=generation.compile(synthesis);
  assert.deepEqual(summary.task.completedReport,synthesis.completedReport);
