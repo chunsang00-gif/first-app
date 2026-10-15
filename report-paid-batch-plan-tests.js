@@ -52,7 +52,7 @@ const allGroups=[
  const saved={fetch:global.fetch,key:process.env.OPENAI_API_KEY,model:process.env.REPORT_MODEL};
  try{
   process.env.OPENAI_API_KEY='offline-placeholder';process.env.REPORT_MODEL='gpt-4.1';
-  let providerCalls=0;
+  let providerCalls=0,archived=[];
   global.fetch=async(_url,options)=>{
    providerCalls++;
    const body=JSON.parse(options.body);
@@ -63,8 +63,13 @@ const allGroups=[
     usage:{output_tokens:18000}
    })};
   };
-  await assert.rejects(server.callOpenAI(first),/output token limit/);
+  await assert.rejects(server.callOpenAI(first,value=>{archived.push(value)}),/output token limit/);
   assert.equal(providerCalls,1,'provider truncation must not trigger a paid retry');
+  assert.equal(archived.length,1,'even rejected paid output must be preserved exactly once');
+  assert.deepEqual(archived[0],{
+   status:'incomplete',incomplete_details:{reason:'max_output_tokens'},
+   usage:{output_tokens:18000},partialOutput:null
+  },'incomplete response metadata must be available to the private QA artifact');
  }finally{
   global.fetch=saved.fetch;
   for(const [name,value] of [['OPENAI_API_KEY',saved.key],['REPORT_MODEL',saved.model]]){
