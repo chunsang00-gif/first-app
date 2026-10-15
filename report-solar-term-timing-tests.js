@@ -31,6 +31,13 @@ const anchor=Solar.fromYmdHms(1990,1,31,12,0,0).getLunar().getNextJie();
 assert(anchor&&anchor.getSolar());
 const boundary=anchor.getSolar().toYmdHms();
 assert.equal(term.BRANCH_BY_JIE[anchor.getName()],'寅','the tested term must be Start of Spring');
+// Minutes and solar-term seconds are not the same precision: a birth in
+// this same displayed HH:MM could fall on either side of the Jie instant.
+const boundaryMinute=input({birthDate:boundary.slice(0,10),
+ birthTime:boundary.slice(11,16)});
+const minuteAmbiguity=calendar.calculate(boundaryMinute);
+assert.equal(minuteAmbiguity.status,'blocked_birth_minute_solar_term_boundary',
+ 'cannot claim the right birth month from an unknown second in the same minute');
 const before=shift(boundary,-2),after=shift(boundary,2);
 const resultBefore=calendar.calculate(input(before));
 const resultAfter=calendar.calculate(input(after));
