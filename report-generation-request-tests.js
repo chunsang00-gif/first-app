@@ -8,6 +8,16 @@ const schema=require('./report-schema.json');
  await assert.rejects(generate({calendar:'solar',birthDate:'1990-05-15',birthTime:'10:30',gender:'male',mbti:'INTJ'},async p=>{prompt=p;throw Error('OFFLINE');}),/OFFLINE/);
  const payload=generation.compile(prompt);
  assert(!Object.hasOwn(payload,'rules'));
+ assert.equal(payload.task.editorialGoal,prompt.editorialTask,
+  'actual body editorial instructions must survive the provider boundary');
+ assert(payload.task.editorialGoal.includes('최종 본문 원고'),
+  'the provider must see the substantive customer-facing depth brief');
+ assert(!Object.hasOwn(payload.task,'planningInstruction')&&
+  !Object.hasOwn(payload.task,'crossChapterNoveltyRule'),
+  'legacy overlapping long rules must not re-enter the compact request');
+ assert(generation.policy.includes('task.editorialGoal'),
+  'provider system message must explicitly use the customer-depth brief');
+
  assert(generation.policy.includes('task.chapters[id].analysisGoal'),
   'provider system instructions must use the transported per-section depth goal');
  assert(generation.policy.includes('task.editorialGoal'),
@@ -17,6 +27,8 @@ const schema=require('./report-schema.json');
   'the compact writer request must preserve the server reuse ledger');
  const citationReuse={path:'natal.month.stem',chapter:'saju_core',topic:'temperament',
   previousConclusion:'이전에 월간 근거로 설명한 반응'};
+ const goalOverride={...prompt,editorialTask:'다른 장과 구별되는 계산 근거를 설명하고 실제 관찰하지 않은 고객 경험을 쓰지 않는다.'};
+ assert.equal(generation.compile(goalOverride).task.editorialGoal,goalOverride.editorialTask);
  const withReuse=generation.compile({...prompt,rules:{
   ...prompt.rules,reusedEvidenceWithPriorConclusions:[citationReuse]
  }});
