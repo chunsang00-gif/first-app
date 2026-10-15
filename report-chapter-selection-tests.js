@@ -18,6 +18,7 @@ const create=()=>{
  assert(all.canGenerate);
  assert.equal(all.plannedIds.length,12);
  assert.deepEqual(all.groups,groups);
+ assert.deepEqual(all.plannedIds,require('./report-quality-node').IDS,'published section order must match the reader navigation order');
  assert.deepEqual(all.omitted,[]);
 }
 {
@@ -28,8 +29,8 @@ const create=()=>{
  const r=selection.select(groups,plan);
  assert(r.canGenerate,'one ordinary omitted chapter must not halt a sufficiently deep report');
  assert.deepEqual(r.plannedIds,[
-  'saju_core','mbti_contradiction','decision','stress','career',
-  'relationship','integrated_judgment','year_2027'
+  'saju_core','mbti_contradiction','decision','career','relationship',
+  'stress','integrated_judgment','year_2027'
  ]);
  assert.deepEqual(r.groups,[
   ['saju_core','mbti_contradiction'],['decision','stress'],['career'],
