@@ -176,17 +176,14 @@ function preflight(packet){
    task.interpretationBoundary=rule.boundary;
   }
  }
- // Earning and spending must not be separately sold from the same wealth
- // classification. Output symbols can support a distinct production lens;
- // wealth-only charts support the spending/holding lens, not a fabricated
- // earning behavior. The original computed rows remain untouched.
- const moneyEarning=plans.money.topicTasks.earning;
- const outputRows=natalRows.filter(row=>['식신','상관'].includes(row.tenGod)).map(row=>row.id);
- moneyEarning.allowedSourceRefs=outputRows;
- moneyEarning.mode=outputRows.length?'use-primary':'state-limits';
- moneyEarning.evidencePresent=outputRows.length>0;
- moneyEarning.verifiedFallbackPaths=[];
- moneyEarning.interpretationBoundary='실제로 계산된 식신·상관의 표현·생산 상징만 설명한다. 수입 능력이나 벌이 규모를 단정하지 않으며 재성만 있을 때 지출·보유 풀이를 수입 활동으로 복제하지 않는다.';
+ // Wealth (재성) is a valid traditional money symbol in BOTH earning
+ // and ownership discussions. Dropping it entirely from earning would erase
+ // meaningful calculation. Prevent duplication at the interpretation lens,
+ // not by silently denying legitimate natal evidence.
+ plans.money.topicTasks.earning.interpretationBoundary=
+  '재성은 재물·대가와 관계되는 전통 분류이고 식상은 생산·표현의 분류다. 실제 계산된 위치와 겉글자/숨은 글자 차이를 구별해 수입 활동이라는 질문에 연결하되 소득·수입 능력·생활 이력을 확정하지 않는다.';
+ plans.money.topicTasks.spending.interpretationBoundary=
+  '재성 근거가 수입 풀이에서도 쓰였다면 단지 돈을 쓴다·아낀다라는 다른 말로 다시 판매하지 않는다. 서로 다른 위치나 관계가 실제로 별도 전통적 의미를 뒷받침할 때만 지출·보유의 제한적 풀이를 작성하며 그렇지 않으면 이 문단을 null로 생략한다. 실제 지출 습관은 측정한 것이 아니다.';
  // Annual domain relevance comes from the ONE deterministic interpretation
  // core, not from chapter prompts or another guess inside the QA validator.
  // A category comparison is traditional symbolism only; never an event,
