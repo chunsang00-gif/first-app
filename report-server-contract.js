@@ -295,6 +295,8 @@ async function generate(input,callModel,onProgress=()=>{},onValidatedBatch=()=>{
   const combined=[...priorSections.map(s=>({id:s.id,keyJudgment:s.keyJudgment,body:s.topicConclusions,bodyTopics:s.bodyTopics})),...verified.sections];
   if(findRepeatedTopicContent(combined).length)throw Error('QA resume repeated topic explanations');
   if(findRecycledThemes(combined).length||findReusedEvidenceConclusions(combined).length)throw Error('QA resume recycled chapter thesis');
+  if(require('./report-interpretation-overlap').inspect([...priorSections,...verified.sections]).length)
+   throw Error('QA resume duplicated factual interpretation');
   const evidenceOwners=new Map();
   for(const section of [...priorSections,...verified.sections]){
    for(const item of section.evidence||[]){
@@ -365,6 +367,11 @@ async function generate(input,callModel,onProgress=()=>{},onValidatedBatch=()=>{
    console.error('[Report repeated thesis before next provider call]',{requestedIds:ids,errors:earlyThemeErrors});
    throw Error('AI report service returned cross-chapter recycled thesis');
   }
+  const priorInterpretationErrors=require('./report-interpretation-overlap').inspect([...priorSections,...result.sections]);
+  if(priorInterpretationErrors.length){
+   console.error('[Report repeated calculated interpretation]',{requestedIds:ids,errors:priorInterpretationErrors});
+   throw Error('AI report service returned repeated interpretation from identical calculated evidence');
+  }
   priorSections.push(...result.sections.map(s=>({id:s.id,keyJudgment:s.keyJudgment,bodyLabels:s.bodyLabels,bodyTopics:s.bodyTopics,topicConclusions:s.body.slice(),evidence:s.evidence.slice()})));
   await onValidatedBatch({ids:ids.slice(),sections:result.sections,completedSections:priorSections.length});
   onProgress({stage:'body',completed:done+=ids.length,total:plannedIds.length});return result;
@@ -379,7 +386,8 @@ async function generate(input,callModel,onProgress=()=>{},onValidatedBatch=()=>{
  // No extra model call, and the rejected draft remains available for operator QA.
  const paraphraseErrors=findParaphrasedTopicContent(sections);
  const adviceWarnings=findRepeatedAdvice(sections);
- const repeatedErrors=[...findRecycledThemes(sections),...findReusedEvidenceConclusions(sections)];
+ const repeatedErrors=[...findRecycledThemes(sections),...findReusedEvidenceConclusions(sections),
+  ...require('./report-interpretation-overlap').inspect(sections)];
  if(repeatedErrors.length){
   const report={meta,sections,cover:null,finalJudgment:null};
   return {status:'rejected',report,qa:{pass:false,errors:repeatedErrors,warnings:adviceWarnings},headingRepairs:[],stoppedBeforeSynthesis:true,coverage};
