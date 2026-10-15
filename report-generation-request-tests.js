@@ -28,6 +28,10 @@ const schema=require('./report-schema.json');
   const bad=structuredClone(raw);modify(bad.chapters.saju_core.paragraphs.temperament.basis);
   assert.throws(()=>generation.restoreEvidence(bad,prompt),/verified paragraph basis/);
  }
+ // A real source elsewhere in the packet cannot replace this topic's evidence.
+ const irrelevant=structuredClone(raw);
+ irrelevant.chapters.saju_core.paragraphs.temperament.basis.refs=['person.mbti'];
+ assert.throws(()=>generation.restoreEvidence(irrelevant,prompt),/unrelated paragraph basis/);
  const synthesis={...prompt,stage:'synthesis',requestedSections:[],completedReport:{sections:wire.decode(restored,prompt).sections}};
  const summary=generation.compile(synthesis);
  assert.deepEqual(summary.task.completedReport,synthesis.completedReport);
