@@ -159,6 +159,8 @@ function restoreEvidence(value,prompt){
     if(!allowed.size||b.refs.some(ref=>!allowed.has(ref)))throw Error('AI report service unrelated paragraph basis: '+id+':'+topic);
     if(task.requiredSourceKinds?.includes('seasonal')&&!b.refs.includes('facts.seasonalEvidence'))
      throw Error('AI report service missing required month seasonal source: '+id+':'+topic);
+    if(task.requiredSourceKinds?.includes('natal-month-position')&&!b.refs.some(ref=>ref.startsWith('natal.month.')))
+     throw Error('AI report service missing month-position evidence: '+id+':'+topic);
     if(task.requiredSourceKinds?.includes('qi-ledger')&&!b.refs.includes('facts.qiEvidence'))
      throw Error('AI report service missing required positional qi evidence: '+id+':'+topic);
     if(task.requiredSourceKinds?.includes('annual')){
