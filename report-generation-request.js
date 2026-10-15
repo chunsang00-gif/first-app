@@ -5,6 +5,7 @@ const reader=require('./report-reader-policy');
 const policy=[
  reader.instruction,
  '계산 사실과 해석을 구분한다. 글자 개수나 이름만으로 능력·평판·실제 경험을 만들지 않는다. 계산하지 않은 강약·용신·합충·월별 시기를 추정하지 않는다. 예시는 가정임을 드러내고 실제 사건이나 미래 결과를 보장하지 않는다.',
+ '2027년 금전·직업의 독립 해석은 annualScope.comparisons에 있는 연도·원국의 계산 분류 비교가 있을 때만 작성한다. 반드시 annualId와 natalId를 함께 refs에 기록하며 두 위치의 같은 전통 분류군을 대비한다. 같은 분류는 충이나 합 관계를 새로 계산한 뜻이 아니다. 수입·승진·평판·성과·이직 같은 실제 사건을 결론 내리지 않는다.',
  '본문 단계에서는 각 문단의 basis를 먼저 작성한다. refs의 실제 자료가 무엇을 말하는지 interpretation에, 적용 상황을 condition에, 그 자료로 말할 수 없는 점을 limit에 적는다. 이 자료가 독자의 성격을 입증한다고 쓰지 않는다. 그 후 label과 text에 필요한 이유와 상황을 자연스러운 한국어로 설명한다. basis의 전문용어를 독자용 글에 복사하지 않는다.',
  '질문에 맞는 별도 근거가 없거나 앞 문단의 결론만 반복하면 선택 항목은 null로 둔다. 필수 항목에서도 없는 성격을 만들지 말고 확인 가능한 범위만 설명한다. 같은 응답의 다른 장과 previousSections 모두 비교한다. task.reusedEvidence는 이전 장이 실제 인용한 계산 근거와 결론의 목록이다. 같은 path를 다시 사용할 때 이전 결론을 영역 명사만 바꿔 반복하지 말고 새로운 계산 관계가 없다면 선택 문단을 생략한다. 새로운 해석을 만들려고 분야 이름만 바꾸지 않는다.',
  'MBTI는 제공된 선호 설명만 사용한다. 사주가 MBTI보다 실제 행동이나 환경을 더 잘 안다는 대비, 계획 선호를 비타협성으로 바꾸는 대비를 만들지 않는다. 차이는 반드시 있을 필요가 없다. MBTI가 없으면 추정하지 않는다.',
@@ -35,7 +36,7 @@ function compile(prompt){
      'MBTI 비교 문단은 입력된 MBTI 선호(person.mbti)와 실제 원국 위치(natal.*)를 모두 인용한다. 같은 결론이어도 된다. 사주가 확인한 실제 행동인 것처럼 쓰지 않는다.':null,
     safety:{avoid:prompt.analysisGuidance.chapterTasks?.[id]?.avoid||'',evidenceBoundary:p.evidenceBoundary||''},
     topics:Object.fromEntries(Object.entries(p.topicTasks).map(([key,t])=>[key,{
-     question:t.question,mode:t.mode,sourcePath:t.primaryEvidencePath,fallbackPaths:t.verifiedFallbackPaths,allowedSourceRefs:t.allowedSourceRefs||null,
+     question:t.question,mode:t.mode,sourcePath:t.primaryEvidencePath,fallbackPaths:t.verifiedFallbackPaths,allowedSourceRefs:t.allowedSourceRefs||null,requiredSourceKinds:t.requiredSourceKinds||[],
      interpretationBoundary:t.interpretationBoundary||'',
      evidenceReuseBoundary:t.evidenceReuseBoundary?{rule:t.evidenceReuseBoundary.rule,priorOwners:t.evidenceReuseBoundary.priorOwners.map(x=>({chapter:x.chapter,topic:x.topic}))}:null,
      annualDomainLimit:t.annualDomainLimit||null
@@ -150,6 +151,11 @@ function restoreEvidence(value,prompt){
      b.refs.includes('person.mbti')&&b.refs.some(ref=>ref.startsWith('natal.'))
     ))throw Error('AI report service missing dual MBTI/Saju evidence: '+id+':'+topic);
     if(!allowed.size||b.refs.some(ref=>!allowed.has(ref)))throw Error('AI report service unrelated paragraph basis: '+id+':'+topic);
+    if(task.requiredSourceKinds?.includes('annual')){
+     const pairs=payload.task.chapters[id]?.annualScope?.comparisons||[];
+     if(!pairs.some(pair=>b.refs.includes(pair.annualId)&&b.refs.includes(pair.natalId)))
+      throw Error('AI report service annual interpretation lacks an actual yearly-to-natal source pair: '+id+':'+topic);
+    }
    }
    chapter.evidence.push(limited
     ?topic+': 직접 판단할 근거 없음 / 한계: '+b.limit
