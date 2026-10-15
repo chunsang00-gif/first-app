@@ -19,14 +19,14 @@ jobs:
   report-qa:
     if: >-
       github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'push' && github.event.head_commit.message == 'qa: one-time user-authorized premium run 20261015-2131')
+      (github.event_name == 'push' && github.event.head_commit.message == 'qa: one-time user-authorized premium run 20261015-2132')
     runs-on: ubuntu-latest
     timeout-minutes: 25
     env:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       REPORT_MODEL: ${{ vars.REPORT_MODEL }}
       REPORT_QA_OUTPUT: ${{ github.workspace }}/private-qa-report.json
-      REPORT_QA_CONFIRM: ${{ github.event_name == 'workflow_dispatch' && inputs.paid_qa_confirmation || (github.event_name == 'push' && github.event.head_commit.message == 'qa: one-time user-authorized premium run 20261015-2131' && 'RUN_ONE_PAID_SAMPLE' || '') }}
+      REPORT_QA_CONFIRM: "${{ github.event_name == 'workflow_dispatch' && inputs.paid_qa_confirmation || (github.event_name == 'push' && github.event.head_commit.message == 'qa: one-time user-authorized premium run 20261015-2132' && 'RUN_ONE_PAID_SAMPLE' || '') }}"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
