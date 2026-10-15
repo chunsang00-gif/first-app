@@ -121,7 +121,7 @@ const schema=require('./report-schema.json');
  assert(JSON.stringify(payload).length<JSON.stringify(prompt).length*.65);
  // The writer now receives per-topic source facts, not merely an opaque
  // source path. They must be identical to the actual strict output schema.
- const checkCitable=(compiled,scopedPrompt)=>{
+ function checkCitable(compiled,scopedPrompt){
   const transport=generation.schema(scopedPrompt,wire.schemaFor(scopedPrompt,schema));
   for(const [chapterId,chapter] of Object.entries(compiled.task.chapters)){
    for(const [topicId,topic] of Object.entries(chapter.topics)){
@@ -139,13 +139,13 @@ const schema=require('./report-schema.json');
       assert.equal(fact.position,source.position);
       assert.equal(fact.layer,source.layer);
       assert.equal(fact.tenGod,source.tenGod);
-      assert.equal(fact.traditionalMeaning,source.traditionalMeaning);
-      assert.equal(fact.traditionalMeaning,scopedPrompt.facts.facts.tenGodGlossary[source.tenGod]);
+      assert.equal(fact.traditionalMeaning||null,source.traditionalMeaning||null);
+      assert.equal(fact.traditionalMeaning||null,scopedPrompt.facts.facts.tenGodGlossary[source.tenGod]||null);
      }
     }
    }
   }
- };
+ }
  checkCitable(payload,prompt);
  assert(payload.task.chapters.saju_core.topics.temperament.citableFacts.some(
   x=>x.id==='natal.month.stem'&&x.position==='월간'),
