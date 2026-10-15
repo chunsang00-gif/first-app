@@ -21,6 +21,12 @@ const base={
  }
 };
 const ids=['money','career','relationship','stress'];
+const scope=require('./report-chapter-selection');
+const allGroups=[
+ ['saju_core','mbti_contradiction'],['decision','stress'],['money','career'],
+ ['relationship','integrated_judgment'],['year_2027','year_2027_money'],
+ ['year_2027_career','year_2027_relationship']
+];
 function scenario(packet){
  const plan=guidance.preflight(packet);
  const prompt={
@@ -92,4 +98,13 @@ const noEvidence=scenario(sparse);
 for(const chapter of ['money','stress'])
  assert.equal(noEvidence.plan[chapter].hasGroundedTopic,false,chapter+' cannot be manufactured from generic natal rows');
 assert.equal(noEvidence.plan.career.topicTasks.change.mode,'state-limits');
+const fullScope=scope.select(allGroups,guidance.preflight(base));
+assert(fullScope.canGenerate,'supported main chapters should proceed even if extra year-domain chapters are absent');
+assert(fullScope.plannedIds.includes('money'));
+assert(fullScope.omitted.some(x=>x.id==='year_2027_money'));
+const sparseScope=scope.select(allGroups,guidance.preflight(sparse));
+assert(sparseScope.omitted.some(x=>x.id==='money'),'missing wealth evidence should omit money, not crash the entire report');
+assert(sparseScope.plannedIds.includes('saju_core'));
+assert(sparseScope.plannedIds.includes('year_2027'));
+assert(sparseScope.canGenerate,'supported chapters should remain after optional omissions');
 console.log('PASS deterministic per-domain eligibility, unrelated-source rejection, missing MBTI/hour and evidence-free boundaries; no paid calls');
