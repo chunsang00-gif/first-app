@@ -12,7 +12,10 @@ function assess({report,qa,packet,coverage}={}){
  const hasFinal=Array.isArray(report?.finalJudgment?.body)&&report.finalJudgment.body.length>0;
  const hasCover=Array.isArray(report?.cover?.highlights)&&report.cover.highlights.length>=3;
  if(!hasFinal||!hasCover)reasons.push('incomplete-final-report');
- if(!ids.includes('saju_core')||!ids.includes('year_2027')||ids.length<chapterSelection.MINIMUM_CHAPTERS)
+ const lifeDomains=new Set(['decision','money','career','relationship','stress']);
+ const supportedDomains=ids.filter(id=>lifeDomains.has(id));
+ if(!ids.includes('saju_core')||!ids.includes('year_2027')||
+    supportedDomains.length<chapterSelection.MINIMUM_PERSONAL_DOMAINS)
   reasons.push('insufficient-premium-scope');
  if(qa?.pass!==true)reasons.push('automated-quality-not-passed');
  if(!packet?.facts?.tenGods||!packet?.facts?.annualTenGods)
