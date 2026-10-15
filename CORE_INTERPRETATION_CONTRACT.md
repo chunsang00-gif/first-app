@@ -77,6 +77,15 @@
 - **미완료:** 실사령의 절입 시각과 분일법, 지장간 실제 권한/투출 여부의 학파별 규칙, 통근 위치·조후·합충 개입에 따른 오행 강도, 특수격과 용신 최종 판단. 이 값이 확정되지 않은 상태에서 숫자 합산이나 임의 임계값으로 명식 강약을 만들지 않는다.
 - 참고: [월령은 최우선이지만 뿌리와 생조·설기·극을 함께 검토한다](https://wiki.openfate.ai/en/bazi/strength-month-command) · [일간 강약의 월령·근·투간 관계와 한계](https://multifate.com/guides/bazi/day-master-strength) · [관계 기호를 점수와 혼동하지 않는 주의](https://clarifyhk.com/learn/bazi/foundations/strength-weakness-in-bazi).
 
+## 실제 절입 시각과 출생 시각 정밀도 검증 (2026-10-15)
+- `report-solar-term-timing.js`는 **기존에 고정한 lunar-javascript 1.7.7**에서 바로 앞·뒤의 12절(節) 절입 **현지 시계시각(초 단위)**을 읽고, 출생 시각으로부터 몇 초가 지났는지 계산한다. 이전 절의 지지가 실제 팔자 **월지와 일치하지 않으면 생성 차단**한다. 절기와 절입은 역법 라이브러리의 모델 값이며 외부 천문 관측을 독립 대조했다는 의미는 아니다.
+- `calendar-provider-node.js`는 **사용자의 출생시간이 없을 때 정오를 실제 출생시각으로 오인하지 않는다**. 그 날짜의 00:00:00과 23:59:59에서 연·월·일주가 하나라도 달라지면 `blocked_birth_time_solar_term_boundary`로 중단한다. 날짜 전체에서 동일한 경우에만 시간 미상 상태의 연·월·일주 계산을 허용하며, 경과 초는 미상으로 남긴다.
+- 출생시각 입력은 **HH:MM, 초 단위 미지원**이다. 실제 절입과 출생시각이 **같은 분**에 있으면 초가 달라 월주가 바뀔 수 있으므로 `blocked_birth_minute_solar_term_boundary`로 중단한다. 인위적으로 한쪽을 고르지 않는다.
+- `production-pipeline-node.js` → `report-facts-node.js`의 `facts.solarTermTiming` → `report-qi-evidence.js`의 `governance.preciseSolarTermElapsedTime`으로 **동일한 계산 근거가 연결**된다. `report-calculation-integrity.js`가 **원본 출생 입력으로 독립 재계산**한 결과와 대조하여 위조·누락을 차단한다.
+- 절입 경과시간이 정확히 계산되더라도 **지장간 실사령 판단용 분일법과 학파 기준은 선택하지 않았다.** `activeHiddenStemId=null`, `activeHiddenStemStatus='unresolved'`, `hiddenStemGoverningDaysRule='not-selected'`를 유지한다. 단순히 며칠 지났다는 이유로 신강·신약·용신을 결정하지 않는다.
+- `report-solar-term-timing-tests.js`는 **실제 1990년 입춘 전후의 연주·월주 변경**, 초·분 해상도 차이, 출생시간 미상 당일 경계, 12개월 계절과 월주 일치, 음력 입력·원본 데이터 변조·유료 호출 전 차단을 GitHub 무료 CI에서 검사한다.
+- 계산 규약은 한국 표준시로 입력한 **그 시계시각**을 그대로 사용하는 기존 앱 정책이다. 출생지의 지역 표준시 환산, 경도·진태양시, 출생기록의 시계 오류 보정은 **적용되지 않는다**. 이러한 보정이 필요한 출생은 전문가 확인이나 사용자 명시적 입력 없이는 임의 환산하지 않는다.
+
 ## 아직 계산되지 않거나 증명되지 않는 것
 - 신강/신약, 용신/기신 및 사령·월령의 상세한 강약 판정
 - 지지 관계 표에 없는 추가 학파별 관계·합화 성립 및 형·파·해의 해석 조건과 우선순위, 월별 미래 사건
