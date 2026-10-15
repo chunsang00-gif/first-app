@@ -68,4 +68,28 @@ const create=()=>{
  assert(r.canGenerate);
 }
 assert.throws(()=>selection.select([['saju_core'],['saju_core']],create()),/Duplicate/);
-console.log('PASS paid chapter scope selection: supported, omitted, core required, minimum depth, stable ordering and no fabricated anchors; no paid calls');
+// End-to-end unpaid gate: intercept the calculation packet and prove that
+// the production generate() returns before asking any provider for text.
+(async()=>{
+ const facts=require('./report-facts-node');
+ const {generate}=require('./report-server-contract');
+ const actualBuild=facts.build;
+ const sparsePacket={
+  status:'ready',targetYear:2027,person:{mbti:'모름'},fortune:{},
+  facts:{tenGods:{},structuralEvidence:{
+   monthCommand:{stem:'庚'},dayMasterRoots:['庚'],visibleStems:['庚']
+  },natalClashes:[],annualTenGods:{stemTenGod:'비견',hiddenStems:[]},targetYearRelations:[]}
+ };
+ let providerCalls=0;
+ try{
+  facts.build=()=>sparsePacket;
+  const response=await generate({},async()=>{
+   providerCalls++;throw Error('Model must never run for an under-grounded paid report');
+  });
+  assert.equal(response.status,'blocked');
+  assert.equal(providerCalls,0,'must block before any billable provider invocation');
+  assert(response.coverage.omitted.some(x=>x.id==='money'));
+  assert(response.issues.some(x=>x.includes('insufficient-premium-depth')));
+ }finally{facts.build=actualBuild;}
+ console.log('PASS paid chapter selection and production pre-provider block, no API calls');
+})().catch(err=>{console.error(err);process.exitCode=1});
