@@ -17,7 +17,7 @@ function sources(prompt){
  const p=prompt.facts;
  // Export individual structural observations instead of one wide object
  // that could be cited for an unrelated personality claim.
- for(const path of ['facts.structuralEvidence.monthCommand','facts.structuralEvidence.dayMasterRoots','facts.structuralEvidence.visibleStems','facts.natalClashes','facts.annualTenGods','facts.targetYearRelations','facts.targetYearBranchContext.annualContext.day','fortune.activeDecade']){
+ for(const path of ['facts.seasonalEvidence','facts.structuralEvidence.monthCommand','facts.structuralEvidence.dayMasterRoots','facts.structuralEvidence.visibleStems','facts.natalClashes','facts.annualTenGods','facts.targetYearRelations','facts.targetYearBranchContext.annualContext.day','fortune.activeDecade']){
   const value=path.split('.').reduce((v,k)=>v?.[k],p);
   if(value!=null)result[path]=value;
  }
