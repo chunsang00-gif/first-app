@@ -328,7 +328,7 @@ for(const id of ['decision','money','relationship','stress'])for(const topic of 
 
 assert.equal(blueprint.year_2027_relationship.topicTasks.change.evidencePresent,false);
 assert.equal(blueprint.year_2027_relationship.topicTasks.change.mode,'state-limits');
-assert(blueprint.year_2027_relationship.topicTasks.change.verifiedFallbackPaths.includes('facts.annualTenGods'));
+assert.deepEqual(blueprint.year_2027_relationship.topicTasks.change.verifiedFallbackPaths,[],'blocked annual relationship cannot retain unrelated ten-god fallbacks');
 assert.equal(blueprint.year_2027_career.topicTasks.change.mode,'state-limits');
 assert.equal(blueprint.year_2027_relationship.topicTasks.action.mode,'state-limits');
 assert.equal(blueprint.year_2027_relationship.topicTasks.action.evidencePresent,false,'unavailable annual relationship may not retain a phantom evidence-present flag');
