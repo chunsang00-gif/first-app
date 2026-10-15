@@ -23,12 +23,17 @@ function select(groups,blueprint){
   if(reason)omitted.push({id,reason});
   return !reason;
  });
+ // Writing batches are ordered by dependencies; the published report must
+ // follow the canonical navigation / schema chapter order instead.
+ const canonical=require('./report-quality-node').IDS;
+ if(included.some(id=>!canonical.includes(id)))throw Error('Unknown paid report chapter ID');
+ const plannedIds=canonical.filter(id=>included.includes(id));
  const filteredGroups=groups.map(batch=>batch.filter(id=>included.includes(id))).filter(batch=>batch.length);
  const issues=[];
  for(const id of essential)if(!included.includes(id))issues.push('required-chapter-unavailable:'+id);
  if(!included.some(id=>domains.has(id)))issues.push('no-personalized-life-domain');
- if(included.length<MINIMUM_CHAPTERS)issues.push('insufficient-premium-depth:'+included.length);
- return {canGenerate:issues.length===0,groups:filteredGroups,plannedIds:included,
+ if(plannedIds.length<MINIMUM_CHAPTERS)issues.push('insufficient-premium-depth:'+plannedIds.length);
+ return {canGenerate:issues.length===0,groups:filteredGroups,plannedIds,
   omitted,issues,minimumChapters:MINIMUM_CHAPTERS};
 }
 module.exports={select,MINIMUM_CHAPTERS};
