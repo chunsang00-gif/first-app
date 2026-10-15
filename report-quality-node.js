@@ -19,7 +19,10 @@ function verifyEvidenceAgainstFacts(report,packet){
  const tenGods=packet?.facts?.tenGods;
  const extraSections=[{id:'cover',title:report.cover?.headline,body:[report.cover?.description,...(report.cover?.highlights||[]).flatMap(h=>[h.title,h.description])]},{id:'finalJudgment',title:report.finalJudgment?.headline,body:[...(report.finalJudgment?.body||[]),report.finalJudgment?.closingQuestion,...(report.finalJudgment?.strengths||[]),...(report.finalJudgment?.watchouts||[]),...(report.finalJudgment?.routines||[]).flatMap(r=>[r.trigger,r.action,r.reason])]}];
  const sections=[...(report.sections||[]),...extraSections];
- if(!tenGods)return {errors,warnings};
+ // Missing ten-god data must not disable independent branch fact checks.
+ // The paid entry blocks such packets, but offline replay must still reject
+ // fabricated branch precedence and transformation.
+ if(!tenGods)return {errors:require('./report-branch-claims').check(report,packet),warnings};
  for(const section of sections){
   for(const evidence of [...(section.evidence||[]),section.title,section.keyJudgment,...(section.body||[])]){
    const text=norm(evidence);
