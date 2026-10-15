@@ -9,6 +9,7 @@ const policy=[
  '2027년 관계 장은 실제 계산한 targetYearBranchContext.annualContext.day만 사용한다. directPairs의 충·육합이 있을 때에만 같은 위치의 다른 형·해·파와 경쟁 관계를 설명하며 관계표의 존재, 합화 성립, 실제 연애·결혼·이별은 각각 구분한다. interpretationPriority가 unresolved라면 어떤 관계가 더 강한지 단정하지 않는다. 2027년 금전·직업의 독립 해석은 annualScope.comparisons에 있는 연도·원국의 계산 분류 비교가 있을 때만 작성한다. 반드시 annualId와 natalId를 함께 refs에 기록하며 두 위치의 같은 전통 분류군을 대비한다. 같은 분류는 충이나 합 관계를 새로 계산한 뜻이 아니다. 수입·승진·평판·성과·이직 같은 실제 사건을 결론 내리지 않는다.',
  '사주 기본 장의 task.chapters.saju_core.chartContrast는 이 명식만의 계산 근거 비교표다. monthAndDay와 contrastPoints를 읽고 출생월의 계절, 겉천간 오행의 서로 다른 방향, 일간 뿌리의 실제 지장간 위치를 구별하여 설명한다. 이 표는 전통 기호를 재정리한 것이며 성격의 양면성이나 운세의 실제 사건을 검증하지 않는다. 금전·직업·관계 같은 다른 장에 기본 사주 설명을 명사만 바꿔 반복하지 않는다.',
  '본문 단계에서는 각 문단의 basis를 먼저 작성한다. refs의 실제 자료가 무엇을 말하는지 interpretation에, 적용 상황을 condition에, 그 자료로 말할 수 없는 점을 limit에 적는다. 이 자료가 독자의 성격을 입증한다고 쓰지 않는다. 그 후 label과 text에 필요한 이유와 상황을 자연스러운 한국어로 설명한다. basis의 전문용어를 독자용 글에 복사하지 않는다.',
+ '본문 단계에는 task.editorialGoal이 전달되면 이를 따르되 topics의 계산 근거 허용 범위를 넘지 않는다. 해당 지침은 이미 계산된 사실을 어떤 생활 질문과 비교할지 안내하는 편집 목적이며 새로운 사주 근거, 관찰된 고객 행동, 확정된 미래 사건을 만드는 권한이 아니다.',
  '본문에는 task.chapters[id].analysisGoal의 해당 분야 심화 질문을 실제로 적용한다. 계산된 출처와 전통적 의미를 먼저 확인하고, 왜 해당 질문과 연결되는지와 서로 다른 상황의 유리함·불리함을 구체적으로 설명한다. analysisGoal이 계산되지 않은 성격·직업·재산·미래 사건을 쓰라고 요구하는 것처럼 해석하지 않는다. 근거가 약하면 깊이를 가장해 분량을 늘리지 않고 지원되지 않은 선택 항목을 null로 둔다.',
  '최종 종합에서는 task.editorialGoal을 따른다. 이미 검증된 본문 밖에서 새로운 성격을 만들거나 장별 결론을 반복해서 늘리지 않는다.',
  '질문에 맞는 별도 근거가 없거나 앞 문단의 결론만 반복하면 선택 항목은 null로 둔다. 필수 항목에서도 없는 성격을 만들지 말고 확인 가능한 범위만 설명한다. 같은 응답의 다른 장과 previousSections 모두 비교한다. task.reusedEvidence는 이전 장이 실제 인용한 계산 근거와 결론의 목록이다. 같은 path를 다시 사용할 때 이전 결론을 영역 명사만 바꿔 반복하지 말고 새로운 계산 관계가 없다면 선택 문단을 생략한다. 새로운 해석을 만들려고 분야 이름만 바꾸지 않는다.',
@@ -95,7 +96,12 @@ function compile(prompt){
      interpretationBoundary:t.interpretationBoundary||'',
      annualDomainLimit:t.annualDomainLimit||null
     }])),annualScope:p.annualDomainEvidence||null}];
-  })),previousSections:prompt.priorSections||[],
+  })),
+   // The existing body editorialTask is the ONE substantive writing brief
+   // for this batch. Legacy planningInstruction/crossChapterNoveltyRule
+   // duplicate the topic schema and must NOT inflate the provider payload.
+   editorialGoal:typeof prompt.editorialTask==='string'?prompt.editorialTask:null,
+   previousSections:prompt.priorSections||[],
   reusedEvidence:(prompt.rules?.reusedEvidenceWithPriorConclusions||[]).map(row=>({
    path:row.path,chapter:row.chapter,topic:row.topic,previousConclusion:row.previousConclusion
   })),
