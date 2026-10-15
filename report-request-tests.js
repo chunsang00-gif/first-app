@@ -44,7 +44,20 @@ const {createQueue,retryDelay,rateLimitKind}=require('./report-request-control')
  assert.equal(retryDelay(new Headers({'retry-after':new Date(120000).toUTCString()}),0,0),120000);
  assert.equal(retryDelay(new Headers(),1),40000);
  const promptModule=require('./report-prompt');assert(promptModule.sectionGoals.money.includes('재성'));assert.equal(typeof promptModule.build,'function');const allChapterIds=require('./report-quality-node').IDS;assert.deepEqual(Object.keys(promptModule.sectionGoals),allChapterIds,'every paid chapter must have an explicit premium goal');for(const id of allChapterIds){assert(promptModule.sectionGoals[id].length>=100,id+': chapter-specific interpretation goal too thin');assert(!/실제 사건.*단정/.test(promptModule.sectionGoals[id])||promptModule.sectionGoals[id].includes('않'),id+': unqualified event prediction');}
- const contract=require('./report-server-contract'),outline=require('./report-outline');const noCover={meta:{},sections:require('./report-quality-node').IDS.map(id=>({id,title:id,keyJudgment:'해석',body:['풀이'],evidence:['근거']})),finalJudgment:{body:['종합'],closingQuestion:'전체적으로 주의를 기울입니다.',afterClosingText:''},cover:null};assert(contract.validateShape(noCover).errors.includes('cover required'));for(const ending of ['참고 자료로만 활용하시기 바랍니다.','실제 미래 사건을 예측한 결과는 아닙니다.']){
+ const contract=require('./report-server-contract'),outline=require('./report-outline');const noCover={meta:{},sections:require('./report-quality-node').IDS.map(id=>({id,title:id,keyJudgment:'해석',body:['풀이'],evidence:['근거']})),finalJudgment:{body:['종합'],closingQuestion:'전체적으로 주의를 기울입니다.',afterClosingText:''},cover:null};assert(contract.validateShape(noCover).errors.includes('cover required'));
+ const missingSections=new Set(['money','year_2027_money','year_2027_career','year_2027_relationship']);
+ const partialReport={...noCover,
+  sections:noCover.sections.filter(section=>!missingSections.has(section.id)),
+  cover:{headline:'개인별 핵심 해석',description:'근거가 있는 부분만 살펴봅니다.',
+   keywords:['계산','해석','선택'],
+   highlights:[
+    {sectionId:'saju_core',title:'기본 성향',description:'원국의 뜻'},
+    {sectionId:'career',title:'일하는 조건',description:'직업 분야의 해석'},
+    {sectionId:'year_2027_money',title:'없어진 장',description:'실제로 생성되지 않은 장'}]}
+ };
+ assert(contract.validateShape(partialReport).errors.includes('cover highlight targets omitted chapter: year_2027_money'));
+ partialReport.cover.highlights[2]={sectionId:'year_2027',title:'2027년',description:'그해 계산 범위'};
+ assert(!contract.validateShape(partialReport).errors.some(e=>e.includes('cover highlight targets omitted chapter')),'valid references to drafted sections must remain accepted');for(const ending of ['참고 자료로만 활용하시기 바랍니다.','실제 미래 사건을 예측한 결과는 아닙니다.']){
   const probe={...noCover,finalJudgment:{...noCover.finalJudgment,closingQuestion:ending}};
   assert(require('./report-quality-node').validate(probe,{}).errors.includes('final conclusion is disclaimer instead of personal insight'),'disclaimer conclusion must fail quality gate: '+ending);
  }
