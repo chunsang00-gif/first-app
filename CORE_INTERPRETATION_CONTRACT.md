@@ -101,6 +101,15 @@
 - `report-stem-connections-tests.js`는 실제 양력·음력·시주 미상 및 합성 명식에서 정확한 투간과 같은 오행만의 뿌리, 음양 차이, 일간 역할, 출처 ID 일치, **근거 위조·누락 거부**를 검사한다. `npm test`에 편입했다.
 - **해석 한계:** 투간·통근은 기호와 위치의 대응일 뿐 **사령, 근의 세기, 합충으로 유지되는지, 최종 신강·신약·용신, 실제 성격·미래 결과**를 증명하지 않는다. 다른 학파의 통근 가중치는 미채택이다. 참고: [투간과 통근의 구분](https://wiki.openfate.ai/ko/bazi/hidden-stems-roots/exposed-stems-vs-roots) · [동주 통근의 범위와 한계](https://clarifyhk.com/learn/bazi/hidden-stems-roots/rooting-within-the-same-pillar).
 
+## 뿌리의 충·계절 조건 분리와 현상태 보존 (2026-10-15)
+- `report-root-conditions.js`는 `report-stem-connections.js`의 **실제 통근 출처 ID**마다 `report-branch-relations.js`의 직접 충 관계를 다시 연결한다. 각 뿌리의 글자·위치·본기/중기/여기, 월지·계절, 동일 오행의 다른 뿌리 근거를 함께 보존한다. 존재하지 않는 뿌리를 만들거나 기존 지장간을 삭제하지 않는다.
+- **원국 충과 세운 충은 다른 층**이다. `natal.clashes`에는 출생 기둥 사이의 충, `year.clashes`에는 2027년 연지에서 해당 출생 지지로 들어오는 충을 기록한다. 합·형·파·해와 세 글자 조합 역시 별도의 `otherPairs`·`completeGroups`로 기록하며 **'충이 합을 무효화' 같은 자동 결론을 내지 않는다.**
+- 월지의 계절과 출생 지지 뿌리가 함께 있어도 사령, 충의 실제 파괴력, 합화, 강약·용신이 **수치로 계산된 것은 아니다**. `remainingRootAvailability:'not-assessed'`, `quantitativeEffect:'not-computed'`, `canDeleteRootForClash:false`로 명시한다. **충이 있다고 뿌리를 자동 삭제하지 않는다.**
+- `facts.rootConditions`는 실제 출생·세운 기둥에서 `report-calculation-integrity.js` 및 `report-interpretation-invariants.js`로 독립 재계산한다. 다르면 **유료 모델 호출 전 차단**한다.
+- 실제 유료 AI에는 모든 천간의 거대한 관계망 대신, `report-generation-request.js`에서 **일간의 뿌리와 그 출생·2027년 충의 위치 및 대체 뿌리 ID만 추린 근거**를 `facts.rootConditions`로 전달한다. `saju_core.temperament`는 기존 계절·오행·투간/통근·월간 위치와 **뿌리 조건 근거까지 함께 인용**해야 하며, 누락 시 응답을 거부한다.
+- `report-root-conditions-tests.js`는 실제 양력·음력·출생시각 미상 사례, 원국 충과 세운 충의 구분, 계절 전환월, 임의 점수·뿌리 삭제 금지, 잘못된 출처, API 근거 누락 차단을 무료 `npm test`에서 검증한다.
+- 별도 해석 전문가가 **월령·지장간 실사령·투간 여부·합충 성립 조건·특수격**을 검토하기 전에는 뿌리가 '강하다/없어졌다' 또는 '용신이다'라고 내보내지 않는다. 참고: [뿌리와 충의 조건부 평가](https://wiki.openfate.ai/en/bazi/hidden-stems-roots/roots-damaged-by-clashes) · [충 당한 월령과 출생 계절의 분리](https://clarifyhk.com/learn/bazi/strength-month-command/clashed-month-command-strength).
+
 ## 아직 계산되지 않거나 증명되지 않는 것
 - 신강/신약, 용신/기신 및 사령·월령의 상세한 강약 판정
 - 지지 관계 표에 없는 추가 학파별 관계·합화 성립 및 형·파·해의 해석 조건과 우선순위, 월별 미래 사건
