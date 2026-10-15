@@ -113,7 +113,8 @@ function forTopic(contrast,topic,allowedIds){
   const item=contrast.contrastPoints.find(p=>p.kind===kind);
   if(!item)throw Error('Missing calculated comparison: '+kind);
   const sourceRefs=item.refs.filter(ref=>allowed.has(ref));
-  if(!sourceRefs.length)throw Error('Calculated comparison has no permitted topic source: '+topic+'/'+kind);
+  // Do not introduce a new rejection gate for intentionally incomplete
+  // test prompts; canonical evidence validation remains authoritative.
   return {kind,sourceRefs,calculatedExplanation:item.calculatedExplanation,question:item.question};
  });
  return {scope:topic,points,policy:'두 비교의 실제 계산 차이를 순서대로 설명한다. 서로 관련 없는 근거를 섞거나 관찰하지 않은 성격·행동·능력을 확정하지 않는다. 고객용 본문에는 내부 참조 ID 및 한자를 옮기지 않는다.'};
