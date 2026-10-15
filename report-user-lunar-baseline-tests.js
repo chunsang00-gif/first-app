@@ -76,6 +76,19 @@ wrongDate.calculationInput.birthDate='1982-11-25';
 assert(integrity.verify(wrongDate).errors.includes('birth-input-chart-mismatch'));
 
 const blueprint=guidance.preflight(expected);
+const scope=require('./report-chapter-selection').select([
+ ['saju_core','mbti_contradiction'],['decision','stress'],
+ ['money','career'],['relationship','integrated_judgment'],
+ ['year_2027','year_2027_money'],['year_2027_career','year_2027_relationship']
+],blueprint);
+assert(scope.canGenerate,'real lunar+ISFP input must be evaluated for two distinct grounded life domains: '+scope.issues.join(', '));
+assert(scope.supportedDomains.length>=2);
+console.log('USER_LUNAR_INTERPRETATION_SCOPE '+JSON.stringify({
+ included:scope.plannedIds,omitted:scope.omitted.map(x=>x.id),
+ lifeDomains:scope.supportedDomains,
+ groundedTopics:scope.plannedIds.reduce((n,id)=>n+blueprint[id].activeTopicKeys.length,0),
+ paidCalls:0
+}));
 const preflight=invariant.verify(expected,blueprint);
 assert.equal(preflight.pass,true,preflight.errors.join('; '));
 assert.equal(blueprint.saju_core.topicTasks.temperament.mode,'use-primary');
