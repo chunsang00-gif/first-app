@@ -103,5 +103,60 @@ function inspect(prompt){
  }
  return errors;
 }
+// A full server prompt can be correct while the much smaller JSON sent to
+// the provider has silently lost the instructions. Audit THAT actual boundary
+// before any paid API request. A future edit to compile() must not reintroduce
+// the same "rules were written, but the model never received them" failure.
+function inspectTransport(prompt,actual){
+ const errors=[];
+ if(!actual||actual.version!=='evidence-first-v1'||actual.stage!==prompt?.stage)
+  return ['missing-or-invalid-paid-provider-payload'];
+ const task=actual.task||{};
+ if(prompt.stage==='body'){
+  const expectedBrief=prompt.editorialTask||null;
+  if(task.editorialGoal!==expectedBrief)
+   errors.push('body-editorial-brief-dropped');
+  if(JSON.stringify(task.previousSections)!==JSON.stringify(prompt.priorSections||[]))
+   errors.push('previous-report-conclusions-dropped');
+  const expectedReusable=(prompt.rules?.reusedEvidenceWithPriorConclusions||[]);
+  if(JSON.stringify(task.reusedEvidence)!==JSON.stringify(expectedReusable.map(
+   ({path,chapter,topic,previousConclusion})=>({path,chapter,topic,previousConclusion}))))
+   errors.push('verified-prior-evidence-dropped');
+  for(const id of prompt.requestedSections||[]){
+   const upstream=prompt.analysisGuidance?.chapterTasks?.[id]||{};
+   const chapter=task.chapters?.[id];
+   if(!chapter){errors.push('provider-chapter-missing:'+id);continue}
+   if(chapter.analysisGoal!==(prompt.rules?.sectionGoals?.[id]||null))
+    errors.push('chapter-depth-goal-dropped:'+id);
+   if(chapter.analysisFocus!==(upstream.focus||null))
+    errors.push('chapter-focus-dropped:'+id);
+   if(chapter.safety?.avoid!==(upstream.avoid||''))
+    errors.push('chapter-safety-dropped:'+id);
+   const plan=prompt.analysisGuidance?.editorialBlueprint?.[id];
+   if(chapter.anchor!==plan?.anchorTopic||
+     JSON.stringify(Object.keys(chapter.topics||{}))!==JSON.stringify(Object.keys(plan?.topicTasks||{})))
+    errors.push('grounded-topic-plan-dropped:'+id);
+  }
+  const mbti=prompt.analysisGuidance?.mbtiReference;
+  if(Boolean(actual.source?.['person.mbti'])!==Boolean(mbti))
+   errors.push('mbti-input-source-dropped-or-invented');
+  if(JSON.stringify(task.comparisonContract)!==JSON.stringify(prompt.analysisGuidance?.comparisonContract||null))
+   errors.push('independent-framework-contract-dropped');
+ }else if(prompt.stage==='synthesis'){
+  if(task.editorialGoal!==(prompt.rules?.finalEditingTask||null))
+   errors.push('final-editorial-brief-dropped');
+  if(JSON.stringify(task.completedReport)!==JSON.stringify(prompt.completedReport))
+   errors.push('validated-chapters-dropped-from-synthesis');
+ }
+ return errors;
+}
+function assertTransport(prompt,actual){
+ const errors=inspectTransport(prompt,actual);
+ if(errors.length){
+  console.error('[Paid provider transport audit]',{stage:prompt?.stage,errors});
+  throw Error('AI report service lost verified writing instructions before provider request');
+ }
+ return actual;
+}
 function assert(prompt){const errors=inspect(prompt);if(errors.length){console.error('[Report instruction audit]',{stage:prompt.stage,errors});throw Error('AI report service has contradictory generation instructions')}return prompt}
-module.exports={inspect,assert};
+module.exports={inspect,assert,inspectTransport,assertTransport};
