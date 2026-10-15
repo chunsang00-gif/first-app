@@ -264,34 +264,12 @@ function preflight(packet){
   task.annualDomainLimit=relationship.annualDomainEvidence.rule;
   task.interpretationBoundary=relationship.annualDomainEvidence.rule;
  }
- // Build an evidence-allocation ledger in actual model generation order.
- // One calculated fact may answer more than one question, but the same
- // interpretation is not a second paid insight. Every reuse gets a distinct
- // question and an explicit ban on recycling the first owner's conclusion.
- const writingOrder=['saju_core','mbti_contradiction','decision','stress','money','career','relationship','integrated_judgment','year_2027','year_2027_money','year_2027_career','year_2027_relationship'];
- const allocated=new Map();
- for(const id of writingOrder){
-  const tasks=plans[id]?.topicTasks||{};
-  for(const [topic,task] of Object.entries(tasks)){
-   if(task.mode==='state-limits'){
-    task.evidenceReuseBoundary=null;
-    continue;
-   }
-   // A missing primary fact must not claim ownership or create a false reuse boundary.
-   const paths=(task.allowedSourceRefs?.length?task.allowedSourceRefs:task.mode==='use-primary'?[task.primaryEvidencePath]:task.mode==='use-verified-fallback'?task.verifiedFallbackPaths:[]).filter(Boolean);
-   const prior=paths.flatMap(path=>(allocated.get(path)||[]).map(owner=>({path,chapter:owner.chapter,topic:owner.topic,question:owner.question})));
-   task.evidenceReuseBoundary=prior.length?{
-    priorOwners:prior,
-    distinctQuestion:task.question,
-    rule:'이 계산값은 위 항목에서 이미 사용됐다. 앞 항목의 행동 결론을 다시 쓰지 말고, 현재 질문에 직접 연결되는 서로 다른 전통적 의미가 확인될 때만 설명한다. 새로운 의미가 없으면 이 질문에 대한 추가 판단 근거가 부족하다고 명확히 적는다.'
-   }:null;
-   for(const path of paths){
-    const owners=allocated.get(path)||[];
-    owners.push({chapter:id,topic,question:task.question});
-    allocated.set(path,owners);
-   }
-  }
- }
+ // Do not pre-label a POSSIBLE future source as already cited in another
+ // chapter. Optional topics may correctly return null, and an unused plan is
+ // not evidence of a repeated interpretation. Once actual paragraphs exist,
+ // report-source-ledger.reusedBefore() traces their VERIFIED cited rows and
+ // conclusions into the next batch. Within a batch, the writer compares
+ // actual drafted paragraphs before selecting another optional topic.
  // When a REAL seasonal observation exists, the core month interpretation
  // must cite it directly, not merely infer season from a hidden-stem name.
  if(packet.facts?.seasonalEvidence&&plans.saju_core?.topicTasks?.temperament?.mode!=='state-limits')
