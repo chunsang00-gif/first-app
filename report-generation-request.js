@@ -31,6 +31,8 @@ function compile(prompt){
   chapters:Object.fromEntries(prompt.requestedSections.map(id=>{
    const p=prompt.analysisGuidance.editorialBlueprint[id];
    return [id,{question:p.question,anchor:p.anchorTopic,
+    comparisonEvidence: id==='mbti_contradiction'&&source['person.mbti']?
+     'MBTI 비교 문단은 입력된 MBTI 선호(person.mbti)와 실제 원국 위치(natal.*)를 모두 인용한다. 같은 결론이어도 된다. 사주가 확인한 실제 행동인 것처럼 쓰지 않는다.':null,
     safety:{avoid:prompt.analysisGuidance.chapterTasks?.[id]?.avoid||'',evidenceBoundary:p.evidenceBoundary||''},
     topics:Object.fromEntries(Object.entries(p.topicTasks).map(([key,t])=>[key,{
      question:t.question,mode:t.mode,sourcePath:t.primaryEvidencePath,fallbackPaths:t.verifiedFallbackPaths,
@@ -56,7 +58,7 @@ function schema(prompt,transport){
    if(p.type!=='object')continue;
    const task=payload.task.chapters[chapterId]?.topics[topic];
    if(!task)throw Error('Missing canonical topic plan: '+chapterId+':'+topic);
-   const permitted=[...allowedRefs(payload,task)];
+   const permitted=[...allowedRefs(payload,task,chapterId,topic)];
    if(task.mode!=='state-limits'&&!permitted.length)throw Error('Missing topic source mapping: '+chapterId+':'+topic);
    const refs=task.mode==='state-limits'?[]:permitted;
    const basis=object({refs:task.mode==='state-limits'?{type:'array',items:{type:'string',enum:ids},description:'직접 근거가 없으므로 반드시 빈 배열을 반환한다.'}:{type:'array',items:{type:'string',enum:refs}},interpretation:{type:'string'},condition:{type:'string'},limit:{type:'string'}});
@@ -67,7 +69,7 @@ function schema(prompt,transport){
  return result;
 }
 // Source relevance is checked against the canonical per-topic plan, not merely source existence.
-function allowedRefs(payload,task){
+function allowedRefs(payload,task,chapterId,topic){
  const paths=task?.mode==='use-primary'?[task.sourcePath]:task?.mode==='use-verified-fallback'?task.fallbackPaths||[]:[];
  const ids=new Set();
  for(const path of paths){
@@ -85,6 +87,12 @@ function allowedRefs(payload,task){
   // The complete ten-god structure is represented by all position-bound rows.
   if(path==='facts.annualTenGods.hiddenStems'&&Object.hasOwn(payload.source,'facts.annualTenGods')&&Array.isArray(payload.source['facts.annualTenGods']?.hiddenStems)&&payload.source['facts.annualTenGods'].hiddenStems.length)ids.add('facts.annualTenGods');
   if(path==='facts.tenGods')for(const id of Object.keys(payload.source))if(id.startsWith('natal.'))ids.add(id);
+ }
+ // A comparison must cite both the submitted MBTI preferences and
+ // at least one exact natal row. It cannot compare one theory to itself.
+ if(chapterId==='mbti_contradiction'&&payload.source['person.mbti']&&task.mode!=='state-limits'){
+  ids.add('person.mbti');
+  for(const id of Object.keys(payload.source))if(id.startsWith('natal.month.'))ids.add(id);
  }
  return ids;
 }
@@ -109,7 +117,10 @@ function restoreEvidence(value,prompt){
     if(b.refs.length)throw Error('AI report service fabricated sources for unsupported topic: '+id+':'+topic);
     if(!/근거|확인|판단|자료|한계|부족|없|미상|알 수/.test(b.limit))throw Error('AI report service missing explicit evidence limit: '+id+':'+topic);
    }else{
-    const allowed=allowedRefs(payload,task);
+    const allowed=allowedRefs(payload,task,id,topic);
+    if(payload.source['person.mbti']&&id==='mbti_contradiction'&&!(
+     b.refs.includes('person.mbti')&&b.refs.some(ref=>ref.startsWith('natal.'))
+    ))throw Error('AI report service missing dual MBTI/Saju evidence: '+id+':'+topic);
     if(!allowed.size||b.refs.some(ref=>!allowed.has(ref)))throw Error('AI report service unrelated paragraph basis: '+id+':'+topic);
    }
    chapter.evidence.push(topic+': '+b.refs.map(ref=>{const s=payload.source[ref];return s.position?ref+' ('+s.position+' '+s.stem+' '+s.tenGod+')':ref;}).join('; ')+' / 해석: '+b.interpretation+' / 조건: '+b.condition+' / 한계: '+b.limit);
