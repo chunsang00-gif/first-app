@@ -19,7 +19,7 @@ function verify(packet,plan){
   if(!packet.chart||
      !same(packet.facts.seasonalEvidence,require('./report-seasonal-evidence').evaluate(packet.chart)))
    errors.push('calculated-seasonal-context-mismatch');
-  if(packet.facts.qiEvidence&&!same(packet.facts.qiEvidence,require('./report-qi-evidence').build(packet.chart)))
+  if(packet.facts.qiEvidence&&!same(packet.facts.qiEvidence,require('./report-qi-evidence').build(packet.chart,packet.facts.solarTermTiming)))
    errors.push('calculated-positional-qi-context-mismatch');
   const topic=plan.saju_core?.topicTasks?.temperament;
   if(topic?.mode!=='state-limits'&&
