@@ -16,16 +16,26 @@ function usedPaths(section,topic){
  return [...new Set(portion.split('; ').map(segment=>segment.trim().split(/[ (]/,1)[0])
   .filter(x=>/^(?:natal\.(?:year|month|day|hour)\.(?:stem|hidden\.[^\s;]+)|facts\.[a-zA-Z][\w.]*(?:\.[\w]+)*|fortune\.activeDecade|person\.mbti)$/.test(x)))];
 }
-function reusedBefore(nextIds,blueprint,priorSections){
- const needed=new Set(nextIds.flatMap(id=>Object.values(blueprint[id]?.topicTasks||{})
-  .flatMap(allowedPaths)));
+function reusedBefore(nextIds,blueprint,priorSections,packet){
+ // When a real fact packet exists, use exactly the provider's permitted
+ // sources; a broad plan path may represent one or more positional natal rows.
+ const generator=packet?.facts?require('./report-generation-request'):null;
+ const relevantIds=[...new Set([...nextIds,...(priorSections||[]).map(s=>s.id)])];
+ const compiled=generator?.compile({stage:'body',facts:packet,requestedSections:relevantIds,
+  analysisGuidance:{editorialBlueprint:blueprint}})||null;
+ const candidates=(id,topic,task)=>{
+  const defined=compiled?.task?.chapters?.[id]?.topics?.[topic];
+  return defined? [...generator.allowedRefs(compiled,defined,id,topic)] : allowedPaths(task);
+ };
+ const needed=new Set(nextIds.flatMap(id=>Object.entries(blueprint[id]?.topicTasks||{})
+  .flatMap(([topic,task])=>candidates(id,topic,task))));
  const result=[];
  for(const section of priorSections||[]){
   const tasks=blueprint[section.id]?.topicTasks||{};
   for(const [topic,task] of Object.entries(tasks)){
    const index=section.bodyTopics?.indexOf(topic)??-1;
    if(index<0)continue;
-   const permitted=new Set(allowedPaths(task));
+   const permitted=new Set(candidates(section.id,topic,task));
    const actual=usedPaths(section,topic);
    for(const path of actual){
     if(!permitted.has(path)||!needed.has(path))continue;
