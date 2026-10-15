@@ -49,4 +49,29 @@ assert(relation.natal({year:'甲辰',month:'乙辰',day:'丙子',hour:null}).pai
 assert.deepEqual(relation.natal({year:'甲辰',month:null,day:'丙子',hour:null}).pairs.filter(x=>x.type==='형'),[]);
 assert.throws(()=>relation.pairRelations('A','未'),/invalid branch/);
 assert.throws(()=>relation.annual(chart,'甲?'),/invalid annual/);
+// Exercise the actual lunar/solar provider instead of testing only hand
+// written pillar strings: the source chart, emitted relation facts and the
+// strict pre-provider integrity check must always agree.
+const facts=require('./report-facts-node');
+const integrity=require('./report-calculation-integrity');
+for(const y of [1982,1990,2000,2024])for(const month of [1,3,5,7,9,11]){
+ const packet=facts.build({
+  calendar:'solar',birthDate:y+'-'+String(month).padStart(2,'0')+'-15',
+  birthTime:'14:20',gender:'male',mbti:'ISFP'},2027);
+ assert.equal(packet.status,'ready');
+ assert.deepEqual(packet.facts.natalBranchRelations,relation.natal(packet.chart));
+ assert.deepEqual(packet.facts.targetYearBranchRelations,
+  relation.annual(packet.chart,packet.targetYear.pillar));
+ const validation=integrity.verify(packet);
+ assert.deepEqual(validation.errors,[],y+'-'+month+': '+validation.errors.join('; '));
+}
+for(const input of [
+ {calendar:'lunar',birthDate:'1995-05-12',birthTime:'14:20',gender:'female'},
+ {calendar:'solar',birthDate:'2001-11-03',unknownBirthTime:true,gender:'male'}
+]){
+ const packet=facts.build(input,2027);
+ assert.equal(packet.status,'ready');
+ assert(integrity.verify(packet).pass);
+ if(input.unknownBirthTime)assert(!packet.facts.targetYearBranchRelations.pairs.some(x=>x.between==='hour'));
+}
 console.log('PASS complete standard branch pair tables, overlaps, group membership, unknown-hour and no assumed transformations; no paid API');
