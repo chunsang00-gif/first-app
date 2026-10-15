@@ -23,6 +23,8 @@ jobs:
         with:
           node-version: '22'
       - run: npm install --no-audit --no-fund
+      - name: Run all offline safety and report tests before paying
+        run: npm test && npm run smoke
       - name: Verify configuration without exposing secrets
         shell: bash
         run: |
