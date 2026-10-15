@@ -23,6 +23,8 @@ const offlineResult=offlineReplay(offlineFixture);
 assert.equal(offlineResult.chapterCount,2);
 assert.equal(offlineResult.topicCount,2);
 assert(offlineResult.originalErrors.includes('historic rejection'));
+assert.equal(offlineResult.semanticReview.releaseVerdict,'not-assessed');
+assert.equal(offlineResult.semanticReview.requiresHumanReview,true);
 assert.throws(()=>offlineReplay({report:{sections:null}}),/report.sections/);
 
 const hanjaFindings=require('./inspect-paid-qa').inspect({calls:[{number:6,response:{sections:[{id:'year_2027_career',title:'직업운',keyJudgment:'丁未년 직업 판단',body:['한글 문장'],bodyLabels:['관계']}]}}]});
@@ -414,6 +416,9 @@ for(const a of ['I','E'])for(const b of ['S','N'])for(const c of ['T','F'])for(c
  // Never mistake completed provider calls for a publishable report.
  assert.equal(dryRun.status,'rejected');
  assert.equal(dryRun.qa.pass,false);
+ assert.equal(dryRun.qa.semanticReview.releaseVerdict,'not-assessed','automated semantic review is never a release certificate');
+ assert.equal(dryRun.qa.semanticReview.requiresHumanReview,true);
+ assert(dryRun.qa.semanticReview.findings.every(f=>!Object.hasOwn(f,'excerpt')),'do not leak report sentences into QA metadata');
  assert(dryRun.qa.errors.length>0);
  assert(dryRun.report.sections.every(section=>section.body.length>=1),'all chapters retain a meaningful topic');assert(dryRun.report.sections.reduce((count,section)=>count+section.body.length,0)<=28,'optional report topics do not add filler');
  assert.equal(calls,seen.length);assert(seen.filter(stage=>stage==='body').length>=1);assert.equal(seen.at(-1),'synthesis');
