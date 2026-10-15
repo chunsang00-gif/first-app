@@ -68,7 +68,7 @@ function verify(packet){
  if(!same(structure.visibleStems,expectedVisible))errors.push('incorrect-visible-stems');
  const expectedSeasonal=require('./report-seasonal-evidence').evaluate(chart);
  if(!same(facts.seasonalEvidence,expectedSeasonal))errors.push('incorrect-monthly-seasonal-evidence');
- const expectedQi=require('./report-qi-evidence').build(chart);
+ const expectedQi=require('./report-qi-evidence').build(chart,facts.solarTermTiming);
  if(!same(facts.qiEvidence,expectedQi))errors.push('incorrect-positional-qi-evidence');
  const expectedAnnual=expectedFor(actualYear,day,'annual');
  if(!same(facts.annualTenGods,expectedAnnual))errors.push('incorrect-annual-ten-gods');
