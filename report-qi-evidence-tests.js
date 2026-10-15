@@ -72,7 +72,7 @@ for(const input of [
 ]){
  const packet=facts.build(input,2027);
  assert.equal(packet.status,'ready');
- assert.deepEqual(packet.facts.qiEvidence,qi.build(packet.chart));
+ assert.deepEqual(packet.facts.qiEvidence,qi.build(packet.chart,packet.facts.solarTermTiming));
  const sourceRows=binding.build(packet);
  const sourceIds=new Map(sourceRows.map(row=>[row.id,row]));
  for(const row of packet.facts.qiEvidence.entries){
