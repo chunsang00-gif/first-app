@@ -13,7 +13,13 @@ const schema=require('./report-schema.json');
  assert(payload.task.chapters.saju_core.safety.avoid.includes('상관'),'core interpretation limitation must survive compact compilation');
  assert(payload.task.chapters.mbti_contradiction.safety.avoid.includes('우열'),'MBTI comparison safety must survive compact compilation');
  assert(payload.task.chapters.saju_core.topics.temperament.interpretationBoundary.includes('전통적 해석'),'topic evidence limits must survive compact compilation');
- const moneyRequest=generation.compile({...prompt,requestedSections:['money','year_2027_money']});
+ const scopedIds=['money','year_2027_money'];
+ const guidance=require('./report-analysis-guidance');
+ const allPlans=guidance.preflight(prompt.facts);
+ const moneyRequest=generation.compile({...prompt,requestedSections:scopedIds,analysisGuidance:{
+  ...guidance.forRequest(scopedIds,prompt.facts.person?.mbti),
+  editorialBlueprint:Object.fromEntries(scopedIds.map(id=>[id,allPlans[id]]))
+ }});
  assert(moneyRequest.task.chapters.money.safety.avoid.includes('금전'),'money-specific prohibitions must reach writer');
  assert(moneyRequest.task.chapters.year_2027_money.annualScope,'annual domain evidence gate must remain visible');
  assert(moneyRequest.task.chapters.money.topics.earning.evidenceReuseBoundary?.rule,'prior fact ownership must remain visible to writer');
