@@ -53,8 +53,9 @@ const {createQueue,retryDelay,rateLimitKind}=require('./report-request-control')
  const annualSample=require('./report-facts-node').build({calendar:'solar',birthDate:'1990-05-15',birthTime:'10:30',gender:'male',mbti:'INTJ'},2027);
  const annualPlan=require('./report-analysis-guidance').preflight(annualSample);
  const moneyFacts=annualPlan.money.topicTasks.earning;
- assert(moneyFacts.allowedSourceRefs?.length,'money explanation must have financially classified natal evidence');
+ assert(Array.isArray(moneyFacts.allowedSourceRefs),'money must have a calculated source eligibility list');
  assert(moneyFacts.allowedSourceRefs.every(x=>x.startsWith('natal.')),'money cannot borrow generic structural labels');
+ assert.equal(moneyFacts.mode,moneyFacts.allowedSourceRefs.length?'use-primary':'state-limits');
  assert.equal(annualPlan.money.topicTasks.risk.mode,'state-limits','a natal clash alone must not become a financial-loss prediction');
  assert.equal(annualPlan.saju_core.topicTasks.temperament.evidenceReuseBoundary,null,'original evidence owner must not claim prior reuse');
  const noAnnualSignal={...annualSample,facts:{...annualSample.facts,annualTenGods:{stemTenGod:'알수없음',hiddenStems:[]},targetYearRelations:[]}};
