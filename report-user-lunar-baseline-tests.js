@@ -19,6 +19,20 @@ const normalized=correctSolar.toYmd();
 assert.notEqual(normalized,birth.birthDate,'lunar date must be solar-converted before pillars');
 const provided=calendar.calculate(birth);
 assert.equal(provided.status,'complete');
+const independentReference={
+ solarDate:'1983-01-07',
+ chart:{year:'壬戌',month:'癸丑',day:'乙未',hour:'癸未'},
+ year2027:'丁未'
+};
+// Fixed external references, not values calculated by the same library:
+// https://wikidocs.net/249512
+// https://datedb.net/tool/saju-worksheet/19830107/
+// https://sajuclass.com/명리-사전/역법-명식/시두법/
+assert.equal(provided.solarDate,independentReference.solarDate,
+ 'external lunar-to-solar oracle: 1982-11-24 lunar converts to January 7, not January 8');
+assert.deepEqual(provided.chart,independentReference.chart,
+ 'external independent year/month/day oracle plus time-head table');
+
 assert.equal(provided.solarDate,normalized);
 const convertedInput={...birth,calendar:'solar',birthDate:normalized};
 const solarEquivalent=calendar.calculate(convertedInput);
@@ -36,6 +50,7 @@ const expected=facts.build(birth,2027);
 const exactSolar=facts.build(convertedInput,2027);
 const wrongFacts=facts.build({...birth,calendar:'solar'},2027);
 assert.equal(expected.status,'ready');
+assert.equal(expected.targetYear.pillar,independentReference.year2027);
 assert.equal(exactSolar.status,'ready');
 assert.equal(expected.calculationInput.calendar,'lunar');
 assert.equal(expected.calculationInput.leapMonth,false);
