@@ -49,4 +49,18 @@ for(const input of inputCases){
  assert.equal(actual.pass,true);
  assert(!core.natalRows(p).some(row=>row.position==='hour'&&input.unknownBirthTime));
 }
+// Prevent the previous structural regression where every 2027 money and
+// career chapter was disabled regardless of the person's actual chart.
+const positive={money:0,career:0};
+for(const year of [1985,1991,2003])for(const month of [1,3,5,7,9,11]){
+ const birth=facts.build({calendar:'solar',birthDate:year+'-'+String(month).padStart(2,'0')+'-15',
+  birthTime:'12:00',gender:'male',mbti:'ISFP'},2027);
+ assert.equal(birth.status,'ready');
+ const preflight=guidance.preflight(birth);
+ const integrity=invariant.verify(birth,preflight);
+ assert.equal(integrity.pass,true,'calculated chart must satisfy the interpretation contract: '+year+'-'+month+' / '+integrity.errors.join(','));
+ for(const id of Object.keys(positive))if(preflight['year_2027_'+id].annualDomainEvidence.relevant)positive[id]++;
+}
+assert(positive.money>0,'fatal regression: no real chart supports an independent annual money comparison');
+assert(positive.career>0,'fatal regression: no real chart supports an independent annual career comparison');
 console.log('PASS final interpretation invariants over real solar/lunar/unknown-time packets and tampered plans, no paid API');
