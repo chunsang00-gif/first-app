@@ -36,7 +36,27 @@ function verify(packet,plan){
   }else if([change,action].some(task=>task.mode!=='state-limits'||task.evidencePresent))
    errors.push('unsupported-year-domain-scope:'+id);
  }
- for(const [chapterId,chapter] of Object.entries(plan)){
+ const dayContext=packet.facts?.targetYearBranchContext?.annualContext?.day;
+ if(dayContext){
+  const chapter=plan.year_2027_relationship;
+  const relevant=dayContext.eligibleForLimitedDescription;
+  if(!chapter?.annualDomainEvidence||
+     chapter.annualDomainEvidence.relevant!==relevant||
+     !same(chapter.annualDomainEvidence.directRelationTypes||[],dayContext.directTypes)||
+     chapter.annualDomainEvidence.priority!=='unresolved'||
+     chapter.annualDomainEvidence.transformation!=='not-assessed')
+   errors.push('year-relationship-branch-context-mismatch');
+  const change=chapter?.topicTasks?.change,action=chapter?.topicTasks?.action;
+  if(relevant){
+   if(change?.mode!=='use-primary'||!change.evidencePresent||
+      change.primaryEvidencePath!=='facts.targetYearBranchContext.annualContext.day'||
+      !same(change.allowedSourceRefs||[],['facts.targetYearBranchContext.annualContext.day'])||
+      action?.mode!=='state-limits'||action?.evidencePresent)
+    errors.push('year-relationship-source-mismatch');
+  }else if([change,action].some(t=>t?.mode!=='state-limits'||t?.evidencePresent))
+   errors.push('unsupported-year-relationship-interpretation');
+ }
+  for(const [chapterId,chapter] of Object.entries(plan)){
   const enabled=Object.values(chapter.topicTasks||{}).filter(task=>task.mode!=='state-limits');
   if(Boolean(enabled.length)!==Boolean(chapter.evidencePresent))
    errors.push('chapter-evidence-status-drift:'+chapterId);
@@ -54,7 +74,9 @@ function verify(packet,plan){
     if(task.evidenceReuseBoundary)errors.push('blocked-topic-owns-calculation-source:'+chapterId+':'+topic);
    }
    if(Array.isArray(task.allowedSourceRefs)){
-    const missing=task.allowedSourceRefs.filter(id=>!ids.has(id));
+    const permitted=new Set([...ids,'facts.targetYearBranchContext.annualContext.day']);
+    const missing=task.allowedSourceRefs.filter(id=>!permitted.has(id)||
+      (id==='facts.targetYearBranchContext.annualContext.day'&&!dayContext));
     if(missing.length)errors.push('unresolved-source-ids:'+chapterId+':'+topic);
    }
   }
