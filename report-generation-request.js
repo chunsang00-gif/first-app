@@ -20,7 +20,30 @@ function sources(prompt){
  // that could be cited for an unrelated personality claim.
  for(const path of ['facts.seasonalEvidence','facts.qiEvidence','facts.stemConnections','facts.rootConditions','facts.structuralEvidence.monthCommand','facts.structuralEvidence.dayMasterRoots','facts.structuralEvidence.visibleStems','facts.natalClashes','facts.annualTenGods','facts.targetYearRelations','facts.targetYearBranchContext.annualContext.day','fortune.activeDecade']){
   const value=path.split('.').reduce((v,k)=>v?.[k],p);
-  if(value!=null)result[path]=value;
+  if(value!=null){
+   if(path==='facts.rootConditions'){
+    // Only the Day Master roots, their exact adverse counterparts, and
+    // remaining observed alternatives enter the paid writer. Never export
+    // the entire multi-stem graph or imply a numeric fortune forecast.
+    result[path]={
+     version:value.version,annualPillar:value.annualPillar,
+     dayMasterRootCases:value.dayMasterRootCases.map(x=>({
+      rootId:x.rootId,rootStem:x.rootStem,rootPosition:x.rootPosition,
+      rootBranch:x.rootBranch,rootLayer:x.rootLayer,matchType:x.matchType,
+      seasonalContext:x.seasonalContext,
+      natalClashes:x.natal.clashes.map(v=>({branches:v.branches,positions:v.positions})),
+      annualClashes:x.year.clashes.map(v=>({branches:v.branches,between:v.between})),
+      natalOtherInteractions:x.natal.otherPairs.map(v=>({type:v.type,branches:v.branches,positions:v.positions})),
+      annualOtherInteractions:x.year.otherPairs.map(v=>({type:v.type,branches:v.branches,between:v.between})),
+      alternativeRootIds:x.alternativeRootIds,
+      actualRootStrength:'not-assessed',rootDeleted:false
+     })),
+     unknownBirthHour:value.unknownBirthHour,
+     rootDeletionPolicy:value.rootDeletionPolicy,
+     strengthVerdict:value.strengthVerdict,limits:value.limits
+    };
+   }else result[path]=value;
+  }
  }
  const mbti=prompt.analysisGuidance?.mbtiReference||require('./report-analysis-guidance').forRequest([],p?.person?.mbti).mbtiReference;
  if(mbti)result['person.mbti']=mbti;
