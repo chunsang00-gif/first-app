@@ -4,7 +4,7 @@
 const domains=new Set(['money','career','relationship','stress','year_2027_money','year_2027_career','year_2027_relationship']);
 const annualDomains=new Set(['year_2027_money','year_2027_career','year_2027_relationship']);
 const limited=/단정(?:할|하지)|확정(?:할|하지)|증명(?:할|되지)|알 수 없|판단할 수 없|확인할 수 없|예측(?:할|하지)|보장(?:할|하지)|(?:아니|않)(?:라|습니다)|가정(?:하면|에서|이)/;
-const predictedEvent=/(?:수입|매출|연봉|재산|돈|자산).{0,18}(?:늘어|증가|오릅|늘어납|불어납|줄어듭|감소)|(?:승진|합격|이직|퇴사|결혼|이별|이혼|취업|당첨)(?:하(?:게\s*됩니다|게\s*될|겠습니다|게\s*돼|는\s*해)|됩|할\s*것|하게\s*될)/;
+const predictedEvent=/(?:수입|매출|연봉|재산|돈|자산).{0,18}(?:늘어|증가|오릅|늘어납|불어납|줄어듭|감소)|(?:승진|합격|이직|퇴사|결혼|이별|이혼|취업|당첨)(?:합(?:니다|니까)|하(?:게\s*됩니다|게\s*될|겠습니다|게\s*돼)|됩|할\s*것|하게\s*될)/;
 const observedRecord=/(?:항상|매번|절대|누구보다|반드시).{0,45}(?:합니다|됩니다|해왔습니다|해\s*왔습니다|해요|합니다)|(?:실제로\s*(?:직장|일|투자|돈|가족|연인|상대|사람)).{0,45}(?:합니다|해왔|됩니다)/;
 const annualShared=/정관|편관|정인|편인|정재|편재|비견|겁재|식신|상관/;
 const domainTitle=/수입|소비|지출|돈|보상|금전|일|직업|업무|승진|관계|가족|친밀|연애/;
@@ -36,7 +36,7 @@ function review(report){
      findings.push({...location,code:'annual-event-certainty-review',excerpt:sentence});
     if(domains.has(id)&&observedRecord.test(sentence)&&!limited.test(sentence))
      findings.push({...location,code:'unobserved-behavior-review',excerpt:sentence});
-    if(/\b(쉽게|다시|계속|바로|항상|매번|같이)\s+\1\b/.test(sentence))
+    if(/(쉽게|다시|계속|바로|항상|매번|같이)\s+\1/.test(sentence))
      findings.push({...location,code:'adjacent-word-review',excerpt:sentence});
    }
   }
