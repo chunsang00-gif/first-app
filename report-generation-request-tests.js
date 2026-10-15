@@ -8,6 +8,11 @@ const schema=require('./report-schema.json');
  await assert.rejects(generate({calendar:'solar',birthDate:'1990-05-15',birthTime:'10:30',gender:'male',mbti:'INTJ'},async p=>{prompt=p;throw Error('OFFLINE');}),/OFFLINE/);
  const payload=generation.compile(prompt);
  assert(!Object.hasOwn(payload,'rules'));
+ assert(generation.policy.includes('task.chapters[id].analysisGoal'),
+  'provider system instructions must use the transported per-section depth goal');
+ assert(generation.policy.includes('task.editorialGoal'),
+  'provider system instructions must use the transported final editorial goal');
+
  assert.deepEqual(payload.task.reusedEvidence,prompt.rules.reusedEvidenceWithPriorConclusions||[],
   'the compact writer request must preserve the server reuse ledger');
  const citationReuse={path:'natal.month.stem',chapter:'saju_core',topic:'temperament',
