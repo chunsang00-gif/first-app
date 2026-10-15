@@ -19,10 +19,15 @@ function verify(packet,plan){
   if(!packet.chart||
      !same(packet.facts.seasonalEvidence,require('./report-seasonal-evidence').evaluate(packet.chart)))
    errors.push('calculated-seasonal-context-mismatch');
+  if(packet.facts.qiEvidence&&!same(packet.facts.qiEvidence,require('./report-qi-evidence').build(packet.chart)))
+   errors.push('calculated-positional-qi-context-mismatch');
   const topic=plan.saju_core?.topicTasks?.temperament;
   if(topic?.mode!=='state-limits'&&
      !topic?.requiredSourceKinds?.includes('seasonal'))
    errors.push('missing-canonical-seasonal-topic-requirement');
+  if(packet.facts.qiEvidence&&topic?.mode!=='state-limits'&&
+     !topic?.requiredSourceKinds?.includes('qi-ledger'))
+   errors.push('missing-canonical-qi-ledger-topic-requirement');
  }
  for(const [domain,id] of Object.entries(annualIds)){
   const chapter=plan[id];
