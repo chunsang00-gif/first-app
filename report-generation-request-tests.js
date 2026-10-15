@@ -52,8 +52,8 @@ const schema=require('./report-schema.json');
   ...guidance.forRequest(scopedIds,prompt.facts.person?.mbti),
   editorialBlueprint:Object.fromEntries(scopedIds.map(id=>[id,allPlans[id]]))
  }});
- assert(moneyRequest.task.chapters.money.domainMbtiLens?.preferences.some(p=>p.code==='F'),
-  'the actual model must receive the user-entered F preference for a grounded money comparison');
+ assert(moneyRequest.task.chapters.money.domainMbtiLens?.preferences.some(p=>p.code==='T'),
+  'the actual model must receive this INTJ fixture\'s T preference for a grounded money comparison');
  assert(generation.policy.includes('domainMbtiLens'),
   'the paid provider must know how to use optional MBTI context in practical domains');
  assert.equal(moneyRequest.task.chapters.year_2027_money.domainMbtiLens,null,
