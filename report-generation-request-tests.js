@@ -8,6 +8,15 @@ const schema=require('./report-schema.json');
  await assert.rejects(generate({calendar:'solar',birthDate:'1990-05-15',birthTime:'10:30',gender:'male',mbti:'INTJ'},async p=>{prompt=p;throw Error('OFFLINE');}),/OFFLINE/);
  const payload=generation.compile(prompt);
  assert(!Object.hasOwn(payload,'rules'));
+ assert.deepEqual(payload.task.reusedEvidence,prompt.rules.reusedEvidenceWithPriorConclusions||[],
+  'the compact writer request must preserve the server reuse ledger');
+ const citationReuse={path:'natal.month.stem',chapter:'saju_core',topic:'temperament',
+  previousConclusion:'이전에 월간 근거로 설명한 반응'};
+ const withReuse=generation.compile({...prompt,rules:{
+  ...prompt.rules,reusedEvidenceWithPriorConclusions:[citationReuse]
+ }});
+ assert.deepEqual(withReuse.task.reusedEvidence,[citationReuse],
+  'actual reused calculated source path and previous conclusion must reach the model');
  assert(payload.task.chapters.mbti_contradiction.comparisonEvidence.includes('모두 인용한다'));
  assert(!Object.hasOwn(payload.source,'facts.structuralEvidence'),'wide structural facts must not hide provenance');
  assert(payload.source['facts.structuralEvidence.monthCommand'],'month command must be separately identified');
