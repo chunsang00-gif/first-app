@@ -121,7 +121,8 @@ function verify(packet){
  if(original.calendar&&original.birthDate){
   try{
    const actual=calendar.calculate(original);
-   if(!same(actual.chart,chart))errors.push('birth-input-chart-mismatch');
+   if(actual.status!=='complete'||!same(actual.chart,chart))errors.push('birth-input-chart-mismatch');
+   if(!same(facts.solarTermTiming,actual.solarTermTiming))errors.push('incorrect-birth-solar-term-timing');
   }catch{errors.push('birth-input-calendar-unverifiable');}
  }else errors.push('missing-original-calculation-input');
  return {pass:errors.length===0,errors,version:'calculation-integrity-v1',
