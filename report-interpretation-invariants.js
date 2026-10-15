@@ -21,6 +21,9 @@ function verify(packet,plan){
    errors.push('calculated-seasonal-context-mismatch');
   if(packet.facts.qiEvidence&&!same(packet.facts.qiEvidence,require('./report-qi-evidence').build(packet.chart,packet.facts.solarTermTiming)))
    errors.push('calculated-positional-qi-context-mismatch');
+  if(packet.facts.stemConnections&&(!packet.chart||
+     !same(packet.facts.stemConnections,require('./report-stem-connections').build(packet.chart))))
+   errors.push('calculated-stem-connection-mismatch');
   const topic=plan.saju_core?.topicTasks?.temperament;
   if(topic?.mode!=='state-limits'&&
      !topic?.requiredSourceKinds?.includes('seasonal'))
@@ -31,6 +34,9 @@ function verify(packet,plan){
   if(packet.facts.qiEvidence&&topic?.mode!=='state-limits'&&
      !topic?.requiredSourceKinds?.includes('natal-month-position'))
    errors.push('missing-canonical-month-position-topic-requirement');
+  if(packet.facts.stemConnections&&topic?.mode!=='state-limits'&&
+     !topic?.requiredSourceKinds?.includes('stem-linkage'))
+   errors.push('missing-canonical-stem-connection-topic-requirement');
  }
  for(const [domain,id] of Object.entries(annualIds)){
   const chapter=plan[id];
