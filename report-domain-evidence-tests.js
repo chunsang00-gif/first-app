@@ -49,12 +49,12 @@ const refs=(chapter,topic)=>{
  const item=get(verified,chapter,topic);
  return item.properties?.basis?.properties?.refs?.items?.enum||[];
 };
-assert.deepEqual(refs('money','spending'),['natal.year.stem','natal.day.hidden.乙']);
+assert.deepEqual(refs('money','spending'),['natal.year.stem','natal.day.hidden.乙','person.mbti']);
 assert(!refs('money','earning').includes('natal.month.stem'));
 assert(!refs('career','workstyle').includes('natal.year.stem'));
 assert(refs('career','workstyle').includes('natal.day.hidden.癸'));
 assert(!refs('career','growth').includes('natal.month.hidden.丙'));
-assert.deepEqual(refs('relationship','closeness'),['natal.day.hidden.乙','natal.day.hidden.癸']);
+assert.deepEqual(refs('relationship','closeness'),['natal.day.hidden.乙','natal.day.hidden.癸','person.mbti']);
 assert(!refs('relationship','expression').includes('natal.month.stem'));
 assert(!refs('stress','response').includes('natal.month.hidden.丙'));
 assert(refs('stress','trigger').includes('natal.month.hidden.丙'));
@@ -73,6 +73,32 @@ const raw={chapters:Object.fromEntries(ids.map(id=>{
    [topic,topic===anchor?validParagraph(refs(id,topic).slice(0,1)):null]))}];
 })),cover:null,finalJudgment:null};
 assert.doesNotThrow(()=>generation.restoreEvidence(raw,verified.prompt));
+// Money/work/relationship/stress once read MBTI in prompts but could not
+// cite that source: test the actual provider schema and restored provenance.
+for(const chapter of ids){
+ const domainTask=verified.task.task.chapters[chapter];
+ assert(domainTask.domainMbtiLens?.sourceRef==='person.mbti');
+ assert(domainTask.domainMbtiLens.preferences.length>=2);
+ assert(domainTask.domainMbtiLens.preferences.every(x=>base.person.mbti.includes(x.code)));
+ const anchor=verified.plan[chapter].anchorTopic;
+ assert(refs(chapter,anchor).includes('person.mbti'),
+  'a supported domain must be able to ground an optional MBTI comparison');
+}
+const namedWithoutSource=structuredClone(raw);
+namedWithoutSource.chapters.money.paragraphs.earning.text=
+ 'ISFP가 입력된 경우 가치 선호를 재물 관련 명리 해석과 나란히 살펴봅니다.';
+assert.throws(()=>generation.restoreEvidence(namedWithoutSource,verified.prompt),
+ /MBTI claim without user preference basis/,
+ 'using ISFP while citing only a natal symbol must fail');
+const dualSource=structuredClone(namedWithoutSource);
+dualSource.chapters.money.paragraphs.earning.basis.refs.push('person.mbti');
+assert.doesNotThrow(()=>generation.restoreEvidence(dualSource,verified.prompt),
+ 'explicit MBTI and actual natal reference are a permitted optional bridge');
+const mbtiOnly=structuredClone(dualSource);
+mbtiOnly.chapters.money.paragraphs.earning.basis.refs=['person.mbti'];
+assert.throws(()=>generation.restoreEvidence(mbtiOnly,verified.prompt),
+ /domain MBTI comparison missing natal basis/,
+ 'input MBTI alone must not manufacture a money interpretation');
 const unrelated=structuredClone(raw);
 unrelated.chapters.career.paragraphs.workstyle.basis.refs=['natal.year.stem'];
 assert.throws(()=>generation.restoreEvidence(unrelated,verified.prompt),/unrelated paragraph basis/);
@@ -103,6 +129,9 @@ unknown.person.mbti='모름';
 const noHour=scenario(unknown);
 assert(!Object.keys(noHour.task.source).some(id=>id.startsWith('natal.hour.')));
 assert(!Object.hasOwn(noHour.task.source,'person.mbti'));
+for(const id of ids)assert.equal(noHour.task.task.chapters[id].domainMbtiLens,null);
+assert(!noHour.schema.properties.chapters.properties.money.properties.paragraphs.properties.earning.properties.basis.properties.refs.items.enum.includes('person.mbti'));
+
 assert(!noHour.task.task.chapters.career.topics.growth.allowedSourceRefs.length);
 assert.equal(noHour.plan.career.topicTasks.growth.mode,'state-limits');
 
