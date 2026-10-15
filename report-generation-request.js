@@ -155,4 +155,4 @@ function restoreEvidence(value,prompt){
  }
  return result;
 }
-module.exports={policy,compile,schema,restoreEvidence};
+module.exports={policy,compile,schema,restoreEvidence,allowedRefs};
