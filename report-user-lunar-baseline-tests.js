@@ -90,7 +90,7 @@ assert.doesNotThrow(()=>writer.restoreEvidence(result(refs),prompt));
 for(const omitted of refs){
  const remaining=refs.filter(x=>x!==omitted);
  assert.throws(()=>writer.restoreEvidence(result(remaining),prompt),
-  /missing required|unrelated paragraph basis/, 'missing '+omitted+' must reject the paid draft');
+  /missing (?:required|verified)|unrelated paragraph basis/, 'missing '+omitted+' must reject the paid draft');
 }
 console.log('PASS USER_LUNAR_REFERENCE '+JSON.stringify({
  inputCalendar:birth.calendar,inputDate:birth.birthDate,normalizedSolarDate:normalized,
