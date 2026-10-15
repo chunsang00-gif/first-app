@@ -94,7 +94,7 @@ function build(packet){
   factsOnly:true,
   cannotInfer:['verified-personality','observed-behavior','day-master-strength',
    'useful-god','income','promotion','relationship-event'],
-  writerRule:'해당 명식의 월지·일간, 실제 겉천간의 지원 방향과 반대 방향, 확인된 뿌리 위치를 별개로 설명한다. 서로 다른 근거가 존재해도 검증하지 않은 성격의 장단점, 강약, 운세 사건을 만들어 반전으로 쓰지 않는다. 설명이 부족한 경우 추상적인 성격 진단을 늘리는 대신 미확정 범위를 정확히 말한다.'
+  writerRule:'월의 계절·겉글자·숨은 글자·같은 오행의 뿌리와 충을 실제 출처별로 분리해 비교한다. 겉에 상반되는 오행 방향이 없으면 겉글자 사이의 갈등을 창작하지 않는다. 여러 근거를 나열할 때는 각 계산값이 어떤 전통적인 해석을 허용하고 무엇은 확정할 수 없는지 밝힌다. 실제로 관찰하지 않은 성격·능력·갈등을 확정하지 않는다. 여러 기운의 공존이나 상황에 따른 균형 같은 상투적인 결론을 피한다.'
  };
 }
 module.exports={build};

@@ -303,6 +303,8 @@ async function generate(input,callModel,onProgress=()=>{},onValidatedBatch=()=>{
   const verified=validateBatch({sections:batch.sections},ids);
   const factual=quality.verifyEvidenceAgainstFacts({sections:verified.sections},packet);
   if(factual.errors.length)throw Error('QA resume factual mismatch: '+factual.errors.join('; '));
+  if(require('./report-grounding-review').inspect(verified).blockingErrors.length)
+   throw Error('QA resume has non-specific interpretation');
   const editable=require('./report-editorial');
   for(const s of verified.sections){
    const displayed=[s.title,s.keyJudgment,...(s.bodyLabels||[]),...(s.body||[])];
@@ -340,6 +342,11 @@ async function generate(input,callModel,onProgress=()=>{},onValidatedBatch=()=>{
   // The final full-report editorial gate still runs after synthesis.
   const preliminary=quality.verifyEvidenceAgainstFacts({sections:result.sections},packet);
   if(preliminary.errors.length){console.error('[Report batch factual mismatch]',{requestedIds:ids,errors:preliminary.errors});throw Error('AI report service returned factually inconsistent report data')}
+  const grounded=require('./report-grounding-review').inspect(result);
+  if(grounded.blockingErrors.length){
+   console.error('[Paid report grounding rejected]',{requestedIds:ids,codes:grounded.blockingErrors});
+   throw Error('AI report service returned non-specific interpretation');
+  }
   // Reject reader-visible defects from the first paid QA before buying more chapters.
   // Internal evidence keeps original Hanja; only reader-facing prose is checked.
   const earlyEditorial=require('./report-reader-policy').errors(require('./report-reader-policy').visibleFields(result));

@@ -98,5 +98,18 @@ const allGroups=[
  assert.deepEqual(reader.normalizeVisible(cleaned),cleaned,'display copy normalization is idempotent');
  assert(reader.errors(['전통 해석의 정관으로 판단합니다.']).length,
   'unhandled technical meaning must still fail closed');
+  // Offline regression from the first paid Saju chapter (no identifying data).
+ const inspect=require('./report-grounding-review').inspect;
+ const weak={sections:[{id:'saju_core',
+  keyJudgment:'다양한 자원이 함께 드러납니다. 서로 다른 방향이 병존합니다.',
+  body:['여러 기운이 함께 작용합니다. 상황에 따라 다양한 판단과 조정이 필요합니다.',
+        '다양한 상황에 적응하는 균형이 필요합니다.']}]};
+ assert(inspect(weak).blockingErrors.length>0,'generic paid prose must block next call');
+ const deep={sections:[{id:'saju_core',
+  keyJudgment:'겉에 드러난 글자에는 배움의 상징이 반복됩니다.',
+  body:['겉에 나온 글자와 달 안쪽에 숨은 글자의 전통적 의미는 달라, 하나를 같은 성격이라고 단정할 수 없습니다. 두 위치를 구분해 읽는 것이 먼저입니다.',
+        '이 계산은 새로운 일을 배울 때의 선택을 생각해 보는 참고이지 실제 능력의 기록이 아닙니다.']}]};
+ assert.deepEqual(inspect(deep).blockingErrors,[]);
+ assert.equal(inspect(deep).verdict,'not-assessed','a clean heuristic does not approve release');
  console.log('PASS output-aware user lunar batch plan, max 7 calls, controlled token cap, single-call abort; zero real API calls');
 })().catch(e=>{console.error(e);process.exitCode=1});
