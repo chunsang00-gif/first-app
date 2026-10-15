@@ -190,24 +190,14 @@ async function generate(input,callModel,onProgress=()=>{},onValidatedBatch=()=>{
  base.rules.avoidPhrases=quality.forbiddenPhrases;summaryRules.avoidPhrases=quality.forbiddenPhrases;
  const editorialBlueprint=analysisGuidance.preflight(packet);
  let groups=[['saju_core','mbti_contradiction'],['decision','stress'],['money','career'],['relationship','integrated_judgment'],['year_2027','year_2027_money'],['year_2027_career','year_2027_relationship']];
- // Evidence-limited annual domains keep their chapters for compatibility, but
- // must not manufacture two lengthy predictions to fill the topic slots.
- for(const id of ['year_2027_money','year_2027_career','year_2027_relationship']){
-  const annual=editorialBlueprint[id]?.annualDomainEvidence;
-  if(!annual?.relevant){
-   editorialBlueprint[id].generationMode='evidence-limit-only';
-   editorialBlueprint[id].contentPolicy='이 장은 근거 부족으로 생성 목록에서 제외한다. 본문·목차·최종 정리에서 새로운 분야별 사건이나 예측을 만들지 않는다.';
-  }else editorialBlueprint[id].generationMode='evidence-grounded';
- }
- // Skip annual subchapters when no direct annual domain evidence exists; retain yearly overview.
- const omittedAnnualIds=new Set(['year_2027_money','year_2027_career','year_2027_relationship'].filter(id=>editorialBlueprint[id]?.generationMode==='evidence-limit-only'));
- groups=groups.map(batch=>batch.filter(id=>!omittedAnnualIds.has(id))).filter(batch=>batch.length);
- const plannedIds=IDS.filter(id=>!omittedAnnualIds.has(id)); 
- // Deterministic unpaid gate: never buy model output for a chapter when the
- // evidence planner cannot support even one substantive topic. This also
- // keeps the transport's required chapter anchor consistent with the planner.
- const unsupportedChapters=plannedIds.filter(id=>!editorialBlueprint[id]?.hasGroundedTopic);
- if(packet.facts?.tenGods&&packet.facts?.structuralEvidence&&unsupportedChapters.length)throw Error('AI report service cannot build evidence-grounded chapters: '+unsupportedChapters.join(', '));
+ // Choose the exact chapter scope before making any paid API request.
+ // Unsupported optional topics are omitted; required core and minimum depth
+ // are a fail-closed *unpaid* product gate instead of a mid-generation crash.
+ const coverage=require('./report-chapter-selection').select(groups,editorialBlueprint);
+ groups=coverage.groups;
+ const plannedIds=coverage.plannedIds;
+ if(!coverage.canGenerate)return {status:'blocked',packet,coverage,
+  issues:['A sufficiently grounded paid report cannot be created for this input',...coverage.issues]};
 
  const noMbti=packet.person?.mbti==='모름';
  const unknownMbtiGoals={
@@ -394,7 +384,8 @@ async function generate(input,callModel,onProgress=()=>{},onValidatedBatch=()=>{
  const meta={calculationNote:'입력한 출생 시각을 그대로 사용하며 출생지에 따른 시간 차이는 보정하지 않습니다. 밤 11시대도 입력한 날짜로 계산합니다. 2027년 풀이는 전통적인 사주 계산에 따른 참고 해석이며, 실제 사건을 예측한 결과는 아닙니다. 여러 해에 걸친 변화는 연도별로 비교하며 바뀌는 정확한 날짜까지 구분하지 않습니다.',characterGender:input.gender||'male',name:input.name||'',mbti:input.mbti||'모름',chart:packet.chart,profileBalance:packet.profileBalance,targetYear:2027,versions:{ruleset:'premium-v2',prompt:'reader-depth-v2',schema:outline.version}};
  const drafted=new Map(drafts.flatMap(p=>p.sections||[]).map(section=>[section.id,section]));
  const sections=plannedIds.map(id=>drafted.get(id));
- // Select the cover only after all 12 complete chapters. The final local quality
+ if(sections.some(section=>!section))throw Error('AI report service omitted a planned chapter after validated batches');
+ // Synthesize only the independently supported chapters. Other chapters were excluded before paid generation. The final local quality
  // gate below remains mandatory; no automatic paid rewrite or retry is issued.
  // Stop before paying for synthesis when chapters already recycle the same thesis.
  // No extra model call, and the rejected draft remains available for operator QA.
@@ -403,7 +394,7 @@ async function generate(input,callModel,onProgress=()=>{},onValidatedBatch=()=>{
  const repeatedErrors=[...findRecycledThemes(sections),...findReusedEvidenceConclusions(sections)];
  if(repeatedErrors.length){
   const report={meta,sections,cover:null,finalJudgment:null};
-  return {status:'rejected',report,qa:{pass:false,errors:repeatedErrors,warnings:adviceWarnings},headingRepairs:[],stoppedBeforeSynthesis:true};
+  return {status:'rejected',report,qa:{pass:false,errors:repeatedErrors,warnings:adviceWarnings},headingRepairs:[],stoppedBeforeSynthesis:true,coverage};
  }
  const summaryPrompt={...base,stage:'synthesis',requestedSections:[],includeFinal:true,includeCover:true,completedReport:{meta,sections},rules:{...summaryRules,sections:[],returnOnlyRequestedSections:true,finalEditingTask:'완성된 장에서 가장 중요한 장점과 손해를 줄 수 있는 행동을 연결해 총평을 쓴다. 새로운 성격을 만들어내거나 장별 요약을 나열하지 않는다. 한계 안내는 총평 본문에 한 번만 쓰고 closingQuestion은 반드시 사람에 대한 결론으로 끝낸다. 같은 결론으로 도입·요약·마지막 문장을 세 번 쓰지 않는다. 실질적인 새 조언이 없으면 routines는 빈 배열로 반환한다. 억지로 교훈을 붙이지 않는다.'},output:{...base.output,requestedSections:[],cover:'required',finalJudgment:'required'}};
  onProgress({stage:'synthesis',completed:0,total:1});
@@ -415,7 +406,7 @@ async function generate(input,callModel,onProgress=()=>{},onValidatedBatch=()=>{
  if(paraphraseErrors.length)qa={...qa,pass:false,errors:[...(qa.errors||[]),...paraphraseErrors]};
  qa={...qa,warnings:[...(qa.warnings||[]),...adviceWarnings]};
 
- return qa.pass?{status:'ready',report,qa,headingRepairs}:{status:'rejected',report,qa,headingRepairs};
+ return qa.pass?{status:'ready',report,qa,headingRepairs,coverage}:{status:'rejected',report,qa,headingRepairs,coverage};
 }
 module.exports={findReusedEvidenceConclusions,enforceAnnualEvidenceLimits,narrativeMotifLedger,IDS,validateShape,buildPrompt,generate,findRepeatedTopicContent,findRecycledThemes,findParaphrasedTopicContent,findRepeatedAdvice};
 
