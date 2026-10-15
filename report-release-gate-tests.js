@@ -14,6 +14,14 @@ const report={
   highlights:['saju_core','career','year_2027'].map(sectionId=>({sectionId,title:'요점',description:'간단한 해설'}))},
  finalJudgment:{body:['계산의 한계를 구분합니다.'],closingQuestion:'각 해석의 범위를 확인합니다.'}
 };
+const shape=require('./report-server-contract').validateShape;
+const shaped={...structuredClone(report),meta:{source:'test'}};
+assert.equal(shape(shaped).pass,true,'declarative final conclusion stays valid');
+for(const question of ['앞으로 어떻게 살아야 할까요?','이 해석이 맞습니까？']){
+ const candidate=structuredClone(shaped);
+ candidate.finalJudgment.closingQuestion=question;
+ assert(shape(candidate).errors.includes('closing conclusion must not be a question'),'do not end a paid report with a question');
+}
 const coverage={canGenerate:true,plannedIds:ids};
 const packet={facts:{tenGods:{month:{stem:'辛',stemTenGod:'겁재'}},annualTenGods:{stemTenGod:'정관'}}};
 const okay=release.assess({report,qa:{pass:true,errors:[]},packet,coverage});
