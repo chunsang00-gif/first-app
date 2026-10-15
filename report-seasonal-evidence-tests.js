@@ -72,7 +72,7 @@ for(const input of actualCases){
   'a dropped seasonal citation contract must block paid generation');
  const t=blueprint.saju_core.topicTasks.temperament;
  assert.equal(t.mode,'use-primary');
- assert.deepEqual(t.requiredSourceKinds,['seasonal','qi-ledger']);
+ assert.deepEqual(t.requiredSourceKinds,['seasonal','qi-ledger','natal-month-position']);
  const prompt={stage:'body',facts:packet,requestedSections:['saju_core'],
   analysisGuidance:{...guidance.forRequest(['saju_core'],packet.person.mbti),
    editorialBlueprint:{saju_core:blueprint.saju_core}}};
