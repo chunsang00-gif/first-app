@@ -260,7 +260,7 @@ assert(!target.innerHTML.includes('report-evidence'),'internal calculation evide
 assert(target.innerHTML.includes('종합 총평'));assert(target.innerHTML.includes('가장 중요한 결론'));
 assert(target.innerHTML.indexOf('가장 중요한 결론')<target.innerHTML.indexOf(fixture().finalJudgment.closingQuestion));
 // Exercise the actual pipeline without an API key, network, or calculation dependency.
-const sandbox={module:{exports:{}},process:{env:{}},require:n=>n==='./report-facts-node'?{build:()=>({status:'ready',person:{mbti:'ISFP'}})}:require(n)};
+const sandbox={module:{exports:{}},process:{env:{}},require:n=>n==='./report-facts-node'?{build:()=>packet2027}:require(n)};
 vm.runInNewContext(fs.readFileSync(require.resolve('./report-server-contract'),'utf8'),sandbox);
 const repeatedTopics=sandbox.module.exports.findRepeatedTopicContent;
 const paraphrases=sandbox.module.exports.findParaphrasedTopicContent;
