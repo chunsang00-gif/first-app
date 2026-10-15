@@ -103,9 +103,9 @@ for(const input of [
   label:'월령과 뿌리',text:'월지의 계절과 일간 뿌리 위치를 구분합니다.'});
  const output=(refs)=>({chapters:{saju_core:{title:'기본 명리',keyJudgment:'계절 및 오행 근거를 구분합니다.',
   mood:'reflective',paragraphs:{temperament:paragraph(refs),strength:null}}}});
- assert.doesNotThrow(()=>generation.restoreEvidence(output(['facts.seasonalEvidence','facts.qiEvidence']),prompt));
- assert.throws(()=>generation.restoreEvidence(output(['facts.seasonalEvidence']),prompt),/missing required positional qi evidence/);
- assert.throws(()=>generation.restoreEvidence(output(['facts.qiEvidence']),prompt),/missing required month seasonal source/);
+ assert.doesNotThrow(()=>generation.restoreEvidence(output(['facts.seasonalEvidence','facts.qiEvidence','natal.month.stem']),prompt));
+ assert.throws(()=>generation.restoreEvidence(output(['facts.seasonalEvidence','natal.month.stem']),prompt),/missing required positional qi evidence/);
+ assert.throws(()=>generation.restoreEvidence(output(['facts.qiEvidence','natal.month.stem']),prompt),/missing required month seasonal source/);
  const tampered=structuredClone(packet);tampered.facts.qiEvidence.governance.activeHiddenStemId='natal.month.hidden.甲';
  assert(integrity.verify(tampered).errors.includes('incorrect-positional-qi-evidence'));
  assert(invariant.verify(tampered,plan).errors.includes('calculated-positional-qi-context-mismatch'));
