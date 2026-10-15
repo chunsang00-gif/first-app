@@ -15,6 +15,8 @@ function inspect(prompt){
  for(const [name,value] of Object.entries(rules))if(value==null)errors.push('missing rule: '+name);
  if(rules.hanjaPolicy!==require('./report-reader-policy').instruction)errors.push('reader language policy replaced or missing');
  const prose=JSON.stringify({rules,planningInstruction:prompt.planningInstruction,editorialTask:prompt.editorialTask,analysisGuidance:prompt.analysisGuidance})||'';
+ for(const phrase of ['2027년 분석 네 장에서는','한 가지 뜻은 한 번만 쓰며 제목·핵심 판정·본문·총평에서','무엇을 얼마나 꼼꼼하게·빠르게·끈기 있게'])
+  if(prose.includes(phrase))errors.push('obsolete scope or unsupported precision instruction: '+phrase);
  // Inspect the actual chapter plan as well as general rules: neutral rules
  // cannot cancel a task that presupposes opposite conclusions.
  const comparisonTasks=JSON.stringify({topicPlan:rules.topicPlan,chapterPlan:rules.chapterOwnershipPlan,analysisGuidance:prompt.analysisGuidance})||'';

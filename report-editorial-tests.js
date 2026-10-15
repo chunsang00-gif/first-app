@@ -351,6 +351,13 @@ for(const a of ['I','E'])for(const b of ['S','N'])for(const c of ['T','F'])for(c
  let calls=0;const seen=[];
  const dryRun=await sandbox.module.exports.generate({mbti:'ISFP'},async p=>{
   calls++;seen.push(p.stage);
+  assert(p.rules.naturalKoreanRule.includes('본문은 그 이유와 상황을 충분히 설명한다'));
+  assert(p.rules.candidRule.includes('실제 능력이나 타인의 평판은 입력받지 않았다면'));
+  assert(p.rules.yearAndDecadeIntegrationRule.startsWith('실제로 생성 대상으로 선택된'));
+  for(const obsolete of ['2027년 분석 네 장에서는','한 가지 뜻은 한 번만 쓰며 제목·핵심 판정·본문·총평에서','무엇을 얼마나 꼼꼼하게·빠르게·끈기 있게']){
+   const changed=structuredClone(p);changed.rules.regression=obsolete;
+   assert(require('./report-instruction-audit').inspect(changed).some(x=>x.startsWith('obsolete scope or unsupported precision instruction:')));
+  }
   assert(!require('./report-instruction-audit').inspect(p).includes('forced contrast in writing plan'));
   if(p.stage==='body'){
    const changed=structuredClone(p);
@@ -361,7 +368,7 @@ for(const a of ['I','E'])for(const b of ['S','N'])for(const c of ['T','F'])for(c
   for(const key of ['decisiveSentenceRule','actionableMoneyRule','idiomaticWritingRule','everydayWordChoiceRule','expressionPolicyRule'])assert.equal(p.rules[key],undefined);
   assert(p.rules.topicOwnershipRule.includes('중복 금지 자료'));
   assert(p.rules.hanjaPolicy.includes('괄호'));
-  if(p.stage==='synthesis'){assert(p.rules.finalEditingTask.includes('routines는 빈 배열'));assert(p.rules.coverNaturalnessRule.includes('반복 비용이라는 말을 자동으로 넣지 않는다'));assert(p.rules.naturalKoreanRule.includes('한 가지 뜻은 한 번만'));assert(p.rules.finalRule.includes('교훈이나 감동 문구를 억지로 붙이지 않는다'));assert(p.rules.finalRule.includes('실제 생성된 앞 장들을 다시 요약하지 않는다'));assert(p.completedReport.sections.every(s=>s.body.length>=1),'each chapter must retain a grounded paragraph');assert(p.completedReport.sections.reduce((n,s)=>n+s.body.length,0)<=28,'unused topic slots must be omitted');return {cover:null,finalJudgment:{body:['마지막 설명'],closingQuestion:'꼼꼼하게 확인하느라 결정을 늦출 때는, 오늘 확인할 내용을 먼저 정하는 것이 도움이 됩니다.',afterClosingText:''}};}
+  if(p.stage==='synthesis'){assert(p.rules.finalEditingTask.includes('routines는 빈 배열'));assert(p.rules.coverNaturalnessRule.includes('반복 비용이라는 말을 자동으로 넣지 않는다'));assert(p.rules.naturalKoreanRule.includes('이 연결은 필요한 설명이지 중복이 아니다'));assert(p.rules.finalRule.includes('교훈이나 감동 문구를 억지로 붙이지 않는다'));assert(p.rules.finalRule.includes('실제 생성된 앞 장들을 다시 요약하지 않는다'));assert(p.completedReport.sections.every(s=>s.body.length>=1),'each chapter must retain a grounded paragraph');assert(p.completedReport.sections.reduce((n,s)=>n+s.body.length,0)<=28,'unused topic slots must be omitted');return {cover:null,finalJudgment:{body:['마지막 설명'],closingQuestion:'꼼꼼하게 확인하느라 결정을 늦출 때는, 오늘 확인할 내용을 먼저 정하는 것이 도움이 됩니다.',afterClosingText:''}};}
   assert(p.rules.domainBoundaryRule.includes('분야의 명사만 바꾸어 반복'));
   assert(p.rules.integrationContrastRule.includes('MBTI를 사주 결론의 검증이나 증거로 쓰지 않는다'));
   assert(p.rules.readerProofRule.includes('불필요한 한자'));
