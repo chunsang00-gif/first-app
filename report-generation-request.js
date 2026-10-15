@@ -64,7 +64,6 @@ function compile(prompt){
     topics:Object.fromEntries(Object.entries(p.topicTasks).map(([key,t])=>[key,{
      question:t.question,mode:t.mode,sourcePath:t.primaryEvidencePath,fallbackPaths:t.verifiedFallbackPaths,allowedSourceRefs:t.allowedSourceRefs||null,requiredSourceKinds:t.requiredSourceKinds||[],
      interpretationBoundary:t.interpretationBoundary||'',
-     evidenceReuseBoundary:t.evidenceReuseBoundary?{rule:t.evidenceReuseBoundary.rule,priorOwners:t.evidenceReuseBoundary.priorOwners.map(x=>({chapter:x.chapter,topic:x.topic}))}:null,
      annualDomainLimit:t.annualDomainLimit||null
     }])),annualScope:p.annualDomainEvidence||null}];
   })),previousSections:prompt.priorSections||[],
