@@ -2,7 +2,7 @@
 // Reject categorical traditional branch interactions the calculation engine
 // does not resolve. Does not claim to judge all schools or free-form prose.
 const assertedTransformation=/(?:합화|합국).{0,24}(?:확정|성립|완성|이루어|발생|변하|됩니다|되었)/;
-const assertedWinner=/(?:충|육합|삼합|방합|형|파|해).{0,28}(?:우선(?:합니다|한다|적용)|무효화|깨뜨립|깨버립|상쇄|반드시\s*이김|이깁|더\s*강하|더\s*강해|자동으로\s*해소)/;
+const assertedWinner=/(?:충|육합|삼합|방합|형|파|해).{0,28}(?:우선(?:합니다|한다|적용)|무효화|깨뜨립|깨버립|상쇄|반드시\s*이김|이깁|더\s*강(?:하|합|해)|자동으로\s*해소)/;
 const qualified=/(?:단정할\s*수\s*없|판단할\s*수\s*없|알\s*수\s*없|확정할\s*수\s*없|성립하지\s*않|이루어지지\s*않|무효화되지\s*않|해소되지\s*않|결정할\s*수\s*없|확인할\s*수\s*없|미확정|미판정|판정하지\s*않|증명되지\s*않|는\s*것은\s*아니|여부|조건을\s*따져)/;
 const position={연지:'year',월지:'month',일지:'day',시지:'hour'};
 function sentences(value){
