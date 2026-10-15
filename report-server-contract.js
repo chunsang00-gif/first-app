@@ -194,6 +194,12 @@ async function generate(input,callModel,onProgress=()=>{},onValidatedBatch=()=>{
  base.rules.narrativeRule += ' 실제 계산 근거가 부족한 장에는 문단 수를 강요하지 않는다. 지원되지 않는 세부 항목은 null로 남긴다.';
  base.rules.avoidPhrases=quality.forbiddenPhrases;summaryRules.avoidPhrases=quality.forbiddenPhrases;
  const editorialBlueprint=analysisGuidance.preflight(packet);
+ // Cross-check the FINAL, not preliminary, interpretation plan before any
+ // paid model work. A stale source ID or fabricated topic fails closed.
+ const interpretationIntegrity=require('./report-interpretation-invariants').verify(packet,editorialBlueprint);
+ if(!interpretationIntegrity.pass)return {status:'blocked',packet,
+  issues:['Interpretation input and computed facts disagree',...interpretationIntegrity.errors],
+  interpretationIntegrity};
  let groups=[['saju_core','mbti_contradiction'],['decision','stress'],['money','career'],['relationship','integrated_judgment'],['year_2027','year_2027_money'],['year_2027_career','year_2027_relationship']];
  // Choose the exact chapter scope before making any paid API request.
  // Unsupported optional topics are omitted; required core and minimum depth
