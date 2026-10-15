@@ -141,10 +141,20 @@ function verify(packet){
    const actual=calendar.calculate(original);
    if(actual.status!=='complete'||!same(actual.chart,chart))errors.push('birth-input-chart-mismatch');
    if(!same(facts.solarTermTiming,actual.solarTermTiming))errors.push('incorrect-birth-solar-term-timing');
+   // Independently check day cycle (external 1983-01-07 anchor), month
+   // 五虎遁 and hour 五鼠遁. Primary provider internals are not trusted.
+   if(actual.status==='complete'){
+    const oracle=require('./report-calendar-independent').verify({
+     solarDate:actual.solarDate,chart,
+     solarTermTiming:actual.solarTermTiming,birthTime:original.birthTime,
+     unknownBirthTime:Boolean(original.unknownBirthTime)
+    });
+    errors.push(...oracle.errors);
+   }
   }catch{errors.push('birth-input-calendar-unverifiable');}
  }else errors.push('missing-original-calculation-input');
  return {pass:errors.length===0,errors,version:'calculation-integrity-v1',
-  verified:['calendar-source-chart','year-pillar','natal-ten-gods','hidden-stems','year-ten-gods','computed-clashes','pairwise-branch-relations','complete-branch-groups','month-command','seasonal-evidence','day-master-roots','visible-stems','decade-classifications','unknown-hour-policy'],
+  verified:['calendar-source-chart','independent-civil-sexagenary-oracle','year-pillar','natal-ten-gods','hidden-stems','year-ten-gods','computed-clashes','pairwise-branch-relations','complete-branch-groups','month-command','seasonal-evidence','day-master-roots','visible-stems','decade-classifications','unknown-hour-policy'],
   limitations:['does-not-certify-all-traditional-schools','does-not-prove-real-world-outcomes']};
 }
 module.exports={verify};
