@@ -62,6 +62,11 @@ function build(chart,solarTermTiming=null){
   }:solarTermTiming?.status==='birth-clock-unknown'?'birth-clock-unknown':'not-calculated',
   hiddenStemGoverningDaysRule:'not-selected',
   solarTermTimingEvidence:solarTermTiming?.status||'not-provided',
+  // Diagnostic traditional stages are NEVER promoted to the active hidden
+  // stem. In some months a published residual stem is not natal藏干.
+  publishedMethodExploration:require('./report-governing-day-method').inspect({
+   chart,timing:solarTermTiming,hiddenStems:season.HIDDEN[month.monthBranch]
+  }),
   reason:'절입 경과를 측정하더라도 사령 분일법·학파별 규칙을 검증하고 선택하지 않았으므로 실제 사령 지장간을 정할 수 없음',
   monthMainStemIsNotActiveQiProof:true
  };
