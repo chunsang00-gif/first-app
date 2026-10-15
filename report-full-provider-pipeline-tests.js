@@ -139,7 +139,9 @@ async function runScenario(kind){
   assert(calls>=2&&calls<=MAX_PAID_CALLS,'budget respected');
   assert.equal(stages.at(-1),'synthesis','synthesis must follow all body calls');
   assert.equal(checks.reduce((n,x)=>n+x.ids.length,0),output.report.sections.length);
-  assert.deepEqual(checks.flatMap(x=>x.ids),output.report.sections.map(s=>s.id));
+  // Checkpoints are in provider BATCH order; displayed chapters use canonical report order.
+  assert.deepEqual(new Set(checks.flatMap(x=>x.ids)),new Set(output.report.sections.map(s=>s.id)));
+  assert.equal(checks.flatMap(x=>x.ids).length,output.report.sections.length,'each chapter checked once');
   assert.equal(output.qa?.releaseGate?.releaseVerdict,'not-approved','no synthetic report can approve release');
   console.log('PASS offline full STRICT Responses JSON -> provider decode -> facts -> all body batches -> synthesis -> cover/final -> quality decision; synthetic result: '+output.status+'; calls: '+calls+'; chapters: '+output.report.sections.length);
  }finally{
