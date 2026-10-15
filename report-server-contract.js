@@ -271,24 +271,7 @@ async function generate(input,callModel,onProgress=()=>{},onValidatedBatch=()=>{
  const chapterPlan=Object.fromEntries(IDS.map(id=>[id,{...chapterOwnership[id],topicTasks:editorialBlueprint[id]?.topicTasks||null,generationMode:editorialBlueprint[id]?.generationMode||'evidence-grounded'}]));
  // Connect repeated calculated evidence to the ORIGINAL conclusion that used it.
  // Only send overlapping paths for the requested chapters; do not inflate every request.
- const reusedEvidenceFor=(ids)=>{
-  const activePaths=t=>t.mode==='use-primary'?[t.primaryEvidencePath]:t.mode==='use-verified-fallback'?(t.verifiedFallbackPaths||[]):[];
-  const needed=new Set(ids.flatMap(id=>Object.values(editorialBlueprint[id]?.topicTasks||{}).flatMap(activePaths)).filter(Boolean));
-  const uses=[];
-  for(const previous of priorSections){
-   const tasks=editorialBlueprint[previous.id]?.topicTasks||{};
-   Object.keys(tasks).forEach(topic=>{
-    const entry=tasks[topic];
-    const index=Array.isArray(previous.bodyTopics)?previous.bodyTopics.indexOf(topic):-1;
-    // A skipped optional topic has no conclusion to reuse. Never attach the
-    // next topic's conclusion to its evidence path.
-    if(index<0) return;
-    const paths=activePaths(entry).filter(p=>needed.has(p));
-    for(const path of paths)uses.push({path,chapter:previous.id,topic,previousConclusion:String(previous.topicConclusions?.[index]||previous.keyJudgment||'').slice(0,240)});
-   });
-  }
-  return uses;
- };
+ const reusedEvidenceFor=(ids)=>require('./report-source-ledger').reusedBefore(ids,editorialBlueprint,priorSections);
  const request=(ids,extra={})=>require('./report-instruction-audit').assert({...base,...extra,factBindings:require('./report-fact-bindings').build(packet),factBindingRule:require('./report-fact-bindings').instruction,analysisGuidance:{...analysisGuidance.forRequest(ids,packet.person?.mbti),editorialBlueprint:Object.fromEntries(ids.map(id=>[id,editorialBlueprint[id]]))},requestedSections:ids,includeFinal:false,includeCover:false,rules:{...base.rules,...extra.rules,sections:ids,chapterOwnershipPlan:Object.fromEntries(ids.map(id=>[id,chapterPlan[id]])),previousChapterOwnership:Object.fromEntries(priorSections.map(s=>[s.id,chapterOwnership[s.id]])),alreadyRepeatedNarrativeMotifs:narrativeMotifLedger(priorSections),reusedEvidenceWithPriorConclusions:reusedEvidenceFor(ids),sectionGoals:scopedGoals(ids),annualDomainScopes:Object.fromEntries(ids.filter(id=>annualDomainScopes[id]).map(id=>[id,annualDomainScopes[id]])),topicPlan:Object.fromEntries(ids.map(id=>[id,noMbti&&sajuOnlyTopics[id]?sajuOnlyTopics[id]:outline.topics[id]])),returnOnlyRequestedSections:true},output:{...base.output,requestedSections:ids,cover:'null',finalJudgment:'null'}});
  let done=0;onProgress({stage:'body',completed:0,total:plannedIds.length});
  // Preserve complete earlier paragraphs: later sentences can contain the repeated
