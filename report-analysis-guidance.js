@@ -118,38 +118,52 @@ function preflight(packet){
     interpretationBoundary:mode==='use-primary'?'전통적 해석의 연결 가능성만 설명하고 실제 행동으로 입증된 것처럼 단정하지 않는다.':mode==='use-verified-fallback'?'우선 계산값이 없으므로 실제 확인된 보조 근거만 사용한다. 보조 근거를 주된 근거처럼 말하거나 사건을 단정하지 않는다.':'다른 세부 항목의 성격 설명으로 채우지 말고 이 질문에서 판단할 수 없는 범위를 밝힌다.'}];
   }));
  }
- // Money interpretations require financially relevant calculated classifications,
- // not the mere existence of a month/day pillar or an unrelated natal clash.
- // These rows describe traditional symbolic associations, NOT actual spending
- // habits, earnings, losses or financial performance.
- const financeRows=[];
+ // One deterministic eligibility planner for domain-specific writing.
+ // A ten-god classification is a traditional symbol, never a measurement
+ // of a person's actual wealth, work, relationships or stress responses.
+ const natalRows=[];
  for(const position of ['year','month','day','hour']){
   const group=packet.facts?.tenGods?.[position];
   if(!group)continue;
-  if(group.stem&&group.stemTenGod)financeRows.push({id:'natal.'+position+'.stem',tenGod:group.stemTenGod});
+  if(group.stem&&group.stemTenGod)
+   natalRows.push({id:'natal.'+position+'.stem',position,tenGod:group.stemTenGod});
   for(const row of group.hiddenStems||[])if(row.stem&&row.tenGod)
-   financeRows.push({id:'natal.'+position+'.hidden.'+row.stem,tenGod:row.tenGod});
+   natalRows.push({id:'natal.'+position+'.hidden.'+row.stem,position,tenGod:row.tenGod});
  }
- const financeKinds={
-  earning:new Set(['정재','편재','식신','상관']),
-  spending:new Set(['정재','편재'])
+ const eligible={
+  money:{
+   earning:{kinds:['정재','편재','식신','상관'],boundary:'금전과 관련된 전통 분류의 뜻만 설명한다. 실제 소득·소비 습관·투자 성과는 확인되지 않았으며 미래 수익을 단정하지 않는다.'},
+   spending:{kinds:['정재','편재'],boundary:'금전 보유와 지출에 관한 전통적 상징만 해석한다. 실제 절약 여부·충동 구매·부채는 입력받지 않아 판단하지 않는다.'},
+   risk:{kinds:[],boundary:'원국의 충돌이나 글자 수로 금전 손실·채무·투자 위험을 판단하지 않는다.'}
+  },
+  career:{
+   workstyle:{kinds:['식신','상관','정인','편인'],boundary:'표현·학습의 전통적 의미만 다룬다. 실제 속도·정확성·완성도·직무 능력이나 성과를 단정하지 않는다.'},
+   teamwork:{kinds:['비견','겁재','정관','편관'],boundary:'협업·역할의 전통적 상징만 다룬다. 실제 동료 평가·승진·갈등 경험을 만들지 않는다.'},
+   growth:{kinds:['정인','편인'],boundary:'학습을 상징하는 전통 분류만 해석한다. 실제 학습 속도·자격·평판을 확인했다고 쓰지 않는다.'},
+   change:{kinds:[],boundary:'대운이나 출생 시 배치만으로 직업 변경·퇴사·독립 성공을 예측하지 않는다.'}
+  },
+  relationship:{
+   closeness:{filter:row=>row.position==='day'&&row.id.includes('.hidden.'),boundary:'태어난 날의 지지 내부 계산을 전통적인 관계 상징으로 설명한다. 실제 친밀감, 연애 경험, 관계의 지속 여부를 알아낸 것처럼 쓰지 않는다.'},
+   expression:{kinds:['식신','상관'],boundary:'표현과 관련된 전통적 상징만 설명한다. 실제 애정 표현·서운함·거절 방식은 확인할 수 없다.'},
+   conflict:{kinds:[],boundary:'충돌의 유무나 십성만으로 실제 다툼·이별·상대의 감정을 만들어내지 않는다.'}
+  },
+  stress:{
+   trigger:{kinds:['정관','편관'],boundary:'의무와 압박의 전통적 상징을 가정 상황에 한정해 설명한다. 실제 스트레스 원인·강도·건강 증상은 측정되지 않았다.'},
+   response:{kinds:['정인','편인'],boundary:'회복과 학습의 전통적 상징을 가정 상황으로 설명한다. 실제 감정 조절·회복력·행동 이력은 추정하지 않는다.'}
+  }
  };
- for(const [topic,kinds] of Object.entries(financeKinds)){
-  const task=plans.money.topicTasks[topic];
-  const ids=financeRows.filter(row=>kinds.has(row.tenGod)).map(row=>row.id);
-  task.allowedSourceRefs=[...new Set(ids)];
-  if(ids.length){
-   task.mode='use-primary';
-   task.interpretationBoundary='금전과 직접 관련된 계산 분류의 전통적 뜻만 설명한다. 실제 소득, 소비 습관, 절약 능력, 투자 성과는 확인되지 않았다. 범위를 벗어나는 개인 행동을 만들어내지 않는다.';
-  }else{
-   task.mode='state-limits';task.evidencePresent=false;
-   task.interpretationBoundary='금전 관련 계산 항목이 확인되지 않아 수입·소비 성향을 추측하지 않는다.';
+ for(const [chapterId,topics] of Object.entries(eligible)){
+  for(const [topic,rule] of Object.entries(topics)){
+   const task=plans[chapterId]?.topicTasks?.[topic];
+   if(!task)throw Error('Missing eligible domain topic: '+chapterId+':'+topic);
+   const allowed=natalRows.filter(row=>rule.filter?rule.filter(row):rule.kinds.includes(row.tenGod)).map(row=>row.id);
+   task.allowedSourceRefs=[...new Set(allowed)];
+   task.mode=allowed.length?'use-primary':'state-limits';
+   task.evidencePresent=allowed.length>0;
+   task.verifiedFallbackPaths=[];
+   task.interpretationBoundary=rule.boundary;
   }
  }
- // A natal clash is not a measured risk of monetary loss.
- const moneyRisk=plans.money.topicTasks.risk;
- moneyRisk.mode='state-limits';moneyRisk.evidencePresent=false;
- moneyRisk.interpretationBoundary='원국의 지지 충돌 유무로 금전 손실, 부채, 투자 위험을 판정하지 않는다. 관련 독립 계산 관계가 없는 이 항목은 작성하지 않는다.';
  // Build an evidence-allocation ledger in actual model generation order.
  // One calculated fact may answer more than one question, but the same
  // interpretation is not a second paid insight. Every reuse gets a distinct
