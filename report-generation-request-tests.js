@@ -23,19 +23,21 @@ const schema=require('./report-schema.json');
  }});
  assert(moneyRequest.task.chapters.money.safety.avoid.includes('금전'),'money-specific prohibitions must reach writer');
  assert(moneyRequest.task.chapters.year_2027_money.annualScope,'annual domain evidence gate must remain visible');
- assert(moneyRequest.task.chapters.money.topics.earning.allowedSourceRefs?.length,'financial evidence should be explicitly selected from calculated natal rows');
- assert(moneyRequest.task.chapters.money.topics.earning.allowedSourceRefs.every(id=>id.startsWith('natal.')));
- assert.equal(moneyRequest.task.chapters.money.topics.risk.mode,'state-limits','natal clashes are not proof of financial loss');
  const financialIds=moneyRequest.task.chapters.money.topics.earning.allowedSourceRefs;
  const allowedKinds=new Set(['정재','편재','식신','상관']);
- assert(financialIds.every(id=>allowedKinds.has(moneyRequest.source[id]?.tenGod)),'financial citations must match actual wealth/output classifications');
+ assert(Array.isArray(financialIds));
+ assert(financialIds.every(id=>id.startsWith('natal.')&&allowedKinds.has(moneyRequest.source[id]?.tenGod)),'financial citations must match calculated wealth/output classifications');
+ assert.equal(moneyRequest.task.chapters.money.topics.risk.mode,'state-limits','natal clashes are not proof of financial loss');
  const moneyPrompt={...prompt,requestedSections:scopedIds,analysisGuidance:{
   ...guidance.forRequest(scopedIds,prompt.facts.person?.mbti),
   editorialBlueprint:Object.fromEntries(scopedIds.map(id=>[id,allPlans[id]]))
  }};
  const moneySchema=generation.schema(moneyPrompt,wire.schemaFor(moneyPrompt,schema));
  const moneySlots=moneySchema.properties.chapters.properties.money.properties.paragraphs.properties;
- assert.deepEqual(new Set(moneySlots.earning.properties.basis.properties.refs.items.enum),new Set(financialIds));
+ if(financialIds.length){
+  assert.equal(moneyRequest.task.chapters.money.topics.earning.mode,'use-primary');
+  assert.deepEqual(new Set(moneySlots.earning.properties.basis.properties.refs.items.enum),new Set(financialIds));
+ }else assert.equal(moneySlots.earning.type,'null','no financial sources must not create a paid money claim');
  assert.equal(moneySlots.risk.type,'null','unsupported financial-loss prediction must not be offered to the model');
  const financeUnavailable=structuredClone(prompt.facts);
  for(const position of ['year','month','day','hour']){
