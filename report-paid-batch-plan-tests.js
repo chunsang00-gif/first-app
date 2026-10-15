@@ -78,5 +78,25 @@ const allGroups=[
    if(value===undefined)delete process.env[name];else process.env[name]=value;
   }
  }
+  // Real paid run 38744366989 leaked private chart vocabulary in public copy.
+ // Repair only display fields, preserve evidence and the unmodified input.
+ const reader=require('./report-reader-policy');
+ const original={sections:[{title:'이 명식의 성향',keyJudgment:'월지의 계절적 위치와 오행을 확인한다.',
+  bodyLabels:['원국에서 보는 일간'],body:['월지에는 흙이, 일지와 시지에는 나무가 있습니다.'],
+  evidence:['월지 癸丑 / 일간 乙 / 시지 癸未']}],
+  cover:{headline:'이 명식은',description:'월지에는',keywords:['오행'],highlights:[{title:'시지',description:'일지와 시지'}]},
+  finalJudgment:{headline:'월지',body:['오행'],strengths:['명식'],watchouts:['일간'],
+   routines:[{trigger:'월지',action:'시지',reason:'원국'}],closingQuestion:'일지와 시지'}};
+ const cleaned=reader.normalizeVisible(original);
+ assert.deepEqual(reader.errors(reader.visibleFields(cleaned)),[],
+  'known internal terms must not leak into reader text');
+ assert.deepEqual(cleaned.sections[0].evidence,original.sections[0].evidence,
+  'calculated evidence must never be rewritten');
+ assert.equal(original.sections[0].keyJudgment,'월지의 계절적 위치와 오행을 확인한다.',
+  'archived raw output must not be changed');
+ assert(cleaned.sections[0].body[0].includes('태어난 날과 시간을 나타내는 자리'));
+ assert.deepEqual(reader.normalizeVisible(cleaned),cleaned,'display copy normalization is idempotent');
+ assert(reader.errors(['전통 해석의 정관으로 판단합니다.']).length,
+  'unhandled technical meaning must still fail closed');
  console.log('PASS output-aware user lunar batch plan, max 7 calls, controlled token cap, single-call abort; zero real API calls');
 })().catch(e=>{console.error(e);process.exitCode=1});
