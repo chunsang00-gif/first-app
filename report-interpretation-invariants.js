@@ -24,6 +24,9 @@ function verify(packet,plan){
   if(packet.facts.stemConnections&&(!packet.chart||
      !same(packet.facts.stemConnections,require('./report-stem-connections').build(packet.chart))))
    errors.push('calculated-stem-connection-mismatch');
+  if(packet.facts.rootConditions&&(!packet.chart||!packet.targetYear?.pillar||
+    !same(packet.facts.rootConditions,require('./report-root-conditions').build(packet.chart,packet.targetYear.pillar))))
+   errors.push('calculated-root-condition-mismatch');
   const topic=plan.saju_core?.topicTasks?.temperament;
   if(topic?.mode!=='state-limits'&&
      !topic?.requiredSourceKinds?.includes('seasonal'))
@@ -37,6 +40,9 @@ function verify(packet,plan){
   if(packet.facts.stemConnections&&topic?.mode!=='state-limits'&&
      !topic?.requiredSourceKinds?.includes('stem-linkage'))
    errors.push('missing-canonical-stem-connection-topic-requirement');
+  if(packet.facts.rootConditions&&topic?.mode!=='state-limits'&&
+     !topic?.requiredSourceKinds?.includes('root-condition'))
+   errors.push('missing-canonical-root-condition-topic-requirement');
  }
  for(const [domain,id] of Object.entries(annualIds)){
   const chapter=plan[id];
