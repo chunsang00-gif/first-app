@@ -67,7 +67,7 @@ const schema=require('./report-schema.json');
   const slots=t.properties.chapters.properties[id].properties.paragraphs.properties;
   assert.deepEqual(Object.keys(slots[anchor].properties),['basis','label','text']);
   assert(!Object.hasOwn(t.properties.chapters.properties[id].properties,'evidence'));
-  chapters[id]={title:'검증 제목',keyJudgment:'검증 판단',mood:'reflective',paragraphs:Object.fromEntries(Object.keys(plan.topicTasks).map(topic=>[topic,topic===anchor?{basis:{refs:id==='mbti_contradiction'?['person.mbti','natal.month.stem']:['natal.month.stem'],interpretation:'해당 계산에 관한 전통적 해석',condition:'새 일을 맡는 상황',limit:'실제 행동을 관찰한 자료는 아님'},label:'검증 소제목',text:'뜻과 이유를 충분히 설명하는 검증 문장입니다.'}:null]))};
+  chapters[id]={title:'검증 제목',keyJudgment:'검증 판단',mood:'reflective',paragraphs:Object.fromEntries(Object.keys(plan.topicTasks).map(topic=>[topic,topic===anchor?{basis:{refs:id==='mbti_contradiction'?['person.mbti','natal.month.stem']:id==='saju_core'?['facts.seasonalEvidence','natal.month.stem']:['natal.month.stem'],interpretation:'해당 계산에 관한 전통적 해석',condition:'새 일을 맡는 상황',limit:'실제 행동을 관찰한 자료는 아님'},label:'검증 소제목',text:'뜻과 이유를 충분히 설명하는 검증 문장입니다.'}:null]))};
  }
  const raw={chapters,cover:null,finalJudgment:null};
  const restored=generation.restoreEvidence(raw,prompt);
@@ -87,6 +87,10 @@ const schema=require('./report-schema.json');
  assert.throws(()=>generation.restoreEvidence(mixed,prompt),/unrelated paragraph basis/);
  const allowed=t.properties.chapters.properties.saju_core.properties.paragraphs.properties.temperament.properties.basis.properties.refs.items.enum;
  assert(allowed.includes('natal.month.stem'));
+ assert(allowed.includes('facts.seasonalEvidence'),'core month interpretation requires seasonal fact source');
+ const missingSeason=structuredClone(raw);
+ missingSeason.chapters.saju_core.paragraphs.temperament.basis.refs=['natal.month.stem'];
+ assert.throws(()=>generation.restoreEvidence(missingSeason,prompt),/missing required month seasonal source/);
  assert(!allowed.includes('person.mbti'),'provider should not offer unrelated citations for this topic');
  // MBTI comparison needs two independent inputs; the label alone is not evidence.
  const mbtiOnly=structuredClone(raw);
