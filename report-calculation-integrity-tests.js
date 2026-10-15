@@ -29,6 +29,17 @@ altered(p=>{p.facts.tenGods.month.hiddenStems[0].tenGod='식신'},'incorrect-ten
 altered(p=>{p.facts.hiddenStems.month=['甲']},'incorrect-hidden-stems:month');
 altered(p=>{p.facts.annualTenGods.stemTenGod='겁재'},'incorrect-annual-ten-gods');
 altered(p=>{p.targetYear.pillar='甲子'},'wrong-target-year-pillar');
+altered(p=>{p.facts.structuralEvidence.monthCommand.mainHiddenStem='乙'},'incorrect-month-command');
+altered(p=>{p.facts.structuralEvidence.dayMasterRoots[0].sameElementStems=['甲']},'incorrect-day-master-roots');
+altered(p=>{p.facts.structuralEvidence.visibleStems[0].element='fire'},'incorrect-visible-stems');
+const tamperedDecade=structuredClone(original);
+if(tamperedDecade.fortune.decades?.length){
+ tamperedDecade.fortune.decades[0].stemTenGod='잘못된 십성';
+ assert(integrity.verify(tamperedDecade).errors.includes('incorrect-decade-ten-gods'));
+}
+const changedActive=structuredClone(original);
+changedActive.fortune.activeDecade={pillar:'甲子',startYear:2025,endYear:2035};
+assert(integrity.verify(changedActive).errors.includes('incorrect-active-decade'));
 altered(p=>{p.facts.targetYearRelations=[{type:'충',between:'day',branches:'子午'}]},'incorrect-2027-clash-relations');
 altered(p=>{p.facts.natalClashes=[];p.facts.natalClashes.push({type:'충',positions:['day','hour'],branches:'子午'})},'incorrect-natal-clashes');
 altered(p=>{p.chart.month='甲子'},'birth-input-chart-mismatch');
