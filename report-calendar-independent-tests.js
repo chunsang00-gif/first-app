@@ -28,8 +28,8 @@ assert.throws(()=>oracle.dayPillar('2000-02-30'),/Invalid Gregorian date/);
 assert.throws(()=>oracle.dayPillar('1983-13-01'),/range/);
 assert.throws(()=>oracle.hourPillar('乙','24:00'),/Invalid birth/);
 
-const dayHour=oracle.hourPillar('乙','23:30');
-assert.equal(dayHour,'丙子','civil-day Sect 2 late 子 hour keeps the Gregorian day stem');
+const dayHour=oracle.hourPillar('乙','23:30','丙');
+assert.equal(dayHour,'戊子','Sect 2 late Zi borrows next civil-day stem despite keeping civil-day day pillar');
 for(const year of [1905,1951,1982,1983,1990,2000,2024,2032])
  for(const month of [1,2,3,4,6,8,10,12]){
   const input={calendar:'solar',
