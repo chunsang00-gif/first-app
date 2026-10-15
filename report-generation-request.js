@@ -60,9 +60,16 @@ function schema(prompt,transport){
    if(!task)throw Error('Missing canonical topic plan: '+chapterId+':'+topic);
    const permitted=[...allowedRefs(payload,task,chapterId,topic)];
    if(task.mode!=='state-limits'&&!permitted.length)throw Error('Missing topic source mapping: '+chapterId+':'+topic);
-   const refs=task.mode==='state-limits'?[]:permitted;
-   const basis=object({refs:task.mode==='state-limits'?{type:'array',items:{type:'string',enum:ids},description:'직접 근거가 없으므로 반드시 빈 배열을 반환한다.'}:{type:'array',items:{type:'string',enum:refs}},interpretation:{type:'string'},condition:{type:'string'},limit:{type:'string'}});
-   basis.description='내부 근거 기록. 이 질문과 관련된 계산 참조만 선택한다. 실제 자료의 의미와 해석의 연결, 적용 조건, 판단 한계를 구분한다. 독자용 본문이 아니다.';
+   // A limitation-only paragraph must have no sources and no fabricated
+   // interpretation. Strict schema cannot express maxItems=0 reliably, so
+   // use null fields as an unambiguous evidence-free branch.
+   const limited=task.mode==='state-limits';
+   const basis=object(limited
+    ?{refs:{type:'null'},interpretation:{type:'null'},condition:{type:'null'},limit:{type:'string'}}
+    :{refs:{type:'array',items:{type:'string',enum:permitted}},interpretation:{type:'string'},condition:{type:'string'},limit:{type:'string'}});
+   basis.description=limited
+    ?'직접 근거가 없는 항목. refs·interpretation·condition은 반드시 null로 반환하고, limit에는 무엇을 판단할 수 없는지만 구체적으로 적는다. 독자에게 성격이나 사건을 만들어 설명하지 않는다.'
+    :'내부 근거 기록. 이 질문과 관련된 계산 참조만 선택한다. 실제 자료의 의미와 해석의 연결, 적용 조건, 판단 한계를 구분한다. 독자용 본문이 아니다.';
    p.properties={basis,...p.properties};p.required=['basis',...p.required];
   }
  }
@@ -107,14 +114,20 @@ function restoreEvidence(value,prompt){
   for(const [topic,p] of Object.entries(chapter.paragraphs)){
    if(p===null)continue;
    const b=p.basis;
-   if(!b||!Array.isArray(b.refs)||(payload.task.chapters?.[id]?.topics?.[topic]?.mode!=='state-limits'&&!b.refs.length)||b.refs.some(ref=>!Object.hasOwn(payload.source,ref))||['interpretation','condition','limit'].some(k=>typeof b[k]!=='string'||!b[k].trim()))throw Error('AI report service missing verified paragraph basis');
    const task=payload.task.chapters?.[id]?.topics?.[topic];
+   const limited=task?.mode==='state-limits';
+   if(!b||typeof b.limit!=='string'||!b.limit.trim()||
+    (limited
+     ?b.refs!==null||b.interpretation!==null||b.condition!==null
+     :!Array.isArray(b.refs)||!b.refs.length||
+      b.refs.some(ref=>!Object.hasOwn(payload.source,ref))||
+      ['interpretation','condition'].some(k=>typeof b[k]!=='string'||!b[k].trim())))
+    throw Error('AI report service missing verified paragraph basis');
    if(!task)throw Error('AI report service unexpected paragraph topic: '+id+':'+topic);
    if(task.mode==='state-limits'){
     // A chapter's mandatory limit paragraph may explain unavailable evidence,
     // but must never substitute unrelated references for missing direct evidence.
     if(topic!==prompt.analysisGuidance.editorialBlueprint[id].anchorTopic)throw Error('AI report service unsupported topic: '+id+':'+topic);
-    if(b.refs.length)throw Error('AI report service fabricated sources for unsupported topic: '+id+':'+topic);
     if(!/근거|확인|판단|자료|한계|부족|없|미상|알 수/.test(b.limit))throw Error('AI report service missing explicit evidence limit: '+id+':'+topic);
    }else{
     const allowed=allowedRefs(payload,task,id,topic);
@@ -123,7 +136,9 @@ function restoreEvidence(value,prompt){
     ))throw Error('AI report service missing dual MBTI/Saju evidence: '+id+':'+topic);
     if(!allowed.size||b.refs.some(ref=>!allowed.has(ref)))throw Error('AI report service unrelated paragraph basis: '+id+':'+topic);
    }
-   chapter.evidence.push(topic+': '+b.refs.map(ref=>{const s=payload.source[ref];return s.position?ref+' ('+s.position+' '+s.stem+' '+s.tenGod+')':ref;}).join('; ')+' / 해석: '+b.interpretation+' / 조건: '+b.condition+' / 한계: '+b.limit);
+   chapter.evidence.push(limited
+    ?topic+': 직접 판단할 근거 없음 / 한계: '+b.limit
+    :topic+': '+b.refs.map(ref=>{const s=payload.source[ref];return s.position?ref+' ('+s.position+' '+s.stem+' '+s.tenGod+')':ref;}).join('; ')+' / 해석: '+b.interpretation+' / 조건: '+b.condition+' / 한계: '+b.limit);
    delete p.basis;
   }
  }
