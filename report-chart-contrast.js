@@ -24,11 +24,8 @@ function build(packet){
   .map(x=>({sourceId:x.id,relation:x.relation,category:x.category,direction:x.direction}));
  const support=visible.filter(x=>x.direction==='support');
  const counter=visible.filter(x=>x.direction!=='support');
- const collision=(root.dayMasterRootCases||[]).filter(x=>
-  x.natal?.hasDirectClash||x.year?.hasDirectClash).map(x=>({
-   sourceId:x.rootId,location:x.rootPosition,
-   natalClash:Boolean(x.natal?.hasDirectClash),
-   annualClash:Boolean(x.year?.hasDirectClash)
+ const collision=(root.dayMasterRootCases||[]).filter(x=>x.natal?.hasDirectClash).map(x=>({
+   sourceId:x.rootId,location:x.rootPosition,natalClash:true
   }));
  const seasonContext={
   dayElement:season.dayElement,
@@ -49,14 +46,14 @@ function build(packet){
     '확인된 겉천간의 오행 방향만 설명한다. 없는 반대 성격이나 강약의 균형을 꾸미지 않는다.'},
   {kind:'actual-day-master-roots',refs:[provenance.stem,provenance.roots,
    ...rootLocations.map(x=>x.sourceId)],
-   evidence:{rootLocations,visibleRootCount:rootLocations.length,hiddenHourUnresolved:link.hiddenHourMayChangeFindings},
+   evidence:{rootLocations,observedRootCount:rootLocations.length,hiddenHourUnresolved:link.hiddenHourMayChangeFindings},
    question:rootLocations.length?
     '일간과 같은 오행이 실제로 존재하는 지장간 위치 및 투간과 같은 오행 통근의 차이를 밝힌다. 뿌리 개수를 강약 점수로 만들지 않는다.':
     '확인 가능한 시주 범위 안에서 일간의 동일 오행 뿌리가 발견되지 않았음을 설명한다. 신약 확정이나 인성의 부재로 확대하지 않는다.'},
   {kind:'root-relation-overlap',refs:[provenance.roots],
    evidence:{collisions:collision},
    question:collision.length?
-    '원국의 충과 2027년 충이 각각 어느 뿌리에 걸리는지 구분한다. 충 하나로 지장간의 소멸이나 뿌리의 강도 하락을 예측하지 않는다.':
+    '출생 사주 안에서 어떤 뿌리에 충이 걸리는지 위치를 확인한다. 충 하나로 지장간의 소멸이나 뿌리의 강도 하락을 예측하지 않는다.':
     '직접 확인된 뿌리 충이 없다고 해서 모든 오행 변화나 일의 안정성을 보장하지 않는다.'}
  ];
  return {
