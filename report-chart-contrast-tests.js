@@ -72,8 +72,28 @@ for(const input of cases){
   analysisGuidance:{...guidance.forRequest(['saju_core'],input.mbti),
    editorialBlueprint:{saju_core:blueprint.saju_core}}};
  const request=generation.compile(p);
- assert.deepEqual(request.task.chapters.saju_core.chartContrast,contrast,
-  'contrast must reach the real paid model request unchanged');
+ const core=request.task.chapters.saju_core;
+ assert.equal(Object.hasOwn(core,'chartContrast'),false,
+  'do not send four unassigned comparisons in a wide chapter blob');
+ const temperament=core.topics.temperament.evidenceFocus;
+ const strength=core.topics.strength.evidenceFocus;
+ assert.deepEqual(temperament.points.map(x=>x.kind),
+  ['month-vs-day','visible-support-vs-counter']);
+ assert.deepEqual(strength.points.map(x=>x.kind),
+  ['actual-day-master-roots','root-relation-overlap']);
+ assert.deepEqual([...temperament.points,...strength.points].map(x=>x.calculatedExplanation),
+  contrast.contrastPoints.map(x=>x.calculatedExplanation),
+  'all four computed facts must reach the exact assigned paragraph without reinterpretation');
+ for(const [topicId,focus] of [['temperament',temperament],['strength',strength]]){
+  const permitted=new Set(core.topics[topicId].citableFacts.map(x=>x.id));
+  for(const point of focus.points){
+   assert(point.sourceRefs.length>0,'calculated focus must have actual source: '+point.kind);
+   for(const ref of point.sourceRefs)assert(permitted.has(ref),
+    'topic evidence may not cite another topic\'s references: '+topicId+'/'+ref);
+   assert(!/능력이 뛰어|실제로 성실|성공한다/.test(point.calculatedExplanation),
+    'deterministic facts must never become observed personal traits');
+  }
+ }
  for(const point of contrast.contrastPoints)for(const ref of point.refs){
   assert(Object.hasOwn(request.source,ref),'contrast references unknown paid source '+ref);
  }

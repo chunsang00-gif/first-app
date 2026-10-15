@@ -97,4 +97,25 @@ function build(packet){
   writerRule:'월의 계절·겉글자·숨은 글자·같은 오행의 뿌리와 충을 실제 출처별로 분리해 비교한다. 겉에 상반되는 오행 방향이 없으면 겉글자 사이의 갈등을 창작하지 않는다. 여러 근거를 나열할 때는 각 계산값이 어떤 전통적인 해석을 허용하고 무엇은 확정할 수 없는지 밝힌다. 실제로 관찰하지 않은 성격·능력·갈등을 확정하지 않는다. 여러 기운의 공존이나 상황에 따른 균형 같은 상투적인 결론을 피한다.'
  };
 }
-module.exports={build};
+// Send exact, answerable source pairs to the TWO existing core paragraphs.
+// Previously four independent comparisons were attached to the chapter as
+// one undifferentiated table. The model then blended them into generic traits.
+// This changes the input contract, NOT the calculated chart or QA threshold.
+const TOPIC_POINTS={
+ temperament:['month-vs-day','visible-support-vs-counter'],
+ strength:['actual-day-master-roots','root-relation-overlap']
+};
+function forTopic(contrast,topic,allowedIds){
+ if(!TOPIC_POINTS[topic]||!contrast||!Array.isArray(contrast.contrastPoints))
+  throw Error('Unknown or missing grounded core paragraph plan: '+topic);
+ const allowed=new Set(allowedIds);
+ const points=TOPIC_POINTS[topic].map(kind=>{
+  const item=contrast.contrastPoints.find(p=>p.kind===kind);
+  if(!item)throw Error('Missing calculated comparison: '+kind);
+  const sourceRefs=item.refs.filter(ref=>allowed.has(ref));
+  if(!sourceRefs.length)throw Error('Calculated comparison has no permitted topic source: '+topic+'/'+kind);
+  return {kind,sourceRefs,calculatedExplanation:item.calculatedExplanation,question:item.question};
+ });
+ return {scope:topic,points,policy:'두 비교의 실제 계산 차이를 순서대로 설명한다. 서로 관련 없는 근거를 섞거나 관찰하지 않은 성격·행동·능력을 확정하지 않는다. 고객용 본문에는 내부 참조 ID 및 한자를 옮기지 않는다.'};
+}
+module.exports={build,forTopic,TOPIC_POINTS};

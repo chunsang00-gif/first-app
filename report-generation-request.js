@@ -7,7 +7,7 @@ const policy=[
  '사주 기본 장의 temperament는 facts.seasonalEvidence, facts.qiEvidence, facts.stemConnections를 모두 인용하고, 사실상 투간은 동일 지장간 글자의 실제 천간 노출만, 통근은 같은 오행 지장간 존재만 기록하며 음양이 다른 글자를 같은 글자로 바꾸지 않는다. 출생시간 미상은 부재 확정으로 해석하지 않는다. facts.rootConditions의 각 뿌리에 대해 원국 충과 2027년 세운 충을 구분하고, 충이 있어도 지장간이나 뿌리가 삭제되었다거나 강도 감소량이 확정되었다고 쓰지 않는다. 해당 근거를 확인할 때 facts.rootConditions를 명시적으로 인용한다. facts.seasonalEvidence와 facts.qiEvidence를 함께 인용하고, 실제 출처 위치에 있는 생조·설기·극·재성·관성 관계를 구분한다. 지장간의 존재를 실제 사령·오행 강약의 수치로 단정하지 않는다. facts.seasonalEvidence를 인용해 태어난 달의 계절과 전환월 여부·일간과 계절 오행 관계를 설명한다. 전환월에 본기만으로 계절의 우세를 확정하거나 근거 없는 신강·신약·용신을 단정하지 않는다. '+
  '계산 사실과 해석을 구분한다. 글자 개수나 이름만으로 능력·평판·실제 경험을 만들지 않는다. 계산하지 않은 강약·용신·합충·월별 시기를 추정하지 않는다. 예시는 가정임을 드러내고 실제 사건이나 미래 결과를 보장하지 않는다.',
  '2027년 관계 장은 실제 계산한 targetYearBranchContext.annualContext.day만 사용한다. directPairs의 충·육합이 있을 때에만 같은 위치의 다른 형·해·파와 경쟁 관계를 설명하며 관계표의 존재, 합화 성립, 실제 연애·결혼·이별은 각각 구분한다. interpretationPriority가 unresolved라면 어떤 관계가 더 강한지 단정하지 않는다. 2027년 금전·직업의 독립 해석은 annualScope.comparisons에 있는 연도·원국의 계산 분류 비교가 있을 때만 작성한다. 반드시 annualId와 natalId를 함께 refs에 기록하며 두 위치의 같은 전통 분류군을 대비한다. 같은 분류는 충이나 합 관계를 새로 계산한 뜻이 아니다. 수입·승진·평판·성과·이직 같은 실제 사건을 결론 내리지 않는다.',
- '사주 기본 장의 chartContrast에서 겉글자·숨은 글자·뿌리·계절·충을 서로 다른 출처로 확인한다. 겉글자에 상반되는 방향이 실제로 없으면 대립을 창작하지 않는다. 출처의 존재를 나열하는 대신 무엇을 비교했을 때 전통적으로 다른 뜻이 생기는지 설명한다. 독자에게는 구체적 가상 상황과 판단 한계를 함께 제시하되 실제 성격이나 내적 긴장을 관찰했다고 주장하지 않는다. 다양한 기운이 함께 작용한다, 상황에 따라 균형이 필요하다는 문장으로 해석을 대체하지 않는다.',
+ '사주 기본 장에서 task.chapters.saju_core.topics[topicId].evidenceFocus.points는 해당 문단이 맡은 두 개의 실제 계산 차이다. 각 차이의 sourceRefs와 calculatedExplanation을 확인하고 그 차이가 전통적으로 무엇을 뜻하는지, 어떤 점은 판단할 수 없는지 본문에 자연스럽게 설명한다. 첫 문단에서는 계절·겉글자 관계만, 두 번째 문단에서는 실제 뿌리·충 관계만 다룬다. 두 문단을 한데 섞어 여러 기운이 공존하거나 균형이 필요하다는 말로 끝내지 않는다. 계산 사실을 관찰된 성격·능력·내적 긴장으로 바꾸지 않는다. 실제 행동을 말해야 할 때는 관찰 사실이 아니라 명시적인 가정 상황으로 쓴다.',
  'saju_core의 strength 항목을 쓴다면 basis.refs에 facts.structuralEvidence.dayMasterRoots와, 실제 계산 자료가 제공된 경우 facts.stemConnections 및 facts.rootConditions를 함께 명시한다. 태어난 날 또는 시간의 실제 같은 오행 뿌리가 확인되면 citableFacts에 표시된 정확한 natal.day.hidden.* 또는 natal.hour.hidden.* 위치 중 하나 이상을 선택해 인용한다. 같은 날의 다른 숨은 글자를 뿌리라고 부르면 오류다. 해당 출처들은 강한 성격이나 능력을 검증하지 않는다.',
  '본문 단계에서는 각 문단의 basis를 먼저 작성한다. refs의 실제 자료가 무엇을 말하는지 interpretation에, 적용 상황을 condition에, 그 자료로 말할 수 없는 점을 limit에 적는다. 이 자료가 독자의 성격을 입증한다고 쓰지 않는다. 그 후 label과 text에 필요한 이유와 상황을 자연스러운 한국어로 설명한다. basis의 전문용어를 독자용 글에 복사하지 않는다.',
  '본문에서 task.chapters[id].analysisFocus를 우선 적용한다. 이는 실제 입력된 MBTI 유무에 맞게 선택된 장별 해석 초점이다. 특히 MBTI가 모름이면 사주 단독 초점만 사용하고 MBTI 특징을 추정하지 않는다. analysisGoal은 근거가 허용하는 깊이를 설명하는 목표이지 없는 자료를 채우라는 명령이 아니다.',
@@ -91,7 +91,6 @@ function compile(prompt){
     // Saju-only request this replaces a combined-framework focus, not facts.
     analysisFocus:prompt.analysisGuidance.chapterTasks?.[id]?.focus||null,
     domainMbtiLens:domainMbtiLens(id,source['person.mbti']),
-    chartContrast:id==='saju_core'?require('./report-chart-contrast').build(prompt.facts):null,
     comparisonEvidence: source['person.mbti']&&['mbti_contradiction','integrated_judgment'].includes(id)?
      (id==='mbti_contradiction'
       ?'MBTI 비교에서는 사용자 입력 선호(person.mbti)와 실제 원국 위치(natal.*)를 함께 인용한다. 같은 결론이어도 된다. 실제 행동의 검증이나 두 체계의 인과 관계가 아니다.'
@@ -123,6 +122,7 @@ function compile(prompt){
   // included opaque sourcePath names while the useful classification and
   // meaning were scattered in a large global source dictionary.
   for(const [chapterId,chapter] of Object.entries(task.chapters)){
+   const coreContrast=chapterId==='saju_core'?require('./report-chart-contrast').build(prompt.facts):null;
    for(const [topicId,topic] of Object.entries(chapter.topics)){
     const permitted=[...allowedRefs(payload,topic,chapterId,topicId)];
     topic.citableFacts=permitted.map(id=>{
@@ -136,6 +136,9 @@ function compile(prompt){
       ...(id==='person.mbti'?{inputType:fact.type,interpretationScope:'self-reported-preference-only'}:{})
      };
     });
+    // The model's actual compact task is now one factual question per
+    // comparison pair, rather than a four-part undifferentiated chapter table.
+    if(coreContrast)topic.evidenceFocus=require('./report-chart-contrast').forTopic(coreContrast,topicId,permitted);
    }
   }
  }
