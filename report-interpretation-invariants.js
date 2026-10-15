@@ -15,6 +15,15 @@ function verify(packet,plan){
  const ids=new Set(rows.map(row=>row.id));
  if(ids.size!==rows.length)errors.push('duplicate-position-bound-calculation-id');
  const expected=core.all(packet);
+ if(packet.facts?.seasonalEvidence){
+  if(!packet.chart||
+     !same(packet.facts.seasonalEvidence,require('./report-seasonal-evidence').evaluate(packet.chart)))
+   errors.push('calculated-seasonal-context-mismatch');
+  const topic=plan.saju_core?.topicTasks?.temperament;
+  if(topic?.mode!=='state-limits'&&
+     !topic?.requiredSourceKinds?.includes('seasonal'))
+   errors.push('missing-canonical-seasonal-topic-requirement');
+ }
  for(const [domain,id] of Object.entries(annualIds)){
   const chapter=plan[id];
   const actual=chapter?.annualDomainEvidence;
