@@ -70,7 +70,7 @@ const {createQueue,retryDelay,rateLimitKind}=require('./report-request-control')
  assert(moneyFacts.allowedSourceRefs.every(x=>x.startsWith('natal.')),'money cannot borrow generic structural labels');
  assert.equal(moneyFacts.mode,moneyFacts.allowedSourceRefs.length?'use-primary':'state-limits');
  assert.equal(annualPlan.money.topicTasks.risk.mode,'state-limits','a natal clash alone must not become a financial-loss prediction');
- assert.equal(annualPlan.saju_core.topicTasks.temperament.evidenceReuseBoundary,null,'original evidence owner must not claim prior reuse');
+ assert.equal(annualPlan.saju_core.topicTasks.temperament.evidenceReuseBoundary,undefined,'planned topics must not claim any prior cited evidence; use actual source ledger');
  const noAnnualSignal={...annualSample,facts:{...annualSample.facts,annualTenGods:{stemTenGod:'알수없음',hiddenStems:[]},targetYearRelations:[]}};
  const limitedPlan=require('./report-analysis-guidance').preflight(noAnnualSignal);
  for(const id of ['year_2027_money','year_2027_career','year_2027_relationship']){
