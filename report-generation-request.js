@@ -52,6 +52,23 @@ function schema(prompt,transport){
  }
  return result;
 }
+// Source relevance is checked against the canonical per-topic plan, not merely source existence.
+function allowedRefs(payload,task){
+ const paths=task?.mode==='use-primary'?[task.primaryEvidencePath]:task?.mode==='use-verified-fallback'?task.fallbackPaths||[]:[];
+ const ids=new Set();
+ for(const path of paths){
+  if(!path)continue;
+  if(Object.hasOwn(payload.source,path))ids.add(path);
+  // Ten-god facts are exported as position-bound rows, not as facts.tenGods.*.
+  const match=/^facts\.tenGods\.(year|month|day|hour)(?:\.(hiddenStems))?$/.exec(path);
+  if(match)for(const id of Object.keys(payload.source)){
+   if(match[2]?id.startsWith('natal.'+match[1]+'.hidden.'):id.startsWith('natal.'+match[1]+'.'))ids.add(id);
+  }
+  // The complete ten-god structure is represented by all position-bound rows.
+  if(path==='facts.tenGods')for(const id of Object.keys(payload.source))if(id.startsWith('natal.'))ids.add(id);
+ }
+ return ids;
+}
 function restoreEvidence(value,prompt){
  const payload=compile(prompt);
  if(!payload||prompt.stage!=='body')return value;
@@ -64,6 +81,17 @@ function restoreEvidence(value,prompt){
    if(p===null)continue;
    const b=p.basis;
    if(!b||!Array.isArray(b.refs)||!b.refs.length||b.refs.some(ref=>!Object.hasOwn(payload.source,ref))||['interpretation','condition','limit'].some(k=>typeof b[k]!=='string'||!b[k].trim()))throw Error('AI report service missing verified paragraph basis');
+   const task=payload.task.chapters?.[id]?.topics?.[topic];
+   if(!task)throw Error('AI report service unexpected paragraph topic: '+id+':'+topic);
+   if(task.mode==='state-limits'){
+    // A chapter's mandatory limit paragraph may explain unavailable evidence,
+    // but must never substitute unrelated references for missing direct evidence.
+    if(topic!==prompt.analysisGuidance.editorialBlueprint[id].anchorTopic)throw Error('AI report service unsupported topic: '+id+':'+topic);
+    if(!/근거|확인|판단|자료|한계|부족|없|미상|알 수/.test(b.limit))throw Error('AI report service missing explicit evidence limit: '+id+':'+topic);
+   }else{
+    const allowed=allowedRefs(payload,task);
+    if(!allowed.size||!b.refs.some(ref=>allowed.has(ref)))throw Error('AI report service unrelated paragraph basis: '+id+':'+topic);
+   }
    chapter.evidence.push(topic+': '+b.refs.map(ref=>{const s=payload.source[ref];return s.position?ref+' ('+s.position+' '+s.stem+' '+s.tenGod+')':ref;}).join('; ')+' / 해석: '+b.interpretation+' / 조건: '+b.condition+' / 한계: '+b.limit);
    delete p.basis;
   }
