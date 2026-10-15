@@ -23,6 +23,14 @@ assert(quality.verifyEvidenceAgainstFacts({sections:[{id:'saju_core',body:['월�
  await assert.rejects(contract.generate(sample,async prompt=>{
   calls++;
   assert.deepEqual(prompt.factBindings,rows);
+  assert.equal(prompt.analysisGuidance.comparisonContract.mode,'conditional-side-by-side');
+  assert.equal(prompt.analysisGuidance.comparisonContract.calculatedAgreement,false);
+  assert.equal(prompt.analysisGuidance.comparisonContract.calculatedContradiction,false);
+  assert.deepEqual(require('./report-generation-request').compile(prompt).task.comparisonContract,
+   prompt.analysisGuidance.comparisonContract,'the canonical MBTI/Saju boundary must reach the paid model request');
+  const missingComparison=structuredClone(prompt);
+  delete missingComparison.analysisGuidance.comparisonContract;
+  assert(audit.inspect(missingComparison).includes('missing or altered independent MBTI-Saju comparison contract'));
   assert.deepEqual(audit.inspect(prompt),[]);
   const changed=structuredClone(prompt);
   changed.factBindings.find(x=>x.id==='natal.month.stem').tenGod='편관';
