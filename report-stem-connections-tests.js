@@ -87,7 +87,7 @@ for(const input of [
  assert.throws(()=>writer.restoreEvidence(report(all.filter(x=>x!=='facts.stemConnections')),prompt),
   /missing required grounded stem connection evidence/);
  const tampered=structuredClone(packet);
- tampered.facts.stemConnections.dayMasterRooting.sameElementRoots=[];
+ tampered.facts.stemConnections.dayMasterRooting.rootObservationStatus='fabricated-strong-root';
  assert(integrity.verify(tampered).errors.includes('incorrect-stem-connections'));
  assert(invariant.verify(tampered,blueprint).errors.includes('calculated-stem-connection-mismatch'));
  const flawed=structuredClone(blueprint);
