@@ -39,7 +39,7 @@ function evaluate(chart,annualPillar){
   primaryEvidence:main,
   secondaryCandidates:secondary,
   otherRelationsTouchingDay:dayCompeting,
-  hasCompetingClaims:annualDay.length>1||dayCompeting.length>0,
+  hasCompetingClaims:day.contenders.length>1,
   eligibleForLimitedDescription:relevant,
   meaningStrength:'not-assessed',favorableOrUnfavorable:'not-assessed',
   realWorldRelationshipOutcome:'not-assessable',
