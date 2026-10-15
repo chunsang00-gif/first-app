@@ -8,6 +8,7 @@ const policy=[
  '계산 사실과 해석을 구분한다. 글자 개수나 이름만으로 능력·평판·실제 경험을 만들지 않는다. 계산하지 않은 강약·용신·합충·월별 시기를 추정하지 않는다. 예시는 가정임을 드러내고 실제 사건이나 미래 결과를 보장하지 않는다.',
  '2027년 관계 장은 실제 계산한 targetYearBranchContext.annualContext.day만 사용한다. directPairs의 충·육합이 있을 때에만 같은 위치의 다른 형·해·파와 경쟁 관계를 설명하며 관계표의 존재, 합화 성립, 실제 연애·결혼·이별은 각각 구분한다. interpretationPriority가 unresolved라면 어떤 관계가 더 강한지 단정하지 않는다. 2027년 금전·직업의 독립 해석은 annualScope.comparisons에 있는 연도·원국의 계산 분류 비교가 있을 때만 작성한다. 반드시 annualId와 natalId를 함께 refs에 기록하며 두 위치의 같은 전통 분류군을 대비한다. 같은 분류는 충이나 합 관계를 새로 계산한 뜻이 아니다. 수입·승진·평판·성과·이직 같은 실제 사건을 결론 내리지 않는다.',
  '사주 기본 장의 chartContrast에서 겉글자·숨은 글자·뿌리·계절·충을 서로 다른 출처로 확인한다. 겉글자에 상반되는 방향이 실제로 없으면 대립을 창작하지 않는다. 출처의 존재를 나열하는 대신 무엇을 비교했을 때 전통적으로 다른 뜻이 생기는지 설명한다. 독자에게는 구체적 가상 상황과 판단 한계를 함께 제시하되 실제 성격이나 내적 긴장을 관찰했다고 주장하지 않는다. 다양한 기운이 함께 작용한다, 상황에 따라 균형이 필요하다는 문장으로 해석을 대체하지 않는다.',
+ 'saju_core의 strength 항목을 쓴다면 basis.refs에 facts.structuralEvidence.dayMasterRoots와, 실제 계산 자료가 제공된 경우 facts.stemConnections 및 facts.rootConditions를 함께 명시한다. 태어난 날 또는 시간의 실제 같은 오행 뿌리가 확인되면 citableFacts에 표시된 정확한 natal.day.hidden.* 또는 natal.hour.hidden.* 위치 중 하나 이상을 선택해 인용한다. 같은 날의 다른 숨은 글자를 뿌리라고 부르면 오류다. 해당 출처들은 강한 성격이나 능력을 검증하지 않는다.',
  '본문 단계에서는 각 문단의 basis를 먼저 작성한다. refs의 실제 자료가 무엇을 말하는지 interpretation에, 적용 상황을 condition에, 그 자료로 말할 수 없는 점을 limit에 적는다. 이 자료가 독자의 성격을 입증한다고 쓰지 않는다. 그 후 label과 text에 필요한 이유와 상황을 자연스러운 한국어로 설명한다. basis의 전문용어를 독자용 글에 복사하지 않는다.',
  '본문에서 task.chapters[id].analysisFocus를 우선 적용한다. 이는 실제 입력된 MBTI 유무에 맞게 선택된 장별 해석 초점이다. 특히 MBTI가 모름이면 사주 단독 초점만 사용하고 MBTI 특징을 추정하지 않는다. analysisGoal은 근거가 허용하는 깊이를 설명하는 목표이지 없는 자료를 채우라는 명령이 아니다.',
  '각 세부 topic의 citableFacts는 strict JSON 출력 스키마와 동일한 함수에서 계산한 인용 가능한 출처다. 질문과 직접 연결되는 계산 위치·겉글자/숨은 글자·십성·전통적 뜻을 먼저 구분해 읽은 뒤 basis.refs에는 정확한 id를 적는다. citableFacts에 없는 id를 쓰거나 전통 분류의 뜻을 그 사람의 실제 행동·수입·관계 사건으로 확정하지 않는다. 독립된 뜻을 설명할 수 없다면 일반적인 성격 풀이로 문단을 채우지 말고 선택 항목을 null로 둔다.',
@@ -278,7 +279,8 @@ function restoreEvidence(value,prompt){
     if(id==='saju_core'&&topic==='strength'){
      // The model must show a real recorded root before discussing its meaning.
      // Source IDs alone cannot validate every interpretation; human QA remains.
-     const required=['facts.structuralEvidence.dayMasterRoots','facts.stemConnections','facts.rootConditions'];
+     const required=['facts.structuralEvidence.dayMasterRoots',
+      ...['facts.stemConnections','facts.rootConditions'].filter(ref=>Object.hasOwn(payload.source,ref))];
      if(required.some(ref=>!b.refs.includes(ref)))throw Error('AI report service missing verified root provenance');
      const roots=payload.source['facts.stemConnections']?.dayMasterRooting?.sameElementRoots||[];
      if(roots.length&&!roots.some(root=>b.refs.includes(root.hiddenId)))
