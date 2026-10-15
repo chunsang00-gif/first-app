@@ -52,6 +52,12 @@ const schema=require('./report-schema.json');
   ...guidance.forRequest(scopedIds,prompt.facts.person?.mbti),
   editorialBlueprint:Object.fromEntries(scopedIds.map(id=>[id,allPlans[id]]))
  }});
+ assert(moneyRequest.task.chapters.money.domainMbtiLens?.preferences.some(p=>p.code==='F'),
+  'the actual model must receive the user-entered F preference for a grounded money comparison');
+ assert(generation.policy.includes('domainMbtiLens'),
+  'the paid provider must know how to use optional MBTI context in practical domains');
+ assert.equal(moneyRequest.task.chapters.year_2027_money.domainMbtiLens,null,
+  'yearly money symbols must not become personal event predictions from MBTI');
  assert(moneyRequest.task.chapters.money.safety.avoid.includes('금전'),'money-specific prohibitions must reach writer');
  assert(moneyRequest.task.chapters.year_2027_money.annualScope,'annual domain evidence gate must remain visible');
  const financialIds=moneyRequest.task.chapters.money.topics.earning.allowedSourceRefs;
@@ -67,7 +73,7 @@ const schema=require('./report-schema.json');
  const moneySlots=moneySchema.properties.chapters.properties.money.properties.paragraphs.properties;
  if(financialIds.length){
   assert.equal(moneyRequest.task.chapters.money.topics.earning.mode,'use-primary');
-  assert.deepEqual(new Set(moneySlots.earning.properties.basis.properties.refs.items.enum),new Set(financialIds));
+  assert.deepEqual(new Set(moneySlots.earning.properties.basis.properties.refs.items.enum),new Set([...financialIds,'person.mbti']));
  }else assert.equal(moneySlots.earning.type,'null','no financial sources must not create a paid money claim');
  assert.equal(moneySlots.risk.type,'null','unsupported financial-loss prediction must not be offered to the model');
  const financeUnavailable=structuredClone(prompt.facts);
