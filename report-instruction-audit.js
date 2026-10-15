@@ -25,6 +25,15 @@ function inspect(prompt){
  for(const pattern of [/명리 용어를 지우지 말고/,/핵심 명리 용어를 본문에/,/십성 이름·위치를 본문에서도/,/명리 용어를 괄호로 풀어/,/명리 용어와 짧은 뜻을 본문에/])if(pattern.test(prose))errors.push('conflicting visible jargon instruction');
  for(const pattern of forbiddenFixedQuotas)if(pattern.test(prose))errors.push('obsolete forced quota: '+pattern.source);
  if(body){
+  // Compare only independent interpretation contracts to the input type,
+  // never to inferred personality. An omitted or overwritten comparison
+  // contract would silently re-enable unsupported MBTI/Saju contradictions.
+  if(prompt?.facts?.person&&prompt?.facts?.facts?.tenGods){
+   const expected=require('./report-analysis-guidance')
+    .forRequest(prompt.requestedSections||[],prompt.facts.person.mbti).comparisonContract;
+   if(JSON.stringify(prompt.analysisGuidance?.comparisonContract)!==JSON.stringify(expected))
+    errors.push('missing or altered independent MBTI-Saju comparison contract');
+  }
   const bindings=require('./report-fact-bindings');
   if(prompt.facts?.facts?.tenGods){
    if(JSON.stringify(prompt.factBindings)!==JSON.stringify(bindings.build(prompt.facts)))errors.push('missing or altered positional fact bindings');
