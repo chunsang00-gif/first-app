@@ -67,6 +67,13 @@ const schema=require('./report-schema.json');
  assert.deepEqual(summary.task.completedReport,synthesis.completedReport);
  assert(summary.source['person.mbti']);
  assert.deepEqual(generation.schema(synthesis,t),t);
+ // The compact request must preserve missing-MBTI and unknown-hour boundaries.
+ let unknownPrompt;
+ await assert.rejects(generate({calendar:'solar',birthDate:'1990-05-15',unknownBirthTime:true,gender:'male',mbti:'모름'},async p=>{unknownPrompt=p;throw Error('OFFLINE_UNKNOWN');}),/OFFLINE_UNKNOWN/);
+ const unknownPayload=generation.compile(unknownPrompt);
+ assert(!Object.hasOwn(unknownPayload.source,'person.mbti'),'unknown MBTI must never create a preference source');
+ assert(!Object.keys(unknownPayload.source).some(x=>x.startsWith('natal.hour.')),'unknown hour must not create birth-hour facts');
+ assert(unknownPayload.task.chapters.mbti_contradiction.safety.avoid.includes('입력하지 않은 성격'),'saju-only guard must be preserved');
  const oldFetch=global.fetch,oldKey=process.env.OPENAI_API_KEY,oldModel=process.env.REPORT_MODEL;
  let calls=0;
  try{
