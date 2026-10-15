@@ -409,7 +409,19 @@ async function generate(input,callModel,onProgress=()=>{},onValidatedBatch=()=>{
  const headingRepairs=require('./report-heading-review').repair(report);
  let shape=validateShape(report),qa=shape.pass?quality.validate(report,packet):shape;
  if(paraphraseErrors.length)qa={...qa,pass:false,errors:[...(qa.errors||[]),...paraphraseErrors]};
- qa={...qa,warnings:[...(qa.warnings||[]),...adviceWarnings]};
+ // Semantic heuristics are human review leads, never release approval.
+ // Never print private excerpts in automation logs or public QA status.
+ const review=require('./report-semantic-review').review(report);
+ qa={...qa,
+  warnings:[...(qa.warnings||[]),...adviceWarnings],
+  semanticReview:{requiresHumanReview:true,releaseVerdict:'not-assessed',
+   findings:review.findings.map(f=>({
+    code:f.code,...(f.section?{section:f.section}:{}),
+    ...(f.field?{field:f.field}:{}),
+    ...(f.index===undefined?{}:{index:f.index}),
+    ...(f.sections?{sections:f.sections}:{}),
+    ...(f.label?{label:f.label}:{})
+   }))}};
 
  return qa.pass?{status:'ready',report,qa,headingRepairs,coverage}:{status:'rejected',report,qa,headingRepairs,coverage};
 }
