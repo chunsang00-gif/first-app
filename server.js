@@ -45,7 +45,17 @@ try{value=JSON.parse(text)}catch{
 }
 if(onProviderResponse)await onProviderResponse(value);
 return require('./report-response-decoder').decode(value,prompt)}
-async function callModel(prompt){if(process.env.REPORT_MODEL_URL){const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),MODEL_TIMEOUT_MS);let r;try{r=await fetch(process.env.REPORT_MODEL_URL,{method:'POST',signal:controller.signal,headers:{'content-type':'application/json',...(process.env.REPORT_MODEL_KEY?{'authorization':`Bearer ${process.env.REPORT_MODEL_KEY}`}:{})},body:JSON.stringify(prompt)});}catch(e){if(e?.name==='AbortError')throw Error('AI report service timed out');throw Error('AI report service request failed')}finally{clearTimeout(timer)}if(!r.ok)throw Error(`AI report service error (${r.status})`);return r.json()}return callOpenAI(prompt)}
+async function callModel(prompt,onProviderResponse=null){if(process.env.REPORT_MODEL_URL){const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),MODEL_TIMEOUT_MS);let r;try{r=await fetch(process.env.REPORT_MODEL_URL,{method:'POST',signal:controller.signal,headers:{'content-type':'application/json',...(process.env.REPORT_MODEL_KEY?{'authorization':`Bearer ${process.env.REPORT_MODEL_KEY}`}:{})},body:JSON.stringify(prompt)});}catch(e){if(e?.name==='AbortError')throw Error('AI report service timed out');throw Error('AI report service request failed')}finally{clearTimeout(timer)}if(!r.ok)throw Error(`AI report service error (${r.status})`);
+const raw=await r.text();
+if(!raw){if(onProviderResponse)await onProviderResponse({status:'empty_output'});
+ throw Error('AI report service returned no output')}
+let value;
+try{value=JSON.parse(raw)}catch{
+ if(onProviderResponse)await onProviderResponse({status:'invalid_json',rawOutput:raw});
+ throw Error('AI report service returned invalid report data');
+}
+if(onProviderResponse)await onProviderResponse(value);
+return value;}return callOpenAI(prompt,onProviderResponse)}
 
 // Private operator QA: never enabled without a separate secret; no customer report bypass.
 const qaCrypto=require('node:crypto');
@@ -93,7 +103,16 @@ if(existing.status==='processing'&&!JOBS.has(previous.id)){
   validatedBatches:saved?.batches?.length||0,
   message:'중단된 작업을 새 작업으로 착각하지 않도록 차단했습니다. 검증된 장은 별도 보관되지만 유료 생성은 자동 재개하지 않습니다.'});
 }
-return json(res,202,{status:'processing',jobId:previous.id,timing:reportTiming.snapshot(existing.createdAt)})}const id=require('crypto').randomUUID(),startedAt=Date.now();if(reportStore.enabled){reportStore.save(id,{status:'processing',createdAt:startedAt,startedAt});if(requestId)reportStore.saveRequest(requestId,{id,fingerprint})}if(requestId)REQUESTS.set(requestId,{id,fingerprint});JOBS.set(id,{status:'processing',createdAt:startedAt});reportContract.generate(a.calculationInput,prompt=>enqueueModel(()=>callModel(prompt)),progress=>{
+return json(res,202,{status:'processing',jobId:previous.id,timing:reportTiming.snapshot(existing.createdAt)})}const id=require('crypto').randomUUID(),startedAt=Date.now();if(reportStore.enabled){reportStore.save(id,{status:'processing',createdAt:startedAt,startedAt});if(requestId)reportStore.saveRequest(requestId,{id,fingerprint})}if(requestId)REQUESTS.set(requestId,{id,fingerprint});JOBS.set(id,{status:'processing',createdAt:startedAt});let attemptedCalls=0;
+reportContract.generate(a.calculationInput,prompt=>enqueueModel(async()=>{
+ const n=++attemptedCalls;
+ if(reportStore.enabled)reportStore.startProviderCall(id,n,{
+  stage:prompt.stage,requestedSections:prompt.requestedSections||[],
+  identity:checkpointIdentity.signature(a.calculationInput)});
+ return callModel(prompt,async response=>{
+  if(reportStore.enabled)reportStore.saveProviderResponse(id,n,response)
+ });
+}),progress=>{
  const job=JOBS.get(id);if(job?.status==='processing')job.progress=progress
 },async batch=>{
  if(!reportStore.enabled)return;
