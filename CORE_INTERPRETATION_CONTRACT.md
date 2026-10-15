@@ -57,6 +57,16 @@
 - '지지 관계 존재'는 **전통적 기호 비교의 사실**이지 실제로 인간관계가 좋아지거나 이별/결혼이 발생할 근거가 아니다. 월령에 따른 강약, 용신, 지지 사이의 영향력·우선순위, 학파별 합화 조건을 추정해서 채우지 않는다.
 - 근거: [육합 관계와 합화 조건 구분](https://wiki.openfate.ai/ko/bazi/relationships-compatibility/earthly-branch-six-combinations-in-bazi-compatibility), [중첩 관계와 월령의 평가 순서](https://sajuclass.com/%EC%A7%80%EC%A7%80%ED%95%A9/), [형·파·해의 학파별 차이](https://sajufortune.kr/knowledge/hap-chung-hyeong-pa-hae). 이 자료들 자체가 하나의 보편적 계산 우선순위를 증명하지는 않는다.
 
+## 월령·계절 기운과 일간 오행 관계의 검증 가능한 범위
+- `report-seasonal-evidence.js`가 월지를 태어난 계절(봄·여름·가을·겨울)과 **12개 월지의 분류**에 연결한다. 8개 핵심 달은 계절의 중심 오행을 기록하고 辰·未·戌·丑은 **전환월**로 표시해 토(土) 본기만으로 전체 달의 지배 기운을 단정하지 않는다.
+- 월지의 본기·중기·여기, 출생 네 기둥의 일간과 같은 오행을 포함한 지장간 뿌리, 위치별로 겉에 나타난 천간의 같은 오행·생조·설기·극 관계를 `facts.seasonalEvidence`에 별도로 기록한다. 뿌리의 본기/중기/여기 **출현 위치**는 검증하지만 출현 개수를 일간 강약의 백분율이나 점수로 변환하지 않는다.
+- `report-branch-context.js`의 월지 관련 내용에도 계산된 계절·전환월 정보를 유지하며, `report-calculation-integrity.js`는 **원래 사주팔자에서 독립 재계산**하여 변조를 감지한다.
+- 유료 글 생성기의 `saju_core.temperament` 근거는 `facts.seasonalEvidence`를 필수로 인용한다. `report-interpretation-invariants.js`가 이 필수 규칙의 누락을 **유료 호출 전에 차단**하고, `report-generation-request.js`가 실제 인용 누락을 차단한다.
+- `report-seasonal-claims.js`는 미계산 **신강·신약·득령 확정·용신/기신**을 결정된 것처럼 쓰거나 출생 월지의 계절을 잘못 설명한 문장도 차단한다. 제한을 밝힌 설명까지 임의로 차단해서는 안 된다.
+- `report-seasonal-evidence-tests.js`와 `report-seasonal-claims-tests.js`는 **12개 월지 + 양력·음력·시간 미상 + 고의로 바꾼 계절값 + 모델 근거 누락**을 무료 CI에서 검증한다.
+- 전통 해석의 월령은 우선 기준이지만 **계절 하나로 신강·신약 판정이 확정되지 않는다**. 뿌리 위치, 지장간의 실제 사령 기간, 방합·합화·충의 효과, 다른 천간에 의한 생조·설기·극과 특수격 등은 별도의 성립 조건이 필요하다. [월령과 득령의 구별](https://wiki.openfate.ai/en/bazi/strength-month-command/receiving-month-command) · [월지의 지장간 뿌리와 한계](https://wiki.openfate.ai/en/bazi/hidden-stems-roots/month-command-roots)
+- **미완료:** 사령 교대 시각, 계절 강약의 실제 가중치, 학교별 득령 기준·통근 강도, 용신·기신과 용희신 판단. 알고리즘에 없는 최종 강약 판정을 AI에 맡겨 꾸미지 않는다.
+
 ## 아직 계산되지 않거나 증명되지 않는 것
 - 신강/신약, 용신/기신 및 사령·월령의 상세한 강약 판정
 - 지지 관계 표에 없는 추가 학파별 관계·합화 성립 및 형·파·해의 해석 조건과 우선순위, 월별 미래 사건
