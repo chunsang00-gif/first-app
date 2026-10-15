@@ -75,9 +75,26 @@ for(const birth of [
  const packet=facts.build(birth,2027);
  assert.equal(packet.status,'ready',birth.birthDate);
  assert(packet.facts.solarTermTiming);
+ const seasonalQi=packet.facts.qiEvidence.governance;
+ assert.equal(seasonalQi.activeHiddenStemId,null,
+  'elapsed Jie time must not manufacture a governing hidden stem');
+ assert.equal(seasonalQi.hiddenStemGoverningDaysRule,'not-selected');
+ if(birth.unknownBirthTime){
+  assert.equal(seasonalQi.preciseSolarTermElapsedTime,'birth-clock-unknown');
+  assert.equal(seasonalQi.solarTermTimingEvidence,'birth-clock-unknown');
+ }else{
+  assert.equal(seasonalQi.preciseSolarTermElapsedTime.elapsedSeconds,
+   packet.facts.solarTermTiming.elapsedSecondsSinceJie);
+  assert.deepEqual(seasonalQi.preciseSolarTermElapsedTime.previousJie,
+   packet.facts.solarTermTiming.previousJie);
+  assert.equal(seasonalQi.solarTermTimingEvidence,'resolved');
+ }
  assert.equal(integrity.verify(packet).pass,true,birth.birthDate);
  const damaged=structuredClone(packet);
  damaged.facts.solarTermTiming.monthBranchFromJie='invalid';
  assert(integrity.verify(damaged).errors.includes('incorrect-birth-solar-term-timing'));
+ const changedQi=structuredClone(packet);
+ changedQi.facts.qiEvidence.governance.activeHiddenStemId='natal.month.hidden.甲';
+ assert(integrity.verify(changedQi).errors.includes('incorrect-positional-qi-evidence'));
 }
 console.log('PASS exact Jie boundary seconds, LiChun year/month flips, noon-substitution prevention and original-input provenance; no paid API');
