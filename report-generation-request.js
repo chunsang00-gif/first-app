@@ -57,6 +57,9 @@ function compile(prompt){
   chapters:Object.fromEntries(prompt.requestedSections.map(id=>{
    const p=prompt.analysisGuidance.editorialBlueprint[id];
    return [id,{question:p.question,anchor:p.anchorTopic,
+    // Preserve one authoritative scoped goal in the compact provider payload.
+    // The original rules are NOT sent to the provider.
+    analysisGoal:prompt.rules?.sectionGoals?.[id]||null,
     chartContrast:id==='saju_core'?require('./report-chart-contrast').build(prompt.facts):null,
     comparisonEvidence: id==='mbti_contradiction'&&source['person.mbti']?
      'MBTI 비교 문단은 입력된 MBTI 선호(person.mbti)와 실제 원국 위치(natal.*)를 모두 인용한다. 같은 결론이어도 된다. 사주가 확인한 실제 행동인 것처럼 쓰지 않는다.':null,
@@ -72,7 +75,9 @@ function compile(prompt){
   })),
   mbti:prompt.analysisGuidance.mbtiReference||null,
   comparisonContract:prompt.analysisGuidance.comparisonContract||null
- }:{completedReport:prompt.completedReport};
+ }:{completedReport:prompt.completedReport,
+  // Bring the final editorial task through the real provider boundary.
+  editorialGoal:prompt.rules?.finalEditingTask||null};
  return {version:'evidence-first-v1',stage:prompt.stage,targetYear:prompt.facts.targetYear,source,task};
 }
 const object=properties=>({type:'object',additionalProperties:false,required:Object.keys(properties),properties});
