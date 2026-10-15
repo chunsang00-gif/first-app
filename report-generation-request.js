@@ -12,11 +12,31 @@ const policy=[
  '본문에는 task.chapters[id].analysisGoal의 해당 분야 심화 질문을 실제로 적용한다. 계산된 출처와 전통적 의미를 먼저 확인하고, 왜 해당 질문과 연결되는지와 서로 다른 상황의 유리함·불리함을 구체적으로 설명한다. analysisGoal이 계산되지 않은 성격·직업·재산·미래 사건을 쓰라고 요구하는 것처럼 해석하지 않는다. 근거가 약하면 깊이를 가장해 분량을 늘리지 않고 지원되지 않은 선택 항목을 null로 둔다.',
  '최종 종합에서는 task.editorialGoal을 따른다. 이미 검증된 본문 밖에서 새로운 성격을 만들거나 장별 결론을 반복해서 늘리지 않는다.',
  '질문에 맞는 별도 근거가 없거나 앞 문단의 결론만 반복하면 선택 항목은 null로 둔다. 필수 항목에서도 없는 성격을 만들지 말고 확인 가능한 범위만 설명한다. 같은 응답의 다른 장과 previousSections 모두 비교한다. task.reusedEvidence는 이전 장이 실제 인용한 계산 근거와 결론의 목록이다. 같은 path를 다시 사용할 때 이전 결론을 영역 명사만 바꿔 반복하지 말고 새로운 계산 관계가 없다면 선택 문단을 생략한다. 새로운 해석을 만들려고 분야 이름만 바꾸지 않는다.',
+ '금전·직업·관계·결정·스트레스 장에서 task.chapters[id].domainMbtiLens가 있으면 명시된 입력 MBTI 선호를 상황에 맞게 선택적으로 비교한다. 사주 상징만 해석하는 항목에는 MBTI를 억지로 넣지 않는다. MBTI 또는 해당 유형을 근거로 설명하는 항목은 basis.refs에 person.mbti와 해당 항목의 원국 natal.* 참조를 모두 기록해야 한다. 유형 선호를 실제 행동·결과·능력으로 확정하지 않는다.',
  'MBTI는 제공된 선호 설명만 사용한다. task.comparisonContract는 두 틀을 독립적으로 비교하는 계약이며 입력 MBTI와 계산 사주로 일치·충돌이 증명되었다는 뜻이 아니다. 동일한 가정 상황에 두 설명을 나란히 적용하되 실제 성격을 측정했다고 주장하거나 반전을 만들어내지 않는다. MBTI가 없으면 추정하지 않는다.',
  '입력 MBTI가 있을 때 mbti_contradiction과 integrated_judgment의 작성 문단은 task.chapters[id].comparisonEvidence에 따라 basis.refs에 person.mbti와 natal.* 출처를 모두 포함한다. 두 출처를 적었다고 인과가 입증된 것은 아니다. 통합 장은 MBTI 비교 장과 동일한 결론을 재진술하지 않고 각자 다른 질문에 답한 두 관점이 함께 적용되는 조건만 설명한다. 별도 의미가 없으면 선택 문단은 null이다.',
  '제목과 핵심 판단은 본문 결론과 일치해야 한다. 본문은 이유·상황·행동을 충분히 설명하되 같은 뜻을 다시 요약하지 않는다. 추상 명사나 작성 과정 설명으로 대신하지 않는다. 장점·단점·조언을 기계적으로 채우지 않는다. 불리한 점도 해당 근거와 조건이 있을 때 분명하게 설명한다.',
  '총평 단계는 completedReport의 내용만 선별한다. 새 성격을 추가하지 않으며 같은 문단을 다시 쓰지 않는다. strengths·watchouts·routines는 중복되거나 불필요하면 빈 배열이다. 표지 highlights는 실제 장을 가리킨다. 해석의 한계는 총평 본문에서 한 번 알리고 closingQuestion은 질문이나 면책 안내가 아닌 본문에 근거한 평서형 결론으로 끝낸다.'
 ].join('\n');
+// MBTI was present in money/work/relationship depth goals but the strict
+// writer schema did not permit those chapters to cite the actual MBTI input.
+// Provide an explicit optional cross-framework lens, not an invented trait.
+const domainMbtiQuestions={
+ decision:{letters:'SNFTJP',question:'선택 상황에서 정보 선호, 가치 판단과 일정 결정 선호가 구분되는 조건은 무엇인가?'},
+ money:{letters:'SNFT',question:'금전 선택에서 정보의 구체성과 가치 판단 선호가 재물 상징과 서로 다른 무엇을 설명하는가?'},
+ career:{letters:'SNFTJP',question:'업무 상황의 정보·판단·일정 선호를 일 관련 원국 상징과 따로 설명하는가?'},
+ relationship:{letters:'IEFT',question:'가정한 관계 상황에서 상호작용·가치 판단 선호는 원국의 관계 상징과 어떻게 다르게 읽히는가?'},
+ stress:{letters:'IEJP',question:'가정한 압박 상황에서 상호작용·일정 조정 선호를 압박 관련 전통 분류와 구분할 수 있는가?'}
+};
+const linkedDomainIds=new Set(Object.keys(domainMbtiQuestions));
+function domainMbtiLens(id,mbti){
+ const spec=domainMbtiQuestions[id];
+ if(!spec||!Array.isArray(mbti?.preferences))return null;
+ const preferences=mbti.preferences.filter(row=>spec.letters.includes(row.code))
+  .map(row=>({code:row.code,dimension:row.dimension,meaning:row.meaning,notEvidenceOf:row.notEvidenceOf}));
+ return preferences.length?{sourceRef:'person.mbti',question:spec.question,preferences,
+  rule:'MBTI 선호는 실제 행동·능력·소득·관계의 증거가 아니다. 같은 가정 상황에 두 틀을 별도로 적용해 새 의미가 있을 때만 연결한다. 결합 설명은 person.mbti와 관련 원국 출처를 함께 인용하고 억지 결론을 만들지 않는다.'}:null;
+}
 function sources(prompt){
  const result=Object.fromEntries((prompt.factBindings||require('./report-fact-bindings').build(prompt.facts)).map(row=>[row.id,row]));
  const p=prompt.facts;
@@ -63,6 +83,7 @@ function compile(prompt){
     // Preserve one authoritative scoped goal in the compact provider payload.
     // The original rules are NOT sent to the provider.
     analysisGoal:prompt.rules?.sectionGoals?.[id]||null,
+    domainMbtiLens:domainMbtiLens(id,source['person.mbti']),
     chartContrast:id==='saju_core'?require('./report-chart-contrast').build(prompt.facts):null,
     comparisonEvidence: source['person.mbti']&&['mbti_contradiction','integrated_judgment'].includes(id)?
      (id==='mbti_contradiction'
@@ -159,6 +180,12 @@ function allowedRefs(payload,task,chapterId,topic){
   ids.add('person.mbti');
   for(const id of Object.keys(payload.source))if(id.startsWith('natal.month.'))ids.add(id);
  }
+ // Domain chapters already have natal-specific topic permissions. Allow the
+ // self-reported MBTI only alongside real positional natal evidence; never
+ // turn a state-limits/null topic into a free-standing MBTI prediction.
+ if(linkedDomainIds.has(chapterId)&&payload.source['person.mbti']&&
+    task.mode!=='state-limits'&&[...ids].some(id=>id.startsWith('natal.')))
+  ids.add('person.mbti');
  return ids;
 }
 function restoreEvidence(value,prompt){
@@ -194,6 +221,14 @@ function restoreEvidence(value,prompt){
     if(payload.source['person.mbti']&&['mbti_contradiction','integrated_judgment'].includes(id)&&!(
      b.refs.includes('person.mbti')&&b.refs.some(ref=>ref.startsWith('natal.'))
     ))throw Error('AI report service missing dual MBTI/Saju evidence: '+id+':'+topic);
+    if(linkedDomainIds.has(id)&&payload.source['person.mbti']){
+     const saysMbti=new RegExp('(?:\\bMBTI\\b|\\b'+payload.source['person.mbti'].type+'\\b|성격\\s*유형)', 'i')
+      .test([p.label,p.text].join(' '));
+     if(saysMbti&&!b.refs.includes('person.mbti'))
+      throw Error('AI report service MBTI claim without user preference basis: '+id+':'+topic);
+     if(b.refs.includes('person.mbti')&&!b.refs.some(ref=>ref.startsWith('natal.')))
+      throw Error('AI report service domain MBTI comparison missing natal basis: '+id+':'+topic);
+    }
     if(!allowed.size||b.refs.some(ref=>!allowed.has(ref)))throw Error('AI report service unrelated paragraph basis: '+id+':'+topic);
     if(task.requiredSourceKinds?.includes('seasonal')&&!b.refs.includes('facts.seasonalEvidence'))
      throw Error('AI report service missing required month seasonal source: '+id+':'+topic);
