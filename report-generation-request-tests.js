@@ -169,6 +169,39 @@ const schema=require('./report-schema.json');
  assert(!validHighlightIds.includes('year_2027'),'missing chapters must never appear in synthesis highlight choices');
 
  // The compact request must preserve missing-MBTI and unknown-hour boundaries.
+
+ // The integrated chapter previously could cite only Saju data.
+ // A paid MBTI+Saju interpretation must actually cite both inputs.
+ const integratedId='integrated_judgment';
+ const integratedPrompt={...prompt,requestedSections:[integratedId],
+  analysisGuidance:{...guidance.forRequest([integratedId],prompt.facts.person.mbti),
+   editorialBlueprint:{[integratedId]:allPlans[integratedId]}}};
+ const integratedPayload=generation.compile(integratedPrompt);
+ assert(integratedPayload.task.chapters[integratedId].comparisonEvidence.includes('MBTI'));
+ const integratedSchema=generation.schema(integratedPrompt,wire.schemaFor(integratedPrompt,schema));
+ const integrationAnchor=allPlans[integratedId].anchorTopic;
+ assert(integrationAnchor);
+ const integrationRefs=integratedSchema.properties.chapters.properties[integratedId].properties.paragraphs.properties[integrationAnchor].properties.basis.properties.refs.items.enum;
+ assert(integrationRefs.includes('person.mbti')&&integrationRefs.includes('natal.month.stem'),
+  'model schema must permit MBTI and actual natal source together');
+ const integrationRaw={chapters:{[integratedId]:{
+  title:'선택의 두 설명',keyJudgment:'각 관점의 서로 다른 질문을 구분합니다.',mood:'reflective',
+  paragraphs:Object.fromEntries(Object.keys(allPlans[integratedId].topicTasks).map(topic=>
+   [topic,topic===integrationAnchor?{
+    label:'입력한 선호와 계산한 위치',
+    text:'성격 선호와 계산된 출생 위치를 서로 다른 해석의 관점으로 읽습니다.',
+    basis:{refs:['person.mbti','natal.month.stem'],
+     interpretation:'입력 선호와 계산 위치의 해석 범위를 따로 확인했습니다.',
+     condition:'가정한 업무 선택 상황',
+     limit:'실제 행동을 확인한 것은 아닙니다.'}
+   }:null]))}},cover:null,finalJudgment:null};
+ assert.doesNotThrow(()=>generation.restoreEvidence(integrationRaw,integratedPrompt));
+ for(const only of [['person.mbti'],['natal.month.stem']]){
+  const invalid=structuredClone(integrationRaw);
+  invalid.chapters[integratedId].paragraphs[integrationAnchor].basis.refs=only;
+  assert.throws(()=>generation.restoreEvidence(invalid,integratedPrompt),
+   /missing dual MBTI\/Saju evidence/,'integration cannot cite only one framework');
+ }
  let unknownPrompt;
  await assert.rejects(generate({calendar:'solar',birthDate:'1990-05-15',unknownBirthTime:true,gender:'male',mbti:'모름'},async p=>{unknownPrompt=p;throw Error('OFFLINE_UNKNOWN');}),/OFFLINE_UNKNOWN/);
  const unknownPayload=generation.compile(unknownPrompt);
@@ -181,6 +214,20 @@ const schema=require('./report-schema.json');
  assert.equal(noMbtiSlots.difference.type,'object','saju-only explanation can use the natal comparison question');
  assert(!noMbtiSlots.difference.properties.basis.properties.refs.items.enum.includes('person.mbti'));
  assert.equal(unknownPayload.task.chapters.mbti_contradiction.comparisonEvidence,null);
+ const unknownPlans=guidance.preflight(unknownPrompt.facts);
+ const unknownIntegrated={...unknownPrompt,requestedSections:[integratedId],
+  analysisGuidance:{...guidance.forRequest([integratedId],'모름'),
+   editorialBlueprint:{[integratedId]:unknownPlans[integratedId]}}};
+ const unknownIntegratedPayload=generation.compile(unknownIntegrated);
+ assert.equal(unknownIntegratedPayload.task.chapters[integratedId].comparisonEvidence,null,
+  'unknown MBTI must not create a joint-analysis claim');
+ const unknownIntegratedSchema=generation.schema(unknownIntegrated,wire.schemaFor(unknownIntegrated,schema));
+ const unknownAnchor=unknownPlans[integratedId].anchorTopic;
+ assert(unknownAnchor);
+ const unknownRefs=unknownIntegratedSchema.properties.chapters.properties[integratedId].properties.paragraphs.properties[unknownAnchor].properties.basis.properties.refs.items.enum;
+ assert(!unknownRefs.includes('person.mbti'),
+  'no MBTI should still allow a Saju-only integration');
+
 
  const oldFetch=global.fetch,oldKey=process.env.OPENAI_API_KEY,oldModel=process.env.REPORT_MODEL;
  let calls=0;
