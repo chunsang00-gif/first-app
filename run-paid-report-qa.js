@@ -35,7 +35,7 @@ if(!resumePath&&checkpoint&&fs.existsSync(checkpoint))
 // exists (for example when the first paid response failed validation).
 if(!resumePath){
  const base=path.join(path.dirname(output),path.basename(output,'.json'));
- for(const existing of [output,base+'-raw-calls.json',base+'-hanja-findings.json']){
+ for(const existing of [output,base+'-raw-calls.json',base+'-provider-calls.json',base+'-hanja-findings.json']){
   if(fs.existsSync(existing))throw Error('Existing QA artifact blocks a fresh paid run: '+path.basename(existing));
  }
 }
@@ -47,13 +47,22 @@ if(resumePath&&checkpoint&&fs.existsSync(checkpoint)&&path.resolve(resumePath)!=
   calls++;
   if(calls>7)throw Error('QA call cap exceeded');
   console.log('AI call '+calls+'/7, stage '+prompt.stage);
-  const response=await callOpenAI(prompt);
+  const response=await callOpenAI(prompt,providerResponse=>{
+   // Preserve the transport response BEFORE basis/schema decoding can fail.
+   const providerFile=path.join(path.dirname(output),path.basename(output,'.json')+'-provider-calls.json');
+   const history=fs.existsSync(providerFile)?JSON.parse(fs.readFileSync(providerFile,'utf8')):{fingerprint,sample:input,calls:[]};
+   if(history.fingerprint!==fingerprint)throw Error('QA provider archive fingerprint mismatch');
+   history.calls.push({number:calls,request:require('./report-generation-request').compile(prompt),response:providerResponse});
+   fs.writeFileSync(providerFile,JSON.stringify(history,null,2),{mode:0o600});
+   fs.chmodSync(providerFile,0o600);
+  });
   // Preserve the paid response before downstream validation can reject it.
   // This is a private diagnostic record, never a public log or automatic retry.
   const rawFile=path.join(path.dirname(output),path.basename(output,'.json')+'-raw-calls.json');
   const history=fs.existsSync(rawFile)?JSON.parse(fs.readFileSync(rawFile,'utf8')):{fingerprint,sample:input,calls:[]};
   if(history.fingerprint!==fingerprint)throw Error('QA raw-call fingerprint mismatch');
   history.calls.push({number:calls,stage:prompt.stage,requestedSections:prompt.requestedSections||[],response,
+   generationRequest:require('./report-generation-request').compile(prompt),
    semanticReview:require('./report-semantic-review').review(response)});
   fs.writeFileSync(rawFile,JSON.stringify(history,null,2),{mode:0o600});
   fs.chmodSync(rawFile,0o600);
