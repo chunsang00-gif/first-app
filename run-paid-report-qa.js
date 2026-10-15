@@ -53,7 +53,8 @@ if(resumePath&&checkpoint&&fs.existsSync(checkpoint)&&path.resolve(resumePath)!=
   const rawFile=path.join(path.dirname(output),path.basename(output,'.json')+'-raw-calls.json');
   const history=fs.existsSync(rawFile)?JSON.parse(fs.readFileSync(rawFile,'utf8')):{fingerprint,sample:input,calls:[]};
   if(history.fingerprint!==fingerprint)throw Error('QA raw-call fingerprint mismatch');
-  history.calls.push({number:calls,stage:prompt.stage,requestedSections:prompt.requestedSections||[],response});
+  history.calls.push({number:calls,stage:prompt.stage,requestedSections:prompt.requestedSections||[],response,
+   semanticReview:require('./report-semantic-review').review(response)});
   fs.writeFileSync(rawFile,JSON.stringify(history,null,2),{mode:0o600});
   fs.chmodSync(rawFile,0o600);
   console.log('Saved private QA model response:',calls);
@@ -73,8 +74,10 @@ if(resumePath&&checkpoint&&fs.existsSync(checkpoint)&&path.resolve(resumePath)!=
   console.log('Saved validated QA batch; sections:',batch.completedSections);
  },resumeBatches);
  const file=path.resolve(output);
- fs.writeFileSync(file,JSON.stringify({sample:input,status:result.status,calls,qa:result.qa,report:result.report},null,2),{flag:'wx',mode:0o600});
+ fs.writeFileSync(file,JSON.stringify({sample:input,status:result.status,calls,qa:result.qa,report:result.report,
+  semanticReview:require('./report-semantic-review').review(result.report)},null,2),{flag:'wx',mode:0o600});
  console.log('QA result saved to private path: '+file);
  console.log('Result status: '+result.status+'; provider calls: '+calls);
+ console.log('Release verdict: not assessed; full report human review required even when automated checks pass');
  if(result.status!=='ready')process.exitCode=2;
 })().catch(err=>{console.error('QA stopped:',String(err.message||err));process.exitCode=1});
