@@ -25,6 +25,18 @@ jobs:
           run-id: 38744366989
           github-token: ${{ github.token }}
           path: .private-replay
+      - name: Replay both original provider JSON and decoded JSON with zero API calls
+        shell: bash
+        run: |
+          set +e
+          node report-offline-replay.js .private-replay/private-qa-report-provider-calls.json > .private-replay/provider-diagnosis.json
+          set -e
+          node - <<'NODE'
+          const fs=require('node:fs');
+          const x=JSON.parse(fs.readFileSync('.private-replay/provider-diagnosis.json','utf8'));
+          console.log('Provider replay classification:',JSON.stringify({status:x.status,archiveKind:x.archiveKind,firstFailure:x.firstFailure,failureLayer:x.failureLayer,providerRequests:x.providerRequests,archivedCallsConsumed:x.archivedCallsConsumed}));
+          if(x.providerRequests!==0||x.archiveKind!=='provider'||x.archivedCallsConsumed!==1||x.firstFailure!=='NON_SPECIFIC_CONTENT'||x.failureLayer!=='editorial-content')process.exit(1);
+          NODE
       - name: Re-run same raw response against current generator without paying
         shell: bash
         run: |
@@ -35,12 +47,12 @@ jobs:
           node - <<'NODE'
           const fs=require('node:fs');
           const value=JSON.parse(fs.readFileSync('.private-replay/diagnosis.json','utf8'));
-          const safe={status:value.status,firstFailure:value.firstFailure||null,
+          const safe={status:value.status,firstFailure:value.firstFailure||null,failureLayer:value.failureLayer||null,archiveKind:value.archiveKind,
             providerRequests:value.providerRequests,archivedCallsConsumed:value.archivedCallsConsumed,
             archivedCallsAvailable:value.archivedCallsAvailable,releaseVerdict:value.releaseVerdict};
           console.log('Offline archived-response diagnostic:',JSON.stringify(safe));
           if(value.providerRequests!==0||value.archivedCallsConsumed!==1||
-             value.releaseVerdict!=='not-assessed'||value.status!=='stopped')
+             value.releaseVerdict!=='not-assessed'||value.status!=='stopped'||value.firstFailure!=='NON_SPECIFIC_CONTENT'||value.failureLayer!=='editorial-content')
            process.exit(1);
           console.log('PASS real archived paid response replayed against latest pipeline without model requests');
           NODE

@@ -1,24 +1,36 @@
 'use strict';
-// Re-run the EXISTING report generator using archived, decoded QA responses.
-// This is a strictly offline diagnostic path: never consults a provider,
-// authorizes a purchase, resumes a billable call, or publishes any report.
+// Deterministic offline replay of one already-paid response. Provider and
+// decoded archives travel through the SAME report generator. No billing.
 const fs=require('node:fs');
 const {generate}=require('./report-server-contract');
-
+const decoder=require('./report-response-decoder');
 function archive(input){
- if(!input||!input.sample||!Array.isArray(input.calls))
-  throw Error('OFFLINE_ARCHIVE_INVALID');
- if(input.calls.some((x,i)=>x?.number!==i+1||
-  x.stage!=='body'&&x.stage!=='synthesis'||
-  !Array.isArray(x.requestedSections)||!x.response||
-  typeof x.response!=='object'||!Array.isArray(x.response.sections)))
-  throw Error('OFFLINE_ARCHIVE_NOT_DECODED_RAW_CALLS');
- return input;
+ if(!input||!input.sample||!Array.isArray(input.calls))throw Error('OFFLINE_ARCHIVE_INVALID');
+ const kind=input.calls.some(row=>row?.request)?'provider':'decoded';
+ for(let i=0;i<input.calls.length;i++){
+  const r=input.calls[i];
+  if(r?.number!==i+1||!r.response||typeof r.response!=='object')
+   throw Error('OFFLINE_ARCHIVE_INVALID_CALL');
+  if(kind==='decoded'){
+   if(!['body','synthesis'].includes(r.stage)||!Array.isArray(r.requestedSections)||
+    !Array.isArray(r.response.sections))
+    throw Error('OFFLINE_ARCHIVE_NOT_DECODED_RAW_CALLS');
+  }else{
+   if(!['body','synthesis'].includes(r.request?.stage)||
+    (r.request.stage==='body'&&(!r.request.task?.chapters||
+      !Array.isArray(Object.keys(r.request.task.chapters))))||
+    (!r.response.chapters&&!['incomplete'].includes(r.response.status)))
+    throw Error('OFFLINE_ARCHIVE_NOT_PROVIDER_CALLS');
+  }
+ }
+ return {...input,archiveKind:kind};
 }
 function reason(message){
  if(message==='OFFLINE_REPLAY_EXHAUSTED')return 'ARCHIVE_EXHAUSTED';
  if(message==='OFFLINE_REPLAY_REQUEST_DRIFT')return 'REQUEST_PLAN_CHANGED';
  if(message==='OFFLINE_REPLAY_NETWORK_BLOCKED')return 'NETWORK_BLOCKED';
+ if(/output token limit/.test(message))return 'PROVIDER_TOKEN_LIMIT';
+ if(/content filter/.test(message))return 'PROVIDER_CONTENT_FILTER';
  if(/non-specific interpretation/.test(message))return 'NON_SPECIFIC_CONTENT';
  if(/reader-facing editorial defects/.test(message))return 'READER_COPY_REJECTED';
  if(/factually inconsistent|factual mismatch/.test(message))return 'FACTUAL_CHECK_REJECTED';
@@ -26,6 +38,16 @@ function reason(message){
  if(/root provenance|root position|paragraph basis|unrelated paragraph basis/.test(message))return 'EVIDENCE_CONTRACT_REJECTED';
  if(/structure|anchor|topic|paragraph/.test(message))return 'OUTPUT_CONTRACT_REJECTED';
  return 'OTHER_GENERATION_STOP';
+}
+const contentFailures=new Set(['NON_SPECIFIC_CONTENT','READER_COPY_REJECTED','DUPLICATE_CONTENT']);
+const providerFailures=new Set(['PROVIDER_TOKEN_LIMIT','PROVIDER_CONTENT_FILTER']);
+function layer(code){
+ if(contentFailures.has(code))return 'editorial-content';
+ if(providerFailures.has(code))return 'provider-transport';
+ if(code==='ARCHIVE_EXHAUSTED'||code==='REQUEST_PLAN_CHANGED'||code==='NETWORK_BLOCKED')return 'offline-replay';
+ if(['FACTUAL_CHECK_REJECTED','EVIDENCE_CONTRACT_REJECTED'].includes(code))return 'evidence-validation';
+ if(code==='OUTPUT_CONTRACT_REJECTED')return 'response-structure';
+ return 'unclassified';
 }
 async function replay(payload){
  const source=archive(payload);
@@ -37,24 +59,31 @@ async function replay(payload){
    attempts++;
    const row=source.calls[consumed];
    if(!row)throw Error('OFFLINE_REPLAY_EXHAUSTED');
-   if(row.stage!==prompt.stage||
-    JSON.stringify(row.requestedSections)!==JSON.stringify(prompt.requestedSections||[]))
+   const actualStage=source.archiveKind==='provider'?row.request.stage:row.stage;
+   const actualIds=source.archiveKind==='provider'?
+    Object.keys(row.request.task?.chapters||{}):row.requestedSections;
+   if(actualStage!==prompt.stage||
+    JSON.stringify(actualIds)!==JSON.stringify(prompt.requestedSections||[]))
     throw Error('OFFLINE_REPLAY_REQUEST_DRIFT');
    consumed++;
-   return structuredClone(row.response);
+   return source.archiveKind==='provider'?
+    decoder.decode(structuredClone(row.response),prompt):structuredClone(row.response);
   });
-  return {mode:'offline-archived-replay',providerRequests:0,archivedCallsAvailable:source.calls.length,
+  return {mode:'offline-archived-replay',archiveKind:source.archiveKind,
+   providerRequests:0,archivedCallsAvailable:source.calls.length,
    archivedCallsConsumed:consumed,attemptedStages:attempts,status:result.status,
    releaseVerdict:'not-assessed',issues:result.status==='blocked'?(result.issues||[]).length:0};
  }catch(err){
-  return {mode:'offline-archived-replay',providerRequests:0,archivedCallsAvailable:source.calls.length,
+  const firstFailure=reason(String(err?.message||err));
+  return {mode:'offline-archived-replay',archiveKind:source.archiveKind,
+   providerRequests:0,archivedCallsAvailable:source.calls.length,
    archivedCallsConsumed:consumed,attemptedStages:attempts,status:'stopped',
-   firstFailure:reason(String(err?.message||err)),releaseVerdict:'not-assessed'};
+   firstFailure,failureLayer:layer(firstFailure),releaseVerdict:'not-assessed'};
  }finally{global.fetch=previousFetch}
 }
 if(require.main===module){
  const path=process.argv[2];
- if(!path){console.error('Usage: node report-offline-replay.js <private-qa-report-raw-calls.json>');process.exitCode=2}
+ if(!path){console.error('Usage: node report-offline-replay.js <private-qa-report-[raw|provider]-calls.json>');process.exitCode=2}
  else (async()=>{
   try{
    const result=await replay(JSON.parse(fs.readFileSync(path,'utf8')));
@@ -63,4 +92,4 @@ if(require.main===module){
   }catch(err){console.error('Offline QA archive invalid:',String(err.message||err));process.exitCode=1}
  })();
 }
-module.exports={archive,replay,reason};
+module.exports={archive,replay,reason,layer};
