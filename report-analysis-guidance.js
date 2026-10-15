@@ -215,18 +215,44 @@ function preflight(packet){
  }
  const relationship=plans.year_2027_relationship;
  const dayRelations=(packet.facts?.targetYearRelations||[]).filter(x=>x.type==='충'&&x.between==='day');
- const dayRelated=dayRelations.length>0;
+ const context=packet.facts?.targetYearBranchContext?.annualContext?.day||null;
+ const dayRelated=context?context.eligibleForLimitedDescription:dayRelations.length>0;
  const relationshipMatches=[...new Set(annualLabels.filter(x=>/^(?:비견|겁재)$/.test(x)))];
+ const explanation=context
+  ?context.rule+' 경쟁 관계가 있어도 하나가 이겼다고 주장하지 않는다. 관계표의 존재만 설명하며 실제 사람 사이의 관계를 예언하지 않는다.'
+  :'계산된 일지의 충 관계와 전통적 의미만 구별해 설명하고 실제 만남·이별·결혼을 단정하지 않는다.';
  relationship.annualDomainEvidence={
-  relevant:dayRelated,source:dayRelated?'facts.targetYearRelations:day':'none',
+  relevant:dayRelated,
+  source:dayRelated?(context?'facts.targetYearBranchContext.annualContext.day':'facts.targetYearRelations:day'):'none',
   matchedTenGods:relationshipMatches,directDayRelation:dayRelated,
+  directRelationTypes:context?.directTypes||dayRelations.map(x=>x.type),
+  competingRelations:context?.hasCompetingClaims||false,
+  priority:'unresolved',transformation:'not-assessed',
   guaranteesRealWorldOutcome:false,
-  interpretationFocus:'2027년 지지가 태어난 날의 지지와 직접 충 관계인 경우만 계산 사실과 그 한계를 설명한다. 관계 변화나 상대의 감정을 예언하지 않는다.',
-  rule:dayRelated?'계산된 일지의 충 관계와 전통적 의미만 구별해 설명하고 실제 만남·이별·결혼을 단정하지 않는다.':'같은 연도의 일반 분류만으로 관계 사건이나 변화가 확인되었다고 쓰지 않는다.'
+  interpretationFocus:explanation,
+  rule:dayRelated?explanation:'일지와 세운의 직접 충·육합 근거가 확인되지 않았다. 형·파·해의 후보만으로 실제 연애·결혼·이별이나 관계 운을 판정하지 않는다.'
  };
- if(!dayRelated)for(const task of Object.values(relationship.topicTasks)){
+ if(context&&dayRelated){
+  const task=relationship.topicTasks.change;
+  task.mode='use-primary';
+  task.primaryEvidencePath='facts.targetYearBranchContext.annualContext.day';
+  task.allowedSourceRefs=['facts.targetYearBranchContext.annualContext.day'];
+  task.evidencePresent=true;
+  task.verifiedFallbackPaths=[];
+  task.interpretationBoundary=explanation;
+  task.annualDomainLimit=explanation;
+  task.requiredSourceKinds=[];
+  const action=relationship.topicTasks.action;
+  action.mode='state-limits';
+  action.evidencePresent=false;
+  action.allowedSourceRefs=[];
+  action.verifiedFallbackPaths=[];
+  action.interpretationBoundary='같은 계산 관계를 다른 연애 조언으로 반복하지 않는다.';
+ }else if(!dayRelated)for(const task of Object.values(relationship.topicTasks)){
   task.mode='state-limits';
   task.evidencePresent=false;
+  task.allowedSourceRefs=[];
+  task.verifiedFallbackPaths=[];
   task.annualDomainLimit=relationship.annualDomainEvidence.rule;
   task.interpretationBoundary=relationship.annualDomainEvidence.rule;
  }
