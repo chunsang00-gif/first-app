@@ -80,6 +80,21 @@ const mixed=structuredClone(raw);
 mixed.chapters.career.paragraphs.workstyle.basis.refs=['natal.day.hidden.癸','natal.year.stem'];
 assert.throws(()=>generation.restoreEvidence(mixed,verified.prompt),/unrelated paragraph basis/);
 
+// A wealth-only chart must not turn one classification into two paid insights.
+const wealthOnly=structuredClone(base);
+for(const row of Object.values(wealthOnly.facts.tenGods)){
+ if(['식신','상관'].includes(row.stemTenGod))row.stemTenGod='비견';
+ for(const h of row.hiddenStems)if(['식신','상관'].includes(h.tenGod))h.tenGod='비견';
+}
+const wealthPlan=guidance.preflight(wealthOnly).money;
+assert.equal(wealthPlan.topicTasks.earning.mode,'state-limits','wealth-only facts do not establish separate earning interpretations');
+assert.equal(wealthPlan.topicTasks.spending.mode,'use-primary');
+assert.equal(wealthPlan.anchorTopic,'spending');
+assert(!wealthPlan.activeTopicKeys.includes('earning'));
+assert(verified.plan.money.topicTasks.earning.allowedSourceRefs.every(id=>
+ id==='natal.day.hidden.癸'),'production symbol only supports earning lens in this case');
+assert(!verified.plan.money.topicTasks.earning.allowedSourceRefs.includes('natal.year.stem'),
+ 'a wealth row already supporting spending may not be copied into earning');
 const unknown=structuredClone(base);
 delete unknown.facts.tenGods.hour;
 unknown.person.mbti='모름';
