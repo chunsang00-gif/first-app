@@ -93,6 +93,10 @@ for(const input of [
     editorialBlueprint:{saju_core:plan.saju_core}}};
  const compiled=generation.compile(prompt);
  assert.deepEqual(compiled.source['facts.qiEvidence'],packet.facts.qiEvidence);
+ assert(!Object.hasOwn(compiled.source,'facts.governingDayDiagnostic'),
+  'unreviewed governing-day method cannot appear in paid writer source map');
+ assert(!Object.hasOwn(compiled.source['facts.qiEvidence'].governance,'publishedMethodExploration'),
+  'a research-only allocation must not become a paid interpretation fact');
  const transport=generation.schema(prompt,wire.schemaFor(prompt,schema));
  const allowed=transport.properties.chapters.properties.saju_core.properties.paragraphs.properties
   .temperament.properties.basis.properties.refs.items.enum;
