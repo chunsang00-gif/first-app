@@ -108,6 +108,23 @@ const integratedSlot=writer.schema(integrationPrompt,wire.schemaFor(integrationP
  [blueprint.integrated_judgment.anchorTopic].properties.basis.properties.refs.items.enum;
 assert(integratedSlot.includes('person.mbti')&&integratedSlot.includes('natal.month.stem'),
  'user lunar ISFP combined insight must cite MBTI plus computed natal source');
+// Root QA on the actual user case, not a generic INTJ fixture: life-domain
+// chapters now have an OPTIONAL ISFP lens and verifiable linked sources.
+for(const id of ['decision','money','career','relationship','stress']){
+ if(!scope.plannedIds.includes(id))continue;
+ const individual={stage:'body',facts:expected,requestedSections:[id],
+  analysisGuidance:{...guidance.forRequest([id],'ISFP'),
+   editorialBlueprint:{[id]:blueprint[id]}}};
+ const payload=writer.compile(individual);
+ const lens=payload.task.chapters[id].domainMbtiLens;
+ assert(lens,'ISFP lens was removed from practical chapter '+id);
+ assert(lens.preferences.every(p=>'ISFP'.includes(p.code)));
+ const sourceIds=writer.schema(individual,wire.schemaFor(individual,schema))
+  .properties.chapters.properties[id].properties.paragraphs.properties
+  [blueprint[id].anchorTopic].properties.basis.properties.refs.items.enum;
+ assert(sourceIds.includes('person.mbti')&&sourceIds.some(p=>p.startsWith('natal.')),
+  id+' optional combination must cite both the actual ISFP source and traditional natal evidence');
+}
 const prompt={stage:'body',facts:expected,requestedSections:['saju_core'],
  analysisGuidance:{...guidance.forRequest(['saju_core'],birth.mbti),
   editorialBlueprint:{saju_core:blueprint.saju_core}}};
