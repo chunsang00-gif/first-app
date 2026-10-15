@@ -41,6 +41,13 @@ const changedActive=structuredClone(original);
 changedActive.fortune.activeDecade={pillar:'甲子',startYear:2025,endYear:2035};
 assert(integrity.verify(changedActive).errors.includes('incorrect-active-decade'));
 altered(p=>{p.facts.targetYearRelations=[{type:'충',between:'day',branches:'子午'}]},'incorrect-2027-clash-relations');
+altered(p=>{p.facts.targetYearBranchRelations.pairs.push({
+ type:'육합',branches:'午未',between:'day',evidenceType:'pair-table',transformation:'not-assessed'
+})},'incorrect-2027-branch-relations');
+altered(p=>{p.facts.natalBranchRelations.groups=[{
+ type:'삼합',branches:'亥卯未',positions:['year','month','day'],
+ evidenceType:'complete-group-membership',transformation:'not-assessed'
+}]},'incorrect-natal-branch-relations');
 altered(p=>{p.facts.natalClashes=[];p.facts.natalClashes.push({type:'충',positions:['day','hour'],branches:'子午'})},'incorrect-natal-clashes');
 altered(p=>{p.chart.month='甲子'},'birth-input-chart-mismatch');
 altered(p=>{p.calculationInput.birthDate='1990-05-16'},'birth-input-chart-mismatch');
