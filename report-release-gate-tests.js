@@ -16,6 +16,7 @@ const report={
 };
 const shape=require('./report-server-contract').validateShape;
 const shaped={...structuredClone(report),meta:{source:'test'}};
+shaped.cover.keywords=['첫째','둘째','셋째'];
 assert.equal(shape(shaped).pass,true,'declarative final conclusion stays valid');
 for(const question of ['앞으로 어떻게 살아야 할까요?','이 해석이 맞습니까？']){
  const candidate=structuredClone(shaped);
