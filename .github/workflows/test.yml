@@ -18,10 +18,32 @@ jobs:
       - run: node character-assets-test.js
       - run: npm test
       - run: npm run smoke
-      - name: Check public Render deployment revision (informational)
-        env:
-          EXPECTED_DEPLOY_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+      # CI success on a feature branch only means its code passed tests.
+      # Feature branches are never assumed to be deployed on Render.
+      - name: Explain feature-branch deployment boundary
+        if: github.ref != 'refs/heads/saju-mbti-app'
+        run: echo "NOT DEPLOYED - feature branch tests do not verify or trigger Render deployment"
+      - name: Verify production revision (operating branch only, informational)
+        if: github.ref == 'refs/heads/saju-mbti-app'
         continue-on-error: true
+        env:
+          EXPECTED_DEPLOY_SHA: ${{ github.sha }}
         run: |
-          node -e "const u='https://first-app-n4ue.onrender.com/api/health';(async()=>{let last='unreachable';for(let i=0;i<4;i++){try{const r=await fetch(u,{signal:AbortSignal.timeout(12000)});const x=await r.json();last='HTTP '+r.status+' deployed '+(x.deployCommit||'unknown')+' expected '+process.env.EXPECTED_DEPLOY_SHA;console.log(last);if(x.deployCommit===process.env.EXPECTED_DEPLOY_SHA){console.log('PASS Render deployment matches checked commit');return}}catch(e){last=e.message;console.log('Render check '+(i+1)+': '+last)}await new Promise(done=>setTimeout(done,12000))}console.log('WARNING Render deployment not verified: '+last)})()"
-
+          node - <<'NODE'
+          (async()=>{
+            const target='https://first-app-n4ue.onrender.com/api/health';
+            try {
+              const response=await fetch(target,{signal:AbortSignal.timeout(12000)});
+              if(!response.ok)throw Error('health HTTP '+response.status);
+              const health=await response.json();
+              console.log('Render currently deployed:',health.deployCommit||'unknown');
+              console.log('Production branch commit:',process.env.EXPECTED_DEPLOY_SHA);
+              if(!health.deployCommit||health.deployCommit!==process.env.EXPECTED_DEPLOY_SHA)
+                throw Error('NOT DEPLOYED: branch revision differs from running service');
+              console.log('PASS production revision matches operating branch');
+            }catch(e){
+              console.error('DEPLOYMENT NOT VERIFIED:',String(e.message||e));
+              process.exitCode=1;
+            }
+          })();
+          NODE

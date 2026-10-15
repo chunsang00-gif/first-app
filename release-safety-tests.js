@@ -5,6 +5,12 @@ const paidWorkflow=fs.readFileSync(require('node:path').join(__dirname,'.github/
 assert(paidWorkflow.includes('paid_qa_confirmation:')&&paidWorkflow.includes('REPORT_QA_CONFIRM: ${{ inputs.paid_qa_confirmation }}'),'paid QA must require explicitly supplied workflow approval');
 assert(paidWorkflow.includes('test "$REPORT_QA_CONFIRM" = "RUN_ONE_PAID_SAMPLE"'),'paid API calls must fail closed without correct approval');
 assert(paidWorkflow.includes('run: npm test && npm run smoke'),'manual paid QA must complete all free checks before model calls');
+const workflow=fs.readFileSync(require('node:path').join(__dirname,'.github/workflows/test.yml'),'utf8');
+assert(workflow.includes("github.ref != 'refs/heads/saju-mbti-app'")&&
+ workflow.includes("github.ref == 'refs/heads/saju-mbti-app'"),
+ 'feature CI may not imply it deployed to Render');
+assert(workflow.includes("throw Error('NOT DEPLOYED: branch revision differs from running service')"),
+ 'production commit drift must be visibly reported in the deploy-check step');
 const {resolvePublic}=require('./public-files');
 for(const url of ['/server.js','/.env','/node_modules/lunar-javascript/index.js','/.github/workflows/test.yml','/../server.js','/%2e%2e/server.js','/assets/characters/../../server.js','/%ZZ'])assert.equal(resolvePublic(__dirname,url),null,url);
 for(const url of ['/','/report-renderer.js?v=1','/assets/result/insight-1.webp'])assert(resolvePublic(__dirname,url));
