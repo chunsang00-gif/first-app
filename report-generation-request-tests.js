@@ -8,6 +8,24 @@ const schema=require('./report-schema.json');
  await assert.rejects(generate({calendar:'solar',birthDate:'1990-05-15',birthTime:'10:30',gender:'male',mbti:'INTJ'},async p=>{prompt=p;throw Error('OFFLINE');}),/OFFLINE/);
  const payload=generation.compile(prompt);
  assert(!Object.hasOwn(payload,'rules'));
+ // Audit the ACTUAL transport object rather than trusting the original
+ // server prompt. These regressions must fail even if the full prompt is fine.
+ const transportAudit=require('./report-instruction-audit');
+ assert.deepEqual(transportAudit.inspectTransport(prompt,payload),[]);
+ const assertDropped=(change,code)=>{
+  const altered=structuredClone(payload);change(altered);
+  assert(transportAudit.inspectTransport(prompt,altered).includes(code),
+   'provider audit must identify '+code);
+  assert.throws(()=>transportAudit.assertTransport(prompt,altered),
+   /lost verified writing instructions/);
+ };
+ assertDropped(p=>{p.task.editorialGoal=null},'body-editorial-brief-dropped');
+ assertDropped(p=>{p.task.chapters.saju_core.analysisGoal=null},'chapter-depth-goal-dropped:saju_core');
+ assertDropped(p=>{p.task.chapters.saju_core.analysisFocus=null},'chapter-focus-dropped:saju_core');
+ assertDropped(p=>{p.task.chapters.mbti_contradiction.safety.avoid=''},'chapter-safety-dropped:mbti_contradiction');
+ assertDropped(p=>{delete p.source['person.mbti']},'mbti-input-source-dropped-or-invented');
+ assertDropped(p=>{p.task.comparisonContract=null},'independent-framework-contract-dropped');
+
  assert.equal(payload.task.editorialGoal,prompt.editorialTask,
   'actual body editorial instructions must survive the provider boundary');
  assert(payload.task.editorialGoal.includes('최종 본문 원고'),
@@ -174,6 +192,10 @@ const schema=require('./report-schema.json');
   rules:{...prompt.rules,finalEditingTask:'본문의 실제 근거에서 중복 없는 결론을 선별하고 사용자의 과거를 창작하지 않는다.'}};
  const summary=generation.compile(synthesis);
  assert.deepEqual(summary.task.completedReport,synthesis.completedReport);
+ assert.deepEqual(transportAudit.inspectTransport(synthesis,summary),[]);
+ const invalidSummary=structuredClone(summary);
+ invalidSummary.task.editorialGoal=null;
+ assert(transportAudit.inspectTransport(synthesis,invalidSummary).includes('final-editorial-brief-dropped'));
  assert.equal(summary.task.editorialGoal,synthesis.rules.finalEditingTask,
   'final editorial goal must reach provider even when legacy rules are compressed');
  assert(summary.source['person.mbti']);
@@ -225,6 +247,7 @@ const schema=require('./report-schema.json');
  let unknownPrompt;
  await assert.rejects(generate({calendar:'solar',birthDate:'1990-05-15',unknownBirthTime:true,gender:'male',mbti:'모름'},async p=>{unknownPrompt=p;throw Error('OFFLINE_UNKNOWN');}),/OFFLINE_UNKNOWN/);
  const unknownPayload=generation.compile(unknownPrompt);
+ assert.deepEqual(transportAudit.inspectTransport(unknownPrompt,unknownPayload),[]);
  assert(!Object.hasOwn(unknownPayload.source,'person.mbti'),'unknown MBTI must never create a preference source');
  assert(!Object.keys(unknownPayload.source).some(x=>x.startsWith('natal.hour.')),'unknown hour must not create birth-hour facts');
  assert(unknownPayload.task.chapters.mbti_contradiction.safety.avoid.includes('입력하지 않은 성격'),'saju-only guard must be preserved');
