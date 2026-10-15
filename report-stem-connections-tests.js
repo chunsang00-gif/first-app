@@ -69,7 +69,7 @@ for(const input of [
  const blueprint=guidance.preflight(packet);
  assert(invariant.verify(packet,blueprint).pass);
  assert.deepEqual(blueprint.saju_core.topicTasks.temperament.requiredSourceKinds,
-  ['seasonal','qi-ledger','natal-month-position','stem-linkage']);
+  ['seasonal','qi-ledger','natal-month-position','stem-linkage','root-condition']);
  const prompt={stage:'body',facts:packet,requestedSections:['saju_core'],
   analysisGuidance:{...guidance.forRequest(['saju_core'],packet.person.mbti),
    editorialBlueprint:{saju_core:blueprint.saju_core}}};
@@ -82,7 +82,7 @@ for(const input of [
  const report=(refs)=>({chapters:{saju_core:{title:'출생 근거',keyJudgment:'천간과 지장간 근거',
   mood:'reflective',paragraphs:{temperament:{label:'천간과 지지',text:'관계만 기록',
   basis:{refs,interpretation:'전통적 기호',condition:'위치 확인',limit:'강도 미확정'}},strength:null}}}});
- const all=['facts.seasonalEvidence','facts.qiEvidence','facts.stemConnections','natal.month.stem'];
+ const all=['facts.seasonalEvidence','facts.qiEvidence','facts.stemConnections','facts.rootConditions','natal.month.stem'];
  assert.doesNotThrow(()=>writer.restoreEvidence(report(all),prompt));
  assert.throws(()=>writer.restoreEvidence(report(all.filter(x=>x!=='facts.stemConnections')),prompt),
   /missing required grounded stem connection evidence/);
@@ -90,6 +90,8 @@ for(const input of [
  tampered.facts.stemConnections.dayMasterRooting.rootObservationStatus='fabricated-strong-root';
  assert(integrity.verify(tampered).errors.includes('incorrect-stem-connections'));
  assert(invariant.verify(tampered,blueprint).errors.includes('calculated-stem-connection-mismatch'));
+ assert(!Object.hasOwn(payload.source,'facts.governingDayDiagnostic'));
+ assert(payload.source['facts.rootConditions'].dayMasterRootCases);
  const flawed=structuredClone(blueprint);
  flawed.saju_core.topicTasks.temperament.requiredSourceKinds=['seasonal','qi-ledger','natal-month-position'];
  assert(invariant.verify(packet,flawed).errors.includes('missing-canonical-stem-connection-topic-requirement'));
