@@ -35,7 +35,7 @@ function compile(prompt){
      'MBTI 비교 문단은 입력된 MBTI 선호(person.mbti)와 실제 원국 위치(natal.*)를 모두 인용한다. 같은 결론이어도 된다. 사주가 확인한 실제 행동인 것처럼 쓰지 않는다.':null,
     safety:{avoid:prompt.analysisGuidance.chapterTasks?.[id]?.avoid||'',evidenceBoundary:p.evidenceBoundary||''},
     topics:Object.fromEntries(Object.entries(p.topicTasks).map(([key,t])=>[key,{
-     question:t.question,mode:t.mode,sourcePath:t.primaryEvidencePath,fallbackPaths:t.verifiedFallbackPaths,
+     question:t.question,mode:t.mode,sourcePath:t.primaryEvidencePath,fallbackPaths:t.verifiedFallbackPaths,allowedSourceRefs:t.allowedSourceRefs||null,
      interpretationBoundary:t.interpretationBoundary||'',
      evidenceReuseBoundary:t.evidenceReuseBoundary?{rule:t.evidenceReuseBoundary.rule,priorOwners:t.evidenceReuseBoundary.priorOwners.map(x=>({chapter:x.chapter,topic:x.topic}))}:null,
      annualDomainLimit:t.annualDomainLimit||null
@@ -77,6 +77,7 @@ function schema(prompt,transport){
 }
 // Source relevance is checked against the canonical per-topic plan, not merely source existence.
 function allowedRefs(payload,task,chapterId,topic){
+ if(Array.isArray(task?.allowedSourceRefs))return new Set(task.allowedSourceRefs.filter(id=>Object.hasOwn(payload.source,id)));
  const paths=task?.mode==='use-primary'?[task.sourcePath]:task?.mode==='use-verified-fallback'?task.fallbackPaths||[]:[];
  const ids=new Set();
  for(const path of paths){
