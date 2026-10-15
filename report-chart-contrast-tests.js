@@ -31,6 +31,18 @@ for(const input of cases){
   packet.facts.seasonalEvidence.monthPhase==='transition');
  assert.equal(contrast.factsOnly,true);
  assert(contrast.cannotInfer.includes('day-master-strength'));
+ for(const point of contrast.contrastPoints){
+  assert.equal(typeof point.calculatedExplanation,'string');
+  assert(point.calculatedExplanation.length>=35,
+   'chart-specific editor must receive an actual sourced comparison, not a label: '+point.kind);
+  assert(!/(승진|이직|연애운이|결혼|수입이|재산이)/.test(point.calculatedExplanation),
+   'computed explanations cannot fabricate personal results');
+ }
+ assert(contrast.contrastPoints[0].calculatedExplanation.includes(packet.chart.month[1]),
+  'reader explanation must mention actual month branch, not generic season prose');
+ assert(contrast.contrastPoints[2].calculatedExplanation.includes('강약')||
+   contrast.contrastPoints[2].calculatedExplanation.includes('신약'),
+  'root observation must explicitly remain distinct from verified strength');
  assert.deepEqual(contrast.contrastPoints.map(x=>x.kind),[
   'month-vs-day','visible-support-vs-counter','actual-day-master-roots','root-relation-overlap']);
  const sourceIDs=new Set(binding.build(packet).map(x=>x.id));
@@ -76,6 +88,9 @@ for(const input of cases){
 }
 assert.notEqual(results[0].signature,results[1].signature,
  'same date string in lunar and solar must have distinct chart identity');
+assert.notEqual(contrasts.build(facts.build(cases[0],2027)).contrastPoints[0].calculatedExplanation,
+ contrasts.build(facts.build(cases[1],2027)).contrastPoints[0].calculatedExplanation,
+ 'the actual editorial seed must change between lunar and solar readings of the same birth string');
 assert.notEqual(results[2].monthBranch,results[3].monthBranch,
  'spring/summer and winter seasonal contrasts should not collapse');
 assert(new Set(results.map(x=>JSON.stringify(x))).size>=4,
