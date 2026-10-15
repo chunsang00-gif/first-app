@@ -88,7 +88,7 @@ for(const input of actualCases){
     limit:'강약의 전체 결론은 알 수 없음'},
    label:'월령과 계절',text:'월지와 일간의 관계는 계절 맥락에서 설명합니다.'},
    strength:null}}}});
- assert.doesNotThrow(()=>generation.restoreEvidence(build(['facts.seasonalEvidence','facts.qiEvidence']),prompt));
+ assert.doesNotThrow(()=>generation.restoreEvidence(build(['facts.seasonalEvidence','facts.qiEvidence','natal.month.stem']),prompt));
  assert.throws(()=>generation.restoreEvidence(build(['facts.qiEvidence']),prompt),
   /missing required month seasonal source/);
  const tampered=structuredClone(packet);
