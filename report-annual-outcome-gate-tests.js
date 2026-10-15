@@ -49,6 +49,19 @@ assert(gate.check({sections:[],
  cover:{headline:'소개',description:'해석',highlights:[]},
  finalJudgment:{headline:'요약',body:['2027년에 결혼합니다.'],closingQuestion:'다음 계획을 세웁니다.'}
 }).some(f=>f.section==='finalJudgment'));
+assert(gate.check({
+ sections:[{id:'year_2027',keyJudgment:'승진할 것입니다.'}]
+}).some(f=>f.section==='year_2027'),
+ 'annual main chapter cannot use an implicit year to evade outcome QA');
+assert(gate.check({
+ sections:[],cover:{headline:'핵심 세 가지',description:'해석',
+ highlights:[{sectionId:'year_2027_career',title:'승진합니다.',description:'직장에서 지위가 높아집니다.'}]}
+}).some(f=>f.section==='cover'&&f.category==='career'),
+ 'an annual card cannot conceal the annual scope by omitting the calendar year');
+assert(gate.check({
+ sections:[],cover:{headline:'핵심 세 가지',description:'해석',
+ highlights:[{sectionId:'career',title:'업무를 검토합니다.',description:'일할 때의 조건입니다.'}]}
+}).length===0,'ordinary non-annual cover cards do not imply specific 2027 events');
 assert(gate.check({sections:[{id:'career',keyJudgment:'저는 이미 승진했습니다.'}]}).length===0,
  'ordinary past-work passages outside annual prediction must not be classified');
 assert(gate.check({sections:[{id:'year_2027_career',body:['승진한다고 단정할 수 없습니다.']}]}).length===0);
