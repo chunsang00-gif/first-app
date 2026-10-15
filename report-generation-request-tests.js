@@ -26,6 +26,27 @@ const schema=require('./report-schema.json');
  assert(moneyRequest.task.chapters.money.topics.earning.allowedSourceRefs?.length,'financial evidence should be explicitly selected from calculated natal rows');
  assert(moneyRequest.task.chapters.money.topics.earning.allowedSourceRefs.every(id=>id.startsWith('natal.')));
  assert.equal(moneyRequest.task.chapters.money.topics.risk.mode,'state-limits','natal clashes are not proof of financial loss');
+ const financialIds=moneyRequest.task.chapters.money.topics.earning.allowedSourceRefs;
+ const allowedKinds=new Set(['정재','편재','식신','상관']);
+ assert(financialIds.every(id=>allowedKinds.has(moneyRequest.source[id]?.tenGod)),'financial citations must match actual wealth/output classifications');
+ const moneyPrompt={...prompt,requestedSections:scopedIds,analysisGuidance:{
+  ...guidance.forRequest(scopedIds,prompt.facts.person?.mbti),
+  editorialBlueprint:Object.fromEntries(scopedIds.map(id=>[id,allPlans[id]]))
+ }};
+ const moneySchema=generation.schema(moneyPrompt,wire.schemaFor(moneyPrompt,schema));
+ const moneySlots=moneySchema.properties.chapters.properties.money.properties.paragraphs.properties;
+ assert.deepEqual(new Set(moneySlots.earning.properties.basis.properties.refs.items.enum),new Set(financialIds));
+ assert.equal(moneySlots.risk.type,'null','unsupported financial-loss prediction must not be offered to the model');
+ const financeUnavailable=structuredClone(prompt.facts);
+ for(const position of ['year','month','day','hour']){
+  const group=financeUnavailable.facts.tenGods[position];if(!group)continue;
+  group.stemTenGod='비견';
+  for(const hidden of group.hiddenStems||[])hidden.tenGod='비견';
+ }
+ const noFinancePlan=guidance.preflight(financeUnavailable);
+ assert.equal(noFinancePlan.money.hasGroundedTopic,false,'no wealth/output relationship must not be treated as a paid insight');
+ assert(Object.values(noFinancePlan.money.topicTasks).every(task=>task.mode==='state-limits'));
+
  assert(!JSON.stringify(payload).includes('coverNaturalnessRule'));
  assert(JSON.stringify(payload).length<JSON.stringify(prompt).length*.65);
  const t=generation.schema(prompt,wire.schemaFor(prompt,schema));
