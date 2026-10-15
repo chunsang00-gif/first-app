@@ -66,6 +66,8 @@ function verify(packet){
    tenGod:position==='day'?'일간':tenGod(day,stem)};
  });
  if(!same(structure.visibleStems,expectedVisible))errors.push('incorrect-visible-stems');
+ const expectedSeasonal=require('./report-seasonal-evidence').evaluate(chart);
+ if(!same(facts.seasonalEvidence,expectedSeasonal))errors.push('incorrect-monthly-seasonal-evidence');
  const expectedAnnual=expectedFor(actualYear,day,'annual');
  if(!same(facts.annualTenGods,expectedAnnual))errors.push('incorrect-annual-ten-gods');
  const yearlyClashes=[];
@@ -121,7 +123,7 @@ function verify(packet){
   }catch{errors.push('birth-input-calendar-unverifiable');}
  }else errors.push('missing-original-calculation-input');
  return {pass:errors.length===0,errors,version:'calculation-integrity-v1',
-  verified:['calendar-source-chart','year-pillar','natal-ten-gods','hidden-stems','year-ten-gods','computed-clashes','pairwise-branch-relations','complete-branch-groups','month-command','day-master-roots','visible-stems','decade-classifications','unknown-hour-policy'],
+  verified:['calendar-source-chart','year-pillar','natal-ten-gods','hidden-stems','year-ten-gods','computed-clashes','pairwise-branch-relations','complete-branch-groups','month-command','seasonal-evidence','day-master-roots','visible-stems','decade-classifications','unknown-hour-policy'],
   limitations:['does-not-certify-all-traditional-schools','does-not-prove-real-world-outcomes']};
 }
 module.exports={verify};
