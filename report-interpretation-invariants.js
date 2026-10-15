@@ -37,6 +37,17 @@ function verify(packet,plan){
    errors.push('unsupported-year-domain-scope:'+id);
  }
  for(const [chapterId,chapter] of Object.entries(plan)){
+  const enabled=Object.values(chapter.topicTasks||{}).filter(task=>task.mode!=='state-limits');
+  if(Boolean(enabled.length)!==Boolean(chapter.evidencePresent))
+   errors.push('chapter-evidence-status-drift:'+chapterId);
+  const anchor=chapter.topicTasks?.[chapter.anchorTopic];
+  const expectedMode=!anchor?'state-insufficient-evidence':
+   anchor.mode==='use-verified-fallback'?'use-fallback-with-limits':'explain-with-limits';
+  if(chapter.requiredMode!==expectedMode)
+   errors.push('chapter-required-mode-drift:'+chapterId);
+  const fallbacks=[...new Set(enabled.filter(t=>t.mode==='use-verified-fallback').flatMap(t=>t.verifiedFallbackPaths||[]))];
+  if(!same(chapter.fallbackEvidencePaths||[],fallbacks))
+   errors.push('chapter-fallback-drift:'+chapterId);
   for(const [topic,task] of Object.entries(chapter?.topicTasks||{})){
    if(task.mode==='state-limits'){
     if(task.evidencePresent)errors.push('unsupported-topic-has-evidence:'+chapterId+':'+topic);
