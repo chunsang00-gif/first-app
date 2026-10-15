@@ -67,7 +67,13 @@ function annual(chart,annualPillar){
   type,branches:row.branch+annualRow.branch,between:row.position,
   evidenceType:'pair-table',transformation:'not-assessed'
  })));
- const groups=groupRelations([...rows,annualRow],'annual').filter(row=>row.positions.includes('annual'));
+ const existing=new Set(groupRelations(rows).map(row=>row.type+':'+row.branches));
+ const groups=groupRelations([...rows,annualRow],'annual')
+  .filter(row=>row.positions.includes('annual'))
+  .map(row=>({...row,
+   newlyCompletedByAnnual:!existing.has(row.type+':'+row.branches),
+   alreadyCompleteInNatal:existing.has(row.type+':'+row.branches)
+  }));
  return {pairs,groups};
 }
 module.exports={natal,annual,pairRelations,TABLES,GROUPS};
