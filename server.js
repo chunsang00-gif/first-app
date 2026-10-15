@@ -67,30 +67,67 @@ function qaAuthorized(req){
  const a=Buffer.from(secret),b=Buffer.from(provided);
  return a.length===b.length&&qaCrypto.timingSafeEqual(a,b);
 }
-function qaEnabled(){return process.env.REPORT_QA_ENABLED==='true'&&process.env.REPORT_QA_ADMIN_TOKEN?.length>=32&&process.env.RENDER==='true'&&process.env.REPORT_STORAGE_DIR&&process.env.REPORT_QA_MARKER_FILE?.startsWith(path.resolve(process.env.REPORT_STORAGE_DIR)+path.sep)}
+function qaEnabled(){return process.env.REPORT_QA_ENABLED==='true'&&process.env.REPORT_QA_ADMIN_TOKEN?.length>=32&&process.env.RENDER==='true'&&reportStore.enabled&&path.isAbsolute(process.env.REPORT_STORAGE_DIR||'')&&process.env.REPORT_QA_MARKER_FILE?.startsWith(path.resolve(process.env.REPORT_STORAGE_DIR)+path.sep)}
 const qaSample={calendar:'solar',birthDate:'1990-05-15',birthTime:'10:30',gender:'male',birthplace:'서울',mbti:'INTJ',name:'검증용'};
 async function qaHandler(req,res){
  if(!qaEnabled())return json(res,404,{status:'missing'});
  if(!qaAuthorized(req))return json(res,403,{status:'blocked'});
- if(req.method==='GET')return json(res,200,qaJob?{...qaJob,report:qaJob.result?.report||null,qa:qaJob.result?.qa||null,result:undefined}:{status:'idle'});
+ if(req.method==='GET'){
+  if(qaJob)return json(res,200,{...qaJob,report:qaJob.result?.report||null,qa:qaJob.result?.qa||null,result:undefined});
+  // An old QA run must NOT look idle after an instance restart.
+  const marker=process.env.REPORT_QA_MARKER_FILE;
+  let recorded=null;
+  try{recorded=JSON.parse(fs.readFileSync(marker,'utf8'))}
+  catch(e){if(e.code!=='ENOENT')throw e}
+  if(recorded?.jobId){
+   const prior=reportStore.load(recorded.jobId);
+   const saved=reportStore.loadCheckpoint(recorded.jobId);
+   const state=prior?.status==='processing'?'interrupted':prior?.status||'interrupted';
+   return json(res,200,{status:state,id:recorded.jobId,calls:prior?.calls||0,
+    validatedBatches:saved?.batches?.length||0,
+    report:prior?.result?.report||null,qa:prior?.result?.qa||null,
+    errorCode:prior?.errorCode||null,automaticResumeAllowed:false});
+  }
+  return json(res,200,{status:recorded?'interrupted':'idle',automaticResumeAllowed:false});
+ }
  if(req.method!=='POST')return json(res,405,{status:'blocked'});
  if(qaJob)return json(res,409,{status:'blocked',message:'This server instance has already used its one QA attempt',state:qaJob.status});
  // Persist the spent marker before the first paid call; fail closed across restarts.
  const marker=process.env.REPORT_QA_MARKER_FILE;
  if(!marker||!path.isAbsolute(marker))return json(res,503,{status:'blocked',message:'Persistent QA marker path is required'});
- try{fs.mkdirSync(path.dirname(marker),{recursive:true});fs.writeFileSync(marker,JSON.stringify({startedAt:new Date().toISOString()}),{flag:'wx',mode:0o600});}
+ const qaId=require('node:crypto').randomUUID();
+ const startedAt=Date.now();
+ try{fs.mkdirSync(path.dirname(marker),{recursive:true});fs.writeFileSync(marker,JSON.stringify({startedAt:new Date(startedAt).toISOString(),jobId:qaId}),{flag:'wx',mode:0o600});}
  catch(err){return json(res,409,{status:'blocked',message:'QA already used or marker storage unavailable'});}
  const c=diagnostics.configuration();
  if(!c.configured)return json(res,503,{status:'failed',issues:c.issues});
- qaJob={status:'processing',createdAt:Date.now(),calls:0};
+ qaJob={id:qaId,status:'processing',createdAt:startedAt,calls:0};
+ try{reportStore.save(qaId,{status:'processing',createdAt:startedAt,calls:0})}
+ catch(e){qaJob=null;return json(res,503,{status:'blocked',message:'QA private job storage unavailable; no model called'})}
  reportContract.generate(qaSample,async prompt=>{
   if(qaJob.calls>=7)throw Error('QA model call cap reached');
-  qaJob.calls++;
-  return enqueueModel(()=>callOpenAI(prompt));
- },progress=>{qaJob.progress=progress}).then(result=>{
+  const callNumber=++qaJob.calls;
+  return enqueueModel(async()=>{
+   reportStore.startProviderCall(qaId,callNumber,{
+    stage:prompt.stage,requestedSections:prompt.requestedSections||[],
+    identity:checkpointIdentity.signature(qaSample)
+   });
+   return callOpenAI(prompt,raw=>reportStore.saveProviderResponse(qaId,callNumber,raw));
+  });
+ },progress=>{qaJob.progress=progress},async batch=>{
+  const saved=reportStore.loadCheckpoint(qaId);
+  reportStore.saveCheckpoint(qaId,{identity:checkpointIdentity.signature(qaSample),
+   batches:[...(saved?.batches||[]),batch]});
+ }).then(result=>{
   qaJob.status=result.status;qaJob.result=result;qaJob.finishedAt=Date.now();
+  try{reportStore.save(qaId,{status:result.status,createdAt:startedAt,
+   finishedAt:qaJob.finishedAt,calls:qaJob.calls,result})}
+  catch(e){console.error('[QA journal write failure]',e?.code||'write failure')}
  }).catch(err=>{
   qaJob.status='failed';qaJob.errorCode=diagnostics.failureCode(err?.message);qaJob.finishedAt=Date.now();
+  try{reportStore.save(qaId,{status:'failed',createdAt:startedAt,
+   finishedAt:qaJob.finishedAt,calls:qaJob.calls,errorCode:qaJob.errorCode})}
+  catch(e){console.error('[QA journal write failure]',e?.code||'write failure')}
   console.error('[Operator QA]',qaJob.errorCode);
  });
  return json(res,202,{status:'processing',message:'One QA attempt started; no automatic retry'});
