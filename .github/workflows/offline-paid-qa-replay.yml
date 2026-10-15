@@ -34,8 +34,8 @@ jobs:
           node - <<'NODE'
           const fs=require('node:fs');
           const x=JSON.parse(fs.readFileSync('.private-replay/provider-diagnosis.json','utf8'));
-          console.log('Provider replay classification:',JSON.stringify({status:x.status,archiveKind:x.archiveKind,firstFailure:x.firstFailure,failureLayer:x.failureLayer,providerRequests:x.providerRequests,archivedCallsConsumed:x.archivedCallsConsumed}));
-          if(x.providerRequests!==0||x.archiveKind!=='provider'||x.archivedCallsConsumed!==1||x.firstFailure!=='NON_SPECIFIC_CONTENT'||x.failureLayer!=='editorial-content')process.exit(1);
+          console.log('Provider replay classification:',JSON.stringify({status:x.status,archiveKind:x.archiveKind,firstFailure:x.firstFailure,failureLayer:x.failureLayer,stoppedAt:x.stoppedAt,archivedContractChanged:x.archivedContractChanged,providerRequests:x.providerRequests,archivedCallsConsumed:x.archivedCallsConsumed}));
+          if(x.providerRequests!==0||x.archiveKind!=='provider'||x.archivedCallsConsumed!==1||x.firstFailure!=='EVIDENCE_CONTRACT_REJECTED'||x.failureLayer!=='archived-request-contract-drift'||x.stoppedAt!=='provider-response-decoding'||x.archivedContractChanged!==true)process.exit(1);
           NODE
       - name: Re-run same raw response against current generator without paying
         shell: bash
@@ -47,7 +47,7 @@ jobs:
           node - <<'NODE'
           const fs=require('node:fs');
           const value=JSON.parse(fs.readFileSync('.private-replay/diagnosis.json','utf8'));
-          const safe={status:value.status,firstFailure:value.firstFailure||null,failureLayer:value.failureLayer||null,archiveKind:value.archiveKind,
+          const safe={status:value.status,firstFailure:value.firstFailure||null,failureLayer:value.failureLayer||null,stoppedAt:value.stoppedAt,archivedContractChanged:value.archivedContractChanged,archiveKind:value.archiveKind,
             providerRequests:value.providerRequests,archivedCallsConsumed:value.archivedCallsConsumed,
             archivedCallsAvailable:value.archivedCallsAvailable,releaseVerdict:value.releaseVerdict};
           console.log('Offline archived-response diagnostic:',JSON.stringify(safe));

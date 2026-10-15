@@ -41,6 +41,9 @@ const sample={calendar:'lunar',leapMonth:false,birthDate:'1982-11-24',
   assert.equal(incomplete.firstFailure,'PROVIDER_TOKEN_LIMIT');
   assert.equal(incomplete.failureLayer,'provider-transport');
   assert.equal(incomplete.providerRequests,0);
+  assert.equal(incomplete.stoppedAt,'provider-response-decoding');
+  assert.equal(incomplete.archivedContractChanged,true,
+   'historical provider input must not masquerade as a current schema response');
   assert.equal(called,0,'archive replay must never access network');
  }finally{global.fetch=oldFetch}
  console.log('PASS live/shared provider decoder and offline raw/provider archive replay, classified failure without billable calls');

@@ -4,6 +4,7 @@
 const fs=require('node:fs');
 const {generate}=require('./report-server-contract');
 const decoder=require('./report-response-decoder');
+const generation=require('./report-generation-request');
 function archive(input){
  if(!input||!input.sample||!Array.isArray(input.calls))throw Error('OFFLINE_ARCHIVE_INVALID');
  const kind=input.calls.some(row=>row?.request)?'provider':'decoded';
@@ -52,11 +53,13 @@ function layer(code){
 async function replay(payload){
  const source=archive(payload);
  let consumed=0,attempts=0;
+ let lastPhase='preflight',contractChecks=0,contractDifferences=0;
  const previousFetch=global.fetch;
  global.fetch=async()=>{throw Error('OFFLINE_REPLAY_NETWORK_BLOCKED')};
  try{
   const result=await generate(source.sample,async prompt=>{
    attempts++;
+   lastPhase='archived-response-lookup';
    const row=source.calls[consumed];
    if(!row)throw Error('OFFLINE_REPLAY_EXHAUSTED');
    const actualStage=source.archiveKind==='provider'?row.request.stage:row.stage;
@@ -65,20 +68,40 @@ async function replay(payload){
    if(actualStage!==prompt.stage||
     JSON.stringify(actualIds)!==JSON.stringify(prompt.requestedSections||[]))
     throw Error('OFFLINE_REPLAY_REQUEST_DRIFT');
+   // Old paid output was generated under an old request/schema.
+   // Compare old vs current provider contract, without treating drift as
+   // proof that a new provider call would fail.
+   const archivedRequest=source.archiveKind==='provider'?row.request:row.generationRequest;
+   const currentRequest=generation.compile(prompt);
+   if(archivedRequest&&currentRequest){
+    contractChecks++;
+    if(JSON.stringify(archivedRequest)!==JSON.stringify(currentRequest))contractDifferences++;
+   }
    consumed++;
-   return source.archiveKind==='provider'?
-    decoder.decode(structuredClone(row.response),prompt):structuredClone(row.response);
+   if(source.archiveKind==='provider'){
+    lastPhase='provider-response-decoding';
+    const decoded=decoder.decode(structuredClone(row.response),prompt);
+    lastPhase='report-batch-validation';
+    return decoded;
+   }
+   lastPhase='report-batch-validation';
+   return structuredClone(row.response);
   });
   return {mode:'offline-archived-replay',archiveKind:source.archiveKind,
-   providerRequests:0,archivedCallsAvailable:source.calls.length,
+   providerRequests:0,archivedContractChanged:contractChecks?contractDifferences>0:null,
+   archivedCallsAvailable:source.calls.length,
    archivedCallsConsumed:consumed,attemptedStages:attempts,status:result.status,
    releaseVerdict:'not-assessed',issues:result.status==='blocked'?(result.issues||[]).length:0};
  }catch(err){
   const firstFailure=reason(String(err?.message||err));
   return {mode:'offline-archived-replay',archiveKind:source.archiveKind,
-   providerRequests:0,archivedCallsAvailable:source.calls.length,
+   providerRequests:0,archivedContractChanged:contractChecks?contractDifferences>0:null,
+   archivedCallsAvailable:source.calls.length,
    archivedCallsConsumed:consumed,attemptedStages:attempts,status:'stopped',
-   firstFailure,failureLayer:layer(firstFailure),releaseVerdict:'not-assessed'};
+   firstFailure,failureLayer:
+    firstFailure==='EVIDENCE_CONTRACT_REJECTED'&&contractDifferences>0?
+    'archived-request-contract-drift':layer(firstFailure),
+   stoppedAt:lastPhase,releaseVerdict:'not-assessed'};
  }finally{global.fetch=previousFetch}
 }
 if(require.main===module){
