@@ -215,6 +215,10 @@ async function generate(input,callModel,onProgress=()=>{},onValidatedBatch=()=>{
  const plannedIds=coverage.plannedIds;
  if(!coverage.canGenerate)return {status:'blocked',packet,coverage,
   issues:['A sufficiently grounded paid report cannot be created for this input',...coverage.issues]};
+ // Budget the actual validated report scope before any paid call. For a
+ // ten-chapter sample the dense Saju and MBTI chapters can be isolated without
+ // exceeding six body calls plus one final synthesis.
+ groups=require('./report-paid-batch-plan').plan(groups);
 
  const noMbti=packet.person?.mbti==='모름';
  const unknownMbtiGoals={
