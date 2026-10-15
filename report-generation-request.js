@@ -54,7 +54,7 @@ function schema(prompt,transport){
 }
 // Source relevance is checked against the canonical per-topic plan, not merely source existence.
 function allowedRefs(payload,task){
- const paths=task?.mode==='use-primary'?[task.primaryEvidencePath]:task?.mode==='use-verified-fallback'?task.fallbackPaths||[]:[];
+ const paths=task?.mode==='use-primary'?[task.sourcePath]:task?.mode==='use-verified-fallback'?task.fallbackPaths||[]:[];
  const ids=new Set();
  for(const path of paths){
   if(!path)continue;
@@ -94,7 +94,7 @@ function restoreEvidence(value,prompt){
     if(!/근거|확인|판단|자료|한계|부족|없|미상|알 수/.test(b.limit))throw Error('AI report service missing explicit evidence limit: '+id+':'+topic);
    }else{
     const allowed=allowedRefs(payload,task);
-    if(!allowed.size||!b.refs.some(ref=>allowed.has(ref)))throw Error('AI report service unrelated paragraph basis: '+id+':'+topic);
+    if(!allowed.size||b.refs.some(ref=>!allowed.has(ref)))throw Error('AI report service unrelated paragraph basis: '+id+':'+topic);
    }
    chapter.evidence.push(topic+': '+b.refs.map(ref=>{const s=payload.source[ref];return s.position?ref+' ('+s.position+' '+s.stem+' '+s.tenGod+')':ref;}).join('; ')+' / 해석: '+b.interpretation+' / 조건: '+b.condition+' / 한계: '+b.limit);
    delete p.basis;
