@@ -180,6 +180,14 @@ function verifyEvidenceAgainstFacts(report,packet){
    }
   }
  }
+ // Real-world future outcomes cannot be inferred from annual calculations,
+ // even when the text avoids legacy expressions such as "수입이 늘어".
+ // Check each sentence, including cover and synthesis, before the next API call.
+ for(const finding of require('./report-annual-outcome-gate').check(report)){
+  const currentPrefix=finding.section+': ';
+  if(!errors.some(error=>error.startsWith(currentPrefix)&&error.includes('2027 domain outcome prediction')))
+   errors.push(currentPrefix+'deterministic 2027 real-world outcome ('+finding.category+')');
+ }
  const annualGod=packet?.facts?.annualTenGods?.stemTenGod;
  const relations=packet?.facts?.targetYearRelations;
  const branchPosition={연지:'year',월지:'month',일지:'day',시지:'hour'};
