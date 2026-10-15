@@ -37,7 +37,9 @@ const schema=require('./report-schema.json');
   'calculation-based natal depth goal must reach the writer');
  assert(payload.task.chapters.mbti_contradiction.analysisGoal.includes('MBTI'),
   'independent MBTI reasoning must reach the writer');
- assert(payload.task.chapters.mbti_contradiction.comparisonEvidence.includes('모두 인용한다'));
+ assert(payload.task.chapters.mbti_contradiction.comparisonEvidence.includes('함께 인용한다'));
+ assert(payload.task.chapters.mbti_contradiction.comparisonEvidence.includes('인과 관계가 아니다'));
+
  assert(!Object.hasOwn(payload.source,'facts.structuralEvidence'),'wide structural facts must not hide provenance');
  assert(payload.source['facts.structuralEvidence.monthCommand'],'month command must be separately identified');
  assert(payload.task.chapters.saju_core.safety.avoid.includes('상관'),'core interpretation limitation must survive compact compilation');
