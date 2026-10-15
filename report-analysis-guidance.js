@@ -265,6 +265,15 @@ function preflight(packet){
   plan.anchorTopic=anchored?.[0]||null;
   plan.activeTopicKeys=entries.filter(([,t])=>t.mode!=='state-limits').map(([key])=>key);
   plan.hasGroundedTopic=!!anchored;
+  // These chapter-level fields are DERIVED from final topic eligibility,
+  // never cached from the initial, broader evidence candidates.
+  plan.evidencePresent=plan.hasGroundedTopic;
+  plan.requiredMode=anchored
+   ?(anchored[1].mode==='use-verified-fallback'?'use-fallback-with-limits':'explain-with-limits')
+   :'state-insufficient-evidence';
+  plan.fallbackEvidencePaths=[...new Set(entries
+   .filter(([,t])=>t.mode==='use-verified-fallback')
+   .flatMap(([,t])=>t.verifiedFallbackPaths||[]))];
  }
  const questions=Object.values(plans).map(x=>x.question);
  if(new Set(questions).size!==questions.length)throw Error('Report blueprint repeats an analysis question');
