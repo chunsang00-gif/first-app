@@ -267,7 +267,7 @@ async function generate(input,callModel,onProgress=()=>{},onValidatedBatch=()=>{
   money:{owns:'수입·지출·저축·공동 비용의 구별',excludes:['일터 책임감','대인관계 소통법']},
   career:{owns:'업무 학습·역할·협업·피드백의 차이',excludes:['돈 관리 습관','연애·친구 관계']},
   relationship:{owns:'친밀감 형성·감정 표현·갈등 해결의 차이',excludes:['직장 규칙','소비 습관']},
-  integrated_judgment:{owns:'사주와 MBTI가 다른 판단을 낳는 구체적인 경계',excludes:['앞 장의 결론 재진술']},
+  integrated_judgment:{owns:'두 근거를 함께 볼 때 추가로 설명되는 조건. 같은 결론도 허용하며 차이를 전제하지 않는다.',excludes:['앞 장의 결론 재진술','차이를 만들기 위한 MBTI 고정관념']},
   year_2027:{owns:'2027 세운과 원국의 차이 자체',excludes:['평생 성격 재설명','금전·직업·관계의 세부 사건']},
   year_2027_money:{owns:'2027년에 새로 계산된 금전 관련 근거 또는 근거 부족',excludes:['평생 돈 습관 반복','직업상의 책임']},
   year_2027_career:{owns:'2027년에 새로 계산된 업무 관련 근거 또는 근거 부족',excludes:['평생 직업 성향 반복','돈 관련 규칙']},

@@ -331,11 +331,32 @@ assert.equal(special.year_2027_relationship.annualDomainEvidence.relevant,true);
 
 assert.equal(guidance.forRequest(['saju_core'],'모름').mbtiReference,null);
 assert.equal(guidance.forRequest(['saju_core'],'INVALID').mbtiReference,null);
+// The failed paid draft invented INTJ inflexibility to fill its second slot.
+// Keep a neutral task and an explicit nullable slot at the provider boundary.
+assert(guidance.forRequest(['mbti_contradiction'],'INTJ').mbtiReference.preferences.find(x=>x.code==='J').notEvidenceOf.includes('결정을 바꾸지 않음'));
+const comparisonPrompt={requestedSections:['mbti_contradiction'],analysisGuidance:{editorialBlueprint:blueprint}};
+const comparisonWire=require('./report-wire');
+const comparisonSchema=comparisonWire.schemaFor(comparisonPrompt,require('./report-schema.json'));
+const comparisonSlots=comparisonSchema.properties.chapters.properties.mbti_contradiction.properties.paragraphs.properties;
+assert.equal(comparisonSlots.agreement.type,'object');
+assert(comparisonSlots.difference.anyOf.some(x=>x.type==='null'));
+assert(comparisonSlots.difference.anyOf[0].properties.text.description.includes(outline.topics.mbti_contradiction.difference));
+assert(comparisonSlots.difference.anyOf[0].description.includes('같은 응답 안에서 이미 답한 내용'));
+const singleComparison=comparisonWire.decode({chapters:{mbti_contradiction:{title:'비교',keyJudgment:'판단',evidence:[],mood:'reflective',paragraphs:{agreement:{label:'선호와 이유',text:'첫 문단에서 상황과 이유를 충분히 설명합니다.'},difference:null}}},cover:null,finalJudgment:null},comparisonPrompt);
+assert.deepEqual(singleComparison.sections[0].bodyTopics,['agreement']);
+const forcedComparison={stage:'body',rules:{hanjaPolicy:reader.instruction,topicPlan:{integrated_judgment:{insight:'같은 선택에서 서로 다른 결론을 제시하는 조건'}}}};
+assert(require('./report-instruction-audit').inspect(forcedComparison).includes('forced contrast in writing plan'));
 for(const a of ['I','E'])for(const b of ['S','N'])for(const c of ['T','F'])for(const d of ['J','P']){const type=a+b+c+d; const ref=guidance.forRequest(['decision'],type).mbtiReference; assert.equal(ref.preferences.map(x=>x.code).join(''),type);assert.equal(ref.preferences.length,4);}
 (async()=>{
  let calls=0;const seen=[];
  const dryRun=await sandbox.module.exports.generate({mbti:'ISFP'},async p=>{
   calls++;seen.push(p.stage);
+  assert(!require('./report-instruction-audit').inspect(p).includes('forced contrast in writing plan'));
+  if(p.stage==='body'){
+   const changed=structuredClone(p);
+   changed.rules.chapterOwnershipPlan={integrated_judgment:{owns:'사주와 MBTI가 다른 판단을 낳는 구체적인 경계'}};
+   assert(require('./report-instruction-audit').inspect(changed).includes('forced contrast in writing plan'));
+  }
   for(const key of ['plainSentenceRule','coherenceRule','depthAndEvidenceRule','yearAndDecadeIntegrationRule','hanjaPolicy','concreteReviewRule','topicOwnershipRule','interpretationFirstRule','readerLanguageRule','internalEvidenceScopeRule'])assert(p.rules[key],key);
   for(const key of ['decisiveSentenceRule','actionableMoneyRule','idiomaticWritingRule','everydayWordChoiceRule','expressionPolicyRule'])assert.equal(p.rules[key],undefined);
   assert(p.rules.topicOwnershipRule.includes('중복 금지 자료'));

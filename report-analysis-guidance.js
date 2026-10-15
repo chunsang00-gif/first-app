@@ -22,8 +22,8 @@ const preferences={
  N:{dimension:'정보를 받아들이는 선호',meaning:'정보 사이의 연결과 가능한 해석을 우선해 이해하는 선호',notEvidenceOf:'창의적 재능·정확한 직감·현실 감각 부족'},
  T:{dimension:'판단에서 더 비중을 두는 선호',meaning:'논리적 일관성과 공통 원칙을 우선해 판단하는 선호',notEvidenceOf:'감정이 없음·공감 능력 부족·더 높은 지능'},
  F:{dimension:'판단에서 더 비중을 두는 선호',meaning:'중요하게 여기는 가치와 사람에게 미칠 영향을 우선해 판단하는 선호',notEvidenceOf:'친절함·헌신·감정 조절 실패·논리 부족'},
- J:{dimension:'외부 생활을 진행하는 선호',meaning:'계획과 결정을 정해 두고 일을 진행하는 쪽을 선호',notEvidenceOf:'성실함·완벽주의·높은 수행 능력'},
- P:{dimension:'외부 생활을 진행하는 선호',meaning:'정보와 선택의 여지를 열어 두고 상황에 맞춰 조정하는 쪽을 선호',notEvidenceOf:'게으름·마감 실패·결정 장애'}
+ J:{dimension:'외부 생활을 진행하는 선호',meaning:'계획과 결정을 정해 두고 일을 진행하는 쪽을 선호',notEvidenceOf:'성실함·완벽주의·높은 수행 능력·결정을 바꾸지 않음·타협하지 않음'},
+ P:{dimension:'외부 생활을 진행하는 선호',meaning:'정보와 선택의 여지를 열어 두고 상황에 맞춰 조정하는 쪽을 선호',notEvidenceOf:'게으름·마감 실패·결정 장애·항상 양보함'}
 };
 const sajuOnlyChapters={
  mbti_contradiction:{focus:'원국의 월지·일지·십성 가운데 실제 계산된 서로 다른 근거를 비교한다. 겉으로 드러나는 반응과 혼자 생각하고 결정할 때의 반응이 달라질 조건을 설명하되, 실제 성격을 관찰한 것처럼 단정하지 않는다.',avoid:'입력하지 않은 성격 유형을 추정하거나 서로 다른 해석을 억지로 반전시키지 않는다.'},

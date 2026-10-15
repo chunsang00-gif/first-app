@@ -4,7 +4,12 @@
 const {topics}=require('./report-outline');
 const reader=require('./report-reader-policy');
 const visible=s=>reader.describe(s,reader.readerField);
-const paragraph=()=>object({label:visible({type:'string'}),text:visible({type:'string'})});
+const paragraph=(question,optional=false)=>{
+ const schema=object({label:visible({type:'string'}),text:visible({type:'string'})});
+ schema.properties.text.description+=' 이 문단의 질문: '+question+' 상황과 선택을 먼저 설명하고 그 이유를 연결한다. 앞 문단의 결론을 표현만 바꾸어 반복하지 않는다. 유형의 선호를 실제 행동이나 능력으로 바꾸어 단정하지 않는다.';
+ if(optional)schema.description='독립된 설명이 있을 때만 작성한다. 같은 응답 안에서 이미 답한 내용이면 이유와 상황을 첫 문단에 충분히 남기고 이 항목은 null로 반환한다. 차이나 반전을 만들어 채우지 않는다.';
+ return schema;
+};
 const object=properties=>({type:'object',additionalProperties:false,required:Object.keys(properties),properties});
 function schemaFor(prompt,reportSchema){
  if(!Array.isArray(prompt?.requestedSections))return reportSchema;
@@ -19,7 +24,7 @@ function schemaFor(prompt,reportSchema){
   // A paid chapter cannot consist entirely of null topics. When no interpretive
   // basis exists, the anchor must explain the specific limit, not invent behavior.
   return [id,object({title:visible(section.title),keyJudgment:visible(section.keyJudgment),evidence:reader.describe(section.evidence,reader.evidenceField),mood:section.mood,
-   paragraphs:object(Object.fromEntries(keys.map(topic=>[topic,topic===anchor?paragraph():plan[topic]?.mode==='state-limits'?{type:'null'}:{anyOf:[paragraph(),{type:'null'}]}])))})];
+   paragraphs:object(Object.fromEntries(keys.map(topic=>[topic,topic===anchor?paragraph(plan[topic]?.question||topics[id][topic]):plan[topic]?.mode==='state-limits'?{type:'null'}:{anyOf:[paragraph(plan[topic]?.question||topics[id][topic],true),{type:'null'}]}])))})];
  }));
  return object({chapters:object(chapters),finalJudgment:prompt.includeFinal?visible(reportSchema.properties.finalJudgment):{type:'null'},cover:prompt.includeCover?visible(reportSchema.properties.cover):{type:'null'}});
 }

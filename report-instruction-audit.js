@@ -15,6 +15,11 @@ function inspect(prompt){
  for(const [name,value] of Object.entries(rules))if(value==null)errors.push('missing rule: '+name);
  if(rules.hanjaPolicy!==require('./report-reader-policy').instruction)errors.push('reader language policy replaced or missing');
  const prose=JSON.stringify({rules,planningInstruction:prompt.planningInstruction,editorialTask:prompt.editorialTask,analysisGuidance:prompt.analysisGuidance})||'';
+ // Inspect the actual chapter plan as well as general rules: neutral rules
+ // cannot cancel a task that presupposes opposite conclusions.
+ const comparisonTasks=JSON.stringify({topicPlan:rules.topicPlan,chapterPlan:rules.chapterOwnershipPlan,analysisGuidance:prompt.analysisGuidance})||'';
+ for(const phrase of ['같은 선택에서 서로 다른 결론을 제시하는 조건','사주와 MBTI가 다른 판단을 낳는 구체적인 경계'])
+  if(comparisonTasks.includes(phrase))errors.push('forced contrast in writing plan');
  for(const pattern of [/명리 용어를 지우지 말고/,/핵심 명리 용어를 본문에/,/십성 이름·위치를 본문에서도/,/명리 용어를 괄호로 풀어/,/명리 용어와 짧은 뜻을 본문에/])if(pattern.test(prose))errors.push('conflicting visible jargon instruction');
  for(const pattern of forbiddenFixedQuotas)if(pattern.test(prose))errors.push('obsolete forced quota: '+pattern.source);
  if(body){
