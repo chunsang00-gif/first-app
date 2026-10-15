@@ -232,11 +232,11 @@ function preflight(packet){
   interpretationFocus:explanation,
   rule:dayRelated?explanation:'일지와 세운의 직접 충·육합 근거가 확인되지 않았다. 형·파·해의 후보만으로 실제 연애·결혼·이별이나 관계 운을 판정하지 않는다.'
  };
- if(context&&dayRelated){
+ if(dayRelated){
   const task=relationship.topicTasks.change;
   task.mode='use-primary';
-  task.primaryEvidencePath='facts.targetYearBranchContext.annualContext.day';
-  task.allowedSourceRefs=['facts.targetYearBranchContext.annualContext.day'];
+  task.primaryEvidencePath=context?'facts.targetYearBranchContext.annualContext.day':'facts.targetYearRelations';
+  task.allowedSourceRefs=[task.primaryEvidencePath];
   task.evidencePresent=true;
   task.verifiedFallbackPaths=[];
   task.interpretationBoundary=explanation;
