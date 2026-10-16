@@ -41,6 +41,27 @@ for(const profile of profiles)for(const mbti of types){
   const draft=wire.schemaFor(prompt,schema);
   const outgoing=writer.schema(prompt,draft);
   assert.deepEqual(pre.inspect(prompt,payload,outgoing),[],profile.birthDate+' '+mbti+' '+ids);
+  if(ids.includes('saju_core')){
+   // If the root/clash citations are unavailable to this writing topic,
+   // the legitimate paired month-ten-god interpretation must still pass.
+   const withoutOptionalRoots=structuredClone(payload);
+   const core=withoutOptionalRoots.task.chapters.saju_core.topics.strength;
+   const monthIds=[core.evidenceFocus.tenGodFocus.monthStem.sourceId,
+    core.evidenceFocus.tenGodFocus.monthMainHidden.sourceId];
+   core.allowedSourceRefs=monthIds;
+   core.citableFacts=core.citableFacts.filter(row=>monthIds.includes(row.id));
+   const pairedOnly=structuredClone(outgoing);
+   pairedOnly.properties.chapters.properties.saju_core.properties.paragraphs
+    .properties.strength.properties.basis.properties.refs.items.enum=monthIds;
+   assert.deepEqual(pre.inspect(prompt,withoutOptionalRoots,pairedOnly),[],
+    'optional root evidence may not become mandatory for month interpretation');
+   const contaminated=structuredClone(withoutOptionalRoots);
+   contaminated.task.chapters.saju_core.topics.strength.evidenceFocus.points[0].sourceRefs
+    =['facts.rootConditions'];
+   assert(pre.inspect(prompt,contaminated,pairedOnly)
+    .includes('core-month-ten-god-focus-contaminated:saju_core/strength'),
+    'monthly meaning focus must reject substitution with rooting');
+  }
   const broken=structuredClone(outgoing);
   const chapter=ids.find(id=>Object.entries(payload.task.chapters[id].topics).some(([,t])=>t.mode!=='state-limits'));
   const anchor=payload.task.chapters[chapter].anchor;
