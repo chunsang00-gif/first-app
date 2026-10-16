@@ -90,12 +90,20 @@ const schema=require('./report-schema.json');
   ...guidance.forRequest(scopedIds,prompt.facts.person?.mbti),
   editorialBlueprint:Object.fromEntries(scopedIds.map(id=>[id,allPlans[id]]))
  }});
- assert(moneyRequest.task.chapters.money.domainMbtiLens?.preferences.some(p=>p.code==='T'),
-  'the actual model must receive this INTJ fixture\'s T preference for a grounded money comparison');
- assert(generation.policy.includes('domainMbtiLens'),
-  'the paid provider must know how to use optional MBTI context in practical domains');
- assert.equal(moneyRequest.task.chapters.year_2027_money.domainMbtiLens,null,
-  'yearly money symbols must not become personal event predictions from MBTI');
+ const moneyTopics=moneyRequest.task.chapters.money.topics;
+ assert.equal(Object.hasOwn(moneyRequest.task.chapters.money,'domainMbtiLens'),false,
+  'MBTI preference must not be repeated at the whole-chapter level');
+ for(const [topic,code] of [['earning','N'],['spending','T']]){
+  if(moneyTopics[topic].mode!=='state-limits'){
+   assert.deepEqual(moneyTopics[topic].mbtiFocus?.preferences?.map(p=>p.code),[code],
+    'the writer must receive only the related input preference: money/'+topic);
+  }else assert.equal(moneyTopics[topic].mbtiFocus,null);
+ }
+ assert(generation.policy.includes('topics[topicId].mbtiFocus'),
+  'the paid provider must use topic-specific MBTI questions and not the full type');
+ for(const topic of Object.values(moneyRequest.task.chapters.year_2027_money.topics))
+  assert.equal(topic.mbtiFocus,null,
+   'annual fortune symbols must not be mixed with a personal MBTI behavior claim');
  assert(moneyRequest.task.chapters.money.safety.avoid.includes('금전'),'money-specific prohibitions must reach writer');
  assert(moneyRequest.task.chapters.year_2027_money.annualScope,'annual domain evidence gate must remain visible');
  const financialIds=moneyRequest.task.chapters.money.topics.earning.allowedSourceRefs;
