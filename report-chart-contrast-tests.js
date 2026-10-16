@@ -241,10 +241,12 @@ emptyRoot.contrastPoints[2].evidence.rootLocations=[];
 emptyRoot.contrastPoints[2].evidence.observedRootCount=0;
 emptyRoot.contrastPoints[3].evidence.collisions=[];
 const zeroRootFocus=contrasts.forTopic(emptyRoot,'strength',[]);
-assert(zeroRootFocus.readerReasoning.contrastQuestion.includes('근거가 제한적일 때'),
- 'zero-root scenario must have its own grounded reader question');
-assert(zeroRootFocus.readerReasoning.hypotheticalQuestion.includes('자료가 한정된다면'),
- 'zero-root scenario must not inherit a nonzero-root-and-clash prompt');
+assert.equal(zeroRootFocus.readerReasoning.contrastQuestion,
+ contrasts.forTopic(withFacts,'strength',[]).readerReasoning.contrastQuestion,
+ 'absence of a root cannot erase a separately calculated month ten-god interpretation');
+assert.equal(zeroRootFocus.tenGodFocus.monthStem.tenGod,withFacts.monthTenGodContext.monthStem.tenGod);
+assert(!/뿌리|충 관계/.test(zeroRootFocus.readerReasoning.hypotheticalQuestion),
+ 'reader-facing month ten-god example must not revert to roots and clashes');
 const noSupport=structuredClone(withFacts);
 noSupport.contrastPoints[1].evidence.support=[];
 noSupport.contrastPoints[1].evidence.counter=[];
