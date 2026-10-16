@@ -12,6 +12,15 @@ const ELEMENT={wood:'나무',fire:'불',earth:'흙',metal:'쇠',water:'물'};
 const SEASON={spring:'봄',summer:'여름',autumn:'가을',winter:'겨울'};
 const LOCATION={year:'연',month:'월',day:'일',hour:'시'};
 const LAYER={main:'본기',secondary:'중기',residual:'여기'};
+// Five-element interactions of the TWO verified month positions, not
+// a verdict about realized 制化, seasonal governance, personality or fate.
+const MONTH_ELEMENT_PAIR={
+ 'same-element':{kind:'same-element',explanation:'출생월의 겉글자와 본기가 같은 오행에 속한다. 같은 십성이라는 뜻은 아니다.'},
+ resource:{kind:'visible-generates-hidden',explanation:'출생월 겉글자의 오행이 본기 오행을 생하는 일반적인 오행 관계다.'},
+ output:{kind:'hidden-generates-visible',explanation:'출생월 본기의 오행이 겉글자의 오행을 생하는 일반적인 오행 관계다.'},
+ 'control-on-day':{kind:'hidden-controls-visible',explanation:'출생월 본기의 오행이 겉글자의 오행을 극하는 일반적인 오행 관계다.'},
+ 'day-controls':{kind:'visible-controls-hidden',explanation:'출생월 겉글자의 오행이 본기 오행을 극하는 일반적인 오행 관계다.'}
+};
 const RELATION={
  'same-element':'일간과 같은 오행','resource':'일간을 생하는 오행',
  'output':'일간이 생하는 오행','day-controls':'일간이 극하는 오행',
@@ -56,12 +65,28 @@ function build(packet){
  const mainStem=command?.mainHiddenStem;
  const mainHidden=monthGod?.hiddenStems?.find(x=>x.stem===mainStem);
  if(!monthGod?.stemTenGod||!mainHidden?.tenGod||!facts.tenGodGlossary)return null;
+ // Use the SAME independently calculated month positions that the premium
+ // refs cite. This is a general Five Element link, not confirmed 财克印,
+ // a resolved hidden-stem governing day, or a prediction of inner conflict.
+ const seasonMath=require('./report-seasonal-evidence');
+ const visibleElement=seasonMath.ELEMENTS[monthGod.stem];
+ const hiddenElement=seasonMath.ELEMENTS[mainStem];
+ if(!visibleElement||!hiddenElement)return null;
+ const elementRelation=seasonMath.relation(hiddenElement,visibleElement);
+ const monthPair=MONTH_ELEMENT_PAIR[elementRelation];
+ if(!monthPair)return null;
+ const monthElementLink={...monthPair,visibleSourceId:'natal.month.stem',
+  hiddenSourceId:'natal.month.hidden.'+mainStem,
+  visibleElement,hiddenElement,
+  inference:'element-relation-only',governingHiddenStem:'unresolved',
+  realizedInteraction:'not-assessed',characterTrait:'not-measured'};
  const monthTenGodContext={
   monthStem:{sourceId:'natal.month.stem',stem:monthGod.stem,
    tenGod:monthGod.stemTenGod,meaning:facts.tenGodGlossary[monthGod.stemTenGod]||null},
   monthMainHidden:{sourceId:'natal.month.hidden.'+mainStem,stem:mainStem,
    tenGod:mainHidden.tenGod,meaning:facts.tenGodGlossary[mainHidden.tenGod]||null},
   sameClassification:monthGod.stemTenGod===mainHidden.tenGod,
+  elementLink:monthElementLink,
   method:'일간 기준 십성; 월간과 월지 본기는 서로 다른 출처',
   unmeasured:['personality','achievement','wealth','personality-balance','qi-strength']
  };
@@ -184,7 +209,12 @@ function readerQuestions(contrast,topic){
   const comparison=monthTenGod.sameClassification?
    '태어난 달의 두 출처에서 같은 십성 분류를 확인했다. 반대 성향을 만들지 않는다. ':
    '태어난 달의 겉글자와 중심 숨은 글자에서 서로 다른 십성 분류를 확인했다. 서로 다른 위치의 뜻을 구별한다. ';
-  const readerContext='태어난 달 겉글자의 '+visibleKind+'('+visibleMeaning+')와 중심 숨은 글자의 '+mainKind+'('+mainMeaning+')를 실제 출생 위치별로 구분해 읽는다. '+comparison;
+  const elementLink=monthTenGod.elementLink;
+  if(!elementLink||elementLink.visibleSourceId!==monthTenGod.monthStem.sourceId||
+     elementLink.hiddenSourceId!==monthTenGod.monthMainHidden.sourceId)
+   throw Error('Unverified positional month element relation');
+  const readerContext='태어난 달 겉글자의 '+visibleKind+'('+visibleMeaning+')와 중심 숨은 글자의 '+mainKind+'('+mainMeaning+')를 실제 출생 위치별로 구분해 읽는다. '+comparison+
+   elementLink.explanation+' 이는 두 글자의 오행 관계일 뿐 실제 갈등이나 강약 판단이 아니다. ';
   const sourceAudit='실제 출생월 겉글자 '+monthTenGod.monthStem.sourceId+'와 본기 '+monthTenGod.monthMainHidden.sourceId+'의 십성 분류 및 전통적 뜻을 각각 확인한다. 별도 뿌리·충 자료만으로 두 십성을 대신하지 않는다.';
 
   return {
@@ -208,8 +238,8 @@ function forTopic(contrast,topic,allowedIds){
   const m=contrast.monthTenGodContext;
   const item=kind==='month-ten-god-pair'&&m?.monthStem?.sourceId&&m?.monthMainHidden?.sourceId?{
    kind,refs:[m.monthStem.sourceId,m.monthMainHidden.sourceId],
-   calculatedExplanation:'출생월 겉글자 '+m.monthStem.sourceId+'의 '+m.monthStem.tenGod+'('+m.monthStem.meaning+')와 중심 숨은 글자 '+m.monthMainHidden.sourceId+'의 '+m.monthMainHidden.tenGod+'('+m.monthMainHidden.meaning+')를 계산된 위치별로 비교한다. 이 분류는 성격·능력의 실제 측정 결과가 아니다.',
-   question:'서로 다른 두 출생월 위치의 실제 십성·전통적 뜻을 모두 인용하고, 없는 심리적 갈등이나 삶의 사건을 만들지 않는다.'
+   calculatedExplanation:'출생월 겉글자 '+m.monthStem.sourceId+'의 '+m.monthStem.tenGod+'('+m.monthStem.meaning+')와 중심 숨은 글자 '+m.monthMainHidden.sourceId+'의 '+m.monthMainHidden.tenGod+'('+m.monthMainHidden.meaning+')를 계산된 위치별로 비교한다. '+m.elementLink.explanation+' 실제 성격·재산·갈등·강약 또는 숨은 글자의 실제 사령을 계산한 결과는 아니다.',
+   question:'서로 다른 출생월 위치 두 곳의 실제 십성과 일반 오행 관계를 확인한다. 본기의 실제 사령·재극인 성립·성격 충돌을 자동 결론 내리지 않는다.'
   }:contrast.contrastPoints.find(p=>p.kind===kind);
   if(!item)throw Error('Missing calculated comparison: '+kind);
   const sourceRefs=item.refs.filter(ref=>allowed.has(ref));
@@ -230,6 +260,6 @@ function forTopic(contrast,topic,allowedIds){
    '태어난 달의 겉글자와 중심 숨은 글자의 십성 분류가 기본 해석 근거다. 뿌리·충은 추가 보조 검증 근거일 뿐 성격 강도로 확정하지 않음',
   policy:topic==='temperament'?
    '월의 계절·전환 조건과 실제 겉글자의 관계를 readerQuestion에 연결한다. 숨은 십성이나 뿌리·충을 이 문단의 필수 주제로 추가하지 않는다. 내부 계산표를 독자용 글에 옮기지 않고 전통적 질문과 의미를 쉬운 상황으로 풀이한다. 검증 한계는 basis.limit에 기록하고 개인의 능력과 행동을 단정하지 않는다.':
-   '먼저 tenGodFocus.monthStem과 tenGodFocus.monthMainHidden의 실제 십성 분류와 전통적 의미를 readerQuestion에 연결한다. 월간과 월지 본기는 다른 출처이며 같더라도 거짓 갈등을 만들지 않는다. sourceAudit와 points는 내부 출처·계산 검증용이며 독자에게 뿌리 개수·충 관계를 가르치는 용도로 복사하지 않는다. 실제 확인된 명리 상징이 허용하는 기질 해석과 그 조건을 쉬운 가상 상황으로 풀고, 실제 성격·능력·사건은 지어내지 않는다. 한계는 basis.limit에 기록한다. 제목과 문단 라벨에 뿌리·충·통근·월지 등 기술 용어를 내세우지 않으며 내부 참조 ID와 한자는 독자에게 복사하지 않는다.'};
+   '먼저 tenGodFocus.monthStem과 tenGodFocus.monthMainHidden의 실제 십성 분류와 전통적 의미, 두 출처의 elementLink에 확인된 오행 관계를 readerQuestion에 연결한다. 월간과 월지 본기는 다른 출처이며 같더라도 거짓 갈등을 만들지 않는다. sourceAudit와 points는 내부 출처·계산 검증용이며 독자에게 뿌리 개수·충 관계를 가르치는 용도로 복사하지 않는다. 실제 확인된 명리 상징이 허용하는 기질 해석과 그 조건을 쉬운 가상 상황으로 풀고, 실제 성격·능력·사건은 지어내지 않는다. 한계는 basis.limit에 기록한다. 제목과 문단 라벨에 뿌리·충·통근·월지 등 기술 용어를 내세우지 않으며 내부 참조 ID와 한자는 독자에게 복사하지 않는다.'};
 }
 module.exports={build,forTopic,TOPIC_POINTS};
