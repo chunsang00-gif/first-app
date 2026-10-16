@@ -1,0 +1,70 @@
+name: Approved one-shot paid first-chapter QA (2026-10-16)
+on:
+  push:
+    branches: [fix-paid-qa-fact-bindings-20261014]
+    paths: ['.github/workflows/approved-first-chapter-once-20261016.yml']
+permissions:
+  contents: read
+concurrency:
+  group: approved-saju-first-chapter-qa-20261016
+  cancel-in-progress: false
+jobs:
+  first-chapter:
+    if: github.run_attempt == 1 && contains(github.event.head_commit.added, '.github/workflows/approved-first-chapter-once-20261016.yml') && github.ref_name == 'fix-paid-qa-fact-bindings-20261014'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      REPORT_MODEL: ${{ vars.REPORT_MODEL }}
+      REPORT_QA_CONFIRM: RUN_ONE_PAID_SAMPLE
+      REPORT_QA_OUTPUT: ${{ github.workspace }}/private-qa-first-chapter.json
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-audit --no-fund
+      - name: All offline quality and app smoke checks BEFORE any paid call
+        run: npm test && npm run smoke
+      - name: Verify existing model configuration
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = "fix-paid-qa-fact-bindings-20261014"
+          test "$REPORT_QA_CONFIRM" = "RUN_ONE_PAID_SAMPLE"
+          test -n "$OPENAI_API_KEY" || { echo 'Provider key missing'; exit 1; }
+          test -n "$REPORT_MODEL" || { echo 'Provider model missing'; exit 1; }
+      - name: One paid provider call for saju_core ONLY; no automatic retry
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: node run-paid-first-chapter-qa.js
+      - name: Encrypt all saved QA evidence to one-time public key
+        if: always()
+        env:
+          QA_PUBLIC_KEY_B64: LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlJQm9qQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FZOEFNSUlCaWdLQ0FZRUFqcG5pS1RLK3h5RDRZYjdUOUY0YwpBME9kOEg2YjFqQ1phdHo3ZDg0MkZMV2syMDdIM3RtNGRzSUxNdVJJY3RPWnd1b29iSUtXUTV0anFDaGpVbWl0CjBuMUtFTSttUU51TXlzZXJiUzhEb01FMzhsOFF4RGxyaFFFWU5FYi9tQ1YzRFg2OGRGdjFCSlJWeCszRTRoTmIKbzEzaHBmMjZ6NXNRTnoyUlJJNXVTRXJ5eVFnd1A3VTI0eHE0L0RUMGUzMlhGcFl4bGR6aWl3cXp5NXVNM2dwOAppeHlrWHU2U25HaXRBYXVLc1dQMTh6bkVaQWpWdU9nOUpxOTBUbk8vUnNDSUxpdTYzTFNNMUp2UkJlTXpQK1FECjQ0RWoydkFEL29BNDJDUUtqUUkxcEx0c2tiZzdsZ1MxQVV0UllZbFBXZmg2ZkpTU3RJTVhwa2owOFdoNnUra1cKOXRJdjdUWTFQMnltQkFHMiswZFRJVFpITWMwcDVmb3p1YnZjUXNaYTA5TWtKZElDYWpxTnZMbXBQaWp1dFgzdApybVEyZUhsTFYvdElGQjZpWmNoc2xMOVI4RzlzOFN4cGRVRTc5ZkNHMWt5QktBK1g0WStWMGkxK3pLUzRwN2FzCm5HbXM2dWJtcmZhUlFsWllzZVFydDZzQUdKREFlT1cyTEl4cGpBSVgwS1RGQWdNQkFBRT0KLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0tCg==
+        shell: bash
+        run: |
+          node <<'NODE'
+          'use strict';
+          const fs=require('node:fs'),crypto=require('node:crypto');
+          const names=['private-qa-first-chapter.json','private-qa-first-chapter-attempt.json','private-qa-first-chapter-provider-calls.json','private-qa-first-chapter-validated-first-chapter.json'];
+          const files=names.filter(name=>fs.existsSync(name)).map(name=>({name,data:fs.readFileSync(name).toString('base64')}));
+          if(!files.length){console.log('No paid QA files exist. Nothing to encrypt.');process.exit(0)}
+          const plain=Buffer.from(JSON.stringify({format:'saju-first-chapter-oneshot-v1',files}));
+          const key=crypto.randomBytes(32),iv=crypto.randomBytes(12);
+          const cipher=crypto.createCipheriv('aes-256-gcm',key,iv);
+          const encrypted=Buffer.concat([cipher.update(plain),cipher.final()]);
+          const pub=Buffer.from(process.env.QA_PUBLIC_KEY_B64,'base64').toString('utf8');
+          const wrappedKey=crypto.publicEncrypt({key:pub,padding:crypto.constants.RSA_PKCS1_OAEP_PADDING,oaepHash:'sha256'},key);
+          fs.writeFileSync('premium-first-chapter-qa-sealed.json',JSON.stringify({format:'saju-first-chapter-oneshot-v1',wrappedKey:wrappedKey.toString('base64'),iv:iv.toString('base64'),tag:cipher.getAuthTag().toString('base64'),ciphertext:encrypted.toString('base64')}),{flag:'wx',mode:0o600});
+          console.log('Encrypted authenticated QA evidence with one-time public key; no raw report uploaded.');
+          NODE
+      - name: Upload ONLY sealed first-chapter evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: approved-first-chapter-qa-sealed-20261016
+          path: premium-first-chapter-qa-sealed.json
+          if-no-files-found: ignore
+          retention-days: 7
