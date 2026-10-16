@@ -441,6 +441,42 @@ const schema=require('./report-schema.json');
  assert.deepEqual(validHighlightIds,completedIds,'paid cover may reference only drafted chapters');
  assert(!validHighlightIds.includes('year_2027'),'missing chapters must never appear in synthesis highlight choices');
 
+ // Run the ACTUAL lunar input used by first-chapter QA through both
+ // independent MBTI chapters; labels must change with user input, while
+ // symbolic sources never become a measured agreement/opposition.
+ {
+  const sample={calendar:'lunar',leapMonth:false,birthDate:'1982-11-24',
+   birthTime:'14:20',gender:'male',mbti:'ISFP',name:'검증용'};
+  const real=require('./report-facts-node').build(sample,2027);
+  const scopes=['mbti_contradiction','integrated_judgment'];
+  const plan=guidance.preflight(real);
+  const realPrompt={stage:'body',facts:real,requestedSections:scopes,
+   rules:{sectionGoals:Object.fromEntries(scopes.map(id=>[id,require('./report-prompt').sectionGoals[id]]))},
+   analysisGuidance:{...guidance.forRequest(scopes,real.person?.mbti),
+    editorialBlueprint:Object.fromEntries(scopes.map(id=>[id,plan[id]]))}};
+  const actual=generation.compile(realPrompt);
+  const focus=(id,topic)=>actual.task.chapters[id].topics[topic].mbtiFocus;
+  assert.deepEqual(focus('mbti_contradiction','agreement').preferences.map(x=>x.code),['S','F']);
+  assert.deepEqual(focus('mbti_contradiction','difference').preferences.map(x=>x.code),['I','P']);
+  assert.deepEqual(focus('integrated_judgment','insight').preferences.map(x=>x.code),['I','P']);
+  assert.equal(actual.task.comparisonContract.calculatedAgreement,false);
+  assert.equal(actual.task.comparisonContract.calculatedContradiction,false);
+  assert.equal(focus('mbti_contradiction','agreement').verdict,'not-computed');
+  assert(focus('mbti_contradiction','agreement').preferences.every(p=>p.meaning&&p.notEvidenceOf),
+   'real paid MBTI analysis must contain actual independent preference meanings, not just letters');
+  const noInput={...sample,mbti:'모름'};
+  const missing=require('./report-facts-node').build(noInput,2027);
+  const noPlan=guidance.preflight(missing);
+  const noPrompt={stage:'body',facts:missing,requestedSections:scopes,
+   rules:realPrompt.rules,
+   analysisGuidance:{...guidance.forRequest(scopes,missing.person?.mbti),
+    editorialBlueprint:Object.fromEntries(scopes.map(id=>[id,noPlan[id]]))}};
+  const noCompiled=generation.compile(noPrompt);
+  assert(!Object.hasOwn(noCompiled.source,'person.mbti'));
+  for(const chapter of Object.values(noCompiled.task.chapters))
+   for(const topic of Object.values(chapter.topics))
+    assert.equal(topic.mbtiFocus,null,'missing MBTI must not generate an assumed preference or comparison');
+ }
  // The compact request must preserve missing-MBTI and unknown-hour boundaries.
 
  // The integrated chapter previously could cite only Saju data.
