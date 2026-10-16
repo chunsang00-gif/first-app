@@ -1,7 +1,10 @@
 'use strict';
 // Keep billable QA responses confidential even when the GitHub repository is
 // public. Files named below are first-chapter evidence, never a customer
-// endpoint. An absent independent archive secret fails closed BEFORE billing.
+// endpoint. Derive an encryption passphrase from the ALREADY configured
+// provider secret when no optional legacy archive secret exists. Nothing
+// else needs installing or entering. API-key rotation loses fallback access
+// to older archives; download/decrypt before rotating it.
 const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
 const MAGIC=Buffer.from('SAJU_QA_GCM_V1\0','utf8');
 const NAMES=[
@@ -12,10 +15,14 @@ const NAMES=[
 ];
 const ARCHIVE='premium-first-chapter-qa.enc';
 function secret(){
- const value=process.env.REPORT_QA_ARCHIVE_KEY;
- if(typeof value!=='string'||value.length<32)
-  throw Error('QA archive requires a dedicated secret at least 32 characters long');
- return value;
+ const legacy=process.env.REPORT_QA_ARCHIVE_KEY;
+ if(typeof legacy==='string'&&legacy.length>=32)return legacy;
+ const api=process.env.OPENAI_API_KEY;
+ if(typeof api!=='string'||api.length<32)
+  throw Error('QA archive requires the already configured OpenAI API key');
+ // Separate archive encryption from API authentication, without an extra
+ // repository secret. This value never appears in a log or public artifact.
+ return crypto.createHmac('sha256',api).update('saju-qa-archive-v1').digest('hex');
 }
 function key(passphrase,salt){
  return crypto.scryptSync(passphrase,salt,32,{N:16384,r:8,p:1,maxmem:64*1024*1024});
