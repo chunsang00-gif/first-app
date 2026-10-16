@@ -51,8 +51,10 @@ for(const profile of profiles)for(const mbti of types){
    core.allowedSourceRefs=monthIds;
    core.citableFacts=core.citableFacts.filter(row=>monthIds.includes(row.id));
    const pairedOnly=structuredClone(outgoing);
-   pairedOnly.properties.chapters.properties.saju_core.properties.paragraphs
-    .properties.strength.properties.basis.properties.refs.items.enum=monthIds;
+   const strengthSlot=pairedOnly.properties.chapters.properties.saju_core.properties
+    .paragraphs.properties.strength;
+   const strengthShape=strengthSlot.anyOf?.find(part=>part.type==='object')||strengthSlot;
+   strengthShape.properties.basis.properties.refs.items.enum=monthIds;
    assert.deepEqual(pre.inspect(prompt,withoutOptionalRoots,pairedOnly),[],
     'optional root evidence may not become mandatory for month interpretation');
    const contaminated=structuredClone(withoutOptionalRoots);
