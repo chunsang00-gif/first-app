@@ -25,20 +25,39 @@ function paragraphs(section){
   refs:usedPaths(section,section.bodyTopics?.[i]||String(i))
  }));
 }
+// Real paid paragraphs often cite ONE additional verified symbol. Requiring
+// identical entire citation arrays allowed the same behavioral conclusion to
+// be sold repeatedly when an extra source was appended. Evidence identity is
+// overlap of ACTUALLY cited symbolic rows, never planned/available sources.
+function sharedInterpretiveSource(first,second){
+ const common=first.refs.filter(id=>second.refs.includes(id));
+ if(common.some(id=>id.startsWith('natal.')||
+  id==='facts.annualTenGods'||id==='facts.targetYearRelations'||
+  id==='facts.targetYearBranchContext.annualContext.day'))return true;
+ // The submitted MBTI is ONE shared input, but citing it cannot by itself
+ // equate different domain interpretations. Only compare plainly repeated
+ // MBTI-attributed behavioral claims with the same causal signature.
+ const typeReference=/(?:MBTI|성격\\s*유형|내향형|외향형|감각형|직관형|사고형|감정형|판단형|인식형|[EI][NS][FT][JP])/i;
+ return common.includes('person.mbti')&&
+  typeReference.test(first.text)&&typeReference.test(second.text);
+}
 function inspect(sections){
  const errors=[],checked=[];
  for(const section of sections||[])for(const p of paragraphs(section)){
   if(!p.refs.length)continue;
   const refs=[...new Set(p.refs)].sort();
-  const eligible=refs.filter(id=>id.startsWith('natal.')||id==='facts.annualTenGods'||id==='facts.targetYearRelations');
+  const eligible=refs.filter(id=>id.startsWith('natal.')||id==='person.mbti'||
+   id==='facts.annualTenGods'||id==='facts.targetYearRelations'||
+   id==='facts.targetYearBranchContext.annualContext.day');
   if(!eligible.length)continue;
   const tags=signatures(p.text);
   if(!tags.size)continue;
   for(const older of checked){
    if(older.section===p.section)continue;
-   // Unrelated supporting evidence makes two superficially similar sentences
-   // distinct; do not penalize simply having the same traditional symbol.
-   if(JSON.stringify(older.refs)!==JSON.stringify(refs))continue;
+   // Same causal conclusion with at least ONE reused factual source is
+   // repeated even when an additional symbolic row is appended. A shared
+   // vague word, different source or MBTI token alone does not count.
+   if(!sharedInterpretiveSource(older,{...p,refs}))continue;
    for(const tag of tags)if(older.tags.has(tag))errors.push(
     'recycled interpretation with same source ('+tag+'): '+older.section+':'+older.topic+' / '+p.section+':'+p.topic);
   }
