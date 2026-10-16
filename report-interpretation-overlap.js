@@ -31,13 +31,13 @@ function paragraphs(section){
 // overlap of ACTUALLY cited symbolic rows, never planned/available sources.
 function sharedInterpretiveSource(first,second){
  const common=first.refs.filter(id=>second.refs.includes(id));
- if(common.some(id=>id.startsWith('natal.')||
+ if(common.some(id=>id.startsWith('natal.')||id.startsWith('annual.')||
   id==='facts.annualTenGods'||id==='facts.targetYearRelations'||
   id==='facts.targetYearBranchContext.annualContext.day'))return true;
  // The submitted MBTI is ONE shared input, but citing it cannot by itself
  // equate different domain interpretations. Only compare plainly repeated
  // MBTI-attributed behavioral claims with the same causal signature.
- const typeReference=/(?:MBTI|성격\\s*유형|내향형|외향형|감각형|직관형|사고형|감정형|판단형|인식형|[EI][NS][FT][JP])/i;
+ const typeReference=/(?:MBTI|성격\s*유형|내향형|외향형|감각형|직관형|사고형|감정형|판단형|인식형|[EI][NS][FT][JP])/i;
  return common.includes('person.mbti')&&
   typeReference.test(first.text)&&typeReference.test(second.text);
 }
@@ -46,7 +46,7 @@ function inspect(sections){
  for(const section of sections||[])for(const p of paragraphs(section)){
   if(!p.refs.length)continue;
   const refs=[...new Set(p.refs)].sort();
-  const eligible=refs.filter(id=>id.startsWith('natal.')||id==='person.mbti'||
+  const eligible=refs.filter(id=>id.startsWith('natal.')||id.startsWith('annual.')||id==='person.mbti'||
    id==='facts.annualTenGods'||id==='facts.targetYearRelations'||
    id==='facts.targetYearBranchContext.annualContext.day');
   if(!eligible.length)continue;
