@@ -169,8 +169,8 @@ assert(rootPlaces.length>0,'canonical lunar sample must provide real rooted posi
 assert(!observedOnly.includes('facts.structuralEvidence.dayMasterRoots'));
 const sparseResponse=result(seasonRefs,observedOnly);
 const completed=writer.restoreEvidence(sparseResponse,prompt);
-assert(completed.chapters.saju_core.paragraphs.strength.basis.refs.includes(
- 'facts.structuralEvidence.dayMasterRoots'),
+assert(completed.chapters.saju_core.evidence.some(x=>
+ x.startsWith('strength:')&&x.includes('facts.structuralEvidence.dayMasterRoots')),
  'attach canonical root summary only after all actual hidden roots were cited');
 assert.deepEqual(sparseResponse.chapters.saju_core.paragraphs.strength.basis.refs,observedOnly,
  'never silently rewrite the provider raw response or saved paid diagnostic');
