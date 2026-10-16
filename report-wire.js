@@ -4,12 +4,39 @@
 const {topics}=require('./report-outline');
 const reader=require('./report-reader-policy');
 const visible=s=>reader.describe(s,reader.readerField);
-const paragraph=(question,optional=false)=>{
+const paragraph=(question,optional=false,readerRole=null)=>{
  const schema=object({label:visible({type:'string'}),text:visible({type:'string'})});
  schema.properties.text.description+=' 이 문단의 질문: '+question+' 상황과 선택을 먼저 설명하고 그 이유를 연결한다. 앞 문단의 결론을 표현만 바꾸어 반복하지 않는다. 유형의 선호를 실제 행동이나 능력으로 바꾸어 단정하지 않는다.';
+ // Descriptions are passed to the ACTUAL provider JSON schema. Server-side
+ // editorial rules alone were not enough: most are removed by compile().
+ if(readerRole){
+  schema.properties.label.description+=' '+readerRole.label;
+  schema.properties.text.description+=' '+readerRole.text;
+ }
  if(optional)schema.description='독립된 설명이 있을 때만 작성한다. 같은 응답 안에서 이미 답한 내용이면 이유와 상황을 첫 문단에 충분히 남기고 이 항목은 null로 반환한다. 차이나 반전을 만들어 채우지 않는다.';
  return schema;
 };
+// A deterministic writing brief for the two paid core paragraphs; NO new
+// traits, no observable personality claims, and no new JSON output fields.
+function coreReaderRoles(prompt){
+ const contrast=require('./report-chart-contrast').build(prompt?.facts);
+ const month=contrast?.monthTenGodContext;
+ const focus=contrast&&require('./report-chart-contrast').forTopic(contrast,'strength',[])?.readerReasoning?.readerValuePlan;
+ const one=focus?.first?.question;
+ const two=focus?.second?.question;
+ return {
+  temperament:{
+   label:'태어난 계절과 겉에 확인된 오행의 관계를 이 문단에서 실제 설명한 생활 질문으로 짧게 나타낸다. 두 번째 문단의 배움·돈·재료 질문을 소제목으로 빼앗지 않는다.',
+   text:'계절 이름이나 겉글자 개수를 나열하는 기술 설명만으로 끝내지 않는다. 확인된 계절·겉글자 관계가 전통적으로 어떤 질문을 다루는지 쉬운 문장으로 먼저 풀고, 그 질문이 도움이 되는 가상 상황 하나를 제시한다. 계절 분류를 실제 적응력·학습 능력·생활 경험으로 단정하지 않는다.'
+  },
+  strength:{
+   label:'실제로 본문에서 비교한 태어난 달의 서로 다른 두 전통적 질문을 소제목에 간결하게 드러낸다. 뿌리·충·강약처럼 이 문단에 없는 계산 주제를 제목에 붙이지 않는다.',
+   text:'이 문단은 태어난 달의 겉글자와 중심 숨은 글자에 기록된 두 전통적 의미만 풀이한다.'+
+    (one&&two?' 첫 출처의 실제 질문은 '+one+'이며 둘째 출처의 실제 질문은 '+two+'이다.':'')+
+    ' 새 일을 준비하는 가상의 한 선택 상황에서 두 질문에 각각 답해야 하는 이유와 어느 질문을 건너뛰면 검토가 부족해지는지 설명한다. 서로 다른 두 전통적 뜻을 실제 성격의 모순·갈등이나 능력의 증거로 바꾸지 않는다. 첫 문단의 계절 설명을 반복하지 않는다.'
+  }
+ };
+}
 const object=properties=>({type:'object',additionalProperties:false,required:Object.keys(properties),properties});
 function schemaFor(prompt,reportSchema){
  if(!Array.isArray(prompt?.requestedSections))return reportSchema;
@@ -23,8 +50,14 @@ function schemaFor(prompt,reportSchema){
   if(plannedAnchor&&!keys.includes(plannedAnchor))throw Error('Invalid report chapter writing plan');
   // A paid chapter cannot consist entirely of null topics. When no interpretive
   // basis exists, the anchor must explain the specific limit, not invent behavior.
-  return [id,object({title:visible(section.title),keyJudgment:visible(section.keyJudgment),evidence:reader.describe(section.evidence,reader.evidenceField),mood:section.mood,
-   paragraphs:object(Object.fromEntries(keys.map(topic=>[topic,topic===anchor?paragraph(plan[topic]?.question||topics[id][topic]):plan[topic]?.mode==='state-limits'?{type:'null'}:{anyOf:[paragraph(plan[topic]?.question||topics[id][topic],true),{type:'null'}]}])))})];
+  const title=visible(section.title),judgment=visible(section.keyJudgment);
+  const roles=id==='saju_core'?coreReaderRoles(prompt):null;
+  if(roles){
+   title.description+=' 첫 장 제목은 두 문단에서 실제 제시한 하나의 생활 질문을 가리킨다. 출생 구조·기질의 조건·계산 근거라는 교재 제목이나, 본문에서 검증하지 않은 인물 평가를 피한다.';
+   judgment.description+=' 첫 장 핵심 판단은 제목의 질문에 답하는 자연스러운 한국어 한 문장이다. 계산 과정·근거 목록·검토하겠다는 작성 계획이 아니다. 본문 두 문단의 조건부 전통 해석을 넘어 실제 성격·과거 행동을 확인했다고 단정하지 않는다.';
+  }
+  return [id,object({title,keyJudgment:judgment,evidence:reader.describe(section.evidence,reader.evidenceField),mood:section.mood,
+   paragraphs:object(Object.fromEntries(keys.map(topic=>[topic,topic===anchor?paragraph(plan[topic]?.question||topics[id][topic],false,roles?.[topic]):plan[topic]?.mode==='state-limits'?{type:'null'}:{anyOf:[paragraph(plan[topic]?.question||topics[id][topic],true,roles?.[topic]),{type:'null'}]}])))})];
  }));
  return object({chapters:object(chapters),finalJudgment:prompt.includeFinal?visible(reportSchema.properties.finalJudgment):{type:'null'},cover:prompt.includeCover?visible(reportSchema.properties.cover):{type:'null'}});
 }
