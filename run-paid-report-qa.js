@@ -54,6 +54,14 @@ if(!resumePath){
 if(resumePath&&checkpoint&&fs.existsSync(checkpoint)&&path.resolve(resumePath)!==path.resolve(checkpoint))
  throw Error('Existing output checkpoint conflicts with the selected resume file');
 (async()=>{
+ // Re-run the EXACT already-paid first output through the current decoding,
+ // factual, editorial and chapter validators. Do not trust a checkpoint flag
+ // or filename as proof. Stop BEFORE any new model call on mismatch.
+ if(resumePath){
+  const proof=await require('./verify-paid-report-resume').verifyFiles();
+  if(proof.cachedChapters!==1||proof.providerCalls!==0)
+   throw Error('QA resumed chapter failed independent offline verification');
+ }
  let calls=resumeBatches.length; // prior paid calls are counted, never re-billed.
  const result=await generate(input,async prompt=>{
   calls++;
