@@ -149,8 +149,6 @@ for(const ref of seasonRefs)assert(expectedSeasonRefs.includes(ref),'seasonal sc
 for(const ref of rootBaseRefs)assert(!expectedRootRefs.includes(ref),
  'paid month-ten-god schema must not expose optional root source '+ref);
 assert(!expectedSeasonRefs.includes('facts.rootConditions')&&!expectedSeasonRefs.includes('facts.stemConnections'));
-const rootPlaces=(transport.source['facts.stemConnections']?.dayMasterRooting?.sameElementRoots||[])
- .map(x=>x.hiddenId);
 const mainMonth='natal.month.hidden.'+transport.source['facts.structuralEvidence.monthCommand'].mainHiddenStem;
 const monthRefs=['natal.month.stem',mainMonth];
 const result=(first=seasonRefs,second=monthRefs)=>({chapters:{saju_core:{
