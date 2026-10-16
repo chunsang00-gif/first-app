@@ -140,10 +140,18 @@ for(const input of cases){
  assert(chapterSchema.keyJudgment.description.includes('자연스러운 한국어 한 문장'));
  assert(paragraphs.temperament.properties.label.description.includes('계절과 겉에 확인된 오행'));
  assert(paired.properties.label.description.includes('서로 다른 두 전통적 질문'));
- assert(seasonText.includes('전통적으로 어떤 질문을 다루는지')&&
+ assert(seasonText.includes('기술 강의로 만들지 않는다')&&
+  seasonText.includes('가상의 장면')&&
   !seasonText.includes('출생월의 본기만으로 실제 적응력이'));
+ const scenarioFromFacts=contrasts.forTopic(contrast,'temperament',[])?.readerReasoning?.hypotheticalQuestion;
+ assert(seasonText.includes(scenarioFromFacts),
+  'actual first paragraph provider output field must include a chart-specific hypothetical, not generic instructions');
  assert(pairedText.includes('첫 출처의 실제 질문은')&&
   pairedText.includes('둘째 출처의 실제 질문은'));
+ assert(pairedText.includes('사전적 의미만 여러 문장으로')&&
+  pairedText.includes('가상의 한 선택 상황'),
+  'paid writer must treat symbol names as brief supporting evidence, never as final value');
+
  const moonPlan=contrasts.forTopic(contrast,'strength',[])?.readerReasoning?.readerValuePlan;
  assert(pairedText.includes(moonPlan.first.question)&&pairedText.includes(moonPlan.second.question),
   'real first-chapter response field must describe THIS chart, not a generic root lecture');
