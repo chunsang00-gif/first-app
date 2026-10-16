@@ -58,6 +58,40 @@ const oneSentenceCalculated={sections:[{id:'saju_core',title:'출생 정보에�
 assert(!grounding.inspect(oneSentenceCalculated).blockingErrors.includes(
  'saju_core:key-judgment-is-symbol-lecture'),
  'technical word alone must not trigger overbroad rejection');
+// 2026-10-16 paid first-chapter raw audit: the response spoke ABOUT the
+// chart for multiple sentences rather than doing a personal, bounded reading.
+// Keep only depersonalized failing language in the public regression test.
+const paidGlossaryOnly={sections:[{id:'saju_core',
+ title:'기본 기질을 바라보는 두 가지 전통적 기준',
+ keyJudgment:'서로 다른 전통적 뜻을 살펴보는 장입니다.',
+ bodyLabels:['전통 상징의 설명','두 글자가 나타내는 해석 기준'],
+ body:[
+  '이 시기의 특징은 계절이 뚜렷하게 결정되지 않는 과도기라는 점입니다. 겉에 나타나는 글자는 도움을 뜻하는 물의 상징과 연결됩니다. 전통적으로 이런 조합은 배우는 환경이나 새로운 지식을 받아들이는 방향에 대한 의미를 갖습니다. 이와 같은 근거는 사주의 전통적 해석의 출발점입니다.',
+  '태어난 달의 겉글자는 배우고 생각하는 능력을 의미하는 상징으로 풀이됩니다. 이는 경험을 받아들일 때 자기만의 이해를 강조하는 방향으로 해석됩니다. 반면, 달의 중심에 숨은 글자는 자원이나 돈을 살피는 상징을 담고 있습니다. 두 글자는 서로 다른 전통적 질문을 드러내는 해석의 기초가 됩니다.'
+ ]}]};
+const paidGlossaryCodes=grounding.inspect(paidGlossaryOnly).blockingErrors;
+assert(paidGlossaryCodes.includes('saju_core:editorial-title-instead-of-interpretation'),
+ 'archived paid meta-title is not a customer-centered chapter title');
+assert(paidGlossaryCodes.includes('saju_core:symbol-definitions-without-applied-interpretation'),
+ 'archived paid glossary-only prose with no applied choice must never pass');
+const customerMeaning={sections:[{id:'saju_core',
+ title:'새로운 일을 준비할 때 따로 살필 두 문제',
+ keyJudgment:'일을 준비한다면 배우는 방법과 필요한 자원을 마련하는 방법은 각각 따로 생각해 볼 질문입니다.',
+ bodyLabels:['정보를 이해하는 일','필요한 것을 마련하는 일'],
+ body:[
+  '겨울에 태어난 사주에 확인된 겉글자는 배움이나 도움을 전통적으로 살피는 근거입니다. 이는 실제 학습 능력을 측정하지 않습니다. 새로운 일을 맡을 때 모르는 정보를 누구에게 배우고 어떻게 정리할지 가정해 보면 그 뜻을 구체적으로 이해하기 쉽습니다. 배우는 방식을 생각하는 일은 필요한 자원을 마련하는 질문과 다릅니다.',
+  '태어난 달의 겉글자는 배움과 연결된 전통적 뜻을 담고 있습니다. 달의 중심 숨은 글자는 돈이나 재료를 다루는 상징입니다. 두 위치는 각각 다른 전통적인 해석의 출처입니다. 예를 들어 새로운 일을 준비한다면, 먼저 무엇을 알아야 하는지 정하고 필요한 비용을 별도로 계산하는 두 질문을 함께 살필 수 있습니다.'
+ ]}]};
+assert(!grounding.inspect(customerMeaning).blockingErrors.includes(
+ 'saju_core:symbol-definitions-without-applied-interpretation'),
+ 'a source-grounded applied scene must remain valid despite necessary symbol explanations');
+const compactInterpretation={sections:[{id:'saju_core',
+ title:'일을 시작하기 전에 따져 볼 문제',
+ keyJudgment:'새 일을 준비할 때 정보를 구하는 관점과 비용을 마련하는 관점을 구별합니다.',
+ body:['태어난 달의 두 글자는 다른 뜻을 가집니다. 예를 들어 일을 시작하기 전에 배움과 예산을 따로 살피는 상황을 생각할 수 있습니다.']}]};
+assert(!grounding.inspect(compactInterpretation).blockingErrors.includes(
+ 'saju_core:symbol-definitions-without-applied-interpretation'),
+ 'short but meaningful interpretation does not have to meet an arbitrary word quota');
 const oldFirstChapterOverreach={sections:[{id:'saju_core',
  title:'평소 기질의 해석과 해석 조건',keyJudgment:'전통 상징의 의미입니다.',
  bodyLabels:['기질의 기반과 고려할 점'],
