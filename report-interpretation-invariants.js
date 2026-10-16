@@ -7,12 +7,57 @@ const core=require('./report-interpretation-core');
 const bindings=require('./report-fact-bindings');
 const annualIds={money:'year_2027_money',career:'year_2027_career'};
 const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
+// Independent domain oracle. The publisher's blueprint is NOT the authority
+// for whether a cited natal source belongs to a money/work/relationship/stress
+// question: reconstruct membership from the original calculated ten-god rows.
+// Keep the allowed categories explicit here to catch a drift in the planner.
+const domainKindChecks={
+ money:{
+  earning:row=>['정재','편재','식신','상관'].includes(row.tenGod),
+  spending:row=>['정재','편재'].includes(row.tenGod),
+  risk:()=>false
+ },
+ career:{
+  workstyle:row=>['식신','상관','정인','편인'].includes(row.tenGod),
+  teamwork:row=>['비견','겁재','정관','편관'].includes(row.tenGod),
+  growth:row=>['정인','편인'].includes(row.tenGod),
+  change:()=>false
+ },
+ relationship:{
+  closeness:row=>/^natal\\.day\\.hidden\\./.test(row.id),
+  expression:row=>['식신','상관'].includes(row.tenGod),
+  conflict:()=>false
+ },
+ stress:{
+  trigger:row=>['정관','편관'].includes(row.tenGod),
+  response:row=>['정인','편인'].includes(row.tenGod)
+ }
+};
+function checkDomainSources(rows,plan){
+ const errors=[];
+ const natal=rows.filter(row=>row.id.startsWith('natal.'));
+ for(const [chapterId,topics] of Object.entries(domainKindChecks)){
+  for(const [topic,accept] of Object.entries(topics)){
+   const actual=plan?.[chapterId]?.topicTasks?.[topic];
+   const expected=natal.filter(accept).map(row=>row.id);
+   const supported=expected.length>0;
+   if(!actual||!same(actual.allowedSourceRefs,expected)||
+      actual.mode!==(supported?'use-primary':'state-limits')||
+      actual.evidencePresent!==supported||
+      !same(actual.verifiedFallbackPaths,[]))
+    errors.push('domain-topic-source-mismatch:'+chapterId+':'+topic);
+  }
+ }
+ return errors;
+}
+
 function verify(packet,plan){
  const errors=[];
  if(!packet?.facts?.tenGods||!packet.facts.annualTenGods||!plan)
   return {pass:false,errors:['missing-calculation-or-interpretation-plan']};
  const rows=bindings.build(packet);
  const ids=new Set(rows.map(row=>row.id));
+ errors.push(...checkDomainSources(rows,plan));
  if(ids.size!==rows.length)errors.push('duplicate-position-bound-calculation-id');
  const expected=core.all(packet);
  if(packet.facts?.seasonalEvidence){
