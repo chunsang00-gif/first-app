@@ -12,6 +12,21 @@ function inspect(report,packet=null){
  const blockingErrors=[],findings=[];
  for(const section of report?.sections||[]){
   if(section?.id!=='saju_core')continue;
+  // Two REAL paid first-chapter outputs reached the successful automation
+  // gate with long, two-sentence 'key judgments' explaining the symbols
+  // rather than giving readers a single understandable interpretation.
+  // Keep the actual reason/evidence in the body and private citation ledger.
+  const judgment=String(section.keyJudgment||'').trim();
+  const judgmentSentences=judgment.split(/(?<=[.!?。！？])\s+|\n+/)
+   .map(x=>x.trim()).filter(Boolean);
+  if(judgmentSentences.length>1)
+   blockingErrors.push('saju_core:key-judgment-not-one-sentence');
+  // This is NOT a word ban. Fail only a self-contained definition of
+  // a calculated SYMBOL, with no customer-facing inference in the sentence.
+  // Naming 'calculation' in a meaningful interpretation remains permitted.
+  if(/(?:출생\s*위치|계산된\s*(?:근거|글자|관계)|달\s*아래\s*숨은\s*글자|겉에\s*드러난\s*글자)/.test(judgment)&&
+     /(?:상징으로\s*구별|상징으로\s*분류|근거일\s*뿐|분류되는\s*근거)/.test(judgment))
+   blockingErrors.push('saju_core:key-judgment-is-symbol-lecture');
   const sentences=[section.keyJudgment,...(section.body||[])].join(' ').split(/(?<=[.!?。])\s*|\n+/)
    .map(x=>x.trim()).filter(x=>x.length>=15);
   const generic=sentences.filter(s=>patterns.some(p=>p.test(s)));
