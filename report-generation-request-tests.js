@@ -83,8 +83,11 @@ const schema=require('./report-schema.json');
    'premium depth guidance lost in provider compression: '+id);
   assert(chapter.analysisGoal.length>70,'missing substantive guidance: '+id);
  }
- assert(payload.task.chapters.saju_core.analysisGoal.includes('통근'),
-  'calculated natal roots must still inform internal reasoning');
+ assert(payload.task.chapters.saju_core.analysisGoal.includes('월간 십성')&&
+  payload.task.chapters.saju_core.analysisGoal.includes('월지 본기 십성'),
+  'the actual transported depth goal must prioritize both calculated month ten-god meanings');
+ assert(!payload.task.chapters.saju_core.analysisGoal.includes('둘째는 같은 오행의 실제 뿌리'),
+  'obsolete root-first depth instruction must not override the evidence plan');
  assert(payload.task.chapters.saju_core.topics.temperament.question.includes('기질'),
   'first topic must explain basic disposition to a reader');
  assert(payload.task.chapters.saju_core.topics.strength.question.includes('기질'),
