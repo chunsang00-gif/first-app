@@ -92,10 +92,13 @@ console.log('USER_LUNAR_INTERPRETATION_SCOPE '+JSON.stringify({
 const preflight=invariant.verify(expected,blueprint);
 assert.equal(preflight.pass,true,preflight.errors.join('; '));
 assert.equal(blueprint.saju_core.topicTasks.temperament.mode,'use-primary');
-const refs=['facts.seasonalEvidence','facts.qiEvidence','facts.stemConnections',
- 'facts.rootConditions','natal.month.stem'];
+const seasonRefs=['facts.seasonalEvidence','facts.qiEvidence','natal.month.stem'];
+const rootBaseRefs=['facts.structuralEvidence.dayMasterRoots','facts.stemConnections','facts.rootConditions'];
+const refs=[...seasonRefs,...rootBaseRefs];
 assert.deepEqual(blueprint.saju_core.topicTasks.temperament.requiredSourceKinds,
- ['seasonal','qi-ledger','natal-month-position','stem-linkage','root-condition']);
+ ['seasonal','qi-ledger','natal-month-position']);
+assert(blueprint.saju_core.topicTasks.strength.requiredSourceKinds.includes('stem-linkage'));
+assert(blueprint.saju_core.topicTasks.strength.requiredSourceKinds.includes('root-condition'));
 // Confirm the actual lunar 1982-11-24 14:20 ISFP case reaches the paid
 // integrated writer with TWO independent sources, not natal data alone.
 const integrationPrompt={stage:'body',facts:expected,requestedSections:['integrated_judgment'],
@@ -137,30 +140,39 @@ const transport=writer.compile(prompt);
 for(const ref of refs)assert(Object.hasOwn(transport.source,ref),
  'the lunar source-bound writer cannot drop '+ref);
 assert.equal(transport.task.comparisonContract.calculatedAgreement,false);
-const expectedRefs=writer.schema(prompt,wire.schemaFor(prompt,schema))
- .properties.chapters.properties.saju_core.properties.paragraphs.properties
- .temperament.properties.basis.properties.refs.items.enum;
-for(const ref of refs)assert(expectedRefs.includes(ref),'schema lacks '+ref);
-const result=refs=>({chapters:{saju_core:{
- title:'출생 계산에 근거한 풀이',keyJudgment:'월지와 지장간의 관계를 확인했습니다.',
- mood:'reflective',paragraphs:{temperament:{
- label:'계산된 관계',text:'음력 출생일을 양력으로 변환해 명리 근거를 확인했습니다.',
- basis:{refs,interpretation:'출생 당시 계절·뿌리·천간 위치를 각각 비교했습니다.',
- condition:'음력 변환과 절입 기준을 일치시켰습니다.',limit:'강약·용신·실제 미래는 확정하지 않았습니다.'}
- },strength:null}}}});
-assert.doesNotThrow(()=>writer.restoreEvidence(result(refs),prompt));
-const missingSourceMessages={
+const slots=writer.schema(prompt,wire.schemaFor(prompt,schema))
+ .properties.chapters.properties.saju_core.properties.paragraphs.properties;
+const expectedSeasonRefs=slots.temperament.properties.basis.properties.refs.items.enum;
+const expectedRootRefs=(slots.strength.anyOf?.find(x=>x.type==='object')||slots.strength)
+ .properties.basis.properties.refs.items.enum;
+for(const ref of seasonRefs)assert(expectedSeasonRefs.includes(ref),'seasonal schema lacks '+ref);
+for(const ref of rootBaseRefs)assert(expectedRootRefs.includes(ref),'root schema lacks '+ref);
+assert(!expectedSeasonRefs.includes('facts.rootConditions')&&!expectedSeasonRefs.includes('facts.stemConnections'));
+const rootPlaces=(transport.source['facts.stemConnections']?.dayMasterRooting?.sameElementRoots||[])
+ .map(x=>x.hiddenId);
+const rootRefs=[...rootBaseRefs,...(rootPlaces[0]?[rootPlaces[0]]:[])];
+const result=(first=seasonRefs,second=rootRefs)=>({chapters:{saju_core:{
+ title:'출생 계산에 근거한 풀이',keyJudgment:'출생 자료의 서로 다른 계산 위치를 확인했습니다.',
+ mood:'reflective',paragraphs:{
+ temperament:{label:'계절과 겉글자',text:'태어난 계절과 겉글자의 오행 관계를 구별합니다.',
+  basis:{refs:first,interpretation:'태어난 달과 일간의 전통 관계를 비교했습니다.',
+  condition:'음력 변환과 절입을 기준으로 합니다.',limit:'실제 능력이나 성격을 확정하지 않습니다.'}},
+ strength:{label:'뿌리의 실제 위치',text:'지장간의 실제 뿌리와 충 관계를 구별합니다.',
+  basis:{refs:second,interpretation:'같은 오행의 뿌리 위치를 구별했습니다.',
+  condition:'출생 위치를 확인합니다.',limit:'신강약과 실제 능력은 확정하지 않습니다.'}}
+ }}}});
+assert.doesNotThrow(()=>writer.restoreEvidence(result(),prompt));
+const missingSeason={
  'facts.seasonalEvidence':/missing required month seasonal source/,
  'facts.qiEvidence':/missing required positional qi evidence/,
- 'facts.stemConnections':/missing required grounded stem connection evidence/,
- 'facts.rootConditions':/missing verified root condition evidence/,
  'natal.month.stem':/missing month-position evidence/
 };
-for(const omitted of refs){
- const remaining=refs.filter(x=>x!==omitted);
- assert.throws(()=>writer.restoreEvidence(result(remaining),prompt),
-  missingSourceMessages[omitted], 'missing '+omitted+' must reject the paid draft');
-}
+for(const omitted of seasonRefs)
+ assert.throws(()=>writer.restoreEvidence(result(seasonRefs.filter(x=>x!==omitted)),prompt),
+  missingSeason[omitted], 'missing first-paragraph '+omitted+' must reject the draft');
+for(const omitted of rootBaseRefs)
+ assert.throws(()=>writer.restoreEvidence(result(seasonRefs,rootRefs.filter(x=>x!==omitted)),prompt),
+  /missing verified root provenance/, 'missing root paragraph '+omitted+' must reject the draft');
 console.log('PASS USER_LUNAR_REFERENCE '+JSON.stringify({
  inputCalendar:birth.calendar,inputDate:birth.birthDate,normalizedSolarDate:normalized,
  natalChart:expected.chart,mbti:birth.mbti,year2027Pillar:expected.targetYear.pillar,
