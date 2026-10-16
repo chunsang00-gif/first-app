@@ -260,6 +260,34 @@ function allowedRefs(payload,task,chapterId,topic){
   ids.add('person.mbti');
  return ids;
 }
+// A provider may cite every *actual* observed root and clash ledger while
+// omitting their redundant precomputed summary source ID. Complete only
+// that verified cross-reference deterministically: no inferred roots, no
+// new interpretation, and never convert a failed factual citation to a pass.
+function completeRootSummaryCitation(payload,refs){
+ if(!Array.isArray(refs))return refs;
+ const summary='facts.structuralEvidence.dayMasterRoots';
+ if(refs.includes(summary)||!refs.includes('facts.stemConnections')||
+    !refs.includes('facts.rootConditions'))return refs;
+ const src=payload?.source||{};
+ const observed=src['facts.stemConnections']?.dayMasterRooting?.sameElementRoots;
+ const cases=src['facts.rootConditions']?.dayMasterRootCases;
+ const rootTable=src[summary];
+ if(!Array.isArray(observed)||!observed.length||
+    !Array.isArray(cases)||!Array.isArray(rootTable))return refs;
+ // Every actual computed root (not an arbitrary hidden stem) must already
+ // be explicitly cited by the writer. This is a mechanical provenance link.
+ if(!observed.every(root=>{
+  if(typeof root?.hiddenId!=='string'||!refs.includes(root.hiddenId))return false;
+  const row=src[root.hiddenId];
+  const caseMatch=cases.some(c=>c.rootId===root.hiddenId&&
+   c.rootPosition===root.position&&c.rootStem===root.hiddenStem);
+  const summaryMatch=rootTable.some(t=>t.position===root.position&&
+   Array.isArray(t.sameElementStems)&&t.sameElementStems.includes(root.hiddenStem));
+  return caseMatch&&summaryMatch&&row?.stem===root.hiddenStem;
+ }))return refs;
+ return [...refs,summary];
+}
 function restoreEvidence(value,prompt){
  const payload=compile(prompt);
  if(!payload||prompt.stage!=='body')return value;
@@ -303,6 +331,10 @@ function restoreEvidence(value,prompt){
     }
     if(!allowed.size||b.refs.some(ref=>!allowed.has(ref)))throw Error('AI report service unrelated paragraph basis: '+id+':'+topic);
     if(id==='saju_core'&&topic==='strength'){
+     // Only *after* validating the model's explicit day/hour root citations
+     // against three independently computed ledgers, attach the redundant
+     // day-master summary. Preserve the original raw provider archive.
+     b.refs=completeRootSummaryCitation(payload,b.refs);
      // The model must show a real recorded root before discussing its meaning.
      // Source IDs alone cannot validate every interpretation; human QA remains.
      const required=['facts.structuralEvidence.dayMasterRoots',
@@ -336,4 +368,4 @@ function restoreEvidence(value,prompt){
  }
  return result;
 }
-module.exports={policy,compile,schema,restoreEvidence,allowedRefs};
+module.exports={policy,compile,schema,restoreEvidence,allowedRefs,completeRootSummaryCitation};
