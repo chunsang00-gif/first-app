@@ -82,11 +82,14 @@ for(const input of [
  const strengthRefs=(slots.strength.anyOf?.find(x=>x.type==='object')||slots.strength)
   .properties.basis.properties.refs.items.enum;
  assert(!seasonRefs.includes('facts.stemConnections'));
- assert(strengthRefs.includes('facts.stemConnections'));
+ assert(!strengthRefs.includes('facts.stemConnections')&&!strengthRefs.includes('facts.rootConditions')&&
+  !strengthRefs.includes('facts.structuralEvidence.dayMasterRoots'),
+  'paid first chapter must not invite the incomplete optional root evidence seen in real QA');
  const observed=payload.source['facts.stemConnections'].dayMasterRooting.sameElementRoots;
  const monthHidden='natal.month.hidden.'+payload.source['facts.structuralEvidence.monthCommand'].mainHiddenStem;
- const required=['natal.month.stem',monthHidden,'facts.structuralEvidence.dayMasterRoots','facts.stemConnections','facts.rootConditions',
-  ...(observed[0]?[observed[0].hiddenId]:[])];
+ const required=['natal.month.stem',monthHidden,'facts.structuralEvidence.monthCommand'];
+ const forbidden=['facts.stemConnections','facts.structuralEvidence.dayMasterRoots',
+  'facts.rootConditions',...(observed[0]?[observed[0].hiddenId]:[])];
  const report=(refs)=>({chapters:{saju_core:{title:'출생 근거',keyJudgment:'천간과 지장간 근거',
   mood:'reflective',paragraphs:{
    temperament:{label:'월간과 계절',text:'계절과 겉에 나타난 글자를 구별합니다.',
@@ -96,8 +99,11 @@ for(const input of [
     basis:{refs,interpretation:'전통적 뿌리',condition:'태어난 글자',
      limit:'능력이나 강약은 판단하지 않습니다.'}}}}}});
  assert.doesNotThrow(()=>writer.restoreEvidence(report(required),prompt));
- assert.throws(()=>writer.restoreEvidence(report(required.filter(x=>x!=='facts.stemConnections')),prompt),
-  /missing verified optional root provenance/);
+ for(const ref of forbidden){
+  assert.throws(()=>writer.restoreEvidence(report([...required,ref]),prompt),
+   /unrelated paragraph basis/,
+   'the current customer paragraph cannot cite the unrelated root source: '+ref);
+ }
  const tampered=structuredClone(packet);
  tampered.facts.stemConnections.dayMasterRooting.rootObservationStatus='fabricated-strong-root';
  assert(integrity.verify(tampered).errors.includes('incorrect-stem-connections'));
