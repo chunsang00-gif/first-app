@@ -31,9 +31,9 @@ const schema=require('./report-schema.json');
   'core-reader-evidence-brief-drift:saju_core/strength');
  assertDropped(p=>{p.task.chapters.saju_core.topics.strength.evidenceFocus.sourceAudit='충 관계 없음'},
   'core-reader-evidence-brief-drift:saju_core/strength');
- assertDropped(p=>{delete p.task.chapters.saju_core.topics.strength.evidenceFocus.points[1].sourceAuditCheck},
+ assertDropped(p=>{delete p.task.chapters.saju_core.topics.strength.evidenceFocus.points[0].sourceAuditCheck},
   'core-reader-evidence-brief-drift:saju_core/strength');
- assertDropped(p=>{p.task.chapters.saju_core.topics.strength.evidenceFocus.points[1].sourceRefs=[]},
+ assertDropped(p=>{p.task.chapters.saju_core.topics.strength.evidenceFocus.points[0].sourceRefs=[]},
   'core-reader-evidence-brief-drift:saju_core/strength');
  assertDropped(p=>{p.task.chapters.saju_core.topics.temperament.citableFacts=[]},
   'topic-citable-sources-drift:saju_core/temperament');
@@ -91,8 +91,8 @@ const schema=require('./report-schema.json');
   'second topic must explain a qualifying condition, not a root glossary');
  assert(payload.task.chapters.saju_core.topics.strength.evidenceFocus.internalEvidenceRole.includes('충'),
   'accurate natal-clash provenance must remain in provider task');
- assert(payload.task.chapters.saju_core.topics.strength.evidenceFocus.sourceAudit.includes('뿌리'),
-  'actual root evidence must remain privately auditable');
+ assert(payload.task.chapters.saju_core.topics.strength.evidenceFocus.sourceAudit.includes('natal.month'),
+  'the paid focus must audit the two month sources rather than demand root exposition');
  assert.deepEqual(payload.task.chapters.saju_core.topics.strength.requiredSourceKinds,['month-ten-god']);
  assert(generation.policy.includes('를 모두 기록한다'),
   'paid writer policy must require both calculated month sources, not one');
