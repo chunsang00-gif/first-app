@@ -33,6 +33,8 @@ const future=contrasts.forTopic(paidTask,'strength',
 const pairSentence=future.points.find(x=>x.kind==='root-relation-overlap').calculatedExplanation;
 assert(pairSentence.includes('월지 ↔ 일지')&&pairSentence.includes('월지 ↔ 시지'));
 assert(!pairSentence.includes('일지 ↔ 시지'),'Never invent a day-hour clash');
-assert(future.readerReasoning.reasoningTask.includes('월지와 일지의 충'));
-assert(future.readerReasoning.reasoningTask.includes('월지와 시지의 충'));
+assert(future.sourceAudit.includes('월지와 일지의 충'));
+assert(future.sourceAudit.includes('월지와 시지의 충'));
+assert(!/(?:월지|일지|시지|뿌리\s*\d+|충\s*관계\s*\d+)/.test(future.readerReasoning.hypotheticalQuestion),
+ 'first chapter reader-facing example must not leak technical pair names');
 console.log('PASS offline real paid sample: rejected invented day-hour relationship; two actual computed pairs reach the next provider request; 0 billable calls');

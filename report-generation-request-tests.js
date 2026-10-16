@@ -81,6 +81,10 @@ const schema=require('./report-schema.json');
   'second topic must explain a qualifying condition, not a root glossary');
  assert(payload.task.chapters.saju_core.topics.strength.evidenceFocus.internalEvidenceRole.includes('충'),
   'accurate natal-clash provenance must remain in provider task');
+ assert(payload.task.chapters.saju_core.topics.strength.evidenceFocus.sourceAudit.includes('뿌리'),
+  'actual root evidence must remain privately auditable');
+ assert(!/(?:월지|일지|시지)/.test(payload.task.chapters.saju_core.topics.strength.evidenceFocus.readerReasoning.hypotheticalQuestion),
+  'customer-facing example must be concept-first, not branch-location-first');
  assert(generation.policy.includes('명리학 용어 설명 교재가 아니다'),
   'paid writing must not teach calculations instead of explaining reader concerns');
  assert(payload.task.chapters.mbti_contradiction.analysisGoal.includes('MBTI'),

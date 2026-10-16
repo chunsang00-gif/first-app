@@ -90,7 +90,7 @@ for(const input of cases){
   ['actual-day-master-roots','root-relation-overlap']);
  if(rootClashes.length){
   const focusExplanation=strength.points.find(p=>p.kind==='root-relation-overlap').calculatedExplanation;
-  const question=strength.readerReasoning.reasoningTask;
+  const question=strength.sourceAudit;
   for(const pair of rootClashes){
    const lhs=({year:'연',month:'월',day:'일',hour:'시'})[pair.counterpart];
    const rhs=({year:'연',month:'월',day:'일',hour:'시'})[pair.location];
@@ -102,7 +102,7 @@ for(const input of cases){
  }
  if(input.calendar==='lunar'&&input.birthDate==='1982-11-24'){
   assert.deepEqual(rootClashes.map(c=>c.positions.join(',')),['month,day','month,hour']);
-  assert(!strength.readerReasoning.reasoningTask.includes('일지와 시지의 충'),
+  assert(!strength.sourceAudit.includes('일지와 시지의 충'),
    'day-hour relationship must not be invented from two separate month clashes');
  }
  for(const [topic,focus] of [['temperament',temperament],['strength',strength]]){
@@ -126,6 +126,8 @@ for(const input of cases){
    topic+' customer-facing question must not teach chart calculation terms');
   assert(focus.internalEvidenceRole.length>30,
    topic+' must retain grounded technical source purpose');
+  assert(!/(?:뿌리\s*\d+곳|충\s*관계\s*\d+건|월지와\s*일지의\s*충)/.test(focus.readerReasoning.hypotheticalQuestion),
+   topic+' reader-facing example must not repeat technical audit counts');
  }
  assert.notEqual(temperament.readerReasoning.hypotheticalQuestion,
    strength.readerReasoning.hypotheticalQuestion,
@@ -142,12 +144,12 @@ for(const input of cases){
  if(!visibleRelations.has('resource'))assert(!firstReason.hypotheticalQuestion.includes('나를 돕는 전통 분류'),
   'another chart must not inherit the paid ISFP fixture resource example');
  const rootFocus=strength.readerReasoning;
- assert(rootFocus.reasoningTask.includes(String(root.observedRootCount)+'곳')||
+ assert(strength.sourceAudit.includes(String(root.observedRootCount)+'곳')||
   root.observedRootCount===0,'root claims must use calculated count');
  if(rootClashes.length===0){
-  assert(rootFocus.reasoningTask.includes('직접 충이 계산된 사례가 없다'));
+  assert(strength.sourceAudit.includes('직접 충이 계산된 사례가 없다'));
   assert(!rootFocus.reasoningTask.includes('충이 겹친 자리'));
- }else assert(rootFocus.reasoningTask.includes('뿌리와 직접 연결된 충 관계 '+rootClashes.length+'건'),
+ }else assert(strength.sourceAudit.includes('뿌리와 직접 연결된 충 관계 '+rootClashes.length+'건'),
    'each actual clash pair must be named rather than inferred as a vague root effect');
  if(!packet.chart.hour)assert(!rootFocus.contrastQuestion.includes('태어난 시간에 실제 뿌리'),
   'unknown time must not become an observed hour root');
@@ -208,9 +210,9 @@ emptyRoot.contrastPoints[2].evidence.rootLocations=[];
 emptyRoot.contrastPoints[2].evidence.observedRootCount=0;
 emptyRoot.contrastPoints[3].evidence.collisions=[];
 const zeroRootFocus=contrasts.forTopic(emptyRoot,'strength',[]);
-assert(zeroRootFocus.readerReasoning.contrastQuestion.includes('뿌리가 보이지 않는다는'),
+assert(zeroRootFocus.readerReasoning.contrastQuestion.includes('근거가 제한적일 때'),
  'zero-root scenario must have its own grounded reader question');
-assert(zeroRootFocus.readerReasoning.hypotheticalQuestion.includes('뿌리가 없는 경우의 가상 상황'),
+assert(zeroRootFocus.readerReasoning.hypotheticalQuestion.includes('자료가 한정된다면'),
  'zero-root scenario must not inherit a nonzero-root-and-clash prompt');
 const noSupport=structuredClone(withFacts);
 noSupport.contrastPoints[1].evidence.support=[];
