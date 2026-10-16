@@ -276,8 +276,9 @@ for(const input of cases){
   'core first paragraph must cite season and visible-element observation');
  assert(!firstRefs.has('facts.stemConnections')&&!firstRefs.has('facts.rootConditions'),
   'root and clash evidence may not leak into the month/visible qi explanation');
- assert(secondRefs.has('facts.stemConnections')&&secondRefs.has('facts.rootConditions'),
-  'optional calculated root/clash evidence must remain citable');
+ assert(!secondRefs.has('facts.stemConnections')&&!secondRefs.has('facts.rootConditions')&&
+  !secondRefs.has('facts.structuralEvidence.dayMasterRoots'),
+  'optional roots remain available to internal calculation, not customer month-ten-god paragraph');
  assert(secondRefs.has('natal.month.stem')&&secondRefs.has('natal.month.hidden.'+mc.mainHiddenStem),
   'month stem and month main hidden ten-god sources must both reach the writer');
  assert.deepEqual(blueprint.saju_core.topicTasks.temperament.requiredSourceKinds,
