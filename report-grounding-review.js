@@ -27,6 +27,31 @@ function inspect(report,packet=null){
   if(/(?:출생\s*위치|계산된\s*(?:근거|글자|관계)|달\s*아래\s*숨은\s*글자|겉에\s*드러난\s*글자)/.test(judgment)&&
      /(?:상징으로\s*구별|상징으로\s*분류|근거일\s*뿐|분류되는\s*근거)/.test(judgment))
    blockingErrors.push('saju_core:key-judgment-is-symbol-lecture');
+  // Paid QA 38902253029: each paragraph was mostly a glossary of
+  // "symbols / traditional meanings / starting point", with no worked
+  // choice the reader could understand. This scoped check looks for a
+  // COMBINATION of repeated chart-definition sentences AND missing
+  // application, not for banned words or a compulsory paragraph length.
+  // A short factual introduction before an actual example is welcome.
+  const sentencePieces=value=>String(value||'').split(/(?<=[.!?。！？])\s*|\n+/)
+   .map(x=>x.trim()).filter(Boolean);
+  const chartDefinition=/(?:사주|글자|출생월|태어난\s*달|계절|전통|위치|기운|월의)/;
+  const describesSymbol=/(?:상징|분류|풀이|해석|의미|가리키|근거|관계|방향|특징|뜻|기초)/;
+  const sceneContext=/(?:예를\s*들|가령|만약|가정|경우|상황에서|때에는|할\s*때|한다면|된다면|준비한다면)/;
+  const concreteChoice=/(?:새로운\s*일|업무|작업|자료|정보|배우|준비|돈|비용|재료|자원|선택|결정|협업|동료|의견|역할|계획|문제|지출|맡은\s*일|과제)/;
+  const application=sentences=>sentences.some(x=>
+   sceneContext.test(x)&&concreteChoice.test(x));
+  if(/(?:기본\s*(?:기질|성향)을\s*바라보는|전통적\s*(?:기준|분류|근거)|출생\s*사주\s*구조)/.test(String(section.title||'')))
+   blockingErrors.push('saju_core:editorial-title-instead-of-interpretation');
+  for(const body of section.body||[]){
+   const parts=sentencePieces(body).filter(x=>x.length>=15);
+   if(parts.length<3)continue;
+   const definitionCount=parts.filter(x=>chartDefinition.test(x)&&describesSymbol.test(x)).length;
+   if(definitionCount>=3&&definitionCount/parts.length>=0.6&&!application(parts)){
+    blockingErrors.push('saju_core:symbol-definitions-without-applied-interpretation');
+    break;
+   }
+  }
   const sentences=[section.keyJudgment,...(section.body||[])].join(' ').split(/(?<=[.!?。])\s*|\n+/)
    .map(x=>x.trim()).filter(x=>x.length>=15);
   const generic=sentences.filter(s=>patterns.some(p=>p.test(s)));
