@@ -165,6 +165,30 @@ for(const input of cases){
   assert(strength.readerReasoning.hypotheticalQuestion.includes(item.tenGod));
   assert(strength.readerReasoning.hypotheticalQuestion.includes(item.meaning));
  }
+ // It must use real customer-specific traditional categories to ask
+ // something understandable. This is an imagined decision, not an asserted
+ // biography, an inner conflict or a generic list of abstract nouns.
+ const scenario=strength.readerReasoning.hypotheticalQuestion;
+ assert(scenario.includes('새로운 일을 준비')&&scenario.includes('가상의 상황'),
+  'first-chapter reader must get a recognizable decision scenario');
+ assert(scenario.includes('내부 출처: 겉글자')&&scenario.includes('중심 숨은 글자'),
+  'the model must keep both exact classifications as PRIVATE source data');
+ assert(!/(?:당신은 실제로|늘 그랬|이미 겪었|갈등이 생깁니다|성격이 충돌합니다)/.test(scenario),
+  'calculated categories must not become asserted biography or psychological conflict');
+ if(input.calendar==='lunar'&&input.birthDate==='1982-11-24'){
+  assert(scenario.includes('처음 접하는 정보를 자기 방식으로 어떻게 이해할지'),
+   'real lunar sample must give a concrete learning-related scene for 癸 편인');
+  assert(scenario.includes('필요한 돈과 재료를 어디서 마련하고 어떻게 쓸지'),
+   'real lunar sample must give a different resource-related scene for 己 편재');
+  assert(!scenario.includes('반복해서 드는 비용을 어떻게 감당할지'),
+   'actual 편재 must not be swapped with the invented 정재 decision');
+ }
+ const changedScenario=structuredClone(request);
+ changedScenario.task.chapters.saju_core.topics.strength.evidenceFocus.readerReasoning.hypotheticalQuestion=
+  '항상 당신은 혼자 결정합니다.';
+ assert(transportGuard.inspectTransport(p,changedScenario).includes(
+  'core-reader-evidence-brief-drift:saju_core/strength'),
+  'a generic or unsourced customer scenario must not replace the verified one before billing');
  assert(!strength.readerReasoning.hypotheticalQuestion.includes('배움·표현·규칙·자원 중'),
   'only calculated ten-god themes may shape a paid reader example');
  assert.equal(strength.tenGodFocus.sameClassification,
