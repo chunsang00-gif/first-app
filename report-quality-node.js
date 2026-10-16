@@ -14,6 +14,40 @@ const norm=s=>String(s||'').replace(/\s+/g,' ').trim();
 // More nuanced traditional interpretations still require human review.
 const positionKeys={연간:'year',월간:'month',일간:'day',시간:'hour'};
 const godTerms='비견|겁재|식신|상관|편재|정재|편관|정관|편인|정인';
+// Stage 4: narrow fact -> observed-outcome guard. A calculated symbol can
+// support a traditional question but not a measured behavior, ability or
+// real-life result. Match a causal assertion INSIDE ONE sentence; mere use
+// of a ten-god term, a hypothetical example or an explicit denial is valid.
+// This rejects known high-confidence leaps, not all semantic hallucinations.
+function unsupportedSymbolicInference(report){
+ const findings=[];
+ const symbol=/(?:비견|겁재|식신|상관|정재|편재|정관|편관|정인|편인|재성|식상|관성|인성|비겁|통근|뿌리|오행|월령|전환월|계절|충(?:돌)?)/g;
+ const bridge=/(?:있으니|있으므로|있어서|있기\\s*때문에|없으니|없어서|없기\\s*때문에|이라는\\s*이유로|기\\s*때문에|이므로|라서|덕분에|많아서|많으니|적어서|적으니|따라서)/;
+ const outcome=/(?:돈(?:을|도)?\\s*잘\\s*(?:관리|모으|벌|불리)|돈\\s*관리를\\s*잘|(?:소비|지출)(?:를|을)?\\s*(?:항상\\s*)?(?:계획적으로|잘\\s*관리)|(?:투자|사업)(?:에|에서)?\\s*(?:성공|수익을\\s*잘)|(?:학습|공부)(?:를)?\\s*잘\\s*(?:하|해)|배우는\\s*속도(?:가|는)?\\s*(?:빠르|빠릅)|(?:업무|직무|일처리)\\s*능력(?:이|은)?\\s*(?:뛰어나|탁월|높)|(?:일|업무)(?:을)?\\s*잘\\s*(?:하|해)|(?:직장|조직|회사)에서\\s*(?:인정받|신뢰받)|(?:승진|합격|취업|결혼)(?:합|하|됩|하게\\s*됩)|(?:연애|인간관계|관계)(?:가|는)?\\s*(?:안정|좋아)|다투지\\s*않|싸우지\\s*않|갈등(?:이|을)?\\s*없|변화에\\s*(?:잘\\s*)?적응|적응력(?:이|은)?\\s*(?:좋|뛰어나|높)|마음(?:속|의).{0,20}두\\s*(?:개|부분|중심))/;
+ const denied=/(?:단정(?:할\\s*수\\s*없|하지\\s*않)|뜻(?:은|이)?\\s*아니|의미하지\\s*않|증명하지\\s*않|말할\\s*수\\s*없|확인할\\s*수\\s*없|판단할\\s*수\\s*없|보장하지\\s*않|확정할\\s*수\\s*없)/;
+ const hypothetical=/(?:가상(?:의|으로|\\s*상황)|가정(?:하|하면|해서|해\\s*보)|예를\\s*들어|라는\\s*가정)/;
+ const sections=[...(report?.sections||[]),
+  ...(report?.cover?[{id:'cover',title:report.cover.headline,body:[report.cover.description,...(report.cover.highlights||[]).flatMap(h=>[h.title,h.description])]}]:[]),
+  ...(report?.finalJudgment?[{id:'finalJudgment',title:report.finalJudgment.headline,body:[...(report.finalJudgment.body||[]),...(report.finalJudgment.strengths||[]),...(report.finalJudgment.watchouts||[]),report.finalJudgment.closingQuestion]}]:[])];
+ for(const section of sections){
+  const fields=[section.title,section.keyJudgment,...(section.body||[])];
+  for(const field of fields)for(const sentence of String(field||'').split(/[.!?。！？\\n]+/).map(x=>x.trim()).filter(Boolean)){
+   if(hypothetical.test(sentence)||denied.test(sentence))continue;
+   for(const match of sentence.matchAll(symbol)){
+    // Require an explicitly stated causal path from this symbol to an
+    // asserted customer trait/outcome, not proximity anywhere in a paragraph.
+    const tail=sentence.slice(match.index+match[0].length);
+    const link=bridge.exec(tail.slice(0,65));
+    if(link&&outcome.test(tail.slice(link.index+link[0].length,link.index+link[0].length+90))){
+     findings.push(section.id+': unsupported real-world inference from calculated symbol');
+     break;
+    }
+   }
+  }
+ }
+ return [...new Set(findings)];
+}
+
 function verifyEvidenceAgainstFacts(report,packet){
  const errors=[],warnings=[];
  const tenGods=packet?.facts?.tenGods;
@@ -22,7 +56,7 @@ function verifyEvidenceAgainstFacts(report,packet){
  // Missing ten-god data must not disable independent branch fact checks.
  // The paid entry blocks such packets, but offline replay must still reject
  // fabricated branch precedence and transformation.
- if(!tenGods)return {errors:[...require('./report-branch-claims').check(report,packet),...require('./report-seasonal-claims').check(report,packet)],warnings};
+ if(!tenGods)return {errors:[...unsupportedSymbolicInference(report),...require('./report-branch-claims').check(report,packet),...require('./report-seasonal-claims').check(report,packet)],warnings};
  for(const section of sections){
   for(const evidence of [...(section.evidence||[]),section.title,section.keyJudgment,...(section.body||[])]){
    const text=norm(evidence);
@@ -217,7 +251,7 @@ function verifyEvidenceAgainstFacts(report,packet){
  }
  for(const error of require('./report-branch-claims').check(report,packet))errors.push(error);
  for(const error of require('./report-seasonal-claims').check(report,packet))errors.push(error);
-  return {errors:[...new Set(errors)],warnings:[...new Set(warnings)]};
+  return {errors:[...new Set([...errors,...unsupportedSymbolicInference(report)])],warnings:[...new Set(warnings)]};
 }
 function validate(r,packet){
  const errors=[],warnings=[];
