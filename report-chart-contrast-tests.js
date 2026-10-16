@@ -162,8 +162,10 @@ for(const input of cases){
  for(const item of [strength.tenGodFocus.monthStem,strength.tenGodFocus.monthMainHidden]){
   assert(strength.readerReasoning.reasoningTask.includes(item.tenGod));
   assert(strength.readerReasoning.reasoningTask.includes(item.meaning));
-  assert(strength.readerReasoning.hypotheticalQuestion.includes(item.tenGod));
-  assert(strength.readerReasoning.hypotheticalQuestion.includes(item.meaning));
+  assert(!strength.readerReasoning.hypotheticalQuestion.includes(item.tenGod),
+   'internal ten-god labels must not be inserted into customer scenario');
+  assert(!strength.readerReasoning.hypotheticalQuestion.includes(item.meaning),
+   'raw technical glossary must remain in private evidence, not the imagined scene');
  }
  // It must use real customer-specific traditional categories to ask
  // something understandable. This is an imagined decision, not an asserted
@@ -171,8 +173,10 @@ for(const input of cases){
  const scenario=strength.readerReasoning.hypotheticalQuestion;
  assert(scenario.includes('새로운 일을 준비')&&scenario.includes('가상의 상황'),
   'first-chapter reader must get a recognizable decision scenario');
- assert(scenario.includes('내부 출처: 겉글자')&&scenario.includes('중심 숨은 글자'),
-  'the model must keep both exact classifications as PRIVATE source data');
+ assert(!/(?:내부 출처|natal\\.|basis\\.|지장간|십성|편인|정인|정재|편재|비견|겁재|식신|상관|정관|편관)/.test(scenario),
+  'plain Korean scene must not carry technical source-audit text');
+ assert(strength.tenGodFocus.monthStem.tenGod&&strength.tenGodFocus.monthMainHidden.tenGod,
+  'both exact symbolic labels must stay in verified private data');
  assert(!/(?:당신은 실제로|늘 그랬|이미 겪었|갈등이 생깁니다|성격이 충돌합니다)/.test(scenario),
   'calculated categories must not become asserted biography or psychological conflict');
  if(input.calendar==='lunar'&&input.birthDate==='1982-11-24'){
