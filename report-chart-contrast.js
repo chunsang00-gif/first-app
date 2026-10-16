@@ -182,6 +182,36 @@ const TEN_GOD_DECISION={
  '정인':'새로운 일을 누구에게 배우고 어떤 도움을 받을지',
  '편인':'처음 접하는 정보를 자기 방식으로 어떻게 이해할지'
 };
+// Conventional reading lenses, NOT measured traits. Each entry is tied to
+// the real ten-god ID, rather than a generic life-advice paragraph.
+const TEN_GOD_READING={
+ '비견':'스스로 맡을 몫과 다른 사람과 나눌 몫을 구별하는 태도',
+ '겁재':'같이 쓰는 자원과 경쟁하는 상황에서 자기 몫을 의식하는 태도',
+ '식신':'생각을 실제 결과물로 차근차근 만들어 표현하는 태도',
+ '상관':'정해진 방식에 다른 표현이나 방법을 제안하는 태도',
+ '정재':'꾸준히 관리해야 할 돈과 일의 지속성을 따지는 태도',
+ '편재':'여러 곳의 자원을 살피고 필요한 곳에 활용하는 태도',
+ '정관':'정해진 규칙과 맡은 역할을 기준으로 판단하는 태도',
+ '편관':'갑작스러운 요구나 압박 아래 책임 범위를 살피는 태도',
+ '정인':'이미 알려진 지식과 주변의 도움을 받아 이해하는 태도',
+ '편인':'새로운 정보를 자기 방식으로 해석하고 이해하는 태도'
+};
+function monthlyTraditionalReading(month){
+ const first=month?.monthStem,second=month?.monthMainHidden;
+ const a=TEN_GOD_READING[first?.tenGod],b=TEN_GOD_READING[second?.tenGod];
+ if(!a||!b||!first?.sourceId||!second?.sourceId)throw Error('Missing verified month interpretation lens');
+ const same=month.sameClassification;
+ return {
+  status:'conditional-traditional-reading-not-observed-personality',
+  first:{sourceId:first.sourceId,tenGod:first.tenGod,reading:a},
+  second:{sourceId:second.sourceId,tenGod:second.tenGod,reading:b},
+  tentativeThesis:same?
+   '태어난 달의 서로 다른 두 위치에서 '+a+'라는 전통적 관점을 함께 살피는 사주로 읽되, 실제 성향이 두 배 강하다고 쓰지 않는다.':
+   '태어난 달의 한 위치에서는 '+a+'를, 다른 위치에서는 '+b+'를 각각 살피는 사주로 전통적으로 풀이한다. 서로 모순된 인격이나 실제 행동을 확정하지 않는다.',
+  editorialDuty:'첫 문장에 이 사주에서 읽을 수 있는 전통적 기질의 해석을 평범한 말로 제시한다. 그다음 이 두 위치와 뜻이 왜 그 해석을 뒷받침하는지 짚고, 하나의 가상 상황에서 유리해지는 조건과 고려하지 않으면 불리해지는 조건을 설명한다. 무엇을 확인하라는 보편적 조언만 써서 끝내지 않는다.',
+  evidenceLimit:'전통적 상징의 적용 가설이다. 실제로 그렇게 생각하거나 행동했다는 관찰·심리검사·미래 예언이 아니다.'
+ };
+}
 function monthHypothetical(visibleKind,mainKind,sameClassification){
  const first=TEN_GOD_DECISION[visibleKind],second=TEN_GOD_DECISION[mainKind];
  if(!first||!second)throw Error('Missing verified month ten-god everyday question');
@@ -264,6 +294,7 @@ function readerQuestions(contrast,topic){
   const readerContext='태어난 달 겉글자의 '+visibleKind+'('+visibleMeaning+')와 중심 숨은 글자의 '+mainKind+'('+mainMeaning+')를 실제 출생 위치별로 구분해 읽는다. '+comparison+
    elementLink.explanation+' 이는 두 글자의 오행 관계일 뿐 실제 갈등이나 강약 판단이 아니다. ';
   const sourceAudit='실제 출생월 겉글자 '+monthTenGod.monthStem.sourceId+'와 본기 '+monthTenGod.monthMainHidden.sourceId+'의 십성 분류 및 전통적 뜻을 각각 확인한다. 별도 뿌리·충 자료만으로 두 십성을 대신하지 않는다.';
+  const traditionalReading=monthlyTraditionalReading(monthTenGod);
   const firstEverydayQuestion=TEN_GOD_DECISION[visibleKind];
   const secondEverydayQuestion=TEN_GOD_DECISION[mainKind];
   if(!firstEverydayQuestion||!secondEverydayQuestion)
@@ -278,6 +309,7 @@ function readerQuestions(contrast,topic){
     '독자는 같은 전통 분류가 두 출생 위치에 있다는 의미를 이해하되, 성격이나 능력이 두 배 강하다는 주장과 구별한다.':
     '독자는 '+firstEverydayQuestion+'와 '+secondEverydayQuestion+'가 각각 다른 선택의 질문이며 실제 성격의 충돌은 아니라는 점을 이해한다.',
    readerValuePlan:{
+    traditionalReading,
     first:{sourceId:monthTenGod.monthStem.sourceId,tenGod:visibleKind,question:firstEverydayQuestion},
     second:{sourceId:monthTenGod.monthMainHidden.sourceId,tenGod:mainKind,question:secondEverydayQuestion},
     customerSequence:monthTenGod.sameClassification?
