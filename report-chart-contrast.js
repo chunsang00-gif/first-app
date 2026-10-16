@@ -220,7 +220,7 @@ function readerQuestions(contrast,topic){
    reasoningTask:'출생월은 '+phase+'로 계산됐다. '+observed+
     ' 계절 배경과 겉글자 각각의 출생 위치를 분리해 확인하고, 확인된 오행 관계의 전통적인 의미와 출생 위치에 따라 달라지는 해석의 출발점을 구체적으로 설명한다. 겉에 없는 지원·압박의 반대 방향이나 월의 숨은 글자가 실제 성격을 만든다고 추가하지 않는다.',
    hypotheticalQuestion:dynamicExample,
-   interpretivePayoff:'독자는 출생월의 계절 조건을 실제 성격의 증거로 혼동하지 않고, 겉글자에서 확인된 '+(selectedMeaning||'오행 관계')+'의 전통적인 질문을 생활 속 가정에 적용해 읽는다.',
+   interpretivePayoff:'독자는 출생월의 계절 조건을 실제 성격의 증거로 혼동하지 않고, 겉글자에서 확인된 '+(selectedMeaning||'오행 관계')+'의 전통적인 질문을 생활 속 가정에 적용하는 이유와 선택 기준을 이해한다.',
    readerValuePlan:{
     primaryTraditionalQuestion:selectedMeaning||'계산된 겉글자 관계의 전통적인 뜻',
     customerSequence:'핵심 해석 한 문장 → 그 근거가 출생 계절·겉글자 어느 쪽인지 밝힘 → 가상의 선택 상황 하나에서 뜻을 풀어 설명',
