@@ -3,6 +3,32 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('nod
 const quality=require('./report-quality-node'),outline=require('./report-outline');
 const offlineReplay=require('./report-qa-replay').replay;
 const reader=require('./report-reader-policy');
+const grounding=require('./report-grounding-review');
+const generation=require('./report-generation-request');
+assert(generation.policy.includes('충의 세기까지 측정한 것은 아니다'));
+assert(generation.policy.includes('전통적인 의미와 서로 다른 쓰임새'));
+const rejected={sections:[{id:'saju_core',title:'태어난 뿌리의 차이',
+ keyJudgment:'계산된 관계를 확인합니다.',bodyLabels:['뿌리의 계산'],
+ body:['주인공과 같은 방향의 숨은 글자는 태어난 날에 있습니다. 두 자리에는 강한 충이 계산되어 있습니다. 성격은 단정할 수 없습니다. 강도는 확정할 수 없습니다. 능력은 판단할 수 없습니다.']}]};
+const issues=grounding.inspect(rejected).blockingErrors;
+for(const code of ['saju_core:unmeasured-clash-strength-assertion',
+ 'saju_core:unnatural-protagonist-address',
+ 'saju_core:repeated-limitations-displace-interpretation'])
+ assert(issues.includes(code),'past paid failure must not pass again: '+code);
+const denied={sections:[{id:'saju_core',keyJudgment:'뿌리 위치의 뜻을 구별합니다.',
+ body:['강한 충이라고 단정할 수 없습니다. 계산된 충 관계는 뿌리의 위치를 가리키며 그 세기를 증명하지 않습니다.']}]};
+assert(!grounding.inspect(denied).blockingErrors.includes('saju_core:unmeasured-clash-strength-assertion'),
+ 'a correct negated strength claim must not be blocked');
+for(const [input,output] of [['같은 오행의 글자','같은 기운의 글자'],
+ ['실제 오행 뿌리','실제 기운의 뿌리'],
+ ['오행의 관계','기운 사이의 관계']])
+ assert.equal(reader.plainText(input),output,'contextual reader translation');
+const inputReport={sections:[{id:'saju_core',title:'실제 오행 뿌리',
+ keyJudgment:'같은 오행의 의미',body:['오행의 관계를 따집니다.'],
+ evidence:['원국 일지 乙 자료는 수정하면 안 됩니다.']}]};
+const changed=reader.normalizeVisible(inputReport);
+assert.equal(changed.sections[0].title,'실제 기운의 뿌리');
+assert.deepEqual(changed.sections[0].evidence,inputReport.sections[0].evidence);
 const semanticReview=require('./report-semantic-review').review;
 const flaggedReview=semanticReview({sections:[
  {id:'saju_core',body:['자신의 기준을 주변 상황과 비교합니다. 신뢰를 받기도 한다.','주변 규칙과 자기 판단 기준을 비교합니다.']},

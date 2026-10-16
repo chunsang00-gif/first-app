@@ -40,7 +40,11 @@ const readerExpansions=[
  [/(?<![가-힣])시지/g,'태어난 시간을 나타내는 자리'],
  [/명식은/g,'사주는'],[/명식이/g,'사주가'],[/명식을/g,'사주를'],[/명식과/g,'사주와'],[/명식으로/g,'사주로'],
  [/(?<![가-힣])명식/g,'사주'],
- [/(?<![가-힣])오행/g,'나무·불·흙·쇠·물의 다섯 기운'],
+ // Long mechanical enumeration was damaging headings and grammatical meaning.
+ [/같은\s+오행/g,'같은 기운'],
+ [/오행\s*뿌리/g,'기운의 뿌리'],
+ [/오행의\s*관계/g,'기운 사이의 관계'],
+ [/(?<![가-힣])오행/g,'기운'],
  [/(?<![가-힣])원국/g,'태어날 때의 사주 구성'],
  [/일간은/g,'태어난 날의 윗글자는'],[/일간이/g,'태어난 날의 윗글자가'],[/일간을/g,'태어난 날의 윗글자를'],[/일간과/g,'태어난 날의 윗글자와'],
  [/(?<![가-힣])일간/g,'태어난 날의 윗글자']
@@ -69,4 +73,4 @@ function normalizeVisible(report){
  return result;
 }
 
-module.exports={instruction,errors,visibleFields,readerField,evidenceField,systemInstruction,describe,normalizeVisible};
+module.exports={instruction,errors,visibleFields,readerField,evidenceField,systemInstruction,describe,normalizeVisible,plainText};
