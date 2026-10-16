@@ -26,6 +26,8 @@ const report={sections:[{id:'saju_core',
 const result=grounding.inspect(report,packet);
 assert(result.blockingErrors.includes('saju_core:invented-day-hour-clash-from-separate-month-pairs'),
  'Real archived paid wording must now be caught without another model call');
+assert(result.blockingErrors.includes('saju_core:technical-lecture-instead-of-reader-interpretation'),
+ 'Original billed first chapter must be rejected for glossary-heavy prose too');
 const paidTask=contrasts.build(packet);
 const future=contrasts.forTopic(paidTask,'strength',
  ['facts.rootConditions','facts.stemConnections',
