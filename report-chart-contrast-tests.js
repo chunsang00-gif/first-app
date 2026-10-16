@@ -230,6 +230,27 @@ for(const input of cases){
  assert(seasonReaderPlan.advantageQuestion&&seasonReaderPlan.riskQuestion);
  assert(seasonReaderPlan.prohibitedShortcut.includes('계절 전환')&&
   seasonReaderPlan.prohibitedShortcut.includes('적응력'));
+ // The user lunar sample and other charts can have resource on visible
+ // stems plus 印星 at the birth-month surface. Do not sell the SAME
+ // information-processing conclusion twice in one paid first chapter.
+ const visibleFamilies=new Set([...support.support,...support.counter].map(x=>x.relation));
+ const sourceOverlaps=visibleFamilies.has('resource')&&
+  ['편인','정인'].includes(month.stemTenGod);
+ if(sourceOverlaps){
+  assert(seasonReaderPlan.distinctFromMonthPair?.includes('같은 학습 결론을 두 번 쓰지 않는다'),
+   'duplicate resource/learning conclusion must be separated BEFORE paid generation');
+  assert(temperament.readerReasoning.hypotheticalQuestion.includes('어떤 지원이 가능한지'));
+  assert(!/정보를 자기 방식으로 어떻게 이해|돈과 재료를 어디서 마련/.test(
+   temperament.readerReasoning.hypotheticalQuestion),
+   'first paragraph should not preempt the paired second question');
+  const focusedSchema=require('./report-wire').schemaFor(p,require('./report-schema.json'));
+  const first=focusedSchema.properties.chapters.properties.saju_core.properties.paragraphs.properties.temperament;
+  assert(first.properties.text.description.includes(seasonReaderPlan.distinctFromMonthPair),
+   'the real provider schema must actually receive the meaning-separation directive');
+  assert(first.properties.label.description.includes('도움의 조건'));
+ }
+ if(input.calendar==='lunar'&&input.birthDate==='1982-11-24')
+  assert(sourceOverlaps,'the lunar paid QA sample must exercise this overlap regression');
  assert.deepEqual(request.task.chapters.saju_core.topics.strength.evidenceFocus.readerReasoning.readerValuePlan,
   monthReaderPlan,'the actual billable provider must receive EXACT month-dependent tradeoff questions');
  const scenario=strength.readerReasoning.hypotheticalQuestion;
