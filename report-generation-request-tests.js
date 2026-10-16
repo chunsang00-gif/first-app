@@ -131,7 +131,11 @@ const schema=require('./report-schema.json');
  // work and relationship events all changed in intensity. Check the ACTUAL
  // compact provider payload, not unused legacy rules or isolated test data.
  const annualIds=['year_2027','year_2027_money','year_2027_career','year_2027_relationship'];
- const annualPrompt={...prompt,requestedSections:annualIds,analysisGuidance:{
+ const annualPrompt={...prompt,requestedSections:annualIds,
+  // The real request() only transports sectionGoals for the current batch.
+  // Reproduce that scope instead of recycling the FIRST captured batch goals.
+  rules:{...prompt.rules,sectionGoals:Object.fromEntries(annualIds.map(id=>
+   [id,require('./report-prompt').sectionGoals[id]]))},analysisGuidance:{
   ...guidance.forRequest(annualIds,prompt.facts.person?.mbti),
   editorialBlueprint:Object.fromEntries(annualIds.map(id=>[id,allPlans[id]]))
  }};
