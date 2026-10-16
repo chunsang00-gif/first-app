@@ -38,9 +38,18 @@ function build(packet){
   .map(x=>({sourceId:x.id,relation:x.relation,category:x.category,direction:x.direction}));
  const support=visible.filter(x=>x.direction==='support');
  const counter=visible.filter(x=>x.direction!=='support');
- const collision=(root.dayMasterRootCases||[]).filter(x=>x.natal?.hasDirectClash).map(x=>({
-   sourceId:x.rootId,location:x.rootPosition,natalClash:true
-  }));
+ // Preserve BOTH endpoints of every computed natal clash, not just the
+ // rooted endpoint. Otherwise the writer can falsely imply that two roots
+ // clash with EACH OTHER when both actually clash with the month branch.
+ const collision=(root.dayMasterRootCases||[]).flatMap(x=>
+  (x.natal?.clashes||[]).filter(rel=>Array.isArray(rel.positions)&&
+   rel.positions.length===2&&rel.positions.includes(x.rootPosition))
+   .map(rel=>({
+    sourceId:x.rootId,location:x.rootPosition,
+    counterpart:rel.positions.find(position=>position!==x.rootPosition),
+    positions:rel.positions.slice(),branches:rel.branches,natalClash:true
+   }))
+ );
  const seasonContext={
   dayElement:season.dayElement,
   monthBranch:season.monthBranch,
@@ -78,12 +87,13 @@ function build(packet){
   {kind:'root-relation-overlap',refs:[provenance.roots],
    evidence:{collisions:collision},
    calculatedExplanation:collision.length?
-    '원국 안에서 뿌리 위치에 충이 함께 계산된 곳: '+
-     collision.map(x=>LOCATION[x.location]+'지 ('+x.sourceId+')').join(', ')+
-     '. 충이 뿌리를 없앴다는 뜻이 아니다.':
+    '뿌리 자리에 직접 연결된 원국 충의 실제 두 끝점: '+
+     collision.map(x=>LOCATION[x.counterpart]+'지 ↔ '+LOCATION[x.location]+
+       '지 ('+x.branches+'; 뿌리 '+x.sourceId+')').join(', ')+
+     '. 같은 상대 자리와 각각 연결되는 두 뿌리가 서로 충이라는 뜻은 아니다. 충만으로 뿌리가 소멸하지 않는다.':
     '확인된 일간 뿌리 위치에 직접 충이 계산되지 않았다. 다른 영향이나 실제 생활의 안정성을 보장하지 않는다.',
    question:collision.length?
-    '출생 사주 안에서 어떤 뿌리에 충이 걸리는지 위치를 확인한다. 충 하나로 지장간의 소멸이나 뿌리의 강도 하락을 예측하지 않는다.':
+    '어떤 자리와 어떤 뿌리 자리가 충 관계인지 양쪽 위치를 각각 말한다. 둘 이상의 뿌리가 같은 다른 자리와 충 관계라면 뿌리끼리 충돌한다고 쓰지 않는다. 충 하나로 숨은 글자가 사라졌다고 판단하지 않는다.':
     '직접 확인된 뿌리 충이 없다고 해서 모든 오행 변화나 일의 안정성을 보장하지 않는다.'}
  ];
  return {
@@ -151,6 +161,10 @@ function readerQuestions(contrast,topic){
   if(!rooting||!collisions||!Array.isArray(rooting.rootLocations)||!Array.isArray(collisions.collisions))
    throw Error('Missing calculated roots and clashes for core reader brief');
   const count=rooting.rootLocations.length,overlap=collisions.collisions.length;
+  const pairNames=collisions.collisions.map(x=>
+   (LOCATION[x.counterpart]||x.counterpart)+'지와 '+
+   (LOCATION[x.location]||x.location)+'지의 충');
+  const explicitPairs=[...new Set(pairNames)].join(', ');
   const visiblePositions=[...new Set(rooting.rootLocations.map(x=>x.position))];
   const positions=visiblePositions.map(p=>LOCATION[p]||p).join('·');
   const unknownHour=rooting.hiddenHourUnresolved===true;
@@ -158,7 +172,7 @@ function readerQuestions(contrast,topic){
    '동일 오행 뿌리가 실제 확인된 자리 '+count+'곳('+positions+')의 숨은 글자를 각각 짚는다.':
    '확인 가능한 기둥에서는 동일 오행 뿌리가 발견되지 않았다. 없는 위치를 만들어내지 않는다.';
   const clashText=overlap?
-   '그중 직접 충이 겹친 자리 '+overlap+'곳과 충이 겹치지 않은 자리를 구분한다.':
+   '뿌리와 직접 연결된 충 관계 '+overlap+'건은 각각 '+explicitPairs+'이다. 충을 받은 뿌리와 충의 상대 자리를 모두 밝힌다. 같은 상대 자리와 연결된 두 뿌리를 서로 충인 것처럼 설명하지 않는다.':
    '실제 뿌리 위치에 직접 충이 계산된 사례가 없다. 충이 있다고 지어내지 않는다.';
   const hourText=unknownHour?'태어난 시간이 없으므로 시간 자리에 관한 결론도 내리지 않는다.':'';
   return {
@@ -168,7 +182,7 @@ function readerQuestions(contrast,topic){
    reasoningTask:rootsText+' '+clashText+' '+hourText+
     ' 뿌리의 존재와 위치를 먼저 설명하고, 직접 충이 계산됐더라도 확인된 숨은 글자가 사라진다고 보지 않는 이유를 설명한다. 수치 강도·성격·생활 사건으로 바꾸지 않는다.',
    hypotheticalQuestion:overlap?
-    '뿌리 자리에 충이 걸리면 그 뿌리가 없어진다는 가상의 질문에 실제 출생 위치와 충 계산을 차례로 들어 답한다.':
+    '가상의 질문: '+explicitPairs+'라는 실제 계산 관계에서 충을 받은 뿌리의 위치는 어디이며, 뿌리 둘이 직접 충돌한다고 써도 되는가? 충이 뿌리를 없애는지 단정하지 않는다.':
     count?
      '충이 없으니 뿌리가 반드시 강하다는 가상의 질문에 실제 확인된 위치와 판단할 수 없는 강도를 나눠 답한다.':
      '같은 오행 뿌리가 안 보이면 반드시 약하다는 가상의 질문에 관찰된 범위와 빠진 계산 조건을 구분해 답한다.',

@@ -64,7 +64,14 @@ for(const input of cases){
  }
  const rootClashes=contrast.contrastPoints[3].evidence.collisions;
  assert.equal(rootClashes.length,(packet.facts.rootConditions.dayMasterRootCases||[])
-  .filter(x=>x.natal.hasDirectClash).length);
+  .reduce((n,x)=>n+(x.natal?.clashes||[]).length,0));
+ for(const c of rootClashes){
+  assert(c.positions.includes(c.location)&&c.positions.includes(c.counterpart)&&
+   c.counterpart!==c.location,'both actual clash endpoints must reach the writer');
+  assert(packet.facts.natalClashes.some(row=>
+   row.positions.every(p=>c.positions.includes(p))&&c.positions.length===2),
+   'only actually computed natal-clash pairs may be described');
+ }
  assert(rootClashes.every(x=>x.natalClash===true&&!Object.hasOwn(x,'annualClash')),
   'the core natal chapter must not recycle 2027 branch conclusions');
  const blueprint=guidance.preflight(packet);
@@ -81,6 +88,23 @@ for(const input of cases){
   ['month-vs-day','visible-support-vs-counter']);
  assert.deepEqual(strength.points.map(x=>x.kind),
   ['actual-day-master-roots','root-relation-overlap']);
+ if(rootClashes.length){
+  const focusExplanation=strength.points.find(p=>p.kind==='root-relation-overlap').calculatedExplanation;
+  const question=strength.readerReasoning.reasoningTask;
+  for(const pair of rootClashes){
+   const lhs=({year:'연',month:'월',day:'일',hour:'시'})[pair.counterpart];
+   const rhs=({year:'연',month:'월',day:'일',hour:'시'})[pair.location];
+   assert(focusExplanation.includes(lhs+'지 ↔ '+rhs+'지'),
+    'paid provider input omits computed actual clash pair');
+   assert(question.includes(lhs+'지와 '+rhs+'지의 충'),
+    'reader reasoning must name both computed endpoints');
+  }
+ }
+ if(input.calendar==='lunar'&&input.birthDate==='1982-11-24'){
+  assert.deepEqual(rootClashes.map(c=>c.positions.join(',')),['month,day','month,hour']);
+  assert(!strength.readerReasoning.reasoningTask.includes('일지와 시지의 충'),
+   'day-hour relationship must not be invented from two separate month clashes');
+ }
  for(const [topic,focus] of [['temperament',temperament],['strength',strength]]){
   assert(focus.readerReasoning.contrastQuestion.includes('?'),
    topic+' must answer a reader-level difference question');
