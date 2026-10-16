@@ -260,7 +260,7 @@ function readerQuestions(contrast,topic){
     '두 분류의 전통적인 의미와 실제 출생 위치의 차이를 구체적으로 설명한다. 이 문단에는 뿌리·충 자료를 추가 인용하지 않는다. 재산·학습 능력·사건·마음속 균형·성격 양면성을 만들어 내지 않는다.',
    hypotheticalQuestion:monthHypothetical(visibleKind,mainKind,monthTenGod.sameClassification),
    interpretivePayoff:monthTenGod.sameClassification?
-    '독자는 같은 전통 분류가 두 위치에서 보인다는 사실과 실제 성격이 두 배 강하다는 주장을 구별한다.':
+    '독자는 같은 전통 분류가 두 출생 위치에 있다는 의미를 이해하되, 성격이나 능력이 두 배 강하다는 주장과 구별한다.':
     '독자는 '+firstEverydayQuestion+'와 '+secondEverydayQuestion+'가 각각 다른 선택의 질문이며 실제 성격의 충돌은 아니라는 점을 이해한다.',
    readerValuePlan:{
     first:{sourceId:monthTenGod.monthStem.sourceId,tenGod:visibleKind,question:firstEverydayQuestion},
