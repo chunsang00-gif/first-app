@@ -1,4 +1,4 @@
-name: Replay archived paid QA without provider calls
+name: Replay most recent paid response with zero provider calls
 on:
   push:
     branches:
@@ -9,50 +9,54 @@ permissions:
   contents: read
   actions: read
 jobs:
-  replay-previous-paid-response:
+  replay-latest-first-paid-batch:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    env:
+      # Neither a real API key nor a paid model provider is configured here.
+      OPENAI_API_KEY: ''
+      REPORT_MODEL_URL: ''
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
       - run: npm install --no-audit --no-fund
-      - name: Retrieve prior private QA artifact from this repository
+      - name: Retrieve first paid response without revealing its contents
         uses: actions/download-artifact@v4
         with:
           name: premium-report-qa
-          run-id: 38744366989
+          run-id: 38833494716
           github-token: ${{ github.token }}
           path: .private-replay
-      - name: Replay both original provider JSON and decoded JSON with zero API calls
+      - name: Offline replay exact failed paid root citations
         shell: bash
         run: |
           set +e
-          node report-offline-replay.js .private-replay/private-qa-report-provider-calls.json > .private-replay/provider-diagnosis.json
+          node report-offline-replay.js .private-replay/private-qa-report-provider-calls.json > .private-replay/diagnosis.json
+          code=$?
           set -e
           node - <<'NODE'
           const fs=require('node:fs');
-          const x=JSON.parse(fs.readFileSync('.private-replay/provider-diagnosis.json','utf8'));
-          console.log('Provider replay classification:',JSON.stringify({status:x.status,archiveKind:x.archiveKind,firstFailure:x.firstFailure,failureLayer:x.failureLayer,stoppedAt:x.stoppedAt,archivedContractChanged:x.archivedContractChanged,providerRequests:x.providerRequests,archivedCallsConsumed:x.archivedCallsConsumed}));
-          if(x.providerRequests!==0||x.archiveKind!=='provider'||x.archivedCallsConsumed!==1||x.firstFailure!=='EVIDENCE_CONTRACT_REJECTED'||x.failureLayer!=='archived-request-contract-drift'||x.stoppedAt!=='provider-response-decoding'||x.archivedContractChanged!==true)process.exit(1);
-          NODE
-      - name: Re-run same raw response against current generator without paying
-        shell: bash
-        run: |
-          set +e
-          node report-offline-replay.js .private-replay/private-qa-report-raw-calls.json > .private-replay/diagnosis.json
-          exit_code=$?
-          set -e
-          node - <<'NODE'
-          const fs=require('node:fs');
-          const value=JSON.parse(fs.readFileSync('.private-replay/diagnosis.json','utf8'));
-          const safe={status:value.status,firstFailure:value.firstFailure||null,failureLayer:value.failureLayer||null,stoppedAt:value.stoppedAt,archivedContractChanged:value.archivedContractChanged,archiveKind:value.archiveKind,
-            providerRequests:value.providerRequests,archivedCallsConsumed:value.archivedCallsConsumed,
-            archivedCallsAvailable:value.archivedCallsAvailable,releaseVerdict:value.releaseVerdict};
-          console.log('Offline archived-response diagnostic:',JSON.stringify(safe));
-          if(value.providerRequests!==0||value.archivedCallsConsumed!==1||
-             value.releaseVerdict!=='not-assessed'||value.status!=='stopped'||value.firstFailure!=='NON_SPECIFIC_CONTENT'||value.failureLayer!=='editorial-content')
-           process.exit(1);
-          console.log('PASS real archived paid response replayed against latest pipeline without model requests');
+          const result=JSON.parse(fs.readFileSync('.private-replay/diagnosis.json','utf8'));
+          const safe={
+            archiveKind:result.archiveKind,
+            status:result.status,
+            firstFailure:result.firstFailure||null,
+            failureLayer:result.failureLayer||null,
+            stoppedAt:result.stoppedAt,
+            archivedContractChanged:result.archivedContractChanged,
+            archivedCallsConsumed:result.archivedCallsConsumed,
+            providerRequests:result.providerRequests,
+            releaseVerdict:result.releaseVerdict
+          };
+          console.log('Replay of actual 2026-10-16 first paid call:',JSON.stringify(safe));
+          if(result.providerRequests!==0||result.archiveKind!=='provider'||
+             result.archivedCallsConsumed!==1||result.releaseVerdict!=='not-assessed')
+            throw Error('Private archive replay security contract failed');
+          if(result.firstFailure!=='ARCHIVE_EXHAUSTED'){
+            console.error('First paid batch remains blocked after code changes. Do not issue another paid QA request.');
+            process.exit(1);
+          }
+          console.log('PASS: the actual first paid batch cleared report validation; no second archived call exists. Zero paid requests.');
           NODE
