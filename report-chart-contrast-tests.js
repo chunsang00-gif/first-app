@@ -114,7 +114,7 @@ for(const input of cases){
    topic+' must not make the user scenario sound observed');
   assert(focus.readerReasoning.interpretivePayoff.length>30,
    topic+' must identify what the paying reader should understand');
-  assert(focus.policy.includes('한 번만'),
+  assert(focus.policy.includes('basis.limit'),
    topic+' must place limitations once, rather than substitute disclaimers for meaning');
  }
  assert.notEqual(temperament.readerReasoning.hypotheticalQuestion,
@@ -200,7 +200,7 @@ emptyRoot.contrastPoints[3].evidence.collisions=[];
 const zeroRootFocus=contrasts.forTopic(emptyRoot,'strength',[]);
 assert(zeroRootFocus.readerReasoning.contrastQuestion.includes('뿌리가 보이지 않는다는'),
  'zero-root scenario must have its own grounded reader question');
-assert(zeroRootFocus.readerReasoning.hypotheticalQuestion.includes('반드시 약하다는'),
+assert(zeroRootFocus.readerReasoning.hypotheticalQuestion.includes('없는 경우의 가상 상황'),
  'zero-root scenario must not inherit a nonzero-root-and-clash prompt');
 const noSupport=structuredClone(withFacts);
 noSupport.contrastPoints[1].evidence.support=[];
