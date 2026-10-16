@@ -37,6 +37,45 @@ phantom.year_2027_money.topicTasks.action.evidencePresent=true;
 phantom.year_2027_money.topicTasks.action.evidenceReuseBoundary={rule:'unearned'};
 assert(invariant.verify(base,phantom).errors.some(e=>e.startsWith('unsupported-topic-has-evidence:')));
 assert(invariant.verify(base,phantom).errors.some(e=>e.startsWith('blocked-topic-owns-calculation-source:')));
+// Even an existing citation ID is NOT legitimate in every life domain.
+// Mutate an otherwise valid plan and prove the invariant rejects the wrong
+// ten-god family before paid generation, not merely an unknown source ID.
+const wrongDomainCases=[
+ ['money','earning','natal.month.stem'],          // 편관 is not 재성/식상
+ ['money','spending','natal.day.hidden.戊'],     // 정인 is not 재성
+ ['career','workstyle','natal.year.stem'],       // 정재 is not 식상/인성
+ ['career','teamwork','natal.year.stem'],        // 정재 is not 비겁/관성
+ ['career','growth','natal.month.stem'],        // 편관 is not 인성
+ ['relationship','closeness','natal.year.stem'], // not day-branch hidden
+ ['relationship','expression','natal.day.hidden.戊'],
+ ['relationship','conflict','natal.year.stem'],  // clashes cannot prove actual conflict
+ ['stress','trigger','natal.day.hidden.戊'],     // 정인 is not 관성
+ ['stress','response','natal.month.stem']       // 편관 is not 인성
+];
+const existingIds=new Set(require('./report-fact-bindings').build(base).map(x=>x.id));
+for(const [chapter,topic,id] of wrongDomainCases){
+ assert(existingIds.has(id),'regression must use an existing source, not a missing ID: '+id);
+ const corrupted=structuredClone(canonical);
+ const task=corrupted[chapter].topicTasks[topic];
+ task.allowedSourceRefs=[id];task.mode='use-primary';
+ task.evidencePresent=true;task.verifiedFallbackPaths=[];
+ const errors=invariant.verify(base,corrupted).errors;
+ assert(errors.includes('domain-topic-source-mismatch:'+chapter+':'+topic),
+  'must stop real-but-unrelated natal source before paid call: '+chapter+'/'+topic);
+ assert(!errors.some(e=>e.startsWith('unresolved-source-ids:'+chapter+':'+topic)),
+  'the failure must be source semantics, not an invented/missing ID');
+}
+// Rewriting a correct ID list in the wrong order, or marking unsupported
+// content as eligible, is also a plan-integrity failure.
+const incompleteDomain=structuredClone(canonical);
+incompleteDomain.career.topicTasks.workstyle.allowedSourceRefs=[];
+assert(invariant.verify(base,incompleteDomain).errors.includes(
+ 'domain-topic-source-mismatch:career:workstyle'));
+const fakedSupport=structuredClone(canonical);
+fakedSupport.relationship.topicTasks.conflict.mode='use-primary';
+fakedSupport.relationship.topicTasks.conflict.evidencePresent=true;
+assert(invariant.verify(base,fakedSupport).errors.includes(
+ 'domain-topic-source-mismatch:relationship:conflict'));
 const noMoney=structuredClone(base);
 noMoney.facts.annualTenGods={stem:'庚',stemTenGod:'비견',hiddenStems:[]};
 assert.equal(core.plan(noMoney,'money').relevant,false);
