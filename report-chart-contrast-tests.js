@@ -108,6 +108,12 @@ for(const input of cases){
   ['actual-day-master-roots','root-relation-overlap']);
  assert.equal(strength.tenGodFocus.monthStem.tenGod,month.stemTenGod);
  assert.equal(strength.tenGodFocus.monthMainHidden.tenGod,mc.mainHiddenStemTenGod);
+ assert(!temperament.policy.includes('tenGodFocus'),
+  'first paragraph must not request the second paragraph month ten-god contrast');
+ assert(strength.policy.includes('tenGodFocus.monthStem')&&strength.policy.includes('tenGodFocus.monthMainHidden'),
+  'second paragraph must explain only the computed monthly ten-god pair');
+ assert(temperament.policy.includes('월의 계절')&&temperament.policy.includes('겉글자'),
+  'first paragraph must retain its separate traditional question');
  assert(strength.tenGodFocus.monthStem.meaning&&strength.tenGodFocus.monthMainHidden.meaning);
  for(const item of [strength.tenGodFocus.monthStem,strength.tenGodFocus.monthMainHidden]){
   assert(strength.readerReasoning.reasoningTask.includes(item.tenGod));

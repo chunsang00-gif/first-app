@@ -245,6 +245,8 @@ function forTopic(contrast,topic,allowedIds){
   internalEvidenceRole:topic==='temperament'?
    '계절과 겉글자 관계의 계산 근거로만 전통적 기본 기질을 해석':
    '태어난 달의 겉글자와 중심 숨은 글자의 십성 분류가 기본 해석 근거다. 뿌리·충은 추가 보조 검증 근거일 뿐 성격 강도로 확정하지 않음',
-  policy:'먼저 tenGodFocus.monthStem과 tenGodFocus.monthMainHidden의 실제 십성 분류와 전통적 의미를 readerQuestion에 연결한다. 월간과 월지 본기는 다른 출처이며 같더라도 거짓 갈등을 만들지 않는다. sourceAudit와 points는 내부 출처·계산 검증용이며 독자에게 뿌리 개수·충 관계를 가르치는 용도로 복사하지 않는다. 실제 확인된 명리 상징이 허용하는 기질 해석과 그 조건을 쉬운 가상 상황으로 풀고, 실제 성격·능력·사건은 지어내지 않는다. 한계는 basis.limit에 기록한다. 제목과 문단 라벨에 뿌리·충·통근·월지 등 기술 용어를 내세우지 않으며 내부 참조 ID와 한자는 독자에게 복사하지 않는다.'};
+  policy:topic==='temperament'?
+   '월의 계절·전환 조건과 실제 겉글자의 관계를 readerQuestion에 연결한다. 숨은 십성이나 뿌리·충을 이 문단의 필수 주제로 추가하지 않는다. 내부 계산표를 독자용 글에 옮기지 않고 전통적 질문과 의미를 쉬운 상황으로 풀이한다. 검증 한계는 basis.limit에 기록하고 개인의 능력과 행동을 단정하지 않는다.':
+   '먼저 tenGodFocus.monthStem과 tenGodFocus.monthMainHidden의 실제 십성 분류와 전통적 의미를 readerQuestion에 연결한다. 월간과 월지 본기는 다른 출처이며 같더라도 거짓 갈등을 만들지 않는다. sourceAudit와 points는 내부 출처·계산 검증용이며 독자에게 뿌리 개수·충 관계를 가르치는 용도로 복사하지 않는다. 실제 확인된 명리 상징이 허용하는 기질 해석과 그 조건을 쉬운 가상 상황으로 풀고, 실제 성격·능력·사건은 지어내지 않는다. 한계는 basis.limit에 기록한다. 제목과 문단 라벨에 뿌리·충·통근·월지 등 기술 용어를 내세우지 않으며 내부 참조 ID와 한자는 독자에게 복사하지 않는다.'};
 }
 module.exports={build,forTopic,TOPIC_POINTS};
