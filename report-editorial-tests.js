@@ -18,6 +18,24 @@ const glossaryHeavy={sections:[{id:'saju_core',title:'나의 기본 기질',
 assert(grounding.inspect(glossaryHeavy).blockingErrors.includes(
  'saju_core:technical-lecture-instead-of-reader-interpretation'),
  'glossary-heavy prose must not pass just because it has a natural headline');
+const chartToMind={sections:[{id:'saju_core',title:'기질의 바탕',body:[
+ '사주 안에 비슷한 힘이 두 곳에서 확인됩니다. 이것은 마음 깊은 곳에서 두 부분이 균형을 이루는 성격을 의미합니다. 두 중심이 변화에 다르게 반응합니다.'
+]}]};
+assert(grounding.inspect(chartToMind).blockingErrors.includes(
+ 'saju_core:root-count-to-psychology-overreach'),
+ 'a real root count does not measure two psychological centers');
+const seasonalToTrait={sections:[{id:'saju_core',title:'계절과 기질',body:[
+ '태어난 달이 전환기에 놓입니다. 이 시기에 태어난다는 것은 어느 곳에도 고정되지 않고 외부로부터 영향을 받는 성향이라는 뜻입니다.'
+]}]};
+assert(grounding.inspect(seasonalToTrait).blockingErrors.includes(
+ 'saju_core:season-transition-to-personality-overreach'),
+ 'seasonal position cannot directly establish measured personality adaptability');
+const correctBoundary={sections:[{id:'saju_core',title:'해석의 조건',body:[
+ '같은 기운의 뿌리 두 곳은 계산된 위치입니다. 이것이 마음의 두 부분을 뜻한다는 근거는 없습니다. 계절이 바뀌는 달이지만 외부 영향에 잘 적응하는 능력까지는 판단할 수 없습니다.'
+]}]};
+const correctBoundaryCodes=grounding.inspect(correctBoundary).blockingErrors;
+assert(!correctBoundaryCodes.includes('saju_core:root-count-to-psychology-overreach'));
+assert(!correctBoundaryCodes.includes('saju_core:season-transition-to-personality-overreach'));
 const readerCentered={sections:[{id:'saju_core',title:'내 기본 기질과 조건',
  keyJudgment:'전통적 의미를 여러 출생 조건으로 구분합니다.',
  body:['새로운 일을 결정하는 가상 상황에서는 기존의 기반을 살피는 관점과 달라지는 상황을 따로 고려할 수 있습니다. 이는 계산된 기운이 서로 다른 역할을 맡는다는 전통적 풀이입니다. 다만 실제 행동은 입력 정보로 확인되지 않았습니다. 의견 충돌이 생기는 상황도 생활 속 사건을 예언하는 말은 아닙니다.']}]};

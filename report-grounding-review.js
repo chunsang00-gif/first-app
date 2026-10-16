@@ -40,6 +40,30 @@ function inspect(report,packet=null){
     break;
    }
   }
+  // Earlier paid drafts transformed TWO recorded hidden-stem positions
+  // into "two centers of the mind" and a transitional month into
+  // adaptability. Neither psychological conclusion was calculated.
+  // This is a scoped false-inference guard, not a blacklist of metaphors.
+  const deniesPsychologicalInference=sentence=>
+   /(?:뜻은\s*아니|의미하지\s*않|증명하지\s*않|근거(?:가|는)\s*없|단정할\s*수\s*없|판단할\s*수\s*없|확정할\s*수\s*없)/.test(sentence);
+  const coreSentences=body=>String(body).split(/(?<=[.!?。])\s*|\n+/)
+   .map(x=>x.trim()).filter(Boolean);
+  for(const paragraph of section.body||[]){
+   const full=String(paragraph);
+   const hasPositionalCount=/(?:뿌리|같은\s*기운|비슷한\s*힘|같은\s*오행).{0,65}(?:두\s*(?:곳|자리|부분)|2\s*곳)/.test(full)||
+    /(?:두\s*(?:곳|자리|부분)|2\s*곳).{0,55}(?:뿌리|같은\s*기운|비슷한\s*힘)/.test(full);
+   const mindClaim=coreSentences(full).some(sentence=>
+    !deniesPsychologicalInference(sentence)&&
+    /(?:마음.{0,70}두\s*부분.{0,25}균형|행동의?\s*원천.{0,75}두\s*부분.{0,25}균형|두\s*중심.{0,55}다르게\s*반응)/.test(sentence));
+   if(hasPositionalCount&&mindClaim){
+    blockingErrors.push('saju_core:root-count-to-psychology-overreach');
+    break;
+   }
+  }
+  if((section.body||[]).some(body=>coreSentences(body).some(sentence=>
+   !deniesPsychologicalInference(sentence)&&
+   /(?:이\s*시기에\s*태어난다는\s*것은|전환월에\s*태어난다는\s*것은).{0,110}(?:고정되지\s*않|외부로부터\s*영향|변화에\s*(?:잘\s*)?적응)/.test(sentence))))
+   blockingErrors.push('saju_core:season-transition-to-personality-overreach');
   const headings=[section.title,...(section.bodyLabels||[])].filter(x=>typeof x==='string');
   if(headings.some(x=>/(?:뿌리|통근|지장간|원국|월지|일지|시지|천간|오행|충\\s*관계)/.test(x)))
    blockingErrors.push('saju_core:technical-evidence-used-as-reader-headline');
