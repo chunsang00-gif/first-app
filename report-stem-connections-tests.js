@@ -89,7 +89,8 @@ for(const input of [
  const monthHidden='natal.month.hidden.'+payload.source['facts.structuralEvidence.monthCommand'].mainHiddenStem;
  const required=['natal.month.stem',monthHidden,'facts.structuralEvidence.monthCommand'];
  const forbidden=['facts.stemConnections','facts.structuralEvidence.dayMasterRoots',
-  'facts.rootConditions',...(observed[0]?[observed[0].hiddenId]:[])];
+  'facts.rootConditions',...observed.map(x=>x.hiddenId)
+   .filter(x=>!x.startsWith('natal.month.'))];
  const report=(refs)=>({chapters:{saju_core:{title:'출생 근거',keyJudgment:'천간과 지장간 근거',
   mood:'reflective',paragraphs:{
    temperament:{label:'월간과 계절',text:'계절과 겉에 나타난 글자를 구별합니다.',
