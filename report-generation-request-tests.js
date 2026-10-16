@@ -42,6 +42,10 @@ const schema=require('./report-schema.json');
  assert(generation.policy.includes('task.editorialGoal'),
   'provider system message must explicitly use the customer-depth brief');
 
+ assert(generation.policy.includes('readerReasoning.hypotheticalQuestion'),
+  'premium first chapter must require a grounded reader example, not only source names');
+ assert(generation.policy.includes('문단 끝에서 한 번만'),
+  'reader-facing first chapter must avoid repeated unsupported disclaimer prose');
  assert(generation.policy.includes('task.chapters[id].analysisGoal'),
   'provider system instructions must use the transported per-section depth goal');
  assert(generation.policy.includes('task.editorialGoal'),

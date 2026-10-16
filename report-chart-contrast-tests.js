@@ -81,6 +81,21 @@ for(const input of cases){
   ['month-vs-day','visible-support-vs-counter']);
  assert.deepEqual(strength.points.map(x=>x.kind),
   ['actual-day-master-roots','root-relation-overlap']);
+ for(const [topic,focus] of [['temperament',temperament],['strength',strength]]){
+  assert(focus.readerReasoning.contrastQuestion.includes('?'),
+   topic+' must answer a reader-level difference question');
+  assert(focus.readerReasoning.reasoningTask.length>75,
+   topic+' must contain a substantive interpretive bridge, not more boilerplate');
+  assert(focus.readerReasoning.hypotheticalQuestion.includes('가상'),
+   topic+' must not make the user scenario sound observed');
+  assert(focus.readerReasoning.interpretivePayoff.length>30,
+   topic+' must identify what the paying reader should understand');
+  assert(focus.policy.includes('한 번만'),
+   topic+' must place limitations once, rather than substitute disclaimers for meaning');
+ }
+ assert.notEqual(temperament.readerReasoning.hypotheticalQuestion,
+   strength.readerReasoning.hypotheticalQuestion,
+   'the two paragraphs must not recycle a single generic imaginary example');
  const firstRefs=new Set(core.topics.temperament.citableFacts.map(x=>x.id));
  const secondRefs=new Set(core.topics.strength.citableFacts.map(x=>x.id));
  assert(firstRefs.has('facts.seasonalEvidence')&&firstRefs.has('facts.qiEvidence'),

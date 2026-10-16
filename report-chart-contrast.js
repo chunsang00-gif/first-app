@@ -105,6 +105,22 @@ const TOPIC_POINTS={
  temperament:['month-vs-day','visible-support-vs-counter'],
  strength:['actual-day-master-roots','root-relation-overlap']
 };
+// Reader depth is separate from calculated chart facts. These are reasoning
+// questions, never personality claims or predicted actions.
+const TOPIC_READER_QUESTIONS={
+ temperament:{
+  contrastQuestion:'태어난 달의 계절적 배경과 바깥에 드러난 글자가 주는 도움의 방향은 왜 별개인가?',
+  reasoningTask:'계절 전환기라는 계산과 겉글자의 오행 관계를 각각 확인하고, 겉에 드러난 물의 도움을 전통적으로 배움·이해·지원의 상징으로 분류하는 이유를 설명한다. 월의 숨은 글자가 가리키는 자원 활용·압박의 상징은 겉글자의 실제 반대 성격이 아님을 구분한다. 계절 우세가 미정이라는 이유로 이미 확인된 겉글자 관계까지 미정이라고 쓰지 않는다.',
+  hypotheticalQuestion:'새로운 일을 앞두고 정보를 살피는 가상의 상황이라면, 배움·지원의 상징은 무엇을 비교하는 실마리이고 무엇을 증명하지 못하는가? 실제 독자의 학습 능력·선택을 추정하지 않는다.',
+  interpretivePayoff:'이 문단을 읽은 사람은 계절 배경, 겉글자의 지원 관계, 숨은 글자의 별도 의미를 구별할 수 있어야 한다.'
+ },
+ strength:{
+  contrastQuestion:'태어난 날·시간에 실제 뿌리가 있는 것과 그 자리들에 충이 겹친다는 사실을 왜 동시에 인정해야 하는가?',
+  reasoningTask:'같은 글자의 뿌리가 있는 정확한 자리와 없는 자리를 구별하고, 원국 충은 그 자리에 계산되는 관계이지 확인된 뿌리를 지우는 명령이 아님을 설명한다. 여러 뿌리의 존재를 강도 점수로 바꾸지 말고, 같은 출처를 두 번 요약하지 않는다.',
+  hypotheticalQuestion:'사주에 충이 있으면 뿌리가 없어졌다고 생각하는 가상의 질문에, 관찰된 뿌리 위치·겹치는 충·판단 보류 사유를 순서대로 답한다. 독자의 고집·관계·직장 사건을 만들어 내지 않는다.',
+  interpretivePayoff:'이 문단을 읽은 사람은 뿌리가 확인된 위치와 충이 함께 계산된 위치, 충만으로 뿌리 소멸을 판단하지 못하는 이유를 이해해야 한다.'
+ }
+};
 function forTopic(contrast,topic,allowedIds){
  if(!TOPIC_POINTS[topic]||!contrast||!Array.isArray(contrast.contrastPoints))
   throw Error('Unknown or missing grounded core paragraph plan: '+topic);
@@ -117,6 +133,7 @@ function forTopic(contrast,topic,allowedIds){
   // test prompts; canonical evidence validation remains authoritative.
   return {kind,sourceRefs,calculatedExplanation:item.calculatedExplanation,question:item.question};
  });
- return {scope:topic,points,policy:'두 비교의 실제 계산 차이를 순서대로 설명한다. 서로 관련 없는 근거를 섞거나 관찰하지 않은 성격·행동·능력을 확정하지 않는다. 고객용 본문에는 내부 참조 ID 및 한자를 옮기지 않는다.'};
+ return {scope:topic,points,readerReasoning:TOPIC_READER_QUESTIONS[topic],
+  policy:'두 계산 차이의 연결 이유와 전통적 해석 범위를 설명한 뒤, readerReasoning.hypotheticalQuestion에 가정형으로 답한다. 가정은 실제 개인 경험이 아니다. 한계 설명은 문단 끝에 한 번만 두며, 다른 문단의 한계를 재차 늘어놓거나 여러 기운의 균형처럼 결론 내리지 않는다. 고객용 본문에는 내부 참조 ID 및 한자를 옮기지 않는다.'};
 }
 module.exports={build,forTopic,TOPIC_POINTS};
