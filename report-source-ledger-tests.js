@@ -73,4 +73,26 @@ assert.deepEqual(ledger.reusedBefore(['decision'],planned,earlier),[],
 assert.deepEqual(ledger.reusedBefore(['decision'],planned,earlier,packet),[{
  path:'natal.month.stem',chapter:'saju_core',topic:'temperament',previousConclusion:'선택에 관한 기존 설명'
 }],'canonical source resolver must identify the exact previously cited positional fact');
+// Regression for real annual money/career writing: the precise annual
+// stem and hidden-stem IDs used by the provider MUST survive the ledger.
+// Previously the canonical extraction rejected annual.*, silently hiding
+// repeated yearly interpretation in the following chapter.
+const annualFirst={id:'year_2027_money',bodyTopics:['change'],
+ topicConclusions:['올해에도 자료를 확인한 다음 선택합니다.'],
+ keyJudgment:'연간 분류로 다룬 질문을 다시 확인합니다.',
+ evidence:['change: annual.stem; annual.hidden.己; natal.month.stem (월간 辛 겁재) / 해석: 연간과 원국의 비교 / 조건: 가정 / 한계: 실제 결과는 미측정']};
+assert.deepEqual(ledger.usedPaths(annualFirst,'change'),
+ ['annual.stem','annual.hidden.己','natal.month.stem'],
+ 'exact annual source rows must no longer disappear from factual reuse');
+const annualPlan={
+ year_2027_money:{topicTasks:{change:{mode:'use-primary',
+  allowedSourceRefs:['annual.stem','annual.hidden.己','natal.month.stem']}}},
+ year_2027_career:{topicTasks:{change:{mode:'use-primary',
+  allowedSourceRefs:['annual.stem','annual.hidden.己','natal.day.stem']}}}
+};
+const annualReused=ledger.reusedBefore(['year_2027_career'],annualPlan,[annualFirst]);
+assert.deepEqual(annualReused.map(x=>x.path),['annual.stem','annual.hidden.己'],
+ 'following yearly chapters must see actually cited annual rows and prior conclusions');
+assert(annualReused.every(x=>x.previousConclusion.includes('자료를 확인한 다음')),
+ 'do not lose the original meaning when transmitting an annual reused fact');
 console.log('PASS real citation provenance ledger, no unused/fabricated source ownership, no paid API');
