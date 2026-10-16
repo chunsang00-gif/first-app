@@ -129,7 +129,7 @@ function build(packet){
 // This changes the input contract, NOT the calculated chart or QA threshold.
 const TOPIC_POINTS={
  temperament:['month-vs-day','visible-support-vs-counter'],
- strength:['actual-day-master-roots','root-relation-overlap']
+ strength:['month-ten-god-pair']
 };
 // Reader depth is separate from calculated chart facts. These are reasoning
 // questions, never personality claims or predicted actions.
@@ -146,8 +146,6 @@ function readerQuestions(contrast,topic){
  const points=contrast.contrastPoints||[];
  const month=points.find(p=>p.kind==='month-vs-day')?.evidence;
  const visible=points.find(p=>p.kind==='visible-support-vs-counter')?.evidence;
- const rooting=points.find(p=>p.kind==='actual-day-master-roots')?.evidence;
- const collisions=points.find(p=>p.kind==='root-relation-overlap')?.evidence;
  const monthTenGod=contrast.monthTenGodContext;
  if(topic==='temperament'){
   if(!month||!visible||!Array.isArray(visible.support)||!Array.isArray(visible.counter))
@@ -175,27 +173,6 @@ function readerQuestions(contrast,topic){
   };
  }
  if(topic==='strength'){
-  if(!rooting||!collisions||!Array.isArray(rooting.rootLocations)||!Array.isArray(collisions.collisions))
-   throw Error('Missing calculated roots and clashes for core reader brief');
-  const count=rooting.rootLocations.length,overlap=collisions.collisions.length;
-  const pairNames=collisions.collisions.map(x=>
-   (LOCATION[x.counterpart]||x.counterpart)+'지와 '+
-   (LOCATION[x.location]||x.location)+'지의 충');
-  const explicitPairs=[...new Set(pairNames)].join(', ');
-  const visiblePositions=[...new Set(rooting.rootLocations.map(x=>x.position))];
-  const positions=visiblePositions.map(p=>LOCATION[p]||p).join('·');
-  const unknownHour=rooting.hiddenHourUnresolved===true;
-  const rootsText=count?
-   '동일 오행 뿌리가 실제 확인된 자리 '+count+'곳('+positions+')의 숨은 글자를 각각 짚는다.':
-   '확인 가능한 기둥에서는 동일 오행 뿌리가 발견되지 않았다. 없는 위치를 만들어내지 않는다.';
-  const clashText=overlap?
-   '뿌리와 직접 연결된 충 관계 '+overlap+'건은 각각 '+explicitPairs+'이다. 충을 받은 뿌리와 충의 상대 자리를 모두 밝힌다. 같은 상대 자리와 연결된 두 뿌리를 서로 충인 것처럼 설명하지 않는다.':
-   '실제 뿌리 위치에 직접 충이 계산된 사례가 없다. 충이 있다고 지어내지 않는다.';
-  const hourText=unknownHour?'태어난 시간이 없으므로 시간 자리에 관한 결론도 내리지 않는다.':'';
-  // Keep exact root locations and natal clash endpoints as PRIVATE evidence.
-  // Reader-facing questions concern the interpretation, not the calculation.
-  const sourceAudit=rootsText+' '+clashText+' '+hourText+
-   ' 실제 충의 양쪽 위치를 내부 basis.refs 및 evidence에서 확인한다. 이것은 성격·강약 점수가 아니다.';
   if(!monthTenGod?.monthStem?.tenGod||!monthTenGod?.monthMainHidden?.tenGod)
    throw Error('Missing verified month ten-god meanings for reader brief');
   const visibleKind=monthTenGod.monthStem.tenGod;
@@ -208,6 +185,7 @@ function readerQuestions(contrast,topic){
    '태어난 달의 두 출처에서 같은 십성 분류를 확인했다. 반대 성향을 만들지 않는다. ':
    '태어난 달의 겉글자와 중심 숨은 글자에서 서로 다른 십성 분류를 확인했다. 서로 다른 위치의 뜻을 구별한다. ';
   const readerContext='태어난 달 겉글자의 '+visibleKind+'('+visibleMeaning+')와 중심 숨은 글자의 '+mainKind+'('+mainMeaning+')를 실제 출생 위치별로 구분해 읽는다. '+comparison;
+  const sourceAudit='실제 출생월 겉글자 '+monthTenGod.monthStem.sourceId+'와 본기 '+monthTenGod.monthMainHidden.sourceId+'의 십성 분류 및 전통적 뜻을 각각 확인한다. 별도 뿌리·충 자료만으로 두 십성을 대신하지 않는다.';
 
   return {
    contrastQuestion:'태어난 달의 겉글자와 중심 숨은 글자가 나타내는 전통적 질문을 어떻게 함께 읽는가?',
@@ -227,7 +205,12 @@ function forTopic(contrast,topic,allowedIds){
   throw Error('Unknown or missing grounded core paragraph plan: '+topic);
  const allowed=new Set(allowedIds);
  const points=TOPIC_POINTS[topic].map(kind=>{
-  const item=contrast.contrastPoints.find(p=>p.kind===kind);
+  const m=contrast.monthTenGodContext;
+  const item=kind==='month-ten-god-pair'&&m?.monthStem?.sourceId&&m?.monthMainHidden?.sourceId?{
+   kind,refs:[m.monthStem.sourceId,m.monthMainHidden.sourceId],
+   calculatedExplanation:'출생월 겉글자 '+m.monthStem.sourceId+'의 '+m.monthStem.tenGod+'('+m.monthStem.meaning+')와 중심 숨은 글자 '+m.monthMainHidden.sourceId+'의 '+m.monthMainHidden.tenGod+'('+m.monthMainHidden.meaning+')를 계산된 위치별로 비교한다. 이 분류는 성격·능력의 실제 측정 결과가 아니다.',
+   question:'서로 다른 두 출생월 위치의 실제 십성·전통적 뜻을 모두 인용하고, 없는 심리적 갈등이나 삶의 사건을 만들지 않는다.'
+  }:contrast.contrastPoints.find(p=>p.kind===kind);
   if(!item)throw Error('Missing calculated comparison: '+kind);
   const sourceRefs=item.refs.filter(ref=>allowed.has(ref));
   // Do not introduce a new rejection gate for intentionally incomplete
