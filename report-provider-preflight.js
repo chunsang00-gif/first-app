@@ -95,14 +95,14 @@ function inspect(prompt,payload,schema){
      if(!focus?.monthStem?.sourceId||!refs.has(focus.monthStem.sourceId)||
         !focus?.monthMainHidden?.sourceId||!refs.has(focus.monthMainHidden.sourceId))
       note('core-month-ten-god-pair-not-citable');
-    if(!refs.has('facts.structuralEvidence.dayMasterRoots'))
-     note('core-root-ledger-not-citable');
-    for(const key of ['facts.stemConnections','facts.rootConditions'])
-     if(Object.hasOwn(payload.source||{},key)&&!refs.has(key))
-      note('core-required-root-source-not-citable:'+key);
-    const roots=payload.source?.['facts.stemConnections']?.dayMasterRooting?.sameElementRoots||[];
-    if(roots.length&&!roots.some(root=>refs.has(root.hiddenId)))
-     note('core-real-root-positions-not-citable');
+
+    // Root and clash evidence is optional. Requiring it here would
+    // contradict the canonical month-ten-god writing plan.
+    const pair=directive.evidenceFocus?.points||[];
+    const expected=[focus.monthStem.sourceId,focus.monthMainHidden.sourceId];
+    if(pair.length!==1||pair[0]?.kind!=='month-ten-god-pair'||
+       JSON.stringify(pair[0]?.sourceRefs)!==JSON.stringify(expected))
+     note('core-month-ten-god-focus-contaminated:'+id+'/'+topic);
    }
   }
  }
