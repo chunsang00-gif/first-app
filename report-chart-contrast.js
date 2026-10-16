@@ -207,8 +207,18 @@ function readerQuestions(contrast,topic){
    '겉에 실제로 확인된 관계는 '+meanings.join('·')+'다.':
    '겉글자의 별도 지원·압박 관계가 확인되지 않았다.';
   const selectedMeaning=meanings[0]||null;
+  // A chart can have the visible 'resource' relation AND a monthly 印星
+  // (正印/偏印). In that case an identical 'learning' scene in BOTH
+  // paragraphs generated two different-looking copies of one conclusion.
+  // Do not fabricate another trait to fill the first slot: give visible qi
+  // the distinct question of available SUPPORT conditions, and leave the
+  // month-ten-god information/learning decision to the paired second slot.
+  const monthLearning=['정인','편인'].includes(monthTenGod?.monthStem?.tenGod);
+  const separatedResourceQuestion=relationTypes.includes('resource')&&monthLearning;
   const dynamicExample=relationTypes.includes('resource')?
-   '배움이나 지원이 필요한 가상 상황에서 계산된 배움·보호의 전통 상징이 어떤 뜻인지 실제 위치로 설명한다. 월의 계절 분류와 의미를 구분한다.':
+   separatedResourceQuestion?
+    '도움이나 자료를 제공받을 수 있다고 가정한 상황에서 어떤 지원이 가능한지, 어떤 조건에서 도움을 받을 수 있는지를 겉글자에 실제로 확인된 전통적 도움 관계로 풀이한다. 여기서는 정보를 자기 방식으로 이해하는 과정이나 돈과 재료의 마련 방법을 다루지 않는다.':
+    '배움이나 지원이 필요한 가상 상황에서 계산된 배움·보호의 전통 상징이 어떤 뜻인지 실제 위치로 설명한다. 월의 계절 분류와 의미를 구분한다.':
    relationTypes.includes('control-on-day')?
    '역할과 규칙을 정하는 가상 상황에서 겉글자의 실제 규칙·역할 상징을 어떤 질문에 적용하는지 설명한다. 계절 분류와 구별한다.':
    relationTypes.includes('output')?
@@ -222,7 +232,12 @@ function readerQuestions(contrast,topic){
    hypotheticalQuestion:dynamicExample,
    interpretivePayoff:'독자는 출생월의 계절 조건을 실제 성격의 증거로 혼동하지 않고, 겉글자에서 확인된 '+(selectedMeaning||'오행 관계')+'의 전통적인 질문을 생활 속 가정에 적용하는 이유와 선택 기준을 이해한다.',
    readerValuePlan:{
-    primaryTraditionalQuestion:selectedMeaning||'계산된 겉글자 관계의 전통적인 뜻',
+    primaryTraditionalQuestion:separatedResourceQuestion?
+     '겉글자의 전통적 도움 관계가 질문하는 외부 지원의 조건과 범위':
+     selectedMeaning||'계산된 겉글자 관계의 전통적인 뜻',
+    ...(separatedResourceQuestion?{
+     distinctFromMonthPair:'첫 문단에서는 외부에서 제공받는 도움의 조건만 해석한다. 두 번째 문단의 편인·정인에서 정보 이해·배움의 방법을 풀이하므로 같은 학습 결론을 두 번 쓰지 않는다. 지원이 있었다는 실제 과거를 꾸미지 않는다.'
+    }:{}),
     customerSequence:'핵심 해석 한 문장 → 그 근거가 출생 계절·겉글자 어느 쪽인지 밝힘 → 가상의 선택 상황 하나에서 뜻을 풀어 설명',
     advantageQuestion:'이 관계가 설명하는 전통적 관점을 선택 상황에서 활용하면 어느 조건을 먼저 살펴볼 수 있는가?',
     riskQuestion:'그 관점만 보고 다른 계산 조건이나 실제 행동까지 안다고 착각하면 무엇을 놓치게 되는가?',
