@@ -26,11 +26,14 @@ function coreReaderRoles(prompt){
  const focus=contrast&&coreContrast.forTopic(contrast,'strength',[])?.readerReasoning?.readerValuePlan;
  const one=focus?.first?.question;
  const two=focus?.second?.question;
+ const firstParagraphBoundary=seasonal?.readerValuePlan?.distinctFromMonthPair||null;
  return {
   temperament:{
-   label:'태어난 계절과 겉에 확인된 오행의 관계를 이 문단에서 실제 설명한 생활 질문으로 짧게 나타낸다. 두 번째 문단의 배움·돈·재료 질문을 소제목으로 빼앗지 않는다.',
+   label:'태어난 계절과 겉에 확인된 오행의 관계를 이 문단에서 실제 설명한 생활 질문으로 짧게 나타낸다. 두 번째 문단의 배움·돈·재료 질문을 소제목으로 빼앗지 않는다.'+
+    (firstParagraphBoundary?' 이 입력에서는 외부에서 받을 수 있는 도움의 조건을 첫 문단 제목으로 구별한다.':''),
    text:'출생 시기의 특징이나 글자의 뜻을 세 문장 이상 나열해 기술 강의로 만들지 않는다. 핵심 풀이를 먼저 말하고 계산된 출생 계절·겉글자의 전통적 의미를 짧게 연결한 다음 실제로 이해되는 가상 장면 하나에서 무엇을 고려하는지 풀어 쓴다. '+
     (seasonal?.hypotheticalQuestion?'이 입력에서 확인된 관계에 맞춘 가상의 장면: '+seasonal.hypotheticalQuestion+' ':'')+
+    (firstParagraphBoundary?'이 입력의 서로 다른 문단 역할: '+firstParagraphBoundary+' ':'')+
     '예시는 실제 생활 이력이나 관찰된 성격이 아니다. 계절 변화만으로 적응력이나 학습 능력을 판정하지 않으며 뜻을 설명했습니다 같은 작성 과정 문장으로 끝내지 않는다.'
   },
   strength:{
