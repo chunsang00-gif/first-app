@@ -73,8 +73,8 @@ for(const input of actualCases){
  const t=blueprint.saju_core.topicTasks.temperament;
  assert.equal(t.mode,'use-primary');
  assert.deepEqual(t.requiredSourceKinds,['seasonal','qi-ledger','natal-month-position']);
- assert(blueprint.saju_core.topicTasks.strength.requiredSourceKinds.includes('stem-linkage'));
- assert(blueprint.saju_core.topicTasks.strength.requiredSourceKinds.includes('root-condition'));
+ assert.deepEqual(blueprint.saju_core.topicTasks.strength.requiredSourceKinds,['month-ten-god']);
+ assert.equal(blueprint.saju_core.topicTasks.strength.primaryEvidencePath,'facts.tenGods.month');
  const prompt={stage:'body',facts:packet,requestedSections:['saju_core'],
   analysisGuidance:{...guidance.forRequest(['saju_core'],packet.person.mbti),
    editorialBlueprint:{saju_core:blueprint.saju_core}}};
