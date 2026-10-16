@@ -31,6 +31,11 @@ for(const input of cases){
   packet.facts.seasonalEvidence.monthPhase==='transition');
  assert.equal(contrast.factsOnly,true);
  assert(contrast.cannotInfer.includes('day-master-strength'));
+ const month=packet.facts.tenGods.month,mc=packet.facts.structuralEvidence.monthCommand;
+ assert.equal(contrast.monthTenGodContext.monthStem.tenGod,month.stemTenGod);
+ assert.equal(contrast.monthTenGodContext.monthMainHidden.stem,mc.mainHiddenStem);
+ assert.equal(contrast.monthTenGodContext.monthMainHidden.tenGod,mc.mainHiddenStemTenGod);
+ assert.equal(contrast.monthTenGodContext.sameClassification,month.stemTenGod===mc.mainHiddenStemTenGod);
  for(const point of contrast.contrastPoints){
   assert.equal(typeof point.calculatedExplanation,'string');
   assert(point.calculatedExplanation.length>=35,
@@ -101,6 +106,8 @@ for(const input of cases){
   ['month-vs-day','visible-support-vs-counter']);
  assert.deepEqual(strength.points.map(x=>x.kind),
   ['actual-day-master-roots','root-relation-overlap']);
+ assert.equal(strength.tenGodFocus.monthStem.tenGod,month.stemTenGod);
+ assert.equal(strength.tenGodFocus.monthMainHidden.tenGod,mc.mainHiddenStemTenGod);
  for(const item of [...temperament.points,...strength.points]){
   assert(!Object.hasOwn(item,'question'),
    'internal source verification must not be sent as a customer interpretation question');
@@ -182,10 +189,13 @@ for(const input of cases){
  assert(!firstRefs.has('facts.stemConnections')&&!firstRefs.has('facts.rootConditions'),
   'root and clash evidence may not leak into the month/visible qi explanation');
  assert(secondRefs.has('facts.stemConnections')&&secondRefs.has('facts.rootConditions'),
-  'actual rooting and clash provenance must remain mandatory in the second paragraph');
+  'optional calculated root/clash evidence must remain citable');
+ assert(secondRefs.has('natal.month.stem')&&secondRefs.has('natal.month.hidden.'+mc.mainHiddenStem),
+  'month stem and month main hidden ten-god sources must both reach the writer');
  assert.deepEqual(blueprint.saju_core.topicTasks.temperament.requiredSourceKinds,
   ['seasonal','qi-ledger','natal-month-position']);
- assert(blueprint.saju_core.topicTasks.strength.requiredSourceKinds.includes('root-condition'));
+ assert.deepEqual(blueprint.saju_core.topicTasks.strength.requiredSourceKinds,['month-ten-god']);
+ assert.equal(blueprint.saju_core.topicTasks.strength.primaryEvidencePath,'facts.tenGods.month');
  assert(!generation.policy.includes('temperament는 facts.seasonalEvidence, facts.qiEvidence, facts.stemConnections를 모두 인용'),
   'conflicting legacy instruction must not override paragraph evidence ownership');
  assert.deepEqual([...temperament.points,...strength.points].map(x=>x.calculatedExplanation),
