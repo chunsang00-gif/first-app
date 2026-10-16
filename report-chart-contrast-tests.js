@@ -181,9 +181,9 @@ for(const input of cases){
   'both computed ten gods must produce plain-language decision questions');
  assert(monthReaderPlan.customerSequence.includes('가상의')||monthReaderPlan.customerSequence.includes('가상'),
   'a traditional symbol must be applied to an explicitly hypothetical decision');
- assert(monthReaderPlan.advantageQuestion.includes('무엇')&&monthReaderPlan.riskQuestion.includes('무엇')||
-  monthReaderPlan.riskQuestion.includes('왜'),
-  'reader must receive a concrete upside/downside comparison rather than a technical dictionary');
+ assert(/(?:무엇|어떤)/.test(monthReaderPlan.advantageQuestion)&&
+  /(?:무엇|어떤|왜)/.test(monthReaderPlan.riskQuestion),
+  'reader must receive TWO separate upside/downside decision questions rather than a technical dictionary');
  assert(!/(?:당신은 항상|실제로 갈등이|능력이 뛰어나|돈을 많이 벌)/.test(
   JSON.stringify(monthReaderPlan)),'customer value plan must not invent a measured personal behavior');
  const seasonReaderPlan=temperament.readerReasoning.readerValuePlan;
