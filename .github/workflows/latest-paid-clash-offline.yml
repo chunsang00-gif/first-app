@@ -29,5 +29,5 @@ jobs:
           run-id: 38854417208
           github-token: ${{ github.token }}
           path: .private-latest-paid
-      - name: Reject paid incorrect day-hour clash and prove correct new request positions
+      - name: Reject false day-hour pair using previously billed first chapter
         run: node test-latest-paid-clash-pairs-offline.js
