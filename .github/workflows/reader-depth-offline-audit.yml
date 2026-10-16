@@ -1,0 +1,42 @@
+name: Verify revised reader depth without API billing
+on:
+  push:
+    branches:
+      - fix-paid-qa-fact-bindings-20261014
+    paths:
+      - .github/workflows/reader-depth-offline-audit.yml
+permissions:
+  contents: read
+  actions: read
+jobs:
+  audit-paid-first-chapter:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      OPENAI_API_KEY: ''
+      REPORT_MODEL_URL: ''
+      REPORT_MODEL: ${{ vars.REPORT_MODEL }}
+      QA_PROVIDER_ARCHIVE: ${{ github.workspace }}/.private-reader-qa/private-qa-report-provider-calls.json
+      QA_RECOVERY_CHECKPOINT: ${{ github.workspace }}/.private-reader-checkpoint/recovered-validated-batch.json
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-audit --no-fund
+      - name: Load the already-paid first provider response without showing private contents
+        uses: actions/download-artifact@v4
+        with:
+          name: premium-report-qa
+          run-id: 38833494716
+          github-token: ${{ github.token }}
+          path: .private-reader-qa
+      - name: Load previously validated first-chapter checkpoint
+        uses: actions/download-artifact@v4
+        with:
+          name: first-batch-verified-checkpoint
+          run-id: 38835316163
+          github-token: ${{ github.token }}
+          path: .private-reader-checkpoint
+      - name: Verify new reader brief, original facts, and explicit incompatible-resume block
+        run: node audit-paid-core-reader-brief.js
