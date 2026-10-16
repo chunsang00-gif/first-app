@@ -105,7 +105,7 @@ for(const input of cases){
  assert.deepEqual(temperament.points.map(x=>x.kind),
   ['month-vs-day','visible-support-vs-counter']);
  assert.deepEqual(strength.points.map(x=>x.kind),
-  ['actual-day-master-roots','root-relation-overlap']);
+  ['month-ten-god-pair']);
  assert.equal(strength.tenGodFocus.monthStem.tenGod,month.stemTenGod);
  assert.equal(strength.tenGodFocus.monthMainHidden.tenGod,mc.mainHiddenStemTenGod);
  assert(!temperament.policy.includes('tenGodFocus'),
@@ -133,18 +133,23 @@ for(const input of cases){
   assert(Array.isArray(item.sourceRefs),
    'citation bindings must remain unchanged');
  }
+ // Root/clash positions remain verified in the raw contrast, but are
+ // no longer the source-first writing task shown to the paid model.
  if(rootClashes.length){
-  const focusExplanation=strength.points.find(p=>p.kind==='root-relation-overlap').calculatedExplanation;
-  const question=strength.sourceAudit;
+  const verifiedClashes=contrast.contrastPoints[3].calculatedExplanation;
   for(const pair of rootClashes){
    const lhs=({year:'연',month:'월',day:'일',hour:'시'})[pair.counterpart];
    const rhs=({year:'연',month:'월',day:'일',hour:'시'})[pair.location];
-   assert(focusExplanation.includes(lhs+'지 ↔ '+rhs+'지'),
-    'paid provider input omits computed actual clash pair');
-   assert(question.includes(lhs+'지와 '+rhs+'지의 충'),
-    'reader reasoning must name both computed endpoints');
+   assert(verifiedClashes.includes(lhs+'지 ↔ '+rhs+'지'),
+    'private calculation audit must preserve both actual clash endpoints');
   }
  }
+ assert(!strength.points.some(p=>/root|clash/.test(p.kind)),
+  'root and clash diagnostics must not be compulsory paid prose prompts');
+ assert(strength.points[0].calculatedExplanation.includes(month.stemTenGod));
+ assert(strength.points[0].calculatedExplanation.includes(mc.mainHiddenStemTenGod));
+ assert.deepEqual(strength.points[0].sourceRefs,
+  ['natal.month.stem','natal.month.hidden.'+mc.mainHiddenStem]);
  if(input.calendar==='lunar'&&input.birthDate==='1982-11-24'){
   assert.deepEqual(rootClashes.map(c=>c.positions.join(',')),['month,day','month,hour']);
   assert(!strength.sourceAudit.includes('일지와 시지의 충'),
@@ -188,17 +193,11 @@ for(const input of cases){
  }
  if(!visibleRelations.has('resource'))assert(!firstReason.hypotheticalQuestion.includes('나를 돕는 전통 분류'),
   'another chart must not inherit the paid ISFP fixture resource example');
- const rootFocus=strength.readerReasoning;
- assert(strength.sourceAudit.includes(String(root.observedRootCount)+'곳')||
-  root.observedRootCount===0,'root claims must use calculated count');
- if(rootClashes.length===0){
-  assert(strength.sourceAudit.includes('직접 충이 계산된 사례가 없다'));
-  assert(!rootFocus.reasoningTask.includes('충이 겹친 자리'));
- }else assert(strength.sourceAudit.includes('뿌리와 직접 연결된 충 관계 '+rootClashes.length+'건'),
-   'each actual clash pair must be named rather than inferred as a vague root effect');
- if(!packet.chart.hour)assert(!rootFocus.contrastQuestion.includes('태어난 시간에 실제 뿌리'),
-  'unknown time must not become an observed hour root');
-
+ assert(strength.sourceAudit.includes('natal.month.stem')&&
+  strength.sourceAudit.includes('natal.month.hidden.'+mc.mainHiddenStem),
+  'provider-facing audit must check the two actual month positions');
+ assert(!/(?:뿌리.{0,15}[0-9]+곳|충 관계 [0-9]+건|일지와 시지의 충)/.test(strength.sourceAudit),
+  'paid provider should not receive the raw rooting and clash counts');
  const firstRefs=new Set(core.topics.temperament.citableFacts.map(x=>x.id));
  const secondRefs=new Set(core.topics.strength.citableFacts.map(x=>x.id));
  assert(firstRefs.has('facts.seasonalEvidence')&&firstRefs.has('facts.qiEvidence'),
@@ -215,9 +214,12 @@ for(const input of cases){
  assert.equal(blueprint.saju_core.topicTasks.strength.primaryEvidencePath,'facts.tenGods.month');
  assert(!generation.policy.includes('temperament는 facts.seasonalEvidence, facts.qiEvidence, facts.stemConnections를 모두 인용'),
   'conflicting legacy instruction must not override paragraph evidence ownership');
- assert.deepEqual([...temperament.points,...strength.points].map(x=>x.calculatedExplanation),
-  contrast.contrastPoints.map(x=>x.calculatedExplanation),
-  'all four computed facts must reach the exact assigned paragraph without reinterpretation');
+ assert.deepEqual(temperament.points.map(x=>x.calculatedExplanation),
+  contrast.contrastPoints.slice(0,2).map(x=>x.calculatedExplanation),
+  'season and visible relations must remain separately grounded');
+ assert(strength.points[0].calculatedExplanation.includes(strength.tenGodFocus.monthStem.meaning)&&
+  strength.points[0].calculatedExplanation.includes(strength.tenGodFocus.monthMainHidden.meaning),
+  'only the exact month ten-god meanings should shape the second paid paragraph');
  for(const [topicId,focus] of [['temperament',temperament],['strength',strength]]){
   const permitted=new Set(core.topics[topicId].citableFacts.map(x=>x.id));
   for(const point of focus.points){
