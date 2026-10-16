@@ -37,12 +37,17 @@ function verify(packet,plan){
   if(packet.facts.qiEvidence&&topic?.mode!=='state-limits'&&
      !topic?.requiredSourceKinds?.includes('natal-month-position'))
    errors.push('missing-canonical-month-position-topic-requirement');
-  if(packet.facts.stemConnections&&topic?.mode!=='state-limits'&&
-     !topic?.requiredSourceKinds?.includes('stem-linkage'))
+  // Root / clash provenance is the SECOND calculated core topic, not
+  // the season-and-visible-stem paragraph. Keep its mandatory checks.
+  const roots=plan.saju_core?.topicTasks?.strength;
+  if(packet.facts.stemConnections&&roots?.mode!=='state-limits'&&
+     !roots?.requiredSourceKinds?.includes('stem-linkage'))
    errors.push('missing-canonical-stem-connection-topic-requirement');
-  if(packet.facts.rootConditions&&topic?.mode!=='state-limits'&&
-     !topic?.requiredSourceKinds?.includes('root-condition'))
+  if(packet.facts.rootConditions&&roots?.mode!=='state-limits'&&
+     !roots?.requiredSourceKinds?.includes('root-condition'))
    errors.push('missing-canonical-root-condition-topic-requirement');
+  if(topic?.requiredSourceKinds?.some(k=>k==='stem-linkage'||k==='root-condition'))
+   errors.push('root-evidence-misassigned-to-seasonal-topic');
  }
  for(const [domain,id] of Object.entries(annualIds)){
   const chapter=plan[id];
