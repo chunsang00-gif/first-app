@@ -92,9 +92,13 @@ for(const input of cases){
   paragraphs:{temperament:paragraph(['facts.seasonalEvidence','facts.qiEvidence','natal.month.stem']),
    strength:paragraph(refs)}}}});
  const observedRoots=compiled.source['facts.stemConnections'].dayMasterRooting.sameElementRoots||[];
- const required=['natal.month.stem','facts.structuralEvidence.dayMasterRoots','facts.stemConnections','facts.rootConditions',
+ const mainMonth='natal.month.hidden.'+compiled.source['facts.structuralEvidence.monthCommand'].mainHiddenStem;
+ const required=['natal.month.stem',mainMonth,'facts.structuralEvidence.dayMasterRoots','facts.stemConnections','facts.rootConditions',
   ...(observedRoots[0]?[observedRoots[0].hiddenId]:[])];
  assert.doesNotThrow(()=>writer.restoreEvidence(fake(required),prompt));
+ assert.throws(()=>writer.restoreEvidence(fake(required.filter(id=>id!==mainMonth)),prompt),
+  /missing paired month ten-god citations/,
+  'a month stem alone must not substantiate the meaning of a second hidden month classification');
  assert.throws(()=>writer.restoreEvidence(fake(required.filter(x=>x!=='facts.rootConditions')),prompt),
   /missing verified optional root provenance/);
  const modified=structuredClone(packet);
