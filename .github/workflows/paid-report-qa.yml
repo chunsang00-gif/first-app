@@ -1,18 +1,31 @@
 name: One-time paid report QA
 on:
   workflow_dispatch:
+    inputs:
+      paid_qa_confirmation:
+        description: 'Paid API calls (up to 7). Type RUN_ONE_PAID_SAMPLE to authorize this run.'
+        required: true
+        type: string
 permissions:
   contents: read
 jobs:
   report-qa:
+    # Never execute the outdated default branch's report generator.
+    # The current verified QA code lives only on the named feature branch.
+    if: ${{ github.ref_name == 'fix-paid-qa-fact-bindings-20261014' && inputs.paid_qa_confirmation == 'RUN_ONE_PAID_SAMPLE' }}
     runs-on: ubuntu-latest
     timeout-minutes: 25
     env:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       REPORT_MODEL: ${{ vars.REPORT_MODEL }}
       REPORT_QA_OUTPUT: ${{ github.workspace }}/private-qa-report.json
-      REPORT_QA_CONFIRM: RUN_ONE_PAID_SAMPLE
+      REPORT_QA_CONFIRM: ${{ inputs.paid_qa_confirmation }}
     steps:
+      - name: Verify operator authorization and approved code branch
+        shell: bash
+        run: |
+          test "$REPORT_QA_CONFIRM" = "RUN_ONE_PAID_SAMPLE" || { echo "Paid QA was not explicitly authorized"; exit 1; }
+          test "$GITHUB_REF_NAME" = "fix-paid-qa-fact-bindings-20261014" || { echo "Paid QA must use the approved tested branch"; exit 1; }
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
