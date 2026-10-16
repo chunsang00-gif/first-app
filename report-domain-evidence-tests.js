@@ -66,8 +66,8 @@ for(const [chapter,topic] of [['money','risk'],['career','change'],['relationshi
 const topicCodes={
  money:{earning:'S',spending:'F'},
  career:{workstyle:'S',teamwork:'F',growth:'P'},
- relationship:{closeness:'I',expression:null},
- stress:{trigger:'I',response:null}
+ relationship:{closeness:'I',expression:'F'},
+ stress:{trigger:'I',response:'P'}
 };
 for(const [id,topics] of Object.entries(topicCodes))for(const [topic,code] of Object.entries(topics)){
  const entry=verified.task.task.chapters[id].topics[topic];
