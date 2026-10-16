@@ -64,7 +64,7 @@ for(const input of cases){
  assert.deepEqual(integrity.verify(packet).errors,[],input.birthDate);
  const plan=guidance.preflight(packet);
  assert(invariant.verify(packet,plan).pass,'root interpretation preflight must be consistent');
- const topic=plan.saju_core.topicTasks.temperament;
+ const topic=plan.saju_core.topicTasks.strength;
  assert(topic.requiredSourceKinds.includes('root-condition'));
  const prompt={stage:'body',facts:packet,requestedSections:['saju_core'],
   analysisGuidance:{...guidance.forRequest(['saju_core'],packet.person.mbti),
@@ -77,28 +77,33 @@ for(const input of cases){
   'the writer must see only compact Day Master root evidence');
  assert(compiled.source['facts.rootConditions'].dayMasterRootCases.every(
   row=>row.actualRootStrength==='not-assessed'&&row.rootDeleted===false));
- const enums=writer.schema(prompt,wire.schemaFor(prompt,schema))
-  .properties.chapters.properties.saju_core.properties.paragraphs.properties
-  .temperament.properties.basis.properties.refs.items.enum;
- assert(enums.includes('facts.rootConditions'),'premium request must permit root condition citation');
+ const slots=writer.schema(prompt,wire.schemaFor(prompt,schema))
+  .properties.chapters.properties.saju_core.properties.paragraphs.properties;
+ const enums=(slots.strength.anyOf?.find(x=>x.type==='object')||slots.strength)
+  .properties.basis.properties.refs.items.enum;
+ assert(enums.includes('facts.rootConditions'),'root paragraph must cite root conditions');
+ assert(!slots.temperament.properties.basis.properties.refs.items.enum.includes('facts.rootConditions'),
+  'root conditions must not leak into seasonal paragraph');
  const paragraph=refs=>({basis:{refs,interpretation:'원국과 세운의 지지 관계 위치를 비교합니다.',
   condition:'각 천간과 지장간의 위치 확인',limit:'뿌리의 실제 강도와 소멸 여부는 확정할 수 없습니다.'},
-  label:'뿌리와 충',text:'뿌리의 존재와 충 관계의 작용을 구별합니다.'});
+  label:'뿌리와 충',text:'뿌리의 존재와 충 관계를 구별합니다.'});
  const fake=refs=>({chapters:{saju_core:{title:'명리의 기초',
   keyJudgment:'근거 위치 구분',mood:'reflective',
-  paragraphs:{temperament:paragraph(refs),strength:null}}}});
- const required=['facts.seasonalEvidence','facts.qiEvidence','facts.stemConnections',
-  'facts.rootConditions','natal.month.stem'];
+  paragraphs:{temperament:paragraph(['facts.seasonalEvidence','facts.qiEvidence','natal.month.stem']),
+   strength:paragraph(refs)}}}});
+ const observedRoots=compiled.source['facts.stemConnections'].dayMasterRooting.sameElementRoots||[];
+ const required=['facts.structuralEvidence.dayMasterRoots','facts.stemConnections','facts.rootConditions',
+  ...(observedRoots[0]?[observedRoots[0].hiddenId]:[])];
  assert.doesNotThrow(()=>writer.restoreEvidence(fake(required),prompt));
  assert.throws(()=>writer.restoreEvidence(fake(required.filter(x=>x!=='facts.rootConditions')),prompt),
-  /missing verified root condition evidence/);
+  /missing verified root provenance/);
  const modified=structuredClone(packet);
  modified.facts.rootConditions.rootDeletionPolicy='clash-erases-root';
  assert(integrity.verify(modified).errors.includes('incorrect-positional-root-conditions'));
  assert(invariant.verify(modified,plan).errors.includes('calculated-root-condition-mismatch'));
  const altered=structuredClone(plan);
- altered.saju_core.topicTasks.temperament.requiredSourceKinds=
-  altered.saju_core.topicTasks.temperament.requiredSourceKinds.filter(x=>x!=='root-condition');
+ altered.saju_core.topicTasks.strength.requiredSourceKinds=
+  altered.saju_core.topicTasks.strength.requiredSourceKinds.filter(x=>x!=='root-condition');
  assert(invariant.verify(packet,altered).errors.includes('missing-canonical-root-condition-topic-requirement'));
 }
 console.log('PASS natal/annual root-clash source separation, no erasure, no strength scores, real input integrity and required paid citations; zero paid API');

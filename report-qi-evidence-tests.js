@@ -87,7 +87,7 @@ for(const input of [
  if(input.unknownBirthTime)assert(!packet.facts.qiEvidence.entries.some(row=>row.position==='hour'));
  const plan=guidance.preflight(packet);
  assert.equal(invariant.verify(packet,plan).pass,true,'provider preflight must accept real calculated inputs');
- assert.deepEqual(plan.saju_core.topicTasks.temperament.requiredSourceKinds,['seasonal','qi-ledger','natal-month-position','stem-linkage','root-condition']);
+ assert.deepEqual(plan.saju_core.topicTasks.temperament.requiredSourceKinds,['seasonal','qi-ledger','natal-month-position']);
  const prompt={stage:'body',facts:packet,requestedSections:['saju_core'],
   analysisGuidance:{...guidance.forRequest(['saju_core'],packet.person.mbti),
     editorialBlueprint:{saju_core:plan.saju_core}}};
@@ -107,9 +107,9 @@ for(const input of [
   label:'월령과 뿌리',text:'월지의 계절과 일간 뿌리 위치를 구분합니다.'});
  const output=(refs)=>({chapters:{saju_core:{title:'기본 명리',keyJudgment:'계절 및 오행 근거를 구분합니다.',
   mood:'reflective',paragraphs:{temperament:paragraph(refs),strength:null}}}});
- assert.doesNotThrow(()=>generation.restoreEvidence(output(['facts.seasonalEvidence','facts.qiEvidence','facts.stemConnections','facts.rootConditions','natal.month.stem']),prompt));
- assert.throws(()=>generation.restoreEvidence(output(['facts.seasonalEvidence','facts.stemConnections','facts.rootConditions','natal.month.stem']),prompt),/missing required positional qi evidence/);
- assert.throws(()=>generation.restoreEvidence(output(['facts.qiEvidence','facts.stemConnections','facts.rootConditions','natal.month.stem']),prompt),/missing required month seasonal source/);
+ assert.doesNotThrow(()=>generation.restoreEvidence(output(['facts.seasonalEvidence','facts.qiEvidence','natal.month.stem']),prompt));
+ assert.throws(()=>generation.restoreEvidence(output(['facts.seasonalEvidence','natal.month.stem']),prompt),/missing required positional qi evidence/);
+ assert.throws(()=>generation.restoreEvidence(output(['facts.qiEvidence','natal.month.stem']),prompt),/missing required month seasonal source/);
  const tampered=structuredClone(packet);tampered.facts.qiEvidence.governance.activeHiddenStemId='natal.month.hidden.甲';
  assert(integrity.verify(tampered).errors.includes('incorrect-positional-qi-evidence'));
  assert(invariant.verify(tampered,plan).errors.includes('calculated-positional-qi-context-mismatch'));

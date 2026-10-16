@@ -69,23 +69,34 @@ for(const input of [
  const blueprint=guidance.preflight(packet);
  assert(invariant.verify(packet,blueprint).pass);
  assert.deepEqual(blueprint.saju_core.topicTasks.temperament.requiredSourceKinds,
-  ['seasonal','qi-ledger','natal-month-position','stem-linkage','root-condition']);
+  ['seasonal','qi-ledger','natal-month-position']);
+ assert(blueprint.saju_core.topicTasks.strength.requiredSourceKinds.includes('stem-linkage'));
  const prompt={stage:'body',facts:packet,requestedSections:['saju_core'],
   analysisGuidance:{...guidance.forRequest(['saju_core'],packet.person.mbti),
    editorialBlueprint:{saju_core:blueprint.saju_core}}};
  const payload=writer.compile(prompt);
  assert.deepEqual(payload.source['facts.stemConnections'],exact);
- const enumRefs=writer.schema(prompt,wire.schemaFor(prompt,schema))
-  .properties.chapters.properties.saju_core.properties.paragraphs.properties
-  .temperament.properties.basis.properties.refs.items.enum;
- assert(enumRefs.includes('facts.stemConnections'));
+ const outputSchema=writer.schema(prompt,wire.schemaFor(prompt,schema));
+ const slots=outputSchema.properties.chapters.properties.saju_core.properties.paragraphs.properties;
+ const seasonRefs=slots.temperament.properties.basis.properties.refs.items.enum;
+ const strengthRefs=(slots.strength.anyOf?.find(x=>x.type==='object')||slots.strength)
+  .properties.basis.properties.refs.items.enum;
+ assert(!seasonRefs.includes('facts.stemConnections'));
+ assert(strengthRefs.includes('facts.stemConnections'));
+ const observed=payload.source['facts.stemConnections'].dayMasterRooting.sameElementRoots;
+ const required=['facts.structuralEvidence.dayMasterRoots','facts.stemConnections','facts.rootConditions',
+  ...(observed[0]?[observed[0].hiddenId]:[])];
  const report=(refs)=>({chapters:{saju_core:{title:'출생 근거',keyJudgment:'천간과 지장간 근거',
-  mood:'reflective',paragraphs:{temperament:{label:'천간과 지지',text:'관계만 기록',
-  basis:{refs,interpretation:'전통적 기호',condition:'위치 확인',limit:'강도 미확정'}},strength:null}}}});
- const all=['facts.seasonalEvidence','facts.qiEvidence','facts.stemConnections','facts.rootConditions','natal.month.stem'];
- assert.doesNotThrow(()=>writer.restoreEvidence(report(all),prompt));
- assert.throws(()=>writer.restoreEvidence(report(all.filter(x=>x!=='facts.stemConnections')),prompt),
-  /missing required grounded stem connection evidence/);
+  mood:'reflective',paragraphs:{
+   temperament:{label:'월간과 계절',text:'계절과 겉에 나타난 글자를 구별합니다.',
+    basis:{refs:['facts.seasonalEvidence','facts.qiEvidence','natal.month.stem'],
+     interpretation:'계절 맥락',condition:'출생 시기',limit:'성격 단정 금지'}},
+   strength:{label:'뿌리의 실제 위치',text:'실제 지장간 뿌리 위치와 관계를 구별합니다.',
+    basis:{refs,interpretation:'전통적 뿌리',condition:'태어난 글자',
+     limit:'능력이나 강약은 판단하지 않습니다.'}}}}}});
+ assert.doesNotThrow(()=>writer.restoreEvidence(report(required),prompt));
+ assert.throws(()=>writer.restoreEvidence(report(required.filter(x=>x!=='facts.stemConnections')),prompt),
+  /missing verified root provenance/);
  const tampered=structuredClone(packet);
  tampered.facts.stemConnections.dayMasterRooting.rootObservationStatus='fabricated-strong-root';
  assert(integrity.verify(tampered).errors.includes('incorrect-stem-connections'));
@@ -93,7 +104,7 @@ for(const input of [
  assert(!Object.hasOwn(payload.source,'facts.governingDayDiagnostic'));
  assert(payload.source['facts.rootConditions'].dayMasterRootCases);
  const flawed=structuredClone(blueprint);
- flawed.saju_core.topicTasks.temperament.requiredSourceKinds=['seasonal','qi-ledger','natal-month-position'];
+ flawed.saju_core.topicTasks.strength.requiredSourceKinds=['root-condition'];
  assert(invariant.verify(packet,flawed).errors.includes('missing-canonical-stem-connection-topic-requirement'));
  if(input.unknownBirthTime){
   assert(packet.facts.stemConnections.hiddenHourMayChangeFindings);
