@@ -212,6 +212,35 @@ for(const input of cases){
  // biography, an inner conflict or a generic list of abstract nouns.
  // Customer-value editing MUST come from the ACTUAL month pair, not a
  // type-agnostic word list. This is a scenario, not observed personality.
+ // This is the missing step between a chart dictionary and a payable
+ // reading. The provider gets two authentic traditional perspectives and
+ // a tentative synthesis, without claiming observed behavior.
+ const traditional=strength.readerReasoning.readerValuePlan.traditionalReading;
+ assert.equal(traditional.status,'conditional-traditional-reading-not-observed-personality');
+ assert.equal(traditional.first.sourceId,'natal.month.stem');
+ assert.equal(traditional.first.tenGod,month.stemTenGod);
+ assert.equal(traditional.second.sourceId,'natal.month.hidden.'+mc.mainHiddenStem);
+ assert.equal(traditional.second.tenGod,mc.mainHiddenStemTenGod);
+ assert(traditional.first.reading&&traditional.second.reading);
+ assert(traditional.tentativeThesis.includes(traditional.first.reading)&&
+   (!contrast.monthTenGodContext.sameClassification||traditional.tentativeThesis.includes(traditional.second.reading)));
+ assert(traditional.editorialDuty.includes('무엇을 확인하라는 보편적 조언만 써서 끝내지 않는다'));
+ assert(traditional.evidenceLimit.includes('실제로 그렇게 생각하거나 행동했다는 관찰'));
+ const coreWire=require('./report-wire').schemaFor(p,require('./report-schema.json'));
+ const writtenStrength=coreWire.properties.chapters.properties.saju_core.properties.paragraphs
+  .properties.strength;
+ const coreStrength=(writtenStrength.anyOf||[writtenStrength]).find(x=>x.type==='object');
+ assert(coreStrength.properties.text.description.includes(traditional.tentativeThesis),
+  'billable writer MUST get the ACTUAL month reading rather than an unrelated general example');
+ assert(coreWire.properties.chapters.properties.saju_core.properties.keyJudgment.description
+  .includes('생활 조언이나 자료 분석 계획만으로 대체하지 않는다'));
+ if(input.calendar==='lunar'&&input.birthDate==='1982-11-24'){
+  assert.equal(traditional.first.tenGod,'편인');
+  assert.equal(traditional.second.tenGod,'편재');
+  assert(traditional.tentativeThesis.includes('새로운 정보를 자기 방식으로 해석하고 이해하는 태도')&&
+   traditional.tentativeThesis.includes('여러 곳의 자원을 살피고 필요한 곳에 활용하는 태도'),
+   'paid fixture must receive individually grounded interpretive hypothesis');
+ }
  const monthReaderPlan=strength.readerReasoning.readerValuePlan;
  assert.equal(monthReaderPlan.first.tenGod,month.stemTenGod);
  assert.equal(monthReaderPlan.first.sourceId,'natal.month.stem');
