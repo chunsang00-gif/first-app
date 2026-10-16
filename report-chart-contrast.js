@@ -167,6 +167,32 @@ const VISIBLE_MEANING={
  'day-controls':'내가 다스리는 관계(재물·자원 운영을 살피는 분류)',
  'control-on-day':'나에게 작용하는 관계(규칙·역할·압박을 살피는 분류)'
 };
+// Specific editorial situations for ACTUAL calculated ten-god labels.
+// These are unanswered questions in one imagined scene, NOT user behaviors,
+// traits, favorable-element verdicts, or an MBTI-to-ten-god correspondence.
+const TEN_GOD_DECISION={
+ '비견':'함께할 사람과 자신이 맡을 일을 어떻게 나눌지',
+ '겁재':'공동으로 쓰는 자원과 서로 맡을 몫을 어떻게 정할지',
+ '식신':'만들 결과물을 어떤 순서로 준비하고 보여줄지',
+ '상관':'기존 방식에 다른 아이디어를 어떻게 제안할지',
+ '정재':'반복해서 드는 비용을 어떻게 감당할지',
+ '편재':'필요한 돈과 재료를 어디서 마련하고 어떻게 쓸지',
+ '정관':'정해진 규칙과 맡을 역할을 어떻게 이해할지',
+ '편관':'갑작스러운 요구가 생기면 책임 범위를 어떻게 정할지',
+ '정인':'새로운 일을 누구에게 배우고 어떤 도움을 받을지',
+ '편인':'처음 접하는 정보를 자기 방식으로 어떻게 이해할지'
+};
+function monthHypothetical(visibleKind,visibleMeaning,mainKind,mainMeaning,sameClassification){
+ const first=TEN_GOD_DECISION[visibleKind],second=TEN_GOD_DECISION[mainKind];
+ if(!first||!second)throw Error('Missing verified month ten-god everyday question');
+ // The parenthetical classifications are the PRIVATE source audit for the
+ // provider, not words to be printed in the reader-facing example.
+ const source=' 내부 출처: 겉글자 '+visibleKind+'('+visibleMeaning+'), 중심 숨은 글자 '+
+  mainKind+'('+mainMeaning+').';
+ return sameClassification?
+  '가상의 상황: 새로운 일을 준비하며 '+first+'를 결정해야 한다고 가정한다. 같은 전통 분류가 출생월의 두 위치에서 확인된 사실을 이 질문에 연결하되, 위치가 두 곳이라는 이유로 행동 성향이 더 강하다고 하지 않는다.'+source:
+  '가상의 상황: 새로운 일을 준비하며 '+first+'와 '+second+'를 함께 고민해야 한다고 가정한다. 두 질문의 계산 출처와 역할을 구별하고, 실제로 이런 고민을 해 봤거나 서로 다른 두 성격이 충돌한다고 주장하지 않는다.'+source;
+}
 function readerQuestions(contrast,topic){
  const points=contrast.contrastPoints||[];
  const month=points.find(p=>p.kind==='month-vs-day')?.evidence;
@@ -221,9 +247,8 @@ function readerQuestions(contrast,topic){
    contrastQuestion:'태어난 달의 겉글자와 중심 숨은 글자가 나타내는 전통적 질문을 어떻게 함께 읽는가?',
    reasoningTask:readerContext+
     '두 분류의 전통적인 의미와 실제 출생 위치의 차이를 구체적으로 설명한다. 뿌리나 충은 그 의미에 실제로 영향을 주는 보조 조건일 때만 다룬다. 재산·능력·사건·마음속 균형·성격 양면성을 만들어 내지 않는다.',
-   hypotheticalQuestion:monthTenGod.sameClassification?
-    '가상의 상황: '+visibleKind+'의 '+visibleMeaning+'라는 전통적 질문이 출생월 겉과 안의 두 위치에서 어떻게 반복되는지 설명한다. 두 개라는 이유로 성향의 강도를 단정하지 않는다.':
-    '가상의 상황: '+visibleKind+'의 '+visibleMeaning+'라는 질문과 '+mainKind+'의 '+mainMeaning+'라는 질문이 각각 어떤 때 필요한지 비교한다. 실제 경험이나 두 성격의 충돌을 만들지 않는다.',
+   hypotheticalQuestion:monthHypothetical(visibleKind,visibleMeaning,mainKind,mainMeaning,
+    monthTenGod.sameClassification),
    interpretivePayoff:'독자는 태어난 달의 두 출처가 전통적으로 무엇을 뜻하는지, 같은 분류와 서로 다른 분류를 각각 어떻게 구별하는지 이해한다.',
    sourceAudit
   };
