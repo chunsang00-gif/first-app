@@ -36,7 +36,7 @@ jobs:
         with:
           name: premium-first-chapter-qa
           run-id: 38849907090
-          github-token: \${{ github.token }}
+          github-token: ${{ github.token }}
           path: .private-latest-first-chapter
       - name: Detect archived first-chapter strength and wording defects with updated quality gate
         shell: bash
