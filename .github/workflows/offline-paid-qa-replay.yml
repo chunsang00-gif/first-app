@@ -16,6 +16,10 @@ jobs:
       # Neither a real API key nor a paid model provider is configured here.
       OPENAI_API_KEY: ''
       REPORT_MODEL_URL: ''
+      # Only used to validate the ORIGINAL paid fingerprint and exact model.
+      REPORT_MODEL: ${{ vars.REPORT_MODEL }}
+      QA_PROVIDER_ARCHIVE: ${{ github.workspace }}/.private-replay/private-qa-report-provider-calls.json
+      QA_RECOVERY_CHECKPOINT: ${{ github.workspace }}/.private-replay/recovered-validated-batch.json
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -60,3 +64,12 @@ jobs:
           }
           console.log('PASS: the actual first paid batch cleared report validation; no second archived call exists. Zero paid requests.');
           NODE
+      - name: Recover paid first batch as an opt-in private checkpoint, without billing
+        run: node recover-paid-report-qa-checkpoint.js
+      - name: Preserve verified recovery checkpoint for explicitly approved continuation
+        uses: actions/upload-artifact@v4
+        with:
+          name: first-batch-verified-checkpoint
+          path: .private-replay/recovered-validated-batch.json
+          if-no-files-found: error
+          retention-days: 1
