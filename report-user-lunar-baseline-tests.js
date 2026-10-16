@@ -162,6 +162,33 @@ const result=(first=seasonRefs,second=rootRefs)=>({chapters:{saju_core:{
   condition:'출생 위치를 확인합니다.',limit:'신강약과 실제 능력은 확정하지 않습니다.'}}
  }}}});
 assert.doesNotThrow(()=>writer.restoreEvidence(result(),prompt));
+// This matches the just-paid provider's citation pattern, without shipping
+// any user-visible/private report prose into the public test repository.
+const observedOnly=['facts.stemConnections','facts.rootConditions',...rootPlaces];
+assert(rootPlaces.length>0,'canonical lunar sample must provide real rooted positions');
+assert(!observedOnly.includes('facts.structuralEvidence.dayMasterRoots'));
+const sparseResponse=result(seasonRefs,observedOnly);
+const completed=writer.restoreEvidence(sparseResponse,prompt);
+assert(completed.chapters.saju_core.paragraphs.strength.basis.refs.includes(
+ 'facts.structuralEvidence.dayMasterRoots'),
+ 'attach canonical root summary only after all actual hidden roots were cited');
+assert.deepEqual(sparseResponse.chapters.saju_core.paragraphs.strength.basis.refs,observedOnly,
+ 'never silently rewrite the provider raw response or saved paid diagnostic');
+const mutated=structuredClone(transport);
+mutated.source['facts.structuralEvidence.dayMasterRoots'][0].sameElementStems=[];
+for(const root of mutated.source['facts.structuralEvidence.dayMasterRoots']){
+ if(rootPlaces.some(x=>x.startsWith('natal.'+root.position+'.hidden.')))
+  root.sameElementStems=[];
+}
+assert.deepEqual(writer.completeRootSummaryCitation(mutated,observedOnly),observedOnly,
+ 'a structural mismatch must fail closed rather than auto-credit roots');
+const inaccurate=structuredClone(transport);
+inaccurate.source['facts.rootConditions'].dayMasterRootCases=[];
+assert.deepEqual(writer.completeRootSummaryCitation(inaccurate,observedOnly),observedOnly,
+ 'root condition records are mandatory to auto-complete a provenance link');
+assert.deepEqual(writer.completeRootSummaryCitation(transport,observedOnly.slice(0,-1)),
+ observedOnly.slice(0,-1),'missing even one observed root may not be auto-completed');
+
 const missingSeason={
  'facts.seasonalEvidence':/missing required month seasonal source/,
  'facts.qiEvidence':/missing required positional qi evidence/,
