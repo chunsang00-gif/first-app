@@ -68,11 +68,16 @@ for(const [label,birth] of Object.entries({lunar,solar})){
  assert(compiled.source['facts.stemConnections']);
  assert(compiled.source['facts.rootConditions']);
  const valid=provider.schema(prompt,wire.schemaFor(prompt,schema));
- const allowed=valid.properties.chapters.properties.saju_core.properties.paragraphs.properties
-  .temperament.properties.basis.properties.refs.items.enum;
- for(const required of ['facts.seasonalEvidence','facts.qiEvidence','facts.stemConnections',
-  'facts.rootConditions','natal.month.stem'])
-  assert(allowed.includes(required),label+' missing required source '+required);
+ const topics=valid.properties.chapters.properties.saju_core.properties.paragraphs.properties;
+ const month=topics.temperament.properties.basis.properties.refs.items.enum;
+ const strength=topics.strength.anyOf?.find(x=>x.type==='object')?.properties?.basis?.properties?.refs?.items?.enum||
+  topics.strength.properties.basis.properties.refs.items.enum;
+ for(const required of ['facts.seasonalEvidence','facts.qiEvidence','natal.month.stem'])
+  assert(month.includes(required),label+' missing month/visible source '+required);
+ for(const required of ['facts.stemConnections','facts.rootConditions'])
+  assert(strength.includes(required),label+' missing second-paragraph root source '+required);
+ assert(!month.includes('facts.stemConnections')&&!month.includes('facts.rootConditions'),
+  label+' core seasonal paragraph must not claim root/clash provenance');
 }
 // The adjacent lunar day is a *different* birth instant. It must never
 // inherit the historical sample's day pillar or calculated evidence.
