@@ -35,19 +35,19 @@ async function test(){
   };
   process.env.REPORT_QA_OUTPUT=path.join(directory,'first.json');
   await require('./run-paid-first-chapter-qa').run();
-  assert.equal(process.exitCode||0,0,'first-chapter archival QA should succeed on already-verified real response');
-  assert.equal(calls,1);
-  const result=JSON.parse(fs.readFileSync(process.env.REPORT_QA_OUTPUT,'utf8'));
-  assert.equal(result.providerCalls,1);
-  assert.equal(result.releaseVerdict,'not-assessed');
-  assert.equal(result.humanReviewRequired,true);
+  assert.equal(process.exitCode,1,
+   'prior paid technical-first draft must now FAIL the improved reader-quality gate');
+  process.exitCode=0; // deliberate negative test
+  assert.equal(calls,1,'failed reader gate must never retry the provider');
+  assert.equal(fs.existsSync(process.env.REPORT_QA_OUTPUT),false,
+   'rejected paid draft must not be labeled as a validated first chapter');
+  assert.equal(fs.existsSync(path.join(directory,'first-validated-first-chapter.json')),false,
+   'rejected paid draft must never create a validated checkpoint');
   const original=JSON.parse(fs.readFileSync(path.join(directory,'first-provider-calls.json'),'utf8'));
   assert.equal(original.calls.length,1);
   assert.equal(original.calls[0].request.task.chapters.saju_core.topics.strength.evidenceFocus.readerReasoning?.contrastQuestion.length>20,true);
-  const checkpoint=JSON.parse(fs.readFileSync(path.join(directory,'first-validated-first-chapter.json'),'utf8'));
-  assert.deepEqual(checkpoint.batches.map(x=>x.ids),[['saju_core']]);
-  assert.equal(checkpoint.releaseVerdict,'not-assessed');
-  assert.equal(fs.statSync(path.join(directory,'first-provider-calls.json')).mode&0o777,0o600);
+  assert.equal(fs.statSync(path.join(directory,'first-provider-calls.json')).mode&0o777,0o600,
+   'paid draft archive must remain private even when quality validation fails');
   // And a malformed charged output is retained, without any second call.
   calls=0;
   global.fetch=async()=>{
@@ -63,7 +63,7 @@ async function test(){
   assert.equal(malformed.calls.length,1);
   assert.equal(malformed.calls[0].response.status,'invalid_json');
   assert.equal(fs.existsSync(path.join(directory,'malformed-validated-first-chapter.json')),false);
-  console.log('PASS one-call first-chapter QA: actual old provider response validates once, malformed response archived once, zero real provider requests');
+  console.log('PASS one-call first-chapter QA: obsolete paid draft and malformed response each rejected after exactly one mock call, both originals kept private, no real API requests');
  }finally{
   global.fetch=previous.fetch;
   for(const [k,v] of [['OPENAI_API_KEY',previous.key],['REPORT_MODEL',previous.model],
