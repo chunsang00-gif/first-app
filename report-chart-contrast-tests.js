@@ -79,6 +79,19 @@ for(const input of cases){
   analysisGuidance:{...guidance.forRequest(['saju_core'],input.mbti),
    editorialBlueprint:{saju_core:blueprint.saju_core}}};
  const request=generation.compile(p);
+ const transportGuard=require('./report-instruction-audit');
+ assert.deepEqual(transportGuard.inspectTransport(p,request),[],
+  'actual first-chapter brief must match this birth chart before any paid call');
+ const changedReader=structuredClone(request);
+ changedReader.task.chapters.saju_core.topics.temperament.evidenceFocus.readerQuestion='근거 없는 성격 설명';
+ assert(transportGuard.inspectTransport(p,changedReader).includes(
+  'core-reader-evidence-brief-drift:saju_core/temperament'),
+  'replacing customer question must be stopped before model billing');
+ const changedAudit=structuredClone(request);
+ changedAudit.task.chapters.saju_core.topics.strength.evidenceFocus.sourceAudit='충과 뿌리의 실제 확인 없음';
+ assert(transportGuard.inspectTransport(p,changedAudit).includes(
+  'core-reader-evidence-brief-drift:saju_core/strength'),
+  'changed natal source audit must be stopped before model billing');
  const core=request.task.chapters.saju_core;
  assert.equal(Object.hasOwn(core,'chartContrast'),false,
   'do not send four unassigned comparisons in a wide chapter blob');
