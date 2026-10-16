@@ -10,8 +10,13 @@ assert(paidWorkflow.includes('run: npm test && npm run smoke'),'manual paid QA m
 assert(paidWorkflow.includes('on:\n  workflow_dispatch:')&&
  !/on:\n  push:/.test(paidWorkflow),
  'paid QA must remain manual-only, never automatic on push');
-assert(paidWorkflow.includes('test "${#REPORT_QA_ARCHIVE_KEY}" -ge 32'),
- 'a dedicated archive encryption secret must be verified BEFORE model billing');
+assert(paidWorkflow.includes('test "${#OPENAI_API_KEY}" -ge 32')&&
+ !paidWorkflow.includes('test "${#REPORT_QA_ARCHIVE_KEY}"'),
+ 'paid QA must reuse the already configured API secret for encryption, not force a NEW user key');
+assert(paidWorkflow.includes('          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}\\n')===false,
+ 'workflow text should contain a real newline rather than escaped YAML value');
+assert(!paidWorkflow.includes('secrets.REPORT_QA_ARCHIVE_KEY'),
+ 'legacy archive secret must not be mandatory in manual QA steps');
 assert(paidWorkflow.includes('run: node report-qa-secure-archive.js encrypt'),
  'encrypted packaging must run even after quality rejection');
 assert(paidWorkflow.includes('retention-days: 30'),
@@ -27,11 +32,13 @@ assert(!paidWorkflow.slice(0,paidWorkflow.indexOf('    steps:')).includes('OPENA
  const path=require('node:path'),os=require('node:os');
  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'saju-secure-qa-test-'));
  const prior=process.env.REPORT_QA_ARCHIVE_KEY;
+ const priorApi=process.env.OPENAI_API_KEY;
  const key='qa-test-independent-secret-0123456789-abcdef-0123456789';
  try{
   delete process.env.REPORT_QA_ARCHIVE_KEY;
-  assert.throws(()=>secureArchive.encrypt(dir),/dedicated secret/);
-  process.env.REPORT_QA_ARCHIVE_KEY=key;
+  delete process.env.OPENAI_API_KEY;
+  assert.throws(()=>secureArchive.encrypt(dir),/already configured OpenAI API key/);
+  process.env.OPENAI_API_KEY=key;
   const rawName='private-qa-first-chapter-provider-calls.json';
   const raw='paid-model-response-visible-only-after-decrypt-1234567';
   fs.writeFileSync(path.join(dir,rawName),raw,{mode:0o600});
@@ -49,15 +56,17 @@ assert(!paidWorkflow.slice(0,paidWorkflow.indexOf('    steps:')).includes('OPENA
   assert.throws(()=>secureArchive.decrypt(altered,path.join(dir,'tampered-output')),
    'authenticated archive must reject modification before writing plaintext');
   assert(!fs.existsSync(path.join(dir,'tampered-output')));
-  process.env.REPORT_QA_ARCHIVE_KEY='independent-wrong-passphrase-1234567890';
+  process.env.OPENAI_API_KEY='independent-wrong-passphrase-1234567890';
   assert.throws(()=>secureArchive.decrypt(archiveFile,path.join(dir,'wrong-key')),
    'wrong secret must not produce QA plaintext');
  }finally{
   if(prior===undefined)delete process.env.REPORT_QA_ARCHIVE_KEY;
   else process.env.REPORT_QA_ARCHIVE_KEY=prior;
+  if(priorApi===undefined)delete process.env.OPENAI_API_KEY;
+  else process.env.OPENAI_API_KEY=priorApi;
   fs.rmSync(dir,{recursive:true,force:true});
  }
- console.log('PASS first-chapter QA archive: AES-GCM roundtrip, confidentiality, tamper and wrong-key rejection, manual-only billing');
+ console.log('PASS first-chapter QA archive: encrypted with existing API secret; no extra user key; AES-GCM tamper and wrong-key rejection');
 }
 const workflow=fs.readFileSync(require('node:path').join(__dirname,'.github/workflows/test.yml'),'utf8');
 assert(workflow.includes("github.ref != 'refs/heads/saju-mbti-app'")&&
