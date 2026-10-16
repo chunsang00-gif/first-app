@@ -21,19 +21,23 @@ const paragraph=(question,optional=false,readerRole=null)=>{
 function coreReaderRoles(prompt){
  const contrast=require('./report-chart-contrast').build(prompt?.facts);
  const month=contrast?.monthTenGodContext;
- const focus=contrast&&require('./report-chart-contrast').forTopic(contrast,'strength',[])?.readerReasoning?.readerValuePlan;
+ const coreContrast=require('./report-chart-contrast');
+ const seasonal=contrast&&coreContrast.forTopic(contrast,'temperament',[])?.readerReasoning;
+ const focus=contrast&&coreContrast.forTopic(contrast,'strength',[])?.readerReasoning?.readerValuePlan;
  const one=focus?.first?.question;
  const two=focus?.second?.question;
  return {
   temperament:{
    label:'태어난 계절과 겉에 확인된 오행의 관계를 이 문단에서 실제 설명한 생활 질문으로 짧게 나타낸다. 두 번째 문단의 배움·돈·재료 질문을 소제목으로 빼앗지 않는다.',
-   text:'계절 이름이나 겉글자 개수를 나열하는 기술 설명만으로 끝내지 않는다. 확인된 계절·겉글자 관계가 전통적으로 어떤 질문을 다루는지 쉬운 문장으로 먼저 풀고, 그 질문이 도움이 되는 가상 상황 하나를 제시한다. 계절 분류를 실제 적응력·학습 능력·생활 경험으로 단정하지 않는다.'
+   text:'출생 시기의 특징이나 글자의 뜻을 세 문장 이상 나열해 기술 강의로 만들지 않는다. 핵심 풀이를 먼저 말하고 계산된 출생 계절·겉글자의 전통적 의미를 짧게 연결한 다음 실제로 이해되는 가상 장면 하나에서 무엇을 고려하는지 풀어 쓴다. '+
+    (seasonal?.hypotheticalQuestion?'이 입력에서 확인된 관계에 맞춘 가상의 장면: '+seasonal.hypotheticalQuestion+' ':'')+
+    '예시는 실제 생활 이력이나 관찰된 성격이 아니다. 계절 변화만으로 적응력이나 학습 능력을 판정하지 않으며 뜻을 설명했습니다 같은 작성 과정 문장으로 끝내지 않는다.'
   },
   strength:{
    label:'실제로 본문에서 비교한 태어난 달의 서로 다른 두 전통적 질문을 소제목에 간결하게 드러낸다. 뿌리·충·강약처럼 이 문단에 없는 계산 주제를 제목에 붙이지 않는다.',
    text:'이 문단은 태어난 달의 겉글자와 중심 숨은 글자에 기록된 두 전통적 의미만 풀이한다.'+
     (one&&two?' 첫 출처의 실제 질문은 '+one+'이며 둘째 출처의 실제 질문은 '+two+'이다.':'')+
-    ' 새 일을 준비하는 가상의 한 선택 상황에서 두 질문에 각각 답해야 하는 이유와 어느 질문을 건너뛰면 검토가 부족해지는지 설명한다. 서로 다른 두 전통적 뜻을 실제 성격의 모순·갈등이나 능력의 증거로 바꾸지 않는다. 첫 문단의 계절 설명을 반복하지 않는다.'
+    ' 출생 상징의 사전적 의미만 여러 문장으로 풀이하지 말고 새 일을 준비하는 가상의 한 선택 상황에서 두 질문에 각각 답해야 하는 이유와 어느 질문을 건너뛰면 검토가 부족해지는지 장면과 결과의 차이로 설명한다. 한 문단의 끝을 이는 전통적 해석의 출발점입니다 같은 해설로 마무리하지 않는다. 서로 다른 뜻을 실제 성격의 모순·갈등이나 능력의 증거로 바꾸지 않는다. 첫 문단의 계절 설명을 반복하지 않는다.'
   }
  };
 }
