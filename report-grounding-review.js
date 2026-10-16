@@ -24,6 +24,10 @@ function inspect(report,packet=null){
   // never the magnitude of a clash. Correct denials are not overclaims.
   const fields=[section.title,section.keyJudgment,...(section.bodyLabels||[]),...(section.body||[])]
    .filter(x=>typeof x==='string');
+  // Root/clash evidence is required internally; avoid technical-first headings.
+  const headings=[section.title,...(section.bodyLabels||[])].filter(x=>typeof x==='string');
+  if(headings.some(x=>/(?:뿌리|통근|지장간|원국|월지|일지|시지|천간|오행|충\\s*관계)/.test(x)))
+   blockingErrors.push('saju_core:technical-evidence-used-as-reader-headline');
   // A claimed natal clash must name its actual two positions. Two roots
   // can clash separately with the MONTH without clashing with each other.
   const natalPairs=packet?.facts?.natalClashes||[];

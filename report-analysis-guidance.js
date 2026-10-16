@@ -2,7 +2,7 @@
 // These are questions and interpretation limits, never precomputed personality claims.
 // Include only the current chapters, keeping the existing paid call count unchanged.
 const chapters={
- saju_core:{focus:'겉글자와 달 속의 숨은 글자, 같은 오행의 뿌리 위치 및 충과 계절 전환을 구별하여 각각 전통적으로 무엇을 살피는지 풀이한다. 한 출처의 의미로 실제 성격을 확정하지 않는다. 겉글자가 한 방향이면 겉에 반대 성향을 꾸미지 않는다. 확인되지 않은 내적 긴장·적응력·자기주장·능력을 성격 사실처럼 덧붙이지 않는다. 계산 출처는 내부 기록에 남기고 독자에게는 그 관계가 무엇을 의미하는지 실제 상황을 가정해 쉬운 문장으로 설명한다.',avoid:'상관 하나만 보고 반항적이라고 결론내리거나 정재 하나로 성실함을 확정하지 않는다. 월지의 계절과 출현 횟수만으로 신강·신약·용신을 판정하지 않는다.'},
+ saju_core:{focus:'독자가 자신의 기본 기질과 그 해석에 유리하거나 불리한 조건을 이해하도록 쓰는 장이다. 출생 계절·겉글자·같은 기운의 뿌리·정확한 충 쌍은 내부에서 구분해 검증하고, 독자에게는 전통적 상징이 가리키는 질문과 상황을 쉬운 문장으로 설명한다. 뿌리·충의 위치 목록이나 용어 정의를 제목이나 본문의 중심에 내세우지 않는다. 반대 방향이 계산되지 않았으면 성격의 양면성이나 갈등을 만들지 않고 실제 성격·능력·적응력·사건을 단정하지 않는다.',avoid:'상관 하나만 보고 반항적이라고 결론내리거나 정재 하나로 성실함을 확정하지 않는다. 월지의 계절과 출현 횟수만으로 신강·신약·용신을 판정하지 않는다.'},
  mbti_contradiction:{focus:'MBTI는 독립된 심리적 선호 모형으로 먼저 읽는다. 에너지를 회복하며 주의를 향하는 방식(I/E), 정보의 구체성·가능성을 다루는 방식(S/N), 결정에서 논리·가치에 무게를 두는 방식(T/F), 외부 일정을 닫거나 열어 두는 방식(J/P)이 하나의 선택 과정에서 어떻게 결합되는지 설명한다. 다음으로 동일한 상황을 사주와 별도로 해석해 강화·충돌·보완 또는 근거 부족을 구분한다. MBTI 선호가 행동의 실제 빈도나 능력의 증거인 것처럼 쓰지 않는다.',avoid:'I는 조용함, F는 착함, P는 미루기라는 설명으로 끝내거나 반전을 억지로 만들지 않는다. MBTI에는 환경이나 압박이 포함되지 않고 사주는 실제 반응을 알 수 있다는 식으로 두 이론의 우열을 만들지 않는다. 두 풀이 모두 입력하지 않은 실제 행동을 확인할 수 없다. 이론의 설명 범위 자체를 제목이나 개인별 결론으로 대신하지 않는다.'},
  decision:{focus:'결정 장은 실제 선택 과정만 다룬다. 정보의 출처, 선택지 비교, 새로운 정보가 나왔을 때 판단을 수정하는 조건을 순서대로 구분한다. 사주 원국에서 다룬 타인의 요구에 반응하거나 이유를 설명하는 성향을 다시 풀이하지 않는다.',avoid:'자기 의견을 말한다는 원국 설명을 반복하거나 신중하다는 한마디로 대체하지 않는다.'},
  money:{focus:'돈을 버는 데 들이는 수고, 지출의 우선순위, 당장 쓸 돈과 남길 돈 사이의 선택을 구분한다. 소비 습관이나 소득은 실제 관측값이 아님을 전제로 해석한다.',avoid:'정재=절약, 겁재=금전 손실로 확정하지 않는다. 모든 사람에게 공동투자·계약서 확인을 주된 결론으로 붙이지 않는다. 재성·식상 직접 계산 근거 없이 일간의 자기주장이나 월지의 규칙·압박을 수입 선택, 보상 선호, 실제 소비 습관으로 바꾸어 쓰지 않는다. 충이 없다는 이유로 금전 손실 위험이 발견되지 않았다고 단정하지 않는다.'},
@@ -52,7 +52,7 @@ function forRequest(ids,mbti){
 // Deterministic editorial blueprint created BEFORE any paid writing call.
 // This is not a fabricated interpretation: fields refer only to calculated facts.
 const chapterBlueprint={
- saju_core:{question:'사주의 겉글자·숨은 글자·뿌리·충에서 계산으로 확인된 차이는 무엇인가?',primary:'facts.structuralEvidence.monthCommand',lens:'기본 명리 근거 설명'},
+ saju_core:{question:'기본 기질을 어떻게 풀이하며 어떤 조건이 그 전통적 해석을 달리하게 하는가?',primary:'facts.structuralEvidence.monthCommand',lens:'기본 기질과 해석을 뒷받침하는 조건'},
  mbti_contradiction:{question:'새로운 일을 맡을지 결정하는 상황에서 입력 MBTI의 선호와 이 사주의 풀이가 같은 선택을 설명하는가? 차이는 근거가 있을 때만 설명한다.',primary:'person.mbti',lens:'같은 선택 상황에서 두 풀이 비교'},
  decision:{question:'선택지를 비교하는 선호와 결정을 고치는 조건을 어떻게 구분할까?',primary:'facts.tenGods.day',lens:'정보 탐색과 선택 변경'},
  money:{question:'돈을 얻는 활동과 쓰고 보유하는 판단은 어떻게 별도로 해석할까?',primary:'facts.tenGods.month',lens:'금전 관련 전통 해석의 범위'},

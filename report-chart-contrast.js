@@ -206,6 +206,12 @@ function forTopic(contrast,topic,allowedIds){
   return {kind,sourceRefs,calculatedExplanation:item.calculatedExplanation,question:item.question};
  });
  return {scope:topic,points,readerReasoning:readerQuestions(contrast,topic),
-  policy:'두 계산 차이의 연결 이유와 전통적 해석 범위를 설명한 뒤, readerReasoning.hypotheticalQuestion에 가정형으로 답한다. 가정은 실제 개인 경험이 아니다. 한계는 내부 검증용 basis.limit에 기록하고 독자용 문단에서 여러 번 반복하지 않는다. 계산된 전통 상징의 뜻과 다른 출처를 함께 읽는 이유를 본문 중심에 둔다. 고객용 본문에는 내부 참조 ID 및 한자를 옮기지 않는다.'};
+  readerQuestion:topic==='temperament'?
+   '내 기본 기질을 전통적으로 어떻게 해석하며 어느 실제 근거에서 나오는가?':
+   '기본 기질의 풀이를 뒷받침하거나 주의해서 읽게 하는 조건은 무엇인가?',
+  internalEvidenceRole:topic==='temperament'?
+   '계절과 겉글자 관계의 계산 근거로만 전통적 기본 기질을 해석':
+   '실제 뿌리 위치와 정확한 충 관계 쌍을 내부에서 확인하여 과장된 성격 해석을 차단',
+  policy:'먼저 독자가 궁금한 기본 기질과 해석 조건에 답한다. 계산 points는 검증 근거이지 뿌리·충을 설명하는 교재의 목차가 아니다. 전통적 의미와 가상 상황을 자연스럽게 풀이하되 측정하지 않은 성격·능력·사건은 만들지 않는다. readerReasoning.hypotheticalQuestion은 가상 적용에만 사용하며 basis.limit에서 한계를 기록한다. 제목과 문단 라벨에 뿌리·통근·충·월지 같은 기술 용어를 내세우지 않는다. 내부 참조 ID와 한자를 고객에게 복사하지 않는다.'};
 }
 module.exports={build,forTopic,TOPIC_POINTS};
