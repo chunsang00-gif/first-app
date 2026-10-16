@@ -68,7 +68,7 @@ const chapterBlueprint={
 // Topic ownership is a fixed editorial distinction, not a claim about a person.
 // This prevents the same topic answer being requested by multiple chapters.
 const topicEvidencePaths={
- saju_core:{temperament:'facts.structuralEvidence.monthCommand',strength:'facts.structuralEvidence.dayMasterRoots'},
+ saju_core:{temperament:'facts.structuralEvidence.monthCommand',strength:'facts.tenGods.month'},
  mbti_contradiction:{agreement:'person.mbti',difference:'facts.tenGods.month'},
  decision:{approach:'facts.tenGods.day',followthrough:'facts.natalClashes'},
  money:{earning:'facts.tenGods.month',spending:'facts.tenGods.day',risk:'facts.natalClashes'},
@@ -130,18 +130,13 @@ function preflight(packet){
     interpretationBoundary:mode==='use-primary'?'전통적 해석의 연결 가능성만 설명하고 실제 행동으로 입증된 것처럼 단정하지 않는다.':mode==='use-verified-fallback'?'우선 계산값이 없으므로 실제 확인된 보조 근거만 사용한다. 보조 근거를 주된 근거처럼 말하거나 사건을 단정하지 않는다.':'다른 세부 항목의 성격 설명으로 채우지 말고 이 질문에서 판단할 수 없는 범위를 밝힌다.'}];
   }));
  }
- // The second core topic owns actual natal root provenance, not personal
- // strength, personality advantages, or a made-up inner contradiction.
- if(plans.saju_core.topicTasks.strength.mode!=='state-limits'){
-  // This is the SAME mandatory-root policy enforced by restoreEvidence.
-  // No provider request should ask for a source that is absent.
-  plans.saju_core.topicTasks.strength.requiredSourceKinds=[
-   ...(packet.facts?.stemConnections?['stem-linkage']:[]),
-   ...(packet.facts?.rootConditions?['root-condition']:[])
-  ];
- }
+ // The second core topic starts from ACTUAL month-position ten-god
+ // relationships. Roots and natal clashes stay optional internal checks.
+ // A valid symbolic interpretation cannot require inventing a root.
+ if(plans.saju_core.topicTasks.strength.mode!=='state-limits')
+  plans.saju_core.topicTasks.strength.requiredSourceKinds=['month-ten-god'];
  plans.saju_core.topicTasks.strength.interpretationBoundary=
-  '일간과 같은 오행이 실제 발견된 숨은 글자 위치 및 원국 충이 겹치는 위치를 각각 구별한다. 근거는 출생 사주의 상징 관계이며 신강약·자기주장·내적 안정·실제 적응력의 관찰 결과가 아니다. 뿌리가 없으면 없는 것으로 설명하고 다른 숨은 글자를 뿌리처럼 인용하지 않는다.';
+  '태어난 달의 겉글자 십성과 그 달의 실제 중심 숨은 글자 십성을 각각 확인한다. 분류가 다르면 두 전통적 질문을 구별하고, 같으면 거짓 갈등을 만들어내지 않는다. 둘 모두 성격·재산·능력·실제 경험을 증명하지 않는다. 뿌리·충은 관련성을 설명할 수 있을 때만 추가 검토하며 강약 점수·마음속 균형·행동의 두 중심을 만들어내지 않는다.';
  // One deterministic eligibility planner for domain-specific writing.
  // A ten-god classification is a traditional symbol, never a measurement
  // of a person's actual wealth, work, relationships or stress responses.
