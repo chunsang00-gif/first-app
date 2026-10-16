@@ -34,4 +34,44 @@ const old=review({sections:[
 for(const code of ['mbti-rigidity-review','unobserved-reputation-review','repeated-standards-context-review'])
  assert(old.findings.some(f=>f.code===code),'preserve existing reviewer signal: '+code);
 assert.equal(review({sections:[]}).releaseVerdict,'not-assessed');
+// Stage 4 factual inference regression: the fact classification may be
+// accurate but its conversion into a customer's ACTUAL ability is not.
+const factualQA=require('./report-quality-node').verifyEvidenceAgainstFacts;
+const calculated={facts:{tenGods:{}}};
+const overreaches=[
+ ['money','정재가 있으니 돈을 잘 관리합니다.'],
+ ['money','편재가 있어서 투자에 성공합니다.'],
+ ['career','식신이 있으므로 업무 능력이 뛰어납니다.'],
+ ['career','인성이 있어서 배우는 속도가 빠릅니다.'],
+ ['career','정관이 있으니 직장에서 인정받습니다.'],
+ ['relationship','충이 없어서 다투지 않습니다.'],
+ ['saju_core','전환월이라서 변화에 잘 적응합니다.'],
+ ['saju_core','뿌리가 두 곳이라서 마음속에 두 중심이 있습니다.'],
+ ['year_2027_money','2027년 정재가 있으니 돈을 잘 벌게 됩니다.']
+];
+for(const [id,claim] of overreaches){
+ const errors=factualQA({sections:[{id,keyJudgment:claim,body:[],evidence:[]}]},calculated).errors;
+ assert(errors.some(x=>x.includes('unsupported real-world inference from calculated symbol')),
+  'computed symbol must not be converted into an observed real-life claim: '+id+' '+claim);
+}
+const bounded=[
+ ['money','정재는 재물과 대가를 살펴보는 전통적인 분류입니다.'],
+ ['money','정재가 있다고 돈 관리를 잘한다고 단정할 수 없습니다.'],
+ ['career','인성이 있어서 배우는 속도가 빠르다고 단정할 수 없습니다.'],
+ ['relationship','충이 없어도 사람과 다투지 않는다는 뜻은 아닙니다.'],
+ ['saju_core','계절의 전환월은 계산된 배경이지 적응력을 측정한 값이 아닙니다.'],
+ ['career','예를 들어 인성이 있어서 배우는 속도가 빠르다고 가정해 봅니다. 실제 확인된 능력은 아닙니다.'],
+ ['career','정관이 있으니 역할과 규칙을 살펴보는 전통적 질문을 다룹니다.']
+];
+for(const [id,claim] of bounded){
+ const errors=factualQA({sections:[{id,keyJudgment:claim,body:[],evidence:[]}]},calculated).errors;
+ assert(!errors.some(x=>x.includes('unsupported real-world inference from calculated symbol')),
+  'properly qualified or traditional statement must not be rejected: '+claim);
+}
+assert(factualQA({sections:[],cover:{headline:'정재가 있으니 돈을 잘 관리합니다.'}},calculated)
+ .errors.some(x=>x.startsWith('cover: unsupported real-world inference')),
+ 'cover must not launder unsourced real-world achievements');
+assert(factualQA({sections:[],finalJudgment:{headline:'핵심',body:['정관이 있으니 직장에서 인정받습니다.']}},calculated)
+ .errors.some(x=>x.startsWith('finalJudgment: unsupported real-world inference')),
+ 'final synthesis must not launder unsourced real-world achievements');
 console.log('PASS historical premium semantic review leads and negation controls; no paid API calls');
