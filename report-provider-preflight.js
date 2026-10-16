@@ -99,7 +99,7 @@ function inspect(prompt,payload,schema){
     // Root and clash evidence is optional. Requiring it here would
     // contradict the canonical month-ten-god writing plan.
     const pair=directive.evidenceFocus?.points||[];
-    const expected=[focus.monthStem.sourceId,focus.monthMainHidden.sourceId];
+    const expected=[focus?.monthStem?.sourceId,focus?.monthMainHidden?.sourceId];
     if(pair.length!==1||pair[0]?.kind!=='month-ten-god-pair'||
        JSON.stringify(pair[0]?.sourceRefs)!==JSON.stringify(expected))
      note('core-month-ten-god-focus-contaminated:'+id+'/'+topic);
