@@ -150,7 +150,7 @@ for(const ref of rootBaseRefs)assert(expectedRootRefs.includes(ref),'root schema
 assert(!expectedSeasonRefs.includes('facts.rootConditions')&&!expectedSeasonRefs.includes('facts.stemConnections'));
 const rootPlaces=(transport.source['facts.stemConnections']?.dayMasterRooting?.sameElementRoots||[])
  .map(x=>x.hiddenId);
-const rootRefs=[...rootBaseRefs,...(rootPlaces[0]?[rootPlaces[0]]:[])];
+const rootRefs=['natal.month.stem',...rootBaseRefs,...(rootPlaces[0]?[rootPlaces[0]]:[])];
 const result=(first=seasonRefs,second=rootRefs)=>({chapters:{saju_core:{
  title:'출생 계산에 근거한 풀이',keyJudgment:'출생 자료의 서로 다른 계산 위치를 확인했습니다.',
  mood:'reflective',paragraphs:{
@@ -164,7 +164,7 @@ const result=(first=seasonRefs,second=rootRefs)=>({chapters:{saju_core:{
 assert.doesNotThrow(()=>writer.restoreEvidence(result(),prompt));
 // This matches the just-paid provider's citation pattern, without shipping
 // any user-visible/private report prose into the public test repository.
-const observedOnly=['facts.stemConnections','facts.rootConditions',...rootPlaces];
+const observedOnly=['natal.month.stem','facts.stemConnections','facts.rootConditions',...rootPlaces];
 assert(rootPlaces.length>0,'canonical lunar sample must provide real rooted positions');
 assert(!observedOnly.includes('facts.structuralEvidence.dayMasterRoots'));
 const sparseResponse=result(seasonRefs,observedOnly);
