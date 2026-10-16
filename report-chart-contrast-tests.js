@@ -124,6 +124,38 @@ for(const input of cases){
  const transportGuard=require('./report-instruction-audit');
  assert.deepEqual(transportGuard.inspectTransport(p,request),[],
   'actual first-chapter brief must match this birth chart before any paid call');
+ // The real provider receives JSON-schema descriptions, not the full
+ // server-only editorial rule set. Verify the schema pairs each public
+ // headline, one-sentence conclusion and paragraph label with the actual
+ // two independently calculated customer questions.
+ const wire=require('./report-wire');
+ const outputSchema=wire.schemaFor(p,require('./report-schema.json'));
+ const chapterSchema=outputSchema.properties.chapters.properties.saju_core.properties;
+ const paragraphs=chapterSchema.paragraphs.properties;
+ const seasonText=paragraphs.temperament.properties.text.description;
+ const paired=paragraphs.strength.anyOf?.find(x=>x.type==='object')||
+  paragraphs.strength;
+ const pairedText=paired.properties.text.description;
+ assert(chapterSchema.title.description.includes('두 문단에서 실제 제시한 하나의 생활 질문'));
+ assert(chapterSchema.keyJudgment.description.includes('자연스러운 한국어 한 문장'));
+ assert(paragraphs.temperament.properties.label.description.includes('계절과 겉에 확인된 오행'));
+ assert(paired.properties.label.description.includes('서로 다른 두 전통적 질문'));
+ assert(seasonText.includes('전통적으로 어떤 질문을 다루는지')&&
+  !seasonText.includes('출생월의 본기만으로 실제 적응력이'));
+ assert(pairedText.includes('첫 출처의 실제 질문은')&&
+  pairedText.includes('둘째 출처의 실제 질문은'));
+ const moonPlan=contrasts.forTopic(contrast,'strength',[])?.readerReasoning?.readerValuePlan;
+ assert(pairedText.includes(moonPlan.first.question)&&pairedText.includes(moonPlan.second.question),
+  'real first-chapter response field must describe THIS chart, not a generic root lecture');
+ assert(!pairedText.includes('실제로 학습 능력이 높')&&
+  pairedText.includes('실제 성격의 모순·갈등이나 능력의 증거로 바꾸지 않는다'));
+ assert.deepEqual(Object.keys(chapterSchema),['title','keyJudgment','evidence','mood','paragraphs'],
+  'quality instructions must not alter the provider JSON field contract');
+ if(input.calendar==='lunar'&&input.birthDate==='1982-11-24'){
+  assert(pairedText.includes('처음 접하는 정보를 자기 방식으로 어떻게 이해할지'));
+  assert(pairedText.includes('필요한 돈과 재료를 어디서 마련하고 어떻게 쓸지'));
+  assert(!pairedText.includes('반복해서 드는 비용을 어떻게 감당할지'));
+ }
  const changedReader=structuredClone(request);
  changedReader.task.chapters.saju_core.topics.temperament.evidenceFocus.readerQuestion='근거 없는 성격 설명';
  assert(transportGuard.inspectTransport(p,changedReader).includes(
