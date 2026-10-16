@@ -107,20 +107,78 @@ const TOPIC_POINTS={
 };
 // Reader depth is separate from calculated chart facts. These are reasoning
 // questions, never personality claims or predicted actions.
-const TOPIC_READER_QUESTIONS={
- temperament:{
-  contrastQuestion:'태어난 달의 계절적 배경과 바깥에 드러난 글자가 주는 도움의 방향은 왜 별개인가?',
-  reasoningTask:'계절 전환기라는 계산과 겉글자의 오행 관계를 각각 확인하고, 겉에 드러난 물의 도움을 전통적으로 배움·이해·지원의 상징으로 분류하는 이유를 설명한다. 월의 숨은 글자가 가리키는 자원 활용·압박의 상징은 겉글자의 실제 반대 성격이 아님을 구분한다. 계절 우세가 미정이라는 이유로 이미 확인된 겉글자 관계까지 미정이라고 쓰지 않는다.',
-  hypotheticalQuestion:'새로운 일을 앞두고 정보를 살피는 가상의 상황이라면, 배움·지원의 상징은 무엇을 비교하는 실마리이고 무엇을 증명하지 못하는가? 실제 독자의 학습 능력·선택을 추정하지 않는다.',
-  interpretivePayoff:'이 문단을 읽은 사람은 계절 배경, 겉글자의 지원 관계, 숨은 글자의 별도 의미를 구별할 수 있어야 한다.'
- },
- strength:{
-  contrastQuestion:'태어난 날·시간에 실제 뿌리가 있는 것과 그 자리들에 충이 겹친다는 사실을 왜 동시에 인정해야 하는가?',
-  reasoningTask:'같은 글자의 뿌리가 있는 정확한 자리와 없는 자리를 구별하고, 원국 충은 그 자리에 계산되는 관계이지 확인된 뿌리를 지우는 명령이 아님을 설명한다. 여러 뿌리의 존재를 강도 점수로 바꾸지 말고, 같은 출처를 두 번 요약하지 않는다.',
-  hypotheticalQuestion:'사주에 충이 있으면 뿌리가 없어졌다고 생각하는 가상의 질문에, 관찰된 뿌리 위치·겹치는 충·판단 보류 사유를 순서대로 답한다. 독자의 고집·관계·직장 사건을 만들어 내지 않는다.',
-  interpretivePayoff:'이 문단을 읽은 사람은 뿌리가 확인된 위치와 충이 함께 계산된 위치, 충만으로 뿌리 소멸을 판단하지 못하는 이유를 이해해야 한다.'
- }
+// Each question below is determined from the CURRENT person's computed facts.
+// Never transplant example-specific water, hidden-stem, root or clash claims.
+const VISIBLE_MEANING={
+ 'same-element':'같은 오행 관계(동료·나란함을 살피는 분류)',
+ resource:'나를 돕는 관계(배움·보호를 살피는 분류)',
+ output:'내가 낳는 관계(표현·생산을 살피는 분류)',
+ 'day-controls':'내가 다스리는 관계(재물·자원 운영을 살피는 분류)',
+ 'control-on-day':'나에게 작용하는 관계(규칙·역할·압박을 살피는 분류)'
 };
+function readerQuestions(contrast,topic){
+ const points=contrast.contrastPoints||[];
+ const month=points.find(p=>p.kind==='month-vs-day')?.evidence;
+ const visible=points.find(p=>p.kind==='visible-support-vs-counter')?.evidence;
+ const rooting=points.find(p=>p.kind==='actual-day-master-roots')?.evidence;
+ const collisions=points.find(p=>p.kind==='root-relation-overlap')?.evidence;
+ if(topic==='temperament'){
+  if(!month||!visible||!Array.isArray(visible.support)||!Array.isArray(visible.counter))
+   throw Error('Missing calculated visible-qi evidence for core reader brief');
+  const entries=[...visible.support,...visible.counter];
+  const relationTypes=[...new Set(entries.map(x=>x.relation))];
+  const meanings=relationTypes.map(r=>VISIBLE_MEANING[r]||'별도 관계('+r+')');
+  const observed=entries.length?
+   '겉에 실제로 확인된 관계는 '+meanings.join('·')+'다.':
+   '겉글자의 별도 지원·압박 관계가 확인되지 않았다.';
+  const dynamicExample=relationTypes.includes('resource')?
+   '배움이나 지원이 필요한 가상의 상황에서 나를 돕는 전통 분류는 무엇을 설명하고 실제 학습 능력은 왜 증명하지 못하는가?':
+   relationTypes.includes('control-on-day')?
+   '역할과 규칙을 정하는 가상의 상황에서 나에게 작용하는 전통 분류는 무엇을 설명하며 실제 압박 경험과 어떻게 다른가?':
+   relationTypes.includes('output')?
+   '의견이나 결과를 내는 가상의 상황에서 표현·생산 분류는 무엇을 가리키며 실제 행동은 왜 확인되지 않는가?':
+   '새로운 정보를 해석하는 가상의 상황에서 지금 확인된 겉글자 관계로 어디까지 설명하고 무엇을 가정에 남겨야 하는가?';
+  const phase=month.phase==='transition'?'전환월':'중심 계절';
+  return {
+   contrastQuestion:'태어난 달의 '+phase+' 분류와 확인된 겉글자 관계는 왜 서로 다른 계산 근거인가?',
+   reasoningTask:'출생월은 '+phase+'로 계산됐다. '+observed+
+    ' 계절 배경과 겉글자 각각의 출생 위치를 분리해 확인하고, 확인된 오행 방향의 전통적인 뜻과 두 자료가 답하지 못하는 질문을 구체적으로 설명한다. 겉에 없는 지원·압박의 반대 방향이나 월의 숨은 글자가 실제 성격을 만든다고 추가하지 않는다.',
+   hypotheticalQuestion:dynamicExample,
+   interpretivePayoff:'이 문단을 읽은 사람은 자신의 계산된 출생월과 실제 겉글자 관계 '+relationTypes.length+'종의 의미를 혼동하지 않아야 한다.'
+  };
+ }
+ if(topic==='strength'){
+  if(!rooting||!collisions||!Array.isArray(rooting.rootLocations)||!Array.isArray(collisions.collisions))
+   throw Error('Missing calculated roots and clashes for core reader brief');
+  const count=rooting.rootLocations.length,overlap=collisions.collisions.length;
+  const visiblePositions=[...new Set(rooting.rootLocations.map(x=>x.position))];
+  const positions=visiblePositions.map(p=>LOCATION[p]||p).join('·');
+  const unknownHour=rooting.hiddenHourUnresolved===true;
+  const rootsText=count?
+   '동일 오행 뿌리가 실제 확인된 자리 '+count+'곳('+positions+')의 숨은 글자를 각각 짚는다.':
+   '확인 가능한 기둥에서는 동일 오행 뿌리가 발견되지 않았다. 없는 위치를 만들어내지 않는다.';
+  const clashText=overlap?
+   '그중 직접 충이 겹친 자리 '+overlap+'곳과 충이 겹치지 않은 자리를 구분한다.':
+   '실제 뿌리 위치에 직접 충이 계산된 사례가 없다. 충이 있다고 지어내지 않는다.';
+  const hourText=unknownHour?'태어난 시간이 없으므로 시간 자리에 관한 결론도 내리지 않는다.':'';
+  return {
+   contrastQuestion:count?
+    '실제 뿌리 '+count+'곳과 '+(overlap?'그중 충이 겹친 '+overlap+'곳':'직접 충이 확인되지 않은 위치')+'은 전통적으로 왜 구분해야 하는가?':
+    '확인 가능한 기둥에서 같은 오행 뿌리가 보이지 않는다는 사실은 왜 사주 전체의 강약 판정과 다른가?',
+   reasoningTask:rootsText+' '+clashText+' '+hourText+
+    ' 뿌리의 존재와 위치를 먼저 설명하고, 직접 충이 계산됐더라도 확인된 숨은 글자가 사라진다고 보지 않는 이유를 설명한다. 수치 강도·성격·생활 사건으로 바꾸지 않는다.',
+   hypotheticalQuestion:overlap?
+    '뿌리 자리에 충이 걸리면 그 뿌리가 없어진다는 가상의 질문에 실제 출생 위치와 충 계산을 차례로 들어 답한다.':
+    count?
+     '충이 없으니 뿌리가 반드시 강하다는 가상의 질문에 실제 확인된 위치와 판단할 수 없는 강도를 나눠 답한다.':
+     '같은 오행 뿌리가 안 보이면 반드시 약하다는 가상의 질문에 관찰된 범위와 빠진 계산 조건을 구분해 답한다.',
+   interpretivePayoff:count?
+    '독자는 확인된 뿌리 '+count+'곳의 위치, 직접 충의 실제 유무, 숫자나 성격 강도로 해석하면 안 되는 이유를 구분한다.':
+    '독자는 확인된 뿌리가 없다는 관찰 범위와 최종 강약 판단이 다름을 구별한다.'
+  };
+ }
+ throw Error('Unsupported Saju reader topic: '+topic);
+}
 function forTopic(contrast,topic,allowedIds){
  if(!TOPIC_POINTS[topic]||!contrast||!Array.isArray(contrast.contrastPoints))
   throw Error('Unknown or missing grounded core paragraph plan: '+topic);
@@ -133,7 +191,7 @@ function forTopic(contrast,topic,allowedIds){
   // test prompts; canonical evidence validation remains authoritative.
   return {kind,sourceRefs,calculatedExplanation:item.calculatedExplanation,question:item.question};
  });
- return {scope:topic,points,readerReasoning:TOPIC_READER_QUESTIONS[topic],
+ return {scope:topic,points,readerReasoning:readerQuestions(contrast,topic),
   policy:'두 계산 차이의 연결 이유와 전통적 해석 범위를 설명한 뒤, readerReasoning.hypotheticalQuestion에 가정형으로 답한다. 가정은 실제 개인 경험이 아니다. 한계 설명은 문단 끝에 한 번만 두며, 다른 문단의 한계를 재차 늘어놓거나 여러 기운의 균형처럼 결론 내리지 않는다. 고객용 본문에는 내부 참조 ID 및 한자를 옮기지 않는다.'};
 }
 module.exports={build,forTopic,TOPIC_POINTS};

@@ -96,6 +96,27 @@ for(const input of cases){
  assert.notEqual(temperament.readerReasoning.hypotheticalQuestion,
    strength.readerReasoning.hypotheticalQuestion,
    'the two paragraphs must not recycle a single generic imaginary example');
+ // Strong provenance constraints: generalization must not invent a specific
+ // resource/metal/water symbol, roots or clashes that were not calculated.
+ const visibleRelations=new Set([...support.support,...support.counter].map(x=>x.relation));
+ const firstReason=temperament.readerReasoning;
+ assert(firstReason.reasoningTask.includes(contrast.monthAndDay.phase==='transition'?'전환월':'중심 계절'));
+ for(const [relation,marker] of [['resource','배움·보호'],['control-on-day','규칙·역할·압박'],['output','표현·생산']]){
+  if(!visibleRelations.has(relation))assert(!firstReason.reasoningTask.includes(marker),
+   'unobserved visible classification must never appear as a paid explanation: '+relation);
+ }
+ if(!visibleRelations.has('resource'))assert(!firstReason.hypotheticalQuestion.includes('나를 돕는 전통 분류'),
+  'another chart must not inherit the paid ISFP fixture resource example');
+ const rootFocus=strength.readerReasoning;
+ assert(rootFocus.reasoningTask.includes(String(root.observedRootCount)+'곳')||
+  root.observedRootCount===0,'root claims must use calculated count');
+ if(rootClashes.length===0){
+  assert(rootFocus.reasoningTask.includes('직접 충이 계산된 사례가 없다'));
+  assert(!rootFocus.reasoningTask.includes('충이 겹친 자리'));
+ }else assert(rootFocus.reasoningTask.includes('충이 겹친 자리 '+rootClashes.length+'곳'));
+ if(!packet.chart.hour)assert(!rootFocus.contrastQuestion.includes('태어난 시간에 실제 뿌리'),
+  'unknown time must not become an observed hour root');
+
  const firstRefs=new Set(core.topics.temperament.citableFacts.map(x=>x.id));
  const secondRefs=new Set(core.topics.strength.citableFacts.map(x=>x.id));
  assert(firstRefs.has('facts.seasonalEvidence')&&firstRefs.has('facts.qiEvidence'),
@@ -146,6 +167,24 @@ assert(new Set(results.map(x=>JSON.stringify(x))).size>=4,
 const sameChartNewMbti=facts.build({...cases[0],mbti:'INTJ'},2027);
 assert.deepEqual(contrasts.build(sameChartNewMbti),contrasts.build(facts.build(cases[0],2027)),
  'MBTI label cannot silently change a deterministic Saju contrast');
+const withFacts=contrasts.build(facts.build(cases[0],2027));
+const emptyRoot=structuredClone(withFacts);
+emptyRoot.contrastPoints[2].evidence.rootLocations=[];
+emptyRoot.contrastPoints[2].evidence.observedRootCount=0;
+emptyRoot.contrastPoints[3].evidence.collisions=[];
+const zeroRootFocus=contrasts.forTopic(emptyRoot,'strength',[]);
+assert(zeroRootFocus.readerReasoning.contrastQuestion.includes('뿌리가 보이지 않는다는'),
+ 'zero-root scenario must have its own grounded reader question');
+assert(zeroRootFocus.readerReasoning.hypotheticalQuestion.includes('반드시 약하다는'),
+ 'zero-root scenario must not inherit a nonzero-root-and-clash prompt');
+const noSupport=structuredClone(withFacts);
+noSupport.contrastPoints[1].evidence.support=[];
+noSupport.contrastPoints[1].evidence.counter=[];
+const emptyVisible=contrasts.forTopic(noSupport,'temperament',[]);
+assert(!emptyVisible.readerReasoning.reasoningTask.includes('배움·보호'),
+ 'zero visible stems must never manufacture supportive resources');
+assert(!emptyVisible.readerReasoning.hypotheticalQuestion.includes('나를 돕는 전통 분류'),
+ 'zero visible stems must not receive a resource-based example');
 assert.equal(contrasts.build({}),null,'missing calculated facts cannot create chart-specific personality claims');
 console.log('PASS real multi-chart contrast reaches paid writer without invented traits or annual spillover');
 console.log('CHART_CONTRAST_AUDIT '+JSON.stringify(results));
