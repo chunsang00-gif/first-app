@@ -101,8 +101,8 @@ const schema=require('./report-schema.json');
   'paid writer policy must require both calculated month sources, not one');
  assert(!generation.policy.includes('또는 natal.month.hidden.* 중 한 항목'),
   'old one-source citation policy must never silently override paired evidence');
- assert(generation.policy.includes('strength 문단에서도 필수 소재가 아니다'),
-  'old root/clash compulsory prose rule must not return');
+ assert(generation.policy.includes('기본 성향의 두 문단에서 근거로 인용하지 않는다'),
+  'core writer may not cite extra root/clash evidence for the paid first chapter');
  assert.equal(payload.task.chapters.saju_core.topics.strength.sourcePath,'facts.tenGods.month');
  assert.equal(payload.task.chapters.saju_core.topics.strength.evidenceFocus.tenGodFocus.monthStem.tenGod,
   payload.source['natal.month.stem'].tenGod);
