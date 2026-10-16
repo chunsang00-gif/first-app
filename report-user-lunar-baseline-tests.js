@@ -146,35 +146,37 @@ const expectedSeasonRefs=slots.temperament.properties.basis.properties.refs.item
 const expectedRootRefs=(slots.strength.anyOf?.find(x=>x.type==='object')||slots.strength)
  .properties.basis.properties.refs.items.enum;
 for(const ref of seasonRefs)assert(expectedSeasonRefs.includes(ref),'seasonal schema lacks '+ref);
-for(const ref of rootBaseRefs)assert(expectedRootRefs.includes(ref),'root schema lacks '+ref);
+for(const ref of rootBaseRefs)assert(!expectedRootRefs.includes(ref),
+ 'paid month-ten-god schema must not expose optional root source '+ref);
 assert(!expectedSeasonRefs.includes('facts.rootConditions')&&!expectedSeasonRefs.includes('facts.stemConnections'));
 const rootPlaces=(transport.source['facts.stemConnections']?.dayMasterRooting?.sameElementRoots||[])
  .map(x=>x.hiddenId);
 const mainMonth='natal.month.hidden.'+transport.source['facts.structuralEvidence.monthCommand'].mainHiddenStem;
- const rootRefs=['natal.month.stem',mainMonth,...rootBaseRefs,...(rootPlaces[0]?[rootPlaces[0]]:[])];
-const result=(first=seasonRefs,second=rootRefs)=>({chapters:{saju_core:{
- title:'출생 계산에 근거한 풀이',keyJudgment:'출생 자료의 서로 다른 계산 위치를 확인했습니다.',
+const monthRefs=['natal.month.stem',mainMonth];
+const result=(first=seasonRefs,second=monthRefs)=>({chapters:{saju_core:{
+ title:'출생 계산에 근거한 풀이',keyJudgment:'서로 다른 태어난 달의 의미를 구별합니다.',
  mood:'reflective',paragraphs:{
  temperament:{label:'계절과 겉글자',text:'태어난 계절과 겉글자의 오행 관계를 구별합니다.',
   basis:{refs:first,interpretation:'태어난 달과 일간의 전통 관계를 비교했습니다.',
   condition:'음력 변환과 절입을 기준으로 합니다.',limit:'실제 능력이나 성격을 확정하지 않습니다.'}},
- strength:{label:'뿌리의 실제 위치',text:'지장간의 실제 뿌리와 충 관계를 구별합니다.',
-  basis:{refs:second,interpretation:'같은 오행의 뿌리 위치를 구별했습니다.',
-  condition:'출생 위치를 확인합니다.',limit:'신강약과 실제 능력은 확정하지 않습니다.'}}
+ strength:{label:'달에 드러난 두 뜻',text:'배움과 자원에 관한 서로 다른 전통 질문을 구분합니다.',
+  basis:{refs:second,interpretation:'같은 달의 다른 출처를 구별했습니다.',
+  condition:'출생 위치를 확인합니다.',limit:'실제 행동과 능력은 확정하지 않습니다.'}}
  }}}});
 assert.doesNotThrow(()=>writer.restoreEvidence(result(),prompt));
-// This matches the just-paid provider's citation pattern, without shipping
-// any user-visible/private report prose into the public test repository.
+const rootPlaces=(transport.source['facts.stemConnections']?.dayMasterRooting?.sameElementRoots||[])
+ .map(x=>x.hiddenId);
 const observedOnly=['natal.month.stem',mainMonth,'facts.stemConnections','facts.rootConditions',...rootPlaces];
 assert(rootPlaces.length>0,'canonical lunar sample must provide real rooted positions');
 assert(!observedOnly.includes('facts.structuralEvidence.dayMasterRoots'));
-const sparseResponse=result(seasonRefs,observedOnly);
-const completed=writer.restoreEvidence(sparseResponse,prompt);
-assert(completed.chapters.saju_core.evidence.some(x=>
- x.startsWith('strength:')&&x.includes('facts.structuralEvidence.dayMasterRoots')),
- 'attach canonical root summary only after all actual hidden roots were cited');
-assert.deepEqual(sparseResponse.chapters.saju_core.paragraphs.strength.basis.refs,observedOnly,
- 'never silently rewrite the provider raw response or saved paid diagnostic');
+assert.throws(()=>writer.restoreEvidence(result(seasonRefs,observedOnly),prompt),
+ /unrelated paragraph basis/,
+ 'the actual paid missing-root failure is now blocked by the month-only source enum');
+// The independent root-summary helper stays correct for INTERNAL audits,
+// although first-chapter text is not allowed to cite these root sources.
+const complete=writer.completeRootSummaryCitation(transport,observedOnly);
+assert(complete.includes('facts.structuralEvidence.dayMasterRoots'),
+ 'complete verified root provenance may still be inspected internally');
 const mutated=structuredClone(transport);
 mutated.source['facts.structuralEvidence.dayMasterRoots'][0].sameElementStems=[];
 for(const root of mutated.source['facts.structuralEvidence.dayMasterRoots']){
@@ -198,9 +200,10 @@ const missingSeason={
 for(const omitted of seasonRefs)
  assert.throws(()=>writer.restoreEvidence(result(seasonRefs.filter(x=>x!==omitted)),prompt),
   missingSeason[omitted], 'missing first-paragraph '+omitted+' must reject the draft');
-for(const omitted of rootBaseRefs)
- assert.throws(()=>writer.restoreEvidence(result(seasonRefs,rootRefs.filter(x=>x!==omitted)),prompt),
-  /missing verified optional root provenance/, 'missing root paragraph '+omitted+' must reject the draft');
+for(const rootSource of rootBaseRefs)
+ assert.throws(()=>writer.restoreEvidence(result(seasonRefs,[...monthRefs,rootSource]),prompt),
+  /unrelated paragraph basis/,
+  'an extra root record must not be accepted as month-pair evidence');
 console.log('PASS USER_LUNAR_REFERENCE '+JSON.stringify({
  inputCalendar:birth.calendar,inputDate:birth.birthDate,normalizedSolarDate:normalized,
  natalChart:expected.chart,mbti:birth.mbti,year2027Pillar:expected.targetYear.pillar,
