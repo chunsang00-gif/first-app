@@ -66,6 +66,34 @@ jobs:
           NODE
       - name: Recover paid first batch as an opt-in private checkpoint, without billing
         run: node recover-paid-report-qa-checkpoint.js
+      - name: Revalidate checkpoint against original paid bytes (positive and tampering)
+        shell: bash
+        env:
+          REPORT_QA_OUTPUT: ${{ github.workspace }}/.private-replay/private-qa-report.json
+          REPORT_QA_RESUME_FILE: ${{ github.workspace }}/.private-replay/recovered-validated-batch.json
+        run: |
+          node verify-paid-report-resume.js
+          node - <<'NODE'
+          const fs=require('node:fs'),assert=require('node:assert/strict');
+          const {verify}=require('./verify-paid-report-resume');
+          const archived=JSON.parse(fs.readFileSync(process.env.QA_PROVIDER_ARCHIVE,'utf8'));
+          const saved=JSON.parse(fs.readFileSync(process.env.REPORT_QA_RESUME_FILE,'utf8'));
+          const opts={input:saved.sample,model:process.env.REPORT_MODEL};
+          (async()=>{
+            const altered=structuredClone(saved);
+            altered.batches[0].sections[0].keyJudgment+=' (tampered)';
+            await assert.rejects(verify(archived,altered,opts),
+              /QA_RESUME_CHECKPOINT_NOT_VERIFIED_AGAINST_ORIGINAL/);
+            const wrongModel={...opts,model:'not-original-model'};
+            await assert.rejects(verify(archived,saved,wrongModel),
+              /QA_RESUME_FINGERPRINT_MISMATCH/);
+            const corrupted=structuredClone(archived);
+            corrupted.calls[0].request.stage='synthesis';
+            await assert.rejects(verify(corrupted,saved,opts),
+              /QA_RESUME_ORIGINAL_PROVIDER_ARCHIVE_INVALID/);
+            console.log('PASS paid resume rejects tampered checkpoint, wrong model, and wrong archived stage; zero model requests');
+          })().catch(e=>{console.error(String(e.message||e));process.exitCode=1});
+          NODE
       - name: Preserve verified recovery checkpoint for explicitly approved continuation
         uses: actions/upload-artifact@v4
         with:
