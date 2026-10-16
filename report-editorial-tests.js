@@ -34,6 +34,30 @@ assert(grounding.inspect(seasonalToTrait).blockingErrors.includes(
 // (2026-10-16 runs 38854417208 and 38870530839). The PUBLIC regression
 // deliberately keeps only the failed claim, never the private full report.
 // An automated batch gate historically accepted them; semantic QA must not.
+// Archive run 38854417208: the model returned a TWO-sentence
+// calculator-style main judgment, not the requested single paid insight.
+const archivedKeyOne={sections:[{id:'saju_core',title:'출생 사주 구조의 기본 성향 해석',
+ keyJudgment:'겉에 드러난 글자와 달 아래 숨은 글자, 실제 계절의 전환 구간은 각각 전통적으로 배움·보호, 자원 활용, 상황 변화에 대한 상징으로 구별된다. 각각은 성격이나 강약 점수가 아니라, 구체적인 출생 위치와 그 관계를 밝히려는 근거일 뿐이다.',
+ body:['배움을 살피는 전통적 의미와 자원을 다루는 뜻을 가정한 상황으로 풀이합니다.']}]};
+const keyOneErrors=grounding.inspect(archivedKeyOne).blockingErrors;
+assert(keyOneErrors.includes('saju_core:key-judgment-not-one-sentence'),
+ 'archived paid two-sentence main judgment cannot pass early QA');
+assert(keyOneErrors.includes('saju_core:key-judgment-is-symbol-lecture'),
+ 'a chart-definition main judgment is not a reader insight');
+// A single-sentence PERSONAL interpretation with a clear situation is OK;
+// legitimate supporting symbols belong in the body and internal citations.
+const customerFirst={sections:[{id:'saju_core',title:'새로운 일을 준비할 때의 선택',
+ keyJudgment:'새로운 일을 준비한다면 배우는 방법과 필요한 자원을 마련할 방법을 서로 다른 질문으로 살펴볼 수 있습니다.',
+ body:['태어난 달의 배움 관련 글자와 자원에 연결된 글자를 구별하여 전통적으로 읽습니다.']}]};
+const customerErrors=grounding.inspect(customerFirst).blockingErrors;
+assert(!customerErrors.includes('saju_core:key-judgment-not-one-sentence'));
+assert(!customerErrors.includes('saju_core:key-judgment-is-symbol-lecture'));
+const oneSentenceCalculated={sections:[{id:'saju_core',title:'출생 정보에서 읽을 점',
+ keyJudgment:'계산된 관계를 바탕으로 새로운 정보를 배우는 상황과 필요한 돈을 마련하는 상황의 뜻을 서로 다르게 풀이합니다.',
+ body:['서로 다른 출생 글자의 전통적 의미를 설명합니다.']}]};
+assert(!grounding.inspect(oneSentenceCalculated).blockingErrors.includes(
+ 'saju_core:key-judgment-is-symbol-lecture'),
+ 'technical word alone must not trigger overbroad rejection');
 const oldFirstChapterOverreach={sections:[{id:'saju_core',
  title:'평소 기질의 해석과 해석 조건',keyJudgment:'전통 상징의 의미입니다.',
  bodyLabels:['기질의 기반과 고려할 점'],
