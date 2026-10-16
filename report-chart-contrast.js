@@ -206,10 +206,10 @@ function monthlyTraditionalReading(month){
   first:{sourceId:first.sourceId,tenGod:first.tenGod,reading:a},
   second:{sourceId:second.sourceId,tenGod:second.tenGod,reading:b},
   tentativeThesis:same?
-   '태어난 달의 서로 다른 두 위치에서 '+a+'라는 전통적 관점을 함께 살피는 사주로 읽되, 실제 성향이 두 배 강하다고 쓰지 않는다.':
-   '태어난 달의 한 위치에서는 '+a+'를, 다른 위치에서는 '+b+'를 각각 살피는 사주로 전통적으로 풀이한다. 서로 모순된 인격이나 실제 행동을 확정하지 않는다.',
+   '태어난 달의 두 위치에서 '+a+'라는 관점이 함께 확인되는 사주로 전통적으로 읽습니다.':
+   '태어난 달의 겉에 나타난 글자에서는 '+a+'를, 그 달의 중심 숨은 글자에서는 '+b+'를 각각 살피는 사주로 전통적으로 읽습니다.',
   editorialDuty:'첫 문장에 이 사주에서 읽을 수 있는 전통적 기질의 해석을 평범한 말로 제시한다. 그다음 이 두 위치와 뜻이 왜 그 해석을 뒷받침하는지 짚고, 하나의 가상 상황에서 유리해지는 조건과 고려하지 않으면 불리해지는 조건을 설명한다. 무엇을 확인하라는 보편적 조언만 써서 끝내지 않는다.',
-  evidenceLimit:'전통적 상징의 적용 가설이다. 실제로 그렇게 생각하거나 행동했다는 관찰·심리검사·미래 예언이 아니다.'
+  evidenceLimit:'위 tentativeThesis는 실제 고객 행동을 입증한 것이 아니라 전통적 해석 가설의 문장 예시다. 본문에는 부정문·면책 문구를 반복하지 말고 필요할 때만 한계를 짧게 밝힌다. 같은 분류 두 개를 성향이 두 배 강하다고 주장하거나 서로 다른 분류 두 개를 내적 갈등으로 확정하지 않는다. 실제로 그렇게 생각하거나 행동했다는 관찰·심리검사·미래 예언이 아니다.'
  };
 }
 function monthHypothetical(visibleKind,mainKind,sameClassification){
