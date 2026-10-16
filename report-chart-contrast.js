@@ -217,7 +217,7 @@ function readerQuestions(contrast,topic){
   const separatedResourceQuestion=relationTypes.includes('resource')&&monthLearning;
   const dynamicExample=relationTypes.includes('resource')?
    separatedResourceQuestion?
-    '도움이나 자료를 제공받을 수 있다고 가정한 상황에서 어떤 지원이 가능한지, 어떤 조건에서 도움을 받을 수 있는지를 겉글자에 실제로 확인된 전통적 도움 관계로 풀이한다. 여기서는 정보를 자기 방식으로 이해하는 과정이나 돈과 재료의 마련 방법을 다루지 않는다.':
+    '가상의 상황: 도움이나 자료를 제공받을 수 있다고 가정하고 어떤 지원이 가능한지, 어떤 조건에서 도움을 받을 수 있는지를 겉글자에 실제로 확인된 전통적 도움 관계로 풀이한다. 여기서는 정보를 자기 방식으로 이해하는 과정이나 돈과 재료의 마련 방법을 다루지 않는다.':
     '배움이나 지원이 필요한 가상 상황에서 계산된 배움·보호의 전통 상징이 어떤 뜻인지 실제 위치로 설명한다. 월의 계절 분류와 의미를 구분한다.':
    relationTypes.includes('control-on-day')?
    '역할과 규칙을 정하는 가상 상황에서 겉글자의 실제 규칙·역할 상징을 어떤 질문에 적용하는지 설명한다. 계절 분류와 구별한다.':
