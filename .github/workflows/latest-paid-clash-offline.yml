@@ -29,5 +29,5 @@ jobs:
           run-id: 38854417208
           github-token: ${{ github.token }}
           path: .private-latest-paid
-      - name: Verify reader-safe explanation and exact private clash source audit
+      - name: Verify reader-safe prose and reject the archived technical-lecture draft
         run: node test-latest-paid-clash-pairs-offline.js
