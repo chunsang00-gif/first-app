@@ -51,14 +51,28 @@ const domainTopicMbtiQuestions={
   response:{letters:'JP',question:'압박 상황을 가정할 때 일정을 닫거나 열어두는 선호와 학습·회복 상징을 구분할 수 있는가? 실제 심리 반응을 진단하지 않는다.'}
  }
 };
+// The first MBTI comparison and the integrated chapter have DIFFERENT
+// question ownership. The provider must not reuse all four letters as generic
+// proof of a positive/negative Saju match. All roles remain hypotheses.
+const comparisonTopicMbtiQuestions={
+ mbti_contradiction:{
+  agreement:{letters:'SNFT',question:'새로운 일을 선택하는 가상 상황에서 정보를 확인하는 입력 선호와 판단에서 중시하는 입력 선호를 먼저 구별하고, 별도로 인용한 사주 상징이 다루는 질문을 설명한다. 같은 사람의 행동이 일치한다고 판정하지 않는다.'},
+  difference:{letters:'IEJP',question:'새로운 정보나 일정이 달라진 가상 상황에서 상호작용·결정 방식에 관한 실제 입력 선호가 무엇을 묻는지 살핀다. 출생 사주가 반대 성격이나 실제 행동을 증명한다는 문장을 만들지 않는다. 독립적인 추가 비교가 없으면 이 선택 문단은 생략한다.'}
+ },
+ integrated_judgment:{
+  insight:{letters:'IEJP',question:'앞의 정보·판단 선호 비교를 반복하지 말고 가상의 협업 선택에서 상호작용과 일정을 진행하는 선호를 계산된 사주 근거와 별도로 설명한다. 두 분석을 합쳐 검증된 성격을 새로 발명하지 않는다.'},
+  tradeoff:{letters:'SNFT',question:'앞 문단과 다른 실제 계산 근거와 가정된 선택 조건이 확인될 때에만 정보를 고르고 판단하는 입력 선호를 추가 검토한다. 같은 결론을 반복하거나 억지로 반대 행동을 만들면 이 선택 문단은 생략한다.'}
+ }
+};
 const linkedDomainIds=new Set(Object.keys(domainTopicMbtiQuestions));
 function topicMbtiLens(chapterId,topicId,mbti){
- const spec=domainTopicMbtiQuestions[chapterId]?.[topicId];
+ const spec=(domainTopicMbtiQuestions[chapterId]||comparisonTopicMbtiQuestions[chapterId])?.[topicId];
  if(!spec||!Array.isArray(mbti?.preferences))return null;
  const preferences=mbti.preferences.filter(row=>spec.letters.includes(row.code))
   .map(row=>({code:row.code,dimension:row.dimension,meaning:row.meaning,notEvidenceOf:row.notEvidenceOf}));
  return preferences.length?{sourceRef:'person.mbti',question:spec.question,preferences,
-  rule:'선택적 비교일 뿐 실제 행동의 증거가 아니다. 반드시 이 문단의 natal.* 근거와 함께 인용한다. 별도 통찰이 없으면 이 MBTI 비교는 작성하지 않는다.'}:null;
+  ...(comparisonTopicMbtiQuestions[chapterId]?{verdict:'not-computed',sharedBehavior:'unobserved',sajuRelation:'traditional-interpretation-only'}:{}),
+  rule:'선택적 비교일 뿐 실제 행동의 증거가 아니다. 반드시 이 문단의 natal.* 근거와 함께 인용한다. 두 체계의 일치·충돌은 측정·계산되지 않았고 별도 통찰이 없으면 이 MBTI 비교는 작성하지 않는다.'}:null;
 }
 function sources(prompt){
  const result=Object.fromEntries((prompt.factBindings||require('./report-fact-bindings').build(prompt.facts)).map(row=>[row.id,row]));
