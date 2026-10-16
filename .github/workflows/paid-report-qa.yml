@@ -14,7 +14,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 25
     env:
-      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       REPORT_MODEL: ${{ vars.REPORT_MODEL }}
       REPORT_QA_OUTPUT: ${{ github.workspace }}/private-qa-first-chapter.json
       REPORT_QA_CONFIRM: ${{ inputs.paid_qa_confirmation }}
@@ -27,6 +26,9 @@ jobs:
       - name: Verify complete offline suite BEFORE paid QA
         run: npm test && npm run smoke
       - name: Enforce one-call manual approval without exposing secrets
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          REPORT_QA_ARCHIVE_KEY: ${{ secrets.REPORT_QA_ARCHIVE_KEY }}
         shell: bash
         run: |
           set -euo pipefail
@@ -34,17 +36,21 @@ jobs:
           test "$GITHUB_REF_NAME" = "fix-paid-qa-fact-bindings-20261014" || { echo "Wrong branch"; exit 1; }
           test -n "$OPENAI_API_KEY" || { echo "Missing OPENAI_API_KEY secret"; exit 1; }
           test -n "$REPORT_MODEL" || { echo "Missing REPORT_MODEL variable"; exit 1; }
+          test "${#REPORT_QA_ARCHIVE_KEY}" -ge 32 || { echo "Missing or too-short separate QA archive encryption secret"; exit 1; }
       - name: Generate revised first chapter ONLY (maximum 1 new model call)
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: node run-paid-first-chapter-qa.js
-      - name: Upload private first-chapter evidence for human review
+      - name: Encrypt QA evidence before ANY artifact upload
+        if: always()
+        env:
+          REPORT_QA_ARCHIVE_KEY: ${{ secrets.REPORT_QA_ARCHIVE_KEY }}
+        run: node report-qa-secure-archive.js encrypt
+      - name: Upload encrypted first-chapter evidence for human review
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: premium-first-chapter-qa
-          path: |
-            private-qa-first-chapter.json
-            private-qa-first-chapter-attempt.json
-            private-qa-first-chapter-provider-calls.json
-            private-qa-first-chapter-validated-first-chapter.json
+          name: premium-first-chapter-qa-encrypted
+          path: premium-first-chapter-qa.enc
           if-no-files-found: ignore
-          retention-days: 1
+          retention-days: 30
