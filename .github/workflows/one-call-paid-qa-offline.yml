@@ -16,19 +16,19 @@ jobs:
       OPENAI_API_KEY: ''
       REPORT_MODEL_URL: ''
       REPORT_MODEL: ${{ vars.REPORT_MODEL }}
-      QA_PREVIOUS_PROVIDER_ARCHIVE: ${{ github.workspace }}/.private-old-provider/private-qa-report-provider-calls.json
+      QA_PREVIOUS_PROVIDER_ARCHIVE: ${{ github.workspace }}/.private-old-provider/private-qa-first-chapter-provider-calls.json
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
       - run: npm install --no-audit --no-fund
-      - name: Download original paid first chapter privately
+      - name: Load most recent failed reader-quality sample privately
         uses: actions/download-artifact@v4
         with:
-          name: premium-report-qa
-          run-id: 38833494716
+          name: premium-first-chapter-qa
+          run-id: 38854417208
           github-token: ${{ github.token }}
           path: .private-old-provider
-      - name: Verify one-call gate and malformed provider retention with mock Responses API
+      - name: Verify both quality rejection and malformed output retain their single mock paid response
         run: node test-one-call-paid-qa-offline.js
