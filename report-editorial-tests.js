@@ -30,6 +30,35 @@ const seasonalToTrait={sections:[{id:'saju_core',title:'계절과 기질',body:[
 assert(grounding.inspect(seasonalToTrait).blockingErrors.includes(
  'saju_core:season-transition-to-personality-overreach'),
  'seasonal position cannot directly establish measured personality adaptability');
+// Regression anchored to two already-paid first-chapter QA artifacts
+// (2026-10-16 runs 38854417208 and 38870530839). The PUBLIC regression
+// deliberately keeps only the failed claim, never the private full report.
+// An automated batch gate historically accepted them; semantic QA must not.
+const oldFirstChapterOverreach={sections:[{id:'saju_core',
+ title:'평소 기질의 해석과 해석 조건',keyJudgment:'전통 상징의 의미입니다.',
+ bodyLabels:['기질의 기반과 고려할 점'],
+ body:[
+  '당신의 사주에서는 실제로 비슷한 힘을 갖는 영역이 두 곳에서 확인됩니다. 각각 자신의 중심을 지키는 성향으로 전통적으로 해석해왔습니다. 쉽게 이야기하면, 마음 깊은 곳이나 행동의 원천이 한 군데에만 의존하지 않고 두 부분에서 균형을 이루려는 전통적 상징이 있다고 볼 수 있습니다.'
+ ]}]};
+assert(grounding.inspect(oldFirstChapterOverreach).blockingErrors.includes(
+ 'saju_core:root-count-to-psychology-overreach'),
+ 'the ACTUAL previously-paid first-chapter failure must never re-enter user text');
+const olderFirstChapterOverfocus={sections:[{id:'saju_core',title:'출생 사주 구조의 기본 성향 해석',
+ keyJudgment:'전통 상징의 비교입니다.',bodyLabels:['기질의 기반'],
+ body:['뿌리에는 같은 오행이 있습니다. 뿌리는 태어난 날과 시간에서 보입니다. 뿌리의 위치는 계산됩니다. 두 뿌리의 충은 실제 출생 위치에서 구별합니다. 다른 뿌리와 충의 강도는 예언할 수 없습니다.']}]};
+assert(grounding.inspect(olderFirstChapterOverfocus).blockingErrors.includes(
+ 'saju_core:technical-lecture-instead-of-reader-interpretation'),
+ 'the older paid root/clash glossary cannot substitute for customer interpretation');
+// Do not turn an otherwise accurate MONTH-ten-god contrast into a rejection.
+const groundedMonthQuestion={sections:[{id:'saju_core',title:'태어난 달이 뜻하는 서로 다른 질문',
+ keyJudgment:'배움을 이해하는 물음과 필요한 자원을 살피는 물음은 서로 다릅니다.',
+ body:['새로운 일을 준비하는 가상 상황에서 배우는 방법과 필요한 돈이나 재료를 마련할 방법은 서로 다른 선택입니다. 출생월 겉글자의 배움 관련 전통적 의미와 달의 중심 숨은 글자가 가진 자원 관련 의미를 구별해 풀이합니다. 다만 이것은 실제 학습 능력이나 재산을 측정한 결과가 아닙니다.']}]};
+assert(!grounding.inspect(groundedMonthQuestion).blockingErrors.includes(
+ 'saju_core:root-count-to-psychology-overreach'),
+ 'actually distinct grounded traditional topics must remain permitted');
+assert(!grounding.inspect(groundedMonthQuestion).blockingErrors.includes(
+ 'saju_core:technical-lecture-instead-of-reader-interpretation'),
+ 'a comprehensible traditional month question is not a technical lecture');
 const correctBoundary={sections:[{id:'saju_core',title:'해석의 조건',body:[
  '같은 기운의 뿌리 두 곳은 계산된 위치입니다. 이것이 마음의 두 부분을 뜻한다는 근거는 없습니다. 계절이 바뀌는 달이지만 외부 영향에 잘 적응하는 능력까지는 판단할 수 없습니다.'
 ]}]};
