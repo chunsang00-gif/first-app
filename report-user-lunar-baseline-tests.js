@@ -116,9 +116,14 @@ for(const id of ['decision','money','career','relationship','stress']){
   analysisGuidance:{...guidance.forRequest([id],'ISFP'),
    editorialBlueprint:{[id]:blueprint[id]}}};
  const payload=writer.compile(individual);
- const lens=payload.task.chapters[id].domainMbtiLens;
- assert(lens,'ISFP lens was removed from practical chapter '+id);
+ const anchor=blueprint[id].anchorTopic;
+ const topic=payload.task.chapters[id].topics[anchor];
+ const lens=topic.mbtiFocus;
+ assert(lens,'ISFP topic-specific lens was removed from supported paragraph '+id+'/'+anchor);
+ assert.equal(lens.preferences.length,1,'each grounded topic must use only its relevant submitted preference');
  assert(lens.preferences.every(p=>'ISFP'.includes(p.code)));
+ assert.equal(Object.hasOwn(payload.task.chapters[id],'domainMbtiLens'),false,
+  'chapter-wide MBTI narrative must not mix unrelated questions');
  const sourceIds=writer.schema(individual,wire.schemaFor(individual,schema))
   .properties.chapters.properties[id].properties.paragraphs.properties
   [blueprint[id].anchorTopic].properties.basis.properties.refs.items.enum;
