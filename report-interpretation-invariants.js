@@ -24,7 +24,7 @@ const domainKindChecks={
   change:()=>false
  },
  relationship:{
-  closeness:row=>/^natal\\.day\\.hidden\\./.test(row.id),
+  closeness:row=>/^natal\.day\.hidden\./.test(row.id),
   expression:row=>['식신','상관'].includes(row.tenGod),
   conflict:()=>false
  },
