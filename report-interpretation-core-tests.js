@@ -67,6 +67,23 @@ const unrelated=structuredClone(duplicate);
 unrelated.facts.tenGods.month={stem:'辛',stemTenGod:'정재',hiddenStems:[]};
 assert.equal(core.plan(unrelated,'career').relevant,false);
 
+const duplicateMoney=structuredClone(duplicate);
+duplicateMoney.facts.tenGods.month={stem:'己',stemTenGod:'편재',hiddenStems:[]};
+duplicateMoney.facts.annualTenGods={stem:'己',stemTenGod:'편재',hiddenStems:[]};
+const blockedMoney=core.plan(duplicateMoney,'money');
+assert.equal(blockedMoney.relevant,false,
+ 'repeated visible 偏財 by itself is not a second paid 2027 money reading');
+assert.equal(guidance.preflight(duplicateMoney).year_2027_money.hasGroundedTopic,false,
+ 'same money symbol must be omitted rather than padded with generic cost advice');
+const moneySubtype=structuredClone(duplicateMoney);
+moneySubtype.facts.tenGods.month={stem:'戊',stemTenGod:'정재',hiddenStems:[]};
+assert.equal(core.plan(moneySubtype,'money').relevant,true,
+ 'verified 정재/편재 difference is eligible for LIMITED comparison');
+assert.equal(core.plan(moneySubtype,'money').comparisons[0].contrast,'subtype');
+assert(!core.plan(moneySubtype,'money').guaranteesRealWorldOutcome,
+ 'different traditional wealth symbols do not prove income or spending changes');
+
+
 
 const yearlyOnly=structuredClone(packet);
 yearlyOnly.facts.tenGods={day:{stem:'庚',stemTenGod:'일간',hiddenStems:[]}};
