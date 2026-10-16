@@ -3,12 +3,11 @@ on:
   workflow_dispatch:
     inputs:
       paid_qa_confirmation:
-        description: 'Continue previously paid sample. Up to 6 NEW model calls. Type RUN_ONE_PAID_SAMPLE to authorize.'
+        description: 'ONE new first-chapter model call. Type RUN_ONE_PAID_SAMPLE to authorize this run.'
         required: true
         type: string
 permissions:
   contents: read
-  actions: read
 jobs:
   report-qa:
     if: ${{ github.ref_name == 'fix-paid-qa-fact-bindings-20261014' && inputs.paid_qa_confirmation == 'RUN_ONE_PAID_SAMPLE' }}
@@ -17,64 +16,35 @@ jobs:
     env:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       REPORT_MODEL: ${{ vars.REPORT_MODEL }}
-      REPORT_QA_OUTPUT: ${{ github.workspace }}/private-qa-report.json
+      REPORT_QA_OUTPUT: ${{ github.workspace }}/private-qa-first-chapter.json
       REPORT_QA_CONFIRM: ${{ inputs.paid_qa_confirmation }}
-      REPORT_QA_RESUME_FILE: ${{ github.workspace }}/private-qa-report-checkpoint.json
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
       - run: npm install --no-audit --no-fund
-      - name: Run all offline safety and report tests before paying
+      - name: Verify complete offline suite BEFORE paid QA
         run: npm test && npm run smoke
-      - name: Verify configuration without exposing secrets
-        shell: bash
-        run: |
-          test "$REPORT_QA_CONFIRM" = "RUN_ONE_PAID_SAMPLE" || { echo "Paid QA was not explicitly authorized"; exit 1; }
-          test -n "$OPENAI_API_KEY" || { echo "Missing OPENAI_API_KEY secret"; exit 1; }
-          test -n "$REPORT_MODEL" || { echo "Missing REPORT_MODEL variable"; exit 1; }
-      - name: Retrieve previously billed first provider response
-        uses: actions/download-artifact@v4
-        with:
-          name: premium-report-qa
-          run-id: 38833494716
-          github-token: ${{ github.token }}
-          path: .paid-resume-provider
-      - name: Retrieve separately verified first-chapter checkpoint
-        uses: actions/download-artifact@v4
-        with:
-          name: first-batch-verified-checkpoint
-          run-id: 38834535982
-          github-token: ${{ github.token }}
-          path: .paid-resume-checkpoint
-      - name: Seed prior billable response and verified checkpoint, no model calls
+      - name: Enforce one-call manual approval without exposing secrets
         shell: bash
         run: |
           set -euo pipefail
-          test -s .paid-resume-provider/private-qa-report-provider-calls.json
-          test -s .paid-resume-checkpoint/recovered-validated-batch.json
-          test ! -e private-qa-report-provider-calls.json
-          test ! -e private-qa-report-checkpoint.json
-          cp .paid-resume-provider/private-qa-report-provider-calls.json private-qa-report-provider-calls.json
-          cp .paid-resume-checkpoint/recovered-validated-batch.json private-qa-report-checkpoint.json
-          chmod 600 private-qa-report-provider-calls.json private-qa-report-checkpoint.json
-      - name: Verify old paid checkpoint against CURRENT generation contract before billing
-        # The brief was revised after the original paid chapter; this must
-        # FAIL until a new checkpoint is independently compatible.
-        run: node verify-paid-report-resume.js
-      - name: Continue one previously paid QA sample (at most 6 NEW calls)
-        run: node run-paid-report-qa.js
-      - name: Upload private QA report
+          test "$REPORT_QA_CONFIRM" = "RUN_ONE_PAID_SAMPLE" || { echo "No explicit one-call approval"; exit 1; }
+          test "$GITHUB_REF_NAME" = "fix-paid-qa-fact-bindings-20261014" || { echo "Wrong branch"; exit 1; }
+          test -n "$OPENAI_API_KEY" || { echo "Missing OPENAI_API_KEY secret"; exit 1; }
+          test -n "$REPORT_MODEL" || { echo "Missing REPORT_MODEL variable"; exit 1; }
+      - name: Generate revised first chapter ONLY (maximum 1 new model call)
+        run: node run-paid-first-chapter-qa.js
+      - name: Upload private first-chapter evidence for human review
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: premium-report-qa
+          name: premium-first-chapter-qa
           path: |
-            private-qa-report.json
-            private-qa-report-checkpoint.json
-            private-qa-report-raw-calls.json
-            private-qa-report-provider-calls.json
-            private-qa-report-hanja-findings.json
+            private-qa-first-chapter.json
+            private-qa-first-chapter-attempt.json
+            private-qa-first-chapter-provider-calls.json
+            private-qa-first-chapter-validated-first-chapter.json
           if-no-files-found: ignore
           retention-days: 1
