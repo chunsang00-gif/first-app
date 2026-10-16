@@ -50,6 +50,21 @@ function build(packet){
     positions:rel.positions.slice(),branches:rel.branches,natalClash:true
    }))
  );
+ // Actual ten-god classifications of the month stem and its principal
+ // hidden stem form the interpretive base; these are NOT life measurements.
+ const monthGod=facts.tenGods?.month,command=facts.structuralEvidence?.monthCommand;
+ const mainStem=command?.mainHiddenStem;
+ const mainHidden=monthGod?.hiddenStems?.find(x=>x.stem===mainStem);
+ if(!monthGod?.stemTenGod||!mainHidden?.tenGod||!facts.tenGodGlossary)return null;
+ const monthTenGodContext={
+  monthStem:{sourceId:'natal.month.stem',stem:monthGod.stem,
+   tenGod:monthGod.stemTenGod,meaning:facts.tenGodGlossary[monthGod.stemTenGod]||null},
+  monthMainHidden:{sourceId:'natal.month.hidden.'+mainStem,stem:mainStem,
+   tenGod:mainHidden.tenGod,meaning:facts.tenGodGlossary[mainHidden.tenGod]||null},
+  sameClassification:monthGod.stemTenGod===mainHidden.tenGod,
+  method:'일간 기준 십성; 월간과 월지 본기는 서로 다른 출처',
+  unmeasured:['personality','achievement','wealth','personality-balance','qi-strength']
+ };
  const seasonContext={
   dayElement:season.dayElement,
   monthBranch:season.monthBranch,
@@ -100,6 +115,7 @@ function build(packet){
   version:'chart-evidence-contrast-v1',
   chartSignature:[packet.chart.year,packet.chart.month,packet.chart.day,packet.chart.hour||'hour-unknown'].join('/'),
   monthAndDay:seasonContext,
+  monthTenGodContext,
   contrastPoints:distinctions,
   factsOnly:true,
   cannotInfer:['verified-personality','observed-behavior','day-master-strength',
@@ -132,6 +148,7 @@ function readerQuestions(contrast,topic){
  const visible=points.find(p=>p.kind==='visible-support-vs-counter')?.evidence;
  const rooting=points.find(p=>p.kind==='actual-day-master-roots')?.evidence;
  const collisions=points.find(p=>p.kind==='root-relation-overlap')?.evidence;
+ const monthTenGod=contrast.monthTenGodContext;
  if(topic==='temperament'){
   if(!month||!visible||!Array.isArray(visible.support)||!Array.isArray(visible.counter))
    throw Error('Missing calculated visible-qi evidence for core reader brief');
@@ -179,25 +196,21 @@ function readerQuestions(contrast,topic){
   // Reader-facing questions concern the interpretation, not the calculation.
   const sourceAudit=rootsText+' '+clashText+' '+hourText+
    ' 실제 충의 양쪽 위치를 내부 basis.refs 및 evidence에서 확인한다. 이것은 성격·강약 점수가 아니다.';
-  const readerContext=count?
-   (overlap?
-    '기본을 받치는 전통적 근거와 해석에 추가로 고려할 관계를 구분한다. ':
-    '기본을 받치는 전통적 근거와 해석의 조건을 구분한다. '):
-   '기본을 받치는 요소가 확인되지 않은 범위에서는 실제 출생 계절 등 다른 계산 자료를 살핀다. ';
+  if(!monthTenGod?.monthStem?.tenGod||!monthTenGod?.monthMainHidden?.tenGod)
+   throw Error('Missing verified month ten-god meanings for reader brief');
+  const visibleKind=monthTenGod.monthStem.tenGod;
+  const mainKind=monthTenGod.monthMainHidden.tenGod;
+  const comparison=monthTenGod.sameClassification?
+   '태어난 달의 두 출처에서 같은 십성 분류를 확인했다. 반대 성향을 만들지 않는다. ':
+   '태어난 달의 겉글자와 중심 숨은 글자에서 서로 다른 십성 분류를 확인했다. 서로 다른 위치의 뜻을 구별한다. ';
+  const readerContext='태어난 달 겉글자의 '+visibleKind+'와 중심 숨은 글자의 '+mainKind+'를 먼저 대조한다. '+comparison;
+
   return {
-   contrastQuestion:count?
-    '내 기본 기질을 뒷받침하는 전통적 근거와 주의해 읽을 조건은 무엇인가?':
-    '기본 기질을 읽을 근거가 제한적일 때 어떤 출생 조건을 함께 살피는가?',
+   contrastQuestion:'태어난 달의 겉글자와 중심 숨은 글자가 나타내는 전통적 질문을 어떻게 함께 읽는가?',
    reasoningTask:readerContext+
-    '확인된 근거가 전통적으로 가리키는 의미와 가상 상황에서의 적용을 쉬운 말로 설명한다. 확인하지 않은 실제 능력이나 성격, 생활 사건은 추정하지 않는다.',
-   hypotheticalQuestion:count?
-    (overlap?
-     '가상의 상황: 새로운 결정을 앞두고 기반이 되는 조건과 변화를 고려할 조건을 나누어 설명한다. 실제 선택 경험을 안다고 쓰지 않는다.':
-     '가상의 상황: 새로운 계획을 세울 때 전통적으로 기반을 살피는 이유를 보여 준다. 실제 성과는 보장하지 않는다.'):
-    '가상의 상황: 어떤 기질인지 판단할 자료가 한정된다면 확인된 다른 출생 조건을 살피는 이유를 설명한다.',
-   interpretivePayoff:count?
-    '독자는 기본 기질을 해석할 전통적 근거와 추가로 고려할 조건이 다른 이유를 이해한다.':
-    '독자는 직접 확인된 정보가 부족할 때 어떤 다른 출생 근거가 필요한지 이해한다.',
+    '두 분류의 전통적인 의미와 실제 출생 위치의 차이를 구체적으로 설명한다. 뿌리나 충은 그 의미에 실제로 영향을 주는 보조 조건일 때만 다룬다. 재산·능력·사건·마음속 균형·성격 양면성을 만들어 내지 않는다.',
+   hypotheticalQuestion:'가상의 상황: 실제 계산된 두 십성 분류가 배움·표현·규칙·자원 중 어떤 질문을 살피는지 출생 위치에 따라 다르게 설명한다. 독자가 그런 경험을 했다고 단정하지 않는다.',
+   interpretivePayoff:'독자는 태어난 달의 두 출처가 전통적으로 무엇을 뜻하는지, 같은 분류와 서로 다른 분류를 각각 어떻게 구별하는지 이해한다.',
    sourceAudit
   };
  }
@@ -216,14 +229,16 @@ function forTopic(contrast,topic,allowedIds){
   return {kind,sourceRefs,calculatedExplanation:item.calculatedExplanation,sourceAuditCheck:item.question};
  });
  const {sourceAudit,...readerReasoning}=readerQuestions(contrast,topic);
- return {scope:topic,points,readerReasoning,
+ return {scope:topic,
+  ...(topic==='strength'?{tenGodFocus:contrast.monthTenGodContext}:{}),
+  points,readerReasoning,
   ...(sourceAudit?{sourceAudit}:{}),
   readerQuestion:topic==='temperament'?
    '내 기본 기질을 전통적으로 어떻게 해석하며 어느 실제 근거에서 나오는가?':
    '기본 기질의 풀이를 뒷받침하거나 주의해서 읽게 하는 조건은 무엇인가?',
   internalEvidenceRole:topic==='temperament'?
    '계절과 겉글자 관계의 계산 근거로만 전통적 기본 기질을 해석':
-   '실제 뿌리 위치와 정확한 충 관계 쌍을 내부에서 확인하여 과장된 성격 해석을 차단',
-  policy:'먼저 readerQuestion과 readerReasoning의 독자 질문에 답한다. sourceAudit와 points는 내부 출처·계산 검증용이며 독자에게 뿌리 개수·충 관계를 가르치는 용도로 복사하지 않는다. 실제 확인된 명리 상징이 허용하는 기질 해석과 그 조건을 쉬운 가상 상황으로 풀고, 실제 성격·능력·사건은 지어내지 않는다. 한계는 basis.limit에 기록한다. 제목과 문단 라벨에 뿌리·충·통근·월지 등 기술 용어를 내세우지 않으며 내부 참조 ID와 한자는 독자에게 복사하지 않는다.'};
+   '태어난 달의 겉글자와 중심 숨은 글자의 십성 분류가 기본 해석 근거다. 뿌리·충은 추가 보조 검증 근거일 뿐 성격 강도로 확정하지 않음',
+  policy:'먼저 tenGodFocus.monthStem과 tenGodFocus.monthMainHidden의 실제 십성 분류와 전통적 의미를 readerQuestion에 연결한다. 월간과 월지 본기는 다른 출처이며 같더라도 거짓 갈등을 만들지 않는다. sourceAudit와 points는 내부 출처·계산 검증용이며 독자에게 뿌리 개수·충 관계를 가르치는 용도로 복사하지 않는다. 실제 확인된 명리 상징이 허용하는 기질 해석과 그 조건을 쉬운 가상 상황으로 풀고, 실제 성격·능력·사건은 지어내지 않는다. 한계는 basis.limit에 기록한다. 제목과 문단 라벨에 뿌리·충·통근·월지 등 기술 용어를 내세우지 않으며 내부 참조 ID와 한자는 독자에게 복사하지 않는다.'};
 }
 module.exports={build,forTopic,TOPIC_POINTS};
