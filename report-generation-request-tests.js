@@ -127,6 +127,47 @@ const schema=require('./report-schema.json');
  const scopedIds=['money','year_2027_money'];
  const guidance=require('./report-analysis-guidance');
  const allPlans=guidance.preflight(prompt.facts);
+ // Historical paid QA repeated a common 2027 ten-god label as if money,
+ // work and relationship events all changed in intensity. Check the ACTUAL
+ // compact provider payload, not unused legacy rules or isolated test data.
+ const annualIds=['year_2027','year_2027_money','year_2027_career','year_2027_relationship'];
+ const annualPrompt={...prompt,requestedSections:annualIds,analysisGuidance:{
+  ...guidance.forRequest(annualIds,prompt.facts.person?.mbti),
+  editorialBlueprint:Object.fromEntries(annualIds.map(id=>[id,allPlans[id]]))
+ }};
+ const actualAnnual=generation.compile(annualPrompt);
+ assert.deepEqual(transportAudit.inspectTransport(annualPrompt,actualAnnual),[],
+  'correct 2027 analysis plan must be transported unchanged before paid calls');
+ const annualGoals=actualAnnual.task.chapters;
+ assert(annualGoals.year_2027.analysisGoal.includes('삶의 변화 크기는 추정하지')&&
+  annualGoals.year_2027.analysisFocus.includes('실제 변화 정도는 계산하지 않았'),
+  'generic 2027 analysis must not equate symbolic appearance with strong or weak effects');
+ assert(annualGoals.year_2027_money.analysisGoal.includes('같은 분류군')&&
+  annualGoals.year_2027_money.analysisGoal.includes('수입·지출의 강약 변화를 판정하지')&&
+  annualGoals.year_2027_money.analysisFocus.includes('소득·지출의 강도 변화가 아니'),
+  '2027 money must ground its own pair rather than claim rising or falling wealth intensity');
+ assert(annualGoals.year_2027_career.analysisGoal.includes('두 위치')&&
+  annualGoals.year_2027_career.analysisGoal.includes('책임이 늘어난다는 주장으로 반복하지')&&
+  annualGoals.year_2027_career.analysisFocus.includes('공통 2027년 장'),
+  '2027 career must not repackage general 2027 duty and rules into a promotion story');
+ assert(annualGoals.year_2027_relationship.analysisGoal.includes('facts.targetYearBranchContext.annualContext.day')&&
+  annualGoals.year_2027_relationship.analysisGoal.includes('경쟁 후보')&&
+  !annualGoals.year_2027_relationship.analysisGoal.includes('합·형·파·해는 계산 결과에 없'),
+  'annual relationship goal must recognize calculated candidate interactions without declaring transformation');
+ for(const id of annualIds){
+  const chapter=annualGoals[id];
+  assert(!/계산상 변화가 약하면 약하다|강조되거나 약해지는 관계/.test(chapter.analysisGoal||''),
+   'outdated unsupported yearly strength language must never reach provider: '+id);
+ }
+ for(const id of ['year_2027_money','year_2027_career']){
+  const scope=annualGoals[id].annualScope;
+  const source=actualAnnual.source;
+  assert(scope&&scope.comparisons.every(pair=>
+   source[pair.annualId]&&source[pair.natalId]),
+   'every allowed annual domain comparison must contain actual yearly and natal references: '+id);
+  assert(scope.guaranteesRealWorldOutcome===false);
+ }
+
  const moneyRequest=generation.compile({...prompt,requestedSections:scopedIds,analysisGuidance:{
   ...guidance.forRequest(scopedIds,prompt.facts.person?.mbti),
   editorialBlueprint:Object.fromEntries(scopedIds.map(id=>[id,allPlans[id]]))
