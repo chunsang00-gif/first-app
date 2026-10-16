@@ -81,6 +81,19 @@ for(const input of cases){
   ['month-vs-day','visible-support-vs-counter']);
  assert.deepEqual(strength.points.map(x=>x.kind),
   ['actual-day-master-roots','root-relation-overlap']);
+ const firstRefs=new Set(core.topics.temperament.citableFacts.map(x=>x.id));
+ const secondRefs=new Set(core.topics.strength.citableFacts.map(x=>x.id));
+ assert(firstRefs.has('facts.seasonalEvidence')&&firstRefs.has('facts.qiEvidence'),
+  'core first paragraph must cite season and visible-element observation');
+ assert(!firstRefs.has('facts.stemConnections')&&!firstRefs.has('facts.rootConditions'),
+  'root and clash evidence may not leak into the month/visible qi explanation');
+ assert(secondRefs.has('facts.stemConnections')&&secondRefs.has('facts.rootConditions'),
+  'actual rooting and clash provenance must remain mandatory in the second paragraph');
+ assert.deepEqual(blueprint.saju_core.topicTasks.temperament.requiredSourceKinds,
+  ['seasonal','qi-ledger','natal-month-position']);
+ assert(blueprint.saju_core.topicTasks.strength.requiredSourceKinds.includes('root-condition'));
+ assert(!generation.policy.includes('temperament는 facts.seasonalEvidence, facts.qiEvidence, facts.stemConnections를 모두 인용'),
+  'conflicting legacy instruction must not override paragraph evidence ownership');
  assert.deepEqual([...temperament.points,...strength.points].map(x=>x.calculatedExplanation),
   contrast.contrastPoints.map(x=>x.calculatedExplanation),
   'all four computed facts must reach the exact assigned paragraph without reinterpretation');

@@ -4,7 +4,7 @@
 const reader=require('./report-reader-policy');
 const policy=[
  reader.instruction,
- '사주 기본 장의 temperament는 facts.seasonalEvidence, facts.qiEvidence, facts.stemConnections를 모두 인용하고, 사실상 투간은 동일 지장간 글자의 실제 천간 노출만, 통근은 같은 오행 지장간 존재만 기록하며 음양이 다른 글자를 같은 글자로 바꾸지 않는다. 출생시간 미상은 부재 확정으로 해석하지 않는다. facts.rootConditions의 각 뿌리에 대해 원국 충과 2027년 세운 충을 구분하고, 충이 있어도 지장간이나 뿌리가 삭제되었다거나 강도 감소량이 확정되었다고 쓰지 않는다. 해당 근거를 확인할 때 facts.rootConditions를 명시적으로 인용한다. facts.seasonalEvidence와 facts.qiEvidence를 함께 인용하고, 실제 출처 위치에 있는 생조·설기·극·재성·관성 관계를 구분한다. 지장간의 존재를 실제 사령·오행 강약의 수치로 단정하지 않는다. facts.seasonalEvidence를 인용해 태어난 달의 계절과 전환월 여부·일간과 계절 오행 관계를 설명한다. 전환월에 본기만으로 계절의 우세를 확정하거나 근거 없는 신강·신약·용신을 단정하지 않는다. '+
+ '사주 기본 장의 temperament에서는 facts.seasonalEvidence와 facts.qiEvidence를 근거로 출생월의 계절·전환월 여부, 일간과의 실제 오행 관계, 겉천간의 실제 생조·설기·극 방향을 구별해 설명한다. 월의 출생 위치(natal.month.*)도 명시적으로 인용한다. 지장간의 존재나 겉글자 개수를 사령·신강약의 수치, 능력·실제 성격으로 단정하지 않는다. 뿌리의 정확한 위치·통근·원국 충·세운 충과 충이 뿌리를 지웠는지는 temperament에서 재차 설명하지 않고 strength 문단의 facts.stemConnections 및 facts.rootConditions로 분리한다. 사실상 투간은 동일 지장간 글자의 실제 천간 노출만 뜻하며 통근과 혼동하지 않는다. 출생시간 미상은 출생 시각의 부재를 확정하는 근거가 아니다.',
  '계산 사실과 해석을 구분한다. 글자 개수나 이름만으로 능력·평판·실제 경험을 만들지 않는다. 계산하지 않은 강약·용신·합충·월별 시기를 추정하지 않는다. 예시는 가정임을 드러내고 실제 사건이나 미래 결과를 보장하지 않는다.',
  '2027년 관계 장은 실제 계산한 targetYearBranchContext.annualContext.day만 사용한다. directPairs의 충·육합이 있을 때에만 같은 위치의 다른 형·해·파와 경쟁 관계를 설명하며 관계표의 존재, 합화 성립, 실제 연애·결혼·이별은 각각 구분한다. interpretationPriority가 unresolved라면 어떤 관계가 더 강한지 단정하지 않는다. 2027년 금전·직업의 독립 해석은 annualScope.comparisons에 있는 연도·원국의 계산 분류 비교가 있을 때만 작성한다. 반드시 annualId와 natalId를 함께 refs에 기록하며 두 위치의 같은 전통 분류군을 대비한다. 같은 분류는 충이나 합 관계를 새로 계산한 뜻이 아니다. 수입·승진·평판·성과·이직 같은 실제 사건을 결론 내리지 않는다.',
  '사주 기본 장에서 task.chapters.saju_core.topics[topicId].evidenceFocus.points는 해당 문단이 맡은 두 개의 실제 계산 차이다. 각 차이의 sourceRefs와 calculatedExplanation을 확인하고 그 차이가 전통적으로 무엇을 뜻하는지, 어떤 점은 판단할 수 없는지 본문에 자연스럽게 설명한다. 첫 문단에서는 계절·겉글자 관계만, 두 번째 문단에서는 실제 뿌리·충 관계만 다룬다. 두 문단을 한데 섞어 여러 기운이 공존하거나 균형이 필요하다는 말로 끝내지 않는다. 계산 사실을 관찰된 성격·능력·내적 긴장으로 바꾸지 않는다. 실제 행동을 말해야 할 때는 관찰 사실이 아니라 명시적인 가정 상황으로 쓴다.',
@@ -224,8 +224,8 @@ function allowedRefs(payload,task,chapterId,topic){
   if(path==='facts.structuralEvidence.monthCommand'){
    if(Object.hasOwn(payload.source,'facts.seasonalEvidence'))ids.add('facts.seasonalEvidence');
    if(Object.hasOwn(payload.source,'facts.qiEvidence'))ids.add('facts.qiEvidence');
-   if(Object.hasOwn(payload.source,'facts.stemConnections'))ids.add('facts.stemConnections');
-   if(Object.hasOwn(payload.source,'facts.rootConditions'))ids.add('facts.rootConditions');
+   // Month/visible-stem comparison must NOT borrow roots or clashes
+   // assigned to the other verified core paragraph.
    for(const id of Object.keys(payload.source))if(id.startsWith('natal.month.'))ids.add(id);
   }
   if(path==='facts.structuralEvidence.dayMasterRoots'){
