@@ -65,7 +65,7 @@ for(const input of cases){
  const plan=guidance.preflight(packet);
  assert(invariant.verify(packet,plan).pass,'root interpretation preflight must be consistent');
  const topic=plan.saju_core.topicTasks.strength;
- assert(topic.requiredSourceKinds.includes('root-condition'));
+ assert(topic.requiredSourceKinds.includes('month-ten-god'));
  const prompt={stage:'body',facts:packet,requestedSections:['saju_core'],
   analysisGuidance:{...guidance.forRequest(['saju_core'],packet.person.mbti),
    editorialBlueprint:{saju_core:plan.saju_core}}};
@@ -92,18 +92,18 @@ for(const input of cases){
   paragraphs:{temperament:paragraph(['facts.seasonalEvidence','facts.qiEvidence','natal.month.stem']),
    strength:paragraph(refs)}}}});
  const observedRoots=compiled.source['facts.stemConnections'].dayMasterRooting.sameElementRoots||[];
- const required=['facts.structuralEvidence.dayMasterRoots','facts.stemConnections','facts.rootConditions',
+ const required=['natal.month.stem','facts.structuralEvidence.dayMasterRoots','facts.stemConnections','facts.rootConditions',
   ...(observedRoots[0]?[observedRoots[0].hiddenId]:[])];
  assert.doesNotThrow(()=>writer.restoreEvidence(fake(required),prompt));
  assert.throws(()=>writer.restoreEvidence(fake(required.filter(x=>x!=='facts.rootConditions')),prompt),
-  /missing verified root provenance/);
+  /missing verified optional root provenance/);
  const modified=structuredClone(packet);
  modified.facts.rootConditions.rootDeletionPolicy='clash-erases-root';
  assert(integrity.verify(modified).errors.includes('incorrect-positional-root-conditions'));
  assert(invariant.verify(modified,plan).errors.includes('calculated-root-condition-mismatch'));
  const altered=structuredClone(plan);
  altered.saju_core.topicTasks.strength.requiredSourceKinds=
-  altered.saju_core.topicTasks.strength.requiredSourceKinds.filter(x=>x!=='root-condition');
- assert(invariant.verify(packet,altered).errors.includes('missing-canonical-root-condition-topic-requirement'));
+  altered.saju_core.topicTasks.strength.requiredSourceKinds.filter(x=>x!=='month-ten-god');
+ assert(invariant.verify(packet,altered).errors.includes('missing-canonical-month-ten-god-topic-requirement'));
 }
 console.log('PASS natal/annual root-clash source separation, no erasure, no strength scores, real input integrity and required paid citations; zero paid API');
