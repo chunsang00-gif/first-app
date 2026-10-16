@@ -5,6 +5,60 @@ const paidWorkflow=fs.readFileSync(require('node:path').join(__dirname,'.github/
 assert(paidWorkflow.includes('paid_qa_confirmation:')&&paidWorkflow.includes('REPORT_QA_CONFIRM: ${{ inputs.paid_qa_confirmation }}'),'paid QA must require explicitly supplied workflow approval');
 assert(paidWorkflow.includes('test "$REPORT_QA_CONFIRM" = "RUN_ONE_PAID_SAMPLE"'),'paid API calls must fail closed without correct approval');
 assert(paidWorkflow.includes('run: npm test && npm run smoke'),'manual paid QA must complete all free checks before model calls');
+// The repository is public: UNIX mode 0600 does NOT make GitHub Actions
+// artifacts private. Never archive raw paid model outputs in the clear.
+assert(paidWorkflow.includes('on:\n  workflow_dispatch:')&&
+ !/on:\n  push:/.test(paidWorkflow),
+ 'paid QA must remain manual-only, never automatic on push');
+assert(paidWorkflow.includes('test "${#REPORT_QA_ARCHIVE_KEY}" -ge 32'),
+ 'a dedicated archive encryption secret must be verified BEFORE model billing');
+assert(paidWorkflow.includes('run: node report-qa-secure-archive.js encrypt'),
+ 'encrypted packaging must run even after quality rejection');
+assert(paidWorkflow.includes('retention-days: 30'),
+ 'paid evidence should remain reviewable without repeated billing');
+const artifactBlock=paidWorkflow.slice(paidWorkflow.indexOf('      - name: Upload encrypted first-chapter evidence'));
+assert(artifactBlock.includes('path: premium-first-chapter-qa.enc')&&
+ !/path:.*private-qa-first-chapter(?:-provider-calls)?\.json/.test(artifactBlock),
+ 'only encrypted bytes, NEVER raw QA reports, may reach public repo artifacts');
+assert(!paidWorkflow.slice(0,paidWorkflow.indexOf('    steps:')).includes('OPENAI_API_KEY'),
+ 'OpenAI API key must not be exposed to dependency install or test jobs');
+{
+ const secureArchive=require('./report-qa-secure-archive');
+ const path=require('node:path'),os=require('node:os');
+ const dir=fs.mkdtempSync(path.join(os.tmpdir(),'saju-secure-qa-test-'));
+ const prior=process.env.REPORT_QA_ARCHIVE_KEY;
+ const key='qa-test-independent-secret-0123456789-abcdef-0123456789';
+ try{
+  delete process.env.REPORT_QA_ARCHIVE_KEY;
+  assert.throws(()=>secureArchive.encrypt(dir),/dedicated secret/);
+  process.env.REPORT_QA_ARCHIVE_KEY=key;
+  const rawName='private-qa-first-chapter-provider-calls.json';
+  const raw='paid-model-response-visible-only-after-decrypt-1234567';
+  fs.writeFileSync(path.join(dir,rawName),raw,{mode:0o600});
+  assert.equal(secureArchive.encrypt(dir),true);
+  const archiveFile=path.join(dir,secureArchive.ARCHIVE);
+  const bytes=fs.readFileSync(archiveFile);
+  assert(!bytes.includes(Buffer.from(raw)),
+   'unencrypted original model output must not appear in uploaded artifact');
+  const out=path.join(dir,'extracted');
+  assert.deepEqual(secureArchive.decrypt(archiveFile,out),[rawName]);
+  assert.equal(fs.readFileSync(path.join(out,rawName),'utf8'),raw);
+  assert.equal(fs.statSync(path.join(out,rawName)).mode&0o777,0o600);
+  const tampered=Buffer.from(bytes);tampered[tampered.length-1]^=1;
+  const altered=path.join(dir,'tampered.enc');fs.writeFileSync(altered,tampered);
+  assert.throws(()=>secureArchive.decrypt(altered,path.join(dir,'tampered-output')),
+   'authenticated archive must reject modification before writing plaintext');
+  assert(!fs.existsSync(path.join(dir,'tampered-output')));
+  process.env.REPORT_QA_ARCHIVE_KEY='independent-wrong-passphrase-1234567890';
+  assert.throws(()=>secureArchive.decrypt(archiveFile,path.join(dir,'wrong-key')),
+   'wrong secret must not produce QA plaintext');
+ }finally{
+  if(prior===undefined)delete process.env.REPORT_QA_ARCHIVE_KEY;
+  else process.env.REPORT_QA_ARCHIVE_KEY=prior;
+  fs.rmSync(dir,{recursive:true,force:true});
+ }
+ console.log('PASS first-chapter QA archive: AES-GCM roundtrip, confidentiality, tamper and wrong-key rejection, manual-only billing');
+}
 const workflow=fs.readFileSync(require('node:path').join(__dirname,'.github/workflows/test.yml'),'utf8');
 assert(workflow.includes("github.ref != 'refs/heads/saju-mbti-app'")&&
  workflow.includes("github.ref == 'refs/heads/saju-mbti-app'"),
