@@ -44,7 +44,7 @@ const schema=require('./report-schema.json');
 
  assert(generation.policy.includes('readerReasoning.hypotheticalQuestion'),
   'premium first chapter must require a grounded reader example, not only source names');
- assert(generation.policy.includes('basis.limit에 남기고'),
+ assert(generation.policy.includes('basis.limit에 기록하고'),
   'reader-facing first chapter must avoid repeated unsupported disclaimer prose');
  assert(generation.policy.includes('task.chapters[id].analysisGoal'),
   'provider system instructions must use the transported per-section depth goal');
@@ -74,7 +74,15 @@ const schema=require('./report-schema.json');
   assert(chapter.analysisGoal.length>70,'missing substantive guidance: '+id);
  }
  assert(payload.task.chapters.saju_core.analysisGoal.includes('통근'),
-  'calculation-based natal depth goal must reach the writer');
+  'calculated natal roots must still inform internal reasoning');
+ assert(payload.task.chapters.saju_core.topics.temperament.question.includes('기질'),
+  'first topic must explain basic disposition to a reader');
+ assert(payload.task.chapters.saju_core.topics.strength.question.includes('기질'),
+  'second topic must explain a qualifying condition, not a root glossary');
+ assert(payload.task.chapters.saju_core.topics.strength.evidenceFocus.internalEvidenceRole.includes('충'),
+  'accurate natal-clash provenance must remain in provider task');
+ assert(generation.policy.includes('명리학 용어 설명 교재가 아니다'),
+  'paid writing must not teach calculations instead of explaining reader concerns');
  assert(payload.task.chapters.mbti_contradiction.analysisGoal.includes('MBTI'),
   'independent MBTI reasoning must reach the writer');
  assert(payload.task.chapters.mbti_contradiction.comparisonEvidence.includes('함께 인용한다'));

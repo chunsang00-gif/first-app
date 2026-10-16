@@ -119,7 +119,13 @@ for(const input of cases){
   assert(focus.readerReasoning.interpretivePayoff.includes('이해'),
    topic+' should define reader benefit, not an endless disclaimer');
   assert(focus.policy.includes('basis.limit'),
-   topic+' must place limitations once, rather than substitute disclaimers for meaning');
+   topic+' must keep limits internally and focus the customer-facing prose');
+  assert(focus.readerQuestion.includes('기질'),
+   topic+' must address what the reader actually wants to know');
+  assert(!/(?:뿌리|통근|충\\s*관계|지장간)/.test(focus.readerQuestion),
+   topic+' customer-facing question must not teach chart calculation terms');
+  assert(focus.internalEvidenceRole.length>30,
+   topic+' must retain grounded technical source purpose');
  }
  assert.notEqual(temperament.readerReasoning.hypotheticalQuestion,
    strength.readerReasoning.hypotheticalQuestion,

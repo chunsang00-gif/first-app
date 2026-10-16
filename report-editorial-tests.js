@@ -6,11 +6,27 @@ const reader=require('./report-reader-policy');
 const grounding=require('./report-grounding-review');
 const generation=require('./report-generation-request');
 assert(generation.policy.includes('충의 세기까지 측정한 것은 아니다'));
-assert(generation.policy.includes('전통적인 의미와 서로 다른 쓰임새'));
+assert(generation.policy.includes('기본 기질')&&generation.policy.includes('내부 계산 근거'),
+ 'first paid chapter must explain a reader concern grounded by internal sources');
 const rejected={sections:[{id:'saju_core',title:'태어난 뿌리의 차이',
  keyJudgment:'계산된 관계를 확인합니다.',bodyLabels:['뿌리의 계산'],
  body:['주인공과 같은 방향의 숨은 글자는 태어난 날에 있습니다. 두 자리에는 강한 충이 계산되어 있습니다. 성격은 단정할 수 없습니다. 강도는 확정할 수 없습니다. 능력은 판단할 수 없습니다.']}]};
 const issues=grounding.inspect(rejected).blockingErrors;
+const technicalHeader={sections:[{id:'saju_core',title:'사주의 뿌리와 충',
+ keyJudgment:'기본 기질을 설명합니다.',bodyLabels:['통근의 의미','충 관계'],
+ body:['계산된 전통적 뜻을 다룹니다.']}]};
+assert(grounding.inspect(technicalHeader).blockingErrors.includes(
+ 'saju_core:technical-evidence-used-as-reader-headline'),
+ 'the first chapter must not market a roots-and-clashes lecture');
+const naturalHeader={sections:[{id:'saju_core',title:'나의 기본 기질과 조건',
+ keyJudgment:'전통적인 해석의 출발점을 설명합니다.',
+ bodyLabels:['기본 기질','기질에 영향을 주는 조건'],
+ body:['계산된 출생 자료에 따라 설명할 수 있는 조건을 비교합니다.']}]};
+assert(!grounding.inspect(naturalHeader).blockingErrors.includes(
+ 'saju_core:technical-evidence-used-as-reader-headline'));
+assert(!grounding.inspect({sections:[{id:'saju_core',title:'의견 충돌이 생기는 상황'}]})
+ .blockingErrors.includes('saju_core:technical-evidence-used-as-reader-headline'),
+ 'ordinary Korean 충돌 must remain valid');
 for(const code of ['saju_core:unmeasured-clash-strength-assertion',
  'saju_core:unnatural-protagonist-address',
  'saju_core:repeated-limitations-displace-interpretation'])
