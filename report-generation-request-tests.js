@@ -231,8 +231,14 @@ const schema=require('./report-schema.json');
      .properties.paragraphs.properties[topicId];
     const selected=slot.anyOf?.find(x=>x.type==='object')||slot;
     const ids=topic.citableFacts.map(x=>x.id);
-    if(selected.type==='null'){assert.deepEqual(ids,[]);continue;}
-    assert.deepEqual(ids,selected.properties.basis.properties.refs.items.enum,
+    const refSchema=selected.properties?.basis?.properties?.refs;
+    if(selected.type==='null'||refSchema?.type==='null'){
+     assert.deepEqual(ids,[],'unsupported topic must not create source rows');
+     if(selected.type!=='null')assert.equal(refSchema.type,'null',
+      'required chapter placeholder cannot cite invented symbol');
+     continue;
+    }
+    assert.deepEqual(ids,refSchema.items.enum,
      chapterId+':'+topicId+' writer sources differ from provider schema');
     for(const fact of topic.citableFacts){
      assert(Object.hasOwn(compiled.source,fact.id));
