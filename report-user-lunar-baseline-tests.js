@@ -97,8 +97,8 @@ const rootBaseRefs=['facts.structuralEvidence.dayMasterRoots','facts.stemConnect
 const refs=[...seasonRefs,...rootBaseRefs];
 assert.deepEqual(blueprint.saju_core.topicTasks.temperament.requiredSourceKinds,
  ['seasonal','qi-ledger','natal-month-position']);
-assert(blueprint.saju_core.topicTasks.strength.requiredSourceKinds.includes('stem-linkage'));
-assert(blueprint.saju_core.topicTasks.strength.requiredSourceKinds.includes('root-condition'));
+assert.deepEqual(blueprint.saju_core.topicTasks.strength.requiredSourceKinds,['month-ten-god']);
+assert.equal(blueprint.saju_core.topicTasks.strength.primaryEvidencePath,'facts.tenGods.month');
 // Confirm the actual lunar 1982-11-24 14:20 ISFP case reaches the paid
 // integrated writer with TWO independent sources, not natal data alone.
 const integrationPrompt={stage:'body',facts:expected,requestedSections:['integrated_judgment'],
