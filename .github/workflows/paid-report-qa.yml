@@ -3,13 +3,15 @@ on:
   workflow_dispatch:
     inputs:
       paid_qa_confirmation:
-        description: 'Paid API calls (up to 7). Type RUN_ONE_PAID_SAMPLE to authorize this run.'
+        description: 'Continue previously paid sample. Up to 6 NEW model calls. Type RUN_ONE_PAID_SAMPLE to authorize.'
         required: true
         type: string
 permissions:
   contents: read
+  actions: read
 jobs:
   report-qa:
+    if: ${{ github.ref_name == 'fix-paid-qa-fact-bindings-20261014' && inputs.paid_qa_confirmation == 'RUN_ONE_PAID_SAMPLE' }}
     runs-on: ubuntu-latest
     timeout-minutes: 25
     env:
@@ -17,6 +19,7 @@ jobs:
       REPORT_MODEL: ${{ vars.REPORT_MODEL }}
       REPORT_QA_OUTPUT: ${{ github.workspace }}/private-qa-report.json
       REPORT_QA_CONFIRM: ${{ inputs.paid_qa_confirmation }}
+      REPORT_QA_RESUME_FILE: ${{ github.workspace }}/private-qa-report-checkpoint.json
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -31,7 +34,32 @@ jobs:
           test "$REPORT_QA_CONFIRM" = "RUN_ONE_PAID_SAMPLE" || { echo "Paid QA was not explicitly authorized"; exit 1; }
           test -n "$OPENAI_API_KEY" || { echo "Missing OPENAI_API_KEY secret"; exit 1; }
           test -n "$REPORT_MODEL" || { echo "Missing REPORT_MODEL variable"; exit 1; }
-      - name: Generate exactly one QA sample (up to 7 model calls)
+      - name: Retrieve previously billed first provider response
+        uses: actions/download-artifact@v4
+        with:
+          name: premium-report-qa
+          run-id: 38833494716
+          github-token: ${{ github.token }}
+          path: .paid-resume-provider
+      - name: Retrieve separately verified first-chapter checkpoint
+        uses: actions/download-artifact@v4
+        with:
+          name: first-batch-verified-checkpoint
+          run-id: 38834535982
+          github-token: ${{ github.token }}
+          path: .paid-resume-checkpoint
+      - name: Seed prior billable response and verified checkpoint, no model calls
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s .paid-resume-provider/private-qa-report-provider-calls.json
+          test -s .paid-resume-checkpoint/recovered-validated-batch.json
+          test ! -e private-qa-report-provider-calls.json
+          test ! -e private-qa-report-checkpoint.json
+          cp .paid-resume-provider/private-qa-report-provider-calls.json private-qa-report-provider-calls.json
+          cp .paid-resume-checkpoint/recovered-validated-batch.json private-qa-report-checkpoint.json
+          chmod 600 private-qa-report-provider-calls.json private-qa-report-checkpoint.json
+      - name: Continue one previously paid QA sample (at most 6 NEW calls)
         run: node run-paid-report-qa.js
       - name: Upload private QA report
         if: always()

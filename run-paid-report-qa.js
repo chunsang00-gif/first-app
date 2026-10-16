@@ -24,8 +24,20 @@ let resumeBatches=[];
 if(resumePath){
  const previous=JSON.parse(fs.readFileSync(resumePath,'utf8'));
  if(previous.fingerprint!==fingerprint||!Array.isArray(previous.batches))throw Error('QA resume fingerprint or batches mismatch');
+ if(previous.resumeContractIdentity!==require('./report-checkpoint-identity').signature(input)||
+    previous.recoveredFromPaidRun!=='38833494716'||
+    previous.validatedFromOriginalProviderArchive!==true||
+    previous.batches.length!==1)
+  throw Error('QA resume was not independently validated from the exact previous paid provider response');
+ const providerFile=path.join(path.dirname(output),path.basename(output,'.json')+'-provider-calls.json');
+ if(!fs.existsSync(providerFile))throw Error('QA resume lacks original paid provider archive');
+ const original=JSON.parse(fs.readFileSync(providerFile,'utf8'));
+ if(original.fingerprint!==fingerprint||original.calls?.length!==1||
+    original.calls[0]?.number!==1||
+    original.calls[0]?.request?.stage!=='body')
+  throw Error('QA original paid provider archive and checkpoint disagree');
  resumeBatches=previous.batches;
- console.log('Validated resume metadata; cached batches:',resumeBatches.length);
+ console.log('Validated independent provider archive and cached chapters:',resumeBatches.length);
 }
 // Never silently append to an old run: stale checkpoints could be mistaken for
 // verified chapters from the current run. A resume must explicitly name its source.
@@ -42,7 +54,7 @@ if(!resumePath){
 if(resumePath&&checkpoint&&fs.existsSync(checkpoint)&&path.resolve(resumePath)!==path.resolve(checkpoint))
  throw Error('Existing output checkpoint conflicts with the selected resume file');
 (async()=>{
- let calls=0;
+ let calls=resumeBatches.length; // prior paid calls are counted, never re-billed.
  const result=await generate(input,async prompt=>{
   calls++;
   if(calls>7)throw Error('QA call cap exceeded');
