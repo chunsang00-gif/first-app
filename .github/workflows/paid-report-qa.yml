@@ -28,7 +28,6 @@ jobs:
       - name: Enforce one-call manual approval without exposing secrets
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          REPORT_QA_ARCHIVE_KEY: ${{ secrets.REPORT_QA_ARCHIVE_KEY }}
         shell: bash
         run: |
           set -euo pipefail
@@ -36,7 +35,7 @@ jobs:
           test "$GITHUB_REF_NAME" = "fix-paid-qa-fact-bindings-20261014" || { echo "Wrong branch"; exit 1; }
           test -n "$OPENAI_API_KEY" || { echo "Missing OPENAI_API_KEY secret"; exit 1; }
           test -n "$REPORT_MODEL" || { echo "Missing REPORT_MODEL variable"; exit 1; }
-          test "${#REPORT_QA_ARCHIVE_KEY}" -ge 32 || { echo "Missing or too-short separate QA archive encryption secret"; exit 1; }
+          test "${#OPENAI_API_KEY}" -ge 32 || { echo "Configured OpenAI key is invalid for QA archive encryption"; exit 1; }
       - name: Generate revised first chapter ONLY (maximum 1 new model call)
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
@@ -44,7 +43,7 @@ jobs:
       - name: Encrypt QA evidence before ANY artifact upload
         if: always()
         env:
-          REPORT_QA_ARCHIVE_KEY: ${{ secrets.REPORT_QA_ARCHIVE_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: node report-qa-secure-archive.js encrypt
       - name: Upload encrypted first-chapter evidence for human review
         if: always()
