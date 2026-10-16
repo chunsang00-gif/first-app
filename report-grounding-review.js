@@ -25,6 +25,21 @@ function inspect(report,packet=null){
   const fields=[section.title,section.keyJudgment,...(section.bodyLabels||[]),...(section.body||[])]
    .filter(x=>typeof x==='string');
   // Root/clash evidence is required internally; avoid technical-first headings.
+  // A paid core chapter must not become a technical glossary in its BODY,
+  // even when the title is customer-friendly. Internal evidence is separately
+  // preserved and validated; only the displayed paragraphs are inspected.
+  // A technical word mentioned once in a real interpretation is allowed.
+  // Avoid matching ordinary Korean '충돌', '충분', or '충전'.
+  const technicalTerm=/(?:뿌리|통근|지장간|월지|일지|시지|천간|오행|충(?!돌|분|전))/g;
+  for(const body of section.body||[]){
+   const sentences=String(body).split(/(?<=[.!?。])\s*|\n+/)
+    .map(x=>x.trim()).filter(x=>x.length>=12);
+   const mentions=[...String(body).matchAll(technicalTerm)].length;
+   if(sentences.length>=3&&mentions>=6&&mentions>=sentences.length+2){
+    blockingErrors.push('saju_core:technical-lecture-instead-of-reader-interpretation');
+    break;
+   }
+  }
   const headings=[section.title,...(section.bodyLabels||[])].filter(x=>typeof x==='string');
   if(headings.some(x=>/(?:뿌리|통근|지장간|원국|월지|일지|시지|천간|오행|충\\s*관계)/.test(x)))
    blockingErrors.push('saju_core:technical-evidence-used-as-reader-headline');

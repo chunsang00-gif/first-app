@@ -12,6 +12,18 @@ const rejected={sections:[{id:'saju_core',title:'태어난 뿌리의 차이',
  keyJudgment:'계산된 관계를 확인합니다.',bodyLabels:['뿌리의 계산'],
  body:['주인공과 같은 방향의 숨은 글자는 태어난 날에 있습니다. 두 자리에는 강한 충이 계산되어 있습니다. 성격은 단정할 수 없습니다. 강도는 확정할 수 없습니다. 능력은 판단할 수 없습니다.']}]};
 const issues=grounding.inspect(rejected).blockingErrors;
+const glossaryHeavy={sections:[{id:'saju_core',title:'나의 기본 기질',
+ keyJudgment:'전통적인 조건을 해석합니다.',bodyLabels:['기질에 영향을 주는 조건'],
+ body:['뿌리는 태어난 날과 시간에 있습니다. 뿌리에 충이 걸리고 또 다른 뿌리에도 충이 걸립니다. 이 오행의 뿌리와 충을 따로 확인해야 합니다. 오행의 강도는 계산하지 않았습니다.']}]};
+assert(grounding.inspect(glossaryHeavy).blockingErrors.includes(
+ 'saju_core:technical-lecture-instead-of-reader-interpretation'),
+ 'glossary-heavy prose must not pass just because it has a natural headline');
+const readerCentered={sections:[{id:'saju_core',title:'내 기본 기질과 조건',
+ keyJudgment:'전통적 의미를 여러 출생 조건으로 구분합니다.',
+ body:['새로운 일을 결정하는 가상 상황에서는 기존의 기반을 살피는 관점과 달라지는 상황을 따로 고려할 수 있습니다. 이는 계산된 기운이 서로 다른 역할을 맡는다는 전통적 풀이입니다. 다만 실제 행동은 입력 정보로 확인되지 않았습니다. 의견 충돌이 생기는 상황도 생활 속 사건을 예언하는 말은 아닙니다.']}]};
+assert(!grounding.inspect(readerCentered).blockingErrors.includes(
+ 'saju_core:technical-lecture-instead-of-reader-interpretation'),
+ 'normal Korean and a brief explanation of evidence must not be overblocked');
 const technicalHeader={sections:[{id:'saju_core',title:'사주의 뿌리와 충',
  keyJudgment:'기본 기질을 설명합니다.',bodyLabels:['통근의 의미','충 관계'],
  body:['계산된 전통적 뜻을 다룹니다.']}]};
