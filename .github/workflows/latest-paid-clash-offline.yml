@@ -1,0 +1,33 @@
+name: Replay latest paid natal clash pairs at zero API cost
+on:
+  push:
+    branches:
+      - fix-paid-qa-fact-bindings-20261014
+    paths:
+      - .github/workflows/latest-paid-clash-offline.yml
+permissions:
+  contents: read
+  actions: read
+jobs:
+  replay-real-paid-first-chapter:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      OPENAI_API_KEY: ''
+      REPORT_MODEL_URL: ''
+      QA_PREVIOUS_PROVIDER_ARCHIVE: ${{ github.workspace }}/.private-latest-paid/private-qa-first-chapter-provider-calls.json
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-audit --no-fund
+      - name: Retrieve actual previous GPT response (private, never logged)
+        uses: actions/download-artifact@v4
+        with:
+          name: premium-first-chapter-qa
+          run-id: 38854417208
+          github-token: ${{ github.token }}
+          path: .private-latest-paid
+      - name: Reject paid incorrect day-hour clash and prove correct new request positions
+        run: node test-latest-paid-clash-pairs-offline.js
