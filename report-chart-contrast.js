@@ -182,16 +182,15 @@ const TEN_GOD_DECISION={
  '정인':'새로운 일을 누구에게 배우고 어떤 도움을 받을지',
  '편인':'처음 접하는 정보를 자기 방식으로 어떻게 이해할지'
 };
-function monthHypothetical(visibleKind,visibleMeaning,mainKind,mainMeaning,sameClassification){
+function monthHypothetical(visibleKind,mainKind,sameClassification){
  const first=TEN_GOD_DECISION[visibleKind],second=TEN_GOD_DECISION[mainKind];
  if(!first||!second)throw Error('Missing verified month ten-god everyday question');
- // The parenthetical classifications are the PRIVATE source audit for the
- // provider, not words to be printed in the reader-facing example.
- const source=' 내부 출처: 겉글자 '+visibleKind+'('+visibleMeaning+'), 중심 숨은 글자 '+
-  mainKind+'('+mainMeaning+').';
+ // This slot is a PLAIN-KOREAN hypothetical, with no secret source tags or
+ // ten-god names. Exact labels and origins stay in tenGodFocus / sourceAudit /
+ // reasoningTask. The writer must never copy internal audit text to readers.
  return sameClassification?
-  '가상의 상황: 새로운 일을 준비하며 '+first+'를 결정해야 한다고 가정한다. 같은 전통 분류가 출생월의 두 위치에서 확인된 사실을 이 질문에 연결하되, 위치가 두 곳이라는 이유로 행동 성향이 더 강하다고 하지 않는다.'+source:
-  '가상의 상황: 새로운 일을 준비하며 '+first+'와 '+second+'를 함께 고민해야 한다고 가정한다. 두 질문의 계산 출처와 역할을 구별하고, 실제로 이런 고민을 해 봤거나 서로 다른 두 성격이 충돌한다고 주장하지 않는다.'+source;
+  '가상의 상황: 새로운 일을 준비하면서 '+first+'를 결정해야 한다고 가정한다. 이 질문을 두 출생 위치에서 검토하되 그 사람이 실제로 그렇게 행동하거나 두 배로 강하다고 말하지 않는다.':
+  '가상의 상황: 새로운 일을 준비하면서 '+first+'와 '+second+'를 함께 고민한다고 가정한다. 두 질문의 의미를 서로 다른 계산 위치에 연결하되 실제 경험이나 내적 갈등으로 단정하지 않는다.';
 }
 function readerQuestions(contrast,topic){
  const points=contrast.contrastPoints||[];
@@ -247,8 +246,7 @@ function readerQuestions(contrast,topic){
    contrastQuestion:'태어난 달의 겉글자와 중심 숨은 글자가 나타내는 전통적 질문을 어떻게 함께 읽는가?',
    reasoningTask:readerContext+
     '두 분류의 전통적인 의미와 실제 출생 위치의 차이를 구체적으로 설명한다. 뿌리나 충은 그 의미에 실제로 영향을 주는 보조 조건일 때만 다룬다. 재산·능력·사건·마음속 균형·성격 양면성을 만들어 내지 않는다.',
-   hypotheticalQuestion:monthHypothetical(visibleKind,visibleMeaning,mainKind,mainMeaning,
-    monthTenGod.sameClassification),
+   hypotheticalQuestion:monthHypothetical(visibleKind,mainKind,monthTenGod.sameClassification),
    interpretivePayoff:'독자는 태어난 달의 두 출처가 전통적으로 무엇을 뜻하는지, 같은 분류와 서로 다른 분류를 각각 어떻게 구별하는지 이해한다.',
    sourceAudit
   };
