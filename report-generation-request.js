@@ -343,8 +343,13 @@ function restoreEvidence(value,prompt){
     if(id==='saju_core'&&topic==='strength'){
      // Month-position traditional ten-god meanings are now the required
      // interpretation, roots and clash claims are no longer compulsory.
-     const hasMonth=b.refs.some(ref=>ref==='natal.month.stem'||ref.startsWith('natal.month.hidden.'));
-     if(!hasMonth)throw Error('AI report service missing calculated month ten-god source');
+     const mainStem=payload.source['facts.structuralEvidence.monthCommand']?.mainHiddenStem;
+     const mainId=mainStem?'natal.month.hidden.'+mainStem:null;
+     // The meaning-first paragraph COMPARES two different positions.
+     // Citing one classification and inferring the other is not grounded.
+     if(!mainId||!Object.hasOwn(payload.source,mainId)||
+        !b.refs.includes('natal.month.stem')||!b.refs.includes(mainId))
+      throw Error('AI report service missing paired month ten-god citations');
      const roots=payload.source['facts.stemConnections']?.dayMasterRooting?.sameElementRoots||[];
      const optionalRoots=['facts.structuralEvidence.dayMasterRoots',
       'facts.stemConnections','facts.rootConditions',...roots.map(x=>x.hiddenId)]
@@ -359,9 +364,12 @@ function restoreEvidence(value,prompt){
        throw Error('AI report service missing actual optional root position');
      }
     }
-    if(task.requiredSourceKinds?.includes('month-ten-god')&&
-       !b.refs.some(ref=>ref==='natal.month.stem'||ref.startsWith('natal.month.hidden.')))
-     throw Error('AI report service missing required natal month ten-god classification');
+    if(task.requiredSourceKinds?.includes('month-ten-god')){
+     const monthStem=payload.source['facts.structuralEvidence.monthCommand']?.mainHiddenStem;
+     if(!monthStem||!b.refs.includes('natal.month.stem')||
+         !b.refs.includes('natal.month.hidden.'+monthStem))
+      throw Error('AI report service missing required paired month ten-god classifications');
+    }
     if(task.requiredSourceKinds?.includes('seasonal')&&!b.refs.includes('facts.seasonalEvidence'))
      throw Error('AI report service missing required month seasonal source: '+id+':'+topic);
     if(task.requiredSourceKinds?.includes('natal-month-position')&&!b.refs.some(ref=>ref.startsWith('natal.month.')))
