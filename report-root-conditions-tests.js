@@ -81,7 +81,8 @@ for(const input of cases){
   .properties.chapters.properties.saju_core.properties.paragraphs.properties;
  const enums=(slots.strength.anyOf?.find(x=>x.type==='object')||slots.strength)
   .properties.basis.properties.refs.items.enum;
- assert(enums.includes('facts.rootConditions'),'root paragraph must cite root conditions');
+ assert(!enums.includes('facts.rootConditions')&&!enums.includes('facts.stemConnections'),
+  'real paid first chapter must not expose optional root/clash sources in ten-god text');
  assert(!slots.temperament.properties.basis.properties.refs.items.enum.includes('facts.rootConditions'),
   'root conditions must not leak into seasonal paragraph');
  const paragraph=refs=>({basis:{refs,interpretation:'원국과 세운의 지지 관계 위치를 비교합니다.',
@@ -93,14 +94,18 @@ for(const input of cases){
    strength:paragraph(refs)}}}});
  const observedRoots=compiled.source['facts.stemConnections'].dayMasterRooting.sameElementRoots||[];
  const mainMonth='natal.month.hidden.'+compiled.source['facts.structuralEvidence.monthCommand'].mainHiddenStem;
- const required=['natal.month.stem',mainMonth,'facts.structuralEvidence.dayMasterRoots','facts.stemConnections','facts.rootConditions',
-  ...(observedRoots[0]?[observedRoots[0].hiddenId]:[])];
- assert.doesNotThrow(()=>writer.restoreEvidence(fake(required),prompt));
+ const required=['natal.month.stem',mainMonth];
+ assert.doesNotThrow(()=>writer.restoreEvidence(fake(required),prompt),
+  'a valid month ten-god comparison should not need root provenance');
  assert.throws(()=>writer.restoreEvidence(fake(required.filter(id=>id!==mainMonth)),prompt),
   /missing paired month ten-god citations/,
-  'a month stem alone must not substantiate the meaning of a second hidden month classification');
- assert.throws(()=>writer.restoreEvidence(fake(required.filter(x=>x!=='facts.rootConditions')),prompt),
-  /missing verified optional root provenance/);
+  'one month classification cannot substantiate a pair comparison');
+ for(const rootSource of ['facts.rootConditions','facts.stemConnections',
+  'facts.structuralEvidence.dayMasterRoots']){
+  assert.throws(()=>writer.restoreEvidence(fake([...required,rootSource]),prompt),
+   /unrelated paragraph basis/,
+   'real root calculations stay verified but cannot be cited for unrelated month question');
+ }
  const modified=structuredClone(packet);
  modified.facts.rootConditions.rootDeletionPolicy='clash-erases-root';
  assert(integrity.verify(modified).errors.includes('incorrect-positional-root-conditions'));
