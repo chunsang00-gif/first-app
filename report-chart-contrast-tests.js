@@ -108,6 +108,17 @@ for(const input of cases){
   ['actual-day-master-roots','root-relation-overlap']);
  assert.equal(strength.tenGodFocus.monthStem.tenGod,month.stemTenGod);
  assert.equal(strength.tenGodFocus.monthMainHidden.tenGod,mc.mainHiddenStemTenGod);
+ assert(strength.tenGodFocus.monthStem.meaning&&strength.tenGodFocus.monthMainHidden.meaning);
+ for(const item of [strength.tenGodFocus.monthStem,strength.tenGodFocus.monthMainHidden]){
+  assert(strength.readerReasoning.reasoningTask.includes(item.tenGod));
+  assert(strength.readerReasoning.reasoningTask.includes(item.meaning));
+  assert(strength.readerReasoning.hypotheticalQuestion.includes(item.tenGod));
+  assert(strength.readerReasoning.hypotheticalQuestion.includes(item.meaning));
+ }
+ assert(!strength.readerReasoning.hypotheticalQuestion.includes('배움·표현·규칙·자원 중'),
+  'only calculated ten-god themes may shape a paid reader example');
+ assert.equal(strength.tenGodFocus.sameClassification,
+  strength.tenGodFocus.monthStem.tenGod===strength.tenGodFocus.monthMainHidden.tenGod);
  for(const item of [...temperament.points,...strength.points]){
   assert(!Object.hasOwn(item,'question'),
    'internal source verification must not be sent as a customer interpretation question');

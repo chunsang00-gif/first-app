@@ -94,6 +94,12 @@ const schema=require('./report-schema.json');
  assert(payload.task.chapters.saju_core.topics.strength.evidenceFocus.sourceAudit.includes('뿌리'),
   'actual root evidence must remain privately auditable');
  assert.deepEqual(payload.task.chapters.saju_core.topics.strength.requiredSourceKinds,['month-ten-god']);
+ assert(generation.policy.includes('를 모두 기록한다'),
+  'paid writer policy must require both calculated month sources, not one');
+ assert(!generation.policy.includes('또는 natal.month.hidden.* 중 한 항목'),
+  'old one-source citation policy must never silently override paired evidence');
+ assert(generation.policy.includes('strength 문단에서도 필수 소재가 아니다'),
+  'old root/clash compulsory prose rule must not return');
  assert.equal(payload.task.chapters.saju_core.topics.strength.sourcePath,'facts.tenGods.month');
  assert.equal(payload.task.chapters.saju_core.topics.strength.evidenceFocus.tenGodFocus.monthStem.tenGod,
   payload.source['natal.month.stem'].tenGod);

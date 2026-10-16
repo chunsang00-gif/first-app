@@ -200,16 +200,22 @@ function readerQuestions(contrast,topic){
    throw Error('Missing verified month ten-god meanings for reader brief');
   const visibleKind=monthTenGod.monthStem.tenGod;
   const mainKind=monthTenGod.monthMainHidden.tenGod;
+  const visibleMeaning=monthTenGod.monthStem.meaning;
+  const mainMeaning=monthTenGod.monthMainHidden.meaning;
+  if(!visibleMeaning||!mainMeaning)
+   throw Error('Missing position-bound traditional ten-god meaning');
   const comparison=monthTenGod.sameClassification?
    '태어난 달의 두 출처에서 같은 십성 분류를 확인했다. 반대 성향을 만들지 않는다. ':
    '태어난 달의 겉글자와 중심 숨은 글자에서 서로 다른 십성 분류를 확인했다. 서로 다른 위치의 뜻을 구별한다. ';
-  const readerContext='태어난 달 겉글자의 '+visibleKind+'와 중심 숨은 글자의 '+mainKind+'를 먼저 대조한다. '+comparison;
+  const readerContext='태어난 달 겉글자의 '+visibleKind+'('+visibleMeaning+')와 중심 숨은 글자의 '+mainKind+'('+mainMeaning+')를 실제 출생 위치별로 구분해 읽는다. '+comparison;
 
   return {
    contrastQuestion:'태어난 달의 겉글자와 중심 숨은 글자가 나타내는 전통적 질문을 어떻게 함께 읽는가?',
    reasoningTask:readerContext+
     '두 분류의 전통적인 의미와 실제 출생 위치의 차이를 구체적으로 설명한다. 뿌리나 충은 그 의미에 실제로 영향을 주는 보조 조건일 때만 다룬다. 재산·능력·사건·마음속 균형·성격 양면성을 만들어 내지 않는다.',
-   hypotheticalQuestion:'가상의 상황: 실제 계산된 두 십성 분류가 배움·표현·규칙·자원 중 어떤 질문을 살피는지 출생 위치에 따라 다르게 설명한다. 독자가 그런 경험을 했다고 단정하지 않는다.',
+   hypotheticalQuestion:monthTenGod.sameClassification?
+    '가상의 상황: '+visibleKind+'의 '+visibleMeaning+'라는 전통적 질문이 출생월 겉과 안의 두 위치에서 어떻게 반복되는지 설명한다. 두 개라는 이유로 성향의 강도를 단정하지 않는다.':
+    '가상의 상황: '+visibleKind+'의 '+visibleMeaning+'라는 질문과 '+mainKind+'의 '+mainMeaning+'라는 질문이 각각 어떤 때 필요한지 비교한다. 실제 경험이나 두 성격의 충돌을 만들지 않는다.',
    interpretivePayoff:'독자는 태어난 달의 두 출처가 전통적으로 무엇을 뜻하는지, 같은 분류와 서로 다른 분류를 각각 어떻게 구별하는지 이해한다.',
    sourceAudit
   };
