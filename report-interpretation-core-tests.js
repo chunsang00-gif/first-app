@@ -30,6 +30,44 @@ assert(result.career.comparisons.some(p=>p.annualId==='annual.hidden.己'&&p.nat
 assert(!result.career.guaranteesRealWorldOutcome);
 assert.equal(result.career.evidenceType,'traditional-classification-comparison-only');
 
+assert(result.career.comparisons.every(p=>p.contrast&&p.contrast!=='none'),
+ 'an independent paid domain claim must explain a subtype/visibility difference');
+// Historical paid QA failure: copying the SAME annual authority symbol into
+// an additional career chapter when the natal comparison says nothing new.
+const duplicate=structuredClone(packet);
+duplicate.facts.tenGods={
+ day:{stem:'庚',stemTenGod:'일간',hiddenStems:[]},
+ month:{stem:'丁',stemTenGod:'정관',hiddenStems:[]}
+};
+duplicate.facts.annualTenGods={stem:'丁',stemTenGod:'정관',hiddenStems:[]};
+const duplicateCareer=core.plan(duplicate,'career');
+assert.equal(duplicateCareer.relevant,false,
+ 'same visible official on year and birth chart is not a distinct premium career interpretation');
+assert.deepEqual(duplicateCareer.comparisons,[]);
+assert.deepEqual(duplicateCareer.sourceIds,[]);
+assert.equal(guidance.preflight(duplicate).year_2027_career.topicTasks.change.mode,'state-limits',
+ 'duplicate category with no semantic contrast must be omitted BEFORE billing');
+// A real contrast is not a prediction: exact same classification at two
+// different visibility layers is a valid comparison of traditional placements.
+const visibility=structuredClone(duplicate);
+visibility.facts.tenGods.month={
+ stem:'庚',stemTenGod:'일간',hiddenStems:[{stem:'丁',tenGod:'정관'}]};
+const visibleVsHidden=core.plan(visibility,'career');
+assert.equal(visibleVsHidden.relevant,true);
+assert.equal(visibleVsHidden.comparisons.length,1);
+assert.equal(visibleVsHidden.comparisons[0].contrast,'visibility');
+assert.equal(visibleVsHidden.guaranteesRealWorldOutcome,false);
+const subtype=structuredClone(duplicate);
+subtype.facts.tenGods.month={stem:'丙',stemTenGod:'편관',hiddenStems:[]};
+const differing=core.plan(subtype,'career');
+assert.equal(differing.relevant,true);
+assert.equal(differing.comparisons[0].contrast,'subtype');
+assert.deepEqual(differing.sourceIds,['annual.stem','natal.month.stem']);
+const unrelated=structuredClone(duplicate);
+unrelated.facts.tenGods.month={stem:'辛',stemTenGod:'정재',hiddenStems:[]};
+assert.equal(core.plan(unrelated,'career').relevant,false);
+
+
 const yearlyOnly=structuredClone(packet);
 yearlyOnly.facts.tenGods={day:{stem:'庚',stemTenGod:'일간',hiddenStems:[]}};
 assert.equal(core.plan(yearlyOnly,'career').relevant,false,'no natal partner means no interpretation');
