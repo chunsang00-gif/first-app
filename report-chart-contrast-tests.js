@@ -137,7 +137,8 @@ for(const input of cases){
  if(rootClashes.length===0){
   assert(rootFocus.reasoningTask.includes('직접 충이 계산된 사례가 없다'));
   assert(!rootFocus.reasoningTask.includes('충이 겹친 자리'));
- }else assert(rootFocus.reasoningTask.includes('충이 겹친 자리 '+rootClashes.length+'곳'));
+ }else assert(rootFocus.reasoningTask.includes('뿌리와 직접 연결된 충 관계 '+rootClashes.length+'건'),
+   'each actual clash pair must be named rather than inferred as a vague root effect');
  if(!packet.chart.hour)assert(!rootFocus.contrastQuestion.includes('태어난 시간에 실제 뿌리'),
   'unknown time must not become an observed hour root');
 
