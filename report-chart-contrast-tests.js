@@ -170,6 +170,28 @@ for(const input of cases){
  // It must use real customer-specific traditional categories to ask
  // something understandable. This is an imagined decision, not an asserted
  // biography, an inner conflict or a generic list of abstract nouns.
+ // Customer-value editing MUST come from the ACTUAL month pair, not a
+ // type-agnostic word list. This is a scenario, not observed personality.
+ const monthReaderPlan=strength.readerReasoning.readerValuePlan;
+ assert.equal(monthReaderPlan.first.tenGod,month.stemTenGod);
+ assert.equal(monthReaderPlan.first.sourceId,'natal.month.stem');
+ assert.equal(monthReaderPlan.second.tenGod,mc.mainHiddenStemTenGod);
+ assert.equal(monthReaderPlan.second.sourceId,'natal.month.hidden.'+mc.mainHiddenStem);
+ assert(monthReaderPlan.first.question&&monthReaderPlan.second.question,
+  'both computed ten gods must produce plain-language decision questions');
+ assert(monthReaderPlan.customerSequence.includes('가상의')||monthReaderPlan.customerSequence.includes('가상'),
+  'a traditional symbol must be applied to an explicitly hypothetical decision');
+ assert(monthReaderPlan.advantageQuestion.includes('무엇')&&monthReaderPlan.riskQuestion.includes('무엇')||
+  monthReaderPlan.riskQuestion.includes('왜'),
+  'reader must receive a concrete upside/downside comparison rather than a technical dictionary');
+ assert(!/(?:당신은 항상|실제로 갈등이|능력이 뛰어나|돈을 많이 벌)/.test(
+  JSON.stringify(monthReaderPlan)),'customer value plan must not invent a measured personal behavior');
+ const seasonReaderPlan=temperament.readerReasoning.readerValuePlan;
+ assert(seasonReaderPlan.advantageQuestion&&seasonReaderPlan.riskQuestion);
+ assert(seasonReaderPlan.prohibitedShortcut.includes('계절 전환')&&
+  seasonReaderPlan.prohibitedShortcut.includes('적응력'));
+ assert.deepEqual(request.task.chapters.saju_core.topics.strength.evidenceFocus.readerReasoning.readerValuePlan,
+  monthReaderPlan,'the actual billable provider must receive EXACT month-dependent tradeoff questions');
  const scenario=strength.readerReasoning.hypotheticalQuestion;
  assert(scenario.includes('새로운 일을 준비')&&scenario.includes('가상의 상황'),
   'first-chapter reader must get a recognizable decision scenario');
@@ -186,6 +208,10 @@ for(const input of cases){
    'real lunar sample must give a different resource-related scene for 己 편재');
   assert(!scenario.includes('반복해서 드는 비용을 어떻게 감당할지'),
    'actual 편재 must not be swapped with the invented 정재 decision');
+  assert(monthReaderPlan.first.question.includes('처음 접하는 정보를 자기 방식으로 어떻게 이해할지'));
+  assert(monthReaderPlan.second.question.includes('필요한 돈과 재료를 어디서 마련하고 어떻게 쓸지'));
+  assert(!monthReaderPlan.customerSequence.includes('무조건 두 성격이 충돌'),
+   '편인 / 편재 is not a measured personality opposition');
  }
  const changedScenario=structuredClone(request);
  changedScenario.task.chapters.saju_core.topics.strength.evidenceFocus.readerReasoning.hypotheticalQuestion=
