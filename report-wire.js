@@ -26,6 +26,7 @@ function coreReaderRoles(prompt){
  const focus=contrast&&coreContrast.forTopic(contrast,'strength',[])?.readerReasoning?.readerValuePlan;
  const one=focus?.first?.question;
  const two=focus?.second?.question;
+ const reading=focus?.traditionalReading;
  const firstParagraphBoundary=seasonal?.readerValuePlan?.distinctFromMonthPair||null;
  return {
   temperament:{
@@ -39,6 +40,7 @@ function coreReaderRoles(prompt){
   strength:{
    label:'실제로 본문에서 비교한 태어난 달의 서로 다른 두 전통적 질문을 소제목에 간결하게 드러낸다. 뿌리·충·강약처럼 이 문단에 없는 계산 주제를 제목에 붙이지 않는다.',
    text:'이 문단은 태어난 달의 겉글자와 중심 숨은 글자에 기록된 두 전통적 의미만 풀이한다.'+
+    (reading?' 이 사주에서 계산한 두 전통 해석의 관점: '+reading.tentativeThesis+' 작성 목적: '+reading.editorialDuty+' 해석의 범위: '+reading.evidenceLimit+' ':'')+
     (one&&two?' 첫 출처의 실제 질문은 '+one+'이며 둘째 출처의 실제 질문은 '+two+'이다.':'')+
     ' 출생 상징의 사전적 의미만 여러 문장으로 풀이하지 말고 새 일을 준비하는 가상의 한 선택 상황에서 두 질문에 각각 답해야 하는 이유와 어느 질문을 건너뛰면 검토가 부족해지는지 장면과 결과의 차이로 설명한다. 한 문단의 끝을 이는 전통적 해석의 출발점입니다 같은 해설로 마무리하지 않는다. 서로 다른 뜻을 실제 성격의 모순·갈등이나 능력의 증거로 바꾸지 않는다. 첫 문단의 계절 설명을 반복하지 않는다.'
   }
@@ -61,7 +63,7 @@ function schemaFor(prompt,reportSchema){
   const roles=id==='saju_core'?coreReaderRoles(prompt):null;
   if(roles){
    title.description+=' 첫 장 제목은 두 문단에서 실제 제시한 하나의 생활 질문을 가리킨다. 출생 구조·기질의 조건·계산 근거라는 교재 제목이나, 본문에서 검증하지 않은 인물 평가를 피한다.';
-   judgment.description+=' 첫 장 핵심 판단은 제목의 질문에 답하는 자연스러운 한국어 한 문장이다. 계산 과정·근거 목록·검토하겠다는 작성 계획이 아니다. 본문 두 문단의 조건부 전통 해석을 넘어 실제 성격·과거 행동을 확인했다고 단정하지 않는다.';
+   judgment.description+=' 첫 장 핵심 판단은 제목의 질문에 답하는 자연스러운 한국어 한 문장이다. 먼저 검증된 두 출생 위치가 뒷받침하는 전통적 기질 해석을 조건부로 말하고, 생활 조언이나 자료 분석 계획만으로 대체하지 않는다. 계산 과정·근거 목록·검토하겠다는 작성 계획이 아니다. 본문 두 문단의 조건부 전통 해석을 넘어 실제 성격·과거 행동을 확인했다고 단정하지 않는다.';
   }
   return [id,object({title,keyJudgment:judgment,evidence:reader.describe(section.evidence,reader.evidenceField),mood:section.mood,
    paragraphs:object(Object.fromEntries(keys.map(topic=>[topic,topic===anchor?paragraph(plan[topic]?.question||topics[id][topic],false,roles?.[topic]):plan[topic]?.mode==='state-limits'?{type:'null'}:{anyOf:[paragraph(plan[topic]?.question||topics[id][topic],true,roles?.[topic]),{type:'null'}]}])))})];
