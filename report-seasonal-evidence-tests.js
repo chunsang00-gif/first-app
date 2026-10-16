@@ -72,7 +72,9 @@ for(const input of actualCases){
   'a dropped seasonal citation contract must block paid generation');
  const t=blueprint.saju_core.topicTasks.temperament;
  assert.equal(t.mode,'use-primary');
- assert.deepEqual(t.requiredSourceKinds,['seasonal','qi-ledger','natal-month-position','stem-linkage','root-condition']);
+ assert.deepEqual(t.requiredSourceKinds,['seasonal','qi-ledger','natal-month-position']);
+ assert(blueprint.saju_core.topicTasks.strength.requiredSourceKinds.includes('stem-linkage'));
+ assert(blueprint.saju_core.topicTasks.strength.requiredSourceKinds.includes('root-condition'));
  const prompt={stage:'body',facts:packet,requestedSections:['saju_core'],
   analysisGuidance:{...guidance.forRequest(['saju_core'],packet.person.mbti),
    editorialBlueprint:{saju_core:blueprint.saju_core}}};
@@ -88,8 +90,8 @@ for(const input of actualCases){
     limit:'강약의 전체 결론은 알 수 없음'},
    label:'월령과 계절',text:'월지와 일간의 관계는 계절 맥락에서 설명합니다.'},
    strength:null}}}});
- assert.doesNotThrow(()=>generation.restoreEvidence(build(['facts.seasonalEvidence','facts.qiEvidence','facts.stemConnections','facts.rootConditions','natal.month.stem']),prompt));
- assert.throws(()=>generation.restoreEvidence(build(['facts.qiEvidence','facts.stemConnections','facts.rootConditions','natal.month.stem']),prompt),
+ assert.doesNotThrow(()=>generation.restoreEvidence(build(['facts.seasonalEvidence','facts.qiEvidence','natal.month.stem']),prompt));
+ assert.throws(()=>generation.restoreEvidence(build(['facts.qiEvidence','natal.month.stem']),prompt),
   /missing required month seasonal source/);
  const tampered=structuredClone(packet);
  tampered.facts.seasonalEvidence.monthPhase=expected.monthPhase==='core'?'transition':'core';
