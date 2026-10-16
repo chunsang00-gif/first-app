@@ -10,7 +10,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   first-chapter:
-    if: github.run_attempt == 1 && contains(github.event.head_commit.added, '.github/workflows/approved-first-chapter-once-20261016.yml') && github.ref_name == 'fix-paid-qa-fact-bindings-20261014'
+    if: github.run_attempt == 1 && github.event_name == 'push' && github.ref_name == 'fix-paid-qa-fact-bindings-20261014'
     runs-on: ubuntu-latest
     timeout-minutes: 25
     env:
