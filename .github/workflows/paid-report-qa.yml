@@ -59,6 +59,10 @@ jobs:
           cp .paid-resume-provider/private-qa-report-provider-calls.json private-qa-report-provider-calls.json
           cp .paid-resume-checkpoint/recovered-validated-batch.json private-qa-report-checkpoint.json
           chmod 600 private-qa-report-provider-calls.json private-qa-report-checkpoint.json
+      - name: Verify old paid checkpoint against CURRENT generation contract before billing
+        # The brief was revised after the original paid chapter; this must
+        # FAIL until a new checkpoint is independently compatible.
+        run: node verify-paid-report-resume.js
       - name: Continue one previously paid QA sample (at most 6 NEW calls)
         run: node run-paid-report-qa.js
       - name: Upload private QA report
