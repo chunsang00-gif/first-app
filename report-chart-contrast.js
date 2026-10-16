@@ -213,7 +213,7 @@ function forTopic(contrast,topic,allowedIds){
   const sourceRefs=item.refs.filter(ref=>allowed.has(ref));
   // Do not introduce a new rejection gate for intentionally incomplete
   // test prompts; canonical evidence validation remains authoritative.
-  return {kind,sourceRefs,calculatedExplanation:item.calculatedExplanation,question:item.question};
+  return {kind,sourceRefs,calculatedExplanation:item.calculatedExplanation,sourceAuditCheck:item.question};
  });
  const {sourceAudit,...readerReasoning}=readerQuestions(contrast,topic);
  return {scope:topic,points,readerReasoning,

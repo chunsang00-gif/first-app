@@ -88,6 +88,14 @@ for(const input of cases){
   ['month-vs-day','visible-support-vs-counter']);
  assert.deepEqual(strength.points.map(x=>x.kind),
   ['actual-day-master-roots','root-relation-overlap']);
+ for(const item of [...temperament.points,...strength.points]){
+  assert(!Object.hasOwn(item,'question'),
+   'internal source verification must not be sent as a customer interpretation question');
+  assert(typeof item.sourceAuditCheck==='string'&&item.sourceAuditCheck.length>30,
+   'exact calculated source audit criterion must remain available');
+  assert(Array.isArray(item.sourceRefs),
+   'citation bindings must remain unchanged');
+ }
  if(rootClashes.length){
   const focusExplanation=strength.points.find(p=>p.kind==='root-relation-overlap').calculatedExplanation;
   const question=strength.sourceAudit;
