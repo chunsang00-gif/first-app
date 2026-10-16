@@ -228,6 +228,16 @@ function allowedRefs(payload,task,chapterId,topic){
    // assigned to the other verified core paragraph.
    for(const id of Object.keys(payload.source))if(id.startsWith('natal.month.'))ids.add(id);
   }
+  if(path==='facts.tenGods.month'&&chapterId==='saju_core'&&topic==='strength'){
+   // Month ten gods are primary. Exact roots/clashes are supplemental,
+   // valid only with full provenance, and may be omitted entirely.
+   if(Object.hasOwn(payload.source,'facts.structuralEvidence.monthCommand'))
+    ids.add('facts.structuralEvidence.monthCommand');
+   for(const key of ['facts.structuralEvidence.dayMasterRoots','facts.stemConnections','facts.rootConditions'])
+    if(Object.hasOwn(payload.source,key))ids.add(key);
+   for(const root of payload.source['facts.stemConnections']?.dayMasterRooting?.sameElementRoots||[])
+    if(Object.hasOwn(payload.source,root.hiddenId))ids.add(root.hiddenId);
+  }
   if(path==='facts.structuralEvidence.dayMasterRoots'){
    // An observed day/hour root is not every hidden stem in the day branch.
    // The hour root was previously missing from the citation enum entirely.
@@ -331,19 +341,27 @@ function restoreEvidence(value,prompt){
     }
     if(!allowed.size||b.refs.some(ref=>!allowed.has(ref)))throw Error('AI report service unrelated paragraph basis: '+id+':'+topic);
     if(id==='saju_core'&&topic==='strength'){
-     // Only *after* validating the model's explicit day/hour root citations
-     // against three independently computed ledgers, attach the redundant
-     // day-master summary. Preserve the original raw provider archive.
-     b.refs=completeRootSummaryCitation(payload,b.refs);
-     // The model must show a real recorded root before discussing its meaning.
-     // Source IDs alone cannot validate every interpretation; human QA remains.
-     const required=['facts.structuralEvidence.dayMasterRoots',
-      ...['facts.stemConnections','facts.rootConditions'].filter(ref=>Object.hasOwn(payload.source,ref))];
-     if(required.some(ref=>!b.refs.includes(ref)))throw Error('AI report service missing verified root provenance');
+     // Month-position traditional ten-god meanings are now the required
+     // interpretation, roots and clash claims are no longer compulsory.
+     const hasMonth=b.refs.some(ref=>ref==='natal.month.stem'||ref.startsWith('natal.month.hidden.'));
+     if(!hasMonth)throw Error('AI report service missing calculated month ten-god source');
      const roots=payload.source['facts.stemConnections']?.dayMasterRooting?.sameElementRoots||[];
-     if(roots.length&&!roots.some(root=>b.refs.includes(root.hiddenId)))
-      throw Error('AI report service missing actual root position');
+     const optionalRoots=['facts.structuralEvidence.dayMasterRoots',
+      'facts.stemConnections','facts.rootConditions',...roots.map(x=>x.hiddenId)]
+      .some(ref=>b.refs.includes(ref));
+     if(optionalRoots){
+      b.refs=completeRootSummaryCitation(payload,b.refs);
+      const needed=['facts.structuralEvidence.dayMasterRoots',
+       ...['facts.stemConnections','facts.rootConditions'].filter(x=>Object.hasOwn(payload.source,x))];
+      if(needed.some(ref=>!b.refs.includes(ref)))
+       throw Error('AI report service missing verified optional root provenance');
+      if(roots.length&&!roots.some(x=>b.refs.includes(x.hiddenId)))
+       throw Error('AI report service missing actual optional root position');
+     }
     }
+    if(task.requiredSourceKinds?.includes('month-ten-god')&&
+       !b.refs.some(ref=>ref==='natal.month.stem'||ref.startsWith('natal.month.hidden.')))
+     throw Error('AI report service missing required natal month ten-god classification');
     if(task.requiredSourceKinds?.includes('seasonal')&&!b.refs.includes('facts.seasonalEvidence'))
      throw Error('AI report service missing required month seasonal source: '+id+':'+topic);
     if(task.requiredSourceKinds?.includes('natal-month-position')&&!b.refs.some(ref=>ref.startsWith('natal.month.')))
