@@ -303,7 +303,7 @@ async function generate(input,callModel,onProgress=()=>{},onValidatedBatch=()=>{
   const verified=validateBatch({sections:batch.sections},ids);
   const factual=quality.verifyEvidenceAgainstFacts({sections:verified.sections},packet);
   if(factual.errors.length)throw Error('QA resume factual mismatch: '+factual.errors.join('; '));
-  if(require('./report-grounding-review').inspect(verified).blockingErrors.length)
+  if(require('./report-grounding-review').inspect(verified,packet).blockingErrors.length)
    throw Error('QA resume has non-specific interpretation');
   const editable=require('./report-editorial');
   for(const s of verified.sections){
@@ -342,7 +342,7 @@ async function generate(input,callModel,onProgress=()=>{},onValidatedBatch=()=>{
   // The final full-report editorial gate still runs after synthesis.
   const preliminary=quality.verifyEvidenceAgainstFacts({sections:result.sections},packet);
   if(preliminary.errors.length){console.error('[Report batch factual mismatch]',{requestedIds:ids,errors:preliminary.errors});throw Error('AI report service returned factually inconsistent report data')}
-  const grounded=require('./report-grounding-review').inspect(result);
+  const grounded=require('./report-grounding-review').inspect(result,packet);
   if(grounded.blockingErrors.length){
    console.error('[Paid report grounding rejected]',{requestedIds:ids,codes:grounded.blockingErrors});
    throw Error('AI report service returned non-specific interpretation');

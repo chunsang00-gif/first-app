@@ -29,6 +29,29 @@ const inputReport={sections:[{id:'saju_core',title:'실제 오행 뿌리',
 const changed=reader.normalizeVisible(inputReport);
 assert.equal(changed.sections[0].title,'실제 기운의 뿌리');
 assert.deepEqual(changed.sections[0].evidence,inputReport.sections[0].evidence);
+// Reproduce the ACTUAL paid 2nd run: month clashes with day and hour
+// separately. No day/hour mutual clash exists, even though each root is hit.
+const truePairPacket=require('./report-facts-node').build({
+ calendar:'lunar',leapMonth:false,birthDate:'1982-11-24',birthTime:'14:20',
+ gender:'male',mbti:'ISFP'
+},2027);
+assert.deepEqual(truePairPacket.facts.natalClashes.map(x=>x.positions),
+ [['month','day'],['month','hour']]);
+const wrongPair={sections:[{id:'saju_core',title:'실제 뿌리',
+ keyJudgment:'날과 시간의 뿌리를 확인합니다.',body:[
+ '태어난 날과 시간에 같은 기운의 뿌리가 보입니다. 이 두 자리 모두 서로 충이 겹치는 구조입니다.'
+]}]};
+assert(grounding.inspect(wrongPair,truePairPacket).blockingErrors.includes(
+ 'saju_core:invented-day-hour-clash-from-separate-month-pairs'));
+const correctPair={sections:[{id:'saju_core',title:'실제 뿌리',
+ keyJudgment:'날과 시간의 뿌리를 확인합니다.',body:[
+ '태어난 달과 날의 자리에서 충이 계산되고, 태어난 달과 시간의 자리에도 충이 계산됩니다. 날과 시간의 자리가 서로 충이라는 뜻은 아닙니다.'
+]}]};
+assert(!grounding.inspect(correctPair,truePairPacket).blockingErrors.includes(
+ 'saju_core:invented-day-hour-clash-from-separate-month-pairs'));
+assert(grounding.inspect({sections:[{id:'saju_core',
+ body:['계절의 성격이 뚜렷하지 않아 변화의 흐름을 보여줍니다.']}]},
+ truePairPacket).blockingErrors.includes('saju_core:unmeasured-seasonal-adaptability'));
 const semanticReview=require('./report-semantic-review').review;
 const flaggedReview=semanticReview({sections:[
  {id:'saju_core',body:['자신의 기준을 주변 상황과 비교합니다. 신뢰를 받기도 한다.','주변 규칙과 자기 판단 기준을 비교합니다.']},
