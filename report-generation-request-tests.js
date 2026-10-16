@@ -127,6 +127,50 @@ const schema=require('./report-schema.json');
  const scopedIds=['money','year_2027_money'];
  const guidance=require('./report-analysis-guidance');
  const allPlans=guidance.preflight(prompt.facts);
+ // The old PAID QA fabricated INTJ rigidity and opposite Saju behavior.
+ // Neither a correct MBTI label nor two citations prove agreement/conflict.
+ const joinedIds=['mbti_contradiction','integrated_judgment'];
+ const joinedPrompt={...prompt,requestedSections:joinedIds,
+  rules:{...prompt.rules,sectionGoals:Object.fromEntries(joinedIds.map(id=>
+   [id,require('./report-prompt').sectionGoals[id]]))},
+  analysisGuidance:{...guidance.forRequest(joinedIds,prompt.facts.person?.mbti),
+   editorialBlueprint:Object.fromEntries(joinedIds.map(id=>[id,allPlans[id]]))}
+ };
+ const joined=generation.compile(joinedPrompt);
+ const letters=(id,topic)=>joined.task.chapters[id].topics[topic].mbtiFocus?.preferences.map(p=>p.code);
+ assert.deepEqual(letters('mbti_contradiction','agreement'),['N','T'],
+  'INTJ first comparison must use submitted N/T meanings, not generic type adjectives');
+ assert.deepEqual(letters('mbti_contradiction','difference'),['I','J'],
+  'optional second comparison must not repeat the information-and-decision paragraph');
+ assert.deepEqual(letters('integrated_judgment','insight'),['I','J'],
+  'integrated chapter must apply its OWN interactive/scheduling question, not force a reversal');
+ for(const [id,chapter] of Object.entries(joined.task.chapters)){
+  assert(!/일치·충돌·판단 불가 중 어느 쪽인지 근거를 들어 판별|사주 해석과 MBTI 선호가 동시에 설명하는 부분, 서로 다른 이유/.test(chapter.analysisGoal),
+   'no section goal may force a measured match or fabricated opposite: '+id);
+  assert(!/강화·충돌·보완 또는 근거 부족을 구분/.test(chapter.analysisFocus),
+   'preflight focus cannot contradict the calculation-free comparison contract: '+id);
+  for(const [topic,task] of Object.entries(chapter.topics)){
+   if(task.mode==='state-limits')continue;
+   assert.equal(task.mbtiFocus?.sourceRef,'person.mbti');
+   assert.equal(task.mbtiFocus?.verdict,'not-computed');
+   assert.equal(task.mbtiFocus?.sharedBehavior,'unobserved');
+   assert.equal(task.mbtiFocus?.sajuRelation,'traditional-interpretation-only');
+   assert(task.citableFacts.some(x=>x.id==='person.mbti')&&
+    task.citableFacts.some(x=>x.id.startsWith('natal.')),
+    'paired source facts must reach the REAL provider: '+id+'/'+topic);
+  }
+ }
+ assert.deepEqual(require('./report-instruction-audit').inspectTransport(joinedPrompt,joined),[],
+  'topic-level MBTI comparison and integrated plans must reach provider unchanged');
+ const joinedSchema=generation.schema(joinedPrompt,wire.schemaFor(joinedPrompt,schema));
+ for(const id of joinedIds){
+  const topic=joined.task.chapters[id].anchor;
+  const leaf=joinedSchema.properties.chapters.properties[id].properties.paragraphs.properties[topic];
+  const cited=leaf.properties.basis.properties.refs.items.enum;
+  assert(cited.includes('person.mbti')&&cited.some(x=>x.startsWith('natal.')),
+   'actual comparison JSON response must allow both independent sources');
+ }
+
  // Historical paid QA repeated a common 2027 ten-god label as if money,
  // work and relationship events all changed in intensity. Check the ACTUAL
  // compact provider payload, not unused legacy rules or isolated test data.
