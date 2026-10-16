@@ -93,6 +93,12 @@ const schema=require('./report-schema.json');
   'accurate natal-clash provenance must remain in provider task');
  assert(payload.task.chapters.saju_core.topics.strength.evidenceFocus.sourceAudit.includes('뿌리'),
   'actual root evidence must remain privately auditable');
+ assert.deepEqual(payload.task.chapters.saju_core.topics.strength.requiredSourceKinds,['month-ten-god']);
+ assert.equal(payload.task.chapters.saju_core.topics.strength.sourcePath,'facts.tenGods.month');
+ assert.equal(payload.task.chapters.saju_core.topics.strength.evidenceFocus.tenGodFocus.monthStem.tenGod,
+  payload.source['natal.month.stem'].tenGod);
+ const main=payload.task.chapters.saju_core.topics.strength.evidenceFocus.tenGodFocus.monthMainHidden;
+ assert.equal(payload.source[main.sourceId].tenGod,main.tenGod);
  assert(!/(?:월지|일지|시지)/.test(payload.task.chapters.saju_core.topics.strength.evidenceFocus.readerReasoning.hypotheticalQuestion),
   'customer-facing example must be concept-first, not branch-location-first');
  assert(generation.policy.includes('명리학 용어 설명 교재가 아니다'),
@@ -250,15 +256,24 @@ const schema=require('./report-schema.json');
   limit:'개인 능력이나 강약은 관찰되지 않았음'},
   label:'계산된 뿌리의 위치',text:'해당 출생 위치의 뿌리를 확인하는 검증 문장입니다.'
  };
+ coreWithStrength.chapters.saju_core.paragraphs.strength.basis.refs.unshift('natal.month.stem');
  assert.doesNotThrow(()=>generation.restoreEvidence(coreWithStrength,prompt));
+ const monthOnly=structuredClone(coreWithStrength);
+ monthOnly.chapters.saju_core.paragraphs.strength.basis.refs=['natal.month.stem'];
+ assert.doesNotThrow(()=>generation.restoreEvidence(monthOnly,prompt),
+  'month ten-god evidence alone can support a limited traditional interpretation');
+ const withoutMonth=structuredClone(coreWithStrength);
+ withoutMonth.chapters.saju_core.paragraphs.strength.basis.refs=
+  withoutMonth.chapters.saju_core.paragraphs.strength.basis.refs.filter(id=>!id.startsWith('natal.month.'));
+ assert.throws(()=>generation.restoreEvidence(withoutMonth,prompt),/missing calculated month ten-god source/);
  const missingStem=structuredClone(coreWithStrength);
  missingStem.chapters.saju_core.paragraphs.strength.basis.refs=
   missingStem.chapters.saju_core.paragraphs.strength.basis.refs.filter(x=>x!=='facts.stemConnections');
- assert.throws(()=>generation.restoreEvidence(missingStem,prompt),/missing verified root provenance/);
+ assert.throws(()=>generation.restoreEvidence(missingStem,prompt),/missing verified optional root provenance/);
  const noRoot=structuredClone(coreWithStrength);
  noRoot.chapters.saju_core.paragraphs.strength.basis.refs=
   noRoot.chapters.saju_core.paragraphs.strength.basis.refs.filter(x=>x!=='facts.rootConditions');
- assert.throws(()=>generation.restoreEvidence(noRoot,prompt),/missing verified root provenance/);
+ assert.throws(()=>generation.restoreEvidence(noRoot,prompt),/missing verified optional root provenance/);
  const missingSeason=structuredClone(raw);
  missingSeason.chapters.saju_core.paragraphs.temperament.basis.refs=['natal.month.stem'];
  assert.throws(()=>generation.restoreEvidence(missingSeason,prompt),/missing required month seasonal source/);
