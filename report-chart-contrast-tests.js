@@ -36,6 +36,43 @@ for(const input of cases){
  assert.equal(contrast.monthTenGodContext.monthMainHidden.stem,mc.mainHiddenStem);
  assert.equal(contrast.monthTenGodContext.monthMainHidden.tenGod,mc.mainHiddenStemTenGod);
  assert.equal(contrast.monthTenGodContext.sameClassification,month.stemTenGod===mc.mainHiddenStemTenGod);
+// The element link is computed from the TWO source-bound stems. It is not
+// a resolved 财克印, a psychological tension or a seasonal-qi verdict.
+ const link=contrast.monthTenGodContext.elementLink;
+ const qi=packet.facts.qiEvidence.entries;
+ const visibleQi=qi.find(x=>x.id==='natal.month.stem');
+ const hiddenQi=qi.find(x=>x.id==='natal.month.hidden.'+mc.mainHiddenStem);
+ assert(visibleQi&&hiddenQi,'both ends of the month interpretation must exist as exact qi rows');
+ assert.equal(link.visibleSourceId,visibleQi.id);
+ assert.equal(link.hiddenSourceId,hiddenQi.id);
+ assert.equal(link.visibleElement,visibleQi.element);
+ assert.equal(link.hiddenElement,hiddenQi.element);
+ const elements=require('./report-seasonal-evidence');
+ const relation=elements.relation(hiddenQi.element,visibleQi.element);
+ const expectedKinds={
+  'same-element':'same-element',resource:'visible-generates-hidden',
+  output:'hidden-generates-visible','control-on-day':'hidden-controls-visible',
+  'day-controls':'visible-controls-hidden'
+ };
+ assert.equal(link.kind,expectedKinds[relation]);
+ assert.equal(link.inference,'element-relation-only');
+ assert.equal(link.governingHiddenStem,'unresolved');
+ assert.equal(link.realizedInteraction,'not-assessed');
+ assert.equal(link.characterTrait,'not-measured');
+ assert(link.explanation.length>30&&/오행/.test(link.explanation));
+ if(input.calendar==='lunar'&&input.birthDate==='1982-11-24'){
+  // This is the actual lunar chart, NOT 1982-11-24 solar.
+  assert.equal(packet.chart.day,'乙未');
+  assert.equal(packet.chart.month,'癸丑');
+  assert.equal(contrast.monthTenGodContext.monthStem.stem,'癸');
+  assert.equal(contrast.monthTenGodContext.monthStem.tenGod,'편인');
+  assert.equal(contrast.monthTenGodContext.monthMainHidden.stem,'己');
+  assert.equal(contrast.monthTenGodContext.monthMainHidden.tenGod,'편재');
+  assert.equal(link.kind,'hidden-controls-visible');
+  assert.equal(link.hiddenElement,'earth');
+  assert.equal(link.visibleElement,'water');
+ }
+
  for(const point of contrast.contrastPoints){
   assert.equal(typeof point.calculatedExplanation,'string');
   assert(point.calculatedExplanation.length>=35,
@@ -108,6 +145,13 @@ for(const input of cases){
   ['month-ten-god-pair']);
  assert.equal(strength.tenGodFocus.monthStem.tenGod,month.stemTenGod);
  assert.equal(strength.tenGodFocus.monthMainHidden.tenGod,mc.mainHiddenStemTenGod);
+ assert.deepEqual(strength.tenGodFocus.elementLink,link);
+ assert(strength.readerReasoning.reasoningTask.includes(link.explanation),
+  'provider must see a grounded positional relationship, not only two dictionary definitions');
+ assert(strength.points[0].calculatedExplanation.includes(link.explanation),
+  'the exact source-paired five-element relation must reach the paid provider');
+ assert(!/(?:실제 갈등이 생기|재산이 늘|돈을 잘 벌|내적 충돌이 확정)/.test(strength.readerReasoning.reasoningTask),
+  'element relationships do not resolve real psychological events');
  assert(!temperament.policy.includes('tenGodFocus'),
   'first paragraph must not request the second paragraph month ten-god contrast');
  assert(strength.policy.includes('tenGodFocus.monthStem')&&strength.policy.includes('tenGodFocus.monthMainHidden'),
