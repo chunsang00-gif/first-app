@@ -224,6 +224,8 @@ for(const input of cases){
  assert(traditional.first.reading&&traditional.second.reading);
  assert(traditional.tentativeThesis.includes(traditional.first.reading)&&
    (!contrast.monthTenGodContext.sameClassification||traditional.tentativeThesis.includes(traditional.second.reading)));
+ assert(!/(?:쓰지 않는다|단정하지 않는다|확정하지 않는다|검토하라)/.test(traditional.tentativeThesis),
+  'model copyable interpretive thesis must not combine interpretation with editing prohibitions');
  assert(traditional.editorialDuty.includes('무엇을 확인하라는 보편적 조언만 써서 끝내지 않는다'));
  assert(traditional.evidenceLimit.includes('실제로 그렇게 생각하거나 행동했다는 관찰'));
  const coreWire=require('./report-wire').schemaFor(p,require('./report-schema.json'));
