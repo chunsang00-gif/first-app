@@ -148,6 +148,16 @@ function inspectTransport(prompt,actual){
      errors.push('topic-citable-sources-drift:'+id+'/'+topicId);
      continue;
     }
+    // Reconstruct BOTH the reader-facing question and the source audit from
+    // validated original calculations. A source list alone cannot prove the
+    // paid writer received the right interpretation goal.
+    if(id==='saju_core'){
+     const contrast=require('./report-chart-contrast');
+     const original=contrast.build(prompt.facts);
+     const expected=original&&contrast.forTopic(original,topicId,permitted);
+     if(!expected||JSON.stringify(topic.evidenceFocus)!==JSON.stringify(expected))
+      errors.push('core-reader-evidence-brief-drift:'+id+'/'+topicId);
+    }
     for(const candidate of candidates){
      const truth=actual.source?.[candidate.id]||{};
      if(candidate.position!==(truth.position||undefined)||

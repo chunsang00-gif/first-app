@@ -25,6 +25,16 @@ const schema=require('./report-schema.json');
  assertDropped(p=>{p.task.chapters.mbti_contradiction.safety.avoid=''},'chapter-safety-dropped:mbti_contradiction');
  assertDropped(p=>{delete p.source['person.mbti']},'mbti-input-source-dropped-or-invented');
  assertDropped(p=>{p.task.comparisonContract=null},'independent-framework-contract-dropped');
+ assertDropped(p=>{p.task.chapters.saju_core.topics.temperament.evidenceFocus.readerQuestion='뿌리 개수만 설명한다'},
+  'core-reader-evidence-brief-drift:saju_core/temperament');
+ assertDropped(p=>{p.task.chapters.saju_core.topics.strength.evidenceFocus.readerReasoning.hypotheticalQuestion='기술 용어만 반복한다'},
+  'core-reader-evidence-brief-drift:saju_core/strength');
+ assertDropped(p=>{p.task.chapters.saju_core.topics.strength.evidenceFocus.sourceAudit='충 관계 없음'},
+  'core-reader-evidence-brief-drift:saju_core/strength');
+ assertDropped(p=>{delete p.task.chapters.saju_core.topics.strength.evidenceFocus.points[1].sourceAuditCheck},
+  'core-reader-evidence-brief-drift:saju_core/strength');
+ assertDropped(p=>{p.task.chapters.saju_core.topics.strength.evidenceFocus.points[1].sourceRefs=[]},
+  'core-reader-evidence-brief-drift:saju_core/strength');
  assertDropped(p=>{p.task.chapters.saju_core.topics.temperament.citableFacts=[]},
   'topic-citable-sources-drift:saju_core/temperament');
  assertDropped(p=>{p.task.chapters.saju_core.topics.temperament.citableFacts
