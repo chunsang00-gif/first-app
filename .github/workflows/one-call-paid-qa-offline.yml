@@ -1,0 +1,34 @@
+name: Free integration test of revised one-call paid QA
+on:
+  push:
+    branches:
+      - fix-paid-qa-fact-bindings-20261014
+    paths:
+      - .github/workflows/one-call-paid-qa-offline.yml
+permissions:
+  contents: read
+  actions: read
+jobs:
+  one-call-free-integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      OPENAI_API_KEY: ''
+      REPORT_MODEL_URL: ''
+      REPORT_MODEL: ${{ vars.REPORT_MODEL }}
+      QA_PREVIOUS_PROVIDER_ARCHIVE: ${{ github.workspace }}/.private-old-provider/private-qa-report-provider-calls.json
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-audit --no-fund
+      - name: Download original paid first chapter privately
+        uses: actions/download-artifact@v4
+        with:
+          name: premium-report-qa
+          run-id: 38833494716
+          github-token: ${{ github.token }}
+          path: .private-old-provider
+      - name: Verify one-call gate and malformed provider retention with mock Responses API
+        run: node test-one-call-paid-qa-offline.js
