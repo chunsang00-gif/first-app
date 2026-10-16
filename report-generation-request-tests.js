@@ -208,17 +208,31 @@ const schema=require('./report-schema.json');
  assert(allowed.includes('natal.month.stem'));
  assert(allowed.includes('facts.seasonalEvidence'),'core month interpretation requires seasonal fact source');
  assert(allowed.includes('facts.qiEvidence'),'core month interpretation requires positional qi source');
- assert(allowed.includes('facts.stemConnections'),'core month interpretation requires visible-hidden stem provenance');
- assert(allowed.includes('facts.rootConditions'),'root interactions must be addressable');
+ assert(!allowed.includes('facts.stemConnections')&&!allowed.includes('facts.rootConditions'),
+  'core month evidence must not borrow root provenance from second paragraph');
  const noQi=structuredClone(raw);
- noQi.chapters.saju_core.paragraphs.temperament.basis.refs=['facts.seasonalEvidence','facts.stemConnections','facts.rootConditions','natal.month.stem'];
+ noQi.chapters.saju_core.paragraphs.temperament.basis.refs=['facts.seasonalEvidence','natal.month.stem'];
  assert.throws(()=>generation.restoreEvidence(noQi,prompt),/missing required positional qi evidence/);
- const missingStem=structuredClone(raw);
- missingStem.chapters.saju_core.paragraphs.temperament.basis.refs=['facts.seasonalEvidence','facts.qiEvidence','facts.rootConditions','natal.month.stem'];
- assert.throws(()=>generation.restoreEvidence(missingStem,prompt),/missing required grounded stem connection evidence/);
-  const noRoot=structuredClone(raw);
- noRoot.chapters.saju_core.paragraphs.temperament.basis.refs=['facts.seasonalEvidence','facts.qiEvidence','facts.stemConnections','natal.month.stem'];
- assert.throws(()=>generation.restoreEvidence(noRoot,prompt),/missing verified root condition evidence/);
+ // Strictly verify the root sources at their OWN topic, not by allowing
+ // their presence in the unrelated seasonal paragraph.
+ const coreWithStrength=structuredClone(raw);
+ coreWithStrength.chapters.saju_core.paragraphs.strength={
+  basis:{refs:[
+   'facts.structuralEvidence.dayMasterRoots','facts.stemConnections',
+   'facts.rootConditions',...(observedRoots[0]?[observedRoots[0].hiddenId]:[])
+  ],interpretation:'실제 뿌리 위치의 전통적인 뜻',condition:'가정된 비교 상황',
+  limit:'개인 능력이나 강약은 관찰되지 않았음'},
+  label:'계산된 뿌리의 위치',text:'해당 출생 위치의 뿌리를 확인하는 검증 문장입니다.'
+ };
+ assert.doesNotThrow(()=>generation.restoreEvidence(coreWithStrength,prompt));
+ const missingStem=structuredClone(coreWithStrength);
+ missingStem.chapters.saju_core.paragraphs.strength.basis.refs=
+  missingStem.chapters.saju_core.paragraphs.strength.basis.refs.filter(x=>x!=='facts.stemConnections');
+ assert.throws(()=>generation.restoreEvidence(missingStem,prompt),/missing verified root provenance/);
+ const noRoot=structuredClone(coreWithStrength);
+ noRoot.chapters.saju_core.paragraphs.strength.basis.refs=
+  noRoot.chapters.saju_core.paragraphs.strength.basis.refs.filter(x=>x!=='facts.rootConditions');
+ assert.throws(()=>generation.restoreEvidence(noRoot,prompt),/missing verified root provenance/);
  const missingSeason=structuredClone(raw);
  missingSeason.chapters.saju_core.paragraphs.temperament.basis.refs=['natal.month.stem'];
  assert.throws(()=>generation.restoreEvidence(missingSeason,prompt),/missing required month seasonal source/);
