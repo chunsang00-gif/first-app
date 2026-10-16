@@ -8,6 +8,7 @@ const conditions={
  'qi-ledger':ids=>ids.has('facts.qiEvidence'),
  'stem-linkage':ids=>ids.has('facts.stemConnections'),
  'root-condition':ids=>ids.has('facts.rootConditions'),
+ 'month-ten-god':ids=>[...ids].some(x=>x==='natal.month.stem'||x.startsWith('natal.month.hidden.')),
  'natal-month-position':ids=>[...ids].some(x=>x.startsWith('natal.month.'))
 };
 const unique=x=>new Set(x).size===x.length;
@@ -90,6 +91,10 @@ function inspect(prompt,payload,schema){
       ![...refs].some(x=>x.startsWith('natal.'))))
     note('no-possible-two-framework-sources:'+id+'/'+topic);
    if(id==='saju_core'&&topic==='strength'){
+     const focus=directive.evidenceFocus?.tenGodFocus;
+     if(!focus?.monthStem?.sourceId||!refs.has(focus.monthStem.sourceId)||
+        !focus?.monthMainHidden?.sourceId||!refs.has(focus.monthMainHidden.sourceId))
+      note('core-month-ten-god-pair-not-citable');
     if(!refs.has('facts.structuralEvidence.dayMasterRoots'))
      note('core-root-ledger-not-citable');
     for(const key of ['facts.stemConnections','facts.rootConditions'])
