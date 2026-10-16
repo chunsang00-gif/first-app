@@ -199,7 +199,7 @@ for(const omitted of seasonRefs)
   missingSeason[omitted], 'missing first-paragraph '+omitted+' must reject the draft');
 for(const omitted of rootBaseRefs)
  assert.throws(()=>writer.restoreEvidence(result(seasonRefs,rootRefs.filter(x=>x!==omitted)),prompt),
-  /missing verified root provenance/, 'missing root paragraph '+omitted+' must reject the draft');
+  /missing verified optional root provenance/, 'missing root paragraph '+omitted+' must reject the draft');
 console.log('PASS USER_LUNAR_REFERENCE '+JSON.stringify({
  inputCalendar:birth.calendar,inputDate:birth.birthDate,normalizedSolarDate:normalized,
  natalChart:expected.chart,mbti:birth.mbti,year2027Pillar:expected.targetYear.pillar,
