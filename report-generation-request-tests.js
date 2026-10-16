@@ -256,16 +256,27 @@ const schema=require('./report-schema.json');
   limit:'개인 능력이나 강약은 관찰되지 않았음'},
   label:'계산된 뿌리의 위치',text:'해당 출생 위치의 뿌리를 확인하는 검증 문장입니다.'
  };
- coreWithStrength.chapters.saju_core.paragraphs.strength.basis.refs.unshift('natal.month.stem');
+ const mainMonth='natal.month.hidden.'+payload.source['facts.structuralEvidence.monthCommand'].mainHiddenStem;
+ coreWithStrength.chapters.saju_core.paragraphs.strength.basis.refs.unshift('natal.month.stem',mainMonth);
  assert.doesNotThrow(()=>generation.restoreEvidence(coreWithStrength,prompt));
  const monthOnly=structuredClone(coreWithStrength);
- monthOnly.chapters.saju_core.paragraphs.strength.basis.refs=['natal.month.stem'];
+ monthOnly.chapters.saju_core.paragraphs.strength.basis.refs=['natal.month.stem',mainMonth];
  assert.doesNotThrow(()=>generation.restoreEvidence(monthOnly,prompt),
-  'month ten-god evidence alone can support a limited traditional interpretation');
+  'the two verified month ten-god sources suffice without mandatory roots');
+ const oneMonthOnly=structuredClone(monthOnly);
+ oneMonthOnly.chapters.saju_core.paragraphs.strength.basis.refs=['natal.month.stem'];
+ assert.throws(()=>generation.restoreEvidence(oneMonthOnly,prompt),
+  /missing paired month ten-god citations/,
+  'one source cannot substantiate a comparison of two different positions');
+ const noMain=structuredClone(coreWithStrength);
+ noMain.chapters.saju_core.paragraphs.strength.basis.refs=
+  noMain.chapters.saju_core.paragraphs.strength.basis.refs.filter(id=>id!==mainMonth);
+ assert.throws(()=>generation.restoreEvidence(noMain,prompt),
+  /missing paired month ten-god citations/);
  const withoutMonth=structuredClone(coreWithStrength);
  withoutMonth.chapters.saju_core.paragraphs.strength.basis.refs=
   withoutMonth.chapters.saju_core.paragraphs.strength.basis.refs.filter(id=>!id.startsWith('natal.month.'));
- assert.throws(()=>generation.restoreEvidence(withoutMonth,prompt),/missing calculated month ten-god source/);
+ assert.throws(()=>generation.restoreEvidence(withoutMonth,prompt),/missing paired month ten-god citations/);
  const missingStem=structuredClone(coreWithStrength);
  missingStem.chapters.saju_core.paragraphs.strength.basis.refs=
   missingStem.chapters.saju_core.paragraphs.strength.basis.refs.filter(x=>x!=='facts.stemConnections');

@@ -84,7 +84,8 @@ for(const input of [
  assert(!seasonRefs.includes('facts.stemConnections'));
  assert(strengthRefs.includes('facts.stemConnections'));
  const observed=payload.source['facts.stemConnections'].dayMasterRooting.sameElementRoots;
- const required=['natal.month.stem','facts.structuralEvidence.dayMasterRoots','facts.stemConnections','facts.rootConditions',
+ const monthHidden='natal.month.hidden.'+payload.source['facts.structuralEvidence.monthCommand'].mainHiddenStem;
+ const required=['natal.month.stem',monthHidden,'facts.structuralEvidence.dayMasterRoots','facts.stemConnections','facts.rootConditions',
   ...(observed[0]?[observed[0].hiddenId]:[])];
  const report=(refs)=>({chapters:{saju_core:{title:'출생 근거',keyJudgment:'천간과 지장간 근거',
   mood:'reflective',paragraphs:{
