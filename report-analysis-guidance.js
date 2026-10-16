@@ -53,7 +53,7 @@ function forRequest(ids,mbti){
 // This is not a fabricated interpretation: fields refer only to calculated facts.
 const chapterBlueprint={
  saju_core:{question:'기본 기질을 어떻게 풀이하며 어떤 조건이 그 전통적 해석을 달리하게 하는가?',primary:'facts.structuralEvidence.monthCommand',lens:'기본 기질과 해석을 뒷받침하는 조건'},
- mbti_contradiction:{question:'새로운 일을 맡을지 결정하는 가상 상황에서 입력 MBTI의 정보·판단 선호와 원국의 실제 상징은 각각 어떤 질문에 답하는가? 같은 행동이나 반대 행동을 입증했다고 결론 내리지 않는다.',primary:'person.mbti',lens:'같은 선택 상황에서 두 풀이 비교'},
+ mbti_contradiction:{question:'새로운 일을 맡을지 결정하는 같은 선택 상황에서 입력 MBTI의 정보·판단 선호와 원국의 실제 상징은 각각 어떤 질문에 답하는가? 같은 행동이나 반대 행동을 입증했다고 결론 내리지 않는다.',primary:'person.mbti',lens:'같은 선택 상황에서 두 풀이 비교'},
  decision:{question:'선택지를 비교하는 선호와 결정을 고치는 조건을 어떻게 구분할까?',primary:'facts.tenGods.day',lens:'정보 탐색과 선택 변경'},
  money:{question:'돈을 얻는 활동과 쓰고 보유하는 판단은 어떻게 별도로 해석할까?',primary:'facts.tenGods.month',lens:'금전 관련 전통 해석의 범위'},
  career:{question:'배우기·수행하기·함께 일하기를 어떤 근거로 구별할까?',primary:'facts.structuralEvidence.visibleStems',lens:'과업과 협업'},
