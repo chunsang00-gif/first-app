@@ -16,6 +16,44 @@ assert.deepEqual(inspect([money,section('career','workstyle',career.body[0],['na
 const meaningful=section('career','workstyle','직업에서 정해진 업무를 배울 때는 익혀야 할 절차의 의미와 자신의 역할을 구분합니다.');
 assert.deepEqual(inspect([money,meaningful]),[],
  'shared source with a different substantive claim is permissible');
+// The real paid writer is allowed to cite multiple exact rows; padding a
+// duplicate MBTI/Saju claim with one extra row must NOT bypass this gate.
+const expanded=section('career','workstyle',career.body[0],
+ [source,'natal.day.hidden.己']);
+assert(inspect([money,expanded]).some(x=>x.includes('evidence-check-before-decision')),
+ 'same behavior with shared natal source must fail even after adding an extra verified citation');
+const narrowed=section('money','earning',money.body[0],[source,'natal.year.stem']);
+assert(inspect([narrowed,career]).some(x=>x.includes('evidence-check-before-decision')),
+ 'subset/superset source paths must not determine whether paid copy is duplicated');
+const moneyMbti=section('money','earning',
+ 'ISFP의 MBTI 감각형 선호 때문에 정보를 확인하고 나서 결정합니다.',
+ ['person.mbti','natal.month.hidden.己']);
+const careerMbti=section('career','workstyle',
+ 'ISFP의 MBTI 감각형 선호라서 업무에서도 자료를 검토한 다음에 판단하고 선택합니다.',
+ ['person.mbti','natal.day.hidden.乙']);
+assert(inspect([moneyMbti,careerMbti]).some(x=>x.includes('evidence-check-before-decision')),
+ 'identical MBTI-derived decision story cannot be resold by changing unrelated natal citations');
+const relationMbti=section('relationship','closeness',
+ 'ISFP의 MBTI 감각형 선호로 관계에서도 자료를 먼저 확인한 다음 결정합니다.',
+ ['person.mbti','natal.hour.stem']);
+assert(inspect([moneyMbti,careerMbti,relationMbti]).length>=2,
+ 'three domain names must not turn one MBTI generalization into three insights');
+const unrelatedMbti=section('relationship','closeness',
+ 'ISFP의 MBTI 선호를 설명하더라도 친밀한 사람과의 애정 표현을 실제로 측정한 결과가 아닙니다.',
+ ['person.mbti','natal.day.hidden.乙']);
+assert.deepEqual(inspect([moneyMbti,unrelatedMbti]),[],
+ 'shared MBTI evidence with a genuinely different question and no causal repeat must be allowed');
+const unnamedMbti=section('career','workstyle',
+ '업무 자료를 확인한 다음 기준에 따라 결정합니다.',
+ ['person.mbti','natal.day.hidden.乙']);
+assert.deepEqual(inspect([moneyMbti,unnamedMbti]),[],
+ 'a shared MBTI source alone without a visible MBTI-attributed claim must not be decisive');
+const annualExact=section('year_2027_money','change',
+ '2027년에는 관련된 자료를 확인하고 판단한 뒤 결정합니다.',['annual.stem']);
+const annualExtra=section('year_2027_career','change',
+ '2027년에는 정보를 검토하고 기준을 살펴서 선택합니다.',['annual.stem','natal.month.stem']);
+assert(inspect([annualExact,annualExtra]).some(x=>x.includes('evidence-check-before-decision')),
+ 'same annual position plus irrelevant extra fact must not republish one yearly reading');
 const limited=section('career','workstyle','자료를 먼저 확인하고 결정한다고 단정할 수 없습니다.');
 assert.deepEqual(inspect([money,limited]),[],
  'explicit limitation is not the same asserted behavior');
