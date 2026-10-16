@@ -206,6 +206,7 @@ function readerQuestions(contrast,topic){
   const observed=entries.length?
    '겉에 실제로 확인된 관계는 '+meanings.join('·')+'다.':
    '겉글자의 별도 지원·압박 관계가 확인되지 않았다.';
+  const selectedMeaning=meanings[0]||null;
   const dynamicExample=relationTypes.includes('resource')?
    '배움이나 지원이 필요한 가상 상황에서 계산된 배움·보호의 전통 상징이 어떤 뜻인지 실제 위치로 설명한다. 월의 계절 분류와 의미를 구분한다.':
    relationTypes.includes('control-on-day')?
@@ -219,7 +220,14 @@ function readerQuestions(contrast,topic){
    reasoningTask:'출생월은 '+phase+'로 계산됐다. '+observed+
     ' 계절 배경과 겉글자 각각의 출생 위치를 분리해 확인하고, 확인된 오행 관계의 전통적인 의미와 출생 위치에 따라 달라지는 해석의 출발점을 구체적으로 설명한다. 겉에 없는 지원·압박의 반대 방향이나 월의 숨은 글자가 실제 성격을 만든다고 추가하지 않는다.',
    hypotheticalQuestion:dynamicExample,
-   interpretivePayoff:'독자는 확인된 겉글자 관계 '+relationTypes.length+'종과 출생월의 계절 조건을 전통적으로 함께 읽는 이유를 이해한다.'
+   interpretivePayoff:'독자는 출생월의 계절 조건을 실제 성격의 증거로 혼동하지 않고, 겉글자에서 확인된 '+(selectedMeaning||'오행 관계')+'의 전통적인 질문을 생활 속 가정에 적용해 읽는다.',
+   readerValuePlan:{
+    primaryTraditionalQuestion:selectedMeaning||'계산된 겉글자 관계의 전통적인 뜻',
+    customerSequence:'핵심 해석 한 문장 → 그 근거가 출생 계절·겉글자 어느 쪽인지 밝힘 → 가상의 선택 상황 하나에서 뜻을 풀어 설명',
+    advantageQuestion:'이 관계가 설명하는 전통적 관점을 선택 상황에서 활용하면 어느 조건을 먼저 살펴볼 수 있는가?',
+    riskQuestion:'그 관점만 보고 다른 계산 조건이나 실제 행동까지 안다고 착각하면 무엇을 놓치게 되는가?',
+    prohibitedShortcut:'계절 전환만으로 적응력·유연성을, 겉글자 관계의 개수만으로 능력·성격 균형을 만들어내지 않는다.'
+   }
   };
  }
  if(topic==='strength'){
@@ -241,13 +249,33 @@ function readerQuestions(contrast,topic){
   const readerContext='태어난 달 겉글자의 '+visibleKind+'('+visibleMeaning+')와 중심 숨은 글자의 '+mainKind+'('+mainMeaning+')를 실제 출생 위치별로 구분해 읽는다. '+comparison+
    elementLink.explanation+' 이는 두 글자의 오행 관계일 뿐 실제 갈등이나 강약 판단이 아니다. ';
   const sourceAudit='실제 출생월 겉글자 '+monthTenGod.monthStem.sourceId+'와 본기 '+monthTenGod.monthMainHidden.sourceId+'의 십성 분류 및 전통적 뜻을 각각 확인한다. 별도 뿌리·충 자료만으로 두 십성을 대신하지 않는다.';
+  const firstEverydayQuestion=TEN_GOD_DECISION[visibleKind];
+  const secondEverydayQuestion=TEN_GOD_DECISION[mainKind];
+  if(!firstEverydayQuestion||!secondEverydayQuestion)
+   throw Error('Missing actual monthly categories for reader comparison');
 
   return {
    contrastQuestion:'태어난 달의 겉글자와 중심 숨은 글자가 나타내는 전통적 질문을 어떻게 함께 읽는가?',
    reasoningTask:readerContext+
     '두 분류의 전통적인 의미와 실제 출생 위치의 차이를 구체적으로 설명한다. 이 문단에는 뿌리·충 자료를 추가 인용하지 않는다. 재산·학습 능력·사건·마음속 균형·성격 양면성을 만들어 내지 않는다.',
    hypotheticalQuestion:monthHypothetical(visibleKind,mainKind,monthTenGod.sameClassification),
-   interpretivePayoff:'독자는 태어난 달의 두 출처가 전통적으로 무엇을 뜻하는지, 같은 분류와 서로 다른 분류를 각각 어떻게 구별하는지 이해한다.',
+   interpretivePayoff:monthTenGod.sameClassification?
+    '독자는 같은 전통 분류가 두 위치에서 보인다는 사실과 실제 성격이 두 배 강하다는 주장을 구별한다.':
+    '독자는 '+firstEverydayQuestion+'와 '+secondEverydayQuestion+'가 각각 다른 선택의 질문이며 실제 성격의 충돌은 아니라는 점을 이해한다.',
+   readerValuePlan:{
+    first:{sourceId:monthTenGod.monthStem.sourceId,tenGod:visibleKind,question:firstEverydayQuestion},
+    second:{sourceId:monthTenGod.monthMainHidden.sourceId,tenGod:mainKind,question:secondEverydayQuestion},
+    customerSequence:monthTenGod.sameClassification?
+     '같은 전통 뜻을 두 출생 위치에 확인 → 가상의 한 상황에서 그 뜻이 어떤 질문인지 설명 → 위치가 두 곳이라 실제 성향이 두 배가 되는 것은 아님을 구분':
+     '두 출생 위치의 서로 다른 전통 뜻 확인 → 가상의 한 선택에서 첫 질문과 둘째 질문을 각각 적용 → 어느 한쪽만 살폈을 때 놓치는 조건을 비교',
+    advantageQuestion:monthTenGod.sameClassification?
+     '같은 뜻을 지닌 두 출처가 있는 사주를 읽을 때 확인할 수 있는 전통적 질문은 무엇인가?':
+     '첫 번째 질문과 두 번째 질문을 모두 검토하면 가상의 새 일을 준비하는 데 어떤 선택 기준이 분명해지는가?',
+    riskQuestion:monthTenGod.sameClassification?
+     '같은 상징이 두 번 나온다는 이유로 능력·성격의 강도를 두 배로 단정하면 왜 오류인가?':
+     '첫 번째 질문만 답하거나 두 번째 질문만 답하면 그 가상의 선택에서 실제로 어떤 검토 항목이 빠지는가? 고객이 원래 그런 행동을 한다고 단정하지 않는다.',
+    prohibitedShortcut:'전통적 질문의 장단점을 그 사람의 실제 능력·소득·내면 갈등·정해진 행동 습관으로 바꾸지 않는다. 출생월의 본기가 실제로 사령했다고 쓰지 않는다.'
+   },
    sourceAudit
   };
  }
