@@ -175,20 +175,30 @@ function readerQuestions(contrast,topic){
    '뿌리와 직접 연결된 충 관계 '+overlap+'건은 각각 '+explicitPairs+'이다. 충을 받은 뿌리와 충의 상대 자리를 모두 밝힌다. 같은 상대 자리와 연결된 두 뿌리를 서로 충인 것처럼 설명하지 않는다.':
    '실제 뿌리 위치에 직접 충이 계산된 사례가 없다. 충이 있다고 지어내지 않는다.';
   const hourText=unknownHour?'태어난 시간이 없으므로 시간 자리에 관한 결론도 내리지 않는다.':'';
+  // Keep exact root locations and natal clash endpoints as PRIVATE evidence.
+  // Reader-facing questions concern the interpretation, not the calculation.
+  const sourceAudit=rootsText+' '+clashText+' '+hourText+
+   ' 실제 충의 양쪽 위치를 내부 basis.refs 및 evidence에서 확인한다. 이것은 성격·강약 점수가 아니다.';
+  const readerContext=count?
+   (overlap?
+    '기본을 받치는 전통적 근거와 해석에 추가로 고려할 관계를 구분한다. ':
+    '기본을 받치는 전통적 근거와 해석의 조건을 구분한다. '):
+   '기본을 받치는 요소가 확인되지 않은 범위에서는 실제 출생 계절 등 다른 계산 자료를 살핀다. ';
   return {
    contrastQuestion:count?
-    '실제로 확인된 뿌리 '+count+'곳은 명리에서 어떤 기반으로 읽고, '+(overlap?'서로 다른 충 관계 '+overlap+'건을 함께 보면 무엇이 달라지는가?':'직접 충이 없는 경우에는 무엇을 더 살피는가?'):
-    '확인 가능한 기둥에서 같은 오행 뿌리가 보이지 않는다는 사실은 왜 사주 전체의 강약 판정과 다른가?',
-   reasoningTask:rootsText+' '+clashText+' '+hourText+
-    ' 뿌리는 기준이 되는 기운을 받치는 기반으로 전통적으로 읽는다는 뜻부터 설명하고, 실제 충의 두 위치가 겹치는 경우에는 다른 해석 질문으로 이어지는 이유를 풀어 쓴다. 수치 강도·성격·생활 사건으로 바꾸지 않는다.',
-   hypotheticalQuestion:overlap?
-    '가상 상황에서 '+explicitPairs+'처럼 뿌리와 충이 겹친 위치를 왜 따로 살피는지 전통적 의미를 풀어 쓴다. 같은 상대 자리와 연결된 서로 다른 뿌리들을 직접 충 관계로 섞지 않는다.':
-    count?
-     '충이 없는 가상 상황에서 실제 확인된 뿌리의 출생 위치를 명리에서는 어떤 기반으로 읽는지 보여준다. 강도 점수는 만들지 않는다.':
-     '확인된 뿌리가 없는 경우의 가상 상황에서 계절과 다른 실제 출생 근거를 함께 살피는 전통적 이유를 보여준다.',
+    '내 기본 기질을 뒷받침하는 전통적 근거와 주의해 읽을 조건은 무엇인가?':
+    '기본 기질을 읽을 근거가 제한적일 때 어떤 출생 조건을 함께 살피는가?',
+   reasoningTask:readerContext+
+    '확인된 근거가 전통적으로 가리키는 의미와 가상 상황에서의 적용을 쉬운 말로 설명한다. 확인하지 않은 실제 능력이나 성격, 생활 사건은 추정하지 않는다.',
+   hypotheticalQuestion:count?
+    (overlap?
+     '가상의 상황: 새로운 결정을 앞두고 기반이 되는 조건과 변화를 고려할 조건을 나누어 설명한다. 실제 선택 경험을 안다고 쓰지 않는다.':
+     '가상의 상황: 새로운 계획을 세울 때 전통적으로 기반을 살피는 이유를 보여 준다. 실제 성과는 보장하지 않는다.'):
+    '가상의 상황: 어떤 기질인지 판단할 자료가 한정된다면 확인된 다른 출생 조건을 살피는 이유를 설명한다.',
    interpretivePayoff:count?
-    '독자는 확인된 뿌리 '+count+'곳을 전통적으로 어떻게 읽는지, 직접 충의 실제 두 위치가 해석에 어떤 질문을 더하는지 이해한다.':
-    '독자는 확인된 뿌리가 없는 범위에서 무엇을 추가로 살피는지 이해한다.'
+    '독자는 기본 기질을 해석할 전통적 근거와 추가로 고려할 조건이 다른 이유를 이해한다.':
+    '독자는 직접 확인된 정보가 부족할 때 어떤 다른 출생 근거가 필요한지 이해한다.',
+   sourceAudit
   };
  }
  throw Error('Unsupported Saju reader topic: '+topic);
@@ -205,13 +215,15 @@ function forTopic(contrast,topic,allowedIds){
   // test prompts; canonical evidence validation remains authoritative.
   return {kind,sourceRefs,calculatedExplanation:item.calculatedExplanation,question:item.question};
  });
- return {scope:topic,points,readerReasoning:readerQuestions(contrast,topic),
+ const {sourceAudit,...readerReasoning}=readerQuestions(contrast,topic);
+ return {scope:topic,points,readerReasoning,
+  ...(sourceAudit?{sourceAudit}:{}),
   readerQuestion:topic==='temperament'?
    '내 기본 기질을 전통적으로 어떻게 해석하며 어느 실제 근거에서 나오는가?':
    '기본 기질의 풀이를 뒷받침하거나 주의해서 읽게 하는 조건은 무엇인가?',
   internalEvidenceRole:topic==='temperament'?
    '계절과 겉글자 관계의 계산 근거로만 전통적 기본 기질을 해석':
    '실제 뿌리 위치와 정확한 충 관계 쌍을 내부에서 확인하여 과장된 성격 해석을 차단',
-  policy:'먼저 독자가 궁금한 기본 기질과 해석 조건에 답한다. 계산 points는 검증 근거이지 뿌리·충을 설명하는 교재의 목차가 아니다. 전통적 의미와 가상 상황을 자연스럽게 풀이하되 측정하지 않은 성격·능력·사건은 만들지 않는다. readerReasoning.hypotheticalQuestion은 가상 적용에만 사용하며 basis.limit에서 한계를 기록한다. 제목과 문단 라벨에 뿌리·통근·충·월지 같은 기술 용어를 내세우지 않는다. 내부 참조 ID와 한자를 고객에게 복사하지 않는다.'};
+  policy:'먼저 readerQuestion과 readerReasoning의 독자 질문에 답한다. sourceAudit와 points는 내부 출처·계산 검증용이며 독자에게 뿌리 개수·충 관계를 가르치는 용도로 복사하지 않는다. 실제 확인된 명리 상징이 허용하는 기질 해석과 그 조건을 쉬운 가상 상황으로 풀고, 실제 성격·능력·사건은 지어내지 않는다. 한계는 basis.limit에 기록한다. 제목과 문단 라벨에 뿌리·충·통근·월지 등 기술 용어를 내세우지 않으며 내부 참조 ID와 한자는 독자에게 복사하지 않는다.'};
 }
 module.exports={build,forTopic,TOPIC_POINTS};
