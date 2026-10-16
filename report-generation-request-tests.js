@@ -74,6 +74,8 @@ const schema=require('./report-schema.json');
  assert(payload.task.chapters.mbti_contradiction.analysisGoal.includes('MBTI'),
   'independent MBTI reasoning must reach the writer');
  assert(payload.task.chapters.mbti_contradiction.comparisonEvidence.includes('함께 인용한다'));
+ assert(!Object.hasOwn(payload.task.chapters.mbti_contradiction,'domainMbtiLens'),
+  'MBTI comparison chapter keeps independent evidence rather than a global domain shortcut');
  assert(payload.task.chapters.mbti_contradiction.comparisonEvidence.includes('인과 관계가 아니다'));
 
  assert(!Object.hasOwn(payload.source,'facts.structuralEvidence'),'wide structural facts must not hide provenance');

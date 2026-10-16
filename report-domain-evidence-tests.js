@@ -58,8 +58,24 @@ assert.deepEqual(refs('relationship','closeness'),['natal.day.hidden.乙','natal
 assert(!refs('relationship','expression').includes('natal.month.stem'));
 assert(!refs('stress','response').includes('natal.month.hidden.丙'));
 assert(refs('stress','trigger').includes('natal.month.hidden.丙'));
-for(const [chapter,topic] of [['money','risk'],['career','change'],['relationship','conflict']])
+for(const [chapter,topic] of [['money','risk'],['career','change'],['relationship','conflict']]){
  assert.equal(get(verified,chapter,topic).type,'null',chapter+':'+topic+' cannot invent events');
+ assert.equal(verified.task.task.chapters[chapter].topics[topic].mbtiFocus,null,
+  'unsupported topic cannot use an MBTI comparison to invent a second paragraph');
+}
+const topicCodes={
+ money:{earning:'S',spending:'F'},
+ career:{workstyle:'S',teamwork:'F',growth:'P'},
+ relationship:{closeness:'I',expression:null},
+ stress:{trigger:'I',response:null}
+};
+for(const [id,topics] of Object.entries(topicCodes))for(const [topic,code] of Object.entries(topics)){
+ const entry=verified.task.task.chapters[id].topics[topic];
+ const used=entry.mbtiFocus?.preferences?.map(x=>x.code)||[];
+ if(code&&entry.mode!=='state-limits')
+  assert.deepEqual(used,[code],id+'/'+topic+' only receives its own relevant preference');
+ else assert.deepEqual(used,[],id+'/'+topic+' cannot claim unsupported preference');
+}
 
 const validParagraph=(refs)=>({
  basis:{refs,interpretation:'계산된 상징의 전통적 뜻만 설명',condition:'가정된 선택 상황',limit:'실제 행동은 확인되지 않음'},
@@ -77,10 +93,14 @@ assert.doesNotThrow(()=>generation.restoreEvidence(raw,verified.prompt));
 // cite that source: test the actual provider schema and restored provenance.
 for(const chapter of ids){
  const domainTask=verified.task.task.chapters[chapter];
- assert(domainTask.domainMbtiLens?.sourceRef==='person.mbti');
- assert(domainTask.domainMbtiLens.preferences.length>=2);
- assert(domainTask.domainMbtiLens.preferences.every(x=>base.person.mbti.includes(x.code)));
+ assert.equal(Object.hasOwn(domainTask,'domainMbtiLens'),false,
+  'chapter-wide MBTI lens would repeat the same comparison across topics');
  const anchor=verified.plan[chapter].anchorTopic;
+ const focus=domainTask.topics[anchor].mbtiFocus;
+ assert.equal(focus?.sourceRef,'person.mbti','supported anchor gets an optional topic focus');
+ assert.equal(focus.preferences.length,1,'one exact submitted preference per independent topic question');
+ assert(focus.preferences.every(x=>base.person.mbti.includes(x.code)));
+ assert(domainTask.topics[anchor].citableFacts.some(x=>x.id==='person.mbti'));
  assert(refs(chapter,anchor).includes('person.mbti'),
   'a supported domain must be able to ground an optional MBTI comparison');
 }
@@ -129,7 +149,8 @@ unknown.person.mbti='모름';
 const noHour=scenario(unknown);
 assert(!Object.keys(noHour.task.source).some(id=>id.startsWith('natal.hour.')));
 assert(!Object.hasOwn(noHour.task.source,'person.mbti'));
-for(const id of ids)assert.equal(noHour.task.task.chapters[id].domainMbtiLens,null);
+for(const id of ids)for(const topic of Object.values(noHour.task.task.chapters[id].topics))
+ assert.equal(topic.mbtiFocus,null,'unknown MBTI never gets a topic-specific lens');
 assert(!noHour.schema.properties.chapters.properties.money.properties.paragraphs.properties.earning.properties.basis.properties.refs.items.enum.includes('person.mbti'));
 
 assert(!noHour.task.task.chapters.career.topics.growth.allowedSourceRefs.length);

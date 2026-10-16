@@ -16,7 +16,7 @@ const policy=[
  '본문에는 task.chapters[id].analysisGoal의 해당 분야 심화 질문을 실제로 적용한다. 계산된 출처와 전통적 의미를 먼저 확인하고, 왜 해당 질문과 연결되는지와 서로 다른 상황의 유리함·불리함을 구체적으로 설명한다. analysisGoal이 계산되지 않은 성격·직업·재산·미래 사건을 쓰라고 요구하는 것처럼 해석하지 않는다. 근거가 약하면 깊이를 가장해 분량을 늘리지 않고 지원되지 않은 선택 항목을 null로 둔다.',
  '최종 종합에서는 task.editorialGoal을 따른다. 이미 검증된 본문 밖에서 새로운 성격을 만들거나 장별 결론을 반복해서 늘리지 않는다.',
  '질문에 맞는 별도 근거가 없거나 앞 문단의 결론만 반복하면 선택 항목은 null로 둔다. 필수 항목에서도 없는 성격을 만들지 말고 확인 가능한 범위만 설명한다. 같은 응답의 다른 장과 previousSections 모두 비교한다. task.reusedEvidence는 이전 장이 실제 인용한 계산 근거와 결론의 목록이다. 같은 path를 다시 사용할 때 이전 결론을 영역 명사만 바꿔 반복하지 말고 새로운 계산 관계가 없다면 선택 문단을 생략한다. 새로운 해석을 만들려고 분야 이름만 바꾸지 않는다.',
- '금전·직업·관계·결정·스트레스 장에서 task.chapters[id].domainMbtiLens가 있으면 명시된 입력 MBTI 선호를 상황에 맞게 선택적으로 비교한다. 사주 상징만 해석하는 항목에는 MBTI를 억지로 넣지 않는다. MBTI 또는 해당 유형을 근거로 설명하는 항목은 basis.refs에 person.mbti와 해당 항목의 원국 natal.* 참조를 모두 기록해야 한다. 유형 선호를 실제 행동·결과·능력으로 확정하지 않는다.',
+ '금전·직업·관계·결정·스트레스 장의 MBTI 비교는 장 전체가 아닌 task.chapters[id].topics[topicId].mbtiFocus에 배정된 해당 문단의 사용자 입력 선호만 사용한다. mbtiFocus가 null이면 MBTI 설명을 억지로 추가하지 않는다. 같은 유형의 다른 선호를 끌어와 문단의 질문을 흐리지 않는다. MBTI를 인용하려면 basis.refs에 person.mbti와 해당 문단에 허용된 natal.* 근거를 모두 기록한다. 선호는 실제 행동·소득·능력·관계 경험의 증거가 아니다.',
  'MBTI는 제공된 선호 설명만 사용한다. task.comparisonContract는 두 틀을 독립적으로 비교하는 계약이며 입력 MBTI와 계산 사주로 일치·충돌이 증명되었다는 뜻이 아니다. 동일한 가정 상황에 두 설명을 나란히 적용하되 실제 성격을 측정했다고 주장하거나 반전을 만들어내지 않는다. MBTI가 없으면 추정하지 않는다.',
  '입력 MBTI가 있을 때 mbti_contradiction과 integrated_judgment의 작성 문단은 task.chapters[id].comparisonEvidence에 따라 basis.refs에 person.mbti와 natal.* 출처를 모두 포함한다. 두 출처를 적었다고 인과가 입증된 것은 아니다. 통합 장은 MBTI 비교 장과 동일한 결론을 재진술하지 않고 각자 다른 질문에 답한 두 관점이 함께 적용되는 조건만 설명한다. 별도 의미가 없으면 선택 문단은 null이다.',
  '제목과 핵심 판단은 본문 결론과 일치해야 한다. 본문은 이유·상황·행동을 충분히 설명하되 같은 뜻을 다시 요약하지 않는다. 추상 명사나 작성 과정 설명으로 대신하지 않는다. 장점·단점·조언을 기계적으로 채우지 않는다. 불리한 점도 해당 근거와 조건이 있을 때 분명하게 설명한다.',
@@ -25,21 +25,40 @@ const policy=[
 // MBTI was present in money/work/relationship depth goals but the strict
 // writer schema did not permit those chapters to cite the actual MBTI input.
 // Provide an explicit optional cross-framework lens, not an invented trait.
-const domainMbtiQuestions={
- decision:{letters:'SNFTJP',question:'선택 상황에서 정보 선호, 가치 판단과 일정 결정 선호가 구분되는 조건은 무엇인가?'},
- money:{letters:'SNFT',question:'금전 선택에서 정보의 구체성과 가치 판단 선호가 재물 상징과 서로 다른 무엇을 설명하는가?'},
- career:{letters:'SNFTJP',question:'업무 상황의 정보·판단·일정 선호를 일 관련 원국 상징과 따로 설명하는가?'},
- relationship:{letters:'IEFT',question:'가정한 관계 상황에서 상호작용·가치 판단 선호는 원국의 관계 상징과 어떻게 다르게 읽히는가?'},
- stress:{letters:'IEJP',question:'가정한 압박 상황에서 상호작용·일정 조정 선호를 압박 관련 전통 분류와 구분할 수 있는가?'}
+// A whole-chapter MBTI lens repeated the same broad type description in
+// different paragraphs. Attach only the relevant INPUT preference dimension
+// to each *grounded* topic. No inference of behavior or new Saju calculation.
+const domainTopicMbtiQuestions={
+ decision:{
+  approach:{letters:'SN',question:'선택지를 알아보는 가상 상황에서 구체적인 사실과 가능성을 받아들이는 선호는 이 문단의 전통 분류와 각각 무엇을 설명하는가?'},
+  followthrough:{letters:'JP',question:'새 정보가 나왔을 때 결정을 닫거나 열어 두는 입력 선호와 실제 계산된 분류의 해석 범위는 어떻게 다른가?'}
+ },
+ money:{
+  earning:{letters:'SN',question:'금전 관련 활동을 가정할 때 어떤 정보를 먼저 보는지에 관한 선호와 재물·생산 관련 전통 상징의 뜻을 구별할 수 있는가? 실제 소득을 추정하지 않는다.'},
+  spending:{letters:'FT',question:'지출을 결정하는 가상 상황에서 원칙·가치에 무게를 두는 선호와 재물 보유의 전통 상징이 각각 설명하지 못하는 것은 무엇인가? 실제 소비 습관을 단정하지 않는다.'}
+ },
+ career:{
+  workstyle:{letters:'SN',question:'업무 정보를 받아들이는 선호와 실제 계산된 학습·표현 분류를 같은 일의 가정 상황에서 독립적으로 비교할 수 있는가?'},
+  teamwork:{letters:'FT',question:'가상의 협업 판단에서 논리·가치 선호와 원국의 역할·관계 상징을 구분할 수 있는가? 실제 동료 평가가 아니다.'},
+  growth:{letters:'JP',question:'새로운 일을 배울 때 일정을 확정하거나 선택을 열어두는 선호와 학습 관련 전통 분류를 구별할 수 있는가? 실제 학습 속도를 추정하지 않는다.'}
+ },
+ relationship:{
+  closeness:{letters:'IE',question:'관계 맺기를 가정할 때 상호작용·혼자 숙고하는 입력 선호와 일지 계산의 전통 상징을 따로 볼 수 있는가? 친밀한 실제 관계를 만들어내지 않는다.'},
+  expression:{letters:'FT',question:'의견을 표현하는 가상의 상황에서 논리·가치 선호와 원국의 표현 상징을 비교할 수 있는가? 실제 애정 표현·서운함을 단정하지 않는다.'}
+ },
+ stress:{
+  trigger:{letters:'IE',question:'가상의 요구·압박 상황에서 상호작용 선호와 의무를 나타내는 전통 상징은 어떤 서로 다른 질문을 설명하는가?'},
+  response:{letters:'JP',question:'압박 상황을 가정할 때 일정을 닫거나 열어두는 선호와 학습·회복 상징을 구분할 수 있는가? 실제 심리 반응을 진단하지 않는다.'}
+ }
 };
-const linkedDomainIds=new Set(Object.keys(domainMbtiQuestions));
-function domainMbtiLens(id,mbti){
- const spec=domainMbtiQuestions[id];
+const linkedDomainIds=new Set(Object.keys(domainTopicMbtiQuestions));
+function topicMbtiLens(chapterId,topicId,mbti){
+ const spec=domainTopicMbtiQuestions[chapterId]?.[topicId];
  if(!spec||!Array.isArray(mbti?.preferences))return null;
  const preferences=mbti.preferences.filter(row=>spec.letters.includes(row.code))
   .map(row=>({code:row.code,dimension:row.dimension,meaning:row.meaning,notEvidenceOf:row.notEvidenceOf}));
  return preferences.length?{sourceRef:'person.mbti',question:spec.question,preferences,
-  rule:'MBTI 선호는 실제 행동·능력·소득·관계의 증거가 아니다. 같은 가정 상황에 두 틀을 별도로 적용해 새 의미가 있을 때만 연결한다. 결합 설명은 person.mbti와 관련 원국 출처를 함께 인용하고 억지 결론을 만들지 않는다.'}:null;
+  rule:'선택적 비교일 뿐 실제 행동의 증거가 아니다. 반드시 이 문단의 natal.* 근거와 함께 인용한다. 별도 통찰이 없으면 이 MBTI 비교는 작성하지 않는다.'}:null;
 }
 function sources(prompt){
  const result=Object.fromEntries((prompt.factBindings||require('./report-fact-bindings').build(prompt.facts)).map(row=>[row.id,row]));
@@ -90,7 +109,6 @@ function compile(prompt){
     // Chapter-specific focus is selected for the real MBTI input; in a
     // Saju-only request this replaces a combined-framework focus, not facts.
     analysisFocus:prompt.analysisGuidance.chapterTasks?.[id]?.focus||null,
-    domainMbtiLens:domainMbtiLens(id,source['person.mbti']),
     comparisonEvidence: source['person.mbti']&&['mbti_contradiction','integrated_judgment'].includes(id)?
      (id==='mbti_contradiction'
       ?'MBTI 비교에서는 사용자 입력 선호(person.mbti)와 실제 원국 위치(natal.*)를 함께 인용한다. 같은 결론이어도 된다. 실제 행동의 검증이나 두 체계의 인과 관계가 아니다.'
@@ -139,6 +157,11 @@ function compile(prompt){
     // The model's actual compact task is now one factual question per
     // comparison pair, rather than a four-part undifferentiated chapter table.
     if(coreContrast)topic.evidenceFocus=require('./report-chart-contrast').forTopic(coreContrast,topicId,permitted);
+    // Only supported, actually citable topics receive the specific
+    // submitted MBTI dimension; state-limits never get a free type claim.
+    topic.mbtiFocus=topic.mode!=='state-limits'&&permitted.includes('person.mbti')&&
+     permitted.some(ref=>ref.startsWith('natal.'))?
+     topicMbtiLens(chapterId,topicId,source['person.mbti']):null;
    }
   }
  }
