@@ -74,8 +74,11 @@ for(const [label,birth] of Object.entries({lunar,solar})){
   topics.strength.properties.basis.properties.refs.items.enum;
  for(const required of ['facts.seasonalEvidence','facts.qiEvidence','natal.month.stem'])
   assert(month.includes(required),label+' missing month/visible source '+required);
- for(const required of ['facts.stemConnections','facts.rootConditions'])
-  assert(strength.includes(required),label+' missing second-paragraph root source '+required);
+ for(const required of ['facts.stemConnections','facts.rootConditions','facts.structuralEvidence.dayMasterRoots'])
+  assert(!strength.includes(required),label+' core month-ten-god interpretation must not cite unrelated roots '+required);
+ const mainId='natal.month.hidden.'+compiled.source['facts.structuralEvidence.monthCommand'].mainHiddenStem;
+ for(const required of ['natal.month.stem',mainId])
+  assert(strength.includes(required),label+' missing measured month-ten-god source '+required);
  assert(!month.includes('facts.stemConnections')&&!month.includes('facts.rootConditions'),
   label+' core seasonal paragraph must not claim root/clash provenance');
 }
