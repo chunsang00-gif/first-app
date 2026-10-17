@@ -9,7 +9,7 @@ let evidence;
 try{evidence=JSON.parse(fs.readFileSync(file,'utf8'))}catch(e){console.error('Unable to read checkpoint:',e.code||'INVALID_JSON');process.exit(2)}
 if(!Array.isArray(evidence.batches)||evidence.batches.length!==1){console.error('INVALID_CHECKPOINT_BATCH_COUNT');process.exit(1)}
 const batch=evidence.batches[0];
-if(JSON.stringify(batch.ids)!==JSON.stringify(['saju_core'])||batch.sections?.length!==1){
+if(JSON.stringify(batch.ids)!==JSON.stringify(['saju_core'])||batch.completedSections!==1||batch.sections?.length!==1||batch.sections[0]?.id!=='saju_core'){
  console.error('INVALID_FIRST_CHAPTER_SCOPE');process.exit(1)
 }
 const section=batch.sections[0];
@@ -26,8 +26,9 @@ function collect(x,out=[]){
  }
  return out;
 }
-const strings=collect(section);
-const normalized=strings.map(s=>s.replace(/\s+/g,' ').trim());
+if(!Array.isArray(section.body)||!section.body.length||section.body.some(x=>typeof x!=='string'||!x.trim())){console.error('INVALID_FIRST_CHAPTER_BODY');process.exit(1)}
+const strings=[section.title,section.keyJudgment,...(section.bodyLabels||[]),...section.body].filter(x=>typeof x==='string'&&x.trim());
+const normalized=section.body.map(s=>s.replace(/\s+/g,' ').trim());
 const duplicates=[...new Set(normalized.filter((x,i)=>normalized.indexOf(x)<i))];
 const terms=['원국','상관','편관','정관','식신','뿌리 충','지장간'];
 const jargon=Object.fromEntries(terms.map(t=>[t,normalized.filter(s=>s.includes(t)).length]).filter(([,n])=>n));
