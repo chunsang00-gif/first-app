@@ -14,6 +14,28 @@ const cases=[
  {...common,calendar:'solar',birthDate:'1990-11-15',leapMonth:false},
  {...common,calendar:'solar',birthDate:'2001-11-03',unknownBirthTime:true,birthTime:undefined,leapMonth:false}
 ];
+// Every ordered month category combination must produce a source-specific,
+// plausible everyday scenario rather than the previous universal job story.
+// These are offline input-contract tests, not evidence of editorial quality.
+const allKinds=Object.keys(contrasts.TEN_GOD_SCENE);
+assert.equal(allKinds.length,10);
+assert.equal(new Set(Object.values(contrasts.TEN_GOD_SCENE)).size,10,
+ 'ten calculated categories must not collapse into one example situation');
+for(const first of allKinds)for(const main of allKinds){
+ const scenario=contrasts.monthHypothetical(first,main,first===main);
+ assert(scenario.startsWith('가상의 상황: '+contrasts.TEN_GOD_SCENE[main]+' 때'),
+  'every ordered pair must use its verified principal-month category');
+ assert(!scenario.includes('새로운 일을 준비하면서')&&!scenario.includes('undefined')&&
+  !scenario.includes('natal.month')&&!scenario.includes('십성'));
+ assert.equal(scenario.includes('같은 분류가 두 계산 위치'),first===main,
+  'same-classification scenarios must never invent an opposite trait');
+ assert(!/(?:실제 성격은|실제로 그랬|반드시|성공하게 된다)/.test(scenario),
+  'imagined scenes are not personal history or predictions');
+}
+assert.throws(()=>contrasts.monthHypothetical('UNKNOWN','편인',false),
+ /Missing verified month ten-god everyday question/);
+assert.throws(()=>contrasts.monthHypothetical('편인','UNKNOWN',false),
+ /Missing verified month ten-god everyday question/);
 const results=[];
 for(const input of cases){
  const packet=facts.build(input,2027);
