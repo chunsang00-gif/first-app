@@ -14,6 +14,7 @@ if(JSON.stringify(batch.ids)!==JSON.stringify(['saju_core'])||batch.completedSec
  console.error('INVALID_FIRST_CHAPTER_SCOPE');process.exit(1)
 }
 const section=batch.sections[0];
+if(section.bodyLabels!=null&&(!Array.isArray(section.bodyLabels)||section.bodyLabels.length!==section.body.length)){console.error('INVALID_FIRST_CHAPTER_LABELS');process.exit(1)}
 if(!Array.isArray(section.body)||!section.body.length||section.body.some(x=>typeof x!=='string'||!x.trim())){console.error('INVALID_FIRST_CHAPTER_BODY');process.exit(1)}
 const strings=[section.title,section.keyJudgment,...(section.bodyLabels||[]),...section.body].filter(x=>typeof x==='string'&&x.trim());
 const normalized=section.body.map(s=>s.replace(/\s+/g,' ').trim());
@@ -28,3 +29,4 @@ const result={scope:'saju_core',offline:true,additionalApiCalls:0,releaseApprove
  limitations:'Structure and heuristic checks only. Human prose and factual audit still required.'};
 console.log(JSON.stringify(result,null,2));
 if(!strings.length)process.exitCode=3;
+else if(duplicates.length||Object.keys(jargon).length||overhedge)process.exitCode=1;
