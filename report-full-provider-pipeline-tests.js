@@ -107,6 +107,14 @@ async function runScenario(kind){
   assert.equal(body.text.format.type,'json_schema');
   const p=JSON.parse(body.input[1].content);
   assert(['body','synthesis'].includes(p.stage));
+  if(p.task.chapters?.saju_core){
+   assert(p.task.chapters.saju_core.analysisFocus.includes(
+    '핵심 판단과 제목은 계산 자료를 소개하는 문장이 아니라'),
+    'first-chapter reader-first brief must reach the actual provider transport');
+   assert(String(body.input[0].content).includes(
+    '계산된 전통적 의미를 사람의 선택 방식에 적용한 조건부 풀이'),
+    'live system instruction must contain the revised conditional interpretation rule');
+  }
   calls++;requests.push(p);
   stages.push(p.stage);
   if(calls===1&&kind==='provider-limit')
@@ -124,6 +132,17 @@ async function runScenario(kind){
   const generated=p.stage==='body'?bodyResponse(p,body.text.format.schema):
    synthesisResponse(p,body.text.format.schema);
   if(kind==='synthesis-cover-missing'&&p.stage==='synthesis')generated.cover=null;
+  // Deliberately bad synthetic FIRST batch; all subsequent calls are forbidden.
+  // Do not change the authenticated original saved paid report.
+  if(calls===1&&kind==='core-calendar-mismatch'){
+   const core=generated.chapters.saju_core;
+   core.paragraphs[p.task.chapters.saju_core.anchor].text=
+    '태어난 달은 음력 1월입니다. 기본 성향을 설명하는 검증용 문단입니다.';
+  }
+  if(calls===1&&kind==='core-chart-only'){
+   generated.chapters.saju_core.keyJudgment=
+    '이 사주는 겨울의 전환기에 태어났으며 여러 글자의 관계가 확인됩니다.';
+  }
   if(kind==='missing-anchor-basis'&&calls===1){
    const id=Object.keys(generated.chapters)[0];
    const topic=p.task.chapters[id].anchor;
@@ -135,6 +154,19 @@ async function runScenario(kind){
  try{
   if(kind!=='complete'){
    const seen=[];
+   if(['core-calendar-mismatch','core-chart-only'].includes(kind)){
+    const expected=kind==='core-calendar-mismatch'
+     ?/birth-calendar contradiction/
+     :/non-specific interpretation/;
+    await assert.rejects(
+     generate(input,p=>callOpenAI(p,v=>{archived++;seen.push(v)}),
+      ()=>{},x=>{snapshots.push(x)}),expected,
+     'synthetic invalid first chapter MUST stop before a second provider call');
+    assert.equal(calls,1,'invalid first batch must abort additional mock calls');
+    assert.equal(archived,1,'original provider response must remain archived');
+    assert.equal(snapshots.length,0,'invalid first batch cannot be checkpointed');
+    return;
+   }
    if(kind==='synthesis-cover-missing'){
     const result=await generate(input,p=>callOpenAI(p,v=>{archived++;seen.push(v)}),
       ()=>{},x=>{snapshots.push(x)});
@@ -186,6 +218,8 @@ async function runScenario(kind){
  }
 }
 (async()=>{
+ await runScenario('core-calendar-mismatch');
+ await runScenario('core-chart-only');
  await runScenario('complete');
  await runScenario('malformed');
  await runScenario('provider-limit');
@@ -194,5 +228,6 @@ async function runScenario(kind){
  await runScenario('missing-anchor-basis');
  await runScenario('second-batch-json-syntax');
  await runScenario('synthesis-cover-missing');
+ console.log('PASS offline simulated provider: real lunar birth-month mismatch and chart-only core block future batches, unchanged report budget; zero real API calls');
  console.log('PASS no actual API calls: token limit, invalid JSON, empty response, missing basis, second-batch abort/checkpoint, incomplete synthesis');
 })().catch(e=>{console.error(e);process.exitCode=1});
