@@ -6,7 +6,10 @@ const reader=require('./report-reader-policy');
 const visible=s=>reader.describe(s,reader.readerField);
 const paragraph=(question,optional=false,readerRole=null)=>{
  const schema=object({label:visible({type:'string'}),text:visible({type:'string'})});
- schema.properties.text.description+=' 이 문단의 질문: '+question+' 상황과 선택을 먼저 설명하고 그 이유를 연결한다. 앞 문단의 결론을 표현만 바꾸어 반복하지 않는다. 유형의 선호를 실제 행동이나 능력으로 바꾸어 단정하지 않는다.';
+ schema.properties.text.description+=' 이 문단의 질문: '+question+
+  (readerRole
+   ?' 고객에게는 실제 계산 근거가 뒷받침하는 한 가지 조건부 기질 풀이를 먼저 쓰고 그 이유를 밝힌 다음 가상 상황에서 유리한 조건과 주의할 조건을 설명한다. 내부 편집 질문들을 고객용 질문 목록이나 보편적 행동 조언으로 옮기지 않는다. 관찰하지 않은 실제 성격·능력·경험은 단정하지 않는다.'
+   :' 상황과 선택을 먼저 설명하고 그 이유를 연결한다. 앞 문단의 결론을 표현만 바꾸어 반복하지 않는다. 유형의 선호를 실제 행동이나 능력으로 바꾸어 단정하지 않는다.');
  // Descriptions are passed to the ACTUAL provider JSON schema. Server-side
  // editorial rules alone were not enough: most are removed by compile().
  if(readerRole){
@@ -24,13 +27,11 @@ function coreReaderRoles(prompt){
  const coreContrast=require('./report-chart-contrast');
  const seasonal=contrast&&coreContrast.forTopic(contrast,'temperament',[])?.readerReasoning;
  const focus=contrast&&coreContrast.forTopic(contrast,'strength',[])?.readerReasoning?.readerValuePlan;
- const one=focus?.first?.question;
- const two=focus?.second?.question;
  const reading=focus?.traditionalReading;
  const firstParagraphBoundary=seasonal?.readerValuePlan?.distinctFromMonthPair||null;
  return {
   temperament:{
-   label:'태어난 계절과 겉에 확인된 오행의 관계를 이 문단에서 실제 설명한 생활 질문으로 짧게 나타낸다. 두 번째 문단의 배움·돈·재료 질문을 소제목으로 빼앗지 않는다.'+
+   label:'태어난 계절과 겉에 확인된 오행의 관계로 실제 설명한 조건부 기질을 짧게 나타낸다. 두 번째 문단의 배움·돈·재료 질문을 소제목으로 빼앗지 않는다.'+
     (firstParagraphBoundary?' 이 입력에서는 외부에서 받을 수 있는 도움의 조건을 첫 문단 제목으로 구별한다.':''),
    text:'출생 시기의 특징이나 글자의 뜻을 세 문장 이상 나열해 기술 강의로 만들지 않는다. 핵심 풀이를 먼저 말하고 계산된 출생 계절·겉글자의 전통적 의미를 짧게 연결한 다음 실제로 이해되는 가상 장면 하나에서 무엇을 고려하는지 풀어 쓴다. '+
     (seasonal?.hypotheticalQuestion?'이 입력에서 확인된 관계에 맞춘 가상의 장면: '+seasonal.hypotheticalQuestion+' ':'')+
@@ -38,11 +39,10 @@ function coreReaderRoles(prompt){
     '예시는 실제 생활 이력이나 관찰된 성격이 아니다. 계절 변화만으로 적응력이나 학습 능력을 판정하지 않으며 뜻을 설명했습니다 같은 작성 과정 문장으로 끝내지 않는다.'
   },
   strength:{
-   label:'실제로 본문에서 비교한 태어난 달의 서로 다른 두 전통적 질문을 소제목에 간결하게 드러낸다. 뿌리·충·강약처럼 이 문단에 없는 계산 주제를 제목에 붙이지 않는다.',
+   label:'태어난 달의 두 위치에 확인된 실제 십성 의미를 연결해 풀이한 기질의 핵심을 소제목에 간결하게 드러낸다. 뿌리·충·강약처럼 이 문단에 없는 계산 주제를 제목에 붙이지 않는다.',
    text:'이 문단은 태어난 달의 겉글자와 중심 숨은 글자에 기록된 두 전통적 의미만 풀이한다.'+
     (reading?' 이 사주에서 계산한 두 전통 해석의 관점: '+reading.tentativeThesis+' 작성 목적: '+reading.editorialDuty+' 해석의 범위: '+reading.evidenceLimit+' ':'')+
-    (one&&two?' 첫 출처의 실제 질문은 '+one+'이며 둘째 출처의 실제 질문은 '+two+'이다.':'')+
-    ' 출생 상징의 사전적 의미만 여러 문장으로 풀이하지 말고 새 일을 준비하는 가상의 한 선택 상황에서 두 질문에 각각 답해야 하는 이유와 어느 질문을 건너뛰면 검토가 부족해지는지 장면과 결과의 차이로 설명한다. 한 문단의 끝을 이는 전통적 해석의 출발점입니다 같은 해설로 마무리하지 않는다. 서로 다른 뜻을 실제 성격의 모순·갈등이나 능력의 증거로 바꾸지 않는다. 첫 문단의 계절 설명을 반복하지 않는다.'
+    ' 출생 상징의 사전적 의미를 나열한 질문 목록으로 쓰지 않는다. 검증된 두 출생 위치의 전통적 의미를 하나의 조건부 기질 해석으로 연결하여 그 이유를 먼저 밝힌다. 새 일을 준비하는 가상의 한 선택 상황은 그 해석이 유리해지는 조건과 주의할 조건을 설명할 때만 사용한다. 독자의 실제 과거를 꾸미거나 한 문단의 끝을 이는 전통적 해석의 출발점입니다 같은 해설로 마무리하지 않는다. 서로 다른 뜻을 실제 성격의 모순·갈등이나 능력의 증거로 바꾸지 않는다. 첫 문단의 계절 설명을 반복하지 않는다.'
   }
  };
 }
@@ -62,8 +62,8 @@ function schemaFor(prompt,reportSchema){
   const title=visible(section.title),judgment=visible(section.keyJudgment);
   const roles=id==='saju_core'?coreReaderRoles(prompt):null;
   if(roles){
-   title.description+=' 첫 장 제목은 두 문단에서 실제 제시한 하나의 생활 질문을 가리킨다. 출생 구조·기질의 조건·계산 근거라는 교재 제목이나, 본문에서 검증하지 않은 인물 평가를 피한다.';
-   judgment.description+=' 첫 장 핵심 판단은 제목의 질문에 답하는 자연스러운 한국어 한 문장이다. 먼저 검증된 두 출생 위치가 뒷받침하는 전통적 기질 해석을 조건부로 말하고, 생활 조언이나 자료 분석 계획만으로 대체하지 않는다. 계산 과정·근거 목록·검토하겠다는 작성 계획이 아니다. 본문 두 문단의 조건부 전통 해석을 넘어 실제 성격·과거 행동을 확인했다고 단정하지 않는다.';
+   title.description+=' 첫 장 제목은 두 문단에서 근거를 제시한 조건부 기질 해석의 핵심을 가리킨다. 출생 구조·기질의 조건·계산 근거라는 교재 제목이나, 본문에서 검증하지 않은 인물 평가를 피한다.';
+   judgment.description+=' 첫 장 핵심 판단은 제목이 가리키는 기질을 풀이하는 자연스러운 한국어 한 문장이다. 먼저 검증된 두 출생 위치가 뒷받침하는 전통적 기질 해석을 조건부로 말하고, 생활 조언이나 자료 분석 계획만으로 대체하지 않는다. 계산 과정·근거 목록·검토하겠다는 작성 계획이 아니다. 본문 두 문단의 조건부 전통 해석을 넘어 실제 성격·과거 행동을 확인했다고 단정하지 않는다.';
   }
   return [id,object({title,keyJudgment:judgment,evidence:reader.describe(section.evidence,reader.evidenceField),mood:section.mood,
    paragraphs:object(Object.fromEntries(keys.map(topic=>[topic,topic===anchor?paragraph(plan[topic]?.question||topics[id][topic],false,roles?.[topic]):plan[topic]?.mode==='state-limits'?{type:'null'}:{anyOf:[paragraph(plan[topic]?.question||topics[id][topic],true,roles?.[topic]),{type:'null'}]}])))})];

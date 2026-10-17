@@ -136,33 +136,40 @@ for(const input of cases){
  const paired=paragraphs.strength.anyOf?.find(x=>x.type==='object')||
   paragraphs.strength;
  const pairedText=paired.properties.text.description;
- assert(chapterSchema.title.description.includes('두 문단에서 실제 제시한 하나의 생활 질문'));
+ assert(chapterSchema.title.description.includes('조건부 기질 해석의 핵심'));
  assert(chapterSchema.keyJudgment.description.includes('자연스러운 한국어 한 문장'));
  assert(paragraphs.temperament.properties.label.description.includes('계절과 겉에 확인된 오행'));
- assert(paired.properties.label.description.includes('서로 다른 두 전통적 질문'));
+ assert(paired.properties.label.description.includes('기질의 핵심'));
  assert(seasonText.includes('기술 강의로 만들지 않는다')&&
   seasonText.includes('가상의 장면')&&
   !seasonText.includes('출생월의 본기만으로 실제 적응력이'));
  const scenarioFromFacts=contrasts.forTopic(contrast,'temperament',[])?.readerReasoning?.hypotheticalQuestion;
  assert(seasonText.includes(scenarioFromFacts),
   'actual first paragraph provider output field must include a chart-specific hypothetical, not generic instructions');
- assert(pairedText.includes('첫 출처의 실제 질문은')&&
-  pairedText.includes('둘째 출처의 실제 질문은'));
- assert(pairedText.includes('사전적 의미만 여러 문장으로')&&
+ assert(pairedText.includes('하나의 조건부 기질 해석으로 연결')&&
+  !pairedText.includes('첫 출처의 실제 질문은')&&
+  !pairedText.includes('둘째 출처의 실제 질문은'),
+  'JSON schema must no longer request the internal two-question glossary');
+ assert(pairedText.includes('사전적 의미를 나열한 질문 목록으로')&&
   pairedText.includes('가상의 한 선택 상황'),
   'paid writer must treat symbol names as brief supporting evidence, never as final value');
 
  const moonPlan=contrasts.forTopic(contrast,'strength',[])?.readerReasoning?.readerValuePlan;
- assert(pairedText.includes(moonPlan.first.question)&&pairedText.includes(moonPlan.second.question),
-  'real first-chapter response field must describe THIS chart, not a generic root lecture');
+ assert(pairedText.includes(moonPlan.traditionalReading.first.reading)&&
+  pairedText.includes(moonPlan.traditionalReading.second.reading)&&
+  !pairedText.includes(moonPlan.first.question)&&
+  !pairedText.includes(moonPlan.second.question),
+  'actual schema must contain THIS chart meanings, not two questions');
  assert(!pairedText.includes('실제로 학습 능력이 높')&&
   pairedText.includes('실제 성격의 모순·갈등이나 능력의 증거로 바꾸지 않는다'));
  assert.deepEqual(Object.keys(chapterSchema),['title','keyJudgment','evidence','mood','paragraphs'],
   'quality instructions must not alter the provider JSON field contract');
  if(input.calendar==='lunar'&&input.birthDate==='1982-11-24'){
-  assert(pairedText.includes('처음 접하는 정보를 자기 방식으로 어떻게 이해할지'));
-  assert(pairedText.includes('필요한 돈과 재료를 어디서 마련하고 어떻게 쓸지'));
-  assert(!pairedText.includes('반복해서 드는 비용을 어떻게 감당할지'));
+  assert(pairedText.includes(moonPlan.traditionalReading.first.reading)&&
+   pairedText.includes(moonPlan.traditionalReading.second.reading));
+  assert(!pairedText.includes('처음 접하는 정보를 자기 방식으로 어떻게 이해할지')&&
+   !pairedText.includes('필요한 돈과 재료를 어디서 마련하고 어떻게 쓸지'),
+   'real lunar chapter schema must no longer command two questions');
  }
  const changedReader=structuredClone(request);
  changedReader.task.chapters.saju_core.topics.temperament.evidenceFocus.readerQuestion='근거 없는 성격 설명';
