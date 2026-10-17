@@ -19,13 +19,16 @@ if(!Array.isArray(body)||!body.length||!Array.isArray(calculations))
  throw Error('INCOMPLETE_REVIEW_CONTENT');
 const minimized={id,title,keyJudgment,bodyLabels,body,evidence:calculations};
 const plaintext=require('node:zlib').deflateRawSync(Buffer.from(JSON.stringify(minimized),'utf8'));
-const sessionKey=crypto.randomBytes(32),nonce=crypto.randomBytes(12);
+const recipient=crypto.createPublicKey({key:Buffer.from(publicKeyB64,'base64'),format:'der',type:'spki'});
+if(recipient.asymmetricKeyType!=='x25519')throw Error('EXPECTED_X25519_RECIPIENT');
+const ephemeral=crypto.generateKeyPairSync('x25519');
+const shared=crypto.diffieHellman({privateKey:ephemeral.privateKey,publicKey:recipient});
+const sessionKey=Buffer.from(crypto.hkdfSync('sha256',shared,Buffer.from('saju-review-v2'),Buffer.from('archived-first-chapter'),32));
+const nonce=crypto.randomBytes(12);
 const cipher=crypto.createCipheriv('aes-256-gcm',sessionKey,nonce);
 const encrypted=Buffer.concat([cipher.update(plaintext),cipher.final()]);
-const wrapped=crypto.publicEncrypt({key:Buffer.from(publicKeyB64,'base64').toString('utf8'),
- padding:crypto.constants.RSA_PKCS1_OAEP_PADDING,oaepHash:'sha256'},sessionKey);
-const envelope={format:'saju-qa-ephemeral-review-deflate-v1',
- wrappedKey:wrapped.toString('base64'),nonce:nonce.toString('base64'),
+const envelope={format:'saju-qa-ephemeral-review-x25519-v2',
+ ephemeralPublic:ephemeral.publicKey.export({format:'der',type:'spki'}).toString('base64'),nonce:nonce.toString('base64'),
  tag:cipher.getAuthTag().toString('base64'),ciphertext:encrypted.toString('base64')};
 // Safe for job log: confidential report never appears as plaintext.
 console.log('QA_REVIEW_ENCRYPTED='+Buffer.from(JSON.stringify(envelope)).toString('base64'));
