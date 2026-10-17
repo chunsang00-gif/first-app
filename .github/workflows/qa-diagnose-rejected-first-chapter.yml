@@ -1,0 +1,88 @@
+name: Offline diagnostic of already-paid failed first chapter
+on:
+  push:
+    branches: [fix-paid-qa-fact-bindings-20261014]
+    paths: [.github/workflows/qa-diagnose-rejected-first-chapter.yml]
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  inspect-existing-archive:
+    if: github.ref_name == 'fix-paid-qa-fact-bindings-20261014'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Download only the ALREADY PAID failed chapter (no provider calls)
+        uses: actions/download-artifact@v4
+        with:
+          name: premium-first-chapter-qa-encrypted
+          repository: chunsang00-gif/first-app
+          run-id: 38994773780
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/rejected-qa-encrypted
+      - name: Decrypt privately, compare existing baseline checks, print codes ONLY
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          private_dir="$RUNNER_TEMP/rejected-qa-private"
+          mkdir -p "$private_dir"
+          trap 'rm -rf "$private_dir" "$RUNNER_TEMP/rejected-qa-encrypted"' EXIT
+          node report-qa-secure-archive.js decrypt \
+            "$RUNNER_TEMP/rejected-qa-encrypted/premium-first-chapter-qa.enc" \
+            "$private_dir"
+          node - "$private_dir/private-qa-first-chapter-provider-calls.json" <<'NODE'
+          'use strict';
+          const fs=require('node:fs');
+          const journal=JSON.parse(fs.readFileSync(process.argv[2],'utf8'));
+          if(!Array.isArray(journal.calls)||journal.calls.length!==1||
+             journal.calls[0].number!==1)throw Error('INVALID_PAID_ARCHIVE_CALL_COUNT');
+          const record=journal.calls[0];
+          if(record?.response?.status==='invalid_json'||
+             !record?.response?.chapters?.saju_core)
+            throw Error('PAID_RESPONSE_HAS_NO_STRUCTURED_FIRST_CHAPTER');
+          const core=record.response.chapters.saju_core;
+          const topics=Object.entries(core.paragraphs||{})
+           .filter(([,value])=>value!==null&&typeof value==='object');
+          const text=topics.map(([,row])=>String(row.text||''));
+          const section={id:'saju_core',title:String(core.title||''),
+            keyJudgment:String(core.keyJudgment||''),
+            bodyLabels:topics.map(([,row])=>String(row.label||'')),
+            body:text};
+          const baseline=require('./report-grounding-review').inspect({sections:[section]});
+          const headline=section.keyJudgment.trim();
+          // This was a NEW experimental rule, not a validated content verdict.
+          const removedRuleMatch=/^(?:이\s*사주는|태어난\s*달(?:은|이|의|에서)|출생\s*월(?:은|이|의|에서))/.test(headline)&&
+           /(?:계절|전환기|태어|겉글자|기운|사주|관계|달|오행)/.test(headline)&&
+           !/(?:결정|선택|거절|바꾸|확인한\s*뒤|다시\s*살펴|먼저\s*살펴|의견|맡은\s*일|판단한\s*뒤)/.test(headline);
+          const allFields=[headline,section.title,...section.bodyLabels,...text,
+            ...topics.flatMap(([,row])=>Object.values(row.basis||{}).filter(x=>typeof x==='string'))];
+          const originalBirthMonth=Number(String(journal?.sample?.birthDate||'').slice(5,7));
+          const lunarMonthReferences=allFields.flatMap(field=>
+            [...field.matchAll(/음력\s*(\d{1,2})\s*월/g)]
+             .map(m=>({month:Number(m[1]),birthContext:/출생|태어난|생월|생일/.test(field)})));
+          const result={
+            source:'already-paid-2026-10-17-first-chapter',
+            encryptedArtifactRunId:38994773780,
+            providerCallsInArchive:journal.calls.length,
+            noNewApiCalls:true,
+            corePresent:true,
+            nonNullParagraphs:topics.length,
+            displayedCharacters:[headline,section.title,...section.bodyLabels,...text].join('').length,
+            oldBaselineBlockingCodes:baseline.blockingErrors,
+            newlyAddedRuleWouldMatch:removedRuleMatch,
+            headlineContainsChoiceLanguage:/(?:결정|선택|판단|거절|업무|사람|의견|행동|태도)/.test(headline),
+            lunarMonthReferences:lunarMonthReferences.length,
+            possibleBirthMonthMismatches:lunarMonthReferences.filter(x=>x.birthContext&&
+              Number.isInteger(originalBirthMonth)&&x.month!==originalBirthMonth).length,
+            limitation:'This is a private-archive structural/regex diagnostic, not a human evaluation or proof of factual quality.'
+          };
+          console.log(JSON.stringify(result,null,2));
+          NODE
