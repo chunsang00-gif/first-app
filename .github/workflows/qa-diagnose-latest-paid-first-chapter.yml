@@ -74,4 +74,36 @@ jobs:
             genericFindings:audit.findings,
             reportRequiresHumanReview:true
           }));
+          // Seal only this pre-existing first chapter to a local ephemeral review key.
+          const crypto=require('node:crypto'),path=require('node:path');
+          const pub=crypto.createPublicKey({key:Buffer.from(
+            'MCowBQYDK2VuAyEAuFEg2YxvSs73OIogZEEShHvazVR8sdMyM7/O49UmLXg=','base64'),
+            format:'der',type:'spki'});
+          const eph=crypto.generateKeyPairSync('x25519');
+          const shared=crypto.diffieHellman({privateKey:eph.privateKey,publicKey:pub});
+          const key=Buffer.from(crypto.hkdfSync('sha256',shared,
+            Buffer.from('saju-review-v3'),Buffer.from('latest-first-chapter'),32));
+          const nonce=crypto.randomBytes(12),cipher=crypto.createCipheriv('aes-256-gcm',key,nonce);
+          const selected=Object.fromEntries(visibleParagraphs.map(([topic,row])=>[topic,{
+            label:row.label,text:row.text,basis:row.basis}]));
+          const request=first.request||{};
+          const sourceRefs=[...new Set(visibleParagraphs.flatMap(([,row])=>row.basis?.refs||[]))];
+          const sources=Object.fromEntries(sourceRefs.map(id=>[id,request.source?.[id]||null]));
+          const clear=Buffer.from(JSON.stringify({title:core.title,
+            keyJudgment:core.keyJudgment,paragraphs:selected,sources}),'utf8');
+          const encrypted=Buffer.concat([cipher.update(clear),cipher.final()]);
+          const envelope={format:'saju-qa-local-x25519-v3',
+            publicKey:eph.publicKey.export({format:'der',type:'spki'}).toString('base64'),
+            nonce:nonce.toString('base64'),tag:cipher.getAuthTag().toString('base64'),
+            ciphertext:encrypted.toString('base64')};
+          fs.writeFileSync(path.join(process.env.RUNNER_TEMP,'sealed-latest-review.json'),
+            JSON.stringify(envelope),{mode:0o600,flag:'wx'});
+          console.log('PRIVATE REVIEW: encrypted existing response; plaintext not printed.');
           NODE
+      - name: Upload encrypted latest first-chapter reader review ONLY
+        uses: actions/upload-artifact@v4
+        with:
+          name: sealed-new-paid-first-chapter-private
+          path: ${{ runner.temp }}/sealed-latest-review.json
+          if-no-files-found: error
+          retention-days: 1
