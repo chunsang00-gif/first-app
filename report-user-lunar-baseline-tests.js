@@ -142,7 +142,8 @@ for(const ref of refs)assert(Object.hasOwn(transport.source,ref),
 assert.equal(transport.task.comparisonContract.calculatedAgreement,false);
 const slots=writer.schema(prompt,wire.schemaFor(prompt,schema))
  .properties.chapters.properties.saju_core.properties.paragraphs.properties;
-const expectedSeasonRefs=slots.temperament.properties.basis.properties.refs.items.enum;
+assert.equal(blueprint.saju_core.anchorTopic,'strength');
+const expectedSeasonRefs=slots.temperament.anyOf.find(x=>x.type==='object').properties.basis.properties.refs.items.enum;
 const expectedRootRefs=(slots.strength.anyOf?.find(x=>x.type==='object')||slots.strength)
  .properties.basis.properties.refs.items.enum;
 for(const ref of seasonRefs)assert(expectedSeasonRefs.includes(ref),'seasonal schema lacks '+ref);

@@ -83,7 +83,7 @@ for(const input of cases){
   .properties.basis.properties.refs.items.enum;
  assert(!enums.includes('facts.rootConditions')&&!enums.includes('facts.stemConnections'),
   'real paid first chapter must not expose optional root/clash sources in ten-god text');
- assert(!slots.temperament.properties.basis.properties.refs.items.enum.includes('facts.rootConditions'),
+ assert(!slots.temperament.anyOf.find(x=>x.type==='object').properties.basis.properties.refs.items.enum.includes('facts.rootConditions'),
   'root conditions must not leak into seasonal paragraph');
  const paragraph=refs=>({basis:{refs,interpretation:'원국과 세운의 지지 관계 위치를 비교합니다.',
   condition:'각 천간과 지장간의 위치 확인',limit:'뿌리의 실제 강도와 소멸 여부는 확정할 수 없습니다.'},
