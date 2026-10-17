@@ -125,9 +125,8 @@ for(const input of cases){
  assert.deepEqual(transportGuard.inspectTransport(p,request),[],
   'actual first-chapter brief must match this birth chart before any paid call');
  // The real provider receives JSON-schema descriptions, not the full
- // server-only editorial rule set. Verify the schema pairs each public
- // headline, one-sentence conclusion and paragraph label with the actual
- // two independently calculated customer questions.
+ // server-only editorial rule set. Verify that month-source distinctions
+ // survive without turning the model response into an internal FAQ.
  const wire=require('./report-wire');
  const outputSchema=wire.schemaFor(p,require('./report-schema.json'));
  const chapterSchema=outputSchema.properties.chapters.properties.saju_core.properties;
@@ -146,22 +145,30 @@ for(const input of cases){
  const scenarioFromFacts=contrasts.forTopic(contrast,'temperament',[])?.readerReasoning?.hypotheticalQuestion;
  assert(seasonText.includes(scenarioFromFacts),
   'actual first paragraph provider output field must include a chart-specific hypothetical, not generic instructions');
- assert(pairedText.includes('첫 출처의 실제 질문은')&&
-  pairedText.includes('둘째 출처의 실제 질문은'));
- assert(pairedText.includes('사전적 의미만 여러 문장으로')&&
+ assert(!pairedText.includes('첫 출처의 실제 질문은')&&
+  !pairedText.includes('둘째 출처의 실제 질문은')&&
+  !pairedText.includes('두 질문에 각각 답해야 하는 이유'),
+  'actual provider output schema must not override claim ownership by printing internal questions');
+ assert(pairedText.includes('사전적 의미나 내부 질문을 고객용 글로 나열하지 않는다')&&
   pairedText.includes('가상의 한 선택 상황'),
   'paid writer must treat symbol names as brief supporting evidence, never as final value');
 
  const moonPlan=contrasts.forTopic(contrast,'strength',[])?.readerReasoning?.readerValuePlan;
- assert(pairedText.includes(moonPlan.first.question)&&pairedText.includes(moonPlan.second.question),
-  'real first-chapter response field must describe THIS chart, not a generic root lecture');
+ assert(pairedText.includes(moonPlan.traditionalReading.first.reading)&&
+  pairedText.includes(moonPlan.traditionalReading.second.reading)&&
+  !pairedText.includes(moonPlan.first.question)&&
+  !pairedText.includes(moonPlan.second.question),
+  'real first-chapter schema must use THIS chart meanings, not internal two-question prompts');
  assert(!pairedText.includes('실제로 학습 능력이 높')&&
   pairedText.includes('실제 성격의 모순·갈등이나 능력의 증거로 바꾸지 않는다'));
  assert.deepEqual(Object.keys(chapterSchema),['title','keyJudgment','evidence','mood','paragraphs'],
   'quality instructions must not alter the provider JSON field contract');
  if(input.calendar==='lunar'&&input.birthDate==='1982-11-24'){
-  assert(pairedText.includes('처음 접하는 정보를 자기 방식으로 어떻게 이해할지'));
-  assert(pairedText.includes('필요한 돈과 재료를 어디서 마련하고 어떻게 쓸지'));
+  assert(pairedText.includes(moonPlan.traditionalReading.first.reading)&&
+   pairedText.includes(moonPlan.traditionalReading.second.reading));
+  assert(!pairedText.includes('처음 접하는 정보를 자기 방식으로 어떻게 이해할지')&&
+   !pairedText.includes('필요한 돈과 재료를 어디서 마련하고 어떻게 쓸지'),
+   'response field must not tell the AI to print two selection questions');
   assert(!pairedText.includes('반복해서 드는 비용을 어떻게 감당할지'));
  }
  const changedReader=structuredClone(request);
