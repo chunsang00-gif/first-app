@@ -220,7 +220,7 @@ function monthHypothetical(visibleKind,mainKind,sameClassification){
  // reasoningTask. The writer must never copy internal audit text to readers.
  return sameClassification?
   '가상의 상황: 새로운 일을 준비하면서 '+first+'를 결정해야 한다고 가정한다. 이 질문을 두 출생 위치에서 검토하되 그 사람이 실제로 그렇게 행동하거나 두 배로 강하다고 말하지 않는다.':
-  '가상의 상황: 새로운 일을 준비하면서 '+first+'와 '+second+'를 함께 고민한다고 가정한다. 두 질문의 의미를 서로 다른 계산 위치에 연결하되 실제 경험이나 내적 갈등으로 단정하지 않는다.';
+  '가상의 상황: 새로운 일을 준비하면서 '+first+'와 '+second+'를 함께 고민한다고 가정한다. 두 의미가 기질에 대한 하나의 조건부 풀이로 어떻게 이어지는지 이유를 연결하되 실제 경험이나 내적 갈등으로 단정하지 않는다.';
 }
 function readerQuestions(contrast,topic){
  const points=contrast.contrastPoints||[];
@@ -260,7 +260,7 @@ function readerQuestions(contrast,topic){
    reasoningTask:'출생월은 '+phase+'로 계산됐다. '+observed+
     ' 계절 배경과 겉글자 각각의 출생 위치를 분리해 확인하고, 확인된 오행 관계의 전통적인 의미와 출생 위치에 따라 달라지는 해석의 출발점을 구체적으로 설명한다. 겉에 없는 지원·압박의 반대 방향이나 월의 숨은 글자가 실제 성격을 만든다고 추가하지 않는다.',
    hypotheticalQuestion:dynamicExample,
-   interpretivePayoff:'독자는 출생월의 계절 조건을 실제 성격의 증거로 혼동하지 않고, 겉글자에서 확인된 '+(selectedMeaning||'오행 관계')+'의 전통적인 질문을 생활 속 가정에 적용하는 이유와 선택 기준을 이해한다.',
+   interpretivePayoff:'독자는 출생월의 계절 조건을 실제 성격의 증거로 혼동하지 않고, 겉글자에서 확인된 '+(selectedMeaning||'오행 관계')+'의 의미가 조건부 기질 해석에 연결되는 이유를 이해한다.',
    readerValuePlan:{
     primaryTraditionalQuestion:separatedResourceQuestion?
      '겉글자의 전통적 도움 관계가 질문하는 외부 지원의 조건과 범위':
@@ -301,26 +301,26 @@ function readerQuestions(contrast,topic){
    throw Error('Missing actual monthly categories for reader comparison');
 
   return {
-   contrastQuestion:'태어난 달의 겉글자와 중심 숨은 글자가 나타내는 전통적 질문을 어떻게 함께 읽는가?',
+   contrastQuestion:'태어난 달의 겉글자와 중심 숨은 글자에서 확인된 전통적 의미를 함께 읽으면 기본 기질을 어떻게 풀이하는가?',
    reasoningTask:readerContext+
     '두 분류의 전통적인 의미와 실제 출생 위치의 차이를 구체적으로 설명한다. 이 문단에는 뿌리·충 자료를 추가 인용하지 않는다. 재산·학습 능력·사건·마음속 균형·성격 양면성을 만들어 내지 않는다.',
    hypotheticalQuestion:monthHypothetical(visibleKind,mainKind,monthTenGod.sameClassification),
    interpretivePayoff:monthTenGod.sameClassification?
-    '독자는 같은 전통 분류가 두 출생 위치에 있다는 의미를 이해하되, 성격이나 능력이 두 배 강하다는 주장과 구별한다.':
-    '독자는 '+firstEverydayQuestion+'와 '+secondEverydayQuestion+'가 각각 다른 선택의 질문이며 실제 성격의 충돌은 아니라는 점을 이해한다.',
+    '독자는 같은 전통 분류가 두 출생 위치에 확인된 이유를 이해하되, 성격이나 능력이 두 배 강하다고 단정하지 않는다.':
+    '독자는 '+visibleMeaning+'와 '+mainMeaning+'라는 서로 다른 전통적 의미가 한 가지 가상 상황의 기질 해석에 어떻게 연결되는지 이해하고, 실제 성격의 충돌이라고 단정하지 않는다.',
    readerValuePlan:{
     traditionalReading,
     first:{sourceId:monthTenGod.monthStem.sourceId,tenGod:visibleKind,question:firstEverydayQuestion},
     second:{sourceId:monthTenGod.monthMainHidden.sourceId,tenGod:mainKind,question:secondEverydayQuestion},
     customerSequence:monthTenGod.sameClassification?
-     '같은 전통 뜻을 두 출생 위치에 확인 → 가상의 한 상황에서 그 뜻이 어떤 질문인지 설명 → 위치가 두 곳이라 실제 성향이 두 배가 되는 것은 아님을 구분':
-     '두 출생 위치의 서로 다른 전통 뜻 확인 → 가상의 한 선택에서 첫 질문과 둘째 질문을 각각 적용 → 어느 한쪽만 살폈을 때 놓치는 조건을 비교',
+     '같은 전통 뜻을 두 위치에서 확인 → 조건부 기질 해석 한 문장 → 가상 상황에서 그 이유와 유리한 조건을 설명. 위치가 두 곳이라 성향이 두 배라는 뜻은 아님':
+     '두 위치의 실제 십성 뜻 확인 → 조건부 기질 해석 한 문장 → 가상의 한 선택에서 이유와 유리한 조건·주의할 조건을 풀어 설명',
     advantageQuestion:monthTenGod.sameClassification?
-     '같은 뜻을 지닌 두 출처가 있는 사주를 읽을 때 확인할 수 있는 전통적 질문은 무엇인가?':
-     '첫 번째 질문과 두 번째 질문을 모두 검토하면 가상의 새 일을 준비하는 데 어떤 선택 기준이 분명해지는가?',
+     '두 위치에서 같은 전통 뜻이 확인될 때 어떤 조건부 기질 해석이 뒷받침되는가?':
+     '서로 다른 두 전통적 의미를 연결하면 이 사람의 기질에 관한 어떤 조건부 해석을 구체화할 수 있는가?',
     riskQuestion:monthTenGod.sameClassification?
-     '같은 상징이 두 번 나온다는 이유로 능력·성격의 강도를 두 배로 단정하면 왜 오류인가?':
-     '첫 번째 질문만 답하거나 두 번째 질문만 답하면 그 가상의 선택에서 실제로 어떤 검토 항목이 빠지는가? 고객이 원래 그런 행동을 한다고 단정하지 않는다.',
+     '같은 상징이 두 번 나온다고 능력·성격이 두 배 강해지는 것으로 보면 왜 오류인가?':
+     '두 전통적 뜻 중 어느 하나만으로 실제 성격·경험을 확정할 수 없는 이유와, 어떤 조건에서 풀이가 제한되는가?',
     prohibitedShortcut:'전통적 질문의 장단점을 그 사람의 실제 능력·소득·내면 갈등·정해진 행동 습관으로 바꾸지 않는다. 출생월의 본기가 실제로 사령했다고 쓰지 않는다.'
    },
    sourceAudit

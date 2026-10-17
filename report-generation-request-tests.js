@@ -88,6 +88,26 @@ const schema=require('./report-schema.json');
   'the actual transported depth goal must prioritize both calculated month ten-god meanings');
  assert(!payload.task.chapters.saju_core.analysisGoal.includes('둘째는 같은 오행의 실제 뿌리'),
   'obsolete root-first depth instruction must not override the evidence plan');
+ // Regression: same lunar source contract, new reader-first interpretation in ACTUAL payload.
+ const paidCore=payload.task.chapters.saju_core;
+ assert(paidCore.topics.strength.question.includes('조건부 해석으로 연결'),
+  'writer topic must ask for a sourced interpretation, not a glossary');
+ assert(paidCore.analysisFocus.includes('하나의 조건부 기질 해석으로 이어지는 이유'),
+  'scoped provider focus must integrate both month ten-god meanings');
+ assert(paidCore.topics.strength.interpretationBoundary.includes('하나의 조건부 기질 풀이'),
+  'topic guard must not reintroduce question-by-question narration');
+ assert(paidCore.topics.strength.evidenceFocus.readerReasoning.readerValuePlan
+  .customerSequence.includes('조건부 기질 해석 한 문장'),
+  'verified chart contrast must ask for an interpretation before the example');
+ assert(paidCore.topics.strength.evidenceFocus.readerReasoning
+  .contrastQuestion.includes('기질을 어떻게 풀이'),
+  'reader-facing contrast must ask for a conclusion, not two definitions');
+ assert(generation.policy.includes('질문 목록으로 옮기지 말고')&&
+  generation.policy.includes('일반적인 실천 조언으로 대신하지 않는다'),
+  'live system message must prevent exposing internal questions as paid prose');
+ assert(!generation.policy.includes('어떤 질문을 빠뜨리면 불리한지를'),
+  'obsolete checklist-first system instruction must not remain');
+ assert.deepEqual(paidCore.topics.strength.requiredSourceKinds,['month-ten-god']);
  assert(payload.task.chapters.saju_core.topics.temperament.question.includes('기질'),
   'first topic must explain basic disposition to a reader');
  assert(payload.task.chapters.saju_core.topics.strength.question.includes('기질'),
