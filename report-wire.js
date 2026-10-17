@@ -68,8 +68,8 @@ function schemaFor(prompt,reportSchema){
   const title=visible(section.title),judgment=visible(section.keyJudgment);
   const roles=id==='saju_core'?coreReaderRoles(prompt):null;
   if(roles){
-   title.description+=' 첫 장 제목은 두 문단에서 실제 제시한 하나의 생활 질문을 가리킨다. 출생 구조·기질의 조건·계산 근거라는 교재 제목이나, 본문에서 검증하지 않은 인물 평가를 피한다.';
-   judgment.description+=' 첫 장 핵심 판단은 제목의 질문에 답하는 자연스러운 한국어 한 문장이다. 먼저 검증된 두 출생 위치가 뒷받침하는 전통적 기질 해석을 조건부로 말하고, 생활 조언이나 자료 분석 계획만으로 대체하지 않는다. 계산 과정·근거 목록·검토하겠다는 작성 계획이 아니다. 본문 두 문단의 조건부 전통 해석을 넘어 실제 성격·과거 행동을 확인했다고 단정하지 않는다.';
+   title.description+=' 첫 장 제목은 두 문단의 근거에 따라 제시한 한 가지 조건부 기질 해석의 핵심을 가리킨다. 출생 구조·기질의 조건·계산 근거라는 교재 제목이나, 본문에서 검증하지 않은 인물 평가를 피한다.';
+   judgment.description+=' 첫 장 핵심 판단은 제목의 조건부 기질 해석을 자연스러운 한국어 한 문장으로 제시한다. 먼저 검증된 두 출생 위치가 뒷받침하는 전통적 기질 해석을 조건부로 말하고, 생활 조언이나 자료 분석 계획만으로 대체하지 않는다. 계산 과정·근거 목록·검토하겠다는 작성 계획이 아니다. 본문 두 문단의 조건부 전통 해석을 넘어 실제 성격·과거 행동을 확인했다고 단정하지 않는다.';
   }
   return [id,object({title,keyJudgment:judgment,evidence:reader.describe(section.evidence,reader.evidenceField),mood:section.mood,
    paragraphs:object(Object.fromEntries(keys.map(topic=>[topic,topic===anchor?paragraph(plan[topic]?.question||topics[id][topic],false,roles?.[topic]):plan[topic]?.mode==='state-limits'?{type:'null'}:{anyOf:[paragraph(plan[topic]?.question||topics[id][topic],true,roles?.[topic]),{type:'null'}]}])))})];

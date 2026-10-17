@@ -135,7 +135,7 @@ for(const input of cases){
  const paired=paragraphs.strength.anyOf?.find(x=>x.type==='object')||
   paragraphs.strength;
  const pairedText=paired.properties.text.description;
- assert(chapterSchema.title.description.includes('두 문단에서 실제 제시한 하나의 생활 질문'));
+ assert(chapterSchema.title.description.includes('조건부 기질 해석의 핵심'));
  assert(chapterSchema.keyJudgment.description.includes('자연스러운 한국어 한 문장'));
  assert(paragraphs.temperament.properties.label.description.includes('계절과 겉에 확인된 오행'));
  assert(paired.properties.label.description.includes('두 의미를 함께 풀이한 결론'));
@@ -296,6 +296,27 @@ for(const input of cases){
   'billable writer MUST get the ACTUAL month reading rather than an unrelated general example');
  assert(coreWire.properties.chapters.properties.saju_core.properties.keyJudgment.description
   .includes('생활 조언이나 자료 분석 계획만으로 대체하지 않는다'));
+ assert(coreWire.properties.chapters.properties.saju_core.properties.keyJudgment.description
+  .includes('자연스러운 한국어 한 문장'));
+ assert(!coreWire.properties.chapters.properties.saju_core.properties.title.description
+  .includes('하나의 생활 질문'));
+ assert(p.analysisGuidance.chapterTasks.saju_core.focus.includes('조건부 기질 해석을 제시한다'));
+ assert(p.analysisGuidance.editorialBlueprint.saju_core.topicTasks.strength.interpretationBoundary
+  .includes('질문 목록으로 전환하지 않는다'));
+ assert(request.task.chapters.saju_core.topics.strength.evidenceFocus.readerReasoning.readerValuePlan.customerSequence
+  .includes('조건부 기질 해석으로 연결'));
+ assert(!request.task.chapters.saju_core.topics.strength.evidenceFocus.readerReasoning.readerValuePlan.customerSequence
+  .includes('첫 질문과 둘째 질문을 각각 적용'));
+ const paidSystem=require('./report-generation-request').policy;
+ assert(paidSystem.includes('내부 first/second 편집 질문이나 검증용 문답을 고객용 문장으로 복사하지 않는다'));
+ assert(!paidSystem.includes('어떤 질문을 빠뜨리면 불리한지'));
+ assert(!request.task.chapters.saju_core.topics.strength.evidenceFocus.readerReasoning.hypotheticalQuestion
+  .includes('두 질문의 의미를 서로 다른 계산 위치에 연결'));
+ // Validate both the actual compact task AND the exact provider schema:
+ // a returned text paragraph is an interpretation, not two editorial answers.
+ assert(pairedText.includes('한 가지 조건부 기질 해석으로 연결'));
+ assert(!pairedText.includes('두 질문에 각각 답해야 하는 이유'));
+ assert(chapterSchema.keyJudgment.description.includes('자연스러운 한국어 한 문장'));
  if(input.calendar==='lunar'&&input.birthDate==='1982-11-24'){
   assert.equal(traditional.first.tenGod,'편인');
   assert.equal(traditional.second.tenGod,'편재');
