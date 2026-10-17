@@ -86,7 +86,11 @@ function inspect(prompt){
     if(JSON.stringify(activeExpected)!==JSON.stringify(plan.activeTopicKeys))errors.push('active topic/order mismatch: '+id);
     const primary=taskTopics.find(t=>plan.topicTasks[t].mode==='use-primary');
     const fallback=taskTopics.find(t=>plan.topicTasks[t].mode==='use-verified-fallback');
-    if(plan.anchorTopic!==(primary||fallback||null))errors.push('noncanonical anchor selection: '+id);
+    // In the paid Saju core, the positional month ten-god reading is the
+    // substantive anchor; the seasonal/visible observation is optional.
+    const mandated=id==='saju_core'&&plan.topicTasks.strength?.mode==='use-primary'
+     ?'strength':primary||fallback||null;
+    if(plan.anchorTopic!==mandated)errors.push('noncanonical anchor selection: '+id);
    }
   }
  }
