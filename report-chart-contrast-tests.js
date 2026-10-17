@@ -161,7 +161,8 @@ for(const input of cases){
  assert(chapterSchema.title.description.includes('조건부 기질 해석의 핵심'));
  assert(chapterSchema.keyJudgment.description.includes('자연스러운 한국어 한 문장'));
  assert(season.properties.label.description.includes('독립적인 계절·겉글자 조건'));
- assert(paired.properties.label.description.includes('두 의미를 함께 풀이한 결론'));
+ assert(paired.properties.label.description.includes('이 장의 필수 핵심 풀이')&&
+  paired.properties.label.description.includes('두 의미를 결합'));
  assert(seasonText.includes('기술 강의')&&
   seasonText.includes('가상 장면')&&
   seasonText.includes('null로 반환한다')&&
