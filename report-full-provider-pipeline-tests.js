@@ -31,10 +31,13 @@ function subsetRefs(source,chapter,id,topic,slot){
   if(natal)required.push(natal);
  }
  if(id==='saju_core'&&topic==='strength'){
-  for(const key of ['facts.structuralEvidence.dayMasterRoots','facts.stemConnections','facts.rootConditions'])
-   if(permitted.includes(key))required.push(key);
-  const root=source['facts.stemConnections']?.dayMasterRooting?.sameElementRoots?.find(r=>permitted.includes(r.hiddenId));
-  if(root)required.push(root.hiddenId);
+  // Synthetic successful provider output MUST include both actual sources
+  // for the new mandatory interpretation, not a single arbitrary source.
+  const main=source['facts.structuralEvidence.monthCommand']?.mainHiddenStem;
+  const monthPair=['natal.month.stem','natal.month.hidden.'+main];
+  if(!main||monthPair.some(key=>!permitted.includes(key)))
+   throw Error('Missing paired source in synthetic month interpretation');
+  required.push(...monthPair);
  }
  if(chapter.annualScope?.comparisons?.length){
   const pair=chapter.annualScope.comparisons.find(p=>permitted.includes(p.annualId)&&permitted.includes(p.natalId));
