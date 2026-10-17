@@ -21,7 +21,7 @@ jobs:
         with:
           name: premium-first-chapter-qa-encrypted
           repository: chunsang00-gif/first-app
-          run-id: 39000723800
+          run-id: 39008133693
           github-token: ${{ github.token }}
           path: ${{ runner.temp }}/archive
       - name: Decrypt offline to private ephemeral runner directory and print METRICS ONLY
@@ -57,7 +57,7 @@ jobs:
             makesFuturePrediction:/(?:반드시|확실히|예언|운명이)/.test(judgment)
           };
           console.log('ARCHIVED_PAID_SAMPLE_DIAGNOSTIC='+JSON.stringify({
-            runId:39000723800,
+            runId:39008133693,
             archivedProviderCalls:1,
             modelCallsThisWorkflow:0,
             keyJudgmentSentenceCount:sentences.length,
