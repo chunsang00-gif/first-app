@@ -1,0 +1,96 @@
+name: Offline Map of First-Chapter Evidence Ownership (NO API)
+on:
+  push:
+    branches: [fix-paid-qa-fact-bindings-20261014]
+    paths: [.github/workflows/qa-core-ownership-map.yml]
+permissions:
+  contents: read
+jobs:
+  map-ownership:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      OPENAI_API_KEY: ''
+      REPORT_MODEL_URL: ''
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-audit --no-fund
+      - name: Map actual five-chart source ownership in outgoing provider contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          node - <<'NODE'
+          const assert=require('node:assert/strict');
+          const facts=require('./report-facts-node');
+          const guidance=require('./report-analysis-guidance');
+          const writer=require('./report-generation-request');
+          const wire=require('./report-wire');
+          const contrasts=require('./report-chart-contrast');
+          const schema=require('./report-schema.json');
+          const defaults={gender:'male',mbti:'ISFP'};
+          const cases=[
+            {...defaults,calendar:'lunar',birthDate:'1982-11-24',leapMonth:false,birthTime:'14:20'},
+            {...defaults,calendar:'solar',birthDate:'1982-11-24',birthTime:'14:20'},
+            {...defaults,calendar:'solar',birthDate:'1990-05-15',birthTime:'14:20'},
+            {...defaults,calendar:'solar',birthDate:'1990-11-15',birthTime:'14:20'},
+            {...defaults,calendar:'solar',birthDate:'2001-11-03',unknownBirthTime:true}
+          ];
+          const reports=[];
+          for(const [index,input] of cases.entries()){
+            const packet=facts.build(input,2027);
+            assert.equal(packet.status,'ready');
+            const plans=guidance.preflight(packet);
+            const p={stage:'body',facts:packet,requestedSections:['saju_core'],
+              analysisGuidance:{...guidance.forRequest(['saju_core'],input.mbti),
+                editorialBlueprint:{saju_core:plans.saju_core}},
+              includeFinal:false,includeCover:false};
+            const outgoing=writer.compile(p),strict=writer.schema(p,wire.schemaFor(p,schema));
+            const topics=outgoing.task.chapters.saju_core.topics;
+            const inspect=(topic)=>{
+              const slot=strict.properties.chapters.properties.saju_core.properties.paragraphs.properties[topic];
+              const leaf=slot.anyOf?.find(x=>x.type==='object')||slot;
+              return leaf.properties.basis.properties.refs.items.enum;
+            };
+            const first=inspect('temperament'),second=inspect('strength');
+            const firstTask=topics.temperament.evidenceFocus;
+            const secondTask=topics.strength.evidenceFocus;
+            const month=secondTask.tenGodFocus;
+            const shared=first.filter(x=>second.includes(x));
+            assert(second.includes(month.monthStem.sourceId)&&
+              second.includes(month.monthMainHidden.sourceId),'second must cite BOTH real monthly ten gods');
+            assert(first.includes('facts.seasonalEvidence')&&first.includes('facts.qiEvidence'),
+              'first must keep season and qi sources');
+            assert.equal(month.monthStem.sourceId,'natal.month.stem');
+            assert(shared.includes('natal.month.stem'),
+              'baseline shares month visible source between chapter paragraphs');
+            const visible=packet.facts.qiEvidence.entries
+              .find(x=>x.id==='natal.month.stem'&&x.layer==='visible');
+            assert(visible,'month visible qi evidence missing');
+            const resourceInFirst=(firstTask.points||[]).some(pt=>pt.kind==='visible-support-vs-counter')&&
+              visible.relation==='resource';
+            const informationInSecond=['정인','편인'].includes(month.monthStem.tenGod);
+            const themeConflict=resourceInFirst&&informationInSecond;
+            const boundaryText=firstTask.readerReasoning.readerValuePlan.distinctFromMonthPair||'';
+            if(themeConflict)assert(boundaryText.includes('같은 학습 결론을 두 번 쓰지 않는다'),
+              'existing prompt-text duplication warning missing');
+            // This is a READ-ONLY audit: reused refs can be legitimate.
+            // Distinguish "same citation" from duplicate CUSTOMER-FACING inference.
+            const row={caseNumber:index+1,
+              firstSourceCount:first.length,secondSourceCount:second.length,
+              sharedCitations:shared,visibleStemRelation:visible.relation,
+              secondMonthlyStemGod:month.monthStem.tenGod,
+              firstResourceAndSecondLearningTheme:themeConflict,
+              onlyTextBoundaryExists:Boolean(boundaryText),
+              explicitStructuredClaimOwnership:Boolean(topics.temperament.claimOwnership&&
+                topics.strength.claimOwnership)};
+            reports.push(row);
+          }
+          assert.equal(reports.length,5);
+          assert(reports[0].firstResourceAndSecondLearningTheme,
+            'real lunar QA sample must reproduce the same interpretive overlap');
+          console.log('FIRST_CHAPTER_OWNERSHIP_MAP='+JSON.stringify(reports));
+          console.log('NO API CALLS. Source fact duplication is not automatically a repeated interpretation.');
+          NODE
