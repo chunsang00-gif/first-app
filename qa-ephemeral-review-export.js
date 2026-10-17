@@ -18,13 +18,13 @@ const {id,title,keyJudgment,bodyLabels,body,evidence:calculations}=batch.section
 if(!Array.isArray(body)||!body.length||!Array.isArray(calculations))
  throw Error('INCOMPLETE_REVIEW_CONTENT');
 const minimized={id,title,keyJudgment,bodyLabels,body,evidence:calculations};
-const plaintext=Buffer.from(JSON.stringify(minimized),'utf8');
+const plaintext=require('node:zlib').deflateRawSync(Buffer.from(JSON.stringify(minimized),'utf8'));
 const sessionKey=crypto.randomBytes(32),nonce=crypto.randomBytes(12);
 const cipher=crypto.createCipheriv('aes-256-gcm',sessionKey,nonce);
 const encrypted=Buffer.concat([cipher.update(plaintext),cipher.final()]);
 const wrapped=crypto.publicEncrypt({key:Buffer.from(publicKeyB64,'base64').toString('utf8'),
  padding:crypto.constants.RSA_PKCS1_OAEP_PADDING,oaepHash:'sha256'},sessionKey);
-const envelope={format:'saju-qa-ephemeral-review-v1',
+const envelope={format:'saju-qa-ephemeral-review-deflate-v1',
  wrappedKey:wrapped.toString('base64'),nonce:nonce.toString('base64'),
  tag:cipher.getAuthTag().toString('base64'),ciphertext:encrypted.toString('base64')};
 // Safe for job log: confidential report never appears as plaintext.
