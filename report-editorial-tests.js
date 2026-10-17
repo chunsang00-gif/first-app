@@ -5,6 +5,19 @@ const offlineReplay=require('./report-qa-replay').replay;
 const reader=require('./report-reader-policy');
 const grounding=require('./report-grounding-review');
 const generation=require('./report-generation-request');
+// Narrow editorial regression: a personal paid judgment must do more than
+// recite season/chart symbols, without rejecting a situated interpretation.
+const chartOnlyFixture={sections:[{id:'saju_core',title:'기본 성향',
+ keyJudgment:'이 사주는 겨울의 전환기에 태어났고 겉글자 관계가 확인됩니다.',
+ body:['가상의 선택에서 어떤 자료를 먼저 살펴볼지 설명합니다.']}]};
+assert(grounding.inspect(chartOnlyFixture).blockingErrors.includes(
+ 'saju_core:key-judgment-is-chart-description-only'));
+const situatedFixture={sections:[{id:'saju_core',title:'기본 성향',
+ keyJudgment:'태어난 달의 계절을 감안하더라도 중요한 선택은 직접 비교한 뒤 결정합니다.',
+ body:['가상의 선택에서 자료를 비교하는 상황을 설명합니다.']}]};
+assert(!grounding.inspect(situatedFixture).blockingErrors.includes(
+ 'saju_core:key-judgment-is-chart-description-only'));
+
 assert(generation.policy.includes('충의 세기까지 측정한 것은 아니다'));
 assert(generation.policy.includes('기본 기질')&&generation.policy.includes('내부 계산 근거'),
  'first paid chapter must explain a reader concern grounded by internal sources');
