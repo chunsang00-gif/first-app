@@ -69,7 +69,10 @@ for(const [label,birth] of Object.entries({lunar,solar})){
  assert(compiled.source['facts.rootConditions']);
  const valid=provider.schema(prompt,wire.schemaFor(prompt,schema));
  const topics=valid.properties.chapters.properties.saju_core.properties.paragraphs.properties;
- const month=topics.temperament.properties.basis.properties.refs.items.enum;
+ const seasonalSlot=topics.temperament.anyOf?.find(x=>x.type==='object')||topics.temperament;
+ assert.equal(plan.saju_core.anchorTopic,'strength');
+ assert.equal(topics.strength.type,'object');
+ const month=seasonalSlot.properties.basis.properties.refs.items.enum;
  const strength=topics.strength.anyOf?.find(x=>x.type==='object')?.properties?.basis?.properties?.refs?.items?.enum||
   topics.strength.properties.basis.properties.refs.items.enum;
  for(const required of ['facts.seasonalEvidence','facts.qiEvidence','natal.month.stem'])
