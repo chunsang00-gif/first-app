@@ -68,8 +68,75 @@ jobs:
           const lunarMonthReferences=allFields.flatMap(field=>
             [...field.matchAll(/음력\s*(\d{1,2})\s*월/g)]
              .map(m=>({month:Number(m[1]),birthContext:/출생|태어난|생월|생일/.test(field)})));
+          // Step 2: provenance audit of the SAME archived provider payload.
+          // All details stay on the private runner; logs contain counts only.
+          const calculated=require('./report-facts-node').build(journal.sample,2027);
+          if(calculated.status!=='ready')throw Error('ARCHIVED_SAMPLE_CALCULATION_UNAVAILABLE');
+          const source=record.request?.source||{};
+          const corePlan=record.request?.task?.chapters?.saju_core;
+          if(!corePlan?.topics)throw Error('ARCHIVED_WRITER_TASK_MISSING');
+          const mainStem=calculated.facts.structuralEvidence.monthCommand.mainHiddenStem;
+          const monthStemRef='natal.month.stem';
+          const mainHiddenRef='natal.month.hidden.'+mainStem;
+          const refsByTopic={};
+          const referenceProblems=[];
+          for(const [topic,row] of topics){
+            const plan=corePlan.topics[topic];
+            if(!plan){referenceProblems.push(topic+':unplanned-topic');continue;}
+            const refs=row.basis?.refs;
+            const allowed=new Set((plan.citableFacts||[]).map(x=>x.id));
+            const notInSource=Array.isArray(refs)?refs.filter(x=>!Object.hasOwn(source,x)):[];
+            const notAllowed=Array.isArray(refs)?refs.filter(x=>!allowed.has(x)):[];
+            if(!Array.isArray(refs)||!refs.length)referenceProblems.push(topic+':missing-citations');
+            if(notInSource.length)referenceProblems.push(topic+':unknown-citation');
+            if(notAllowed.length)referenceProblems.push(topic+':citation-outside-topic');
+            refsByTopic[topic]={referenceCount:Array.isArray(refs)?refs.length:0,
+              inSource:notInSource.length===0,withinTopic:notAllowed.length===0,
+              hasInterpretation:Boolean(String(row.basis?.interpretation||'').trim()),
+              hasCondition:Boolean(String(row.basis?.condition||'').trim()),
+              hasLimit:Boolean(String(row.basis?.limit||'').trim())};
+          }
+          const month=calculated.facts.tenGods.month;
+          const hidden=(month.hiddenStems||[]).find(x=>x.stem===mainStem);
+          const pair=corePlan.topics.strength?.citableFacts||[];
+          const pairStem=pair.find(x=>x.id===monthStemRef);
+          const pairHidden=pair.find(x=>x.id===mainHiddenRef);
+          const first=corePlan.topics.temperament?.citableFacts||[];
+          const strengthRefs=core.paragraphs?.strength?.basis?.refs||[];
+          const temperamentRefs=core.paragraphs?.temperament?.basis?.refs||[];
+          const evidenceRows=topics.map(([topic,row])=>{
+            const b=row.basis||{};
+            return topic+': '+(Array.isArray(b.refs)?b.refs.map(ref=>{
+              const x=source[ref]||{};
+              return ref+' '+[x.position,x.stem,x.tenGod].filter(Boolean).join(' ');
+            }).join('; '):'')+' / 해석: '+String(b.interpretation||'')+
+              ' / 조건: '+String(b.condition||'')+' / 한계: '+String(b.limit||'');
+          });
+          const factAudit=require('./report-quality-node').verifyEvidenceAgainstFacts(
+            {sections:[{...section,evidence:evidenceRows}]},calculated);
+          const semantic=require('./report-semantic-review').review({sections:[section]});
+          const editorial=require('./report-editorial').wordingErrors(
+            [section.title,section.keyJudgment,...section.bodyLabels,...section.body]);
+          const sourceLedger={
+            verifiedMonthMainStem:!!hidden,
+            monthStemClassificationMatchesCalculation:!!pairStem&&pairStem.tenGod===month.stemTenGod,
+            mainHiddenClassificationMatchesCalculation:!!pairHidden&&pairHidden.tenGod===hidden?.tenGod,
+            strengthReferencesBothMonthLocations:Array.isArray(strengthRefs)&&
+              strengthRefs.includes(monthStemRef)&&strengthRefs.includes(mainHiddenRef),
+            temperamentReferencesRealSeason:Array.isArray(temperamentRefs)&&
+              temperamentRefs.includes('facts.seasonalEvidence'),
+            temperamentCitableMonth:Boolean(first.find(x=>x.id===monthStemRef)),
+            referenceProblems,topicEvidence:refsByTopic,
+            calculatedFactAuditErrors:factAudit.errors.length,
+            calculatedFactAuditWarnings:factAudit.warnings.length,
+            semanticReviewCodes:semantic.findings.map(x=>x.code),
+            wordingProblemCount:editorial.length,
+            noAutomaticReaderQualityApproval:true
+          };
+ 
           const result={
             source:'already-paid-2026-10-17-first-chapter',
+            step2ProvenanceAudit:sourceLedger,
             encryptedArtifactRunId:38994773780,
             providerCallsInArchive:journal.calls.length,
             noNewApiCalls:true,
