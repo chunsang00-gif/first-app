@@ -645,7 +645,7 @@ for(const a of ['I','E'])for(const b of ['S','N'])for(const c of ['T','F'])for(c
   assert.deepEqual(Object.keys(p.analysisGuidance.chapterTasks),Array.from(p.requestedSections));
   assert.equal(p.analysisGuidance.mbtiReference.type,'ISFP');
   assert.equal(p.analysisGuidance.mbtiReference.preferences.map(x=>x.code).join(''),'ISFP');
-  return {sections:p.requestedSections.map(id=>({id,title:'제목',keyJudgment:'핵심',evidence:['계산한 사주 항목의 설명입니다.'],bodyTopics:Object.keys(outline.topics[id]),bodyLabels:Object.keys(outline.topics[id]).map((_,i)=>'검증 항목 '+i),body:Object.keys(outline.topics[id]).map((_,i)=>'첫 번째 결론 '+i+'. 이어지는 설명입니다.')}))};
+  return {sections:p.requestedSections.map(id=>({id,title:'제목',keyJudgment:'핵심',evidence:['계산한 사주 항목의 설명입니다.'],bodyTopics:Object.keys(outline.topics[id]),bodyLabels:Object.keys(outline.topics[id]).map((_,i)=>'검증 항목 '+i),body:Object.keys(outline.topics[id]).map((topic,i)=>'첫 번째 결론 '+i+'. 이어지는 설명입니다.'+(id==='saju_core'&&topic==='strength'?' '+require('./report-core-thesis').forPrompt(p).keyJudgment:''))}))};
  });
  // The mock intentionally contains placeholder evidence and no cover.
  // Never mistake completed provider calls for a publishable report.
@@ -670,7 +670,7 @@ for(const a of ['I','E'])for(const b of ['S','N'])for(const c of ['T','F'])for(c
     id,title:'제목',keyJudgment:'직접 실행으로 연결합니다.',
     evidence:['계산한 사주 항목의 설명입니다.'],bodyTopics:Object.keys(outline.topics[id]),
     bodyLabels:Object.keys(outline.topics[id]).map((_,i)=>'검증 항목 '+i),
-    body:Object.keys(outline.topics[id]).map(()=>'문장입니다.')
+    body:Object.keys(outline.topics[id]).map(topic=>'문장입니다.'+(id==='saju_core'&&topic==='strength'?' '+require('./report-core-thesis').forPrompt(p).keyJudgment:''))
    }))};
   }),
   /reader-facing editorial defects/
@@ -685,7 +685,7 @@ for(const a of ['I','E'])for(const b of ['S','N'])for(const c of ['T','F'])for(c
    id,title:'서로 다른 제목 '+id,keyJudgment:'논리적인 근거를 확인하고 설명을 납득해야 결정합니다.',
    evidence:['원국의 일간 계산 근거 '+id],bodyTopics:Object.keys(outline.topics[id]),
    bodyLabels:Object.keys(outline.topics[id]).map((_,i)=>'검증 항목 '+i),
-   body:Object.keys(outline.topics[id]).map((_,i)=>'서로 다른 주제 '+id+i+'에서 논리와 근거를 확인하고 설명에 납득해야 합니다.')
+   body:Object.keys(outline.topics[id]).map((topic,i)=>'서로 다른 주제 '+id+i+'에서 논리와 근거를 확인하고 설명에 납득해야 합니다.'+(id==='saju_core'&&topic==='strength'?' '+require('./report-core-thesis').forPrompt(p).keyJudgment:''))
   }))};
  }),/cross-chapter recycled thesis/);
  assert.equal(preflightCalls,3);
