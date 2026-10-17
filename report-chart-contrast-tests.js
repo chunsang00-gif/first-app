@@ -179,6 +179,25 @@ for(const input of cases){
   'do not send four unassigned comparisons in a wide chapter blob');
  const temperament=core.topics.temperament.evidenceFocus;
  const strength=core.topics.strength.evidenceFocus;
+ // The full chart may expose many hidden stems, but the first paid
+ // paragraph owns seasonal + visible positions, while the second owns
+ // ONLY the month stem and verified principal hidden stem.
+ const firstAllowed=core.topics.temperament.citableFacts.map(x=>x.id);
+ const secondAllowed=core.topics.strength.citableFacts.map(x=>x.id);
+ const mainMonthId='natal.month.hidden.'+mc.mainHiddenStem;
+ assert(firstAllowed.includes('facts.seasonalEvidence')&&
+  firstAllowed.includes('facts.qiEvidence')&&
+  firstAllowed.includes('natal.month.stem'));
+ assert(!firstAllowed.some(x=>x.startsWith('natal.month.hidden.')),
+  'first paragraph must not cite a hidden-stem interpretation owned by second');
+ assert(secondAllowed.includes('natal.month.stem')&&
+  secondAllowed.includes(mainMonthId));
+ assert.deepEqual(secondAllowed.filter(x=>x.startsWith('natal.month.hidden.')),
+  [mainMonthId], 'second paragraph must not borrow secondary hidden-stem meanings');
+ assert(!firstAllowed.some(x=>x.startsWith('facts.rootConditions')||
+  x.startsWith('facts.stemConnections')));
+ assert(!secondAllowed.some(x=>x.startsWith('facts.rootConditions')||
+  x.startsWith('facts.stemConnections')));
  assert.deepEqual(temperament.points.map(x=>x.kind),
   ['month-vs-day','visible-support-vs-counter']);
  assert.deepEqual(strength.points.map(x=>x.kind),

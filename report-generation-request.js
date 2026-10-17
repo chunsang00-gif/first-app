@@ -240,7 +240,16 @@ function allowedRefs(payload,task,chapterId,topic){
    if(Object.hasOwn(payload.source,'facts.qiEvidence'))ids.add('facts.qiEvidence');
    // Month/visible-stem comparison must NOT borrow roots or clashes
    // assigned to the other verified core paragraph.
-   for(const id of Object.keys(payload.source))if(id.startsWith('natal.month.'))ids.add(id);
+   // First core paragraph is about seasonal/visible qi. Hidden month
+   // ten-god classifications are owned by the second core paragraph.
+   // Keep the visible month position (required provenance), never silently
+   // erase the actual seasonal and qi calculations.
+   if(chapterId==='saju_core'&&topic==='temperament'){
+    if(Object.hasOwn(payload.source,'natal.month.stem'))ids.add('natal.month.stem');
+   }else{
+    for(const id of Object.keys(payload.source))
+     if(id.startsWith('natal.month.'))ids.add(id);
+   }
   }
   if(path==='facts.tenGods.month'&&chapterId==='saju_core'&&topic==='strength'){
    // Real paid QA (2026-10-16): providing OPTIONAL rooting rows let the
@@ -261,8 +270,23 @@ function allowedRefs(payload,task,chapterId,topic){
   }
   // Ten-god facts are exported as position-bound rows, not as facts.tenGods.*.
   const match=/^facts\.tenGods\.(year|month|day|hour)(?:\.(hiddenStems))?$/.exec(path);
-  if(match)for(const id of Object.keys(payload.source)){
-   if(match[2]?id.startsWith('natal.'+match[1]+'.hidden.'):id.startsWith('natal.'+match[1]+'.'))ids.add(id);
+  if(match){
+   if(chapterId==='saju_core'&&topic==='strength'&&
+      match[1]==='month'&&!match[2]){
+    // The first chapter's second paragraph compares exactly two VERIFIED
+    // month ten-god positions. Other secondary/residual hidden stems are
+    // genuine chart facts, but not evidence for this specific comparison.
+    const visible='natal.month.stem';
+    const main=payload.source['facts.structuralEvidence.monthCommand']?.mainHiddenStem;
+    const mainId=main?'natal.month.hidden.'+main:null;
+    if(Object.hasOwn(payload.source,visible))ids.add(visible);
+    if(mainId&&Object.hasOwn(payload.source,mainId))ids.add(mainId);
+   }else{
+    for(const id of Object.keys(payload.source)){
+     if(match[2]?id.startsWith('natal.'+match[1]+'.hidden.'):
+       id.startsWith('natal.'+match[1]+'.'))ids.add(id);
+    }
+   }
   }
   // The complete ten-god structure is represented by all position-bound rows.
   if(path==='facts.annualTenGods.hiddenStems'&&Object.hasOwn(payload.source,'facts.annualTenGods')&&Array.isArray(payload.source['facts.annualTenGods']?.hiddenStems)&&payload.source['facts.annualTenGods'].hiddenStems.length)ids.add('facts.annualTenGods');
