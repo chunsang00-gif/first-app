@@ -18,6 +18,7 @@ function collect(x,out=[]){
  if(typeof x==='string'){if(x.trim().length>=25)out.push(x.trim());return out}
  if(!x||typeof x!=='object'||seen.has(x))return out;
  seen.add(x);
+ if(Array.isArray(x)){for(const entry of x)collect(entry,out);return out;}
  for(const [k,v] of Object.entries(x)){
   // Only reader-facing, body-like fields; skip source/metadata/trace contents.
   if(/^(body|content|text|paragraphs|description|summary|interpretation|items|subsections|sections)$/i.test(k))collect(v,out);
