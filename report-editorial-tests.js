@@ -120,6 +120,25 @@ assert(!grounding.inspect(groundedMonthQuestion).blockingErrors.includes(
 const correctBoundary={sections:[{id:'saju_core',title:'해석의 조건',body:[
  '같은 기운의 뿌리 두 곳은 계산된 위치입니다. 이것이 마음의 두 부분을 뜻한다는 근거는 없습니다. 계절이 바뀌는 달이지만 외부 영향에 잘 적응하는 능력까지는 판단할 수 없습니다.'
 ]}]};
+// Third paid QA incorrectly called early January a winter-to-New-Year
+// seasonal boundary. Reject only the false conversion, not a factual
+// observation that the month is traditionally classified transitional.
+const winterPacket=require('./report-facts-node').build({
+ calendar:'lunar',leapMonth:false,birthDate:'1982-11-24',birthTime:'14:20',
+ gender:'male',mbti:'ISFP'
+},2027);
+assert.equal(winterPacket.facts.seasonalEvidence.monthSeason,'winter');
+assert.equal(winterPacket.facts.seasonalEvidence.monthPhase,'transition');
+const mislabeledWinter={sections:[{id:'saju_core',title:'새로운 일을 이해하는 태도',
+ keyJudgment:'사주에서는 새로운 일을 이해하고 자원을 활용하려는 기질로 풀이합니다.',
+ body:['겨울이 끝나고 새해로 넘어가는 전환기에 태어난 사주입니다.']}]};
+assert(grounding.inspect(mislabeledWinter,winterPacket).blockingErrors.includes(
+ 'saju_core:winter-transition-misrepresented-as-new-year'));
+const accurateWinter={sections:[{id:'saju_core',title:'새로운 일을 이해하는 태도',
+ keyJudgment:'사주에서는 새로운 일을 이해하고 자원을 활용하려는 기질로 풀이합니다.',
+ body:['태어난 달은 사주에서 겨울에 속하며 계절의 기운이 한 가지로 확정되지 않는 달입니다.']}]};
+assert(!grounding.inspect(accurateWinter,winterPacket).blockingErrors.includes(
+ 'saju_core:winter-transition-misrepresented-as-new-year'));
 const correctBoundaryCodes=grounding.inspect(correctBoundary).blockingErrors;
 assert(!correctBoundaryCodes.includes('saju_core:root-count-to-psychology-overreach'));
 assert(!correctBoundaryCodes.includes('saju_core:season-transition-to-personality-overreach'));

@@ -128,6 +128,14 @@ function inspect(report,packet=null){
   }));
   if(packet?.status==='ready'&&falseDayHourClaim)
    blockingErrors.push('saju_core:invented-day-hour-clash-from-separate-month-pairs');
+  // A transitional Earth-storage month (e.g. 丑 / late winter) does NOT
+  // certify a Gregorian/Lunar New Year transition, the end of winter on
+  // that birth date, or the beginning of spring. This precise failure was
+  // present in the ACTUAL 2026-10-17 third paid QA output.
+  const seasonal=packet?.facts?.seasonalEvidence;
+  if(seasonal?.monthSeason==='winter'&&seasonal.monthPhase==='transition'&&
+    fields.some(s=>/(?:겨울.{0,18}끝나.{0,35}(?:새해|전환|넘어)|새해.{0,20}넘어가.{0,30}전환기)/.test(String(s))))
+   blockingErrors.push('saju_core:winter-transition-misrepresented-as-new-year');
   // The transition month is a calendar classification, not a measured
   // personality, life-event change or adaptability trait.
   if(fields.some(s=>/계절의\s*성격.{0,65}변화의\s*흐름/.test(s)||

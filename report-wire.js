@@ -41,7 +41,7 @@ function coreReaderRoles(prompt){
     (seasonal?.hypotheticalQuestion?'이 입력에서 확인된 관계에 맞춘 가상의 장면: '+seasonal.hypotheticalQuestion+' ':'')+
     (firstParagraphBoundary?'이 입력의 서로 다른 문단 역할: '+firstParagraphBoundary+' ':'')+
     claimBrief(firstClaim)+
-    '예시는 실제 생활 이력이나 관찰된 성격이 아니다. 계절 변화만으로 적응력이나 학습 능력을 판정하지 않으며 뜻을 설명했습니다 같은 작성 과정 문장으로 끝내지 않는다.'
+    '예시는 실제 생활 이력이나 관찰된 성격이 아니다. 계절 분류의 전환월을 양력·음력 새해 또는 실제 계절이 끝나는 날짜로 바꾸지 않는다. 계절 변화만으로 적응력이나 학습 능력을 판정하지 않으며 뜻을 설명했습니다 같은 작성 과정 문장으로 끝내지 않는다.'
   },
   strength:{
    label:'태어난 달의 겉글자와 중심 숨은 글자에서 실제 확인된 두 의미를 함께 풀이한 결론을 소제목으로 짧게 나타낸다. 첫 문단의 계절·외부 지원 조건을 반복하지 않는다. 뿌리·충·강약처럼 이 문단에 없는 계산 주제를 제목에 붙이지 않는다.',
