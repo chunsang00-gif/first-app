@@ -5,6 +5,7 @@
 const fs=require('node:fs');
 const reader=require('./report-reader-policy');
 const factAudit=require('./report-first-chapter-fact-consistency').audit;
+const grounding=require('./report-grounding-review');
 const file=process.argv[2];
 if(!file){console.error('Usage: node review-existing-first-chapter.js <private-qa-first-chapter-validated-first-chapter.json>');process.exit(2)}
 let evidence;
@@ -25,6 +26,7 @@ if(strings.some(s=>/뿌리\s*충/.test(s)))detected.push('뿌리 충');
 const jargon=Object.fromEntries([...new Set(detected)].sort().map(term=>[term,strings.filter(field=>reader.errors([field]).some(x=>x.endsWith(term))||(term==='뿌리 충'&&/뿌리\s*충/.test(field))).length]));
 const overhedge=normalized.filter(s=>(s.match(/수 있습니다|일 수 있습니다|일지도 모릅니다/g)||[]).length>=3).length;
 const factual=factAudit(evidence);
+const editorial=grounding.inspect({sections:[section]});
 const result={scope:'saju_core',offline:true,additionalApiCalls:0,releaseApproved:false,
  detectedReaderTextFields:strings.length,readerTextCharacters:strings.join('').length,
  exactDuplicateParagraphs:duplicates.length,jargonMentions:jargon,highHedgeParagraphs:overhedge,
@@ -33,7 +35,8 @@ const result={scope:'saju_core',offline:true,additionalApiCalls:0,releaseApprove
  ambiguousMonthReferences:factual.ambiguousMonthReferences,
  needsManualDepthReview:factual.readerValueReviewFlags.manualDepthAssessmentRequired,
  calculationOnlyHeadline:factual.readerValueReviewFlags.calculationOnlyHeadline,
+ readerValueBlockingCodes:editorial.blockingErrors,
  limitations:'Structure and heuristic checks only. Human prose and factual audit still required.'};
 console.log(JSON.stringify(result,null,2));
 if(!strings.length)process.exitCode=3;
-else if(duplicates.length||Object.keys(jargon).length||overhedge||!factual.calendarFactPass)process.exitCode=1;
+else if(duplicates.length||Object.keys(jargon).length||overhedge||!factual.calendarFactPass||editorial.blockingErrors.length)process.exitCode=1;
