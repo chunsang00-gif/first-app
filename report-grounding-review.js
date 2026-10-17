@@ -77,7 +77,7 @@ function inspect(report,packet=null){
     const monthGod=contrast?.monthTenGodContext?.monthStem?.tenGod;
     if(resourceVisible&&['편인','정인'].includes(monthGod)){
      const firstText=String(section.body[firstIndex]||'');
-     const ownLearning=/(?:정보|자료|낯선\\s*내용|새로운\\s*내용).{0,42}(?:자기|자신|스스로).{0,25}(?:방식|해석|이해|정리|받아들이)|(?:자기|자신|스스로).{0,24}(?:방식|관점).{0,24}(?:정보|자료|낯선\\s*내용|새로운\\s*내용)/;
+     const ownLearning=/(?:정보|자료|낯선\s*내용|새로운\s*내용).{0,42}(?:자기|자신|스스로).{0,25}(?:방식|해석|이해|정리|받아들이)|(?:자기|자신|스스로).{0,24}(?:방식|관점).{0,24}(?:정보|자료|낯선\s*내용|새로운\s*내용)/;
      if(ownLearning.test(firstText))
       blockingErrors.push('saju_core:season-paragraph-repeats-month-learning');
     }
@@ -118,6 +118,20 @@ function inspect(report,packet=null){
     blockingErrors.push('saju_core:symbol-definitions-without-applied-interpretation');
     break;
    }
+  }
+  // A model can cite both month categories while only giving their
+  // dictionary meanings. This is NOT an applied, condition-specific
+  // interpretation. Reject only an unmistakably definition-only main
+  // paragraph; two genuine explanations plus an applied scenario stay valid.
+  if(strengthIndex>=0&&Array.isArray(section.body)){
+   const mainSentences=sentencePieces(section.body[strengthIndex]).filter(x=>x.length>=12);
+   const monthPosition=/(?:월간|월지|본기|겉글자|숨은\s*글자|태어난\s*달)/;
+   const dictionaryMeaning=/(?:뜻|의미|상징|분류|가리키|나타내|풀이|해석)/;
+   const bareDefinitions=mainSentences.filter(x=>
+    monthPosition.test(x)&&dictionaryMeaning.test(x)).length;
+   if(mainSentences.length>=2&&bareDefinitions>=2&&
+      bareDefinitions/mainSentences.length>=0.5&&!application(mainSentences))
+    blockingErrors.push('saju_core:month-pair-dictionary-only-without-application');
   }
   const sentences=[section.keyJudgment,...(section.body||[])].join(' ').split(/(?<=[.!?。])\s*|\n+/)
    .map(x=>x.trim()).filter(x=>x.length>=15);

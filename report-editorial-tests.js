@@ -172,6 +172,14 @@ repeatedLearning.sections[0].body.unshift(
 assert(grounding.inspect(repeatedLearning,realCorePacket).blockingErrors.includes(
  'saju_core:season-paragraph-repeats-month-learning'),
  'verified overlapping learning theme must not appear in optional paragraph');
+// Whitespace in "낯선 내용" must not evade the optional paragraph's
+// no-repeat guard: this previously used literal double-escaped regex chars.
+const spacedLearning=structuredClone(repeatedLearning);
+spacedLearning.sections[0].body[0]=
+ '낯선 내용을 자기 방식으로 해석하는 흐름을 겉글자의 의미로 소개합니다.';
+assert(grounding.inspect(spacedLearning,realCorePacket).blockingErrors.includes(
+ 'saju_core:season-paragraph-repeats-month-learning'),
+ 'natural spacing in learning theme must still be detected');
 const externalHelp=structuredClone(repeatedLearning);
 externalHelp.sections[0].body[0]=
  '겉글자의 전통적 도움 관계에서는 외부에서 참고 자료나 조언을 얻을 조건을 따져 봅니다. 이는 누군가에게 도움을 받은 과거의 증거가 아닙니다.';
@@ -192,6 +200,24 @@ const nonOverlapPacket=require('./report-facts-node').build({
 assert(!grounding.inspect(repeatedLearning,nonOverlapPacket).blockingErrors.includes(
  'saju_core:season-paragraph-repeats-month-learning'),
  'do not impose lunar chart ownership rules on other types');
+// Two correct citations and two dictionary definitions do not yet
+// explain how the calculated readings apply to a conditional situation.
+const onlyGlossary=structuredClone(genuinePairedMeaning);
+onlyGlossary.sections[0].body=[
+ '월간은 낯선 정보를 자기 방식으로 이해한다는 뜻입니다. 월지 중심의 숨은 글자는 필요한 자원을 찾아 활용한다는 의미입니다. 실제 고객의 행동을 관찰한 것은 아닙니다.'
+];
+assert(grounding.inspect(onlyGlossary,realCorePacket).blockingErrors.includes(
+ 'saju_core:month-pair-dictionary-only-without-application'),
+ 'two source definitions plus disclaimer cannot masquerade as paid analysis');
+const appliedAfterDefinitions=structuredClone(onlyGlossary);
+appliedAfterDefinitions.sections[0].body[0]+=
+ ' 새로운 업무를 준비할 때 정보 조사에 시간을 집중하고 필요한 재료와 돈을 확보하지 못한 경우에는 실행에 필요한 조건이 빠질 수 있다는 뜻입니다.';
+assert(!grounding.inspect(appliedAfterDefinitions,realCorePacket).blockingErrors.includes(
+ 'saju_core:month-pair-dictionary-only-without-application'),
+ 'a conditional scenario that joins both meanings must remain permitted');
+assert(!grounding.inspect(genuinePairedMeaning,realCorePacket).blockingErrors.includes(
+ 'saju_core:month-pair-dictionary-only-without-application'),
+ 'actual reader-level interpretation must remain permitted');
 const onlyLearning=structuredClone(genuinePairedMeaning);
 onlyLearning.sections[0].body=['낯선 정보를 자기 방식으로 이해하고 정리하는 태도에 관한 해석입니다. 새로운 업무를 배울 때 정보를 살펴볼 수 있습니다.'];
 assert(grounding.inspect(onlyLearning,realCorePacket).blockingErrors.includes(
