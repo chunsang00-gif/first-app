@@ -1,0 +1,40 @@
+name: Private offline first-chapter human review handoff
+on:
+  push:
+    branches:
+      - fix-paid-qa-fact-bindings-20261014
+    paths:
+      - .github/workflows/qa-private-first-chapter-handoff.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  existing-first-chapter:
+    if: github.ref_name == 'fix-paid-qa-fact-bindings-20261014'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Fetch only the already generated first-chapter archive
+        uses: actions/download-artifact@v4
+        with:
+          name: premium-first-chapter-qa-encrypted
+          repository: chunsang00-gif/first-app
+          run-id: 38912939787
+          github-token: ${{ github.token }}
+      - name: Verify and encrypt minimal review contents
+        shell: bash
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          QA_EPHEMERAL_REVIEW_PUBLIC_KEY: LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlJQm9qQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FZOEFNSUlCaWdLQ0FZRUFqbERlbVo1WktHbGwrUnYrY0FSQwp2NjdWK04xc2xQQjNleUVGQ2FkanExeUVIS3owWlYyZnJXWWZQd0haMEpKWE5qUnNuVUNvN1J3c1dmMmhPbTFZCktzSzV2Rk9VSUxYOWtoTXJMbk1HRWtrd0grRmpxTmR3NUNUMnFVYUQrVVRoYW01WVN0eXFrdStaRjd6V04zQ1IKSUs5MDhzK1lLV2RiUHY3cE1hL2JReHZLdDgrVHRaNmx4SHZHM2FEUHcvL3VJZEd6RG5KNHR1OXhCMGkvVXY4TQpMQ0NtUnpWWlBsMkw2UGxNcjRrTUlnK0FtZ3R5WnNuZGRLUE1wNVdoYnZuZmd6VlkrTjBpWnovakNBNjQwV04xCkJkbFlxU1pKMFpKbXM5VDBBOTc4OEVFd3ZrRzVUQ1g3ZDR1R0MzN2dFbkRaVEUxbEJocGdoSkMwQWptaThMbHkKM3pQVHpRZjRVRG1DYXJNOW15Z1FpQjRBVzhGaXVQaGFlS2RPSVp0NDRFbjlqODJLK1hsT0NEQXhsNnlrMXBCeQp4c0JLZk5OcFhReVh4bGVzWThFdmxONis4dUdHUzRmMzVnUXAxK21IQ0d2VXlUcHk2VmNkRmFXaFgwWHp2UGpCCjV6dTRqSVhoZjJHOTk5R3o3OTc5TzhiWS9BT2lFZU5EeEoyeVdPMnc1SUp2QWdNQkFBRT0KLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0tCg==
+        run: |
+          set -euo pipefail
+          umask 077
+          d="$(mktemp -d)"
+          trap 'rm -rf "$d"' EXIT
+          node report-qa-secure-archive.js decrypt "$GITHUB_WORKSPACE/premium-first-chapter-qa.enc" "$d"
+          node qa-ephemeral-review-export.js "$d/private-qa-first-chapter-validated-first-chapter.json"
