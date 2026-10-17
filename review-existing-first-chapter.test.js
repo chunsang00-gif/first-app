@@ -32,6 +32,7 @@ try{
  fixture.batches[0].sections[0].body[1]=fixture.batches[0].sections[0].body[0];
  const duplicate=JSON.parse(check(fixture).stdout);
  assert.equal(duplicate.exactDuplicateParagraphs,1);
+ assert.equal(check(fixture).status,1);
  fixture.batches[0].sections[0].id='wrong_chapter';
  const bad=check(fixture);
  assert.notEqual(bad.status,0);
