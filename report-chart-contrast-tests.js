@@ -131,6 +131,23 @@ for(const input of cases){
  const outputSchema=wire.schemaFor(p,require('./report-schema.json'));
  const chapterSchema=outputSchema.properties.chapters.properties.saju_core.properties;
  const paragraphs=chapterSchema.paragraphs.properties;
+ const fixedThesis=require('./report-core-thesis').forPrompt(p);
+ assert.equal(typeof fixedThesis.title,'string');
+ assert.equal(typeof fixedThesis.keyJudgment,'string');
+ assert.equal(fixedThesis.status,'traditional-reading-not-observed-trait');
+ assert.deepEqual(chapterSchema.title.enum,[fixedThesis.title]);
+ assert.deepEqual(chapterSchema.keyJudgment.enum,[fixedThesis.keyJudgment]);
+ assert.deepEqual(fixedThesis.sourceIds,['natal.month.stem',
+  'natal.month.hidden.'+mc.mainHiddenStem]);
+ assert(fixedThesis.title!== '기본 기질의 전통적 풀이와 해석의 조건');
+ assert(!/(?:겉글자|십성|원국|뿌리|월지|편인|정재|편재)/.test(
+  fixedThesis.title+' '+fixedThesis.keyJudgment));
+ assert.doesNotThrow(()=>require('./report-core-thesis').assertDecoded({
+  title:fixedThesis.title,keyJudgment:fixedThesis.keyJudgment},p));
+ assert.throws(()=>require('./report-core-thesis').assertDecoded({
+  title:fixedThesis.title,keyJudgment:fixedThesis.keyJudgment+' 분석이 필요합니다.'},p),
+  /violated grounded first-chapter/);
+
  const seasonText=paragraphs.temperament.properties.text.description;
  const paired=paragraphs.strength.anyOf?.find(x=>x.type==='object')||
   paragraphs.strength;

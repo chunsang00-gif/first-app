@@ -69,7 +69,10 @@ function bodyResponse(p,strict){
      label,text:nouns[id]+'에서는 한 가지 계산상의 차이를 확인합니다. 이 분류를 활용하는 예를 들면 새로운 선택 앞에서 어떤 자료를 먼저 살필지 고민하는 장면입니다. 다만 이 설명은 입력된 자료의 전통적인 뜻을 시험하기 위한 문장으로 특정 사람의 경험을 확인한 것은 아닙니다.'};
    }
   }
-  chapters[id]={title:nouns[id]+' 검토',keyJudgment:nouns[id]+'에 관한 계산 자료와 해석 범위를 구분합니다.',
+  const chapterSchema=strict.properties.chapters.properties[id].properties;
+  chapters[id]={title:chapterSchema.title.enum?.[0]||nouns[id]+' 검토',
+   keyJudgment:chapterSchema.keyJudgment.enum?.[0]||
+    nouns[id]+'에 관한 계산 자료와 해석 범위를 구분합니다.',
    mood:'reflective',paragraphs};
  }
  return {chapters,finalJudgment:null,cover:null};

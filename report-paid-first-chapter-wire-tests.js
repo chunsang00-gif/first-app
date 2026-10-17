@@ -69,6 +69,11 @@ let fetches=0,rawRequest=null,upstreamPrompt=null;
   const secondSlot=slots.strength.anyOf?.find(x=>x.type==='object')||slots.strength;
   const secondText=secondSlot.properties.text.description;
   const heading=coreSchema.title.description,summary=coreSchema.keyJudgment.description;
+  const fixed=require('./report-core-thesis').forPrompt(upstreamPrompt);
+  assert.deepEqual(coreSchema.title.enum,[fixed.title]);
+  assert.deepEqual(coreSchema.keyJudgment.enum,[fixed.keyJudgment]);
+  assert(fixed.keyJudgment.length<120);
+  assert(!/전통적 풀이와 해석의 조건/.test(fixed.title));
   assert(summary.includes('자연스러운 한국어 한 문장'),
    'paid response must ask for exactly one main interpretation sentence');
   assert(heading.includes('조건부 기질 해석의 핵심'));

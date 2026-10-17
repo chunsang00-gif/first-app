@@ -68,6 +68,13 @@ function schemaFor(prompt,reportSchema){
   const title=visible(section.title),judgment=visible(section.keyJudgment);
   const roles=id==='saju_core'?coreReaderRoles(prompt):null;
   if(roles){
+   const fixed=require('./report-core-thesis').forPrompt(prompt);
+   if(!fixed)throw Error('Missing verifiable core thesis for provider schema');
+   // A one-value enum is supported by strict JSON Schema. Unlike prose
+   // directives, it structurally prevents a second/third sentence and
+   // glossary headlines BEFORE a billable model response is accepted.
+   title.enum=[fixed.title];
+   judgment.enum=[fixed.keyJudgment];
    title.description+=' 첫 장 제목은 두 문단의 근거에 따라 제시한 한 가지 조건부 기질 해석의 핵심을 가리킨다. 출생 구조·기질의 조건·계산 근거라는 교재 제목이나, 본문에서 검증하지 않은 인물 평가를 피한다.';
    judgment.description+=' 첫 장 핵심 판단은 제목의 조건부 기질 해석을 자연스러운 한국어 한 문장으로 제시한다. 먼저 검증된 두 출생 위치가 뒷받침하는 전통적 기질 해석을 조건부로 말하고, 생활 조언이나 자료 분석 계획만으로 대체하지 않는다. 계산 과정·근거 목록·검토하겠다는 작성 계획이 아니다. 본문 두 문단의 조건부 전통 해석을 넘어 실제 성격·과거 행동을 확인했다고 단정하지 않는다.';
   }
@@ -81,6 +88,7 @@ function decode(value,prompt){
  if(!value?.chapters||typeof value.chapters!=='object')throw Error('AI report service returned invalid report structure');
  const sections=prompt.requestedSections.map(id=>{
   const s=value.chapters[id];if(!s?.paragraphs)throw Error('AI report service returned invalid report structure');
+  if(id==='saju_core')require('./report-core-thesis').assertDecoded(s,prompt);
   const plan=prompt.analysisGuidance?.editorialBlueprint?.[id];
   const anchor=plan?.anchorTopic;
   if(anchor&&(!s.paragraphs[anchor]||typeof s.paragraphs[anchor].text!=='string'||!s.paragraphs[anchor].text.trim()||typeof s.paragraphs[anchor].label!=='string'||!s.paragraphs[anchor].label.trim()))throw Error('AI report service missing planned evidence anchor: '+id+':'+anchor);
