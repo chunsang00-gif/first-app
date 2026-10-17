@@ -341,9 +341,11 @@ async function generate(input,callModel,onProgress=()=>{},onValidatedBatch=()=>{
   // A correct internal source ID cannot excuse a wrong stated birth month.
   // Stop at the FIRST validated chapter, before a second paid request.
   const core=result.sections.find(section=>section.id==='saju_core');
-  if(core){
+  // Offline mocked packets may omit origin fields; real calculated packets
+  // always carry the original input under calculationInput.
+  if(core && packet.calculationInput){
    const calendarAudit=require('./report-first-chapter-fact-consistency').audit({
-    sample:input,batches:[{ids:['saju_core'],completedSections:1,sections:[core]}]
+    sample:packet.calculationInput,batches:[{ids:['saju_core'],completedSections:1,sections:[core]}]
    });
    if(!calendarAudit.calendarFactPass){
     console.error('[Paid report birth-calendar contradiction]',{
