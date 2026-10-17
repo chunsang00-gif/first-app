@@ -5,6 +5,7 @@ on:
       - fix-paid-qa-fact-bindings-20261014
     paths:
       - .github/workflows/qa-private-first-chapter-handoff.yml
+      - qa-ephemeral-review-export.js
   workflow_dispatch:
 permissions:
   contents: read
