@@ -18,6 +18,13 @@ const actions={
  정인:{first:'배운 내용과 주변 조언을 참고해 이해하고',last:'배운 내용과 주변 조언을 참고해 이해하려는',title:'배움과 주변의 조언'},
  편인:{first:'낯선 내용을 자기 방식으로 이해하고',last:'낯선 내용을 자기 방식으로 이해하려는',title:'낯선 정보를 이해하는 방식'}
 };
+const shortTitle={
+ 비견:'스스로 맡는 일',겁재:'자원과 자기 몫',
+ 식신:'생각의 결과물',상관:'새로운 제안',
+ 정재:'꾸준한 관리',편재:'필요한 자원 활용',
+ 정관:'규칙과 역할',편관:'요구와 책임',
+ 정인:'배움과 조언',편인:'낯선 정보 이해'
+};
 function forPrompt(prompt){
  if(prompt?.stage!=='body'||!prompt.requestedSections?.includes('saju_core'))return null;
  const calculated=contrast.build(prompt.facts)?.monthTenGodContext;
@@ -29,9 +36,9 @@ function forPrompt(prompt){
  const a=actions[first.tenGod],b=actions[second.tenGod];
  if(!a||!b)throw Error('UNKNOWN_MONTH_TEN_GOD_FOR_CORE_THESIS');
  const same=first.tenGod===second.tenGod;
- const title=same?a.title:a.title+' · '+b.title;
+ const title=same?a.title:shortTitle[first.tenGod]+' · '+shortTitle[second.tenGod];
  const keyJudgment='사주에서는 '+(same?a.last:a.first+' '+b.last)+' 기질로 풀이합니다.';
- if(!title||title.length>70||
+ if(!title||title.length>30||
     keyJudgment.split(/(?<=[.!?。！？])\\s+|\\n+/).filter(Boolean).length!==1||
     !keyJudgment.endsWith('풀이합니다.'))
   throw Error('INVALID_CORE_THESIS_CONTRACT');

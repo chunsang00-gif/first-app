@@ -18,7 +18,7 @@ for(const input of inputs){
    editorialBlueprint:{saju_core:plan.saju_core}}};
  const fixed=core.forPrompt(prompt);
  assert.equal(fixed.status,'traditional-reading-not-observed-trait');
- assert(fixed.title.length>=8&&fixed.title.length<=70);
+ assert(fixed.title.length>=8&&fixed.title.length<=30);
  assert(fixed.keyJudgment.length>=35&&fixed.keyJudgment.length<120);
  assert(fixed.keyJudgment.startsWith('사주에서는 '));
  assert.equal(fixed.keyJudgment.split(/(?<=[.!?。！？])\\s+|\\n+/).length,1);
