@@ -136,6 +136,40 @@ for(const input of cases){
  const paired=paragraphs.strength.anyOf?.find(x=>x.type==='object')||
   paragraphs.strength;
  const pairedText=paired.properties.text.description;
+ // Final paid-provider boundary: server.js sends compiled task and then
+ // generation.schema(wire.schemaFor(...)), NOT just the intermediate schema.
+ // These five real chart variants (including the lunar QA sample) must pass
+ // the same evidence/schema preflight used before a billable provider call.
+ const finalProviderSchema=generation.schema(p,outputSchema);
+ const providerPreflight=require('./report-provider-preflight');
+ assert.deepEqual(providerPreflight.inspect(p,request,finalProviderSchema),[],
+  'actual composed paid request must have no source/schema contract conflict');
+ const finalCore=finalProviderSchema.properties.chapters.properties.saju_core.properties;
+ const finalParagraphs=finalCore.paragraphs.properties;
+ const finalStrength=finalParagraphs.strength.anyOf?.find(x=>x.type==='object')||
+  finalParagraphs.strength;
+ assert.equal(finalStrength.properties.text.description,pairedText,
+  'adding private basis fields must preserve corrected reader-first instructions');
+ assert.equal(finalParagraphs.temperament.properties.text.description,seasonText,
+  'full provider schema must not revert first paragraph instructions');
+ const finalRefs=finalStrength.properties.basis.properties.refs.items.enum;
+ assert(finalRefs.includes('natal.month.stem')&&
+  finalRefs.includes('natal.month.hidden.'+mc.mainHiddenStem),
+  'real strict output basis must still allow both actual month ten-god locations');
+ assert(!/(?:첫 출처의 실제 질문은|둘째 출처의 실제 질문은|두 질문에 각각 답해야|어느 질문을 건너뛰면)/.test(
+  finalStrength.properties.text.description),
+  'the actual paid schema must not reinsert the removed two-question checklist');
+ const sentSystemText='Return only the requested premium report JSON. '+
+  generation.policy+' '+wire.instruction;
+ const sentUserText=JSON.stringify(request);
+ assert(sentSystemText.includes('질문 목록으로 옮기지 말고')&&
+  sentSystemText.includes('실제 계산된 전통적 의미'),
+  'provider system message must request grounded interpretation, not a glossary');
+ assert(sentUserText.includes('조건부 기질 해석 한 문장')&&
+  sentUserText.includes('natal.month.hidden.'+mc.mainHiddenStem),
+  'provider user message must retain reader-first briefing and real natal refs');
+ // Passing this offline boundary cannot prove the model will comply or
+ // that a paid report is ready for customers.
  assert(chapterSchema.title.description.includes('조건부 기질 해석의 핵심'));
  assert(chapterSchema.keyJudgment.description.includes('자연스러운 한국어 한 문장'));
  assert(paragraphs.temperament.properties.label.description.includes('계절과 겉에 확인된 오행'));
