@@ -123,6 +123,36 @@ const correctBoundary={sections:[{id:'saju_core',title:'해석의 조건',body:[
 // Third paid QA incorrectly called early January a winter-to-New-Year
 // seasonal boundary. Reject only the false conversion, not a factual
 // observation that the month is traditionally classified transitional.
+// The body must explain BOTH calculated lunar month categories. Merely
+// listing an accurate citation and a fixed title must not hide generic prose.
+const realCorePacket=require('./report-facts-node').build({
+ calendar:'lunar',leapMonth:false,birthDate:'1982-11-24',birthTime:'14:20',
+ gender:'male',mbti:'ISFP'
+},2027);
+const absentPairedMeaning={sections:[{id:'saju_core',title:'낯선 정보 이해 · 필요한 자원 활용',
+ keyJudgment:'사주에서는 낯선 내용을 자기 방식으로 이해하고 필요한 자원을 여러 곳에서 찾아 활용하려는 기질로 풀이합니다.',
+ bodyTopics:['strength'],bodyLabels:['판단 조건'],
+ body:['여러 관점이 전통적으로 중요하게 해석됩니다. 새로운 일을 시작한다면 상황과 기준을 함께 검토하는 일이 유리할 수 있습니다. 태어난 글자가 보여 주는 방향과 실제 경험은 서로 다릅니다.']}]};
+assert(grounding.inspect(absentPairedMeaning,realCorePacket).blockingErrors.includes(
+ 'saju_core:month-pair-meaning-missing-from-main-paragraph'),
+ 'accurate fixed headline cannot hide a generic main paragraph');
+const genuinePairedMeaning=structuredClone(absentPairedMeaning);
+genuinePairedMeaning.sections[0].body=[
+ '낯선 정보를 자기 방식으로 이해하는 태도와 필요한 자원을 찾아 활용하려는 관점을 함께 읽는 사주입니다. 새로운 업무에 필요한 자료를 검토할 때 이해에만 시간을 쓰고 재료와 비용 마련을 미루는 경우도 따로 생각해 볼 수 있습니다. 이는 계산에 근거한 전통적 가능성이며 실제 경험을 단정하지 않습니다.'
+];
+assert(!grounding.inspect(genuinePairedMeaning,realCorePacket).blockingErrors.includes(
+ 'saju_core:month-pair-meaning-missing-from-main-paragraph'),
+ 'both authentic monthly meanings may be expressed in plain Korean');
+const onlyLearning=structuredClone(genuinePairedMeaning);
+onlyLearning.sections[0].body=['낯선 정보를 자기 방식으로 이해하고 정리하는 태도에 관한 해석입니다. 새로운 업무를 배울 때 정보를 살펴볼 수 있습니다.'];
+assert(grounding.inspect(onlyLearning,realCorePacket).blockingErrors.includes(
+ 'saju_core:month-pair-meaning-missing-from-main-paragraph'),
+ 'a paragraph about learning alone cannot substitute for actual resource meaning');
+const seasonalOnly=structuredClone(absentPairedMeaning);
+seasonalOnly.sections[0].bodyTopics=['temperament'];
+assert(!grounding.inspect(seasonalOnly,realCorePacket).blockingErrors.includes(
+ 'saju_core:month-pair-meaning-missing-from-main-paragraph'),
+ 'legacy or partial review fixtures without the monthly slot are not misclassified');
 const winterPacket=require('./report-facts-node').build({
  calendar:'lunar',leapMonth:false,birthDate:'1982-11-24',birthTime:'14:20',
  gender:'male',mbti:'ISFP'

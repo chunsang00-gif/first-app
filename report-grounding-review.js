@@ -1,6 +1,22 @@
 'use strict';
 // Rejection-only heuristic for generic paid prose, never a release certificate.
 // Inspect only customer-facing interpretations, not internal symbolic evidence.
+// Only the VERIFIED month ten-god pair owns the mandatory paid-core reading.
+// These are permissive *meaning families* (not word-for-word model templates);
+// absence of a whole calculated meaning is a source-to-prose omission, not an
+// aesthetic score or evidence of the user's observed personality.
+const coreMonthMeaningWords={
+ 비견:/(?:스스로|자기\s*몫|자신의\s*몫|독립|주도|직접\s*맡|내\s*역할)/,
+ 겁재:/(?:공동|함께\s*쓰|나누|배분|경쟁|협력|몫을\s*구분|자원.*분담)/,
+ 식신:/(?:결과물|만들|완성|생산|표현|작업을\s*이어|꾸준히\s*해)/,
+ 상관:/(?:다른\s*방법|새로운\s*제안|익숙한\s*방식|틀을\s*바꾸|표현|변형)/,
+ 정재:/(?:꾸준히\s*관리|지출|반복되는\s*비용|예산|안정적\s*관리|계획적\s*사용|유지할\s*비용)/,
+ 편재:/(?:필요한\s*자원|자원을\s*(?:찾|활용|확보)|자금|돈과\s*재료|재료를\s*마련|여러\s*곳에서|기회와\s*자원|자원\s*활용)/,
+ 정관:/(?:규칙|규정|역할|책임|원칙|절차|맡은\s*자리)/,
+ 편관:/(?:급한\s*요구|갑작스러운\s*요구|압박|긴급|책임\s*범위|예상\s*밖의\s*요구)/,
+ 정인:/(?:배움|배우|조언|도움|지원|보호|가르침|배운\s*내용)/,
+ 편인:/(?:낯선\s*(?:내용|정보|자료)|정보를\s*(?:이해|해석)|자료를\s*해석|배움의\s*방식|자기\s*방식으로\s*(?:이해|읽)|다른\s*관점에서\s*이해|정보\s*이해)/
+};
 const patterns=[
  /(?:다양한|여러|여러\s*가지).{0,36}(?:공존|병존|함께\s*(?:작용|나타나|드러)|특징이\s*함께)/,
  /(?:서로\s*다른|여러).{0,22}방향.{0,18}(?:공존|병존)/,
@@ -16,6 +32,22 @@ function inspect(report,packet=null){
   // gate with long, two-sentence 'key judgments' explaining the symbols
   // rather than giving readers a single understandable interpretation.
   // Keep the actual reason/evidence in the body and private citation ledger.
+  // A schema-correct answer can still contain a generic story unrelated to
+  // either computed month meaning. Check the actual mandatory 'strength'
+  // paragraph, never the title, canned thesis, citations or optional season.
+  // A lexical family is necessarily incomplete: human editorial approval
+  // remains required even when both lenses are present.
+  const strengthIndex=Array.isArray(section.bodyTopics)?
+   section.bodyTopics.indexOf('strength'):-1;
+  if(packet?.status==='ready'&&strengthIndex>=0&&Array.isArray(section.body)){
+   const mainText=String(section.body[strengthIndex]||'');
+   const verified=require('./report-chart-contrast').build(packet)?.monthTenGodContext;
+   const kinds=[verified?.monthStem?.tenGod,verified?.monthMainHidden?.tenGod];
+   if(kinds.some(k=>!coreMonthMeaningWords[k]))
+    blockingErrors.push('saju_core:month-pair-meaning-source-unavailable');
+   else if([...new Set(kinds)].some(k=>!coreMonthMeaningWords[k].test(mainText)))
+    blockingErrors.push('saju_core:month-pair-meaning-missing-from-main-paragraph');
+  }
   const judgment=String(section.keyJudgment||'').trim();
   const judgmentSentences=judgment.split(/(?<=[.!?。！？])\s+|\n+/)
    .map(x=>x.trim()).filter(Boolean);
