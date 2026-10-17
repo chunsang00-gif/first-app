@@ -304,7 +304,7 @@ for(const input of cases){
  assert(p.analysisGuidance.editorialBlueprint.saju_core.topicTasks.strength.interpretationBoundary
   .includes('질문 목록으로 전환하지 않는다'));
  assert(request.task.chapters.saju_core.topics.strength.evidenceFocus.readerReasoning.readerValuePlan.customerSequence
-  .includes('조건부 기질 해석으로 연결'));
+  .includes('한 가지 조건부 기질 해석'));
  assert(!request.task.chapters.saju_core.topics.strength.evidenceFocus.readerReasoning.readerValuePlan.customerSequence
   .includes('첫 질문과 둘째 질문을 각각 적용'));
  const paidSystem=require('./report-generation-request').policy;
