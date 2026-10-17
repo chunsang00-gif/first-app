@@ -1,0 +1,77 @@
+name: Offline diagnosis latest already-paid first chapter failure
+on:
+  push:
+    branches: [fix-paid-qa-fact-bindings-20261014]
+    paths: [.github/workflows/qa-diagnose-latest-paid-first-chapter.yml]
+permissions:
+  contents: read
+  actions: read
+jobs:
+  diagnose-already-paid-failure:
+    if: github.ref_name == 'fix-paid-qa-fact-bindings-20261014'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Download failed paid sample from EXISTING run (no new provider call)
+        uses: actions/download-artifact@v4
+        with:
+          name: premium-first-chapter-qa-encrypted
+          repository: chunsang00-gif/first-app
+          run-id: 39000723800
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/archive
+      - name: Decrypt offline to private ephemeral runner directory and print METRICS ONLY
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          mkdir -p "$RUNNER_TEMP/qa-private"
+          trap 'rm -rf "$RUNNER_TEMP/qa-private" "$RUNNER_TEMP/archive"' EXIT
+          node report-qa-secure-archive.js decrypt "$RUNNER_TEMP/archive/premium-first-chapter-qa.enc" "$RUNNER_TEMP/qa-private"
+          node - "$RUNNER_TEMP/qa-private/private-qa-first-chapter-provider-calls.json" <<'NODE'
+          const fs=require('node:fs');
+          const ledger=JSON.parse(fs.readFileSync(process.argv[2],'utf8'));
+          if(ledger.calls?.length!==1)throw Error('NOT_EXACTLY_ONE_ARCHIVED_PROVIDER_CALL');
+          const first=ledger.calls[0];
+          const core=first.response?.chapters?.saju_core;
+          if(!core||typeof core.keyJudgment!=='string')throw Error('MISSING_PRIVATE_CORE_RESPONSE');
+          const judgment=core.keyJudgment.trim();
+          const sentences=judgment.split(/(?<=[.!?。！？])\s+|\n+/).map(x=>x.trim()).filter(Boolean);
+          const visibleParagraphs=Object.entries(core.paragraphs||{}).filter(([,x])=>x?.text);
+          const bodies=visibleParagraphs.map(([,x])=>x.text);
+          const report={sections:[{id:'saju_core',title:core.title,keyJudgment:judgment,
+            bodyLabels:visibleParagraphs.map(([,x])=>x.label),body:bodies}]};
+          const audit=require('./report-grounding-review').inspect(report);
+          const genericWords=['전통적','겉글자','질문','근거','풀이','해석'];
+          const visible=[core.title,judgment,...visibleParagraphs.flatMap(([,x])=>[x.label,x.text])].join(' ');
+          const flags={
+            beginsWithChartDefinition:/^(?:태어난|출생|사주|이 사주|겉|계절|그 달)/.test(judgment),
+            usesConditionalExpression:/(?:경우|때에는|때는|상황|조건|다만|반면|반대로|하지만)/.test(judgment),
+            readsLikePersonalObservation:/(?:당신은|평소에|늘|항상|실제로)/.test(judgment),
+            makesFuturePrediction:/(?:반드시|확실히|예언|운명이)/.test(judgment)
+          };
+          console.log('ARCHIVED_PAID_SAMPLE_DIAGNOSTIC='+JSON.stringify({
+            runId:39000723800,
+            archivedProviderCalls:1,
+            modelCallsThisWorkflow:0,
+            keyJudgmentSentenceCount:sentences.length,
+            keyJudgmentSentenceLengths:sentences.map(x=>x.length),
+            fullJudgmentLength:judgment.length,
+            breaksAt:sentences.map(x=>[x.startsWith('"'),/[.!?。！？]$/.test(x)]),
+            keyJudgmentFlags:flags,
+            titleLength:String(core.title||'').length,
+            paragraphCount:visibleParagraphs.length,
+            paragraphLengths:bodies.map(x=>x.length),
+            paragraphSentenceCounts:bodies.map(x=>x.split(/(?<=[.!?。！？])\s+|\n+/).filter(Boolean).length),
+            repeatedTerms:Object.fromEntries(genericWords.map(w=>[w,visible.split(w).length-1])),
+            blockingCodes:audit.blockingErrors,
+            genericFindings:audit.findings,
+            reportRequiresHumanReview:true
+          }));
+          NODE
