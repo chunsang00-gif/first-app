@@ -1,0 +1,46 @@
+name: Offline review of existing paid first chapter
+on:
+  push:
+    branches:
+      - fix-paid-qa-fact-bindings-20261014
+    paths:
+      - .github/workflows/offline-review-existing-premium.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  offline-review:
+    if: github.ref_name == 'fix-paid-qa-fact-bindings-20261014'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out QA code
+        uses: actions/checkout@v4
+      - name: Use local Node runtime only
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Fetch the exact existing encrypted QA artifact (NO model requests)
+        uses: actions/download-artifact@v4
+        with:
+          name: premium-first-chapter-qa-encrypted
+          repository: chunsang00-gif/first-app
+          run-id: 38912939787
+          github-token: ${{ github.token }}
+      - name: Decrypt offline and print NON-SENSITIVE statistics ONLY
+        shell: bash
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          set -euo pipefail
+          umask 077
+          test -f premium-first-chapter-qa.enc
+          mkdir -p "$RUNNER_TEMP/paid-first-chapter-private"
+          trap 'rm -rf "$RUNNER_TEMP/paid-first-chapter-private"' EXIT
+          node report-qa-secure-archive.js decrypt \
+            "$GITHUB_WORKSPACE/premium-first-chapter-qa.enc" \
+            "$RUNNER_TEMP/paid-first-chapter-private"
+          node review-existing-first-chapter.js \
+            "$RUNNER_TEMP/paid-first-chapter-private/private-qa-first-chapter-validated-first-chapter.json"
+          echo 'Offline existing-artifact review complete; zero OpenAI requests.'
