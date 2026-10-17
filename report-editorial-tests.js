@@ -18,6 +18,17 @@ const situatedFixture={sections:[{id:'saju_core',title:'기본 성향',
 assert(!grounding.inspect(situatedFixture).blockingErrors.includes(
  'saju_core:key-judgment-is-chart-description-only'));
 
+// The paid core must not turn into advice anybody could receive.
+const adviceOnlyCore={sections:[{id:'saju_core',title:'기본 성향',
+ keyJudgment:'한 가지 기준을 확인한 뒤 선택을 하는 편입니다.',
+ body:['새로운 일을 준비할 때는 비용을 미리 확인해야 합니다. 관련 자료를 비교하는 것이 좋습니다. 시작하기 전에 필요한 자원을 점검해야 합니다.']}]};
+assert(grounding.inspect(adviceOnlyCore).blockingErrors.includes(
+ 'saju_core:generic-how-to-instead-of-personal-interpretation'));
+const interpretedCore={sections:[{id:'saju_core',title:'기본 성향',
+ keyJudgment:'잘 아는 일을 선택할 때도 한번 더 확인하는 편입니다.',
+ body:['사주에서는 출생 달의 두 글자를 배움과 보호의 관계로 풀이합니다. 전통적으로 이 관계는 정보를 받아들이는 방향을 살펴보는 데 사용합니다. 중요한 일을 고를 때 필요한 근거를 먼저 확인해 두는 것이 좋습니다.']}]};
+assert(!grounding.inspect(interpretedCore).blockingErrors.includes(
+ 'saju_core:generic-how-to-instead-of-personal-interpretation'));
 assert(generation.policy.includes('충의 세기까지 측정한 것은 아니다'));
 assert(generation.policy.includes('기본 기질')&&generation.policy.includes('내부 계산 근거'),
  'first paid chapter must explain a reader concern grounded by internal sources');
