@@ -156,6 +156,42 @@ const expandedVerdict=structuredClone(genuinePairedMeaning);
 expandedVerdict.sections[0].body[0]=expandedVerdict.sections[0].keyJudgment+' '+genuinePairedMeaning.sections[0].body[0];
 assert(!grounding.inspect(expandedVerdict,realCorePacket).blockingErrors.includes(
  'saju_core:main-paragraph-merely-repeats-locked-judgment'));
+// Previously paid output reused the person's learning method in both
+// optional visible-resource and mandatory month-stem learning readings.
+const overlappingChart=require('./report-chart-contrast').build(realCorePacket);
+assert.equal(overlappingChart.monthTenGodContext.monthStem.tenGod,'편인');
+assert(overlappingChart.contrastPoints.find(x=>
+ x.kind==='visible-support-vs-counter').evidence.support
+ .some(x=>x.relation==='resource'));
+const repeatedLearning=structuredClone(genuinePairedMeaning);
+repeatedLearning.sections[0].bodyTopics=['temperament','strength'];
+repeatedLearning.sections[0].bodyLabels=['계절과 겉글자','기질의 중심'];
+repeatedLearning.sections[0].body.unshift(
+ '새로운 정보를 자기 방식으로 해석하는 태도가 겉글자에서 보입니다. 자료를 받아들일 때 자기 방식으로 정리하려는 방향입니다.'
+);
+assert(grounding.inspect(repeatedLearning,realCorePacket).blockingErrors.includes(
+ 'saju_core:season-paragraph-repeats-month-learning'),
+ 'verified overlapping learning theme must not appear in optional paragraph');
+const externalHelp=structuredClone(repeatedLearning);
+externalHelp.sections[0].body[0]=
+ '겉글자의 전통적 도움 관계에서는 외부에서 참고 자료나 조언을 얻을 조건을 따져 봅니다. 이는 누군가에게 도움을 받은 과거의 증거가 아닙니다.';
+assert(!grounding.inspect(externalHelp,realCorePacket).blockingErrors.includes(
+ 'saju_core:season-paragraph-repeats-month-learning'),
+ 'external-resource availability is not personal information processing');
+const omittedSeason=structuredClone(repeatedLearning);
+omittedSeason.sections[0].bodyTopics=['strength'];
+omittedSeason.sections[0].bodyLabels=['기질의 중심'];
+omittedSeason.sections[0].body.shift();
+assert(!grounding.inspect(omittedSeason,realCorePacket).blockingErrors.includes(
+ 'saju_core:season-paragraph-repeats-month-learning'),
+ 'omitted optional seasonal paragraph should not be rejected');
+const nonOverlapPacket=require('./report-facts-node').build({
+ calendar:'solar',birthDate:'1990-05-15',birthTime:'14:20',
+ gender:'male',mbti:'ISFP'
+},2027);
+assert(!grounding.inspect(repeatedLearning,nonOverlapPacket).blockingErrors.includes(
+ 'saju_core:season-paragraph-repeats-month-learning'),
+ 'do not impose lunar chart ownership rules on other types');
 const onlyLearning=structuredClone(genuinePairedMeaning);
 onlyLearning.sections[0].body=['낯선 정보를 자기 방식으로 이해하고 정리하는 태도에 관한 해석입니다. 새로운 업무를 배울 때 정보를 살펴볼 수 있습니다.'];
 assert(grounding.inspect(onlyLearning,realCorePacket).blockingErrors.includes(

@@ -59,6 +59,30 @@ function inspect(report,packet=null){
      blockingErrors.push('saju_core:main-paragraph-merely-repeats-locked-judgment');
    }
   }
+  // The optional seasonal paragraph owns external-support CONDITIONS,
+  // not the person's way of processing information. Past paid drafts
+  // repeated this learning conclusion despite correct prompt ownership.
+  // Trigger only for the chart-derived overlap (visible resource AND
+  // month-stem 正/偏印), and only for self-processing phrases. Receiving
+  // outside help, advice or information remains permitted.
+  if(packet?.status==='ready'&&Array.isArray(section.bodyTopics)&&
+     Array.isArray(section.body)){
+   const firstIndex=section.bodyTopics.indexOf('temperament');
+   if(firstIndex>=0){
+    const contrast=require('./report-chart-contrast').build(packet);
+    const observed=contrast?.contrastPoints?.find(p=>
+     p.kind==='visible-support-vs-counter')?.evidence;
+    const resourceVisible=[...(observed?.support||[]),...(observed?.counter||[])]
+     .some(row=>row.relation==='resource');
+    const monthGod=contrast?.monthTenGodContext?.monthStem?.tenGod;
+    if(resourceVisible&&['편인','정인'].includes(monthGod)){
+     const firstText=String(section.body[firstIndex]||'');
+     const ownLearning=/(?:정보|자료|낯선\\s*내용|새로운\\s*내용).{0,42}(?:자기|자신|스스로).{0,25}(?:방식|해석|이해|정리|받아들이)|(?:자기|자신|스스로).{0,24}(?:방식|관점).{0,24}(?:정보|자료|낯선\\s*내용|새로운\\s*내용)/;
+     if(ownLearning.test(firstText))
+      blockingErrors.push('saju_core:season-paragraph-repeats-month-learning');
+    }
+   }
+  }
   const judgment=String(section.keyJudgment||'').trim();
   const judgmentSentences=judgment.split(/(?<=[.!?。！？])\s+|\n+/)
    .map(x=>x.trim()).filter(Boolean);
