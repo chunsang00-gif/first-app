@@ -3,6 +3,7 @@
 // Never print names, birth details, source text or provider responses.
 // No network access or model requests.
 const fs=require('node:fs');
+const reader=require('./report-reader-policy');
 const file=process.argv[2];
 if(!file){console.error('Usage: node review-existing-first-chapter.js <private-qa-first-chapter-validated-first-chapter.json>');process.exit(2)}
 let evidence;
@@ -13,25 +14,13 @@ if(JSON.stringify(batch.ids)!==JSON.stringify(['saju_core'])||batch.completedSec
  console.error('INVALID_FIRST_CHAPTER_SCOPE');process.exit(1)
 }
 const section=batch.sections[0];
-const seen=new WeakSet();
-function collect(x,out=[]){
- if(typeof x==='string'){if(x.trim().length>=25)out.push(x.trim());return out}
- if(!x||typeof x!=='object'||seen.has(x))return out;
- seen.add(x);
- if(Array.isArray(x)){for(const entry of x)collect(entry,out);return out;}
- for(const [k,v] of Object.entries(x)){
-  // Only reader-facing, body-like fields; skip source/metadata/trace contents.
-  if(/^(body|content|text|paragraphs|description|summary|interpretation|items|subsections|sections)$/i.test(k))collect(v,out);
-  else if(Array.isArray(v)&&/^(paragraphs|items|subsections)$/i.test(k))collect(v,out);
- }
- return out;
-}
 if(!Array.isArray(section.body)||!section.body.length||section.body.some(x=>typeof x!=='string'||!x.trim())){console.error('INVALID_FIRST_CHAPTER_BODY');process.exit(1)}
 const strings=[section.title,section.keyJudgment,...(section.bodyLabels||[]),...section.body].filter(x=>typeof x==='string'&&x.trim());
 const normalized=section.body.map(s=>s.replace(/\s+/g,' ').trim());
 const duplicates=[...new Set(normalized.filter((x,i)=>normalized.indexOf(x)<i))];
-const terms=['원국','상관','편관','정관','식신','뿌리 충','지장간'];
-const jargon=Object.fromEntries(terms.map(t=>[t,normalized.filter(s=>s.includes(t)).length]).filter(([,n])=>n));
+const detected=reader.errors(strings).map(t=>t.replace(/^reader jargon:\s*/,''));
+if(strings.some(s=>/뿌리\s*충/.test(s)))detected.push('뿌리 충');
+const jargon=Object.fromEntries([...new Set(detected)].sort().map(term=>[term,strings.filter(field=>reader.errors([field]).some(x=>x.endsWith(term))||(term==='뿌리 충'&&/뿌리\s*충/.test(field))).length]));
 const overhedge=normalized.filter(s=>(s.match(/수 있습니다|일 수 있습니다|일지도 모릅니다/g)||[]).length>=3).length;
 const result={scope:'saju_core',offline:true,additionalApiCalls:0,releaseApproved:false,
  detectedReaderTextFields:strings.length,readerTextCharacters:strings.join('').length,
