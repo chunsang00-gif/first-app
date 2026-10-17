@@ -22,8 +22,15 @@ function coreReaderRoles(prompt){
  const contrast=require('./report-chart-contrast').build(prompt?.facts);
  const month=contrast?.monthTenGodContext;
  const coreContrast=require('./report-chart-contrast');
- const seasonal=contrast&&coreContrast.forTopic(contrast,'temperament',[])?.readerReasoning;
- const focus=contrast&&coreContrast.forTopic(contrast,'strength',[])?.readerReasoning?.readerValuePlan;
+ const first=contrast&&coreContrast.forTopic(contrast,'temperament',[]);
+ const second=contrast&&coreContrast.forTopic(contrast,'strength',[]);
+ const seasonal=first?.readerReasoning;
+ const focus=second?.readerReasoning?.readerValuePlan;
+ const firstClaim=first?.claimOwnership,secondClaim=second?.claimOwnership;
+ const claimBrief=claim=>claim?
+  ' 이 문단만 담당하는 해석: '+claim.readerConclusion+
+  ' 다른 문단으로 넘길 해석: '+claim.reservedForOtherParagraph+
+  ' 한 근거를 두 문단이 인용하더라도 같은 성향 결론을 두 번 쓰지 않는다.': '';
  const one=focus?.first?.question;
  const two=focus?.second?.question;
  const reading=focus?.traditionalReading;
@@ -35,13 +42,15 @@ function coreReaderRoles(prompt){
    text:'출생 시기의 특징이나 글자의 뜻을 세 문장 이상 나열해 기술 강의로 만들지 않는다. 핵심 풀이를 먼저 말하고 계산된 출생 계절·겉글자의 전통적 의미를 짧게 연결한 다음 실제로 이해되는 가상 장면 하나에서 무엇을 고려하는지 풀어 쓴다. '+
     (seasonal?.hypotheticalQuestion?'이 입력에서 확인된 관계에 맞춘 가상의 장면: '+seasonal.hypotheticalQuestion+' ':'')+
     (firstParagraphBoundary?'이 입력의 서로 다른 문단 역할: '+firstParagraphBoundary+' ':'')+
+    claimBrief(firstClaim)+
     '예시는 실제 생활 이력이나 관찰된 성격이 아니다. 계절 변화만으로 적응력이나 학습 능력을 판정하지 않으며 뜻을 설명했습니다 같은 작성 과정 문장으로 끝내지 않는다.'
   },
   strength:{
-   label:'실제로 본문에서 비교한 태어난 달의 서로 다른 두 전통적 질문을 소제목에 간결하게 드러낸다. 뿌리·충·강약처럼 이 문단에 없는 계산 주제를 제목에 붙이지 않는다.',
+   label:'태어난 달의 겉글자와 중심 숨은 글자에서 실제 확인된 두 의미를 함께 풀이한 결론을 소제목으로 짧게 나타낸다. 첫 문단의 계절·외부 지원 조건을 반복하지 않는다. 뿌리·충·강약처럼 이 문단에 없는 계산 주제를 제목에 붙이지 않는다.',
    text:'이 문단은 태어난 달의 겉글자와 중심 숨은 글자에 기록된 두 전통적 의미만 풀이한다.'+
     (reading?' 이 사주에서 계산한 두 전통 해석의 관점: '+reading.tentativeThesis+' 작성 목적: '+reading.editorialDuty+' 해석의 범위: '+reading.evidenceLimit+' ':'')+
     (one&&two?' 첫 출처의 실제 질문은 '+one+'이며 둘째 출처의 실제 질문은 '+two+'이다.':'')+
+    claimBrief(secondClaim)+
     ' 출생 상징의 사전적 의미만 여러 문장으로 풀이하지 말고 새 일을 준비하는 가상의 한 선택 상황에서 두 질문에 각각 답해야 하는 이유와 어느 질문을 건너뛰면 검토가 부족해지는지 장면과 결과의 차이로 설명한다. 한 문단의 끝을 이는 전통적 해석의 출발점입니다 같은 해설로 마무리하지 않는다. 서로 다른 뜻을 실제 성격의 모순·갈등이나 능력의 증거로 바꾸지 않는다. 첫 문단의 계절 설명을 반복하지 않는다.'
   }
  };

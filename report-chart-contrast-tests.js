@@ -139,7 +139,7 @@ for(const input of cases){
  assert(chapterSchema.title.description.includes('두 문단에서 실제 제시한 하나의 생활 질문'));
  assert(chapterSchema.keyJudgment.description.includes('자연스러운 한국어 한 문장'));
  assert(paragraphs.temperament.properties.label.description.includes('계절과 겉에 확인된 오행'));
- assert(paired.properties.label.description.includes('서로 다른 두 전통적 질문'));
+ assert(paired.properties.label.description.includes('두 의미를 함께 풀이한 결론'));
  assert(seasonText.includes('기술 강의로 만들지 않는다')&&
   seasonText.includes('가상의 장면')&&
   !seasonText.includes('출생월의 본기만으로 실제 적응력이'));
@@ -179,6 +179,40 @@ for(const input of cases){
   'do not send four unassigned comparisons in a wide chapter blob');
  const temperament=core.topics.temperament.evidenceFocus;
  const strength=core.topics.strength.evidenceFocus;
+ // Validate the real provider's STRUCTURED paragraph-claim ownership:
+ // sharing a verifiable month-stem source must not share the conclusion.
+ const ownFirst=temperament.claimOwnership,ownSecond=strength.claimOwnership;
+ assert.equal(ownFirst.version,'core-reader-claim-ownership-v1');
+ assert.equal(ownSecond.version,'core-reader-claim-ownership-v1');
+ assert.equal(ownFirst.sharedFactId,'natal.month.stem');
+ assert.equal(ownSecond.sharedFactId,'natal.month.stem');
+ assert(ownFirst.claimIds.length&&ownSecond.claimIds.length&&
+  ownFirst.claimIds.every(id=>!ownSecond.claimIds.includes(id)),
+  'first chapter paragraph claims must be disjoint despite shared citations');
+ assert(ownFirst.readerConclusion&&ownSecond.readerConclusion);
+ assert.notEqual(ownFirst.readerConclusion,ownSecond.readerConclusion);
+ assert.deepEqual(ownFirst,contrasts.firstChapterClaimOwnership(contrast,'temperament'));
+ assert.deepEqual(ownSecond,contrasts.firstChapterClaimOwnership(contrast,'strength'));
+ assert.equal(ownFirst.overlappingMonthLearning,ownSecond.overlappingMonthLearning);
+ if(ownFirst.overlappingMonthLearning){
+  assert(ownFirst.readerConclusion.includes('외부에서 지원을 받을 수 있는 조건'));
+  assert(!ownFirst.readerConclusion.includes('정보 이해·배움 의미'));
+  assert(ownSecond.readerConclusion.includes('정보 이해·배움 의미'));
+  assert(ownSecond.readerConclusion.includes('외부 지원 조건을 다시 설명하지 않는다'));
+ }
+ const strictOwn=wire.schemaFor(p,require('./report-schema.json'))
+  .properties.chapters.properties.saju_core.properties.paragraphs.properties;
+ const secondSlot=strictOwn.strength.anyOf?.find(x=>x.type==='object')||strictOwn.strength;
+ assert(strictOwn.temperament.properties.text.description.includes(ownFirst.readerConclusion));
+ assert(secondSlot.properties.text.description.includes(ownSecond.readerConclusion));
+ assert(!strictOwn.temperament.properties.text.description.includes(ownSecond.readerConclusion));
+ assert(!secondSlot.properties.text.description.includes(ownFirst.readerConclusion));
+ const corrupted=structuredClone(request);
+ corrupted.task.chapters.saju_core.topics.temperament.evidenceFocus.claimOwnership=
+  structuredClone(ownSecond);
+ assert(transportGuard.inspectTransport(p,corrupted)
+  .includes('core-reader-evidence-brief-drift:saju_core/temperament'),
+  'AI input must reject drift to the other paragraph claim before billing');
  // The full chart may expose many hidden stems, but the first paid
  // paragraph owns seasonal + visible positions, while the second owns
  // ONLY the month stem and verified principal hidden stem.

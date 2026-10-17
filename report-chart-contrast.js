@@ -328,6 +328,39 @@ function readerQuestions(contrast,topic){
  }
  throw Error('Unsupported Saju reader topic: '+topic);
 }
+// A shared CITE does not license a repeated customer-facing conclusion.
+// Machine-readable claim IDs keep the two paid paragraphs' interpretive
+// responsibilities distinct, without fabricating another source or trait.
+function firstChapterClaimOwnership(contrast,topic){
+ const month=contrast.monthTenGodContext;
+ const visible=contrast.contrastPoints.find(x=>x.kind==='visible-support-vs-counter')?.evidence;
+ const combined=(visible?.support||[]).concat(visible?.counter||[]);
+ const overlaps=combined.some(x=>x.relation==='resource')&&
+  ['편인','정인'].includes(month?.monthStem?.tenGod);
+ if(topic==='temperament')return {
+  version:'core-reader-claim-ownership-v1',
+  claimIds:['seasonal-context','visible-five-element-relationship'],
+  sharedFactId:'natal.month.stem',
+  overlappingMonthLearning:overlaps,
+  readerConclusion:overlaps?
+   '계절과 겉에 확인된 도움 관계를 바탕으로 외부에서 지원을 받을 수 있는 조건과 범위만 해석한다. 실제 지원을 받았다고 단정하지 않는다.':
+   '계절과 겉으로 드러난 오행 관계가 전통적으로 설명하는 조건만 해석한다. 실제 성격이나 능력을 확정하지 않는다.',
+  reservedForOtherParagraph:'월간 십성에서 유래하는 정보 이해·배움의 방식과 월지 본기의 자원 활용 의미는 두 번째 문단에서만 풀이한다.',
+  visibleHeadline:overlaps?'도움이 가능한 조건과 범위':'계절과 겉글자에서 읽는 기질의 조건'
+ };
+ if(topic==='strength')return {
+  version:'core-reader-claim-ownership-v1',
+  claimIds:['month-stem-ten-god-reading','principal-hidden-stem-ten-god-reading','month-pair-element-relation'],
+  sharedFactId:'natal.month.stem',
+  overlappingMonthLearning:overlaps,
+  readerConclusion:overlaps?
+   '태어난 달 겉글자의 정보 이해·배움 의미와 중심 숨은 글자의 자원 활용 의미를 연결해 해석한다. 첫 문단의 외부 지원 조건을 다시 설명하지 않는다.':
+   '태어난 달 겉글자 십성과 중심 숨은 글자 십성의 실제 차이와 연결 조건만 해석한다.',
+  reservedForOtherParagraph:'계절 분류와 겉글자 도움·압박 조건을 둘째 문단의 별도 성향 해석으로 반복하지 않는다.',
+  visibleHeadline:overlaps?'정보를 이해하는 관점과 자원 활용':'같은 달의 두 위치를 함께 읽는 기질'
+ };
+ throw Error('Unsupported first-chapter claim ownership: '+topic);
+}
 function forTopic(contrast,topic,allowedIds){
  if(!TOPIC_POINTS[topic]||!contrast||!Array.isArray(contrast.contrastPoints))
   throw Error('Unknown or missing grounded core paragraph plan: '+topic);
@@ -348,6 +381,7 @@ function forTopic(contrast,topic,allowedIds){
  const {sourceAudit,...readerReasoning}=readerQuestions(contrast,topic);
  return {scope:topic,
   ...(topic==='strength'?{tenGodFocus:contrast.monthTenGodContext}:{}),
+  claimOwnership:firstChapterClaimOwnership(contrast,topic),
   points,readerReasoning,
   ...(sourceAudit?{sourceAudit}:{}),
   readerQuestion:topic==='temperament'?
@@ -360,4 +394,4 @@ function forTopic(contrast,topic,allowedIds){
    '월의 계절·전환 조건과 실제 겉글자의 관계를 readerQuestion에 연결한다. 숨은 십성이나 뿌리·충을 이 문단의 필수 주제로 추가하지 않는다. 내부 계산표를 독자용 글에 옮기지 않고 전통적 질문과 의미를 쉬운 상황으로 풀이한다. 검증 한계는 basis.limit에 기록하고 개인의 능력과 행동을 단정하지 않는다.':
    '먼저 tenGodFocus.monthStem과 tenGodFocus.monthMainHidden의 실제 십성 분류와 전통적 의미, 두 출처의 elementLink에 확인된 오행 관계를 readerQuestion에 연결한다. 월간과 월지 본기는 다른 출처이며 같더라도 거짓 갈등을 만들지 않는다. sourceAudit와 points는 내부 출처·계산 검증용이며 독자에게 뿌리·충 근거를 이 문단의 해석에 추가하지 않는다. 실제 확인된 명리 상징이 허용하는 기질 해석과 그 조건을 쉬운 가상 상황으로 풀고, 실제 성격·능력·사건은 지어내지 않는다. 한계는 basis.limit에 기록한다. 제목과 문단 라벨에 뿌리·충·통근·월지 등 기술 용어를 내세우지 않으며 내부 참조 ID와 한자는 독자에게 복사하지 않는다.'};
 }
-module.exports={build,forTopic,TOPIC_POINTS};
+module.exports={build,forTopic,firstChapterClaimOwnership,TOPIC_POINTS};
