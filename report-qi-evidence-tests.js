@@ -98,15 +98,20 @@ for(const input of [
  assert(!Object.hasOwn(compiled.source['facts.qiEvidence'].governance,'publishedMethodExploration'),
   'a research-only allocation must not become a paid interpretation fact');
  const transport=generation.schema(prompt,wire.schemaFor(prompt,schema));
- const allowed=transport.properties.chapters.properties.saju_core.properties.paragraphs.properties
-  .temperament.properties.basis.properties.refs.items.enum;
+ assert.equal(plan.saju_core.anchorTopic,'strength');
+ const optional=transport.properties.chapters.properties.saju_core.properties.paragraphs.properties
+  .temperament.anyOf.find(x=>x.type==='object');
+ const allowed=optional.properties.basis.properties.refs.items.enum;
  assert(allowed.includes('facts.qiEvidence'));
  assert(allowed.includes('facts.seasonalEvidence'));
  const paragraph=(refs)=>({basis:{refs,interpretation:'월령과 오행의 관계를 비교합니다.',
   condition:'절기의 경계를 확인한 상황',limit:'사령과 강약은 확정하지 못합니다.'},
   label:'월령과 뿌리',text:'월지의 계절과 일간 뿌리 위치를 구분합니다.'});
  const output=(refs)=>({chapters:{saju_core:{title:'기본 명리',keyJudgment:'계절 및 오행 근거를 구분합니다.',
-  mood:'reflective',paragraphs:{temperament:paragraph(refs),strength:null}}}});
+  mood:'reflective',paragraphs:{temperament:paragraph(refs),strength:{basis:{
+   refs:['natal.month.stem','natal.month.hidden.'+packet.facts.structuralEvidence.monthCommand.mainHiddenStem],
+   interpretation:'달의 두 출생 위치의 뜻',condition:'가상의 새 일',limit:'실제 관찰 아님'},
+   label:'핵심 풀이',text:'월간과 달의 중심 글자가 뜻하는 성향을 연결합니다.'}}}}});
  assert.doesNotThrow(()=>generation.restoreEvidence(output(['facts.seasonalEvidence','facts.qiEvidence','natal.month.stem']),prompt));
  assert.throws(()=>generation.restoreEvidence(output(['facts.seasonalEvidence','natal.month.stem']),prompt),/missing required positional qi evidence/);
  assert.throws(()=>generation.restoreEvidence(output(['facts.qiEvidence','natal.month.stem']),prompt),/missing required month seasonal source/);
