@@ -81,15 +81,18 @@ for(const input of actualCases){
  const task=generation.compile(prompt);
  assert.deepEqual(task.source['facts.seasonalEvidence'],expected);
  const s=generation.schema(prompt,wire.schemaFor(prompt,schema));
- const refs=s.properties.chapters.properties.saju_core.properties.paragraphs.properties.temperament
-  .properties.basis.properties.refs.items.enum;
+ const optional=s.properties.chapters.properties.saju_core.properties.paragraphs.properties.temperament.anyOf.find(x=>x.type==='object');
+ assert.equal(blueprint.saju_core.anchorTopic,'strength');
+ const refs=optional.properties.basis.properties.refs.items.enum;
  assert(refs.includes('facts.seasonalEvidence'),'season must be an allowed provider reference');
  const build=(refs)=>({chapters:{saju_core:{title:'기본 풀이',keyJudgment:'계산된 계절의 역할',
   mood:'reflective',paragraphs:{temperament:{
    basis:{refs,interpretation:'월지의 계절을 일간과 비교',condition:'전환월은 따로 확인',
     limit:'강약의 전체 결론은 알 수 없음'},
    label:'월령과 계절',text:'월지와 일간의 관계는 계절 맥락에서 설명합니다.'},
-   strength:null}}}});
+   strength:{basis:{refs:['natal.month.stem','natal.month.hidden.'+packet.facts.structuralEvidence.monthCommand.mainHiddenStem],
+    interpretation:'달의 두 위치가 보여주는 전통적 의미',condition:'새 일을 시작하는 가상 상황',limit:'실제 행동은 관찰되지 않음'},
+    label:'월간과 중심 글자',text:'계산된 두 전통적 의미를 하나의 기질 풀이로 연결합니다.'}}}}});
  assert.doesNotThrow(()=>generation.restoreEvidence(build(['facts.seasonalEvidence','facts.qiEvidence','natal.month.stem']),prompt));
  assert.throws(()=>generation.restoreEvidence(build(['facts.qiEvidence','natal.month.stem']),prompt),
   /missing required month seasonal source/);
