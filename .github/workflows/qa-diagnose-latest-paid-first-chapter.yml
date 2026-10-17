@@ -77,7 +77,7 @@ jobs:
           // Seal only this pre-existing first chapter to a local ephemeral review key.
           const crypto=require('node:crypto'),path=require('node:path');
           const pub=crypto.createPublicKey({key:Buffer.from(
-            'MCowBQYDK2VuAyEAuFEg2YxvSs73OIogZEEShHvazVR8sdMyM7/O49UmLXg=','base64'),
+            'MCowBQYDK2VuAyEAvAq+nQuZOKhyj4QQCd+9SJN8UXJDeWZctPNHZ4sIcW8=','base64'),
             format:'der',type:'spki'});
           const eph=crypto.generateKeyPairSync('x25519');
           const shared=crypto.diffieHellman({privateKey:eph.privateKey,publicKey:pub});
