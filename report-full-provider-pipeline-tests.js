@@ -70,7 +70,10 @@ function bodyResponse(p,strict){
       condition:'정해진 선택을 검토하는 가정 상황입니다.',
       limit:'개인의 실제 행동을 확인한 기록이 아니며 구체적 사건을 예언하지 않습니다.'},
      label,text:nouns[id]+'에서는 한 가지 계산상의 차이를 확인합니다. 이 분류를 활용하는 예를 들면 새로운 선택 앞에서 어떤 자료를 먼저 살필지 고민하는 장면입니다. '+(id==='saju_core'&&topic==='strength'?
-      '낯선 정보를 자기 방식으로 이해하는 관점과 필요한 자원을 찾아 활용하는 관점을 함께 고려한다는 가상의 해석입니다. ':'')+
+      require('./qa/core-meaning-mock').fromKinds([
+       chapter.topics.strength.evidenceFocus.tenGodFocus.monthStem.tenGod,
+       chapter.topics.strength.evidenceFocus.tenGodFocus.monthMainHidden.tenGod
+      ]):'')+
       '다만 이 설명은 입력된 자료의 전통적인 뜻을 시험하기 위한 문장으로 특정 사람의 경험을 확인한 것은 아닙니다.'};
    }
   }

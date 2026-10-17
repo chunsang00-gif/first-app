@@ -143,6 +143,19 @@ genuinePairedMeaning.sections[0].body=[
 assert(!grounding.inspect(genuinePairedMeaning,realCorePacket).blockingErrors.includes(
  'saju_core:month-pair-meaning-missing-from-main-paragraph'),
  'both authentic monthly meanings may be expressed in plain Korean');
+// Copying a correct frozen conclusion alone cannot pass as paid prose.
+const pastedVerdict=structuredClone(absentPairedMeaning);
+pastedVerdict.sections[0].body[0]+=' '+pastedVerdict.sections[0].keyJudgment;
+assert(grounding.inspect(pastedVerdict,realCorePacket).blockingErrors.includes(
+ 'saju_core:main-paragraph-merely-repeats-locked-judgment'));
+const verdictOnly=structuredClone(genuinePairedMeaning);
+verdictOnly.sections[0].body[0]=verdictOnly.sections[0].keyJudgment;
+assert(grounding.inspect(verdictOnly,realCorePacket).blockingErrors.includes(
+ 'saju_core:main-paragraph-merely-repeats-locked-judgment'));
+const expandedVerdict=structuredClone(genuinePairedMeaning);
+expandedVerdict.sections[0].body[0]=expandedVerdict.sections[0].keyJudgment+' '+genuinePairedMeaning.sections[0].body[0];
+assert(!grounding.inspect(expandedVerdict,realCorePacket).blockingErrors.includes(
+ 'saju_core:main-paragraph-merely-repeats-locked-judgment'));
 const onlyLearning=structuredClone(genuinePairedMeaning);
 onlyLearning.sections[0].body=['낯선 정보를 자기 방식으로 이해하고 정리하는 태도에 관한 해석입니다. 새로운 업무를 배울 때 정보를 살펴볼 수 있습니다.'];
 assert(grounding.inspect(onlyLearning,realCorePacket).blockingErrors.includes(
@@ -645,7 +658,7 @@ for(const a of ['I','E'])for(const b of ['S','N'])for(const c of ['T','F'])for(c
   assert.deepEqual(Object.keys(p.analysisGuidance.chapterTasks),Array.from(p.requestedSections));
   assert.equal(p.analysisGuidance.mbtiReference.type,'ISFP');
   assert.equal(p.analysisGuidance.mbtiReference.preferences.map(x=>x.code).join(''),'ISFP');
-  return {sections:p.requestedSections.map(id=>({id,title:'제목',keyJudgment:'핵심',evidence:['계산한 사주 항목의 설명입니다.'],bodyTopics:Object.keys(outline.topics[id]),bodyLabels:Object.keys(outline.topics[id]).map((_,i)=>'검증 항목 '+i),body:Object.keys(outline.topics[id]).map((topic,i)=>'첫 번째 결론 '+i+'. 이어지는 설명입니다.'+(id==='saju_core'&&topic==='strength'?' '+require('./report-core-thesis').forPrompt(p).keyJudgment:''))}))};
+  return {sections:p.requestedSections.map(id=>({id,title:'제목',keyJudgment:'핵심',evidence:['계산한 사주 항목의 설명입니다.'],bodyTopics:Object.keys(outline.topics[id]),bodyLabels:Object.keys(outline.topics[id]).map((_,i)=>'검증 항목 '+i),body:Object.keys(outline.topics[id]).map((topic,i)=>'첫 번째 결론 '+i+'. 이어지는 설명입니다.'+(id==='saju_core'&&topic==='strength'?' '+require('./qa/core-meaning-mock').body(p):''))}))};
  });
  // The mock intentionally contains placeholder evidence and no cover.
  // Never mistake completed provider calls for a publishable report.
@@ -670,7 +683,7 @@ for(const a of ['I','E'])for(const b of ['S','N'])for(const c of ['T','F'])for(c
     id,title:'제목',keyJudgment:'직접 실행으로 연결합니다.',
     evidence:['계산한 사주 항목의 설명입니다.'],bodyTopics:Object.keys(outline.topics[id]),
     bodyLabels:Object.keys(outline.topics[id]).map((_,i)=>'검증 항목 '+i),
-    body:Object.keys(outline.topics[id]).map(topic=>'문장입니다.'+(id==='saju_core'&&topic==='strength'?' '+require('./report-core-thesis').forPrompt(p).keyJudgment:''))
+    body:Object.keys(outline.topics[id]).map(topic=>'문장입니다.'+(id==='saju_core'&&topic==='strength'?' '+require('./qa/core-meaning-mock').body(p):''))
    }))};
   }),
   /reader-facing editorial defects/
@@ -685,7 +698,7 @@ for(const a of ['I','E'])for(const b of ['S','N'])for(const c of ['T','F'])for(c
    id,title:'서로 다른 제목 '+id,keyJudgment:'논리적인 근거를 확인하고 설명을 납득해야 결정합니다.',
    evidence:['원국의 일간 계산 근거 '+id],bodyTopics:Object.keys(outline.topics[id]),
    bodyLabels:Object.keys(outline.topics[id]).map((_,i)=>'검증 항목 '+i),
-   body:Object.keys(outline.topics[id]).map((topic,i)=>'서로 다른 주제 '+id+i+'에서 논리와 근거를 확인하고 설명에 납득해야 합니다.'+(id==='saju_core'&&topic==='strength'?' '+require('./report-core-thesis').forPrompt(p).keyJudgment:''))
+   body:Object.keys(outline.topics[id]).map((topic,i)=>'서로 다른 주제 '+id+i+'에서 논리와 근거를 확인하고 설명에 납득해야 합니다.'+(id==='saju_core'&&topic==='strength'?' '+require('./qa/core-meaning-mock').body(p):''))
   }))};
  }),/cross-chapter recycled thesis/);
  assert.equal(preflightCalls,3);

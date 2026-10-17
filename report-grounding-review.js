@@ -47,6 +47,17 @@ function inspect(report,packet=null){
     blockingErrors.push('saju_core:month-pair-meaning-source-unavailable');
    else if([...new Set(kinds)].some(k=>!coreMonthMeaningWords[k].test(mainText)))
     blockingErrors.push('saju_core:month-pair-meaning-missing-from-main-paragraph');
+   // A copied, locked key judgment is not an independently reasoned body.
+   // Check the remainder after removing exact repetitions of that sentence.
+   const summary=String(section.keyJudgment||'').trim();
+   if(summary.length>=25&&mainText.includes(summary)){
+    const remainder=mainText.split(summary).join(' ').trim();
+    const separateMeanings=[...new Set(kinds)].every(k=>
+     coreMonthMeaningWords[k]&&coreMonthMeaningWords[k].test(remainder));
+    const independentLength=remainder.replace(/[\s\p{P}\p{S}]/gu,'').length;
+    if(independentLength<65||!separateMeanings)
+     blockingErrors.push('saju_core:main-paragraph-merely-repeats-locked-judgment');
+   }
   }
   const judgment=String(section.keyJudgment||'').trim();
   const judgmentSentences=judgment.split(/(?<=[.!?。！？])\s+|\n+/)
