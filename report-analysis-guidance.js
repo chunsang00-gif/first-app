@@ -287,14 +287,19 @@ function preflight(packet){
  for(const [id,plan] of Object.entries(plans)){
   const entries=Object.entries(plan.topicTasks);
   const anchored=entries.find(([,t])=>t.mode==='use-primary')||entries.find(([,t])=>t.mode==='use-verified-fallback');
-  plan.anchorTopic=anchored?.[0]||null;
+  // A premium core must be anchored in its ACTUAL month-position ten-god
+  // interpretation, not the weaker seasonal background. If season adds no
+  // independent insight, its paragraph is nullable rather than paid filler.
+  const coreAnchor=id==='saju_core'&&plan.topicTasks.strength.mode==='use-primary'
+   ?['strength',plan.topicTasks.strength]:null;
+  plan.anchorTopic=coreAnchor?.[0]||anchored?.[0]||null;
   plan.activeTopicKeys=entries.filter(([,t])=>t.mode!=='state-limits').map(([key])=>key);
   plan.hasGroundedTopic=!!anchored;
   // These chapter-level fields are DERIVED from final topic eligibility,
   // never cached from the initial, broader evidence candidates.
   plan.evidencePresent=plan.hasGroundedTopic;
-  plan.requiredMode=anchored
-   ?(anchored[1].mode==='use-verified-fallback'?'use-fallback-with-limits':'explain-with-limits')
+  plan.requiredMode=(coreAnchor||anchored)
+   ?((coreAnchor||anchored)[1].mode==='use-verified-fallback'?'use-fallback-with-limits':'explain-with-limits')
    :'state-insufficient-evidence';
   plan.fallbackEvidencePaths=[...new Set(entries
    .filter(([,t])=>t.mode==='use-verified-fallback')

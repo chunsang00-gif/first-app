@@ -385,8 +385,8 @@ function forTopic(contrast,topic,allowedIds){
   points,readerReasoning,
   ...(sourceAudit?{sourceAudit}:{}),
   readerQuestion:topic==='temperament'?
-   '내 기본 기질을 전통적으로 어떻게 해석하며 어느 실제 근거에서 나오는가?':
-   '기본 기질의 풀이를 뒷받침하거나 주의해서 읽게 하는 조건은 무엇인가?',
+   '핵심 풀이에서 독립적으로 더할 출생 계절·겉글자 조건이 있는가? 없다면 이 선택 문단은 작성하지 않는다.':
+   '태어난 달의 겉글자와 중심 숨은 글자의 실제 전통적 의미로 무엇을 기질의 중심에 읽고, 어떤 조건에서 유리하거나 불리한가?',
   internalEvidenceRole:topic==='temperament'?
    '계절과 겉글자 관계의 계산 근거로만 전통적 기본 기질을 해석':
    '태어난 달의 겉글자와 중심 숨은 글자의 십성 분류가 기본 해석 근거다. 뿌리·충은 추가 보조 검증 근거일 뿐 성격 강도로 확정하지 않음',

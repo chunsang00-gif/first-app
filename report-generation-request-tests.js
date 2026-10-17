@@ -312,7 +312,8 @@ const schema=require('./report-schema.json');
   assert.deepEqual(Object.keys(slots[anchor].properties),['basis','label','text']);
   assert(!Object.hasOwn(t.properties.chapters.properties[id].properties,'evidence'));
   const fields=t.properties.chapters.properties[id].properties;
-  chapters[id]={title:fields.title.enum?.[0]||'검증 제목',keyJudgment:fields.keyJudgment.enum?.[0]||'검증 판단',mood:'reflective',paragraphs:Object.fromEntries(Object.keys(plan.topicTasks).map(topic=>[topic,topic===anchor?{basis:{refs:id==='mbti_contradiction'?['person.mbti','natal.month.stem']:id==='saju_core'?['facts.seasonalEvidence','facts.qiEvidence','natal.month.stem']:['natal.month.stem'],interpretation:'해당 계산에 관한 전통적 해석',condition:'새 일을 맡는 상황',limit:'실제 행동을 관찰한 자료는 아님'},label:'검증 소제목',text:'뜻과 이유를 충분히 설명하는 검증 문장입니다.'}:null]))};
+  const main=payload.source['facts.structuralEvidence.monthCommand']?.mainHiddenStem;
+  chapters[id]={title:fields.title.enum?.[0]||'검증 제목',keyJudgment:fields.keyJudgment.enum?.[0]||'검증 판단',mood:'reflective',paragraphs:Object.fromEntries(Object.keys(plan.topicTasks).map(topic=>[topic,topic===anchor||(id==='saju_core'&&topic==='temperament')?{basis:{refs:id==='mbti_contradiction'?['person.mbti','natal.month.stem']:id==='saju_core'?(topic==='strength'?['natal.month.stem','natal.month.hidden.'+main]:['facts.seasonalEvidence','facts.qiEvidence','natal.month.stem']):['natal.month.stem'],interpretation:'해당 계산에 관한 전통적 해석',condition:'새 일을 맡는 상황',limit:'실제 행동을 관찰한 자료는 아님'},label:'검증 소제목',text:'뜻과 이유를 충분히 설명하는 검증 문장입니다.'}:null]))};
  }
  const raw={chapters,cover:null,finalJudgment:null};
  const restored=generation.restoreEvidence(raw,prompt);
@@ -405,17 +406,16 @@ const schema=require('./report-schema.json');
  limitedPrompt.analysisGuidance.editorialBlueprint.saju_core.topicTasks.temperament.mode='state-limits';
  const ungrounded=structuredClone(raw);
  assert.throws(()=>generation.restoreEvidence(ungrounded,limitedPrompt),/missing verified paragraph basis/);
- const limitedBasis=ungrounded.chapters.saju_core.paragraphs.temperament.basis;
- limitedBasis.refs=null;limitedBasis.interpretation=null;limitedBasis.condition=null;
- assert.doesNotThrow(()=>generation.restoreEvidence(ungrounded,limitedPrompt));
- const wrongLimit=structuredClone(ungrounded);
- wrongLimit.chapters.saju_core.paragraphs.temperament.basis.refs=['natal.month.stem'];
- assert.throws(()=>generation.restoreEvidence(wrongLimit,limitedPrompt),/missing verified paragraph basis/);
+ const omitted=structuredClone(raw);
+ omitted.chapters.saju_core.paragraphs.temperament=null;
+ assert.doesNotThrow(()=>generation.restoreEvidence(omitted,limitedPrompt));
+ assert.deepEqual(wire.decode(generation.restoreEvidence(omitted,limitedPrompt),limitedPrompt)
+  .sections.find(x=>x.id==='saju_core').bodyTopics,['strength']);
  const limitedSchema=generation.schema(limitedPrompt,wire.schemaFor(limitedPrompt,schema));
- const limitedField=limitedSchema.properties.chapters.properties.saju_core.properties.paragraphs.properties.temperament.properties.basis;
- assert.equal(limitedField.properties.refs.type,'null','not even a valid citation is allowed when evidence is insufficient');
- assert.equal(limitedField.properties.interpretation.type,'null','do not invent an interpretation with missing evidence');
- assert.equal(limitedField.properties.condition.type,'null','do not invent a supporting condition');
+ const limitedField=limitedSchema.properties.chapters.properties.saju_core.properties.paragraphs.properties.temperament;
+ assert.equal(limitedField.type,'null','optional seasonal topic must be null without independent evidence');
+ assert.equal(limitedSchema.properties.chapters.properties.saju_core.properties.paragraphs.properties.strength.type,'object',
+  'core traditional ten-god interpretation stays mandatory');
  const synthesis={...prompt,stage:'synthesis',requestedSections:[],
   completedReport:{sections:wire.decode(restored,prompt).sections},
   rules:{...prompt.rules,finalEditingTask:'본문의 실제 근거에서 중복 없는 결론을 선별하고 사용자의 과거를 창작하지 않는다.'}};

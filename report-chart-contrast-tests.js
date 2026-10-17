@@ -148,16 +148,23 @@ for(const input of cases){
   title:fixedThesis.title,keyJudgment:fixedThesis.keyJudgment+' 분석이 필요합니다.'},p),
   /violated grounded first-chapter/);
 
- const seasonText=paragraphs.temperament.properties.text.description;
- const paired=paragraphs.strength.anyOf?.find(x=>x.type==='object')||
-  paragraphs.strength;
+ assert.equal(blueprint.saju_core.anchorTopic,'strength',
+  'actual month position interpretation must anchor the paid first chapter');
+ assert.equal(paragraphs.strength.type,'object',
+  'month ten-god interpretation must not be nullable');
+ assert(paragraphs.temperament.anyOf?.some(x=>x.type==='null'),
+  'seasonal background must be omitted when it adds no independent insight');
+ const season=paragraphs.temperament.anyOf.find(x=>x.type==='object');
+ const seasonText=season.properties.text.description;
+ const paired=paragraphs.strength;
  const pairedText=paired.properties.text.description;
  assert(chapterSchema.title.description.includes('조건부 기질 해석의 핵심'));
  assert(chapterSchema.keyJudgment.description.includes('자연스러운 한국어 한 문장'));
- assert(paragraphs.temperament.properties.label.description.includes('계절과 겉에 확인된 오행'));
+ assert(season.properties.label.description.includes('독립적인 계절·겉글자 조건'));
  assert(paired.properties.label.description.includes('두 의미를 함께 풀이한 결론'));
- assert(seasonText.includes('기술 강의로 만들지 않는다')&&
-  seasonText.includes('가상의 장면')&&
+ assert(seasonText.includes('기술 강의')&&
+  seasonText.includes('가상 장면')&&
+  seasonText.includes('null로 반환한다')&&
   !seasonText.includes('출생월의 본기만으로 실제 적응력이'));
  const scenarioFromFacts=contrasts.forTopic(contrast,'temperament',[])?.readerReasoning?.hypotheticalQuestion;
  assert(seasonText.includes(scenarioFromFacts),
@@ -226,10 +233,11 @@ for(const input of cases){
  }
  const strictOwn=wire.schemaFor(p,require('./report-schema.json'))
   .properties.chapters.properties.saju_core.properties.paragraphs.properties;
- const secondSlot=strictOwn.strength.anyOf?.find(x=>x.type==='object')||strictOwn.strength;
- assert(strictOwn.temperament.properties.text.description.includes(ownFirst.readerConclusion));
+ const firstSlot=strictOwn.temperament.anyOf.find(x=>x.type==='object');
+ const secondSlot=strictOwn.strength;
+ assert(firstSlot.properties.text.description.includes(ownFirst.readerConclusion));
  assert(secondSlot.properties.text.description.includes(ownSecond.readerConclusion));
- assert(!strictOwn.temperament.properties.text.description.includes(ownSecond.readerConclusion));
+ assert(!firstSlot.properties.text.description.includes(ownSecond.readerConclusion));
  assert(!secondSlot.properties.text.description.includes(ownFirst.readerConclusion));
  const corrupted=structuredClone(request);
  corrupted.task.chapters.saju_core.topics.temperament.evidenceFocus.claimOwnership=
