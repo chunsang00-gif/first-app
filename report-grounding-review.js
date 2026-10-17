@@ -45,6 +45,7 @@ function inspect(report,packet=null){
    const kinds=[verified?.monthStem?.tenGod,verified?.monthMainHidden?.tenGod];
    if(kinds.some(k=>!coreMonthMeaningWords[k]))
     blockingErrors.push('saju_core:month-pair-meaning-source-unavailable');
+   if(packet?.person?.mbti==='INFP') console.log('QA_DIAGNOSTIC_MONTH_LENSES',kinds.map(k=>({kind:k,found:Boolean(coreMonthMeaningWords[k].test(mainText))})),{topicIndex:strengthIndex,topics:section.bodyTopics,length:mainText.length});
    else if([...new Set(kinds)].some(k=>!coreMonthMeaningWords[k].test(mainText)))
     blockingErrors.push('saju_core:month-pair-meaning-missing-from-main-paragraph');
   }
