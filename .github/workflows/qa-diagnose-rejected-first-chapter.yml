@@ -177,5 +177,14 @@ jobs:
             ephemeralPublic:ephemeral.publicKey.export({format:'der',type:'spki'}).toString('base64'),
             nonce:nonce.toString('base64'),tag:cipher.getAuthTag().toString('base64'),
             ciphertext:sealed.toString('base64')};
-          console.log('PRIVATE_REVIEW_ENVELOPE='+Buffer.from(JSON.stringify(envelope)).toString('base64'));
+          fs.writeFileSync(require('node:path').join(process.env.RUNNER_TEMP,'sealed-review.json'),
+            JSON.stringify(envelope),{encoding:'utf8',mode:0o600,flag:'wx'});
+          console.log('Private reader report sealed to one-time X25519 recipient; no plaintext logging.');
           NODE
+      - name: Upload ONLY ephemeral public-key-encrypted review
+        uses: actions/upload-artifact@v4
+        with:
+          name: offline-first-chapter-review-sealed
+          path: ${{ runner.temp }}/sealed-review.json
+          retention-days: 1
+          if-no-files-found: error
