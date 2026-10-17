@@ -21,6 +21,15 @@ function inspect(report,packet=null){
    .map(x=>x.trim()).filter(Boolean);
   if(judgmentSentences.length>1)
    blockingErrors.push('saju_core:key-judgment-not-one-sentence');
+  // Paid first-chapter QA: a headline that merely describes natal calendar
+  // symbols does not answer the reader's question about their tendencies.
+  // This is deliberately narrow: factual context belongs in the BODY;
+  // a headline mentioning the season alongside an actual choice is allowed.
+  const chartOnlyHeadline=/^(?:이\s*사주는|태어난\s*달(?:은|이|의|에서)|출생\s*월(?:은|이|의|에서))/.test(judgment)&&
+    /(?:계절|전환기|태어|겉글자|기운|사주|관계|달|오행)/.test(judgment)&&
+    !/(?:결정|선택|거절|바꾸|확인한\s*뒤|다시\s*살펴|먼저\s*살펴|의견|맡은\s*일|판단한\s*뒤)/.test(judgment);
+  if(chartOnlyHeadline)
+   blockingErrors.push('saju_core:key-judgment-is-chart-description-only');
   // This is NOT a word ban. Fail only a self-contained definition of
   // a calculated SYMBOL, with no customer-facing inference in the sentence.
   // Naming 'calculation' in a meaningful interpretation remains permitted.
