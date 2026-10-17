@@ -5,6 +5,8 @@ on:
       - fix-paid-qa-fact-bindings-20261014
     paths:
       - .github/workflows/offline-review-existing-premium.yml
+      - review-existing-first-chapter.js
+      - review-existing-first-chapter.test.js
   workflow_dispatch:
 permissions:
   contents: read
@@ -21,6 +23,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Regression test with synthetic fixture (NO model requests)
+        run: node review-existing-first-chapter.test.js
       - name: Fetch the exact existing encrypted QA artifact (NO model requests)
         uses: actions/download-artifact@v4
         with:
