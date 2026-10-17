@@ -212,15 +212,32 @@ function monthlyTraditionalReading(month){
   evidenceLimit:'위 tentativeThesis는 실제 고객 행동을 입증한 것이 아니라 전통적 해석 가설의 문장 예시다. 본문에는 부정문·면책 문구를 반복하지 말고 필요할 때만 한계를 짧게 밝힌다. 같은 분류 두 개를 성향이 두 배 강하다고 주장하거나 서로 다른 분류 두 개를 내적 갈등으로 확정하지 않는다. 실제로 그렇게 생각하거나 행동했다는 관찰·심리검사·미래 예언이 아니다.'
  };
 }
+// The principal month hidden-stem category selects the *type* of imagined
+// situation; the visible month category contributes its independently
+// calculated decision question. Previously all 100 possible pairs were
+// forced into "preparing a new job", making paid prose repetitive.
+const TEN_GOD_SCENE={
+ 비견:'함께하는 활동에서 맡을 일을 나눌',
+ 겁재:'공동 물품이나 예산의 몫을 정할',
+ 식신:'구상한 결과물을 실제로 만들',
+ 상관:'기존 방식 대신 다른 아이디어를 제안할',
+ 정재:'한 달의 반복 지출을 계획할',
+ 편재:'필요한 물건과 재료를 여러 곳에서 마련할',
+ 정관:'정해진 절차에 따라 역할을 맡을',
+ 편관:'예상치 못한 부탁의 책임 범위를 정할',
+ 정인:'누군가의 설명을 듣고 새로운 내용을 배울',
+ 편인:'낯선 자료를 읽고 뜻을 정리할'
+};
 function monthHypothetical(visibleKind,mainKind,sameClassification){
  const first=TEN_GOD_DECISION[visibleKind],second=TEN_GOD_DECISION[mainKind];
- if(!first||!second)throw Error('Missing verified month ten-god everyday question');
- // This slot is a PLAIN-KOREAN hypothetical, with no secret source tags or
- // ten-god names. Exact labels and origins stay in tenGodFocus / sourceAudit /
- // reasoningTask. The writer must never copy internal audit text to readers.
+ const scene=TEN_GOD_SCENE[mainKind];
+ if(!first||!second||!scene)throw Error('Missing verified month ten-god everyday question');
+ // These are hypothetical, not the person's real work, spending, behavior,
+ // ability or biography. All labels and source IDs stay internal.
+ const startingPoint='가상의 상황: '+scene+' 때 ';
  return sameClassification?
-  '가상의 상황: 새로운 일을 준비하면서 '+first+'를 결정해야 한다고 가정한다. 같은 분류가 두 계산 위치에 있음을 풀이하되 그 사람이 실제로 그렇게 행동하거나 두 배로 강하다고 말하지 않는다.':
-  '가상의 상황: 새로운 일을 준비하면서 '+first+'와 '+second+'를 함께 고민한다고 가정한다. 이 두 선택 조건을 실제 확인된 출생 위치의 전통적 의미에 연결하되 내부 질문을 그대로 문답 형식으로 옮기거나 실제 경험·내적 갈등으로 단정하지 않는다.';
+  startingPoint+first+'를 결정해야 한다고 가정한다. 같은 분류가 두 계산 위치에 있음을 풀이하되 그 사람이 실제로 그렇게 행동하거나 두 배로 강하다고 말하지 않는다.':
+  startingPoint+first+'와 '+second+'를 함께 고민한다고 가정한다. 이 두 선택 조건을 실제 확인된 출생 위치의 전통적 의미에 연결하되 내부 질문을 그대로 문답 형식으로 옮기거나 실제 경험·내적 갈등으로 단정하지 않는다.';
 }
 function readerQuestions(contrast,topic){
  const points=contrast.contrastPoints||[];
@@ -317,7 +334,7 @@ function readerQuestions(contrast,topic){
      '두 출생 위치의 서로 다른 전통 뜻 확인 → 그 뜻을 한 가지 조건부 기질 해석으로 연결 → 가상의 한 선택에서 유리한 조건과 놓치기 쉬운 조건을 각각 설명',
     advantageQuestion:monthTenGod.sameClassification?
      '같은 뜻을 지닌 두 출처가 있는 사주를 읽을 때 확인할 수 있는 전통적 질문은 무엇인가?':
-     '두 전통적 의미를 연결해서 가상의 새 일을 준비하는 데 어떤 유리한 조건을 설명할 수 있는가?',
+     '두 전통적 의미를 연결해서 위 가상 상황의 어떤 유리한 조건을 설명할 수 있는가?',
     riskQuestion:monthTenGod.sameClassification?
      '같은 상징이 두 번 나온다는 이유로 능력·성격의 강도를 두 배로 단정하면 왜 오류인가?':
      '두 전통적 의미 중 한쪽만 풀이하면 가상의 선택에서 어떤 주의할 조건이 빠지는가? 고객이 원래 그런 행동을 한다고 단정하지 않는다.',
@@ -403,4 +420,4 @@ function forTopic(contrast,topic,allowedIds){
    '월의 계절·전환 조건과 실제 겉글자의 관계를 readerQuestion에 연결한다. 숨은 십성이나 뿌리·충을 이 문단의 필수 주제로 추가하지 않는다. 내부 계산표를 독자용 글에 옮기지 않고 전통적 질문과 의미를 쉬운 상황으로 풀이한다. 검증 한계는 basis.limit에 기록하고 개인의 능력과 행동을 단정하지 않는다.':
    '먼저 tenGodFocus.monthStem과 tenGodFocus.monthMainHidden의 실제 십성 분류와 전통적 의미, 두 출처의 elementLink에 확인된 오행 관계를 readerQuestion에 연결한다. 월간과 월지 본기는 다른 출처이며 같더라도 거짓 갈등을 만들지 않는다. sourceAudit와 points는 내부 출처·계산 검증용이며 독자에게 뿌리·충 근거를 이 문단의 해석에 추가하지 않는다. 실제 확인된 명리 상징이 허용하는 기질 해석과 그 조건을 쉬운 가상 상황으로 풀고, 실제 성격·능력·사건은 지어내지 않는다. 한계는 basis.limit에 기록한다. 제목과 문단 라벨에 뿌리·충·통근·월지 등 기술 용어를 내세우지 않으며 내부 참조 ID와 한자는 독자에게 복사하지 않는다.'};
 }
-module.exports={build,forTopic,firstChapterClaimOwnership,TOPIC_POINTS};
+module.exports={build,forTopic,firstChapterClaimOwnership,TOPIC_POINTS,monthHypothetical,TEN_GOD_SCENE};

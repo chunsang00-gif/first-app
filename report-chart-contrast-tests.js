@@ -414,8 +414,12 @@ for(const input of cases){
  assert.deepEqual(request.task.chapters.saju_core.topics.strength.evidenceFocus.readerReasoning.readerValuePlan,
   monthReaderPlan,'the actual billable provider must receive EXACT month-dependent tradeoff questions');
  const scenario=strength.readerReasoning.hypotheticalQuestion;
- assert(scenario.includes('새로운 일을 준비')&&scenario.includes('가상의 상황'),
-  'first-chapter reader must get a recognizable decision scenario');
+ const mainKind=strength.tenGodFocus.monthMainHidden.tenGod;
+ assert(scenario.includes('가상의 상황')&&
+  scenario.includes(contrasts.TEN_GOD_SCENE[mainKind]+' 때'),
+  'first-chapter situation must be selected from its actual main monthly category');
+ assert(!scenario.includes('새로운 일을 준비하면서'),
+  'one stock job-preparation scenario must not overwrite distinct computed categories');
  assert(!/(?:내부 출처|natal\\.|basis\\.|지장간|십성|편인|정인|정재|편재|비견|겁재|식신|상관|정관|편관)/.test(scenario),
   'plain Korean scene must not carry technical source-audit text');
  assert(strength.tenGodFocus.monthStem.tenGod&&strength.tenGodFocus.monthMainHidden.tenGod,

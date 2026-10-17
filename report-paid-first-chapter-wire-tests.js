@@ -73,6 +73,11 @@ let fetches=0,rawRequest=null,upstreamPrompt=null;
   const firstText=firstSlot.properties.text.description;
   const secondSlot=slots.strength;
   const secondText=secondSlot.properties.text.description;
+  assert(second.evidenceFocus.readerReasoning.hypotheticalQuestion.includes(
+   require('./report-chart-contrast').TEN_GOD_SCENE[second.evidenceFocus.tenGodFocus.monthMainHidden.tenGod]),
+   'real paid request must carry the category-specific imagined situation');
+  assert(secondText.includes('모든 사주에 새 일을 준비하는 같은 예시를 쓰지 않는다'),
+   'real provider schema must forbid the universal job-preparation example');
   const heading=coreSchema.title.description,summary=coreSchema.keyJudgment.description;
   const fixed=require('./report-core-thesis').forPrompt(upstreamPrompt);
   assert.deepEqual(coreSchema.title.enum,[fixed.title]);
