@@ -9,6 +9,8 @@ on:
       - review-existing-first-chapter.test.js
       - report-first-chapter-fact-consistency.js
       - report-first-chapter-fact-consistency.test.js
+      - report-grounding-review.js
+      - report-editorial-tests.js
   workflow_dispatch:
 permissions:
   contents: read
