@@ -331,7 +331,8 @@ const schema=require('./report-schema.json');
  const mixed=structuredClone(raw);
  mixed.chapters.saju_core.paragraphs.temperament.basis.refs=['natal.month.stem','person.mbti'];
  assert.throws(()=>generation.restoreEvidence(mixed,prompt),/unrelated paragraph basis/);
- const allowed=t.properties.chapters.properties.saju_core.properties.paragraphs.properties.temperament.properties.basis.properties.refs.items.enum;
+ const optionalSeason=t.properties.chapters.properties.saju_core.properties.paragraphs.properties.temperament.anyOf.find(s=>s.type==='object');
+ const allowed=optionalSeason.properties.basis.properties.refs.items.enum;
  // The paid first-chapter question is the MONTH'S actual ten-god pair.
  // The previous provider response cited facts.stemConnections without all
  // matching roots; the optional data was irrelevant to this reader question.
