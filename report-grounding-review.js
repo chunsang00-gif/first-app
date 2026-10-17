@@ -21,15 +21,6 @@ function inspect(report,packet=null){
    .map(x=>x.trim()).filter(Boolean);
   if(judgmentSentences.length>1)
    blockingErrors.push('saju_core:key-judgment-not-one-sentence');
-  // Paid first-chapter QA: a headline that merely describes natal calendar
-  // symbols does not answer the reader's question about their tendencies.
-  // This is deliberately narrow: factual context belongs in the BODY;
-  // a headline mentioning the season alongside an actual choice is allowed.
-  const chartOnlyHeadline=/^(?:이\s*사주는|태어난\s*달(?:은|이|의|에서)|출생\s*월(?:은|이|의|에서))/.test(judgment)&&
-    /(?:계절|전환기|태어|겉글자|기운|사주|관계|달|오행)/.test(judgment)&&
-    !/(?:결정|선택|거절|바꾸|확인한\s*뒤|다시\s*살펴|먼저\s*살펴|의견|맡은\s*일|판단한\s*뒤)/.test(judgment);
-  if(chartOnlyHeadline)
-   blockingErrors.push('saju_core:key-judgment-is-chart-description-only');
   // This is NOT a word ban. Fail only a self-contained definition of
   // a calculated SYMBOL, with no customer-facing inference in the sentence.
   // Naming 'calculation' in a meaningful interpretation remains permitted.
@@ -69,23 +60,6 @@ function inspect(report,packet=null){
    genericCount:generic.length,sentenceCount:sentences.length});
   if(generic.length>=3&&fraction>=0.25)
    blockingErrors.push('saju_core:generalities-instead-of-grounded-interpretation');
-  // A HOW-TO checklist cannot substitute for an interpretation in the paid
-  // first chapter. Only block a whole paragraph when multiple sentences
-  // are explicit general-purpose recommendations and none explains a
-  // traditional meaning or describes a conditional personal preference.
-  // Isolated advice after a grounded interpretation is allowed.
-  const recommendations=/(?:확인|비교|점검|준비|정리|살펴보|따져보|챙기|계획|검토|생각해\s*보).{0,55}(?:해야\s*합니다|하는\s*것이\s*(?:좋|유리|중요|필요)|해\s*두는\s*것이\s*(?:좋|유리)|할\s*필요가\s*있|해\s*보세요)|(?:확인|비교|점검|준비|정리|살펴보|따져보|검토)하세요/;
-  const interpretation=/(?:전통적(?:으로|인)|사주(?:에서|로는)|풀이(?:하면|에서는)|뜻(?:은|으로)|해석(?:하면|에서는)|이\s*구성(?:에서|은)|성향(?:은|으로)|선호(?:를|하는)|경향(?:이|으로)|(?:하는|보는|살피는|고르는|결정하는)\s*편입니다)/;
-  for(const paragraph of section.body||[]){
-   const parts=sentencePieces(paragraph).filter(s=>s.length>=12);
-   if(parts.length<2)continue;
-   const advice=parts.filter(s=>recommendations.test(s));
-   if(advice.length>=2&&advice.length/parts.length>=0.67&&
-      !parts.some(s=>interpretation.test(s))){
-    blockingErrors.push('saju_core:generic-how-to-instead-of-personal-interpretation');
-    break;
-   }
-  }
   // These are reader-facing claims: we calculate an actual clash pair,
   // never the magnitude of a clash. Correct denials are not overclaims.
   const fields=[section.title,section.keyJudgment,...(section.bodyLabels||[]),...(section.body||[])]

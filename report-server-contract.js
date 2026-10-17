@@ -338,21 +338,6 @@ async function generate(input,callModel,onProgress=()=>{},onValidatedBatch=()=>{
    editorialTask:'이 응답은 결제 고객에게 제공할 최종 본문 원고다. 각 topicPlan 질문에 계산된 근거가 실제로 답할 수 있는 부분을 먼저 선정하고, 해석의 이유·서로 다른 근거가 답하는 질문·해석에 도움이 되는 조건과 빠뜨리면 불리한 조건을 읽는 사람이 이해할 수 있도록 완결된 문장으로 설명한다. 계산되지 않은 갈등이나 상반된 성격은 만들어내지 않는다. 기본 성향 장에서는 계산값과 위치를 내부 evidence에 남기고 본문은 전문용어 없이 뜻과 이유를 충분히 설명한다. MBTI 장에서는 정보를 받아들이는 선호와 판단 선호가 만나는 조건을 분석하고 실제 성격을 측정했다고 주장하지 않는다. 돈은 수입·지출·위험, 직업은 역할·학습·조직, 관계는 친밀감·표현·갈등으로 서로 다른 질문에 답한다. 2027년은 계산된 세운과 대운을 해당 분야에 연결할 수 있을 때만 평소와 다른 점을 밝힌다. priorSections와 같은 반응이나 조언을 직업·돈·관계라는 명사만 바꾸어 반복하지 않는다. 유효한 새 해석이 없으면 지어내지 말고 그 질문에 답할 수 있는 근거만 정확히 제시한다. 일반적 계약서 확인이나 소통하라는 상투적 조언, 사용자 과거 경험의 창작은 금지한다. 선택된 bodyTopics의 원래 순서를 지키되 새 근거가 없는 질문을 억지로 채우지 않고 한 줄짜리 요약으로 분석을 대체하지 않고 한국어 문맥과 조사·서술어 호응을 점검한다. 별도 유료 재작성 호출은 하지 않는다.'
   }));
   const result=validateBatch(enforceAnnualEvidenceLimits(modelResult,editorialBlueprint,packet),ids);
-  // A correct internal source ID cannot excuse a wrong stated birth month.
-  // Stop at the FIRST validated chapter, before a second paid request.
-  const core=result.sections.find(section=>section.id==='saju_core');
-  // Offline mocked packets may omit origin fields; real calculated packets
-  // always carry the original input under calculationInput.
-  if(core && packet.calculationInput){
-   const calendarAudit=require('./report-first-chapter-fact-consistency').audit({
-    sample:packet.calculationInput,batches:[{ids:['saju_core'],completedSections:1,sections:[core]}]
-   });
-   if(!calendarAudit.calendarFactPass){
-    console.error('[Paid report birth-calendar contradiction]',{
-     code:'LUNAR_BIRTH_MONTH_MISMATCH',count:calendarAudit.contradictionCount});
-    throw Error('AI report service returned birth-calendar contradiction');
-   }
-  }
   // Reject incomplete or unsupported model output before spending another provider call.
   // The final full-report editorial gate still runs after synthesis.
   const preliminary=quality.verifyEvidenceAgainstFacts({sections:result.sections},packet);

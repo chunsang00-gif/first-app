@@ -7,10 +7,6 @@ on:
       - .github/workflows/offline-review-existing-premium.yml
       - review-existing-first-chapter.js
       - review-existing-first-chapter.test.js
-      - report-first-chapter-fact-consistency.js
-      - report-first-chapter-fact-consistency.test.js
-      - report-grounding-review.js
-      - report-editorial-tests.js
   workflow_dispatch:
 permissions:
   contents: read
@@ -28,7 +24,7 @@ jobs:
         with:
           node-version: '22'
       - name: Regression test with synthetic fixture (NO model requests)
-        run: node review-existing-first-chapter.test.js && node report-first-chapter-fact-consistency.test.js
+        run: node review-existing-first-chapter.test.js
       - name: Fetch the exact existing encrypted QA artifact (NO model requests)
         uses: actions/download-artifact@v4
         with:

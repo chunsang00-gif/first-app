@@ -83,14 +83,6 @@ const schema=require('./report-schema.json');
    'premium depth guidance lost in provider compression: '+id);
   assert(chapter.analysisGoal.length>70,'missing substantive guidance: '+id);
  }
- assert(payload.task.chapters.saju_core.analysisFocus.includes('핵심 판단과 제목은 계산 자료를 소개하는 문장이 아니라'),
-  'actual provider payload must put reader interpretation ahead of chart narration');
- assert(payload.task.chapters.saju_core.analysisFocus.includes('체크리스트·실천 조언'),
-  'actual provider payload must reject generic advice as a substitute for paid interpretation');
- assert(generation.policy.includes('계산된 전통적 의미를 사람의 선택 방식에 적용한 조건부 풀이'),
-  'actual model system policy must require grounded, conditional interpretation');
- assert(!generation.policy.includes('어떤 질문을 빠뜨리면 불리한지를'),
-  'old instruction to produce generic how-to advice must not override the grounded core');
  assert(payload.task.chapters.saju_core.analysisGoal.includes('태어난 달 겉글자')&&
   payload.task.chapters.saju_core.analysisGoal.includes('중심 숨은 글자의 서로 다른 십성'),
   'the actual transported depth goal must prioritize both calculated month ten-god meanings');

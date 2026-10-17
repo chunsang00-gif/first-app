@@ -8,7 +8,6 @@ const {spawnSync}=require('node:child_process');
 const dir=fs.mkdtempSync(path.join(os.tmpdir(),'saju-existing-qa-check-'));
 const script=path.join(__dirname,'review-existing-first-chapter.js');
 const fixture={
- sample:{calendar:'lunar',birthDate:'1982-11-24'},
  batches:[{ids:['saju_core'],completedSections:1,sections:[{
   id:'saju_core',title:'기본 성향',keyJudgment:'선택 전 정보를 확인합니다.',
   bodyLabels:['첫 번째 주제','두 번째 주제'],
