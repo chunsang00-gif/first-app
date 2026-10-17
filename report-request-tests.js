@@ -125,7 +125,8 @@ const {createQueue,retryDelay,rateLimitKind}=require('./report-request-control')
   for(const [id,chapter] of Object.entries(canonicalPlan)){
    const tasks=Object.entries(chapter.topicTasks);
    const expectedAnchor=tasks.find(([,t])=>t.mode==='use-primary')||tasks.find(([,t])=>t.mode==='use-verified-fallback');
-   assert.equal(chapter.anchorTopic,expectedAnchor?.[0]||null,'chapter anchor must be derived from available evidence: '+id);
+   const coreFirst=id==='saju_core'&&chapter.topicTasks.strength.mode==='use-primary'?'strength':expectedAnchor?.[0]||null;
+   assert.equal(chapter.anchorTopic,coreFirst,'chapter anchor must be evidence-backed, with the main month reading first: '+id);
    assert.deepEqual(chapter.activeTopicKeys,tasks.filter(([,t])=>t.mode!=='state-limits').map(([k])=>k),'only grounded topics may be active: '+id);
    assert.equal(chapter.hasGroundedTopic,!!expectedAnchor,'preflight gate must agree with model plan: '+id);
   }
