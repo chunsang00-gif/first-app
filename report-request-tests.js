@@ -302,7 +302,7 @@ assert.equal(p.stage,'body');assert.equal(p.priorSections.length,expectedBatches
  let duplicatedEvidenceCalls=0;
  await assert.rejects(contract.generate({calendar:'solar',birthDate:'1990-06-15',unknownBirthTime:true,gender:'male',mbti:'INFP'},async prompt=>{
   duplicatedEvidenceCalls++;
-  return {sections:prompt.requestedSections.map(id=>({id,title:'본문 증거 검증',keyJudgment:'설명한 내용을 검토합니다.',bodyTopics:Object.keys(outline.topics[id]),bodyLabels:Object.keys(outline.topics[id]).map((_,i)=>'검증 항목 '+i),body:Object.keys(outline.topics[id]).map(()=> '서로 다른 질문에 답하는 검증 문장입니다.'),evidence:['사주 계산값을 살펴보고 명리학의 위치를 확인한 검증용 근거 문장입니다.']}))};
+  return {sections:prompt.requestedSections.map(id=>({id,title:'본문 증거 검증',keyJudgment:'설명한 내용을 검토합니다.',bodyTopics:Object.keys(outline.topics[id]),bodyLabels:Object.keys(outline.topics[id]).map((_,i)=>'검증 항목 '+i),body:Object.keys(outline.topics[id]).map(topic=> '서로 다른 질문에 답하는 검증 문장입니다.'+(id==='saju_core'&&topic==='strength'?' '+require('./report-core-thesis').forPrompt(prompt).keyJudgment:'')),evidence:['사주 계산값을 살펴보고 명리학의 위치를 확인한 검증용 근거 문장입니다.']}))};
  }),/repeated chapter evidence/);
  assert.equal(duplicatedEvidenceCalls,1,'duplicate evidence in first batch must not incur further provider calls');
  let emptyCalls=0;await assert.rejects(contract.generate({calendar:'solar',birthDate:'1990-06-15',unknownBirthTime:true,gender:'male',mbti:'INFP'},async()=>{emptyCalls++;return {sections:[]}}));assert.equal(emptyCalls,1);
