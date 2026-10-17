@@ -67,7 +67,7 @@ function schemaFor(prompt,reportSchema){
   // basis exists, the anchor must explain the specific limit, not invent behavior.
   const title=visible(section.title),judgment=visible(section.keyJudgment);
   const roles=id==='saju_core'?coreReaderRoles(prompt):null;
-  if(roles){
+  if(roles&&prompt.stage==='body'){
    const fixed=require('./report-core-thesis').forPrompt(prompt);
    if(!fixed)throw Error('Missing verifiable core thesis for provider schema');
    // A one-value enum is supported by strict JSON Schema. Unlike prose
@@ -88,7 +88,7 @@ function decode(value,prompt){
  if(!value?.chapters||typeof value.chapters!=='object')throw Error('AI report service returned invalid report structure');
  const sections=prompt.requestedSections.map(id=>{
   const s=value.chapters[id];if(!s?.paragraphs)throw Error('AI report service returned invalid report structure');
-  if(id==='saju_core')require('./report-core-thesis').assertDecoded(s,prompt);
+  if(id==='saju_core'&&prompt.stage==='body')require('./report-core-thesis').assertDecoded(s,prompt);
   const plan=prompt.analysisGuidance?.editorialBlueprint?.[id];
   const anchor=plan?.anchorTopic;
   if(anchor&&(!s.paragraphs[anchor]||typeof s.paragraphs[anchor].text!=='string'||!s.paragraphs[anchor].text.trim()||typeof s.paragraphs[anchor].label!=='string'||!s.paragraphs[anchor].label.trim()))throw Error('AI report service missing planned evidence anchor: '+id+':'+anchor);
