@@ -226,11 +226,31 @@ for(const input of cases){
  assert.deepEqual(ownFirst,contrasts.firstChapterClaimOwnership(contrast,'temperament'));
  assert.deepEqual(ownSecond,contrasts.firstChapterClaimOwnership(contrast,'strength'));
  assert.equal(ownFirst.overlappingMonthLearning,ownSecond.overlappingMonthLearning);
+ const actualMonth=strength.tenGodFocus;
+ const meaning=require('./report-chart-contrast').forTopic(contrast,'strength',[]);
+ assert.deepEqual(ownSecond,meaning.claimOwnership);
+ // The old prompt always asked EVERY chart to discuss 'learning + resource
+ // use' even when neither had actually been calculated. This is a real
+ // source-to-interpretation bug, not a cosmetic change.
+ const realFirst=actualMonth.monthStem.tenGod,realSecond=actualMonth.monthMainHidden.tenGod;
+ const resourcePair=['정인','편인'].includes(realFirst)&&['정재','편재'].includes(realSecond);
+ if(!resourcePair){
+  assert(!ownFirst.reservedForOtherParagraph.includes('월지 본기의 자원 활용 의미'));
+  assert(!ownSecond.readerConclusion.includes('겉글자의 정보 이해·배움 의미와 중심 숨은 글자의 자원 활용 의미'));
+ }
+ if(realFirst===realSecond){
+  assert(ownSecond.readerConclusion.includes('같은 뜻이 두 곳에 있다고'));
+  assert(!ownSecond.readerConclusion.includes('서로 다른'));
+ }else{
+  assert(ownSecond.readerConclusion.includes('한 가지 조건부 기질 풀이로 연결'));
+ }
+ assert(!ownFirst.reservedForOtherParagraph.includes('월지 본기의 자원 활용 의미'));
  if(ownFirst.overlappingMonthLearning){
   assert(ownFirst.readerConclusion.includes('외부에서 지원을 받을 수 있는 조건'));
   assert(!ownFirst.readerConclusion.includes('정보 이해·배움 의미'));
-  assert(ownSecond.readerConclusion.includes('정보 이해·배움 의미'));
   assert(ownSecond.readerConclusion.includes('외부 지원 조건을 다시 설명하지 않는다'));
+  assert(ownSecond.readerConclusion.includes(strength.tenGodFocus.monthStem.meaning)||
+   ownSecond.readerConclusion.includes('새로운 정보를 자기 방식으로 해석하고 이해하는 태도'));
  }
  const strictOwn=wire.schemaFor(p,require('./report-schema.json'))
   .properties.chapters.properties.saju_core.properties.paragraphs.properties;

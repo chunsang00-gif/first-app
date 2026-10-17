@@ -35,9 +35,9 @@ function coreReaderRoles(prompt){
  const firstParagraphBoundary=seasonal?.readerValuePlan?.distinctFromMonthPair||null;
  return {
   temperament:{
-   label:'핵심 사주풀이에 더할 독립적인 계절·겉글자 조건이 실제로 확인될 때만 짧게 소제목을 쓴다. 기본 기질의 결론이나 월간·월지의 배움·자원 해석을 되풀이한다면 이 항목 전체를 null로 반환한다.'+
+   label:'핵심 사주풀이에 더할 독립적인 계절·겉글자 조건이 실제로 확인될 때만 짧게 소제목을 쓴다. 기본 기질의 결론이나 월간·월지의 필수 핵심 해석을 되풀이한다면 이 항목 전체를 null로 반환한다.'+
     (firstParagraphBoundary?' 이 입력에서는 외부에서 받을 수 있는 도움의 조건을 첫 문단 제목으로 구별한다.':''),
-   text:'이 항목은 핵심 사주풀이를 다시 작성하는 자리가 아니다. 계절·겉글자의 계산 사실이 필수 핵심 풀이에서 다루지 않은 별도 해석 조건을 명확히 더할 때만 작성한다. 실제로 더할 조건이 없으면 null로 반환한다. 계절 분류나 출생 글자의 뜻만 나열한 기술 강의와 같은 배움·자원 설명의 반복은 작성하지 않는다. 근거가 분명한 경우에만 가상 장면 하나에 연결한다. '+
+   text:'이 항목은 핵심 사주풀이를 다시 작성하는 자리가 아니다. 계절·겉글자의 계산 사실이 필수 핵심 풀이에서 다루지 않은 별도 해석 조건을 명확히 더할 때만 작성한다. 실제로 더할 조건이 없으면 null로 반환한다. 계절 분류나 출생 글자의 뜻만 나열한 기술 강의와 필수 핵심 기질 해석의 반복은 작성하지 않는다. 근거가 분명한 경우에만 가상 장면 하나에 연결한다. '+
     (seasonal?.hypotheticalQuestion?'이 입력에서 확인된 관계에 맞춘 가상의 장면: '+seasonal.hypotheticalQuestion+' ':'')+
     (firstParagraphBoundary?'이 입력의 서로 다른 문단 역할: '+firstParagraphBoundary+' ':'')+
     claimBrief(firstClaim)+

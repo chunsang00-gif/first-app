@@ -337,6 +337,11 @@ function firstChapterClaimOwnership(contrast,topic){
  const combined=(visible?.support||[]).concat(visible?.counter||[]);
  const overlaps=combined.some(x=>x.relation==='resource')&&
   ['편인','정인'].includes(month?.monthStem?.tenGod);
+ const firstKind=month?.monthStem?.tenGod,secondKind=month?.monthMainHidden?.tenGod;
+ const firstReading=TEN_GOD_READING[firstKind],secondReading=TEN_GOD_READING[secondKind];
+ if(!firstReading||!secondReading)
+  throw Error('No verified per-chart month meaning available for core claim ownership');
+ const same=firstKind===secondKind;
  if(topic==='temperament')return {
   version:'core-reader-claim-ownership-v1',
   claimIds:['seasonal-context','visible-five-element-relationship'],
@@ -345,7 +350,9 @@ function firstChapterClaimOwnership(contrast,topic){
   readerConclusion:overlaps?
    '계절과 겉에 확인된 도움 관계를 바탕으로 외부에서 지원을 받을 수 있는 조건과 범위만 해석한다. 실제 지원을 받았다고 단정하지 않는다.':
    '계절과 겉으로 드러난 오행 관계가 전통적으로 설명하는 조건만 해석한다. 실제 성격이나 능력을 확정하지 않는다.',
-  reservedForOtherParagraph:'월간 십성에서 유래하는 정보 이해·배움의 방식과 월지 본기의 자원 활용 의미는 두 번째 문단에서만 풀이한다.',
+  reservedForOtherParagraph:'태어난 달의 겉글자에서 확인된 '+firstReading+
+   (same?'가 두 출처에 함께 있는 뜻':'와 중심 숨은 글자에서 확인된 '+secondReading)+
+   '은 필수 핵심 문단의 해석이다. 계절 설명에 복사하거나 실제 행동으로 단정하지 않는다.',
   visibleHeadline:overlaps?'도움이 가능한 조건과 범위':'계절과 겉글자에서 읽는 기질의 조건'
  };
  if(topic==='strength')return {
@@ -353,11 +360,13 @@ function firstChapterClaimOwnership(contrast,topic){
   claimIds:['month-stem-ten-god-reading','principal-hidden-stem-ten-god-reading','month-pair-element-relation'],
   sharedFactId:'natal.month.stem',
   overlappingMonthLearning:overlaps,
-  readerConclusion:overlaps?
-   '태어난 달 겉글자의 정보 이해·배움 의미와 중심 숨은 글자의 자원 활용 의미를 연결해 해석한다. 첫 문단의 외부 지원 조건을 다시 설명하지 않는다.':
-   '태어난 달 겉글자 십성과 중심 숨은 글자 십성의 실제 차이와 연결 조건만 해석한다.',
-  reservedForOtherParagraph:'계절 분류와 겉글자 도움·압박 조건을 둘째 문단의 별도 성향 해석으로 반복하지 않는다.',
-  visibleHeadline:overlaps?'정보를 이해하는 관점과 자원 활용':'같은 달의 두 위치를 함께 읽는 기질'
+  readerConclusion:(same?
+   '태어난 달의 두 계산 위치에서 확인된 '+firstReading+'를 출처별로 구분해 풀이한다. 같은 뜻이 두 곳에 있다고 성격이나 능력이 두 배 강하다고 단정하지 않는다.':
+   '태어난 달 겉글자의 '+firstReading+'와 중심 숨은 글자의 '+secondReading+
+    '를 한 가지 조건부 기질 풀이로 연결한다.')+
+   (overlaps?' 첫 문단의 외부 지원 조건을 다시 설명하지 않는다.':''),
+  reservedForOtherParagraph:'계절과 겉글자의 오행 관계는 실제 확인된 경우에만 선택적 첫 문단에서 보충한다. 없는 지원이나 압박 조건을 만들어 반복하지 않는다.',
+  visibleHeadline:same?'두 위치의 같은 전통 분류':'태어난 달 두 위치의 다른 전통 의미'
  };
  throw Error('Unsupported first-chapter claim ownership: '+topic);
 }
