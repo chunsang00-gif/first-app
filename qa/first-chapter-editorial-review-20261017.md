@@ -24,3 +24,19 @@
 - **아무 생성 코드·명리 계산·품질 게이트도 변경하지 않는다.** 이번 기록은 원인 확인용 품질 판정서다.
 - **다음 단일 단계:** 기존 첫 장의 *실제로 모델에 전송되는 지침* 중, 왜 해석보다 '전통적 질문'과 일반 조언을 생성하게 하는지 충돌·중복 부분을 읽기 전용으로 추적한다. 원인이 단일 지점으로 확인되기 전에는 수정하지 않는다.
 - 판매 준비 상태: **NOT APPROVED**. 다음 유료 모델 호출 금지(별도 명시 승인 전).
+
+## 4단계 — 실제 AI 전송 경로의 원인 추적 (읽기 전용, 생성 코드 변경 없음)
+
+**원문에 등장한 '두 전통적 질문을 구별하라'와 보편적 선택 조언은 우연한 결과로만 보이지 않는다. 실제 생성 요청이 동일한 구조를 반복해 모델에 전달하고 있었다.** 이는 원문 오류의 강한 *설계상 원인 후보*이며, 한 모델 호출만으로 모든 원인의 인과를 확정한 것은 아니다.
+
+1. `report-outline.js`의 `topics.saju_core.strength`: 고객의 장단점보다 **"겉글자와 중심 숨은 글자는 각각 무엇을 의미하고"**라고 질문한다. 같은 정의가 `report-analysis-guidance.preflight()`에서 `topicTasks.strength.question`이 된다.
+2. `report-analysis-guidance.js`의 `chapters.saju_core.focus`: 둘째 문단에서 두 십성이 **"서로 다른 선택 질문을 만드는지 비교"**하라고 한다. `forRequest()`가 이를 내보내며, `report-generation-request.compile()`에서 `task.chapters.saju_core.analysisFocus`로 AI에 전달한다.
+3. `report-chart-contrast.js`의 `readerQuestions('strength')`: `contrastQuestion`은 **"전통적 질문을 어떻게 함께 읽는가?"**, `interpretivePayoff`는 **"각각 다른 선택의 질문"**, `readerValuePlan.customerSequence`는 **"첫 질문과 둘째 질문을 각각 적용"**, `advantageQuestion`은 **"두 질문을 모두 검토"**로 쓰였다. 이 단계는 원래 십성의 전통적 뜻을 안전하게 구별하려는 내부 계획인데, `forTopic()` → `compile()`의 `topic.evidenceFocus`로 **독자용 원고 생성 요청까지 그대로 전달**한다.
+4. `report-generation-request.js`의 실제 모델 `policy`: `evidenceFocus.readerReasoning.readerValuePlan`을 **고객에게 제공할 상황별 질문**으로 적용하라고 하고, 뒤이어 **"어떤 질문을 빠뜨리면 불리한지"** 설명하라고 한다. `server.js`의 `callOpenAI()`는 이 `policy`를 system message, `compile()` 결과를 user message로 전송한다. 이는 선언만 된 오래된 지침이 아니라 실제 호출 경로다.
+5. `report-server-contract.js`의 `editorialTask`: **"서로 다른 근거가 답하는 질문"** 및 **"빠뜨리면 불리한 조건"**을 요구한다. `compile()`의 `task.editorialGoal`로 전송된다. 반면 동일 요청의 `report-prompt.js` `sectionGoals.saju_core`는 **"전통적 기질 해석을 먼저", "상투적 조언 금지"**를 요구한다. **한 요청 안에서 '해석 먼저'와 '전통적 질문/일반 선택 검토 먼저'가 경쟁**한다.
+
+**중요한 구분:** `report-server-contract.js`의 `planningInstruction`은 `compile()`에서 버려져 실제 작성 요청에 실리지 않는다. 로그가 많아 보인다는 이유로 이 비전송 지침부터 고치는 것은 잘못된 작업이다.
+
+**4단계 결과:** 증상을 유발하는 단일 정규식이 아니라 **`strength` 항목의 질문식 편집 계획이 여러 실제 전송 필드에 중복되는 구조**를 발견했다. 기존 계산식·필수 인용 근거·출력 JSON 구조를 변경할 근거는 없다. 
+
+**다음 단계의 수정 범위 원칙:** 사용자용 분석을 '질문 두 개 소개'로 만들지 않도록 **이미 계산된 동일한 월간·월지 본기의 전통적 의미를 유지하면서, 독자에게 먼저 한 가지 개인별 조건부 해석과 근거·유불리의 연결을 쓰게 하는 지시만 최소한으로 정리**한다. 어느 하나의 파일만 바꾸면 다른 전송 필드가 그대로 충돌할 수 있으므로, 단순히 문장 한 줄을 치환했다고 해결됐다고 선언하지 않는다. 수정 전후의 실제 `compile()` 전송 계약과 무료 테스트를 확인하고, **기존 유료 샘플을 통과하도록 검사 기준을 완화하거나 유료 API를 반복 호출하지 않는다.**
