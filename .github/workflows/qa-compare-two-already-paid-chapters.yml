@@ -1,0 +1,91 @@
+name: Compare TWO archived paid first chapters (NO NEW API)
+on:
+  push:
+    branches: [fix-paid-qa-fact-bindings-20261014]
+    paths: [.github/workflows/qa-compare-two-already-paid-chapters.yml]
+permissions:
+  contents: read
+  actions: read
+jobs:
+  archive-comparison:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Fetch ORIGINAL paid rejection (no model call)
+        uses: actions/download-artifact@v4
+        with:
+          name: premium-first-chapter-qa-encrypted
+          repository: chunsang00-gif/first-app
+          run-id: 38994773780
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/before
+      - name: Fetch NEW paid rejection (no model call)
+        uses: actions/download-artifact@v4
+        with:
+          name: premium-first-chapter-qa-encrypted
+          repository: chunsang00-gif/first-app
+          run-id: 39000723800
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/after
+      - name: Securely decrypt then seal both raw text responses for private editorial review
+        shell: bash
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          set -euo pipefail
+          umask 077
+          mkdir -p "$RUNNER_TEMP/before-private" "$RUNNER_TEMP/after-private"
+          trap 'rm -rf "$RUNNER_TEMP/before" "$RUNNER_TEMP/after" "$RUNNER_TEMP/before-private" "$RUNNER_TEMP/after-private"' EXIT
+          node report-qa-secure-archive.js decrypt "$RUNNER_TEMP/before/premium-first-chapter-qa.enc" "$RUNNER_TEMP/before-private"
+          node report-qa-secure-archive.js decrypt "$RUNNER_TEMP/after/premium-first-chapter-qa.enc" "$RUNNER_TEMP/after-private"
+          node - <<'NODE'
+          const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
+          function extract(stage,dir){
+            const file=path.join(process.env.RUNNER_TEMP,dir,'private-qa-first-chapter-provider-calls.json');
+            const record=JSON.parse(fs.readFileSync(file,'utf8'));
+            if(record.calls?.length!==1)throw Error(stage+': archived call count is not exactly one');
+            const call=record.calls[0],chapter=call.response?.chapters?.saju_core;
+            if(!chapter?.keyJudgment||!chapter?.paragraphs)throw Error(stage+': missing real paid chapter');
+            const review={stage,title:chapter.title,keyJudgment:chapter.keyJudgment,paragraphs:chapter.paragraphs,
+              modelInputCore:call.request?.task?.chapters?.saju_core,
+              modelPolicyVersion:call.request?.version,
+              referencedSourceFacts:{}};
+            const refs=[...new Set(Object.values(chapter.paragraphs||{}).flatMap(p=>p?.basis?.refs||[]))];
+            for(const id of refs)review.referencedSourceFacts[id]=call.request?.source?.[id]||null;
+            return review;
+          }
+          const reviewed=[extract('before','before-private'),extract('after','after-private')];
+          const publicKey=crypto.createPublicKey({key:Buffer.from(
+            'MCowBQYDK2VuAyEApW2ScTx5PsyOi1ycFOZT1dU7AfzmeclUu8ln1IgUeCs=','base64'),
+            format:'der',type:'spki'});
+          if(publicKey.asymmetricKeyType!=='x25519')throw Error('Encryption recipient invalid');
+          const ephemeral=crypto.generateKeyPairSync('x25519');
+          const secret=crypto.diffieHellman({privateKey:ephemeral.privateKey,publicKey});
+          const key=Buffer.from(crypto.hkdfSync('sha256',secret,
+            Buffer.from('saju-paid-chapter-comparison-20261017'),
+            Buffer.from('read-only-two-archived-calls'),32));
+          const nonce=crypto.randomBytes(12);
+          const cipher=crypto.createCipheriv('aes-256-gcm',key,nonce);
+          const data=Buffer.concat([cipher.update(Buffer.from(JSON.stringify(reviewed),'utf8')),cipher.final()]);
+          const output={
+            format:'qa-comparison-x25519-aes256gcm-v1',
+            ephemeralPublicKey:ephemeral.publicKey.export({format:'der',type:'spki'}).toString('base64'),
+            nonce:nonce.toString('base64'),tag:cipher.getAuthTag().toString('base64'),
+            ciphertext:data.toString('base64')};
+          fs.writeFileSync('qa-dual-chapter-compare.sealed.json',JSON.stringify(output),{mode:0o600,flag:'wx'});
+          console.log('ARCHIVED_REPORTS_SEALED_FOR_PRIVATE_REVIEW',reviewed.map(x=>({
+            stage:x.stage,paragraphCount:Object.values(x.paragraphs).filter(Boolean).length,
+            judgmentLength:x.keyJudgment.length})));
+          console.log('OpenAI calls from this workflow: 0. No decrypted text in logs.');
+          NODE
+      - name: Upload 1-day encrypted review payload only
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa-dual-chapter-compare-encrypted
+          path: qa-dual-chapter-compare.sealed.json
+          retention-days: 1
+          if-no-files-found: error
