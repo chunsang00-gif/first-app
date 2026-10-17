@@ -382,7 +382,9 @@ for(const input of cases){
    temperament.readerReasoning.hypotheticalQuestion),
    'first paragraph should not preempt the paired second question');
   const focusedSchema=require('./report-wire').schemaFor(p,require('./report-schema.json'));
-  const first=focusedSchema.properties.chapters.properties.saju_core.properties.paragraphs.properties.temperament;
+  const optional=focusedSchema.properties.chapters.properties.saju_core.properties.paragraphs.properties.temperament;
+  const first=optional.anyOf.find(x=>x.type==='object');
+  assert(optional.anyOf.some(x=>x.type==='null'));
   assert(first.properties.text.description.includes(seasonReaderPlan.distinctFromMonthPair),
    'the real provider schema must actually receive the meaning-separation directive');
   assert(first.properties.label.description.includes('도움의 조건'));
