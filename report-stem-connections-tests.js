@@ -78,7 +78,8 @@ for(const input of [
  assert.deepEqual(payload.source['facts.stemConnections'],exact);
  const outputSchema=writer.schema(prompt,wire.schemaFor(prompt,schema));
  const slots=outputSchema.properties.chapters.properties.saju_core.properties.paragraphs.properties;
- const seasonRefs=slots.temperament.properties.basis.properties.refs.items.enum;
+ assert.equal(blueprint.saju_core.anchorTopic,'strength');
+ const seasonRefs=slots.temperament.anyOf.find(x=>x.type==='object').properties.basis.properties.refs.items.enum;
  const strengthRefs=(slots.strength.anyOf?.find(x=>x.type==='object')||slots.strength)
   .properties.basis.properties.refs.items.enum;
  assert(!seasonRefs.includes('facts.stemConnections'));
