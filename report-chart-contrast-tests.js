@@ -350,18 +350,18 @@ for(const input of cases){
  assert.equal(traditional.second.sourceId,'natal.month.hidden.'+mc.mainHiddenStem);
  assert.equal(traditional.second.tenGod,mc.mainHiddenStemTenGod);
  assert(traditional.first.reading&&traditional.second.reading);
- assert(traditional.tentativeThesis.includes(traditional.first.reading)&&
-   (!contrast.monthTenGodContext.sameClassification||traditional.tentativeThesis.includes(traditional.second.reading)));
- assert(!/(?:쓰지 않는다|단정하지 않는다|확정하지 않는다|검토하라)/.test(traditional.tentativeThesis),
-  'model copyable interpretive thesis must not combine interpretation with editing prohibitions');
- assert(traditional.editorialDuty.includes('무엇을 확인하라는 보편적 조언만 써서 끝내지 않는다'));
- assert(traditional.evidenceLimit.includes('실제로 그렇게 생각하거나 행동했다는 관찰'));
+ // Keep real provenance, but exclude duplicated draft headlines and meta-prose.
+ for(const field of ['tentativeThesis','editorialDuty','evidenceLimit'])
+  assert(!Object.hasOwn(traditional,field),'paid provider received redundant editorial prose: '+field);
  const coreWire=require('./report-wire').schemaFor(p,require('./report-schema.json'));
  const writtenStrength=coreWire.properties.chapters.properties.saju_core.properties.paragraphs
   .properties.strength;
  const coreStrength=(writtenStrength.anyOf||[writtenStrength]).find(x=>x.type==='object');
- assert(coreStrength.properties.text.description.includes(traditional.tentativeThesis),
-  'billable writer MUST get the ACTUAL month reading rather than an unrelated general example');
+ assert([traditional.first.reading,traditional.second.reading].every(
+  meaning=>coreStrength.properties.text.description.includes(meaning)),
+  'billable writer must receive both REAL month-position readings');
+ assert(!/작성 목적:|해석의 범위:/.test(coreStrength.properties.text.description),
+  'response schema must not include a draft editorial plan or repeated disclaimer');
  assert(coreWire.properties.chapters.properties.saju_core.properties.keyJudgment.description
   .includes('생활 조언이나 자료 분석 계획만으로 대체하지 않는다'));
  assert(coreWire.properties.chapters.properties.saju_core.properties.keyJudgment.description
