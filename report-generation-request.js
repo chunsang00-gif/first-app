@@ -178,6 +178,30 @@ function compile(prompt){
      topicMbtiLens(chapterId,topicId,source['person.mbti']):null;
    }
   }
+  // The only purpose of this batch is Saju core: do not show the writer
+  // unrelated roots, clashes, annual events, MBTI or other natal positions
+  // that its output schema forbids citing. Keep full calculated facts in the
+  // original packet for every other chapter; the contract is unchanged.
+  if(prompt.requestedSections.length===1&&prompt.requestedSections[0]==='saju_core'){
+   const core=task.chapters.saju_core;
+   const allowed=new Set(Object.values(core.topics).flatMap(topic=>
+    (topic.citableFacts||[]).map(row=>row.id)));
+   if(!allowed.has('natal.month.stem')||
+      ![...allowed].some(id=>id.startsWith('natal.month.hidden.'))||
+      !allowed.has('facts.structuralEvidence.monthCommand'))
+    throw Error('QA_CORE_SOURCE_SCOPE_MISSING_REQUIRED_MONTH_PROVENANCE');
+   payload.source=Object.fromEntries([...allowed].map(id=>{
+    if(!Object.hasOwn(source,id))throw Error('QA_CORE_SOURCE_SCOPE_UNKNOWN_REF:'+id);
+    return [id,source[id]];
+   }));
+   // Fail closed if trimming background facts changes strict citation enums.
+   for(const [topicId,topic] of Object.entries(core.topics)){
+    const expected=topic.citableFacts.map(row=>row.id);
+    const actual=[...allowedRefs(payload,topic,'saju_core',topicId)];
+    if(JSON.stringify(expected)!==JSON.stringify(actual))
+     throw Error('QA_CORE_SOURCE_SCOPE_CHANGED_CITATIONS:'+topicId);
+   }
+  }
  }
  return payload;
 }

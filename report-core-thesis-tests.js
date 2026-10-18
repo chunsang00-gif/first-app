@@ -17,6 +17,11 @@ for(const input of inputs){
   analysisGuidance:{...guidance.forRequest(['saju_core'],input.mbti),
    editorialBlueprint:{saju_core:plan.saju_core}}};
  const fixed=core.forPrompt(prompt);
+ const scoped=require('./report-generation-request').compile(prompt);
+ const referenced=new Set(Object.values(scoped.task.chapters.saju_core.topics)
+  .flatMap(t=>t.citableFacts.map(row=>row.id)));
+ assert.deepEqual(Object.keys(scoped.source).sort(),[...referenced].sort(),
+  'first-chapter provider must not receive non-citable calculated rows');
  assert.equal(fixed.status,'traditional-reading-not-observed-trait');
  assert(fixed.title.length>=8&&fixed.title.length<=30);
  assert(fixed.keyJudgment.length>=35&&fixed.keyJudgment.length<120);
@@ -44,6 +49,11 @@ assert.equal(sameContrast.monthTenGodContext.sameClassification,true,
 const sameBlueprint=guidance.preflight(samePacket);
 const samePrompt={stage:'body',facts:samePacket,requestedSections:['saju_core'],
  analysisGuidance:{...guidance.forRequest(['saju_core'],sameInput.mbti),editorialBlueprint:{saju_core:sameBlueprint.saju_core}}};
+const samePayload=require('./report-generation-request').compile(samePrompt);
+assert.deepEqual(Object.keys(samePayload.source).sort(),
+ [...new Set(Object.values(samePayload.task.chapters.saju_core.topics)
+  .flatMap(t=>t.citableFacts.map(x=>x.id)))].sort(),
+ 'same-category first-chapter request must not see unrelated calculations');
 const sameSchema=wire.schemaFor(samePrompt,schema).properties.chapters.properties.saju_core.properties;
 const sameRole=sameSchema.paragraphs.properties.strength;
 const sameText=sameRole.properties.text.description;

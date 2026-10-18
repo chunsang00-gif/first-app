@@ -54,6 +54,21 @@ let fetches=0,rawRequest=null,upstreamPrompt=null;
    'exact outgoing strict schema and compressed task must agree');
   const core=user.task.chapters.saju_core;
   const first=core.topics.temperament,second=core.topics.strength;
+  // Exact outgoing paid request: context cannot exceed its citation scope.
+  const chapterRefs=new Set(Object.values(core.topics).flatMap(topic=>
+   topic.citableFacts.map(row=>row.id)));
+  assert.deepEqual(Object.keys(user.source).sort(),[...chapterRefs].sort(),
+   'provider sees only actually citable first-chapter calculated sources');
+  for(const forbidden of ['facts.rootConditions','facts.stemConnections',
+   'facts.natalClashes','facts.annualTenGods','facts.targetYearRelations',
+   'person.mbti','natal.day.stem','natal.hour.stem']){
+   assert(!Object.hasOwn(user.source,forbidden),
+    'unrelated facts must not reach the first-chapter writer: '+forbidden);
+  }
+  assert(chapterRefs.has('facts.seasonalEvidence')&&
+   chapterRefs.has('facts.qiEvidence')&&
+   chapterRefs.has('facts.structuralEvidence.monthCommand'),
+   'valid season/visible/month evidence must remain available');
   // Protect the EXACT outgoing system prompt and fact-bound first-chapter task.
   assert(system.includes('전환월은 진·미·술·축월에 붙이는 명리상의 월지 분류'));
   const seasonalReason=first.evidenceFocus.readerReasoning.reasoningTask;
