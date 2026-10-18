@@ -75,7 +75,9 @@ for(const input of [
   analysisGuidance:{...guidance.forRequest(['saju_core'],packet.person.mbti),
    editorialBlueprint:{saju_core:blueprint.saju_core}}};
  const payload=writer.compile(prompt);
- assert.deepEqual(payload.source['facts.stemConnections'],exact);
+ assert.deepEqual(packet.facts.stemConnections,exact);
+  assert(!Object.hasOwn(payload.source,'facts.stemConnections'),
+   'core writer must not see roots that only the original packet validates');
  const outputSchema=writer.schema(prompt,wire.schemaFor(prompt,schema));
  const slots=outputSchema.properties.chapters.properties.saju_core.properties.paragraphs.properties;
  assert.equal(blueprint.saju_core.anchorTopic,'strength');
@@ -86,7 +88,7 @@ for(const input of [
  assert(!strengthRefs.includes('facts.stemConnections')&&!strengthRefs.includes('facts.rootConditions')&&
   !strengthRefs.includes('facts.structuralEvidence.dayMasterRoots'),
   'paid first chapter must not invite the incomplete optional root evidence seen in real QA');
- const observed=payload.source['facts.stemConnections'].dayMasterRooting.sameElementRoots;
+ const observed=packet.facts.stemConnections.dayMasterRooting.sameElementRoots;
  const monthHidden='natal.month.hidden.'+payload.source['facts.structuralEvidence.monthCommand'].mainHiddenStem;
  const required=['natal.month.stem',monthHidden,'facts.structuralEvidence.monthCommand'];
  const forbidden=['facts.stemConnections','facts.structuralEvidence.dayMasterRoots',
@@ -111,7 +113,8 @@ for(const input of [
  assert(integrity.verify(tampered).errors.includes('incorrect-stem-connections'));
  assert(invariant.verify(tampered,blueprint).errors.includes('calculated-stem-connection-mismatch'));
  assert(!Object.hasOwn(payload.source,'facts.governingDayDiagnostic'));
- assert(payload.source['facts.rootConditions'].dayMasterRootCases);
+ assert(packet.facts.rootConditions.dayMasterRootCases);
+  assert(!Object.hasOwn(payload.source,'facts.rootConditions'));
  const flawed=structuredClone(blueprint);
  flawed.saju_core.topicTasks.strength.requiredSourceKinds=['root-condition'];
  assert(invariant.verify(packet,flawed).errors.includes('missing-canonical-month-ten-god-topic-requirement'));
