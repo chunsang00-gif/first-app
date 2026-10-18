@@ -6,21 +6,17 @@ on:
         description: 'ONE new first-chapter model call. Type RUN_ONE_PAID_SAMPLE to authorize this run.'
         required: true
         type: string
-  # Single user-approved push-only launch. Remove this after the first run.
-  push:
-    branches: [fix-paid-qa-fact-bindings-20261014]
-    paths: [.github/workflows/paid-report-qa.yml]
 permissions:
   contents: read
 jobs:
   report-qa:
-    if: ${{ github.ref_name == 'fix-paid-qa-fact-bindings-20261014' && github.run_attempt == '1' && ((github.event_name == 'workflow_dispatch' && inputs.paid_qa_confirmation == 'RUN_ONE_PAID_SAMPLE') || (github.event_name == 'push' && github.event.head_commit.message == 'paid-core-approved-single-run-20261018-2132-4e91bf0d')) }}
+    if: ${{ github.ref_name == 'fix-paid-qa-fact-bindings-20261014' && inputs.paid_qa_confirmation == 'RUN_ONE_PAID_SAMPLE' }}
     runs-on: ubuntu-latest
     timeout-minutes: 25
     env:
       REPORT_MODEL: ${{ vars.REPORT_MODEL }}
       REPORT_QA_OUTPUT: ${{ github.workspace }}/private-qa-first-chapter.json
-      REPORT_QA_CONFIRM: ${{ github.event_name == 'push' && github.event.head_commit.message == 'paid-core-approved-single-run-20261018-2132-4e91bf0d' && 'RUN_ONE_PAID_SAMPLE' || inputs.paid_qa_confirmation }}
+      REPORT_QA_CONFIRM: ${{ inputs.paid_qa_confirmation }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
