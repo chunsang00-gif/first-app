@@ -416,7 +416,9 @@ for(const input of cases){
    traditional.second.reading==='여러 곳의 자원을 살피고 필요한 곳에 활용하는 태도',
    'paid fixture must receive BOTH individually source-grounded readings without an invented combined draft');
  }
- const monthReaderPlan=strength.readerReasoning.readerValuePlan;
+ // Keep the two separate source-meaning questions only in the private
+ // editorial plan. Their absence in the provider plan is intentional.
+ const monthReaderPlan=meaning.readerReasoning.readerValuePlan;
  // Verify the outgoing brief asks for conditional meanings, not a checklist.
  assert(monthReaderPlan.advantageQuestion.includes('가상 선택')&&
    monthReaderPlan.advantageQuestion.includes('유리하게')&&
