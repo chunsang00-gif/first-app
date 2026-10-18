@@ -36,6 +36,9 @@ assert.throws(()=>contrasts.monthHypothetical('UNKNOWN','편인',false),
  /Missing verified month ten-god everyday question/);
 assert.throws(()=>contrasts.monthHypothetical('편인','UNKNOWN',false),
  /Missing verified month ten-god everyday question/);
+const seasonalGroups=require('./report-seasonal-evidence').MONTH;
+for(const branch of ['辰','未','戌','丑'])
+ assert.equal(seasonalGroups[branch].status,'transition');
 const results=[];
 for(const input of cases){
  const packet=facts.build(input,2027);
@@ -51,6 +54,20 @@ for(const input of cases){
  assert.equal(contrast.monthAndDay.direction,packet.facts.seasonalEvidence.seasonToDayRelation);
  assert.equal(contrast.monthAndDay.transitionUnresolved,
   packet.facts.seasonalEvidence.monthPhase==='transition');
+ const seasonalPlan=contrasts.forTopic(contrast,'temperament',[]);
+ const seasonalReading=seasonalPlan.points.find(p=>p.kind==='month-vs-day').calculatedExplanation;
+ if(contrast.monthAndDay.phase==='transition'){
+  assert(seasonalReading.includes('명리 분류')&&seasonalReading.includes('실제 계절 종료일'),
+   'a transition group does not calculate the end date of a season');
+  assert(seasonalPlan.readerReasoning.reasoningTask.includes('명리상 전환월')&&
+   seasonalPlan.readerReasoning.reasoningTask.includes('양력·음력 새해')&&
+   seasonalPlan.readerReasoning.reasoningTask.includes('절입 직전·직후'),
+   'provider brief must not confuse month branch and calendar transitions');
+ }else{
+  assert(!seasonalReading.includes('실제 계절 종료일')&&
+   !seasonalPlan.readerReasoning.reasoningTask.includes('절입 직전·직후'),
+   'ordinary month must not gain a made-up transition');
+ }
  assert.equal(contrast.factsOnly,true);
  assert(contrast.cannotInfer.includes('day-master-strength'));
  const month=packet.facts.tenGods.month,mc=packet.facts.structuralEvidence.monthCommand;

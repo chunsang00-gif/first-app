@@ -104,7 +104,9 @@ function build(packet){
    calculatedExplanation:'월지는 '+season.monthBranch+'이고 '+SEASON[season.monthSeason]+'의 '+
     (season.monthPhase==='transition'?'전환월':'중심 달')+'로 분류된다. 일간 오행은 '+
     ELEMENT[season.dayElement]+'이고 월지 계절과의 관계는 '+
-    (RELATION[season.seasonToDayRelation]||season.seasonToDayRelation)+'이다.',
+    (RELATION[season.seasonToDayRelation]||season.seasonToDayRelation)+'이다.'+
+     (season.monthPhase==='transition'?
+      ' 이 전환은 진·미·술·축월에 붙이는 명리 분류이며 실제 계절 종료일이나 새해 시작을 판정하지 않는다.':''),
    question:'출생월이 핵심 계절인지 전환월인지, 일간과의 실제 오행 관계가 무엇인지 분명히 설명한다.'},
   {kind:'visible-support-vs-counter',refs:[provenance.qi,...visible.map(x=>x.sourceId)],
    evidence:{support,counter},
@@ -271,10 +273,13 @@ function readerQuestions(contrast,topic){
    relationTypes.includes('output')?
    '의견을 표현하는 가상 상황에서 겉글자의 실제 표현·생산 상징을 전통적으로 어떻게 읽는지 설명한다. 계절 분류와 구별한다.':
    '정보를 살피는 가상 상황에서 실제 확인된 겉글자 관계의 전통적 의미를 구체적으로 설명한다. 없는 반대 관계를 만들어내지 않는다.';
-  const phase=month.phase==='transition'?'전환월':'중심 계절';
+  const phase=month.phase==='transition'?'명리상 전환월':'중심 계절';
+   // The month-branch phase is not a dated season or calendar boundary.
+   const transitionBoundary=month.phase==='transition'?
+    ' 진·미·술·축월의 전환은 명리상의 월지 분류다. 실제 계절이 끝나는 때나 양력·음력 새해로 넘어가는 시점이라는 뜻이 아니다. 절입 직전·직후라는 시점은 별도로 확인된 절기 시각 자료가 있을 때만 설명한다.':'';
   return {
    contrastQuestion:'태어난 달의 '+phase+' 분류와 확인된 겉글자 관계는 함께 읽으면 전통적으로 무엇을 살피게 되는가?',
-   reasoningTask:'출생월은 '+phase+'로 계산됐다. '+observed+
+   reasoningTask:'출생월은 '+phase+'로 계산됐다. '+observed+transitionBoundary+
     ' 계절 배경과 겉글자 각각의 출생 위치를 분리해 확인하고, 확인된 오행 관계의 전통적인 의미와 출생 위치에 따라 달라지는 해석의 출발점을 구체적으로 설명한다. 겉에 없는 지원·압박의 반대 방향이나 월의 숨은 글자가 실제 성격을 만든다고 추가하지 않는다.',
    hypotheticalQuestion:dynamicExample,
    interpretivePayoff:'독자는 출생월의 계절 조건을 실제 성격의 증거로 혼동하지 않고, 겉글자에서 확인된 '+(selectedMeaning||'오행 관계')+'의 전통적인 질문을 생활 속 가정에 적용하는 이유와 선택 기준을 이해한다.',

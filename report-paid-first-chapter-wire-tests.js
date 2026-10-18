@@ -54,6 +54,16 @@ let fetches=0,rawRequest=null,upstreamPrompt=null;
    'exact outgoing strict schema and compressed task must agree');
   const core=user.task.chapters.saju_core;
   const first=core.topics.temperament,second=core.topics.strength;
+  // Protect the EXACT outgoing system prompt and fact-bound first-chapter task.
+  assert(system.includes('전환월은 진·미·술·축월에 붙이는 명리상의 월지 분류'));
+  const seasonalReason=first.evidenceFocus.readerReasoning.reasoningTask;
+  assert(seasonalReason.includes('명리상 전환월')&&
+   seasonalReason.includes('실제 계절이 끝나는 때')&&
+   seasonalReason.includes('양력·음력 새해')&&
+   seasonalReason.includes('절입 직전·직후'));
+  assert(first.evidenceFocus.points.find(p=>p.kind==='month-vs-day')
+   .calculatedExplanation.includes('실제 계절 종료일'),
+   'the lunar 丑 case must not be interpreted as winter end from phase alone');
   // Ensure the actual model request and response field share the updated question.
   const groundedQuestion=require('./report-outline').topics.saju_core.strength;
   assert.equal(second.question,groundedQuestion);
