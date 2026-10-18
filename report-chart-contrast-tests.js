@@ -29,6 +29,13 @@ for(const first of allKinds)for(const main of allKinds){
   !scenario.includes('natal.month')&&!scenario.includes('십성'));
  assert.equal(scenario.includes('같은 분류가 두 계산 위치'),first===main,
   'same-classification scenarios must never invent an opposite trait');
+ if(first!==main){
+  assert(scenario.includes('같은 한 번의 선택')&&
+   scenario.includes('첫 의미만 고려할 때')&&
+   scenario.includes('두 의미를 함께 고려할 때')&&
+   scenario.includes('준비 요령·체크리스트'),
+   'all 90 distinct source pairs must provide one meaning-linked scene, not a question list');
+ }
  assert(!/(?:실제 성격은|실제로 그랬|반드시|성공하게 된다)/.test(scenario),
   'imagined scenes are not personal history or predictions');
 }
