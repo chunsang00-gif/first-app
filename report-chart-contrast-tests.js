@@ -393,6 +393,15 @@ for(const input of cases){
    'paid fixture must receive BOTH individually source-grounded readings without an invented combined draft');
  }
  const monthReaderPlan=strength.readerReasoning.readerValuePlan;
+ // Verify the outgoing brief asks for conditional meanings, not a checklist.
+ assert(monthReaderPlan.advantageQuestion.includes('가상 선택')&&
+   monthReaderPlan.advantageQuestion.includes('유리하게')&&
+   monthReaderPlan.riskQuestion.includes('가상')&&
+   monthReaderPlan.riskQuestion.includes('놓치'),
+   'month reading must explain conditional advantages and disadvantages');
+ assert(!/확인할 수 있는 전통적 질문은|왜 오류인가|어떤 주의할 조건이 빠지는가/.test(
+   monthReaderPlan.advantageQuestion+' '+monthReaderPlan.riskQuestion),
+   'outdated glossary and audit wording must not reach paid writing');
  assert.equal(monthReaderPlan.first.tenGod,month.stemTenGod);
  assert.equal(monthReaderPlan.first.sourceId,'natal.month.stem');
  assert.equal(monthReaderPlan.second.tenGod,mc.mainHiddenStemTenGod);
