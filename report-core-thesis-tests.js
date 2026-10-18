@@ -56,6 +56,23 @@ const qualified='낯선 정보를 자기 방식으로 이해하고 필요한 자
 assert(!grounding.inspect(draft(qualified),actual).blockingErrors.includes(
  'saju_core:main-paragraph-explicitly-reverses-locked-judgment'),
  'lack of observed behavioral evidence is NOT a contradictory traditional reading');
+// A stock example after two glossary definitions must not qualify as paid
+// interpretation merely because it contains the required meaning words.
+const dictionaryOnly=draft(
+ '태어난 달의 겉글자는 낯선 정보를 자기 방식으로 이해하는 뜻입니다. 그 달의 중심 숨은 글자는 필요한 자원을 여러 곳에서 찾아 활용하는 의미입니다. 예를 들어 새로운 일을 할 때는 자료를 확인하고 준비하는 것이 좋습니다.');
+assert(grounding.inspect(dictionaryOnly,actual).blockingErrors.includes(
+ 'saju_core:dictionary-plus-generic-advice-masquerading-as-reading'),
+ 'source-word coverage plus universal preparation advice is not an applied interpretation');
+const appliedDifference=draft(
+ '태어난 달의 겉글자는 낯선 정보를 자기 방식으로 이해하는 뜻입니다. 그 달의 중심 숨은 글자는 필요한 자원을 여러 곳에서 찾아 활용하는 의미입니다. 예를 들어 낯선 재료를 고를 때 정보의 쓰임새와 구할 곳을 함께 살피는 해석이 유리합니다. 정보 해석만 오래 하면 자원을 마련할 기회를 놓칠 수 있다는 조건도 설명합니다.');
+assert(!grounding.inspect(appliedDifference,actual).blockingErrors.includes(
+ 'saju_core:dictionary-plus-generic-advice-masquerading-as-reading'),
+ 'an actually related advantage and overlooked condition must not be penalized');
+const plainScene=draft(
+ '낯선 정보를 자기 방식으로 이해하고 필요한 자원을 여러 곳에서 찾아 활용하는 관점을 연결합니다. 예를 들어 재료를 선택할 때 쓰임새를 파악한 다음 공급처를 살피는 모습으로 풀이합니다.');
+assert(!grounding.inspect(plainScene,actual).blockingErrors.includes(
+ 'saju_core:dictionary-plus-generic-advice-masquerading-as-reading'),
+ 'source-grounded prose without two glossary definitions is not a false positive');
 const leaked=draft('낯선 정보를 살피는 모습으로 풀이합니다. 다음 문단에서는 자원을 활용하는 특징을 설명합니다.');
 assert(grounding.inspect(leaked,actual).blockingErrors.includes(
  'saju_core:editorial-outline-leaked-to-reader'),

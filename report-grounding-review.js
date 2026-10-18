@@ -149,6 +149,17 @@ function inspect(report,packet=null){
    if(mainSentences.length>=2&&bareDefinitions>=2&&
       bareDefinitions/mainSentences.length>=0.5&&!application(mainSentences))
     blockingErrors.push('saju_core:month-pair-dictionary-only-without-application');
+   // A stock "for example" sentence with generic advice is not the
+   // source-specific applied interpretation requested by the paid reader.
+   // This HIGH-CONFIDENCE guard requires two glossary definitions AND
+   // a generic recommendation as every purported application. It does
+   // not require a prescribed length, wording or artificial tradeoff.
+   const applied=mainSentences.filter(x=>sceneContext.test(x)&&concreteChoice.test(x));
+   const genericActionAdvice=/(?:확인|검토|점검|준비|정리|살펴|따져).{0,38}(?:좋(?:습니다|겠)|필요(?:합니다|하겠)|중요(?:합니다|하겠)|권합니다|해야\s*합니다)/;
+   const tiedInterpretiveDifference=/(?:유리|불리|놓치|위험|반면|반대로|그러나|한쪽|동시에|두\s*(?:뜻|의미|관점)|함께\s*(?:고려|살피|읽)|과\s*달리)/;
+   if(bareDefinitions>=2&&applied.length>0&&
+      applied.every(x=>genericActionAdvice.test(x)&&!tiedInterpretiveDifference.test(x)))
+    blockingErrors.push('saju_core:dictionary-plus-generic-advice-masquerading-as-reading');
   }
   const sentences=[section.keyJudgment,...(section.body||[])].join(' ').split(/(?<=[.!?。])\s*|\n+/)
    .map(x=>x.trim()).filter(x=>x.length>=15);

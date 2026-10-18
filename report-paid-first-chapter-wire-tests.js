@@ -127,6 +127,9 @@ let fetches=0,rawRequest=null,upstreamPrompt=null;
     !secondText.includes('두 질문에 각각 답해야'),
     'actual output field must not resurrect two-question internal checklist');
   assert(secondText.includes('한 가지 조건부 기질 해석'));
+  assert(secondText.includes('사전적 정의 두 문장 다음에 일반적인 준비·확인 조언')&&
+   secondText.includes('같은 가상 상황의 선택에 어떤 차이를 만드는지 출처와 조건을 연결해 설명한다'),
+   'paid provider must see the source-to-scene interpretation boundary');
   assert(firstText.includes('편집 순서를 말하지 않는다')&&
    firstText.includes('내부 basis.limit에 기록한다')&&
    secondText.includes('작성 과정 문장을 독자용 텍스트에 쓰지 않는다')&&
