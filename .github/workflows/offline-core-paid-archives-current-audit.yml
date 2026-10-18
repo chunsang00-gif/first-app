@@ -20,7 +20,7 @@ jobs:
         with:
           node-version: '22'
       - name: Install deterministic Saju dependency; no model client
-        run: npm ci --no-audit --no-fund
+        run: npm install --no-audit --no-fund --no-package-lock
       - name: Download historical encrypted artifact; NEVER request new output
         uses: actions/download-artifact@v4
         with:
