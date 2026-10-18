@@ -64,9 +64,14 @@ jobs:
           const pub=crypto.createPublicKey({key:Buffer.from('MIIBojANBgkqhkiG9w0BAQEFAAOCAY8AMIIBigKCAYEAyobNrAZN3PgKyUxl925lv+SQI3bGKnpi9JnapqF8r2Hy9XqrrRRnbstrnNHi7hfqop1rVqKdzcYRjm+Z6qLoZJSNzadu9DzsPF+Jy4UOhzp5aEjBBGwoXZLp4rE12zhvsi3WRSU7OWp+7sYDFOKEs0f2NeEERRfyy2s+t9eB6zw7IvYGNHeSKBxpOMAH6hv/vt4AK9tNis3erwC2cJ8Yj5bV3h8jmKWSdVDZO1iFGkK87jkteaZMmmaFNozEHkPzk3EsSj9GKVQTofdZNTlkRJBmJK7LSJepssdgx+GOt4ES9cb5OCsjy4ShMafC/tspE0NwjscuV7apEhLh82BnwBhjZ7+hpqvwDeAFLV0C0rcb7FzZILJbcf3Px8twwk921fqtooZcXqlZo12u2ckjVJeDu+6Y8qmBWcHdiOHOX2QE07kN+jVllZl33gMkyAnfeEzz9jfZQNJ2stxb1KjYJIRFPR6KAlwWc9fcP1o/ONK+3YFl8wB72tMAe2FFiw47AgMBAAE=','base64'),format:'der',type:'spki'});
           const k=crypto.randomBytes(32),nonce=crypto.randomBytes(12);
           const cipher=crypto.createCipheriv('aes-256-gcm',k,nonce);
-          const message=Buffer.from(JSON.stringify(content),'utf8');
+          // Compress already-encrypted-only content to minimize secure log transport.
+          const message=require('node:zlib').gzipSync(Buffer.from(JSON.stringify({
+           archivedRun:content.archivedRun,title:content.title,keyJudgment:content.keyJudgment,
+           paragraphs:Object.fromEntries(Object.entries(content.paragraphs).map(([k,v])=>[k,{label:v.label,text:v.text}])),
+           categories:content.categories,sameClassification:content.sameClassification
+          }),'utf8'));
           const ct=Buffer.concat([cipher.update(message),cipher.final()]);
-          const envelope={version:'offline-review-once-v1',archivedRun:39172323501,
+          const envelope={version:'offline-review-once-gzip-v1',archivedRun:39172323501,
            key:crypto.publicEncrypt({key:pub,padding:crypto.constants.RSA_PKCS1_OAEP_PADDING,oaepHash:'sha256'},k).toString('base64'),
            nonce:nonce.toString('base64'),tag:cipher.getAuthTag().toString('base64'),
            ct:ct.toString('base64')};
