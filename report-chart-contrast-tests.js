@@ -620,8 +620,19 @@ for(const input of cases){
     'deterministic facts must never become observed personal traits');
   }
  }
+ // All contrast points must exist in the original calculated packet.
+ // Only the two customer paragraphs' permitted subset reaches the model.
+ const allRows=new Set(require('./report-fact-bindings').build(packet).map(x=>x.id));
  for(const point of contrast.contrastPoints)for(const ref of point.refs){
-  assert(Object.hasOwn(request.source,ref),'contrast references unknown paid source '+ref);
+  const exists=ref.startsWith('natal.')?allRows.has(ref):
+   ref.startsWith('facts.')?ref.split('.').slice(1).reduce((v,k)=>v?.[k],packet.facts)!=null:false;
+  assert(exists,'contrast references unknown original calculation '+ref);
+ }
+ const visibleRefs=new Set([...temperament.points,...strength.points]
+  .flatMap(point=>point.sourceRefs));
+ for(const ref of visibleRefs){
+  assert(Object.hasOwn(request.source,ref),
+   'customer-facing core paragraph lost a citable fact '+ref);
  }
  assert(!JSON.stringify(contrast).includes('percentStrength'));
  assert(!JSON.stringify(contrast).includes('predictedMarriage'));
