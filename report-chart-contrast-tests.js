@@ -388,9 +388,9 @@ for(const input of cases){
  if(input.calendar==='lunar'&&input.birthDate==='1982-11-24'){
   assert.equal(traditional.first.tenGod,'편인');
   assert.equal(traditional.second.tenGod,'편재');
-  assert(traditional.tentativeThesis.includes('새로운 정보를 자기 방식으로 해석하고 이해하는 태도')&&
-   traditional.tentativeThesis.includes('여러 곳의 자원을 살피고 필요한 곳에 활용하는 태도'),
-   'paid fixture must receive individually grounded interpretive hypothesis');
+  assert(traditional.first.reading==='새로운 정보를 자기 방식으로 해석하고 이해하는 태도'&&
+   traditional.second.reading==='여러 곳의 자원을 살피고 필요한 곳에 활용하는 태도',
+   'paid fixture must receive BOTH individually source-grounded readings without an invented combined draft');
  }
  const monthReaderPlan=strength.readerReasoning.readerValuePlan;
  assert.equal(monthReaderPlan.first.tenGod,month.stemTenGod);
