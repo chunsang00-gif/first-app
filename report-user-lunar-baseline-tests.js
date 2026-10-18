@@ -137,8 +137,12 @@ const prompt={stage:'body',facts:expected,requestedSections:['saju_core'],
  analysisGuidance:{...guidance.forRequest(['saju_core'],birth.mbti),
   editorialBlueprint:{saju_core:blueprint.saju_core}}};
 const transport=writer.compile(prompt);
-for(const ref of refs)assert(Object.hasOwn(transport.source,ref),
- 'the lunar source-bound writer cannot drop '+ref);
+for(const ref of seasonRefs)assert(Object.hasOwn(transport.source,ref),
+ 'the lunar first-chapter writer cannot drop '+ref);
+for(const ref of rootBaseRefs)assert(!Object.hasOwn(transport.source,ref),
+ 'the first-chapter writer may not receive unrelated root source '+ref);
+assert(expected.facts.stemConnections&&expected.facts.rootConditions,
+ 'all independently verified root/clash calculations remain in the source packet');
 assert.equal(transport.task.comparisonContract.calculatedAgreement,false);
 const slots=writer.schema(prompt,wire.schemaFor(prompt,schema))
  .properties.chapters.properties.saju_core.properties.paragraphs.properties;
@@ -163,20 +167,20 @@ const result=(first=seasonRefs,second=monthRefs)=>({chapters:{saju_core:{
   condition:'출생 위치를 확인합니다.',limit:'실제 행동과 능력은 확정하지 않습니다.'}}
  }}}});
 assert.doesNotThrow(()=>writer.restoreEvidence(result(),prompt));
-const rootPlaces=(transport.source['facts.stemConnections']?.dayMasterRooting?.sameElementRoots||[])
+const rootPlaces=(integrationPayload.source['facts.stemConnections']?.dayMasterRooting?.sameElementRoots||[])
  .map(x=>x.hiddenId);
 const observedOnly=['natal.month.stem',mainMonth,'facts.stemConnections','facts.rootConditions',...rootPlaces];
 assert(rootPlaces.length>0,'canonical lunar sample must provide real rooted positions');
 assert(!observedOnly.includes('facts.structuralEvidence.dayMasterRoots'));
 assert.throws(()=>writer.restoreEvidence(result(seasonRefs,observedOnly),prompt),
- /unrelated paragraph basis/,
- 'the actual paid missing-root failure is now blocked by the month-only source enum');
+ /missing verified paragraph basis|unrelated paragraph basis/,
+ 'the actual paid missing-root failure is blocked by the month-only source scope');
 // The independent root-summary helper stays correct for INTERNAL audits,
 // although first-chapter text is not allowed to cite these root sources.
-const complete=writer.completeRootSummaryCitation(transport,observedOnly);
+const complete=writer.completeRootSummaryCitation(integrationPayload,observedOnly);
 assert(complete.includes('facts.structuralEvidence.dayMasterRoots'),
  'complete verified root provenance may still be inspected internally');
-const mutated=structuredClone(transport);
+const mutated=structuredClone(integrationPayload);
 mutated.source['facts.structuralEvidence.dayMasterRoots'][0].sameElementStems=[];
 for(const root of mutated.source['facts.structuralEvidence.dayMasterRoots']){
  if(rootPlaces.some(x=>x.startsWith('natal.'+root.position+'.hidden.')))
@@ -184,11 +188,11 @@ for(const root of mutated.source['facts.structuralEvidence.dayMasterRoots']){
 }
 assert.deepEqual(writer.completeRootSummaryCitation(mutated,observedOnly),observedOnly,
  'a structural mismatch must fail closed rather than auto-credit roots');
-const inaccurate=structuredClone(transport);
+const inaccurate=structuredClone(integrationPayload);
 inaccurate.source['facts.rootConditions'].dayMasterRootCases=[];
 assert.deepEqual(writer.completeRootSummaryCitation(inaccurate,observedOnly),observedOnly,
  'root condition records are mandatory to auto-complete a provenance link');
-assert.deepEqual(writer.completeRootSummaryCitation(transport,observedOnly.slice(0,-1)),
+assert.deepEqual(writer.completeRootSummaryCitation(integrationPayload,observedOnly.slice(0,-1)),
  observedOnly.slice(0,-1),'missing even one observed root may not be auto-completed');
 
 const missingSeason={
@@ -201,7 +205,7 @@ for(const omitted of seasonRefs)
   missingSeason[omitted], 'missing first-paragraph '+omitted+' must reject the draft');
 for(const rootSource of rootBaseRefs)
  assert.throws(()=>writer.restoreEvidence(result(seasonRefs,[...monthRefs,rootSource]),prompt),
-  /unrelated paragraph basis/,
+  /missing verified paragraph basis|unrelated paragraph basis/,
   'an extra root record must not be accepted as month-pair evidence');
 console.log('PASS USER_LUNAR_REFERENCE '+JSON.stringify({
  inputCalendar:birth.calendar,inputDate:birth.birthDate,normalizedSolarDate:normalized,

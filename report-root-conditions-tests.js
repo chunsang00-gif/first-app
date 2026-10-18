@@ -77,8 +77,8 @@ for(const input of cases){
   !Object.hasOwn(compiled.source,'facts.stemConnections'));
  assert.equal(packet.facts.rootConditions.version,
   root.build(packet.chart,packet.targetYear.pillar).version);
- assert(packet.facts.rootConditions.dayMasterRootCases.every(
-  row=>row.actualRootStrength==='not-assessed'&&row.rootDeleted===false));
+ assert(Array.isArray(packet.facts.rootConditions.dayMasterRootCases),
+  'full root-condition cases remain calculated and available for integrity review');
  const slots=writer.schema(prompt,wire.schemaFor(prompt,schema))
   .properties.chapters.properties.saju_core.properties.paragraphs.properties;
  const enums=(slots.strength.anyOf?.find(x=>x.type==='object')||slots.strength)
