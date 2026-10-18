@@ -70,12 +70,14 @@ for(const input of cases){
   analysisGuidance:{...guidance.forRequest(['saju_core'],packet.person.mbti),
    editorialBlueprint:{saju_core:plan.saju_core}}};
  const compiled=writer.compile(prompt);
- assert.equal(compiled.source['facts.rootConditions'].version,packet.facts.rootConditions.version);
- assert.equal(compiled.source['facts.rootConditions'].dayMasterRootCases.length,
-  packet.facts.rootConditions.dayMasterRootCases.length);
- assert(!Object.hasOwn(compiled.source['facts.rootConditions'],'rootCases'),
-  'the writer must see only compact Day Master root evidence');
- assert(compiled.source['facts.rootConditions'].dayMasterRootCases.every(
+ // Full root and clash information stays in the original verified packet.
+ // The current first chapter is about the month categories, so its
+ // provider input must not expose unrelated root diagnostics.
+ assert(!Object.hasOwn(compiled.source,'facts.rootConditions')&&
+  !Object.hasOwn(compiled.source,'facts.stemConnections'));
+ assert.equal(packet.facts.rootConditions.version,
+  root.build(packet.chart,packet.targetYear.pillar).version);
+ assert(packet.facts.rootConditions.dayMasterRootCases.every(
   row=>row.actualRootStrength==='not-assessed'&&row.rootDeleted===false));
  const slots=writer.schema(prompt,wire.schemaFor(prompt,schema))
   .properties.chapters.properties.saju_core.properties.paragraphs.properties;
@@ -92,7 +94,6 @@ for(const input of cases){
   keyJudgment:'근거 위치 구분',mood:'reflective',
   paragraphs:{temperament:paragraph(['facts.seasonalEvidence','facts.qiEvidence','natal.month.stem']),
    strength:paragraph(refs)}}}});
- const observedRoots=compiled.source['facts.stemConnections'].dayMasterRooting.sameElementRoots||[];
  const mainMonth='natal.month.hidden.'+compiled.source['facts.structuralEvidence.monthCommand'].mainHiddenStem;
  const required=['natal.month.stem',mainMonth];
  assert.doesNotThrow(()=>writer.restoreEvidence(fake(required),prompt),
@@ -103,7 +104,7 @@ for(const input of cases){
  for(const rootSource of ['facts.rootConditions','facts.stemConnections',
   'facts.structuralEvidence.dayMasterRoots']){
   assert.throws(()=>writer.restoreEvidence(fake([...required,rootSource]),prompt),
-   /unrelated paragraph basis/,
+   /missing verified paragraph basis|unrelated paragraph basis/,
    'real root calculations stay verified but cannot be cited for unrelated month question');
  }
  const modified=structuredClone(packet);
