@@ -61,12 +61,21 @@ for(const [label,birth] of Object.entries({lunar,solar})){
   analysisGuidance:{...guidance.forRequest(['saju_core'],packet.person.mbti),
    editorialBlueprint:{saju_core:plan.saju_core}}};
  const compiled=provider.compile(prompt);
- assert(compiled&&compiled.source['natal.day.stem']);
- assert.equal(compiled.source['natal.day.stem'].stem,'乙');
- assert(compiled.source['facts.seasonalEvidence']);
+ // Keep full day-master, rooting and clash observations on the verified
+ // calculation packet; the first-chapter writer has no permission to cite
+ // these source rows, so it should not receive them as ambient context.
+ const fullBinding=require('./report-fact-bindings').build(packet);
+ assert.equal(fullBinding.find(row=>row.id==='natal.day.stem')?.stem,'乙');
+ assert(packet.facts.stemConnections&&packet.facts.rootConditions);
+ assert(compiled&&compiled.source['facts.seasonalEvidence']);
  assert(compiled.source['facts.qiEvidence']);
- assert(compiled.source['facts.stemConnections']);
- assert(compiled.source['facts.rootConditions']);
+ assert(!compiled.source['natal.day.stem']&&
+  !compiled.source['facts.stemConnections']&&!compiled.source['facts.rootConditions'],
+  label+' unused rooting and day-master rows must not enter the first-chapter provider payload');
+ const cited=new Set(Object.values(compiled.task.chapters.saju_core.topics)
+  .flatMap(topic=>topic.citableFacts.map(row=>row.id)));
+ assert.deepEqual(Object.keys(compiled.source).sort(),[...cited].sort(),
+  label+' all exported core sources must belong to chapter citable facts');
  const valid=provider.schema(prompt,wire.schemaFor(prompt,schema));
  const topics=valid.properties.chapters.properties.saju_core.properties.paragraphs.properties;
  const seasonalSlot=topics.temperament.anyOf?.find(x=>x.type==='object')||topics.temperament;
