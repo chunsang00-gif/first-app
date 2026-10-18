@@ -54,6 +54,14 @@ let fetches=0,rawRequest=null,upstreamPrompt=null;
    'exact outgoing strict schema and compressed task must agree');
   const core=user.task.chapters.saju_core;
   const first=core.topics.temperament,second=core.topics.strength;
+  // Ensure the actual model request and response field share the updated question.
+  const groundedQuestion=require('./report-outline').topics.saju_core.strength;
+  assert.equal(second.question,groundedQuestion);
+  assert(groundedQuestion.includes('한 가지 조건부 해석')&&
+    groundedQuestion.includes('고정된 핵심 판단'),
+    'core interpretation must precede a dictionary explanation');
+  assert(!/뿌리|충은 필요한 경우|각각 무엇을 의미하고/.test(groundedQuestion),
+    'old optional-root and glossary-first instructions must not reach the paid request');
   const claim1=first.evidenceFocus.claimOwnership,claim2=second.evidenceFocus.claimOwnership;
   assert.equal(claim1.version,'core-reader-claim-ownership-v1');
   assert.equal(claim2.version,'core-reader-claim-ownership-v1');
