@@ -136,7 +136,7 @@ function preflight(packet){
  if(plans.saju_core.topicTasks.strength.mode!=='state-limits')
   plans.saju_core.topicTasks.strength.requiredSourceKinds=['month-ten-god'];
  plans.saju_core.topicTasks.strength.interpretationBoundary=
-  '태어난 달의 겉글자 십성과 그 달의 실제 중심 숨은 글자 십성을 각각 확인한다. 서로 다른 전통적 의미를 한 가지 조건부 기질 풀이로 연결하고, 같은 분류라면 거짓 갈등을 만들어내지 않는다. 내부 편집 질문을 독자용 질문 목록으로 전환하지 않는다. 두 출처 모두 실제 성격·재산·능력·경험을 증명하지 않는다. 뿌리·충은 이 첫 장 문단의 근거·해석에 끌어오지 않고 강약 점수·마음속 균형·행동의 두 중심을 만들지 않는다.';
+  '태어난 달의 겉글자 십성과 그 달의 실제 중심 숨은 글자 십성을 각각 확인한다. 두 출생 위치의 전통적 의미가 실제로 같은지 다른지 확인해 한 가지 조건부 기질 풀이로 연결하고, 같은 분류라면 거짓 차이·갈등·강도 증폭을 만들어내지 않는다. 내부 편집 질문을 독자용 질문 목록으로 전환하지 않는다. 두 출처 모두 실제 성격·재산·능력·경험을 증명하지 않는다. 뿌리·충은 이 첫 장 문단의 근거·해석에 끌어오지 않고 강약 점수·마음속 균형·행동의 두 중심을 만들지 않는다.';
  // One deterministic eligibility planner for domain-specific writing.
  // A ten-god classification is a traditional symbol, never a measurement
  // of a person's actual wealth, work, relationships or stress responses.

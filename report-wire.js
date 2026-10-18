@@ -37,7 +37,10 @@ function coreReaderRoles(prompt){
  const lockedJudgment=focus&&prompt?.stage==='body'?
   require('./report-core-thesis').forPrompt(prompt)?.keyJudgment:null;
  const firstParagraphBoundary=seasonal?.readerValuePlan?.distinctFromMonthPair||null;
- return {
+ // Identical traditional categories at different month positions do NOT
+ // license a second meaning or a fabricated personality contradiction.
+ const sameMonthlyMeaning=month?.sameClassification===true;
+ const roles={
   temperament:{
    label:'핵심 사주풀이에 더할 독립적인 계절·겉글자 조건이 실제로 확인될 때만 짧게 소제목을 쓴다. 기본 기질의 결론이나 월간·월지의 필수 핵심 해석을 되풀이한다면 이 항목 전체를 null로 반환한다.'+
     (firstParagraphBoundary?' 이 입력에서는 외부에서 받을 수 있는 도움의 조건을 첫 문단 제목으로 구별한다.':''),
@@ -57,6 +60,17 @@ function coreReaderRoles(prompt){
     ' 문단 연결을 설명하겠다·다음 문단에서 다룬다 등 작성 과정 문장을 독자용 텍스트에 쓰지 않는다. 앞 문단과 같은 공통 면책 문구를 반복하지 않고, 필요한 출처별 한계는 basis.limit에 기록한다. 출생 상징의 사전적 의미나 내부 질문을 고객용 글로 나열하지 않는다. 실제 계산된 월간 십성과 중심 숨은 글자 십성의 서로 다른 뜻을 한 가지 조건부 기질 해석으로 연결하고 그 이유를 근거에 따라 밝힌다. 모든 사주에 새 일을 준비하는 같은 예시를 쓰지 않는다. 실제 계산된 월지 중심 십성에 맞춘 가상의 한 선택 상황에서 그 풀이가 유리해지는 조건과 한쪽의 의미만 보면 놓칠 조건을 구분해 설명한다. 실제 성격의 모순·갈등이나 능력의 증거로 바꾸지 않는다. 첫 문단의 계절 설명을 반복하지 않는다. 한 문단의 끝을 이는 전통적 해석의 출발점입니다 같은 해설로 마무리하지 않는다.'
   }
  };
+ if(sameMonthlyMeaning){
+  // Preserve the existing, already tested different-category provider brief.
+  // Only this real calculated same-category case needs a distinct contract.
+  roles.strength.label='이 장의 필수 핵심 풀이이다. 서로 다른 두 출생 위치에 같은 전통 분류가 계산되었으므로 하나의 기질 해석만 소제목에 나타낸다. 두 가지 성향이나 강도 증폭을 만들어내지 않는다. 선택적 계절 설명과 겹치지 않는다.';
+  roles.strength.text='이 문단은 하나의 계산된 전통 분류를 풀이하는 필수 본문이다. 두 출생 위치의 십성 분류와 전통적 뜻이 같으므로 거짓 차이, 반대되는 기질, 성격의 강약을 만들지 않는다. 실제 두 위치가 같은 전통 분류를 뒷받침한다는 근거를 짧게 밝히고, 고정된 핵심 판단을 한 가지 가상 선택에 적용한다. 그 해석이 도움이 되는 조건과 실제로 확인할 수 없는 조건을 구분해 일상 한국어로 설명한다. 일반적인 준비 조언이나 같은 뜻의 반복으로 채우지 않는다. '+
+   (lockedJudgment?'이미 고정된 핵심 판단: '+lockedJudgment+' 이 문장을 그대로 다시 적지 말고 하나의 가상 선택에서 어떻게 풀이되는지 근거를 연결한다. ':'')+
+   (reading?'같은 전통 분류의 해석 단서: '+reading.first.reading+'. 두 계산 출처는 내부 basis.refs에 모두 남기되 독자에게 두 개의 다른 뜻으로 소개하지 않는다. ':'')+
+   claimBrief(secondClaim)+
+   '독자용 문장에서 문단 작성 순서를 설명하거나 앞 문단의 일반적 면책 안내를 반복하지 않는다. 관련 한계는 basis.limit에 기록한다. 실제 성격·능력·과거 행동을 관찰한 것으로 단정하지 않는다. 명리 계산만으로 두 배로 강한 기질, 양면성 또는 성공을 보장하지 않는다. 계절에 관한 선택적 첫 문단의 해석은 반복하지 않는다.';
+ }
+ return roles;
 }
 const object=properties=>({type:'object',additionalProperties:false,required:Object.keys(properties),properties});
 function schemaFor(prompt,reportSchema){

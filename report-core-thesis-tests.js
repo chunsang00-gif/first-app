@@ -33,6 +33,33 @@ for(const input of inputs){
  assert.doesNotThrow(()=>core.assertDecoded(fixed,prompt));
  assert.throws(()=>core.assertDecoded({...fixed,keyJudgment:fixed.keyJudgment+' 이 장은 참고용입니다.'},prompt));
 }
+// Actual distinct-source/same-category case: in a 甲 year, April's
+// calculated 戊辰 month has 戊 as both visible and principal hidden stem.
+const sameInput={calendar:'solar',birthDate:'1994-04-15',birthTime:'14:20',gender:'male',mbti:'ISFP'};
+const samePacket=facts.build(sameInput,2027);
+assert.equal(samePacket.status,'ready');
+const sameContrast=require('./report-chart-contrast').build(samePacket);
+assert.equal(sameContrast.monthTenGodContext.sameClassification,true,
+ 'real birth date must exercise a SAME-classification month pair');
+const sameBlueprint=guidance.preflight(samePacket);
+const samePrompt={stage:'body',facts:samePacket,requestedSections:['saju_core'],
+ analysisGuidance:{...guidance.forRequest(['saju_core'],sameInput.mbti),editorialBlueprint:{saju_core:sameBlueprint.saju_core}}};
+const sameSchema=wire.schemaFor(samePrompt,schema).properties.chapters.properties.saju_core.properties;
+const sameRole=sameSchema.paragraphs.properties.strength;
+const sameText=sameRole.properties.text.description;
+assert(sameText.includes('두 출생 위치의 십성 분류와 전통적 뜻이 같으므로')&&
+ sameText.includes('고정된 핵심 판단을 한 가지 가상 선택에 적용한다')&&
+ sameRole.properties.label.description.includes('같은 전통 분류'),
+ 'same-category paid reader must be instructed to interpret ONE traditional lens from TWO provenance locations');
+assert(!sameText.includes('서로 다른 뜻을 한 가지 조건부 기질 해석으로 연결')&&
+ !sameText.includes('두 선택의 뜻이 한 상황에 연결되는 이유')&&
+ !sameText.includes('한쪽의 의미만 보면 놓칠 조건'),
+ 'the output schema must not force a fictional distinction between identical classifications');
+assert.deepEqual(sameSchema.keyJudgment.enum,[core.forPrompt(samePrompt).keyJudgment]);
+assert.equal(core.forPrompt(samePrompt).categories[0],core.forPrompt(samePrompt).categories[1]);
+assert(require('./report-generation-request').policy.includes('같은 전통 분류라면 거짓 의미 차이'));
+assert(sameBlueprint.saju_core.topicTasks.strength.interpretationBoundary.includes('거짓 차이·갈등·강도 증폭'));
+assert(require('./report-prompt').sectionGoals.saju_core.includes('같은 분류면 서로 다른 뜻'));
 const actual=facts.build(inputs[0],2027);
 const prompt={stage:'body',facts:actual,requestedSections:['saju_core']};
 const case0=core.forPrompt(prompt);
