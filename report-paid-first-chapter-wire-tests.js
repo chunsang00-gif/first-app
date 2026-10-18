@@ -73,6 +73,8 @@ let fetches=0,rawRequest=null,upstreamPrompt=null;
   const firstText=firstSlot.properties.text.description;
   const secondSlot=slots.strength;
   const secondText=secondSlot.properties.text.description;
+  assert(secondText.includes(groundedQuestion),
+    'strict provider response schema must receive the same interpretation-first writing question');
   assert(second.evidenceFocus.readerReasoning.hypotheticalQuestion.includes(
    require('./report-chart-contrast').TEN_GOD_SCENE[second.evidenceFocus.tenGodFocus.monthMainHidden.tenGod]),
    'real paid request must carry the category-specific imagined situation');
