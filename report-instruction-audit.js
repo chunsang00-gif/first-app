@@ -206,7 +206,11 @@ function inspectTransport(prompt,actual){
     errors.push('saju-core-request-leaked-mbti-source');
   }else if(Boolean(actual.source?.['person.mbti'])!==Boolean(mbti))
    errors.push('mbti-input-source-dropped-or-invented');
-  if(JSON.stringify(task.comparisonContract)!==JSON.stringify(prompt.analysisGuidance?.comparisonContract||null))
+  if(coreOnly){
+   if(task.comparisonContract!=null)
+    errors.push('saju-core-request-leaked-comparison-contract');
+  }else if(JSON.stringify(task.comparisonContract)!==
+      JSON.stringify(prompt.analysisGuidance?.comparisonContract||null))
    errors.push('independent-framework-contract-dropped');
  }else if(prompt.stage==='synthesis'){
   if(task.editorialGoal!==(prompt.rules?.finalEditingTask||null))

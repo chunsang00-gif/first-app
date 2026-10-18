@@ -2,7 +2,7 @@
 // The provider boundary: legacy planning rules are NOT sent to the writer.
 // One call still produces each batch; there is no rewrite or hidden retry.
 const reader=require('./report-reader-policy');
-const policy=[
+const policyParts=[
  reader.instruction,
  '사주 기본 장의 temperament에서는 facts.seasonalEvidence와 facts.qiEvidence를 근거로 출생월의 계절·전환월 여부, 일간과의 실제 오행 관계, 겉천간의 실제 생조·설기·극 방향을 구별해 설명한다. 월의 출생 위치(natal.month.*)도 명시적으로 인용한다. 지장간의 존재나 겉글자 개수를 사령·신강약의 수치, 능력·실제 성격으로 단정하지 않는다. 뿌리의 위치·통근·원국 충은 기본 성향의 두 문단에서 근거로 인용하지 않는다. 이들은 원국 내부 검증에서 별도로 확인하되 계산값 설명으로 독자 풀이를 대체하지 않는다. 세운 충은 출생 시 기본 기질의 근거로 사용하지 않는다. 사실상 투간은 동일 지장간 글자의 실제 천간 노출만 뜻하며 통근과 혼동하지 않는다. 출생시간 미상은 출생 시각의 부재를 확정하는 근거가 아니다. 전환월은 진·미·술·축월에 붙이는 명리상의 월지 분류일 뿐 계절 종료일이나 양력·음력 새해 시작을 계산한 결과가 아니다. 별도 실제 절기 시각 확인 없이 절입 직후·직전이라고 쓰지 않는다.',
  '계산 사실과 해석을 구분한다. 글자 개수나 이름만으로 능력·평판·실제 경험을 만들지 않는다. 계산하지 않은 강약·용신·합충·월별 시기를 추정하지 않는다. 충의 존재는 계산되더라도 충의 세기까지 측정한 것은 아니다. 강한 충·심한 충·충이 강하게 작용한다는 표현을 금지한다. 배움·보호의 전통 상징에서 실제 학습 속도·정보를 빨리 받아들이는 능력도 추정하지 않는다. 예시는 가정임을 드러내고 실제 사건이나 미래 결과를 보장하지 않는다.',
@@ -21,7 +21,21 @@ const policy=[
  '입력 MBTI가 있을 때 mbti_contradiction과 integrated_judgment의 작성 문단은 task.chapters[id].comparisonEvidence에 따라 basis.refs에 person.mbti와 natal.* 출처를 모두 포함한다. 두 출처를 적었다고 인과가 입증된 것은 아니다. 통합 장은 MBTI 비교 장과 동일한 결론을 재진술하지 않고 각자 다른 질문에 답한 두 관점이 함께 적용되는 조건만 설명한다. 별도 의미가 없으면 선택 문단은 null이다.',
  '제목과 핵심 판단은 본문 결론과 일치해야 한다. 본문은 이유·상황·행동을 충분히 설명하되 같은 뜻을 다시 요약하지 않는다. 추상 명사나 작성 과정 설명으로 대신하지 않는다. 장점·단점·조언을 기계적으로 채우지 않는다. 불리한 점도 해당 근거와 조건이 있을 때 분명하게 설명한다.',
  '총평 단계는 completedReport의 내용만 선별한다. 새 성격을 추가하지 않으며 같은 문단을 다시 쓰지 않는다. strengths·watchouts·routines는 중복되거나 불필요하면 빈 배열이다. 표지 highlights는 실제 장을 가리킨다. 해석의 한계는 총평 본문에서 한 번 알리고 closingQuestion은 질문이나 면책 안내가 아닌 본문에 근거한 평서형 결론으로 끝낸다.'
-].join('\n');
+];
+const policy=policyParts.join('\n');
+// Only a Saju-core-only body batch needs this limited interpretation policy.
+// All other paid batches retain the full, unchanged legacy provider policy.
+// Preserve every Saju and universal integrity rule while excluding future
+// fortune, MBTI integration, and end-of-report instructions from core prose.
+const corePolicyPartIndexes=[0,1,2,4,5,6,7,8,9,10,12,16];
+function policyFor(prompt){
+ if(prompt?.stage==='body'&&
+    JSON.stringify(prompt.requestedSections)===JSON.stringify(['saju_core'])){
+  if(policyParts.length!==18)throw Error('QA_CORE_POLICY_PARTITION_NEEDS_REVIEW');
+  return corePolicyPartIndexes.map(i=>policyParts[i]).join('\n');
+ }
+ return policy;
+}
 // MBTI was present in money/work/relationship depth goals but the strict
 // writer schema did not permit those chapters to cite the actual MBTI input.
 // Provide an explicit optional cross-framework lens, not an invented trait.
@@ -187,6 +201,7 @@ function compile(prompt){
    // MBTI belongs to later comparison chapters; do not expose it in
    // this Saju-only writer batch. Keep all input data in the original packet.
    task.mbti=null;
+   task.comparisonContract=null;
    const allowed=new Set(Object.values(core.topics).flatMap(topic=>
     (topic.citableFacts||[]).map(row=>row.id)));
    if(!allowed.has('natal.month.stem')||
@@ -447,4 +462,4 @@ function restoreEvidence(value,prompt){
  }
  return result;
 }
-module.exports={policy,compile,schema,restoreEvidence,allowedRefs,completeRootSummaryCitation};
+module.exports={policy,policyFor,compile,schema,restoreEvidence,allowedRefs,completeRootSummaryCitation};

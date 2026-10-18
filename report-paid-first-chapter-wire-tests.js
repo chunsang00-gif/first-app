@@ -6,7 +6,7 @@
 const assert=require('node:assert/strict');
 const {generate}=require('./report-server-contract');
 const {callOpenAI}=require('./server');
-const {policy}=require('./report-generation-request');
+const {policy,policyFor}=require('./report-generation-request');
 const {inspect}=require('./report-provider-preflight');
 const input={calendar:'lunar',leapMonth:false,birthDate:'1982-11-24',
  birthTime:'14:20',gender:'male',mbti:'ISFP',name:'검증용'};
@@ -46,8 +46,17 @@ let fetches=0,rawRequest=null,upstreamPrompt=null;
   const user=JSON.parse(rawRequest.input[1].content);
   const schema=rawRequest.text.format.schema;
   assert(system.startsWith('Return only the requested premium report JSON.'));
-  assert(system.includes(policy),
-   'production provider must actually receive the full paid writing policy');
+  assert(system.includes(policyFor(upstreamPrompt)),
+   'actual provider request must use the scoped Saju-only instruction policy');
+  assert(!system.includes(policy),
+   'first chapter must not include the unrelated global report policy');
+  for(const excluded of ['2027년 관계 장은 실제 계산한',
+   '금전·직업·관계·결정·스트레스 장의 MBTI 비교는',
+   '입력 MBTI가 있을 때 mbti_contradiction',
+   '총평 단계는 completedReport의 내용만 선별한다']){
+   assert(!system.includes(excluded),
+    'Saju-core request still includes unrelated provider instructions: '+excluded);
+  }
   assert.equal(user.stage,'body');
   assert.deepEqual(Object.keys(user.task.chapters),['saju_core']);
   assert.deepEqual(inspect(upstreamPrompt,user,schema),[],
@@ -61,6 +70,8 @@ let fetches=0,rawRequest=null,upstreamPrompt=null;
    'provider sees only actually citable first-chapter calculated sources');
   assert.equal(user.task.mbti,null,
    'first-chapter writer must not receive the MBTI profile');
+  assert.equal(user.task.comparisonContract,null,
+   'first chapter must not receive a cross-framework comparison contract');
   for(const forbidden of ['facts.rootConditions','facts.stemConnections',
    'facts.natalClashes','facts.annualTenGods','facts.targetYearRelations',
    'person.mbti','natal.day.stem','natal.hour.stem']){
