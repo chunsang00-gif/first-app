@@ -133,6 +133,37 @@ const normalDistinct={sections:[{
  evidence:['natal.month.stem: 편인으로 계산된 출처','natal.month.hidden: 편재로 계산된 출처']
 }]};
 allFirstChapterGuards(normalDistinct,actualDistinct,'different-category normal interpretation');
+ // Previously paid 39172323501 used indirect, natural Korean equivalents
+ // of the verified 편인/편재 meanings. The ORIGINAL paid report is private;
+ // these constructed prose examples test only the lexical recognition,
+ // NOT its editorial adequacy or release quality.
+const synonymousFirst='새로운 정보를 자기 나름대로 해석하고 이해하는 관점';
+const synonymousSecond='여러 곳의 자원을 파악해 용도에 맞게 활용하는 관점';
+const paidStyleDraft=body=>({sections:[{
+ id:'saju_core',title:distinctCore.title,keyJudgment:distinctCore.keyJudgment,
+ bodyTopics:['strength'],bodyLabels:['정보 이해와 자원 활용'],body:[body],evidence:[]
+}]});
+const paidStyleBase=synonymousFirst+'과 '+synonymousSecond+
+ '을 함께 읽는 전통적 풀이입니다. 예를 들어 필요한 재료를 고를 때 그 재료의 쓰임새를 먼저 이해하면 적절한 공급처를 찾을 근거가 생깁니다. 반면 쓰임새만 알아보고 마련할 곳을 살피지 않으면 그 선택을 실제로 실행하기 어려운 조건이 됩니다.';
+const missingMeaningCode='saju_core:month-pair-meaning-missing-from-main-paragraph';
+assert(!postReview.inspect(paidStyleDraft(paidStyleBase),actualDistinct).blockingErrors.includes(missingMeaningCode),
+ 'natural equivalents of BOTH verified month interpretations must not be treated as omission');
+const onlyLearning=synonymousFirst+
+ '을 전통적으로 풀이합니다. 예를 들어 새로운 자료를 고를 때 그 뜻을 이해해야 내용을 활용할 수 있습니다.';
+const onlyResources=synonymousSecond+
+ '을 전통적으로 풀이합니다. 예를 들어 필요한 물건을 마련할 때 구입할 곳을 고르는 데 도움을 줍니다.';
+assert(postReview.inspect(paidStyleDraft(onlyLearning),actualDistinct).blockingErrors.includes(missingMeaningCode),
+ 'a mention of information must NOT cover the absent resource interpretation');
+assert(postReview.inspect(paidStyleDraft(onlyResources),actualDistinct).blockingErrors.includes(missingMeaningCode),
+ 'a mention of resources must NOT cover the absent information interpretation');
+const lexicalGlossary=paidStyleDraft(
+ '태어난 달의 겉글자는 '+synonymousFirst+'을 뜻합니다. 태어난 달의 중심 숨은 글자는 '+synonymousSecond+'을 의미합니다. 예를 들어 새로운 일을 시작할 때 필요한 내용을 확인하고 준비하는 것이 좋습니다.');
+const glossaryCodes=postReview.inspect(lexicalGlossary,actualDistinct).blockingErrors;
+assert(!glossaryCodes.includes(missingMeaningCode),
+ 'a definition containing both meanings must not be reported as meaning omission');
+assert(glossaryCodes.includes('saju_core:dictionary-plus-generic-advice-masquerading-as-reading'),
+ 'dictionary plus universal advice must STILL fail the separate depth-quality guard');
+
 assert(!normalSame.sections[0].body[0].includes(normalDistinct.sections[0].body[0]),
  'positive fixtures must exercise two genuinely distinct writing paths');
 // Prove the pre-API audit receives actual birth facts and the body's stage.

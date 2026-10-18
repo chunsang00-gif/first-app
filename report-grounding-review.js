@@ -5,17 +5,19 @@
 // These are permissive *meaning families* (not word-for-word model templates);
 // absence of a whole calculated meaning is a source-to-prose omission, not an
 // aesthetic score or evidence of the user's observed personality.
+// Keep synonymous meaning checks source-specific. Generic mentions of
+// 'information' or 'resources' alone must NOT pass this provenance gate.
 const coreMonthMeaningWords={
  비견:/(?:스스로|자기\s*몫|자신의\s*몫|독립|주도|직접\s*맡|내\s*역할)/,
  겁재:/(?:공동|함께\s*쓰|나누|배분|경쟁|협력|몫을\s*구분|자원.*분담)/,
  식신:/(?:결과물|만들|완성|생산|표현|작업을\s*이어|꾸준히\s*해)/,
  상관:/(?:다른\s*방법|새로운\s*제안|익숙한\s*방식|틀을\s*바꾸|표현|변형)/,
  정재:/(?:꾸준히\s*관리|지출|반복되는\s*비용|예산|안정적\s*관리|계획적\s*사용|유지할\s*비용)/,
- 편재:/(?:필요한\s*자원|자원을\s*(?:찾|활용|확보)|자금|돈과\s*재료|재료를\s*마련|여러\s*곳에서|기회와\s*자원|자원\s*활용)/,
+ 편재:/(?:필요한\s*자원|자원을\s*(?:찾|활용|확보)|자금|돈과\s*재료|재료를\s*마련|여러\s*곳에서|기회와\s*자원|자원\s*활용|여러\s*곳의\s*자원을\s*(?:파악|살피|찾).{0,28}(?:활용|사용|마련))/,
  정관:/(?:규칙|규정|역할|책임|원칙|절차|맡은\s*자리)/,
  편관:/(?:급한\s*요구|갑작스러운\s*요구|압박|긴급|책임\s*범위|예상\s*밖의\s*요구)/,
  정인:/(?:배움|배우|조언|도움|지원|보호|가르침|배운\s*내용)/,
- 편인:/(?:낯선\s*(?:내용|정보|자료)|정보를\s*(?:이해|해석)|자료를\s*해석|배움의\s*방식|자기\s*방식으로\s*(?:이해|읽)|다른\s*관점에서\s*이해|정보\s*이해)/
+ 편인:/(?:낯선\s*(?:내용|정보|자료)|정보를\s*(?:이해|해석)|자료를\s*해석|배움의\s*방식|자기\s*방식으로\s*(?:이해|읽)|다른\s*관점에서\s*이해|정보\s*이해|(?:새로운\s*)?정보를\s*(?:자기|자신)\s*나름대로\s*(?:해석|이해|파악))/
 };
 const patterns=[
  /(?:다양한|여러|여러\s*가지).{0,36}(?:공존|병존|함께\s*(?:작용|나타나|드러)|특징이\s*함께)/,
