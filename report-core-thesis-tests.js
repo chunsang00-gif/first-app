@@ -56,6 +56,34 @@ const qualified='낯선 정보를 자기 방식으로 이해하고 필요한 자
 assert(!grounding.inspect(draft(qualified),actual).blockingErrors.includes(
  'saju_core:main-paragraph-explicitly-reverses-locked-judgment'),
  'lack of observed behavioral evidence is NOT a contradictory traditional reading');
+const leaked=draft('낯선 정보를 살피는 모습으로 풀이합니다. 다음 문단에서는 자원을 활용하는 특징을 설명합니다.');
+assert(grounding.inspect(leaked,actual).blockingErrors.includes(
+ 'saju_core:editorial-outline-leaked-to-reader'),
+ 'paid core cannot expose the next-paragraph editorial outline');
+const withPrivateEvidence=draft(affirmative);
+withPrivateEvidence.sections[0].evidence=['다음 문단에서는 출처를 검증한다'];
+assert(!grounding.inspect(withPrivateEvidence,actual).blockingErrors.includes(
+ 'saju_core:editorial-outline-leaked-to-reader'),
+ 'private calculated provenance remains separate from visible copy');
+const corePair=(first,second)=>({sections:[{id:'saju_core',title:case0.title,
+ keyJudgment:case0.keyJudgment,bodyTopics:['temperament','strength'],
+ bodyLabels:['추가 계절 조건','한 가지 선택'],body:[first,second],evidence:[]}]});
+const repeated=corePair(
+ '계절과 겉글자에서는 가상의 선택에 도움이 되는 조건을 살핍니다. 실제 성격을 단정할 수 없습니다.',
+ '낯선 정보를 이해하고 필요한 자원을 여러 곳에서 살피는 사주로 풀이합니다. 실제 행동을 단정할 수 없습니다.');
+assert(grounding.inspect(repeated,actual).blockingErrors.includes(
+ 'saju_core:repeated-generic-observation-disclaimer'),
+ 'two separate core paragraphs must not repeat the same global disclaimer');
+const specific=corePair(
+ '계절 분류만으로 실제 적응력을 확정할 수는 없습니다. 가령 재료를 마련할 때 필요한 도움을 살피는 해석입니다.',
+ '낯선 정보를 이해한 뒤 여러 곳의 자원을 살피는 기질로 풀이합니다. 실제 성격을 단정할 수 없습니다.');
+assert(!grounding.inspect(specific,actual).blockingErrors.includes(
+ 'saju_core:repeated-generic-observation-disclaimer'),
+ 'source-specific limitation must not be mistaken for global repetition');
+const single=draft('낯선 정보와 필요한 자원을 함께 살피는 태도로 풀이합니다. 다만 실제 행동은 단정할 수 없습니다.');
+assert(!grounding.inspect(single,actual).blockingErrors.includes(
+ 'saju_core:repeated-generic-observation-disclaimer'),
+ 'one appropriately bounded disclaimer is allowed');
 assert.equal(core.forPrompt({stage:'synthesis',requestedSections:[],facts:actual}),null);
 assert.throws(()=>core.forPrompt({...prompt,facts:{}}),/NO_VERIFIED_MONTH_PAIR/);
 console.log('PASS deterministic single-sentence core thesis from real lunar/month stems for 5 cases, strict schema and decoding; 0 paid API');

@@ -127,6 +127,11 @@ let fetches=0,rawRequest=null,upstreamPrompt=null;
     !secondText.includes('두 질문에 각각 답해야'),
     'actual output field must not resurrect two-question internal checklist');
   assert(secondText.includes('한 가지 조건부 기질 해석'));
+  assert(firstText.includes('편집 순서를 말하지 않는다')&&
+   firstText.includes('내부 basis.limit에 기록한다')&&
+   secondText.includes('작성 과정 문장을 독자용 텍스트에 쓰지 않는다')&&
+   secondText.includes('앞 문단과 같은 공통 면책 문구를 반복하지 않고'),
+   'paid first-chapter response schema must prevent meta-writing and repeated disclaimers');
   const valuePlan=second.evidenceFocus.readerReasoning.readerValuePlan;
   assert(valuePlan.customerSequence.startsWith('고정 핵심 판단'),
    'first-chapter writing order must begin with interpretation, not glossary');

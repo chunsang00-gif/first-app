@@ -162,6 +162,11 @@ function inspect(report,packet=null){
   // never the magnitude of a clash. Correct denials are not overclaims.
   const fields=[section.title,section.keyJudgment,...(section.bodyLabels||[]),...(section.body||[])]
    .filter(x=>typeof x==='string');
+  // Historical paid prose sometimes explained the next paragraph instead of
+  // the reader's Saju interpretation. Read only public fields, never evidence.
+  const leakedOutline=/(?:다음|앞|이전|첫째|둘째|첫|두\s*번째)\s*(?:문단|항목|소제목|장)\s*(?:에서(?:는)?|에선|에|의)|이\s*문단(?:에서(?:는)?|은)/;
+  if(fields.some(x=>leakedOutline.test(x)))
+   blockingErrors.push('saju_core:editorial-outline-leaked-to-reader');
   // Root/clash evidence is required internally; avoid technical-first headings.
   // A paid core chapter must not become a technical glossary in its BODY,
   // even when the title is customer-friendly. Internal evidence is separately
@@ -251,6 +256,16 @@ function inspect(report,packet=null){
   }
   if(fields.some(x=>/주인공(?:과|의|에게|은|이)/.test(x)))
    blockingErrors.push('saju_core:unnatural-protagonist-address');
+  // Do not spend multiple separate core paragraphs on the same generic
+  // "unobserved personality" disclaimer. A distinct source-specific limit
+  // (e.g., calculated season does not measure adaptability) is still valid.
+  const genericObservedLimit=/(?:실제\s*(?:성격|행동|습관|성향|경험|능력)|실제로\s*(?:어떻게\s*)?행동|개인의\s*(?:성격|행동|경험))/;
+  const limitationAct=/(?:단정할\s*수\s*없|단정하지\s*않|확정할\s*수\s*없|확정하지\s*않|알\s*수\s*없|입증(?:할\s*수\s*없|하지\s*않)|측정(?:할\s*수\s*없|하지\s*않)|증명(?:할\s*수\s*없|하지\s*않))/;
+  const genericLimitParagraphs=(section.body||[]).filter(p=>
+   String(p).split(/[.!?。！？\n]+/).some(sentence=>
+    genericObservedLimit.test(sentence)&&limitationAct.test(sentence))).length;
+  if(genericLimitParagraphs>=2)
+   blockingErrors.push('saju_core:repeated-generic-observation-disclaimer');
   // Repeated 'cannot tell' sentences may be correct individually but cannot
   // substitute for the paid chapter's source-grounded interpretation.
   const limitation=/(?:단정(?:할\s*수\s*없|하지)|확정(?:할\s*수\s*없|하지)|보장하지|판정할\s*수\s*없|판단할\s*수\s*없|말할\s*수\s*없|알\s*수\s*없|정해지지\s*않|볼\s*근거(?:는|가)?\s*없)/;
