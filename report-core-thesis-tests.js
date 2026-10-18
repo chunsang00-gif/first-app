@@ -87,6 +87,53 @@ const privateMeaning=sameDraft('한 가지 해석을 가상 상황에서 다룹�
 privateMeaning.sections[0].evidence=['두 출생 위치에서 같은 분류이므로 기질이 두 배 강합니다.'];
 assert(!postReview.inspect(privateMeaning,samePacket).blockingErrors.includes(sameError),
  'the private evidence field is not reader prose and must not trip a user-facing heuristic');
+// Positive CONTROL across *all* existing first-chapter post-generation
+// checks. The earlier tests asserted absence of only one error code and
+// could miss rejection by another guard. These are offline invented scenes,
+// NOT approved paid prose or claims about the actual reader's behavior.
+const readerPolicy=require('./report-reader-policy');
+const editorialReview=require('./report-editorial');
+const factualReview=require('./report-quality-node');
+const readerMeaning={
+ 비견:'스스로 맡을 역할을 정하는',겁재:'공동으로 쓰는 몫을 나누는',
+ 식신:'생각을 결과물로 만드는',상관:'익숙한 방식과 다른 방법을 제안하는',
+ 정재:'반복되는 비용을 꾸준히 관리하는',편재:'필요한 자원을 여러 곳에서 찾는',
+ 정관:'규칙과 맡은 역할을 지키는',편관:'갑작스러운 요구에 책임 범위를 살피는',
+ 정인:'배우고 조언을 참고하는',편인:'낯선 정보를 자기 방식으로 이해하는'
+};
+function allFirstChapterGuards(report,packet,name){
+ const section=report.sections[0];
+ const groundingErrors=postReview.inspect(report,packet).blockingErrors;
+ assert.deepEqual(groundingErrors,[],name+' incorrectly rejected by post-generation grounding');
+ const displayed=readerPolicy.visibleFields(report);
+ assert.deepEqual(readerPolicy.errors(displayed),[],name+' reader-facing jargon check');
+ assert.deepEqual(editorialReview.wordingErrors(displayed),[],name+' wording check');
+ assert.deepEqual(factualReview.verifyEvidenceAgainstFacts(report,packet).errors,[],
+  name+' calculated-fact consistency check');
+}
+const sameKind=sameContrast.monthTenGodContext.monthStem.tenGod;
+assert(readerMeaning[sameKind]);
+const sameScene=require('./report-chart-contrast').TEN_GOD_SCENE[sameKind];
+const normalSame=sameDraft(
+ '예를 들어 '+sameScene+' 때 '+readerMeaning[sameKind]+
+ ' 관점을 적용해 한 번의 선택을 풀이합니다. 같은 전통 분류가 실제 두 출생 위치에서 확인된 것은 서로 반대되는 기질 두 개가 아니라 한 가지 해석을 뒷받침하는 두 근거라는 뜻입니다. '+
+ '그렇다고 실제로 이런 선택을 해 왔다거나 기질이 두 배 강하다는 뜻은 아닙니다.');
+normalSame.sections[0].evidence=[
+ 'natal.month.stem: 계산된 분류 '+sameKind,
+ 'natal.month.hidden: 계산된 분류 '+sameKind
+];
+allFirstChapterGuards(normalSame,samePacket,'identical-category normal interpretation');
+const distinctCore=core.forPrompt({stage:'body',facts:actualDistinct,requestedSections:['saju_core']});
+assert.deepEqual(distinctCore.categories,['편인','편재']);
+const normalDistinct={sections:[{
+ id:'saju_core',title:distinctCore.title,keyJudgment:distinctCore.keyJudgment,
+ bodyTopics:['strength'],bodyLabels:['이해와 자원 마련의 연결'],
+ body:['낯선 자료를 자기 방식으로 이해하고 필요한 자원을 여러 곳에서 찾아 활용하는 관점을 함께 읽는 사주입니다. 예를 들어 재료를 고를 때 먼저 용도를 이해한 뒤 실제로 구할 수 있는 곳을 살피는 과정으로 풀이합니다. 용도를 살피지 않고 재료부터 마련하면 쓰임새가 맞지 않을 수 있고, 알아보는 데서 멈추면 필요한 물건을 제때 확보하지 못할 수 있다는 조건부 해석입니다.'],
+ evidence:['natal.month.stem: 편인으로 계산된 출처','natal.month.hidden: 편재로 계산된 출처']
+}]};
+allFirstChapterGuards(normalDistinct,actualDistinct,'different-category normal interpretation');
+assert(!normalSame.sections[0].body[0].includes(normalDistinct.sections[0].body[0]),
+ 'positive fixtures must exercise two genuinely distinct writing paths');
 // Prove the pre-API audit receives actual birth facts and the body's stage.
 const instructionAudit=require('./report-instruction-audit');
 const originalSchemaFor=wire.schemaFor;
