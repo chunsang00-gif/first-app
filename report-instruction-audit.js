@@ -64,9 +64,30 @@ function inspect(prompt){
    const reportSchema=require('./report-schema.json');
    const wire=require('./report-wire');
    let transport;
-   try{transport=wire.schemaFor({requestedSections:[id],includeFinal:false,includeCover:false,analysisGuidance:{editorialBlueprint:{[id]:plan}}},reportSchema)}
+   // Reconstruct the SAME source- and stage-bound writing schema used by
+   // the billable provider. The older audit silently omitted facts/stage,
+   // so it missed locked core conclusions and identical-category branches.
+   const schemaPrompt={...prompt,requestedSections:[id],includeFinal:false,includeCover:false,
+    analysisGuidance:{...prompt.analysisGuidance,editorialBlueprint:{[id]:plan}}};
+   try{transport=wire.schemaFor(schemaPrompt,reportSchema)}
    catch(err){errors.push('invalid transport plan: '+id+': '+err.message);continue}
    const slots=transport.properties.chapters.properties[id].properties.paragraphs.properties;
+   if(id==='saju_core'&&prompt.facts?.status==='ready'){
+    const thesis=require('./report-core-thesis').forPrompt(schemaPrompt);
+    const month=require('./report-chart-contrast').build(prompt.facts)?.monthTenGodContext;
+    const text=slots.strength?.properties?.text?.description||'';
+    const chapterSchema=transport.properties.chapters.properties.saju_core.properties;
+    if(!thesis||JSON.stringify(chapterSchema.title?.enum)!==JSON.stringify([thesis.title])||
+       JSON.stringify(chapterSchema.keyJudgment?.enum)!==JSON.stringify([thesis.keyJudgment]))
+     errors.push('core-fixed-thesis-missing-from-audited-schema');
+    if(!month?.monthStem?.sourceId||!month?.monthMainHidden?.sourceId||
+       !text.includes(thesis?.keyJudgment||'__missing_locked_thesis__')||
+       (month.sameClassification?
+        !text.includes('두 출생 위치의 십성 분류와 전통적 뜻이 같으므로')||
+         text.includes('두 출처의 서로 다른 뜻'):
+        !text.includes('두 의미를 별도 질문 두 개나 누구에게나 해당하는 준비 조언으로 바꾸지 않는다')))
+     errors.push('core-month-pair-writing-branch-disagrees-with-facts');
+   }
    for(const [topic,task] of Object.entries(plan.topicTasks||{})){
     const slot=slots[topic];
     if(!slot){errors.push('missing transport slot: '+id+'/'+topic);continue}

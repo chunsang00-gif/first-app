@@ -60,6 +60,42 @@ assert.equal(core.forPrompt(samePrompt).categories[0],core.forPrompt(samePrompt)
 assert(require('./report-generation-request').policy.includes('같은 전통 분류라면 거짓 의미 차이'));
 assert(sameBlueprint.saju_core.topicTasks.strength.interpretationBoundary.includes('거짓 차이·갈등·강도 증폭'));
 assert(require('./report-prompt').sectionGoals.saju_core.includes('같은 분류면 서로 다른 뜻'));
+// Prove the pre-API audit receives actual birth facts and the body's stage.
+const instructionAudit=require('./report-instruction-audit');
+const originalSchemaFor=wire.schemaFor;
+let observedSameSchema=false;
+try{
+ wire.schemaFor=(candidate,original)=>{
+  const result=originalSchemaFor(candidate,original);
+  if(candidate?.requestedSections?.length===1&&candidate.requestedSections[0]==='saju_core'&&
+     candidate?.stage==='body'&&candidate?.facts===samePacket){
+   observedSameSchema=true;
+   const text=result.properties.chapters.properties.saju_core.properties.paragraphs
+    .properties.strength.properties.text.description;
+   assert(text.includes('두 출생 위치의 십성 분류와 전통적 뜻이 같으므로'),
+    'audit must inspect the actual identical-category provider instructions');
+  }
+  return result;
+ };
+ const auditErrors=instructionAudit.inspect(samePrompt);
+ assert(observedSameSchema,'audit dropped calculation facts/stage while rebuilding schema');
+ assert(!auditErrors.includes('core-fixed-thesis-missing-from-audited-schema')&&
+  !auditErrors.includes('core-month-pair-writing-branch-disagrees-with-facts'),
+  'verified same-category facts, thesis and writing field must agree');
+}finally{wire.schemaFor=originalSchemaFor}
+// Negative control: a contradictory schema must fail before paid generation.
+try{
+ wire.schemaFor=(candidate,original)=>{
+  const result=originalSchemaFor(candidate,original);
+  if(candidate?.requestedSections?.length===1&&candidate.requestedSections[0]==='saju_core'&&
+     candidate?.stage==='body'&&candidate?.facts===samePacket)
+   result.properties.chapters.properties.saju_core.properties.paragraphs.properties
+    .strength.properties.text.description='두 분류가 반대되며 의미와 기질의 차이를 설명하라.';
+  return result;
+ };
+ assert(instructionAudit.inspect(samePrompt).includes('core-month-pair-writing-branch-disagrees-with-facts'),
+  'schema contradicting two identical calculated classifications must fail the pre-API audit');
+}finally{wire.schemaFor=originalSchemaFor}
 const actual=facts.build(inputs[0],2027);
 const prompt={stage:'body',facts:actual,requestedSections:['saju_core']};
 const case0=core.forPrompt(prompt);
