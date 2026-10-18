@@ -427,4 +427,17 @@ function forTopic(contrast,topic,allowedIds){
    '월의 계절·전환 조건과 실제 겉글자의 관계를 readerQuestion에 연결한다. 숨은 십성이나 뿌리·충을 이 문단의 필수 주제로 추가하지 않는다. 내부 계산표를 독자용 글에 옮기지 않고 전통적 질문과 의미를 쉬운 상황으로 풀이한다. 검증 한계는 basis.limit에 기록하고 개인의 능력과 행동을 단정하지 않는다.':
    '먼저 tenGodFocus.monthStem과 tenGodFocus.monthMainHidden의 실제 십성 분류와 전통적 의미, 두 출처의 elementLink에 확인된 오행 관계를 readerQuestion에 연결한다. 월간과 월지 본기는 다른 출처이며 같더라도 거짓 갈등을 만들지 않는다. sourceAudit와 points는 내부 출처·계산 검증용이며 독자에게 뿌리·충 근거를 이 문단의 해석에 추가하지 않는다. 실제 확인된 명리 상징이 허용하는 기질 해석과 그 조건을 쉬운 가상 상황으로 풀고, 실제 성격·능력·사건은 지어내지 않는다. 한계는 basis.limit에 기록한다. 제목과 문단 라벨에 뿌리·충·통근·월지 등 기술 용어를 내세우지 않으며 내부 참조 ID와 한자는 독자에게 복사하지 않는다.'};
 }
-module.exports={build,forTopic,firstChapterClaimOwnership,TOPIC_POINTS,monthHypothetical,TEN_GOD_SCENE};
+// The verified internal reader plan records two separate editorial FAQ
+// questions; sending these beside the single-scene brief tempted the model
+// to print a glossary and answer two checklists. Strip ONLY those internal
+// questions from the paid provider payload, not from the internal plan.
+function forProvider(contrast,topic,allowedIds){
+ const focus=forTopic(contrast,topic,allowedIds);
+ if(topic!=='strength')return focus;
+ const plan=focus.readerReasoning.readerValuePlan;
+ const {question:internalFirstQuestion,...first}=plan.first;
+ const {question:internalSecondQuestion,...second}=plan.second;
+ return {...focus,readerReasoning:{...focus.readerReasoning,
+  readerValuePlan:{...plan,first,second}}};
+}
+module.exports={build,forTopic,forProvider,firstChapterClaimOwnership,TOPIC_POINTS,monthHypothetical,TEN_GOD_SCENE};

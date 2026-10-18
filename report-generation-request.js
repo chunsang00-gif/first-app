@@ -170,7 +170,7 @@ function compile(prompt){
     });
     // The model's actual compact task is now one factual question per
     // comparison pair, rather than a four-part undifferentiated chapter table.
-    if(coreContrast)topic.evidenceFocus=require('./report-chart-contrast').forTopic(coreContrast,topicId,permitted);
+    if(coreContrast)topic.evidenceFocus=require('./report-chart-contrast').forProvider(coreContrast,topicId,permitted);
     // Only supported, actually citable topics receive the specific
     // submitted MBTI dimension; state-limits never get a free type claim.
     topic.mbtiFocus=topic.mode!=='state-limits'&&permitted.includes('person.mbti')&&

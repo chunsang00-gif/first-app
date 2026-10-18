@@ -29,6 +29,8 @@ const schema=require('./report-schema.json');
   'core-reader-evidence-brief-drift:saju_core/temperament');
  assertDropped(p=>{p.task.chapters.saju_core.topics.strength.evidenceFocus.readerReasoning.hypotheticalQuestion='기술 용어만 반복한다'},
   'core-reader-evidence-brief-drift:saju_core/strength');
+ assertDropped(p=>{p.task.chapters.saju_core.topics.strength.evidenceFocus.readerReasoning.readerValuePlan.first.question='내부 질문 목록을 그대로 출력하라'},
+  'core-reader-evidence-brief-drift:saju_core/strength');
  assertDropped(p=>{p.task.chapters.saju_core.topics.strength.evidenceFocus.sourceAudit='충 관계 없음'},
   'core-reader-evidence-brief-drift:saju_core/strength');
  assertDropped(p=>{delete p.task.chapters.saju_core.topics.strength.evidenceFocus.points[0].sourceAuditCheck},

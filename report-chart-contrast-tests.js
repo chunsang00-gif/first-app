@@ -466,8 +466,17 @@ for(const input of cases){
  }
  if(input.calendar==='lunar'&&input.birthDate==='1982-11-24')
   assert(sourceOverlaps,'the lunar paid QA sample must exercise this overlap regression');
- assert.deepEqual(request.task.chapters.saju_core.topics.strength.evidenceFocus.readerReasoning.readerValuePlan,
-  monthReaderPlan,'the actual billable provider must receive EXACT month-dependent tradeoff questions');
+ const transmittedPlan=request.task.chapters.saju_core.topics.strength.evidenceFocus.readerReasoning.readerValuePlan;
+ const expectedTransmitted=structuredClone(monthReaderPlan);
+ delete expectedTransmitted.first.question;
+ delete expectedTransmitted.second.question;
+ assert.deepEqual(transmittedPlan,expectedTransmitted,
+  'provider must preserve source-grounded meaning and tradeoffs without duplicate internal FAQ prompts');
+ assert(monthReaderPlan.first.question&&monthReaderPlan.second.question&&
+  !Object.hasOwn(transmittedPlan.first,'question')&&!Object.hasOwn(transmittedPlan.second,'question'),
+  'internal QA may keep both questions but the customer prose writer must not receive them');
+ assert.equal(transmittedPlan.first.sourceId,'natal.month.stem');
+ assert.equal(transmittedPlan.second.sourceId,'natal.month.hidden.'+mc.mainHiddenStem);
  const scenario=strength.readerReasoning.hypotheticalQuestion;
  const mainKind=strength.tenGodFocus.monthMainHidden.tenGod;
  assert(scenario.includes('가상의 상황')&&

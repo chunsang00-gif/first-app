@@ -158,7 +158,7 @@ function inspectTransport(prompt,actual){
     if(id==='saju_core'){
      const contrast=require('./report-chart-contrast');
      const original=contrast.build(prompt.facts);
-     const expected=original&&contrast.forTopic(original,topicId,permitted);
+     const expected=original&&contrast.forProvider(original,topicId,permitted);
      if(!expected||JSON.stringify(topic.evidenceFocus)!==JSON.stringify(expected))
       errors.push('core-reader-evidence-brief-drift:'+id+'/'+topicId);
     }
