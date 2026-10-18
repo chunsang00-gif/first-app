@@ -47,7 +47,8 @@ const samePrompt={stage:'body',facts:samePacket,requestedSections:['saju_core'],
 const sameSchema=wire.schemaFor(samePrompt,schema).properties.chapters.properties.saju_core.properties;
 const sameRole=sameSchema.paragraphs.properties.strength;
 const sameText=sameRole.properties.text.description;
-assert(sameText.includes('두 출생 위치의 십성 분류와 전통적 뜻이 같으므로')&&
+assert(sameText.includes('한 가지 생활 선택에서 뜻하는 기질을 쉬운 말로 풀고')&&
+ sameText.includes('두 출생 위치의 십성 분류와 전통적 뜻이 같으므로')&&
  sameText.includes('고정된 핵심 판단을 한 가지 가상 선택에 적용한다')&&
  sameRole.properties.label.description.includes('같은 전통 분류'),
  'same-category paid reader must be instructed to interpret ONE traditional lens from TWO provenance locations');

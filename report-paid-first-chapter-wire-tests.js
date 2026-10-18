@@ -127,6 +127,17 @@ let fetches=0,rawRequest=null,upstreamPrompt=null;
     !secondText.includes('두 질문에 각각 답해야'),
     'actual output field must not resurrect two-question internal checklist');
   assert(secondText.includes('한 가지 조건부 기질 해석'));
+  assert(secondText.includes('독자에게 필요한 것은 두 글자의 정의가 아니라')&&
+   secondText.includes('같은 장면에서 한 의미만 따르면 놓치는 실제 선택 조건')&&
+   secondText.includes('정리 문장이나 반복되는 해석 한계 문장을 보태지 않고 끝낸다'),
+   'actual provider text description must prioritize applied interpretation, not glossary enumeration');
+  assert(firstText.includes('상징 소개만 남으면 소제목과 본문을 모두 null로 반환한다'),
+   'optional seasonal paragraph should not inflate the chapter');
+  assert(system.includes('독자에게 출처·상징·검증 과정 자체를 강의하지 않는다')&&
+   system.includes('결론의 재요약을 붙이지 않는다'),
+   'actual system prompt must agree with the schema instructions');
+  assert(second.evidenceFocus.readerReasoning.hypotheticalQuestion.includes('두 전통 분류를 순서대로 정의하지 않는다'),
+   'the chart-specific brief must not force a pair of glossary definitions');
   assert(secondText.includes('사전적 정의 두 문장 다음에 일반적인 준비·확인 조언')&&
    secondText.includes('같은 가상 상황의 선택에 어떤 차이를 만드는지 출처와 조건을 연결해 설명한다'),
    'paid provider must see the source-to-scene interpretation boundary');
