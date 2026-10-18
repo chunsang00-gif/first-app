@@ -96,6 +96,13 @@ let fetches=0,rawRequest=null,upstreamPrompt=null;
     !secondText.includes('두 질문에 각각 답해야'),
     'actual output field must not resurrect two-question internal checklist');
   assert(secondText.includes('한 가지 조건부 기질 해석'));
+  assert(second.evidenceFocus.readerReasoning.readerValuePlan.customerSequence.startsWith('고정 핵심 판단'),
+   'first-chapter writing order must begin with interpretation, not glossary');
+  assert(!Object.hasOwn(second.evidenceFocus.readerReasoning.readerValuePlan.traditionalReading,'tentativeThesis')&&
+   !Object.hasOwn(second.evidenceFocus.readerReasoning.readerValuePlan.traditionalReading,'evidenceLimit'),
+   'do not send duplicated provisional teaching prose or disclaimers');
+  assert(!secondText.includes('작성 목적:')&&!secondText.includes('해석의 범위:'),
+   'response schema must not carry the meta-writing plan as customer prose');
   assert(core.analysisFocus.includes('한 가지 조건부 기질 해석'));
   assert(first.citableFacts.some(x=>x.id==='facts.seasonalEvidence'));
   assert(first.citableFacts.some(x=>x.id==='facts.qiEvidence'));

@@ -311,7 +311,9 @@ function readerQuestions(contrast,topic){
   const readerContext='태어난 달 겉글자의 '+visibleKind+'('+visibleMeaning+')와 중심 숨은 글자의 '+mainKind+'('+mainMeaning+')를 실제 출생 위치별로 구분해 읽는다. '+comparison+
    elementLink.explanation+' 이는 두 글자의 오행 관계일 뿐 실제 갈등이나 강약 판단이 아니다. ';
   const sourceAudit='실제 출생월 겉글자 '+monthTenGod.monthStem.sourceId+'와 본기 '+monthTenGod.monthMainHidden.sourceId+'의 십성 분류 및 전통적 뜻을 각각 확인한다. 별도 뿌리·충 자료만으로 두 십성을 대신하지 않는다.';
-  const traditionalReading=monthlyTraditionalReading(monthTenGod);
+  // Pass only the two source-bound reading lenses, not duplicated provisional prose.
+  const {status,first,second}=monthlyTraditionalReading(monthTenGod);
+  const traditionalReading={status,first,second};
   const firstEverydayQuestion=TEN_GOD_DECISION[visibleKind];
   const secondEverydayQuestion=TEN_GOD_DECISION[mainKind];
   if(!firstEverydayQuestion||!secondEverydayQuestion)
@@ -330,8 +332,8 @@ function readerQuestions(contrast,topic){
     first:{sourceId:monthTenGod.monthStem.sourceId,tenGod:visibleKind,question:firstEverydayQuestion},
     second:{sourceId:monthTenGod.monthMainHidden.sourceId,tenGod:mainKind,question:secondEverydayQuestion},
     customerSequence:monthTenGod.sameClassification?
-     '같은 전통 뜻을 두 출생 위치에서 확인 → 한 가지 조건부 기질 해석을 제시 → 가상 상황에 적용할 때의 유리한 조건과 해석 한계를 설명':
-     '두 출생 위치의 서로 다른 전통 뜻 확인 → 그 뜻을 한 가지 조건부 기질 해석으로 연결 → 가상의 한 선택에서 유리한 조건과 놓치기 쉬운 조건을 각각 설명',
+     '고정 핵심 판단을 한 가지 기질 해석으로 먼저 풀기 → 같은 전통 뜻을 지닌 두 출처가 그 풀이를 뒷받침하는 이유를 짧게 설명 → 가상 상황에서 유리한 점과 주의점을 구별':
+     '고정 핵심 판단을 한 가지 기질 해석으로 먼저 풀기 → 두 출생 위치의 서로 다른 전통 뜻을 그 판단의 근거로 연결 → 가상 선택 한 번으로 유리한 점과 놓치기 쉬운 점을 설명',
     advantageQuestion:monthTenGod.sameClassification?
      '같은 뜻을 지닌 두 출처가 있는 사주를 읽을 때 확인할 수 있는 전통적 질문은 무엇인가?':
      '두 전통적 의미를 연결해서 위 가상 상황의 어떤 유리한 조건을 설명할 수 있는가?',
