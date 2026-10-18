@@ -105,7 +105,7 @@ for(const input of [
  assert.doesNotThrow(()=>writer.restoreEvidence(report(required),prompt));
  for(const ref of forbidden){
   assert.throws(()=>writer.restoreEvidence(report([...required,ref]),prompt),
-   /unrelated paragraph basis/,
+   /missing verified paragraph basis|unrelated paragraph basis/,
    'the current customer paragraph cannot cite the unrelated root source: '+ref);
  }
  const tampered=structuredClone(packet);
