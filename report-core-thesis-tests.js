@@ -60,6 +60,33 @@ assert.equal(core.forPrompt(samePrompt).categories[0],core.forPrompt(samePrompt)
 assert(require('./report-generation-request').policy.includes('같은 전통 분류라면 거짓 의미 차이'));
 assert(sameBlueprint.saju_core.topicTasks.strength.interpretationBoundary.includes('거짓 차이·갈등·강도 증폭'));
 assert(require('./report-prompt').sectionGoals.saju_core.includes('같은 분류면 서로 다른 뜻'));
+// Post-generation guard: same ten-god at TWO actual month positions may
+// support ONE traditional reading; it never proves opposite personalities
+// or an amplified measured disposition. Only visible core prose is tested.
+const postReview=require('./report-grounding-review');
+const sameJudgment=core.forPrompt(samePrompt);
+const sameDraft=body=>({sections:[{id:'saju_core',title:sameJudgment.title,
+ keyJudgment:sameJudgment.keyJudgment,bodyTopics:['strength'],
+ bodyLabels:['한 가지 기질의 조건'],body:[body],evidence:[]} ]});
+const sameError='saju_core:invented-opposition-or-amplification-from-identical-month-classification';
+const oppositeFromSame=sameDraft('두 출생 위치에서 같은 분류가 확인되지만 서로 반대되는 기질이 충돌합니다.');
+assert(postReview.inspect(oppositeFromSame,samePacket).blockingErrors.includes(sameError),
+ 'a SAME verified month category cannot be marketed as two opposing traits');
+const doubledFromSame=sameDraft('두 출생 위치에서 같은 십성이 확인되므로 이 기질이 두 배 강합니다.');
+assert(postReview.inspect(doubledFromSame,samePacket).blockingErrors.includes(sameError),
+ 'two identical source labels are NOT a measure of twice the personality strength');
+const boundedFromSame=sameDraft('두 출생 위치에 같은 전통 분류가 확인되므로 스스로 맡을 일을 정하는 방식으로 풀이합니다. 예를 들어 공동 작업에서 맡을 역할을 정하는 상황에 적용할 수 있습니다. 같은 분류가 두 위치에 있다고 기질이 두 배 강하다는 뜻은 아닙니다.');
+assert(!postReview.inspect(boundedFromSame,samePacket).blockingErrors.includes(sameError),
+ 'clear denial of an unsupported doubling must remain permitted');
+const distinctDraft={...oppositeFromSame,sections:[{...oppositeFromSame.sections[0]}]};
+const actualDistinct=facts.build(inputs[0],2027);
+assert.equal(require('./report-chart-contrast').build(actualDistinct).monthTenGodContext.sameClassification,false);
+assert(!postReview.inspect(distinctDraft,actualDistinct).blockingErrors.includes(sameError),
+ 'the SAME-only false contrast guard must not reject actual differing ten-god categories');
+const privateMeaning=sameDraft('한 가지 해석을 가상 상황에서 다룹니다.');
+privateMeaning.sections[0].evidence=['두 출생 위치에서 같은 분류이므로 기질이 두 배 강합니다.'];
+assert(!postReview.inspect(privateMeaning,samePacket).blockingErrors.includes(sameError),
+ 'the private evidence field is not reader prose and must not trip a user-facing heuristic');
 // Prove the pre-API audit receives actual birth facts and the body's stage.
 const instructionAudit=require('./report-instruction-audit');
 const originalSchemaFor=wire.schemaFor;
