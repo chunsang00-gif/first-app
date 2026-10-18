@@ -197,7 +197,14 @@ function inspectTransport(prompt,actual){
    }
   }
   const mbti=prompt.analysisGuidance?.mbtiReference;
-  if(Boolean(actual.source?.['person.mbti'])!==Boolean(mbti))
+  const coreOnly=Array.isArray(prompt.requestedSections)&&
+   prompt.requestedSections.length===1&&prompt.requestedSections[0]==='saju_core';
+  if(coreOnly){
+   // A source-scoped Saju core must NOT import the input MBTI into its
+   // first chapter. Later MBTI chapters still require source preservation.
+   if(Object.hasOwn(actual.source||{},'person.mbti')||task.mbti!=null)
+    errors.push('saju-core-request-leaked-mbti-source');
+  }else if(Boolean(actual.source?.['person.mbti'])!==Boolean(mbti))
    errors.push('mbti-input-source-dropped-or-invented');
   if(JSON.stringify(task.comparisonContract)!==JSON.stringify(prompt.analysisGuidance?.comparisonContract||null))
    errors.push('independent-framework-contract-dropped');

@@ -184,6 +184,9 @@ function compile(prompt){
   // original packet for every other chapter; the contract is unchanged.
   if(prompt.requestedSections.length===1&&prompt.requestedSections[0]==='saju_core'){
    const core=task.chapters.saju_core;
+   // MBTI belongs to later comparison chapters; do not expose it in
+   // this Saju-only writer batch. Keep all input data in the original packet.
+   task.mbti=null;
    const allowed=new Set(Object.values(core.topics).flatMap(topic=>
     (topic.citableFacts||[]).map(row=>row.id)));
    if(!allowed.has('natal.month.stem')||

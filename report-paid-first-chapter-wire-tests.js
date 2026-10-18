@@ -59,6 +59,8 @@ let fetches=0,rawRequest=null,upstreamPrompt=null;
    topic.citableFacts.map(row=>row.id)));
   assert.deepEqual(Object.keys(user.source).sort(),[...chapterRefs].sort(),
    'provider sees only actually citable first-chapter calculated sources');
+  assert.equal(user.task.mbti,null,
+   'first-chapter writer must not receive the MBTI profile');
   for(const forbidden of ['facts.rootConditions','facts.stemConnections',
    'facts.natalClashes','facts.annualTenGods','facts.targetYearRelations',
    'person.mbti','natal.day.stem','natal.hour.stem']){
