@@ -163,6 +163,15 @@ assert(!glossaryCodes.includes(missingMeaningCode),
  'a definition containing both meanings must not be reported as meaning omission');
 assert(glossaryCodes.includes('saju_core:dictionary-plus-generic-advice-masquerading-as-reading'),
  'dictionary plus universal advice must STILL fail the separate depth-quality guard');
+const attemptedAutoRelease=require('./report-release-gate').assess({
+ report:paidStyleDraft(paidStyleBase),qa:{pass:true},packet:actualDistinct,
+ coverage:{canGenerate:true,plannedIds:['saju_core']}
+});
+assert.equal(attemptedAutoRelease.releaseVerdict,'not-approved',
+ 'recognizing the month meanings must never approve a paid release');
+assert.equal(attemptedAutoRelease.humanReviewRequired,true);
+assert(attemptedAutoRelease.failedTechnicalChecks.includes('incomplete-final-report'),
+ 'an automated first-chapter lexical pass does not constitute a complete premium report');
 
 assert(!normalSame.sections[0].body[0].includes(normalDistinct.sections[0].body[0]),
  'positive fixtures must exercise two genuinely distinct writing paths');
