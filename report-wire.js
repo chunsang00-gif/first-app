@@ -32,6 +32,10 @@ function coreReaderRoles(prompt){
   ' 다른 문단으로 넘길 해석: '+claim.reservedForOtherParagraph+
   ' 한 근거를 두 문단이 인용하더라도 같은 성향 결론을 두 번 쓰지 않는다.': '';
  const reading=focus?.traditionalReading;
+ // The enum locks the thesis; ensure the required body receives that exact
+ // thesis rather than two unrelated dictionary hints.
+ const lockedJudgment=focus&&prompt?.stage==='body'?
+  require('./report-core-thesis').forPrompt(prompt)?.keyJudgment:null;
  const firstParagraphBoundary=seasonal?.readerValuePlan?.distinctFromMonthPair||null;
  return {
   temperament:{
@@ -46,6 +50,8 @@ function coreReaderRoles(prompt){
   strength:{
    label:'이 장의 필수 핵심 풀이이며 고정된 keyJudgment의 실제 두 출처를 풀이한다. 태어난 달의 겉글자와 중심 숨은 글자에서 확인된 두 의미를 결합해 독자에게 필요한 결론을 소제목으로 짧게 나타낸다. 선택적인 계절·외부 지원 조건을 반복하지 않는다. 뿌리·충·강약처럼 이 문단에 없는 계산 주제를 제목에 붙이지 않는다.',
    text:'이 문단은 필수 핵심 기질 풀이이다. 고정된 keyJudgment의 선택 방식을 먼저 한 가지 조건부 기질 해석으로 풀고, 태어난 달의 두 출처는 그 이유만 짧게 뒷받침한다. 두 뜻을 사전적 정의 문장으로 각각 늘어놓지 않는다. 가상 상황 하나에서 이 해석이 유리한 점과 한쪽만 보면 놓치기 쉬운 점을 구체적으로 비교한다. 실제 고객 성격이나 경험을 단정하지 않는다.'+
+    (lockedJudgment?' 이 입력에서 이미 고정된 핵심 판단: '+lockedJudgment+
+     ' 이 문장을 그대로 다시 적지 말고 두 선택의 뜻이 한 상황에 연결되는 이유를 설명한다. 고정 판단의 어느 쪽도 본문에서 부정하거나 반대 성향으로 바꾸지 않는다.':'')+
     (reading?' 실제 계산한 두 출처의 해석 단서: '+reading.first.reading+' / '+reading.second.reading+'. 두 뜻을 서로 다른 실제 성격 두 개로 단정하지 않는다. ':'')+
     claimBrief(secondClaim)+
     ' 출생 상징의 사전적 의미나 내부 질문을 고객용 글로 나열하지 않는다. 실제 계산된 월간 십성과 중심 숨은 글자 십성의 서로 다른 뜻을 한 가지 조건부 기질 해석으로 연결하고 그 이유를 근거에 따라 밝힌다. 모든 사주에 새 일을 준비하는 같은 예시를 쓰지 않는다. 실제 계산된 월지 중심 십성에 맞춘 가상의 한 선택 상황에서 그 풀이가 유리해지는 조건과 한쪽의 의미만 보면 놓칠 조건을 구분해 설명한다. 실제 성격의 모순·갈등이나 능력의 증거로 바꾸지 않는다. 첫 문단의 계절 설명을 반복하지 않는다. 한 문단의 끝을 이는 전통적 해석의 출발점입니다 같은 해설로 마무리하지 않는다.'

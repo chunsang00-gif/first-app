@@ -47,6 +47,23 @@ function inspect(report,packet=null){
     blockingErrors.push('saju_core:month-pair-meaning-source-unavailable');
    else if([...new Set(kinds)].some(k=>!coreMonthMeaningWords[k].test(mainText)))
     blockingErrors.push('saju_core:month-pair-meaning-missing-from-main-paragraph');
+   // Literal category words alone do not prove agreement with the locked
+   // thesis. Catch only categorical negations of the same verified reading.
+   // A hypothetical warning or denial of observed real-life behavior is OK.
+   const categoricalDenial=/(?:하지\s*않|하지\s*못|거부하).{0,15}(?:기질|성향|태도)/;
+   const notARealLifeClaim=/(?:뜻(?:은|이)?\s*아니|의미하지\s*않|단정할\s*수\s*없|단정하지\s*않|증명하지\s*않|실제\s*성격을\s*확정)/;
+   const statementParts=mainText.split(/[.!?。！？\n]+/).map(x=>x.trim()).filter(Boolean);
+   const explicitReversal=statementParts.some(sentence=>{
+    if(notARealLifeClaim.test(sentence))return false;
+    return [...new Set(kinds)].some(kind=>{
+     const match=coreMonthMeaningWords[kind]?.exec(sentence);
+     if(!match)return false;
+     return categoricalDenial.test(sentence.slice(match.index+match[0].length,
+      match.index+match[0].length+48));
+    });
+   });
+   if(explicitReversal)
+    blockingErrors.push('saju_core:main-paragraph-explicitly-reverses-locked-judgment');
    // A copied, locked key judgment is not an independently reasoned body.
    // Check the remainder after removing exact repetitions of that sentence.
    const summary=String(section.keyJudgment||'').trim();

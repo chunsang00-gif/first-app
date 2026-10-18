@@ -102,6 +102,11 @@ let fetches=0,rawRequest=null,upstreamPrompt=null;
   const fixed=require('./report-core-thesis').forPrompt(upstreamPrompt);
   assert.deepEqual(coreSchema.title.enum,[fixed.title]);
   assert.deepEqual(coreSchema.keyJudgment.enum,[fixed.keyJudgment]);
+  assert(secondText.includes('이미 고정된 핵심 판단: '+fixed.keyJudgment)&&
+   secondText.includes('고정 판단의 어느 쪽도 본문에서 부정하거나'),
+   'the actual paid writer must receive the exact judgment it must explain');
+  assert(secondText.split(fixed.keyJudgment).length===2,
+   'repeat the exact judgment only once in the required body field');
   assert(fixed.keyJudgment.length<120);
   assert(!/전통적 풀이와 해석의 조건/.test(fixed.title));
   assert(summary.includes('자연스러운 한국어 한 문장'),
