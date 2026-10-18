@@ -239,7 +239,7 @@ function monthHypothetical(visibleKind,mainKind,sameClassification){
  const startingPoint='가상의 상황: '+scene+' 때 ';
  return sameClassification?
   startingPoint+first+'를 결정해야 한다고 가정한다. 같은 분류가 두 계산 위치에 있음을 풀이하되 그 사람이 실제로 그렇게 행동하거나 두 배로 강하다고 말하지 않는다.':
-  startingPoint+first+'와 '+second+'가 같은 한 번의 선택에 걸려 있다고 가정한다. 두 질문에 각각 답하거나 두 전통 분류를 순서대로 정의하지 않는다. 첫 의미만 고려할 때와 확인된 두 의미를 함께 읽을 때 그 사람이 가상 선택에서 무엇을 다르게 중요하게 보게 되는지를 한 장면에서 풀어 쓴다. 유리한 조건과 놓치기 쉬운 조건의 차이를 실제 두 출처의 뜻에 연결한다. 모든 사람에게 통하는 준비 요령·체크리스트·성공 조언을 나열하거나 고객의 실제 경험·성격·성과·내적 갈등을 만들어내지 않는다.';
+  startingPoint+first+'와 '+second+'가 같은 한 번의 선택에 걸려 있다고 가정한다. 두 질문에 각각 답하거나 두 전통 분류를 순서대로 정의하지 않는다. 첫 의미만 고려할 때와 확인된 두 의미를 함께 고려할 때 그 사람이 가상 선택에서 무엇을 다르게 중요하게 보게 되는지를 한 장면에서 풀어 쓴다. 유리한 조건과 놓치기 쉬운 조건의 차이를 실제 두 출처의 뜻에 연결한다. 모든 사람에게 통하는 준비 요령·체크리스트·성공 조언을 나열하거나 고객의 실제 경험·성격·성과·내적 갈등을 만들어내지 않는다.';
 }
 function readerQuestions(contrast,topic){
  const points=contrast.contrastPoints||[];
