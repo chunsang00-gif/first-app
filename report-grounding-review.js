@@ -72,7 +72,7 @@ function inspect(report,packet=null){
     const sourcePair=/(?:두\s*(?:출생\s*)?(?:위치|출처|글자|자리)|같은\s*(?:십성|전통\s*분류|분류|뜻)|(?:월간|겉글자).{0,45}(?:월지|숨은\s*글자))/;
     const inventedOpposition=/(?:서로\s*(?:반대|상반|충돌|다른\s*(?:성격|기질|성향))|(?:반대|상반)되는?\s*(?:성격|기질|성향)|두\s*가지\s*(?:상반된|반대되는)\s*(?:성격|기질|성향))/;
     const inventedAmplification=/(?:두\s*배|2\s*배).{0,25}(?:강하|강해|강한|커지|증폭|뚜렷|높아)|(?:성격|기질|성향|능력|힘).{0,20}(?:두\s*배|2\s*배)/;
-    const denial=/(?:아니(?:다|라는|라고|므로|며|고|란|라는|란)|아닙니다|아닌|않(?:는다|습니다|는|다고|으므로)|없(?:다|습니다|는|으며)|못한다|금지|단정할\s*수\s*없|확정할\s*수\s*없|지어내지|만들지\s*않)/;
+    const denial=/(?:아니(?:다|라는|라고|라|므로|며|고|란)|아닙니다|아닌|않(?:는다|습니다|는|다고|으므로)|없(?:다|습니다|는|으며)|못한다|금지|단정할\s*수\s*없|확정할\s*수\s*없|지어내지|만들지\s*않)/;
     if(statementParts.some(s=>sourcePair.test(s)&&
        (inventedOpposition.test(s)||inventedAmplification.test(s))&&!denial.test(s)))
      blockingErrors.push('saju_core:invented-opposition-or-amplification-from-identical-month-classification');
