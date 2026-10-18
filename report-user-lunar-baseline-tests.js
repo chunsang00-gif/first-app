@@ -143,7 +143,10 @@ for(const ref of rootBaseRefs)assert(!Object.hasOwn(transport.source,ref),
  'the first-chapter writer may not receive unrelated root source '+ref);
 assert(expected.facts.stemConnections&&expected.facts.rootConditions,
  'all independently verified root/clash calculations remain in the source packet');
-assert.equal(transport.task.comparisonContract.calculatedAgreement,false);
+assert.equal(transport.task.comparisonContract,null,
+ 'Saju-only first chapter must not receive the unrelated MBTI comparison contract');
+assert.equal(integrationPayload.task.comparisonContract.calculatedAgreement,false,
+ 'the subsequent integrated Saju+MBTI chapter retains the comparison contract');
 const slots=writer.schema(prompt,wire.schemaFor(prompt,schema))
  .properties.chapters.properties.saju_core.properties.paragraphs.properties;
 assert.equal(blueprint.saju_core.anchorTopic,'strength');
