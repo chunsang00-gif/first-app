@@ -1,0 +1,101 @@
+name: Offline recheck of three already-paid first-chapter archives
+on:
+  push:
+    branches: [fix-paid-qa-fact-bindings-20261014]
+    paths: [.github/workflows/offline-core-paid-archives-current-audit.yml]
+permissions:
+  contents: read
+  actions: read
+jobs:
+  historical-core-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    strategy:
+      fail-fast: false
+      matrix:
+        paid_run: [38994773780, 39000723800, 39008133693]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install deterministic Saju dependency; no model client
+        run: npm ci --no-audit --no-fund
+      - name: Download historical encrypted artifact; NEVER request new output
+        uses: actions/download-artifact@v4
+        with:
+          name: premium-first-chapter-qa-encrypted
+          repository: chunsang00-gif/first-app
+          run-id: ${{ matrix.paid_run }}
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/encrypted
+      - name: Decrypt original once in temporary private runner directory
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          node report-qa-secure-archive.js decrypt \
+            "$RUNNER_TEMP/encrypted/premium-first-chapter-qa.enc" \
+            "$RUNNER_TEMP/private"
+      - name: Replay CURRENT first-chapter reader and factual quality checks OFFLINE
+        shell: bash
+        env:
+          PAID_ARCHIVE_RUN_ID: ${{ matrix.paid_run }}
+          OPENAI_API_KEY: ''
+          REPORT_MODEL_URL: ''
+        run: |
+          set -euo pipefail
+          trap 'rm -rf "$RUNNER_TEMP/private" "$RUNNER_TEMP/encrypted"' EXIT
+          node - "$RUNNER_TEMP/private/private-qa-first-chapter-provider-calls.json" <<'NODE'
+          'use strict';
+          // Never print private report text, birth details, names, provider JSON,
+          // or decryption keys. Not a release authorization or a new generation.
+          const fs=require('node:fs');
+          global.fetch=async()=>{throw Error('OFFLINE_REVIEW_NETWORK_FORBIDDEN')};
+          const ledger=JSON.parse(fs.readFileSync(process.argv[2],'utf8'));
+          if(ledger?.calls?.length!==1||ledger.calls[0]?.number!==1)
+           throw Error('HISTORIC_ONE_CALL_SCOPE_MISSING');
+          const original=ledger.calls[0];
+          if(original.request?.stage!=='body'||
+             JSON.stringify(Object.keys(original.request.task?.chapters||{}))!=='["saju_core"]')
+           throw Error('HISTORIC_ARCHIVE_WRONG_STAGE');
+          const chapter=original.response?.chapters?.saju_core;
+          if(!chapter?.paragraphs||typeof chapter.keyJudgment!=='string')
+           throw Error('HISTORIC_PRIVATE_CHAPTER_UNAVAILABLE');
+          const facts=require('./report-facts-node').build(ledger.sample,2027);
+          if(facts.status!=='ready')throw Error('ORIGINAL_CALCULATION_UNAVAILABLE');
+          const entries=Object.entries(chapter.paragraphs).filter(([,v])=>v?.text);
+          if(!entries.length)throw Error('ORIGINAL_CHAPTER_EMPTY');
+          const section={id:'saju_core',title:chapter.title,keyJudgment:chapter.keyJudgment,
+           bodyTopics:entries.map(([topic])=>topic),
+           bodyLabels:entries.map(([,v])=>v.label),
+           body:entries.map(([,v])=>v.text),
+           evidence:[]};
+          const report={sections:[section]};
+          const grounding=require('./report-grounding-review').inspect(report,facts);
+          const verified=require('./report-quality-node').verifyEvidenceAgainstFacts(report,facts);
+          const visible=require('./report-reader-policy').visibleFields(report);
+          const jargon=require('./report-reader-policy').errors(visible);
+          const grammar=require('./report-editorial').wordingErrors(visible);
+          const sentenceCount=String(section.keyJudgment).split(/(?<=[.!?。！？])\s+|\n+/)
+           .filter(Boolean).length;
+          // Source document human-reviewed these OLD three samples as failed.
+          // A clean automated result must NEVER be interpreted as a release.
+          const summary={
+           archivedRun:Number(process.env.PAID_ARCHIVE_RUN_ID),
+           paidCallsInArchive:1,paidCallsNow:0,
+           sameClassification:require('./report-chart-contrast').build(facts)?.monthTenGodContext?.sameClassification,
+           judgmentSentences:sentenceCount,
+           paragraphCount:entries.length,
+           blockingCodes:[...new Set(grounding.blockingErrors)].sort(),
+           factualErrorCount:verified.errors.length,
+           jargonErrorCount:jargon.length,wordingErrorCount:grammar.length,
+           historicHumanVerdict:'FAIL',
+           currentReleaseVerdict:'NOT_APPROVED'
+          };
+          console.log('HISTORICAL_PAID_CORE_OFFLINE_RECHECK='+JSON.stringify(summary));
+          if(summary.paidCallsNow!==0||summary.currentReleaseVerdict!=='NOT_APPROVED')
+           throw Error('PAID_QA_SAFETY_INVARIANT_BROKEN');
+          NODE
