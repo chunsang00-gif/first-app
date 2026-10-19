@@ -63,6 +63,23 @@ let fetches=0,rawRequest=null,upstreamPrompt=null;
    'exact outgoing strict schema and compressed task must agree');
   const core=user.task.chapters.saju_core;
   const first=core.topics.temperament,second=core.topics.strength;
+  const scopedGoal=require('./report-generation-request').editorialGoalFor(upstreamPrompt);
+  assert(scopedGoal&&user.task.editorialGoal===scopedGoal,
+   'the actual first-chapter provider payload must contain the scoped reader-quality brief');
+  for(const phrase of ['MBTI 장에서는','2027년은 계산된',
+   '돈은 수입·지출','직업은 역할·학습','관계는 친밀감·표현']){
+   assert(!user.task.editorialGoal.includes(phrase),
+    'unrelated full-report editorial instructions must not reach the Saju-only batch: '+phrase);
+  }
+  assert(user.task.editorialGoal.includes('한쪽만 따르면 무엇을 놓치는지')&&
+   user.task.editorialGoal.includes('계절 보충 문단은')&&
+   user.task.editorialGoal.includes('추상적인 수식·반복되는 한계 안내'),
+   'core-only editorialGoal must guide useful grounded reading rather than glossary/summary');
+  const altered=structuredClone(user);
+  altered.task.editorialGoal=upstreamPrompt.editorialTask;
+  assert(require('./report-instruction-audit').inspectTransport(upstreamPrompt,altered)
+   .includes('body-editorial-brief-dropped'),
+   'future changes must not silently restore full-report writing instructions');
   // Exact outgoing paid request: context cannot exceed its citation scope.
   const chapterRefs=new Set(Object.values(core.topics).flatMap(topic=>
    topic.citableFacts.map(row=>row.id)));

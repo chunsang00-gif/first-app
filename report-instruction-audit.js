@@ -138,7 +138,7 @@ function inspectTransport(prompt,actual){
   return ['missing-or-invalid-paid-provider-payload'];
  const task=actual.task||{};
  if(prompt.stage==='body'){
-  const expectedBrief=prompt.editorialTask||null;
+  const expectedBrief=require('./report-generation-request').editorialGoalFor(prompt);
   if(task.editorialGoal!==expectedBrief)
    errors.push('body-editorial-brief-dropped');
   if(JSON.stringify(task.previousSections)!==JSON.stringify(prompt.priorSections||[]))

@@ -124,6 +124,18 @@ function sources(prompt){
  if(mbti)result['person.mbti']=mbti;
  return result;
 }
+// This writer-only first-chapter goal replaces the generic 12-chapter
+// editorialTask at the actual provider boundary. The original input and all
+// non-core batches remain untouched. There is no second model call/rewrite.
+const coreEditorialGoal='이 응답은 결제 고객이 읽을 첫 번째 사주 기질 장의 최종 본문 원고다. 계산된 태어난 달의 두 전통 분류를 실제 인용 가능한 근거로 사용한다. 먼저 그래서 어떤 기질로 읽는지 독자가 한 번에 이해할 말로 풀고, 하나의 구체적인 가상 선택에서 두 의미를 함께 고려하면 어떤 조건에서 유리하고 한쪽만 따르면 무엇을 놓치는지 연결해 설명한다. 계산 위치와 두 분류의 사전 뜻을 차례로 소개하거나 누구에게나 맞는 확인·준비 조언으로 채우지 않는다. 같은 분류가 두 위치에서 나왔다면 반대 성향이나 기질의 강도 증가를 만들어내지 않는다. 계절 보충 문단은 핵심 풀이와 다른 해석 근거가 실제로 있을 때만 작성하고 중복이라면 null로 둔다. 내부 basis에는 실제 두 출처·해석·적용 조건·한계를 기록하되 독자용 제목과 본문에는 전문용어·출처 ID·검증 순서를 나열하지 않는다. 확인하지 않은 실제 성격·능력·경험·성공이나 사건을 단정하지 않는다. 한국어 조사와 서술어를 자연스럽게 고치고 추상적인 수식·반복되는 한계 안내·마지막 요약으로 분량을 늘리지 않는다.';
+function editorialGoalFor(prompt){
+ const original=typeof prompt?.editorialTask==='string'?prompt.editorialTask:null;
+ if(original&&prompt.stage==='body'&&
+    Array.isArray(prompt.requestedSections)&&
+    prompt.requestedSections.length===1&&prompt.requestedSections[0]==='saju_core')
+  return coreEditorialGoal;
+ return original;
+}
 function compile(prompt){
  if(!['body','synthesis'].includes(prompt?.stage)||!prompt.facts?.facts)return null;
  const source=sources(prompt);
@@ -151,7 +163,7 @@ function compile(prompt){
    // The existing body editorialTask is the ONE substantive writing brief
    // for this batch. Legacy planningInstruction/crossChapterNoveltyRule
    // duplicate the topic schema and must NOT inflate the provider payload.
-   editorialGoal:typeof prompt.editorialTask==='string'?prompt.editorialTask:null,
+   editorialGoal:editorialGoalFor(prompt),
    previousSections:prompt.priorSections||[],
   reusedEvidence:(prompt.rules?.reusedEvidenceWithPriorConclusions||[]).map(row=>({
    path:row.path,chapter:row.chapter,topic:row.topic,previousConclusion:row.previousConclusion
@@ -462,4 +474,4 @@ function restoreEvidence(value,prompt){
  }
  return result;
 }
-module.exports={policy,policyFor,compile,schema,restoreEvidence,allowedRefs,completeRootSummaryCitation};
+module.exports={policy,policyFor,editorialGoalFor,compile,schema,restoreEvidence,allowedRefs,completeRootSummaryCitation};
