@@ -7,6 +7,7 @@ const coverage=require('./report-core-knowledge-coverage');
 const all=coverage.representativeInputs();
 let machine=0,human=0,missing=0;
 const texts=new Set();
+const focusKinds=new Set();
 for(const input of all){
  const p=facts.build(input,2027),out=engine.compile(p);
  if(out.status==='not-covered'){
@@ -39,6 +40,30 @@ for(const input of all){
   out.wholeChartEvidence.monthVisible.tenGod,
   out.wholeChartEvidence.otherVisible.find(x=>x.position==='hour').tenGod]);
  assert(q.every(x=>x.question.length>=10));
+ const focused=out.review.chartSynthesis.evidence.interpretiveFocus;
+ assert(focused&&focused.kind&&focused.premise.length>45);
+ assert(focused.conditionalReading.length>65);
+ assert.equal(focused.verdict,'review-only');
+ assert.equal(focused.observedPersonality,false);
+ assert.equal(focused.determinedStrength,false);
+ assert.equal(focused.eventPrediction,false);
+ assert.deepEqual(focused.sourceRefs,['natal.year.stem',
+  out.review.chartSynthesis.sourceRefs.find(x=>x.startsWith('natal.month.hidden.')),
+  'natal.hour.stem']);
+ assert.deepEqual(focused.tenGods,{
+  year:q[0].tenGod,monthHidden:out.review.chartSynthesis.evidence.hiddenTenGod,
+  hour:q[2].tenGod});
+ assert(out.reader.paragraphs.chartSynthesis.text.includes(focused.premise));
+ assert(out.reader.paragraphs.chartSynthesis.text.includes(focused.conditionalReading));
+ const y=focused.categories.year,h=focused.categories.hour,m=focused.categories.monthHidden;
+ const expectedFocus=y===m&&h===m?'month-hidden-links-year-and-hour':
+  y===m?'month-hidden-links-year':
+  h===m?'month-hidden-links-hour':
+  q[0].tenGod===q[2].tenGod?'year-hour-same-ten-god':
+  y===h?'year-hour-same-category':'three-separate-functions';
+ assert.equal(focused.kind,expectedFocus,
+  'judgment emphasis must arise from independently checked natal category comparisons');
+ focusKinds.add(focused.kind);
  assert(q.every(x=>out.reader.paragraphs.chartSynthesis.text.includes(
   x.position==='year'?'출생 해의 '+x.tenGod+'에서 확인할 질문은 '+x.question:
    x.position==='month'?'출생 달의 '+x.tenGod+'에서 확인할 질문은 '+x.question:
@@ -61,6 +86,7 @@ assert.equal(missing,68);
 assert.equal(human,4);
 assert.equal(machine,27);
 assert(texts.size>=26);
+assert(focusKinds.size>=3, 'multiple genuinely distinct judgment types must be exercised');
 for(const birthDate of ['1982-03-15','1982-06-15']){
  const input={calendar:'solar',birthDate,birthTime:'14:20',gender:'male',mbti:'ISFP'};
  const p=facts.build(input,2027),o=engine.compile(p);
@@ -105,6 +131,9 @@ for(const input of all){
  assert.equal(joined.releaseVerdict,'not-approved');
  assert.equal(joined.apiCalls,0);
  assert.equal(joined.evidence.roleQuestions.length,3);
+ assert(joined.evidence.interpretiveFocus?.kind);
+ assert(joined.reader.text.includes(joined.evidence.interpretiveFocus.premise));
+ assert(joined.reader.text.includes(joined.evidence.interpretiveFocus.conditionalReading));
  assert(joined.reader.text.includes('출생 해의'));
  assert(joined.reader.text.includes('출생 달의'));
  assert(joined.reader.text.includes('출생 시간의'));
