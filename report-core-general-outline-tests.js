@@ -23,6 +23,12 @@ function get(row){
  return outline;
 }
 const early=get(a);
+assert.equal(early.monthBridge.status,'internal-editorial-relationship-only');
+assert.equal(early.monthBridge.classification.kind,'hidden-controls-visible');
+assert.equal(early.monthBridge.classification.arrow,'hidden-to-visible');
+assert(early.blocks[0].factualStatement.includes(
+ '대표 속글자 오행이 겉글자 오행을 극하는 방향'));
+assert(early.monthBridge.limits.includes('no-paid-output'));
 assert(early.blocks.some(x=>x.id==='month-two-positions'&&
  x.sourceRefs.join('|')==='natal.month.stem|natal.month.hidden.己'));
 assert(early.blocks.some(x=>x.id==='seasonal-month'&&
@@ -63,6 +69,10 @@ assert.throws(()=>core.compile(altered),/CORE_GRAPH_CALCULATED_EVIDENCE_DIVERGED
 const stats=coverage.assess(coverage.representativeInputs());
 assert.equal(stats.ready,99);
 assert.equal(stats.withEditorialOutline,99);
+assert.equal(stats.withDirectionalBridge,99);
+assert.deepEqual(Object.keys(stats.bridgeKinds).sort(),[
+ 'hidden-controls-visible','hidden-generates-visible','same-element',
+ 'visible-controls-hidden','visible-generates-hidden'].sort());
 assert.equal(stats.outlinesWithoutReaderDraft,stats.notCovered);
 assert.equal(stats.notCovered,91);
 assert(stats.distinctEditorialOutlines>=90,

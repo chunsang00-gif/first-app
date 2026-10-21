@@ -26,8 +26,9 @@ function assess(inputs){
  const stats={knowledgeVersion:knowledge.version,kind:'fixed-offline-grid-not-user-traffic',
   inputCount:inputs.length,ready:0,blocked:0,withDraft:0,notCovered:0,
   draftsWithNatalContext:0,draftsWithHourContext:0,draftsWithSeasonRootContext:0,
-  withEvidencePlan:0,withEditorialOutline:0,plansWithoutReaderDraft:0,
+  withEvidencePlan:0,withEditorialOutline:0,withDirectionalBridge:0,plansWithoutReaderDraft:0,
   outlinesWithoutReaderDraft:0,distinctEditorialOutlines:0,distinctPlans:0,
+  bridgeKinds:{},
   reusedPlanAcrossCharts:0,
   distinctCharts:0,distinctMonthContexts:0,coveredMonthContexts:0,
   distinctReaderDrafts:0,readerReuseGroups:0,readerReusedAcrossChartCount:0,
@@ -57,6 +58,18 @@ function assess(inputs){
      outline.blocks.some(x=>!x.sourceRefs?.length||
        typeof x.factualStatement!=='string'||x.factualStatement.length<40))
    throw Error('CORE_COVERAGE_MISSING_GENERAL_EDITORIAL_OUTLINE');
+  const bridge=outline.monthBridge;
+  if(!bridge||bridge.status!=='internal-editorial-relationship-only'||
+     bridge.customerReady!==false||bridge.releaseVerdict!=='not-approved'||
+     bridge.apiCalls!==0||bridge.classification?.realizedInteraction!=='not-assessed'||
+     bridge.sourceRefs?.length!==2||
+     !bridge.sourceRefs.every(ref=>plan.sourceRefs.includes(ref))||
+     bridge.visible?.tenGod!==row.scope.visibleTenGod||
+     bridge.hidden?.tenGod!==row.scope.hiddenTenGod||
+     bridge.classification.kind!==row.scope.monthElementRelation)
+   throw Error('CORE_COVERAGE_UNVERIFIED_DIRECTIONAL_BRIDGE');
+  stats.withDirectionalBridge++;
+  stats.bridgeKinds[bridge.classification.kind]=(stats.bridgeKinds[bridge.classification.kind]||0)+1;
   stats.withEditorialOutline++;
   outlines.add(JSON.stringify(outline.blocks));
   if(row.status==='not-covered'){

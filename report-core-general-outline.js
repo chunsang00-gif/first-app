@@ -4,6 +4,7 @@
 // paid writer or counted as a curated reader draft.
 const season=require('./report-seasonal-evidence');
 const knowledge=require('./report-core-knowledge.json');
+const monthBridge=require('./report-core-month-bridge');
 const SEASONS={spring:'봄',summer:'여름',autumn:'가을',winter:'겨울'};
 const POS={year:'해',month:'달',day:'날',hour:'시간'};
 const RELATION={
@@ -33,6 +34,7 @@ function build(packet,graph,monthPair,steps){
     provided.monthSeason!==calculated.monthSeason||
     provided.seasonToDayRelation!==calculated.seasonToDayRelation)
   throw Error('CORE_OUTLINE_SEASON_PROVENANCE_INVALID');
+ const bridge=monthBridge.build(packet,monthPair);
  const blocks=[];
  const add=(id,sourceRefs,factualStatement,editorialQuestion,limit)=>{
   if(sourceRefs.some(ref=>typeof ref!=='string'||ref.startsWith('annual.')||
@@ -45,10 +47,10 @@ function build(packet,graph,monthPair,steps){
  add('month-two-positions',[a.sourceId,b.sourceId],
   '태어난 달의 겉 글자 '+a.tenGod+'('+knowledge.tenGodScopes[a.tenGod]+
   ')와 달의 대표 속글자 '+b.tenGod+'('+knowledge.tenGodScopes[b.tenGod]+
-  ')를 구별합니다. '+(a.tenGod===b.tenGod?
+  ')를 구별합니다. '+bridge.relationStatement+' '+(a.tenGod===b.tenGod?
    '두 위치에 같은 분류가 나타나도 의미가 두 배로 강해졌다는 판단은 할 수 없습니다.':
    '두 분류의 관계가 계산되어도 곧바로 실제 심리 갈등을 뜻하지 않습니다.'),
-  '두 위치의 분류가 함께 나타난 의미를 전통 해석의 문맥에서 어떻게 다르게 설명할 것인가?',
+  bridge.editorialQuestion,
   'no-observed-trait-or-strength');
  add('seasonal-month',['facts.seasonalEvidence',a.sourceId],
   '출생월 '+calculated.monthBranch+'는 '+SEASONS[calculated.monthSeason]+
@@ -110,7 +112,7 @@ function build(packet,graph,monthPair,steps){
   releaseVerdict:'not-approved',humanReviewRequired:true,
   basedOn:'verified-original-natal-chart',
   monthPairRelationship:relation,unknownBirthHour:graph.unknownBirthHour,
-  blocks,sourceRefs,
+  blocks,sourceRefs,monthBridge:bridge,
   reviewTasks:[
    '실제 차트 위치와 사용한 분류가 일치하는지 확인',
    '두 분류의 전통적 연결 근거를 사람이 별도 문헌·사례로 검토',
