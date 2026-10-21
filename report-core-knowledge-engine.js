@@ -64,7 +64,7 @@ function possibleCrossSymbol(extra,baseRule){
  });
 }
 function auditKnowledge(kb=knowledge){
- if(kb.version!=='core-knowledge-v1.3'||
+ if(kb.version!=='core-knowledge-v1.4'||
     JSON.stringify(Object.keys(kb.tenGodScopes).sort())!==
     JSON.stringify([...GODS].sort()))throw Error('CORE_KNOWLEDGE_INCOMPLETE_TEN_GOD_SCOPES');
  const ids=new Set(),contexts=new Set();
@@ -102,6 +102,30 @@ function auditKnowledge(kb=knowledge){
   if(rule.evidenceRole!=='month-visible-and-month-principal-hidden-only'||
      !Array.isArray(rule.evidenceLimits)||!rule.evidenceLimits.includes('no-observed-trait'))
    throw Error('CORE_KNOWLEDGE_UNBOUNDED_CLAIM');
+  // A claim of an edited, evidence-led manuscript must be checked.
+  // Do not mistake the editorial metadata for specialist approval.
+  if(rule.editorialRevision){
+   const revision=rule.editorialRevision;
+   const required=['two-verified-source-positions',
+    'five-element-direction-not-a-life-outcome',
+    'transition-month-not-a-strength-conclusion',
+    'conditional-advantage-and-limitation'];
+   if(revision.kind!=='source-anchored-manuscript-revision-v1'||
+      revision.status!=='candidate-only-not-human-approved'||
+      revision.scope!=='month-visible-and-month-main-hidden-only'||
+      revision.releaseVerdict!=='not-approved'||
+      JSON.stringify(revision.rules)!==JSON.stringify(required)||
+      rule.when.monthPhase!=='transition'||
+      !rule.scene.startsWith('이 명식에서 먼저 확인할 근거는 태어난 달의')||
+      !/겉/.test(rule.explanation)||!/안쪽/.test(rule.explanation)||
+      !/전환월/.test(rule.explanation)||rule.explanation.length<200||
+      rule.advantage.length<125||rule.downside.length<125||
+      !rule.caution.includes('실제')||
+      /(?:반드시 성공|틀림없이|두 배 강해집니다)/.test(
+       [rule.scene,rule.explanation,rule.advantage,rule.downside].join(' ')))
+    throw Error('CORE_KNOWLEDGE_FALSE_EDITORIAL_DEPTH_CLAIM:'+rule.id);
+  }
+
  }
  const crossIds=new Set();
  for(const extra of kb.crossPillarRules||[]){
@@ -220,6 +244,7 @@ function compile(packet){
   reader,
   review:{ruleClaim:rule.claim,evidenceRole:rule.evidenceRole,
    familyId:rule.familyId||null,
+   editorialRevision:rule.editorialRevision?{...rule.editorialRevision,rules:rule.editorialRevision.rules.slice()}:null,
    verifiedConditions:{...rule.when},
    yearLink:integrated?{ruleId:integrated.ruleId,
     sourceRefs:integrated.sourceRefs,matched:integrated.matched,
