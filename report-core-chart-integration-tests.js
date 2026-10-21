@@ -41,8 +41,14 @@ for(const input of all){
   out.wholeChartEvidence.otherVisible.find(x=>x.position==='hour').tenGod]);
  assert(q.every(x=>x.question.length>=10));
  const focused=out.review.chartSynthesis.evidence.interpretiveFocus;
- assert(focused&&focused.kind&&focused.premise.length>45);
- assert(focused.conditionalReading.length>65);
+ assert(focused&&focused.kind&&focused.premise.length>=25,
+  'judgment must state a meaningful difference, not fill a length quota');
+ assert(focused.premise.includes(focused.tenGods.year));
+ assert(focused.premise.includes(focused.tenGods.monthHidden));
+ assert(focused.premise.includes(focused.tenGods.hour));
+ assert(focused.conditionalReading.length>=50);
+ assert(focused.conditionalReading.includes(q[0].question));
+ assert(focused.conditionalReading.includes(q[2].question));
  assert.equal(focused.verdict,'review-only');
  assert.equal(focused.observedPersonality,false);
  assert.equal(focused.determinedStrength,false);
