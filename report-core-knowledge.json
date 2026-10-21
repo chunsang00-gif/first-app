@@ -1,5 +1,5 @@
 {
-  "version": "core-knowledge-v1.2",
+  "version": "core-knowledge-v1.3",
   "kind": "traditional-symbolic-interpretation-not-personality-measurement",
   "editorialStatus": "candidate-only-requires-human-review",
   "tenGodScopes": {
@@ -439,6 +439,118 @@
       "reader": {
         "label": "이해하는 뜻과 표현하는 뜻의 차이",
         "text": "태어난 달에서는 낯선 내용을 자기 방식으로 이해한다는 뜻이 확인되지만, 태어난 시간에서는 생각을 밖으로 표현한다는 별개의 뜻이 나타납니다. 전통 분류가 서로 다르므로 두 글자를 하나의 성격으로 합쳐서는 안 됩니다. 어떤 생각을 머릿속에서 정리하는 일과 다른 사람이 알아듣도록 설명하는 일은 구별해서 볼 수 있습니다. 다만 이 비교는 출생 자리에 적힌 분류의 차이일 뿐, 실제 말솜씨나 창의력, 장래의 성과를 측정한 결과는 아닙니다."
+      },
+      "readerScope": "verified-hour-month-symbol-comparison-only",
+      "evidenceRole": "exact-natal-hour-and-month-visible-ten-god-pair-only",
+      "sourceRefs": [
+        "natal.hour.stem",
+        "natal.month.stem"
+      ],
+      "limits": [
+        "no-observed-trait",
+        "no-strength-multiplier",
+        "no-event-prediction"
+      ]
+    },
+    {
+      "id": "hour-ja-jeonggwan-contrast-v1",
+      "status": "editorial-candidate",
+      "when": {
+        "coreRuleId": "month-pair-bigeon-jeongin-ja-v1",
+        "dayStem": "甲",
+        "monthStem": "甲",
+        "hourPillar": "辛未",
+        "hourTenGod": "정관",
+        "monthTenGod": "비견",
+        "relativeToMonth": "different-category"
+      },
+      "reader": {
+        "label": "스스로 맡는 일과 정해진 기준의 차이",
+        "text": "태어난 달의 겉글자에는 스스로 맡을 몫을 구분한다는 뜻이 있지만, 태어난 시간의 겉글자는 정해진 규칙과 맡은 역할의 기준을 확인한다는 별도의 분류로 계산됩니다. 겨울 모임을 예로 들면 각자 준비할 물품을 고르는 일과 누구에게 어떤 이용 규칙이 적용되는지 확인하는 일은 서로 다른 질문입니다. 같은 출생월이더라도 출생시간의 글자가 달라지면 이 비교는 바뀔 수 있습니다. 그렇다고 실제로 규칙을 잘 지키거나 독립성이 강하다고 말하는 것은 아닙니다. 이번 문장은 두 위치의 분류 차이만 설명합니다."
+      },
+      "readerScope": "verified-hour-month-symbol-comparison-only",
+      "evidenceRole": "exact-natal-hour-and-month-visible-ten-god-pair-only",
+      "sourceRefs": [
+        "natal.hour.stem",
+        "natal.month.stem"
+      ],
+      "limits": [
+        "no-observed-trait",
+        "no-strength-multiplier",
+        "no-event-prediction"
+      ]
+    },
+    {
+      "id": "hour-ja-bigeon-repeat-v1",
+      "status": "editorial-candidate",
+      "when": {
+        "coreRuleId": "month-pair-bigeon-jeongin-ja-v1",
+        "dayStem": "甲",
+        "monthStem": "甲",
+        "hourPillar": "甲戌",
+        "hourTenGod": "비견",
+        "monthTenGod": "비견",
+        "relativeToMonth": "same-category-same-subtype"
+      },
+      "reader": {
+        "label": "태어난 달과 시간에 반복되는 개인의 몫",
+        "text": "태어난 달의 겉글자와 시간의 겉글자에는 스스로 맡을 몫을 구분한다는 같은 전통 분류가 확인됩니다. 겨울 모임에서 각자 챙길 물품을 정하는 예시를 생각할 수 있지만, 이런 장면이 그 사람의 실제 경험이라는 뜻은 아닙니다. 두 출생 위치에 같은 분류가 등장했다는 사실만 기록할 뿐, 실제 자립심이 더 강해졌다거나 혼자 처리할 일이 많아질 것이라는 결론은 내리지 않습니다. 특히 출생시간이 다른 경우 같은 날짜에도 다른 분류가 나올 수 있으므로 해당 시간을 기준으로만 이 문장을 선택해야 합니다."
+      },
+      "readerScope": "verified-hour-month-symbol-comparison-only",
+      "evidenceRole": "exact-natal-hour-and-month-visible-ten-god-pair-only",
+      "sourceRefs": [
+        "natal.hour.stem",
+        "natal.month.stem"
+      ],
+      "limits": [
+        "no-observed-trait",
+        "no-strength-multiplier",
+        "no-event-prediction"
+      ]
+    },
+    {
+      "id": "hour-sin-pyeongwan-responsibility-v1",
+      "status": "editorial-candidate",
+      "when": {
+        "coreRuleId": "family-geopjae-jeongin-autumn-v1-申",
+        "dayStem": "癸",
+        "monthStem": "壬",
+        "hourPillar": "己未",
+        "hourTenGod": "편관",
+        "monthTenGod": "겁재",
+        "relativeToMonth": "different-category"
+      },
+      "reader": {
+        "label": "함께 쓰는 몫과 갑작스러운 요청의 차이",
+        "text": "태어난 달의 겉글자에는 여러 사람이 함께 쓰는 몫을 조정한다는 뜻이 나타납니다. 하지만 이 출생시간의 겉글자에는 뜻하지 않은 요구에서 맡을 범위를 살핀다는 별도 분류가 확인됩니다. 공동 작업실에서 사용 순서를 정하는 일과 예정에 없던 장비 점검을 누가 맡을지 결정하는 일은 서로 다른 질문입니다. 이 비교는 같은 생년월일에 다른 출생시간을 넣으면 바뀔 수 있는 계산상의 차이를 보여 줍니다. 실제 다툼이나 사고가 일어난다거나 특정 책임을 떠맡게 된다는 예측은 하지 않습니다."
+      },
+      "readerScope": "verified-hour-month-symbol-comparison-only",
+      "evidenceRole": "exact-natal-hour-and-month-visible-ten-god-pair-only",
+      "sourceRefs": [
+        "natal.hour.stem",
+        "natal.month.stem"
+      ],
+      "limits": [
+        "no-observed-trait",
+        "no-strength-multiplier",
+        "no-event-prediction"
+      ]
+    },
+    {
+      "id": "hour-sin-geopjae-repeat-v1",
+      "status": "editorial-candidate",
+      "when": {
+        "coreRuleId": "family-geopjae-jeongin-autumn-v1-申",
+        "dayStem": "癸",
+        "monthStem": "壬",
+        "hourPillar": "壬戌",
+        "hourTenGod": "겁재",
+        "monthTenGod": "겁재",
+        "relativeToMonth": "same-category-same-subtype"
+      },
+      "reader": {
+        "label": "태어난 달과 시간의 공동 몫이라는 같은 뜻",
+        "text": "태어난 달의 겉글자와 시간의 겉글자에서 여러 사람이 함께 쓰는 몫을 조정한다는 같은 전통 분류가 확인됩니다. 공동 자료나 장비를 나눌 범위를 정하는 문제를 하나의 가상 장면으로 설명할 수 있지만, 동일한 의미가 두 위치에 있다는 사실만으로 경쟁심이나 공동체 의식의 크기를 평가할 수는 없습니다. 같은 생년월일이라도 태어난 시간의 글자가 다르면 다른 분류가 나올 수 있습니다. 이 문장은 실제 재산이나 사람 사이의 갈등을 추정하지 않고, 어떤 출생 위치에서 비슷한 상징이 반복되는지에 한정합니다."
       },
       "readerScope": "verified-hour-month-symbol-comparison-only",
       "evidenceRole": "exact-natal-hour-and-month-visible-ten-god-pair-only",
@@ -947,6 +1059,121 @@
       "reader": {
         "label": "반복된 결과물의 뜻과 다른 표현 방법",
         "text": "태어난 해와 달의 겉글자에는 생각을 차근차근 결과물로 만든다는 같은 전통 분류가 나타납니다. 그러나 태어난 달의 대표 속글자는 익숙한 설명과 다른 표현을 제안한다는 별도의 분류입니다. 설명문을 만들어야 하는 상황이라면 내용을 순서대로 완성하는 일과 같은 내용을 그림으로 바꾸어 보여 주는 일은 구별할 수 있습니다. 두 겉자리에 동일한 분류가 보인다는 이유로 결과물을 두 배로 잘 만든다거나 실제 표현 능력이 강하다고 결론낼 수는 없습니다. 어디에서 같은 의미가 나타나고 어디에서 다른 의미가 나타나는지만 검증한 것입니다."
+      },
+      "readerScope": "verified-three-natal-positions-only",
+      "evidenceRole": "year-visible-month-visible-month-main-hidden-only",
+      "limits": [
+        "no-observed-trait",
+        "no-strength-multiplier",
+        "no-event-prediction"
+      ]
+    },
+    {
+      "id": "yearlink-1982-ja-personal-shared-repeat-v1",
+      "coreRuleId": "family-bigeon-geopjae-peer-v1-子",
+      "status": "editorial-candidate",
+      "when": {
+        "monthBranch": "子",
+        "yearTenGod": "비견",
+        "monthTenGod": "비견",
+        "hiddenTenGod": "겁재",
+        "relativeToMonth": "same-category-same-subtype"
+      },
+      "reader": {
+        "label": "두 자리에 반복된 개인의 몫과 공동 몫",
+        "text": "태어난 해와 달의 겉글자에는 각자가 직접 맡는 몫을 구분한다는 같은 전통 분류가 확인됩니다. 달의 안쪽 대표 글자에는 함께 쓰거나 다른 사람과 조정할 몫을 살피는 별도 분류가 놓입니다. 예를 들어 겨울 모임을 준비할 때 개인에게 맡길 물품과 모두 함께 사용할 난방 장비를 구분하는 두 가지 질문을 떠올릴 수 있습니다. 같은 분류가 해와 달에 함께 보인다고 책임감이나 자립성이 두 배라고 판단할 수는 없습니다. 오히려 어느 위치의 의미가 되풀이되고, 어디에서 다른 의미가 등장하는지를 구별하는 데 초점을 둡니다."
+      },
+      "readerScope": "verified-three-natal-positions-only",
+      "evidenceRole": "year-visible-month-visible-month-main-hidden-only",
+      "limits": [
+        "no-observed-trait",
+        "no-strength-multiplier",
+        "no-event-prediction"
+      ]
+    },
+    {
+      "id": "yearlink-2018-o-learning-own-role-v1",
+      "coreRuleId": "family-bigeon-jeongin-resource-v1-午",
+      "status": "editorial-candidate",
+      "when": {
+        "monthBranch": "午",
+        "yearTenGod": "비견",
+        "monthTenGod": "비견",
+        "hiddenTenGod": "정인",
+        "relativeToMonth": "same-category-same-subtype"
+      },
+      "reader": {
+        "label": "반복된 개인 역할과 배운 기준의 구별",
+        "text": "태어난 해와 달의 겉글자는 스스로 맡을 몫을 구별한다는 같은 분류에 속합니다. 그러나 달의 안쪽 대표 글자는 이미 알려진 설명이나 주변의 도움을 참고한다는 다른 계열의 뜻을 보여 줍니다. 여름 행사에서 각자의 담당 구역을 정하기 전에 공통 안전 수칙을 익히는 장면을 예로 들 수 있습니다. 안내를 이해하는 일과 담당 구역을 정하는 일은 다른 질문이며, 같은 종류의 뜻이 두 출생 위치에 있다는 사실만으로 책임감이 강하거나 혼자 일을 잘 해낸다고 평가해서는 안 됩니다. 계산에서 검증된 위치 차이에 한정된 풀이입니다."
+      },
+      "readerScope": "verified-three-natal-positions-only",
+      "evidenceRole": "year-visible-month-visible-month-main-hidden-only",
+      "limits": [
+        "no-observed-trait",
+        "no-strength-multiplier",
+        "no-event-prediction"
+      ]
+    },
+    {
+      "id": "yearlink-2018-sa-expression-peer-v1",
+      "coreRuleId": "family-bigeon-geopjae-peer-v1-巳",
+      "status": "editorial-candidate",
+      "when": {
+        "monthBranch": "巳",
+        "yearTenGod": "상관",
+        "monthTenGod": "비견",
+        "hiddenTenGod": "겁재",
+        "relativeToMonth": "different-category"
+      },
+      "reader": {
+        "label": "개인의 몫과 공동의 몫을 새 방식으로 설명하면",
+        "text": "태어난 달의 겉글자에는 자신의 몫을 분명히 구별한다는 의미가 있고 안쪽 대표 글자에는 함께 쓰는 몫을 조정한다는 별도의 의미가 있습니다. 태어난 해의 겉글자는 정해진 방식과 다른 표현을 제안한다는 또 다른 계열로 계산됩니다. 모임의 준비 목록을 설명할 때 각자의 물품, 공용 장비, 그 구분을 이해하기 쉽게 전달하는 방식을 서로 다른 문제로 살펴볼 수 있습니다. 하지만 세 글자를 함께 읽는다는 이유로 실제로 새로운 제안을 잘하거나 공동 작업에 능숙하다고 추정하지 않습니다. 이는 세 위치에 적힌 전통 분류를 연결한 검토 후보입니다."
+      },
+      "readerScope": "verified-three-natal-positions-only",
+      "evidenceRole": "year-visible-month-visible-month-main-hidden-only",
+      "limits": [
+        "no-observed-trait",
+        "no-strength-multiplier",
+        "no-event-prediction"
+      ]
+    },
+    {
+      "id": "yearlink-2024-yu-sharing-resource-output-v1",
+      "coreRuleId": "family-geopjae-jeongin-autumn-v1-酉",
+      "status": "editorial-candidate",
+      "when": {
+        "monthBranch": "酉",
+        "yearTenGod": "식신",
+        "monthTenGod": "겁재",
+        "hiddenTenGod": "정인",
+        "relativeToMonth": "different-category"
+      },
+      "reader": {
+        "label": "알려진 자료를 정리하고 공유할 범위를 정하면",
+        "text": "태어난 달의 안쪽 대표 글자에는 배운 지식이나 이미 알려진 설명을 참고한다는 뜻이 있습니다. 달의 겉글자는 다른 사람과 함께 쓸 몫을 조정한다는 뜻이고, 태어난 해의 겉글자는 생각을 순서 있게 결과물로 만든다는 다른 뜻으로 분류됩니다. 함께 참고할 자료를 검토하고, 그 내용을 간단한 안내문으로 정리하고, 누구에게 공유할지를 결정하는 과정은 서로 다른 단계입니다. 세 종류의 전통 기호를 이런 질문으로 나누어 읽을 수 있지만 실제 학업 성취, 일의 성과 또는 협력 능력을 확인했다는 뜻은 아닙니다."
+      },
+      "readerScope": "verified-three-natal-positions-only",
+      "evidenceRole": "year-visible-month-visible-month-main-hidden-only",
+      "limits": [
+        "no-observed-trait",
+        "no-strength-multiplier",
+        "no-event-prediction"
+      ]
+    },
+    {
+      "id": "yearlink-1994-o-recurring-preparation-v1",
+      "coreRuleId": "family-pyeonin-jeongjae-summer-v1-午",
+      "status": "editorial-candidate",
+      "when": {
+        "monthBranch": "午",
+        "yearTenGod": "식신",
+        "monthTenGod": "편인",
+        "hiddenTenGod": "정재",
+        "relativeToMonth": "different-category"
+      },
+      "reader": {
+        "label": "낯선 정보를 이해하고 반복 준비를 완성하는 과정",
+        "text": "태어난 달의 겉글자는 익숙하지 않은 내용을 자기 방식으로 이해한다는 뜻이며 안쪽 대표 글자는 반복해서 필요한 비용과 일을 챙긴다는 뜻입니다. 여기에 태어난 해의 겉글자를 더해 보면 생각을 차근차근 결과물로 만든다는 별도의 분류가 확인됩니다. 매번 진행하는 행사에서 새 규격을 읽고, 기존 준비 목록을 확인하고, 최종 준비표를 완성하는 단계는 각각 다른 질문으로 설명할 수 있습니다. 그렇다고 실제로 일을 체계적으로 처리한다거나 자산을 잘 관리한다고 단정할 근거는 없습니다. 해와 달의 세 출처가 어떤 뜻으로 구별되는지를 검토하는 문장입니다."
       },
       "readerScope": "verified-three-natal-positions-only",
       "evidenceRole": "year-visible-month-visible-month-main-hidden-only",

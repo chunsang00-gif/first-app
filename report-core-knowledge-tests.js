@@ -2,7 +2,7 @@
 const assert=require('node:assert/strict');
 const facts=require('./report-facts-node'),engine=require('./report-core-knowledge-engine');
 const knowledge=require('./report-core-knowledge.json');
-assert.deepEqual(engine.auditKnowledge(),{tenGods:10,curatedRules:29,crossPillarRules:1,yearLinkRules:5,familyRules:8,familyVariants:17,natalContextRules:1,hourContextRules:2,seasonRootRules:1,seasonRootVariants:2});
+assert.deepEqual(engine.auditKnowledge(),{tenGods:10,curatedRules:29,crossPillarRules:1,yearLinkRules:10,familyRules:8,familyVariants:17,natalContextRules:1,hourContextRules:6,seasonRootRules:1,seasonRootVariants:2});
 const sample={calendar:'lunar',birthDate:'1982-11-24',birthTime:'14:20',
  gender:'male',mbti:'ISFP',name:'검증용'};
 const packet=facts.build(sample,2027),draft=engine.compile(packet);
@@ -351,9 +351,9 @@ assert(summary.withDraft>=31,
 assert(summary.notCovered<=68,
  'eight verified previously uncovered family variants must produce drafts');
 assert.equal(summary.draftsWithSeasonRootContext,2);
-assert.equal(summary.draftsWithYearLink,5);
-assert.equal(summary.draftsWithHourContext,2,
- 'known-hour reference cases must be distinguished by verified sources');
+assert.equal(summary.draftsWithYearLink,10);
+assert.equal(summary.draftsWithHourContext,4,
+ 'verified hour comparisons must cover two separate natal month combinations');
 assert(summary.distinctReaderDrafts>=30,
  'new branch-specific manuscripts must add eight distinct actual readings');
 assert.equal(summary.readerReusedAcrossChartCount,0,
@@ -363,6 +363,6 @@ assert.equal(summary.releaseVerdict,'not-approved');
 assert.equal(summary.apiCalls,0);
 console.log('OFFLINE_CORE_KNOWLEDGE_COVERAGE='+JSON.stringify(summary));
 assert(!Object.hasOwn(knowledge,'personalityScores'));
-console.log('PASS offline curated Saju knowledge v1.2: 5 verified year-month-hidden synthesis manuscripts,');
+console.log('PASS offline curated Saju knowledge v1.3: 10 cross-position syntheses and 6 conditional hour candidates,');
 console.log('true natal graph, same-category anti-double guard, tampered evidence blocked, MBTI/year isolation,');
 console.log('no paid AI, no live app replacement, no human editorial approval');

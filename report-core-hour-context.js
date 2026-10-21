@@ -3,6 +3,7 @@
 // stem. NEVER infer personal traits, future events, or strength from symbols.
 // Only author-reviewed exact chart contexts are eligible.
 const knowledge=require('./report-core-knowledge.json');
+const families=require('./report-core-rule-families');
 const {LunarUtil}=require('lunar-javascript');
 const NAMES={'比肩':'비견','劫财':'겁재','食神':'식신','伤官':'상관',
  '偏财':'편재','正财':'정재','七杀':'편관','正官':'정관',
@@ -17,7 +18,8 @@ function god(day,other){return NAMES[LunarUtil.SHI_SHEN[day+other]]}
 function audit(kb=knowledge){
  const seen=new Set(),matches=new Set();
  for(const r of kb.hourContextRules||[]){
-  const w=r.when,base=kb.pairRules?.find(x=>x.id===w?.coreRuleId);
+  const w=r.when,base=[...(kb.pairRules||[]),...families.expand(kb)]
+   .find(x=>x.id===w?.coreRuleId);
   const relation=w?.monthTenGod===w?.hourTenGod?
    'same-category-same-subtype':
    CATEGORIES[w?.monthTenGod]===CATEGORIES[w?.hourTenGod]?

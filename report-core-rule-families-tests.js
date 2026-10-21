@@ -26,7 +26,9 @@ for(const input of coverage.representativeInputs()){
   'customer-visible draft must not leak raw Chinese characters');
  assert.equal(result.releaseVerdict,'not-approved');
  assert.equal(result.apiCalls,0);
- assert.equal(result.reader.paragraphs.hour,null);
+ if(result.ruleId==='family-geopjae-jeongin-autumn-v1-申')
+  assert(result.reader.paragraphs.hour?.text);
+ else assert.equal(result.reader.paragraphs.hour,null);
  assert.equal(result.reader.paragraphs.context,null);
  found.set(result.ruleId,(found.get(result.ruleId)||0)+1);
  texts.add(JSON.stringify(result.reader));
