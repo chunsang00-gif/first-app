@@ -2,7 +2,7 @@
 const assert=require('node:assert/strict');
 const facts=require('./report-facts-node'),engine=require('./report-core-knowledge-engine');
 const knowledge=require('./report-core-knowledge.json');
-assert.deepEqual(engine.auditKnowledge(),{tenGods:10,curatedRules:29,crossPillarRules:1,familyRules:8,familyVariants:17,natalContextRules:1,hourContextRules:2,seasonRootRules:1,seasonRootVariants:2});
+assert.deepEqual(engine.auditKnowledge(),{tenGods:10,curatedRules:29,crossPillarRules:1,yearLinkRules:5,familyRules:8,familyVariants:17,natalContextRules:1,hourContextRules:2,seasonRootRules:1,seasonRootVariants:2});
 const sample={calendar:'lunar',birthDate:'1982-11-24',birthTime:'14:20',
  gender:'male',mbti:'ISFP',name:'검증용'};
 const packet=facts.build(sample,2027),draft=engine.compile(packet);
@@ -299,6 +299,36 @@ mismatchedCross.crossPillarRules[0].when.monthTenGod='정인';
 assert.throws(()=>engine.auditKnowledge(mismatchedCross),
  /CORE_KNOWLEDGE_IMPOSSIBLE_CROSS_RULE/,
  'a separate year/month reading must share the verified core month subtype');
+
+const yearLink=require('./report-core-year-link');
+assert.equal(yearLink.audit().yearLinkRules,5);
+for(const [date,rule] of [
+ ['1982-06-15','yearlink-learning-maintenance-o-v1'],
+ ['1988-03-15','yearlink-shared-duty-myo-v1'],
+ ['1994-08-15','yearlink-express-share-sin-v1'],
+ ['2006-09-15','yearlink-personal-shared-yu-v1'],
+ ['2012-12-15','yearlink-output-repeat-ja-v1']]){
+ const input={calendar:'solar',birthDate:date,birthTime:'14:20',
+  gender:'male',mbti:'ISFP'};
+ const packetYear=facts.build(input,2027);
+ const out=engine.compile(packetYear);
+ assert.equal(out.review?.yearLink?.ruleId,rule);
+ assert(out.reader.paragraphs.yearLink.text.length>=190);
+ assert(out.review.readerMechanical.mechanicalPass);
+ assert.deepEqual(out.review.yearLink.sourceRefs,[
+  'natal.year.stem','natal.month.stem',
+  'natal.month.hidden.'+packetYear.facts.structuralEvidence.monthCommand.mainHiddenStem]);
+ assert.equal(out.apiCalls,0);assert.equal(out.releaseVerdict,'not-approved');
+ assert.deepEqual(engine.compile(facts.build({...input,mbti:'ENTP'},2028)).reader,
+  out.reader,'target year and MBTI cannot affect natal reader');
+ const broken=structuredClone(out.wholeChartEvidence);
+ broken.otherVisible.find(x=>x.position==='year').tenGod='invalid';
+ assert.throws(()=>yearLink.select(packetYear,broken,out.ruleId),
+  /CORE_YEAR_LINK_SOURCE_MISMATCH/);
+}
+const falseYear=structuredClone(knowledge);
+falseYear.yearLinkRules[0].when.yearTenGod='편관';
+assert.throws(()=>yearLink.audit(falseYear),/CORE_YEAR_LINK_RULE_INVALID/);
 const coverage=require('./report-core-knowledge-coverage');
 const summary=coverage.assess(coverage.representativeInputs());
 assert.equal(summary.inputCount,99);
@@ -321,6 +351,7 @@ assert(summary.withDraft>=31,
 assert(summary.notCovered<=68,
  'eight verified previously uncovered family variants must produce drafts');
 assert.equal(summary.draftsWithSeasonRootContext,2);
+assert.equal(summary.draftsWithYearLink,5);
 assert.equal(summary.draftsWithHourContext,2,
  'known-hour reference cases must be distinguished by verified sources');
 assert(summary.distinctReaderDrafts>=30,
@@ -332,6 +363,6 @@ assert.equal(summary.releaseVerdict,'not-approved');
 assert.equal(summary.apiCalls,0);
 console.log('OFFLINE_CORE_KNOWLEDGE_COVERAGE='+JSON.stringify(summary));
 assert(!Object.hasOwn(knowledge,'personalityScores'));
-console.log('PASS offline curated Saju knowledge v1.1: 12 individual and 17 family variant month manuscripts,');
+console.log('PASS offline curated Saju knowledge v1.2: 5 verified year-month-hidden synthesis manuscripts,');
 console.log('true natal graph, same-category anti-double guard, tampered evidence blocked, MBTI/year isolation,');
 console.log('no paid AI, no live app replacement, no human editorial approval');

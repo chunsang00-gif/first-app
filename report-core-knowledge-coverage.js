@@ -26,6 +26,7 @@ function assess(inputs){
  const stats={knowledgeVersion:knowledge.version,kind:'fixed-offline-grid-not-user-traffic',
   inputCount:inputs.length,ready:0,blocked:0,withDraft:0,notCovered:0,
   draftsWithNatalContext:0,draftsWithHourContext:0,draftsWithSeasonRootContext:0,
+  draftsWithYearLink:0,
   withEvidencePlan:0,withEditorialOutline:0,withDirectionalBridge:0,plansWithoutReaderDraft:0,
   outlinesWithoutReaderDraft:0,distinctEditorialOutlines:0,distinctPlans:0,
   bridgeKinds:{},
@@ -108,6 +109,19 @@ function assess(inputs){
        hour.matched.relativeToMonth!==matched?.relativeToMonth||
        row.wholeChartEvidence.unknownBirthHour)
      throw Error('CORE_COVERAGE_UNVERIFIED_HOUR_CONTEXT_TEXT');
+   }
+   const link=row.review?.yearLink;
+   if(link){
+    const year=row.wholeChartEvidence.otherVisible.find(x=>x.position==='year');
+    const hidden=packet.facts.structuralEvidence.monthCommand.mainHiddenStem;
+    if(!row.reader.paragraphs.yearLink?.text||
+       link.sourceRefs?.join('|')!==
+       ['natal.year.stem','natal.month.stem','natal.month.hidden.'+hidden].join('|')||
+       link.matched.yearTenGod!==year?.tenGod||
+       link.matched.monthTenGod!==row.wholeChartEvidence.monthVisible.tenGod||
+       link.matched.relativeToMonth!==year.relativeToMonth)
+     throw Error('CORE_COVERAGE_UNVERIFIED_YEAR_LINK');
+    stats.draftsWithYearLink++;
    }
    const root=row.review?.seasonRootContext;
    if(root){
