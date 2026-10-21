@@ -4,6 +4,7 @@
 // Never infer observed personality, measured qi or predicted life events.
 const binding=require('./report-fact-bindings');
 const knowledge=require('./report-core-knowledge.json');
+const generalOutline=require('./report-core-general-outline');
 const RULE={year:1,hour:2};
 function compose(packet,graph,monthPair){
  if(packet?.status!=='ready'||!graph||!monthPair?.monthStem||!monthPair?.monthMainHidden)
@@ -89,8 +90,9 @@ function compose(packet,graph,monthPair){
  if(sourceRefs.some(id=>id.startsWith('annual.')||id.startsWith('person.')||
     !known[id]&&!['facts.natalBranchRelations'].includes(id)))
   throw Error('CORE_COMPOSITION_NON_NATAL_OR_UNVERIFIED_SOURCE');
+ const editorialOutline=generalOutline.build(packet,graph,monthPair,steps);
  return {version:'core-composition-plan-v1',status:'evidence-plan-for-editorial-review',
-  steps,sourceRefs,unknownBirthHour:graph.unknownBirthHour,
+  steps,sourceRefs,editorialOutline,unknownBirthHour:graph.unknownBirthHour,
   coveredByEditorialRule:false,personalizedTextAvailable:false,
   limits:['unobserved-personality','unmeasured-qi-strength',
    'unresolved-hidden-qi-governing-day','no-predicted-events'],

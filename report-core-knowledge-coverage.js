@@ -22,11 +22,12 @@ function representativeInputs(){
 }
 function assess(inputs){
  if(!Array.isArray(inputs)||!inputs.length)throw Error('CORE_COVERAGE_INPUTS_REQUIRED');
- const readers=new Map(),plans=new Map(),monthContexts=new Set(),coveredContexts=new Set();
+ const readers=new Map(),plans=new Map(),outlines=new Set(),monthContexts=new Set(),coveredContexts=new Set();
  const stats={knowledgeVersion:knowledge.version,kind:'fixed-offline-grid-not-user-traffic',
   inputCount:inputs.length,ready:0,blocked:0,withDraft:0,notCovered:0,
   draftsWithNatalContext:0,draftsWithHourContext:0,draftsWithSeasonRootContext:0,
-  withEvidencePlan:0,plansWithoutReaderDraft:0,distinctPlans:0,
+  withEvidencePlan:0,withEditorialOutline:0,plansWithoutReaderDraft:0,
+  outlinesWithoutReaderDraft:0,distinctEditorialOutlines:0,distinctPlans:0,
   reusedPlanAcrossCharts:0,
   distinctCharts:0,distinctMonthContexts:0,coveredMonthContexts:0,
   distinctReaderDrafts:0,readerReuseGroups:0,readerReusedAcrossChartCount:0,
@@ -48,7 +49,20 @@ function assess(inputs){
      plan.apiCalls!==0||!Array.isArray(plan.steps)||plan.steps.length<2)
    throw Error('CORE_COVERAGE_MISSING_VERIFIED_COMPOSITION_PLAN');
   stats.withEvidencePlan++;
-  if(row.status==='not-covered')stats.plansWithoutReaderDraft++;
+  const outline=plan.editorialOutline;
+  if(!outline||outline.status!=='internal-editorial-outline-only'||
+     outline.customerReady!==false||outline.releaseVerdict!=='not-approved'||
+     outline.humanReviewRequired!==true||outline.apiCalls!==0||
+     !Array.isArray(outline.blocks)||outline.blocks.length<3||
+     outline.blocks.some(x=>!x.sourceRefs?.length||
+       typeof x.factualStatement!=='string'||x.factualStatement.length<40))
+   throw Error('CORE_COVERAGE_MISSING_GENERAL_EDITORIAL_OUTLINE');
+  stats.withEditorialOutline++;
+  outlines.add(JSON.stringify(outline.blocks));
+  if(row.status==='not-covered'){
+   stats.plansWithoutReaderDraft++;
+   stats.outlinesWithoutReaderDraft++;
+  }
   const planKey=JSON.stringify({steps:plan.steps,unknownBirthHour:plan.unknownBirthHour});
   if(!plans.has(planKey))plans.set(planKey,new Set());
   plans.get(planKey).add(chartKey);
@@ -106,6 +120,7 @@ function assess(inputs){
    readers.get(readKey).add(chartKey);
   }else throw Error('CORE_COVERAGE_UNEXPECTED_OUTPUT_STATUS:'+row.status);
  }
+ stats.distinctEditorialOutlines=outlines.size;
  stats.distinctPlans=plans.size;
  stats.reusedPlanAcrossCharts=[...plans.values()]
   .reduce((n,rows)=>n+Math.max(0,rows.size-1),0);
