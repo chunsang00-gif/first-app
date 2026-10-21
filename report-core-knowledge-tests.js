@@ -354,6 +354,8 @@ assert.equal(summary.draftsWithSeasonRootContext,2);
 assert.equal(summary.draftsWithYearLink,10);
 assert.equal(summary.draftsWithFourPillar,4,
  'two historical sample pairs must receive verified holistic evidence while hour variants remain distinct');
+assert.equal(summary.draftsWithChartSynthesis,27,
+ 'the 27 other curated examples need machine-built source-led comparison, not extra fake coverage');
 assert.equal(summary.sourceGroundedMonthRevisionDrafts,14,
  'twelve distinct source-anchored month manuscripts must match 14 real-date samples');
 assert.equal(summary.sourceAnchoredFamilyDrafts,17,
@@ -369,6 +371,6 @@ assert.equal(summary.releaseVerdict,'not-approved');
 assert.equal(summary.apiCalls,0);
 console.log('OFFLINE_CORE_KNOWLEDGE_COVERAGE='+JSON.stringify(summary));
 assert(!Object.hasOwn(knowledge,'personalityScores'));
-console.log('PASS offline curated Saju knowledge v1.9: six verified whole-chart comparative manuscripts,');
+console.log('PASS offline curated Saju knowledge v1.10: 27 source-led machine-reviewed comparisons and 6 authored four-pillar drafts,');
 console.log('true natal graph, same-category anti-double guard, tampered evidence blocked, MBTI/year isolation,');
 console.log('no paid AI, no live app replacement, no human editorial approval');
