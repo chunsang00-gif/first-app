@@ -327,7 +327,7 @@ for(const [date,rule] of [
   /CORE_YEAR_LINK_SOURCE_MISMATCH/);
 }
 const falseYear=structuredClone(knowledge);
-falseYear.yearLinkRules[0].when.yearTenGod='편관';
+falseYear.yearLinkRules[0].when.monthTenGod='편관';
 assert.throws(()=>yearLink.audit(falseYear),/CORE_YEAR_LINK_RULE_INVALID/);
 const coverage=require('./report-core-knowledge-coverage');
 const summary=coverage.assess(coverage.representativeInputs());
