@@ -111,7 +111,7 @@ for(const input of all){
  assert(!joined.reader.text.includes('전통적 관점'));
  assert(!joined.reader.text.includes('입니다 출생'));
  const sentences=(joined.reader.text.match(/[^.!?。！？]+[.!?。！？]/g)||[])
-  .map(x=>x.replace(/\\s+/g,' ').trim());
+  .map(x=>x.trim());
  assert.equal(new Set(sentences).size,sentences.length,
   'machine editor cannot repeat an identical sentence within one paragraph');
  if(engine.compile(packet).status==='not-covered')assert.equal(
