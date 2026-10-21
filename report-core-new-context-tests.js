@@ -1,5 +1,5 @@
 'use strict';
-// Fixed real-calendar test cases for four new month source-pair editorial candidates.
+// Fixed real-calendar tests for ten distinct month source-pair editorial candidates.
 const assert=require('node:assert/strict');
 const facts=require('./report-facts-node');
 const core=require('./report-core-knowledge-engine');
@@ -16,7 +16,13 @@ const examples=[
   rule:'month-pair-jeongin-jeonggwan-yu-v1'},
  {date:'2000-02-15',month:'戊寅',a:'정관',b:'상관',
   relationship:'hidden-controls-visible',season:'output',
-  rule:'month-pair-jeonggwan-sanggwan-in-v1'}
+  rule:'month-pair-jeonggwan-sanggwan-in-v1'},
+ {"date":"1982-11-15","month":"辛亥","a":"정인","b":"비견","relationship":"visible-generates-hidden","season":"same-element","rule":"month-pair-jeongin-bigeon-hai-v1"},
+ {"date":"1982-06-15","month":"丙午","a":"정인","b":"편인","relationship":"same-element","season":"resource","rule":"month-pair-jeongin-pyeonin-o-v1"},
+ {"date":"1982-03-15","month":"癸卯","a":"편관","b":"편인","relationship":"visible-generates-hidden","season":"resource","rule":"month-pair-pyeongwan-pyeonin-myo-v1"},
+ {"date":"1982-05-15","month":"乙巳","a":"정관","b":"편인","relationship":"visible-generates-hidden","season":"resource","rule":"month-pair-jeonggwan-pyeonin-sa-v1"},
+ {"date":"1982-10-15","month":"庚戌","a":"겁재","b":"정인","relationship":"hidden-generates-visible","season":"transitional-month-unresolved","rule":"month-pair-geopjae-jeongin-sul-v1"},
+ {"date":"1982-07-15","month":"丁未","a":"편인","b":"비견","relationship":"visible-generates-hidden","season":"transitional-month-unresolved","rule":"month-pair-pyeonin-bigeon-mi-v1"}
 ];
 const readers=new Set();
 for(const x of examples){
@@ -45,5 +51,5 @@ for(const x of examples){
  const mbtiChange=core.compile(facts.build({...birth,mbti:'INTJ'},2028));
  assert.deepEqual(result.reader,mbtiChange.reader);
 }
-assert.equal(readers.size,4,'new rules must not reuse identical reader manuscripts');
-console.log('PASS four new source-specific first-chapter editorial candidates, original season facts, no paid API');
+assert.equal(readers.size,10,'all ten additional month-context manuscripts must differ');
+console.log('PASS ten real-calendar source-specific editorial candidates, 6 newly supported month branches, no paid API');
