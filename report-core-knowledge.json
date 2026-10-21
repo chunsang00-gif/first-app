@@ -1,0 +1,40 @@
+{
+  "version": "core-knowledge-v0.1",
+  "kind": "traditional-symbolic-interpretation-not-personality-measurement",
+  "editorialStatus": "draft-for-human-review",
+  "tenGodScopes": {
+    "비견": "자신과 동료의 몫을 나누는 전통적 관점",
+    "겁재": "경쟁하거나 함께 쓰는 몫을 조정하는 전통적 관점",
+    "식신": "생각을 구체적인 결과물로 표현하는 전통적 관점",
+    "상관": "기존 방식과 다른 표현·방법을 제안하는 전통적 관점",
+    "정재": "꾸준히 감당해야 하는 비용과 일을 살피는 전통적 관점",
+    "편재": "여러 곳에서 필요한 자원을 찾아 쓰는 전통적 관점",
+    "정관": "정해진 규칙과 역할을 살피는 전통적 관점",
+    "편관": "갑작스러운 요구와 책임의 경계를 살피는 전통적 관점",
+    "정인": "알려진 지식과 도움을 받아 이해하는 전통적 관점",
+    "편인": "낯선 정보를 자기 나름대로 해석하는 전통적 관점"
+  },
+  "pairRules": [
+    {
+      "id": "month-pair-pyeonin-pyeonjae-v1",
+      "visible": "편인",
+      "hidden": "편재",
+      "status": "editorial-candidate",
+      "claim": "낯선 내용을 자기 방식으로 이해하는 관점과 여러 곳에서 필요한 자원을 찾는 관점이 한 선택에 연결됩니다.",
+      "title": "낯선 내용을 이해하고 필요한 것까지 찾기",
+      "keyJudgment": "사주에서는 낯선 내용을 자기 방식으로 풀어 이해한 뒤, 필요한 자원까지 찾아보려는 관점으로 읽습니다.",
+      "scene": "처음 다뤄 보는 장비를 써야 하는데 설명서가 낯설고 필요한 부품도 한곳에 없는 상황을 가정합니다.",
+      "explanation": "이때 설명서를 읽어 필요한 조건을 자기 말로 정리하는 쪽과 그 조건에 맞는 부품을 여러 곳에서 찾아 쓰는 쪽을 함께 보는 풀이입니다.",
+      "advantage": "두 관점을 함께 고려하면 부품을 먼저 사기보다 용도에 맞는지 따져 고를 수 있습니다.",
+      "downside": "반대로 설명을 해석하는 일에만 머무르면 정작 필요한 부품을 구하지 못하고, 구할 곳부터 찾으면 장비와 맞지 않는 부품을 살 수도 있습니다.",
+      "caution": "이것은 두 출생 위치의 전통적 뜻을 같은 가상 상황에 적용한 것으로, 실제 성격·능력·구매 경험을 확인한 결과는 아닙니다.",
+      "evidenceRole": "month-visible-and-month-principal-hidden-only",
+      "evidenceLimits": [
+        "no-observed-trait",
+        "no-qi-strength",
+        "no-invented-clash",
+        "no-predicted-event"
+      ]
+    }
+  ]
+}
