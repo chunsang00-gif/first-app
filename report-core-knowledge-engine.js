@@ -7,6 +7,17 @@ const bindings=require('./report-fact-bindings');
 const seasonal=require('./report-seasonal-evidence');
 const chartContrast=require('./report-chart-contrast');
 const GODS=['비견','겁재','식신','상관','정재','편재','정관','편관','정인','편인'];
+// Cross-check against the same canonical lunar calendar ten-god table.
+// Do not trust category labels copied from potentially corrupted fact rows.
+const {LunarUtil}=require('lunar-javascript');
+const names={'比肩':'비견','劫财':'겁재','食神':'식신','伤官':'상관',
+ '偏财':'편재','正财':'정재','七杀':'편관','正官':'정관',
+ '偏印':'편인','正印':'정인'};
+function verifiedTenGod(dayStem,otherStem){
+ const value=names[LunarUtil.SHI_SHEN[dayStem+otherStem]];
+ if(!value)throw Error('CORE_KNOWLEDGE_UNKNOWN_CALENDAR_RELATION');
+ return value;
+}
 function auditKnowledge(){
  if(knowledge.version!=='core-knowledge-v0.1'||
     JSON.stringify(Object.keys(knowledge.tenGodScopes).sort())!==
@@ -37,6 +48,12 @@ function compile(packet){
  if(month?.stem!==stem||command?.branch!==branch||
     command?.mainHiddenStem!==seasonal.HIDDEN[branch]?.[0])
   throw Error('CORE_KNOWLEDGE_CALCULATED_MONTH_PROVENANCE_MISMATCH');
+ const dayStem=packet.chart.day?.[0];
+ if(month.stemTenGod!==verifiedTenGod(dayStem,stem)||
+    command.mainHiddenStemTenGod!==verifiedTenGod(dayStem,command.mainHiddenStem)||
+    !month.hiddenStems?.some(x=>x.stem===command.mainHiddenStem&&
+       x.tenGod===verifiedTenGod(dayStem,command.mainHiddenStem)))
+  throw Error('CORE_KNOWLEDGE_CALCULATED_TEN_GOD_DIVERGED');
  const context=chartContrast.build(packet)?.monthTenGodContext;
  if(!context?.monthStem||!context?.monthMainHidden)
   throw Error('CORE_KNOWLEDGE_MISSING_VERIFIED_MONTH_PAIR');

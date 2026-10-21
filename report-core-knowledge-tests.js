@@ -45,7 +45,7 @@ invalid.facts.structuralEvidence.monthCommand.mainHiddenStem='辛';
 assert.throws(()=>engine.compile(invalid),/CALCULATED_MONTH_PROVENANCE_MISMATCH/);
 const tampered=structuredClone(packet);
 tampered.facts.tenGods.month.stemTenGod='정관';
-assert.throws(()=>engine.compile(tampered),/SOURCE_PAIR_INTEGRITY_FAILED|CALCULATED_MONTH_PROVENANCE_MISMATCH|UNSUPPORTED_CALCULATED_TEN_GOD|MISSING_VERIFIED_MONTH_PAIR/,
+assert.throws(()=>engine.compile(tampered),/CALCULATED_TEN_GOD_DIVERGED|SOURCE_PAIR_INTEGRITY_FAILED|CALCULATED_MONTH_PROVENANCE_MISMATCH/,
  'modified visible label must not quietly receive unrelated interpretation');
 assert.equal(engine.compile({status:'blocked'}).status,'blocked-invalid-calculation');
 assert(!Object.hasOwn(knowledge,'personalityScores'));
