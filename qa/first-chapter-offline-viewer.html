@@ -1,0 +1,628 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'none'; connect-src 'none'; form-action 'none'; object-src 'none'; base-uri 'none'">
+<title>첫 사주 보고서 · 내 PC에서 안전하게 열기</title>
+<style>
+:root{font-family:"Malgun Gothic",system-ui,sans-serif;color:#172436;background:#f4f6f8}
+*{box-sizing:border-box}body{margin:0;padding:35px 14px}.app{max-width:760px;margin:auto;background:white;border:1px solid #e2e6ed;border-radius:16px;box-shadow:0 12px 35px #16243813;padding:30px}
+h1{font-size:25px;margin:0 0 12px;color:#122c47}.lead{line-height:1.8;color:#465568}
+label{display:block;font-size:14px;font-weight:700;margin:20px 0 7px}input[type=file],input[type=password]{width:100%;padding:13px;border:1px solid #cbd5e0;border-radius:8px;background:#fff;font-size:15px}
+button{margin-top:18px;background:#1763a3;border:0;color:#fff;border-radius:9px;padding:14px 22px;cursor:pointer;font-size:16px;font-weight:700}
+button[disabled]{opacity:.5;cursor:not-allowed}#download{display:none;background:#247448;margin-left:8px}#status{padding:12px 14px;margin-top:18px;background:#eff5fb;border-radius:8px;white-space:pre-wrap;line-height:1.5;color:#27435e}
+.box{margin-top:25px;padding:20px;border:1px solid #e0e7ee;border-radius:9px}.box[hidden]{display:none}
+h2{font-size:19px;color:#123452;margin-top:0}.label{font-size:14px;color:#4d6480;font-weight:700}.paragraph{white-space:pre-wrap;line-height:1.85;font-size:16px;color:#283645}
+.tip{font-size:13px;line-height:1.7;background:#fff8e8;border-left:4px solid #dda943;padding:12px 14px;margin-top:16px}
+</style></head><body><main class="app">
+<h1>첫 사주 보고서 원문 열기</h1>
+<p class="lead">이미 생성된 유료 원본을 <b>추가 과금 없이</b> 여는 로컬 뷰어입니다. ZIP 파일 또는 압축을 푼 <code>.enc</code> 파일을 선택하세요. 모든 복호화는 이 PC의 브라우저 안에서 진행하며, 파일이나 키를 서버에 전송하지 않습니다.</p>
+<label for="archive">1. 기존 암호화 ZIP 또는 .enc 파일 선택</label>
+<input id="archive" type="file" accept=".zip,.enc,application/zip,application/octet-stream">
+<label for="secret">2. 보고서 생성 당시 GitHub Actions에서 사용한 원래 OpenAI API 키 입력</label>
+<input id="secret" type="password" autocomplete="off" spellcheck="false" placeholder="여기에만 입력하세요. 채팅에는 입력하지 마세요.">
+<div><button id="open">내 PC에서 원문 열기</button><button id="download">읽기 쉬운 TXT 저장</button></div>
+<div id="status" role="status">암호화된 ZIP과 원래 키를 선택한 뒤 ‘내 PC에서 원문 열기’를 누르세요.</div>
+<section class="box" id="output" hidden><h2 id="title"></h2><p id="judgment" class="paragraph"></p><div id="paragraphs"></div></section>
+<p class="tip"><b>중요:</b> 새로 만든 API 키로는 과거 암호화 파일을 열 수 없습니다. GitHub에 저장된 Secret 값 자체는 다시 표시할 수 없습니다. 원래 키를 잃어버렸다면 이 뷰어만으로 복구할 수 없으며, 암호화 자료를 공개 로그에 출력하면 안 됩니다.</p>
+<p class="lead" style="font-size:13px">오프라인 암호화 라이브러리: scrypt-js (Richard Moore, MIT). 외부 스크립트나 네트워크 요청을 사용하지 않습니다.</p>
+</main>
+<script>
+// Vendored offline scrypt-js, original repository ricmoo/scrypt-js (MIT).
+"use strict";
+
+(function(root) {
+    const MAX_VALUE = 0x7fffffff;
+
+    // The SHA256 and PBKDF2 implementation are from scrypt-async-js:
+    // See: https://github.com/dchest/scrypt-async-js
+    function SHA256(m) {
+        const K = new Uint32Array([
+           0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b,
+           0x59f111f1, 0x923f82a4, 0xab1c5ed5, 0xd807aa98, 0x12835b01,
+           0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7,
+           0xc19bf174, 0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc,
+           0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da, 0x983e5152,
+           0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147,
+           0x06ca6351, 0x14292967, 0x27b70a85, 0x2e1b2138, 0x4d2c6dfc,
+           0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85,
+           0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819,
+           0xd6990624, 0xf40e3585, 0x106aa070, 0x19a4c116, 0x1e376c08,
+           0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f,
+           0x682e6ff3, 0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208,
+           0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2
+       ]);
+
+        let h0 = 0x6a09e667, h1 = 0xbb67ae85, h2 = 0x3c6ef372, h3 = 0xa54ff53a;
+        let h4 = 0x510e527f, h5 = 0x9b05688c, h6 = 0x1f83d9ab, h7 = 0x5be0cd19;
+        const w = new Uint32Array(64);
+
+        function blocks(p) {
+            let off = 0, len = p.length;
+            while (len >= 64) {
+                let a = h0, b = h1, c = h2, d = h3, e = h4, f = h5, g = h6, h = h7, u, i, j, t1, t2;
+
+                for (i = 0; i < 16; i++) {
+                    j = off + i*4;
+                    w[i] = ((p[j] & 0xff)<<24) | ((p[j+1] & 0xff)<<16) |
+                    ((p[j+2] & 0xff)<<8) | (p[j+3] & 0xff);
+                }
+
+                for (i = 16; i < 64; i++) {
+                    u = w[i-2];
+                    t1 = ((u>>>17) | (u<<(32-17))) ^ ((u>>>19) | (u<<(32-19))) ^ (u>>>10);
+
+                    u = w[i-15];
+                    t2 = ((u>>>7) | (u<<(32-7))) ^ ((u>>>18) | (u<<(32-18))) ^ (u>>>3);
+
+                    w[i] = (((t1 + w[i-7]) | 0) + ((t2 + w[i-16]) | 0)) | 0;
+                }
+
+                for (i = 0; i < 64; i++) {
+                    t1 = ((((((e>>>6) | (e<<(32-6))) ^ ((e>>>11) | (e<<(32-11))) ^
+                             ((e>>>25) | (e<<(32-25)))) + ((e & f) ^ (~e & g))) | 0) +
+                          ((h + ((K[i] + w[i]) | 0)) | 0)) | 0;
+
+                    t2 = ((((a>>>2) | (a<<(32-2))) ^ ((a>>>13) | (a<<(32-13))) ^
+                           ((a>>>22) | (a<<(32-22)))) + ((a & b) ^ (a & c) ^ (b & c))) | 0;
+
+                    h = g;
+                    g = f;
+                    f = e;
+                    e = (d + t1) | 0;
+                    d = c;
+                    c = b;
+                    b = a;
+                    a = (t1 + t2) | 0;
+                }
+
+                h0 = (h0 + a) | 0;
+                h1 = (h1 + b) | 0;
+                h2 = (h2 + c) | 0;
+                h3 = (h3 + d) | 0;
+                h4 = (h4 + e) | 0;
+                h5 = (h5 + f) | 0;
+                h6 = (h6 + g) | 0;
+                h7 = (h7 + h) | 0;
+
+                off += 64;
+                len -= 64;
+            }
+        }
+
+        blocks(m);
+
+        let i, bytesLeft = m.length % 64,
+        bitLenHi = (m.length / 0x20000000) | 0,
+        bitLenLo = m.length << 3,
+        numZeros = (bytesLeft < 56) ? 56 : 120,
+        p = m.slice(m.length - bytesLeft, m.length);
+
+        p.push(0x80);
+        for (i = bytesLeft + 1; i < numZeros; i++) { p.push(0); }
+        p.push((bitLenHi >>> 24) & 0xff);
+        p.push((bitLenHi >>> 16) & 0xff);
+        p.push((bitLenHi >>> 8)  & 0xff);
+        p.push((bitLenHi >>> 0)  & 0xff);
+        p.push((bitLenLo >>> 24) & 0xff);
+        p.push((bitLenLo >>> 16) & 0xff);
+        p.push((bitLenLo >>> 8)  & 0xff);
+        p.push((bitLenLo >>> 0)  & 0xff);
+
+        blocks(p);
+
+        return [
+            (h0 >>> 24) & 0xff, (h0 >>> 16) & 0xff, (h0 >>> 8) & 0xff, (h0 >>> 0) & 0xff,
+            (h1 >>> 24) & 0xff, (h1 >>> 16) & 0xff, (h1 >>> 8) & 0xff, (h1 >>> 0) & 0xff,
+            (h2 >>> 24) & 0xff, (h2 >>> 16) & 0xff, (h2 >>> 8) & 0xff, (h2 >>> 0) & 0xff,
+            (h3 >>> 24) & 0xff, (h3 >>> 16) & 0xff, (h3 >>> 8) & 0xff, (h3 >>> 0) & 0xff,
+            (h4 >>> 24) & 0xff, (h4 >>> 16) & 0xff, (h4 >>> 8) & 0xff, (h4 >>> 0) & 0xff,
+            (h5 >>> 24) & 0xff, (h5 >>> 16) & 0xff, (h5 >>> 8) & 0xff, (h5 >>> 0) & 0xff,
+            (h6 >>> 24) & 0xff, (h6 >>> 16) & 0xff, (h6 >>> 8) & 0xff, (h6 >>> 0) & 0xff,
+            (h7 >>> 24) & 0xff, (h7 >>> 16) & 0xff, (h7 >>> 8) & 0xff, (h7 >>> 0) & 0xff
+        ];
+    }
+
+    function PBKDF2_HMAC_SHA256_OneIter(password, salt, dkLen) {
+        // compress password if it's longer than hash block length
+        password = (password.length <= 64) ? password : SHA256(password);
+
+        const innerLen = 64 + salt.length + 4;
+        const inner = new Array(innerLen);
+        const outerKey = new Array(64);
+
+        let i;
+        let dk = [];
+
+        // inner = (password ^ ipad) || salt || counter
+        for (i = 0; i < 64; i++) { inner[i] = 0x36; }
+        for (i = 0; i < password.length; i++) { inner[i] ^= password[i]; }
+        for (i = 0; i < salt.length; i++) { inner[64 + i] = salt[i]; }
+        for (i = innerLen - 4; i < innerLen; i++) { inner[i] = 0; }
+
+        // outerKey = password ^ opad
+        for (i = 0; i < 64; i++) outerKey[i] = 0x5c;
+        for (i = 0; i < password.length; i++) outerKey[i] ^= password[i];
+
+        // increments counter inside inner
+        function incrementCounter() {
+            for (let i = innerLen - 1; i >= innerLen - 4; i--) {
+                inner[i]++;
+                if (inner[i] <= 0xff) return;
+                inner[i] = 0;
+            }
+        }
+
+        // output blocks = SHA256(outerKey || SHA256(inner)) ...
+        while (dkLen >= 32) {
+            incrementCounter();
+            dk = dk.concat(SHA256(outerKey.concat(SHA256(inner))));
+            dkLen -= 32;
+        }
+        if (dkLen > 0) {
+            incrementCounter();
+            dk = dk.concat(SHA256(outerKey.concat(SHA256(inner))).slice(0, dkLen));
+        }
+
+        return dk;
+    }
+
+    // The following is an adaptation of scryptsy
+    // See: https://www.npmjs.com/package/scryptsy
+    function blockmix_salsa8(BY, Yi, r, x, _X) {
+        let i;
+
+        arraycopy(BY, (2 * r - 1) * 16, _X, 0, 16);
+        for (i = 0; i < 2 * r; i++) {
+            blockxor(BY, i * 16, _X, 16);
+            salsa20_8(_X, x);
+            arraycopy(_X, 0, BY, Yi + (i * 16), 16);
+        }
+
+        for (i = 0; i < r; i++) {
+            arraycopy(BY, Yi + (i * 2) * 16, BY, (i * 16), 16);
+        }
+
+        for (i = 0; i < r; i++) {
+            arraycopy(BY, Yi + (i * 2 + 1) * 16, BY, (i + r) * 16, 16);
+        }
+    }
+
+    function R(a, b) {
+        return (a << b) | (a >>> (32 - b));
+    }
+
+    function salsa20_8(B, x) {
+        arraycopy(B, 0, x, 0, 16);
+
+        for (let i = 8; i > 0; i -= 2) {
+            x[ 4] ^= R(x[ 0] + x[12], 7);
+            x[ 8] ^= R(x[ 4] + x[ 0], 9);
+            x[12] ^= R(x[ 8] + x[ 4], 13);
+            x[ 0] ^= R(x[12] + x[ 8], 18);
+            x[ 9] ^= R(x[ 5] + x[ 1], 7);
+            x[13] ^= R(x[ 9] + x[ 5], 9);
+            x[ 1] ^= R(x[13] + x[ 9], 13);
+            x[ 5] ^= R(x[ 1] + x[13], 18);
+            x[14] ^= R(x[10] + x[ 6], 7);
+            x[ 2] ^= R(x[14] + x[10], 9);
+            x[ 6] ^= R(x[ 2] + x[14], 13);
+            x[10] ^= R(x[ 6] + x[ 2], 18);
+            x[ 3] ^= R(x[15] + x[11], 7);
+            x[ 7] ^= R(x[ 3] + x[15], 9);
+            x[11] ^= R(x[ 7] + x[ 3], 13);
+            x[15] ^= R(x[11] + x[ 7], 18);
+            x[ 1] ^= R(x[ 0] + x[ 3], 7);
+            x[ 2] ^= R(x[ 1] + x[ 0], 9);
+            x[ 3] ^= R(x[ 2] + x[ 1], 13);
+            x[ 0] ^= R(x[ 3] + x[ 2], 18);
+            x[ 6] ^= R(x[ 5] + x[ 4], 7);
+            x[ 7] ^= R(x[ 6] + x[ 5], 9);
+            x[ 4] ^= R(x[ 7] + x[ 6], 13);
+            x[ 5] ^= R(x[ 4] + x[ 7], 18);
+            x[11] ^= R(x[10] + x[ 9], 7);
+            x[ 8] ^= R(x[11] + x[10], 9);
+            x[ 9] ^= R(x[ 8] + x[11], 13);
+            x[10] ^= R(x[ 9] + x[ 8], 18);
+            x[12] ^= R(x[15] + x[14], 7);
+            x[13] ^= R(x[12] + x[15], 9);
+            x[14] ^= R(x[13] + x[12], 13);
+            x[15] ^= R(x[14] + x[13], 18);
+        }
+
+        for (let i = 0; i < 16; ++i) {
+            B[i] += x[i];
+        }
+    }
+
+    // naive approach... going back to loop unrolling may yield additional performance
+    function blockxor(S, Si, D, len) {
+        for (let i = 0; i < len; i++) {
+            D[i] ^= S[Si + i]
+        }
+    }
+
+    function arraycopy(src, srcPos, dest, destPos, length) {
+        while (length--) {
+            dest[destPos++] = src[srcPos++];
+        }
+    }
+
+    function checkBufferish(o) {
+        if (!o || typeof(o.length) !== 'number') { return false; }
+
+        for (let i = 0; i < o.length; i++) {
+            const v = o[i];
+            if (typeof(v) !== 'number' || v % 1 || v < 0 || v >= 256) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    function ensureInteger(value, name) {
+        if (typeof(value) !== "number" || (value % 1)) { throw new Error('invalid ' + name); }
+        return value;
+    }
+
+    // N = Cpu cost, r = Memory cost, p = parallelization cost
+    // callback(error, progress, key)
+    function _scrypt(password, salt, N, r, p, dkLen, callback) {
+
+        N = ensureInteger(N, 'N');
+        r = ensureInteger(r, 'r');
+        p = ensureInteger(p, 'p');
+
+        dkLen = ensureInteger(dkLen, 'dkLen');
+
+        if (N === 0 || (N & (N - 1)) !== 0) { throw new Error('N must be power of 2'); }
+
+        if (N > MAX_VALUE / 128 / r) { throw new Error('N too large'); }
+        if (r > MAX_VALUE / 128 / p) { throw new Error('r too large'); }
+
+        if (!checkBufferish(password)) {
+            throw new Error('password must be an array or buffer');
+        }
+        password = Array.prototype.slice.call(password);
+
+        if (!checkBufferish(salt)) {
+            throw new Error('salt must be an array or buffer');
+        }
+        salt = Array.prototype.slice.call(salt);
+
+        let b = PBKDF2_HMAC_SHA256_OneIter(password, salt, p * 128 * r);
+        const B = new Uint32Array(p * 32 * r)
+        for (let i = 0; i < B.length; i++) {
+            const j = i * 4;
+            B[i] = ((b[j + 3] & 0xff) << 24) |
+                   ((b[j + 2] & 0xff) << 16) |
+                   ((b[j + 1] & 0xff) << 8) |
+                   ((b[j + 0] & 0xff) << 0);
+        }
+
+        const XY = new Uint32Array(64 * r);
+        const V = new Uint32Array(32 * r * N);
+
+        const Yi = 32 * r;
+
+        // scratch space
+        const x = new Uint32Array(16);       // salsa20_8
+        const _X = new Uint32Array(16);      // blockmix_salsa8
+
+        const totalOps = p * N * 2;
+        let currentOp = 0;
+        let lastPercent10 = null;
+
+        // Set this to true to abandon the scrypt on the next step
+        let stop = false;
+
+        // State information
+        let state = 0;
+        let i0 = 0, i1;
+        let Bi;
+
+        // How many blockmix_salsa8 can we do per step?
+        const limit = callback ? parseInt(1000 / r): 0xffffffff;
+
+        // Trick from scrypt-async; if there is a setImmediate shim in place, use it
+        const nextTick = (typeof(setImmediate) !== 'undefined') ? setImmediate : setTimeout;
+
+        // This is really all I changed; making scryptsy a state machine so we occasionally
+        // stop and give other evnts on the evnt loop a chance to run. ~RicMoo
+        const incrementalSMix = function() {
+            if (stop) {
+                return callback(new Error('cancelled'), currentOp / totalOps);
+            }
+
+            let steps;
+
+            switch (state) {
+                case 0:
+                    // for (var i = 0; i < p; i++)...
+                    Bi = i0 * 32 * r;
+
+                    arraycopy(B, Bi, XY, 0, Yi);                       // ROMix - 1
+
+                    state = 1;                                         // Move to ROMix 2
+                    i1 = 0;
+
+                    // Fall through
+
+                case 1:
+
+                    // Run up to 1000 steps of the first inner smix loop
+                    steps = N - i1;
+                    if (steps > limit) { steps = limit; }
+                    for (let i = 0; i < steps; i++) {                  // ROMix - 2
+                        arraycopy(XY, 0, V, (i1 + i) * Yi, Yi)         // ROMix - 3
+                        blockmix_salsa8(XY, Yi, r, x, _X);             // ROMix - 4
+                    }
+
+                    // for (var i = 0; i < N; i++)
+                    i1 += steps;
+                    currentOp += steps;
+
+                    if (callback) {
+                        // Call the callback with the progress (optionally stopping us)
+                        const percent10 = parseInt(1000 * currentOp / totalOps);
+                        if (percent10 !== lastPercent10) {
+                            stop = callback(null, currentOp / totalOps);
+                            if (stop) { break; }
+                            lastPercent10 = percent10;
+                        }
+                    }
+
+                    if (i1 < N) { break; }
+
+                    i1 = 0;                                          // Move to ROMix 6
+                    state = 2;
+
+                    // Fall through
+
+                case 2:
+
+                    // Run up to 1000 steps of the second inner smix loop
+                    steps = N - i1;
+                    if (steps > limit) { steps = limit; }
+                    for (let i = 0; i < steps; i++) {                // ROMix - 6
+                        const offset = (2 * r - 1) * 16;             // ROMix - 7
+                        const j = XY[offset] & (N - 1);
+                        blockxor(V, j * Yi, XY, Yi);                 // ROMix - 8 (inner)
+                        blockmix_salsa8(XY, Yi, r, x, _X);           // ROMix - 9 (outer)
+                    }
+
+                    // for (var i = 0; i < N; i++)...
+                    i1 += steps;
+                    currentOp += steps;
+
+                    // Call the callback with the progress (optionally stopping us)
+                    if (callback) {
+                        const percent10 = parseInt(1000 * currentOp / totalOps);
+                        if (percent10 !== lastPercent10) {
+                            stop = callback(null, currentOp / totalOps);
+                            if (stop) { break; }
+                            lastPercent10 = percent10;
+                        }
+                    }
+
+                    if (i1 < N) { break; }
+
+                    arraycopy(XY, 0, B, Bi, Yi);                     // ROMix - 10
+
+                    // for (var i = 0; i < p; i++)...
+                    i0++;
+                    if (i0 < p) {
+                        state = 0;
+                        break;
+                    }
+
+                    b = [];
+                    for (let i = 0; i < B.length; i++) {
+                        b.push((B[i] >>  0) & 0xff);
+                        b.push((B[i] >>  8) & 0xff);
+                        b.push((B[i] >> 16) & 0xff);
+                        b.push((B[i] >> 24) & 0xff);
+                    }
+
+                    const derivedKey = PBKDF2_HMAC_SHA256_OneIter(password, b, dkLen);
+
+                    // Send the result to the callback
+                    if (callback) { callback(null, 1.0, derivedKey); }
+
+                    // Done; don't break (which would reschedule)
+                    return derivedKey;
+            }
+
+            // Schedule the next steps
+            if (callback) { nextTick(incrementalSMix); }
+        }
+
+        // Run the smix state machine until completion
+        if (!callback) {
+            while (true) {
+                const derivedKey = incrementalSMix();
+                if (derivedKey != undefined) { return derivedKey; }
+            }
+        }
+
+        // Bootstrap the async incremental smix
+        incrementalSMix();
+    }
+
+    const lib = {
+        scrypt: function(password, salt, N, r, p, dkLen, progressCallback) {
+            return new Promise(function(resolve, reject) {
+                let lastProgress = 0;
+                if (progressCallback) { progressCallback(0); }
+                _scrypt(password, salt, N, r, p, dkLen, function(error, progress, key) {
+                    if (error) {
+                        reject(error);
+                    } else if (key) {
+                        if (progressCallback && lastProgress !== 1) {
+                            progressCallback(1);
+                        }
+                        resolve(new Uint8Array(key));
+                    } else if (progressCallback && progress !== lastProgress) {
+                        lastProgress = progress;
+                        return progressCallback(progress);
+                    }
+                });
+            });
+        },
+        syncScrypt: function(password, salt, N, r, p, dkLen) {
+            return new Uint8Array(_scrypt(password, salt, N, r, p, dkLen));
+        }
+    };
+
+    // node.js
+    if (typeof(exports) !== 'undefined') {
+       module.exports = lib;
+
+    // RequireJS/AMD
+    // http://www.requirejs.org/docs/api.html
+    // https://github.com/amdjs/amdjs-api/wiki/AMD
+    } else if (typeof(define) === 'function' && define.amd) {
+        define(lib);
+
+    // Web Browsers
+    } else if (root) {
+
+        // If there was an existing library "scrypt", make sure it is still available
+        if (root.scrypt) {
+            root._scrypt = root.scrypt;
+        }
+
+        root.scrypt = lib;
+    }
+
+})(this);
+
+</script>
+<script>
+'use strict';
+const byId=id=>document.getElementById(id),te=new TextEncoder(),td=new TextDecoder('utf-8');
+let saved='';
+function status(s){byId('status').textContent=s}
+function error(s){status('열지 못했습니다: '+s)}
+function u16(d,o){return d.getUint16(o,true)}
+function u32(d,o){return d.getUint32(o,true)}
+async function readContainer(file){
+ const bytes=new Uint8Array(await file.arrayBuffer());
+ if(!/\.zip$/i.test(file.name))return bytes;
+ const dv=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength);
+ let e=-1;
+ for(let i=bytes.length-22;i>=Math.max(0,bytes.length-65557);i--)
+  if(u32(dv,i)===0x06054b50){e=i;break}
+ if(e<0)throw Error('정상적인 ZIP 구조가 아닙니다.');
+ const count=u16(dv,e+10);let p=u32(dv,e+16);
+ for(let n=0;n<count;n++){
+  if(u32(dv,p)!==0x02014b50)throw Error('ZIP 목차가 손상됐습니다.');
+  const method=u16(dv,p+10),size=u32(dv,p+20);
+  const fn=u16(dv,p+28),ex=u16(dv,p+30),co=u16(dv,p+32);
+  const off=u32(dv,p+42),name=td.decode(bytes.slice(p+46,p+46+fn));
+  p+=46+fn+ex+co;
+  if(!name.endsWith('.enc'))continue;
+  if(u32(dv,off)!==0x04034b50)throw Error('ZIP 파일 데이터가 손상됐습니다.');
+  const start=off+30+u16(dv,off+26)+u16(dv,off+28),compressed=bytes.slice(start,start+size);
+  if(method===0)return compressed;
+  if(method===8){
+   if(typeof DecompressionStream!=='function')throw Error('ZIP을 압축 해제한 다음 .enc를 직접 선택하세요.');
+   try{
+    const stream=new Blob([compressed]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+    return new Uint8Array(await new Response(stream).arrayBuffer());
+   }catch{throw Error('ZIP을 압축 해제한 다음 .enc를 직접 선택하세요.')}
+  }
+  throw Error('지원하지 않는 ZIP 압축 방식입니다. 압축을 풀고 .enc를 선택하세요.');
+ }
+ throw Error('ZIP에 .enc 원본이 없습니다.');
+}
+function base64ToBytes(base64){
+ const raw=atob(base64),b=new Uint8Array(raw.length);
+ for(let i=0;i<b.length;i++)b[i]=raw.charCodeAt(i);return b
+}
+function hex(bytes){return [...new Uint8Array(bytes)].map(b=>b.toString(16).padStart(2,'0')).join('')}
+async function decrypt(enc,pass){
+ if(!crypto?.subtle)throw Error('브라우저 암호화 기능을 사용할 수 없습니다. Chrome 또는 Edge에서 파일을 여세요.');
+ const magic=te.encode('SAJU_QA_GCM_V1\0');
+ if(enc.length<magic.length+60||magic.some((b,i)=>enc[i]!==b))
+  throw Error('이 앱에서 만든 암호화 보관 파일이 아닙니다.');
+ let off=magic.length;const salt=enc.slice(off,off+=16);
+ const iv=enc.slice(off,off+=12),tag=enc.slice(off,off+=16),cipher=enc.slice(off);
+ const mac=await crypto.subtle.importKey('raw',te.encode(pass),{name:'HMAC',hash:'SHA-256'},false,['sign']);
+ const signature=await crypto.subtle.sign('HMAC',mac,te.encode('saju-qa-archive-v1'));
+ status('비밀번호로 복호화 키 계산 중… 0%');
+ const keyBytes=await scrypt.scrypt(te.encode(hex(signature)),salt,16384,8,1,32,p=>{
+  status('비밀번호로 복호화 키 계산 중… '+Math.floor(p*100)+'%');
+ });
+ const key=await crypto.subtle.importKey('raw',keyBytes,'AES-GCM',false,['decrypt']);
+ const combined=new Uint8Array(cipher.length+tag.length);
+ combined.set(cipher);combined.set(tag,cipher.length);
+ let raw;
+ try{raw=await crypto.subtle.decrypt({name:'AES-GCM',iv,tagLength:128},key,combined)}
+ catch{throw Error('원래 사용한 API 키가 아니거나 암호화 파일이 손상됐습니다.')}
+ return JSON.parse(td.decode(raw));
+}
+function getOriginal(bundle){
+ if(bundle.format!=='saju-first-chapter-qa-v1')throw Error('보관본 형식이 맞지 않습니다.');
+ const f=bundle.files.find(x=>x.name==='private-qa-first-chapter-provider-calls.json');
+ if(!f)throw Error('보고서 생성 원본 파일이 보관본에 없습니다.');
+ const records=JSON.parse(td.decode(base64ToBytes(f.data)));
+ if(records.calls?.length!==1)throw Error('단일 유료 생성 기록이 아닙니다.');
+ const chapter=records.calls[0].response?.chapters?.saju_core;
+ if(!chapter?.paragraphs?.strength?.text)throw Error('첫 챕터의 본문이 없습니다.');
+ return chapter;
+}
+function render(chapter){
+ const title=chapter.title||'사주 기본 성향',judgment=chapter.keyJudgment||'';
+ byId('title').textContent=title;
+ byId('judgment').textContent=judgment;
+ const wrap=byId('paragraphs');wrap.replaceChildren();
+ const items=[];for(const id of ['temperament','strength']){
+  const p=chapter.paragraphs?.[id];if(!p?.text)continue;
+  const label=document.createElement('div');label.className='label';label.textContent=p.label||id;
+  const text=document.createElement('p');text.className='paragraph';text.textContent=p.text;
+  wrap.append(label,text);items.push((p.label||id)+'\n'+p.text);
+ }
+ saved=title+'\n\n'+judgment+'\n\n'+items.join('\n\n')+'\n';
+ byId('output').hidden=false;byId('download').style.display='inline-block';
+}
+byId('open').addEventListener('click',async()=>{
+ const input=byId('archive').files[0],pass=byId('secret').value;
+ if(!input){error('기존 ZIP 또는 .enc 파일을 먼저 선택하세요.');return}
+ if(!pass){error('원래 API 키를 이 화면에 입력하세요.');return}
+ byId('open').disabled=true;byId('output').hidden=true;byId('download').style.display='none';saved='';
+ try{
+  status('로컬 파일 확인 중…');
+  const data=await readContainer(input);
+  const archive=await decrypt(data,pass);
+  render(getOriginal(archive));
+  status('완료! 보고서 원문을 아래에서 확인하고 TXT로 저장할 수 있습니다. 추가 API 비용 0원.');
+ }catch(e){error(e.message||String(e))}
+ finally{byId('secret').value='';byId('open').disabled=false}
+});
+byId('download').addEventListener('click',()=>{
+ if(!saved)return;
+ const url=URL.createObjectURL(new Blob(['\ufeff'+saved],{type:'text/plain;charset=utf-8'}));
+ const a=document.createElement('a');a.href=url;a.download='사주_첫챕터_실제원고.txt';
+ document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),5000);
+});
+</script></body></html>
