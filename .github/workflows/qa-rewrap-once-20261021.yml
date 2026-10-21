@@ -1,0 +1,63 @@
+name: Offline paid QA archive recovery (no model calls)
+on:
+  push:
+    branches: [fix-paid-qa-fact-bindings-20261014]
+    paths:
+      - .github/workflows/qa-rewrap-once-20261021.yml
+permissions:
+  contents: read
+  actions: read
+jobs:
+  recover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/download-artifact@v4
+        with:
+          name: premium-first-chapter-qa-encrypted
+          run-id: 39179958854
+          repository: chunsang00-gif/first-app
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/old
+      - name: Unpack prior archive using stored GitHub secret
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          umask 077
+          node report-qa-secure-archive.js decrypt "$RUNNER_TEMP/old/premium-first-chapter-qa.enc" "$RUNNER_TEMP/private"
+      - name: Re-encrypt existing report only for local recovery
+        env:
+          RECOVERY_PUBLIC_DER_B64: MIIBojANBgkqhkiG9w0BAQEFAAOCAY8AMIIBigKCAYEA0xAeOh4gyI5PImq17Pz/Ilg+AI+d4DPEDXjnJWj+UGbCCpQO6scrrabsIF2dk36IVrWzs4ujamMW2Oo5AdRBosKblASQGi20Ds9+t1whhpmhRbacQu2uQVYyEryo0Ckk/Wrp0XCoZ3MLKgx8DC3xDyXF5X2j0ipjWjo/wihyRDDnAeVp6uaRAtlkOIbbkDaMAGeflhcGWE2qJCwv/yPwcEgnBqj+NMvDKNUrmn/spCi9swkO9HuaDR37HiHWcvepuQdLY6b9SWyD37rymyJOmHRRRBJqWa/Hsy93e56ilfOq51ll7oPQzG21uRgvmHOg0G6hwUG2R+Dd5mtLYnn0jQy0O4Mbk7c8/mTbgO9upGq1k0tpH4jGrAsgoWu1Bx16McxMj6U2jXRJPFBOgKyDww2If3zWXk9QyHW7RPzVQPUr/Y6XgznQ2GOSY3l5bMHrb6Lj5a8Zopy7O583MXyG5debVXQ+VhcD2bfzGAin5TewaR3kKRxEm69jZZo6/8O9AgMBAAE=
+        run: |
+          node <<'NODE'
+          const fs=require('fs'),path=require('path'),crypto=require('crypto');
+          const base=path.join(process.env.RUNNER_TEMP,'private');
+          const archive=JSON.parse(fs.readFileSync(path.join(base,'private-qa-first-chapter-provider-calls.json'),'utf8'));
+          if(archive.calls?.length!==1||archive.calls[0].request.stage!=='body')throw Error('Unexpected archive');
+          const body=archive.calls[0].response;
+          if(!body?.chapters?.saju_core?.paragraphs?.strength?.text)throw Error('Missing previous response');
+          const payload=Buffer.from(JSON.stringify({originalPaidRun:39179958854,report:body.chapters.saju_core}), 'utf8');
+          const symmetric=crypto.randomBytes(32),iv=crypto.randomBytes(12);
+          const cipher=crypto.createCipheriv('aes-256-gcm',symmetric,iv);
+          const encrypted=Buffer.concat([cipher.update(payload),cipher.final()]);
+          const publicKey=crypto.createPublicKey({key:Buffer.from(process.env.RECOVERY_PUBLIC_DER_B64,'base64'),format:'der',type:'spki'});
+          const key=crypto.publicEncrypt({key:publicKey,padding:crypto.constants.RSA_PKCS1_OAEP_PADDING,oaepHash:'sha256'},symmetric);
+          fs.writeFileSync(path.join(process.env.RUNNER_TEMP,'report-sealed.json'),JSON.stringify({
+            scheme:'rsa-oaep-sha256+aes-256-gcm',key:key.toString('base64'),iv:iv.toString('base64'),
+            tag:cipher.getAuthTag().toString('base64'),ciphertext:encrypted.toString('base64')
+          }),{mode:0o600});
+          console.log('Re-encrypted previously paid first chapter without extra provider call.');
+          NODE
+      - name: Upload re-encrypted existing first chapter
+        uses: actions/upload-artifact@v4
+        with:
+          name: first-chapter-recovered-encrypted-only
+          path: ${{ runner.temp }}/report-sealed.json
+          retention-days: 2
+      - name: Destroy temporary decrypted content
+        if: always()
+        run: rm -rf "$RUNNER_TEMP/private" "$RUNNER_TEMP/old" "$RUNNER_TEMP/report-sealed.json"
