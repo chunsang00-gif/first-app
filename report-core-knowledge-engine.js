@@ -12,6 +12,7 @@ const editorial=require('./report-core-reader-editorial');
 const natalContext=require('./report-core-natal-context');
 const hourContext=require('./report-core-hour-context');
 const seasonRootContext=require('./report-core-season-root-context');
+const families=require('./report-core-rule-families');
 const GODS=['비견','겁재','식신','상관','정재','편재','정관','편관','정인','편인'];
 // Cross-check against the same canonical lunar calendar ten-god table.
 // Do not trust category labels copied from potentially corrupted fact rows.
@@ -62,11 +63,12 @@ function possibleCrossSymbol(extra,baseRule){
  });
 }
 function auditKnowledge(kb=knowledge){
- if(kb.version!=='core-knowledge-v0.9'||
+ if(kb.version!=='core-knowledge-v1.0'||
     JSON.stringify(Object.keys(kb.tenGodScopes).sort())!==
     JSON.stringify([...GODS].sort()))throw Error('CORE_KNOWLEDGE_INCOMPLETE_TEN_GOD_SCOPES');
  const ids=new Set(),contexts=new Set();
- for(const rule of kb.pairRules){
+ const allRules=[...kb.pairRules,...families.expand(kb)];
+ for(const rule of allRules){
   if(!GODS.includes(rule.visible)||!GODS.includes(rule.hidden)||
      rule.status!=='editorial-candidate')throw Error('CORE_KNOWLEDGE_BAD_RULE_CATEGORY');
 
@@ -117,7 +119,7 @@ function auditKnowledge(kb=knowledge){
   crossIds.add(extra.id);
  }
  return {tenGods:GODS.length,curatedRules:contexts.size,
-  crossPillarRules:crossIds.size,...natalContext.audit(kb),...hourContext.audit(kb),
+  crossPillarRules:crossIds.size,...families.audit(kb),...natalContext.audit(kb),...hourContext.audit(kb),
   ...seasonRootContext.audit(kb)};
 }
 auditKnowledge();
@@ -160,7 +162,7 @@ function compile(packet){
  if(context.elementLink?.inference!=='element-relation-only'||
     context.elementLink?.realizedInteraction!=='not-assessed')
   throw Error('CORE_KNOWLEDGE_UNSUPPORTED_ELEMENT_CAUSALITY');
- const matching=knowledge.pairRules.filter(r=>
+ const matching=[...knowledge.pairRules,...families.expand()].filter(r=>
   r.visible===first.tenGod&&r.hidden===second.tenGod&&
   r.when.monthBranch===branch&&r.when.monthPhase===season.monthPhase&&
   r.when.monthElementRelation===relation&&
@@ -207,11 +209,13 @@ function compile(packet){
   throw Error('CORE_KNOWLEDGE_READER_MECHANICAL_REJECT:'+mechanical.problems.join(','));
  return {
   status:'draft-for-human-review',knowledgeVersion:knowledge.version,ruleId:rule.id,
+  familyId:rule.familyId||null,
   scope,wholeChartEvidence:graph,compositionPlan,
   sourceMeaning:[sourceRows[first.sourceId].traditionalMeaning,
    sourceRows[second.sourceId].traditionalMeaning],
   reader,
   review:{ruleClaim:rule.claim,evidenceRole:rule.evidenceRole,
+   familyId:rule.familyId||null,
    verifiedConditions:{...rule.when},
    seasonRootContext:root?{ruleId:root.ruleId,variantId:root.variantId,
     matched:root.matched,sourceRefs:root.sourceRefs,

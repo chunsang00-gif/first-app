@@ -4,7 +4,7 @@ const {survey}=require('./report-core-rule-opportunities');
 const a=survey(),b=survey();
 assert.deepEqual(a,b,'representative coverage analysis must be deterministic');
 assert.equal(a.kind,'synthetic-fixed-qa-grid-not-traffic');
-assert(a.missingCases<=85,'six real previously uncovered contexts must be supported');
+assert(a.missingCases<=76,'six real previously uncovered contexts must be supported');
 assert(a.distinctFamilyKeys>12);
 assert(a.branchExamples.length>=10);
 assert(a.topFamilies.every(x=>x.count>0&&x.examples.length>0&&

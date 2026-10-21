@@ -2,7 +2,7 @@
 const assert=require('node:assert/strict');
 const facts=require('./report-facts-node'),engine=require('./report-core-knowledge-engine');
 const knowledge=require('./report-core-knowledge.json');
-assert.deepEqual(engine.auditKnowledge(),{tenGods:10,curatedRules:12,crossPillarRules:1,natalContextRules:1,hourContextRules:2,seasonRootRules:1,seasonRootVariants:2});
+assert.deepEqual(engine.auditKnowledge(),{tenGods:10,curatedRules:21,crossPillarRules:1,familyRules:4,familyVariants:9,natalContextRules:1,hourContextRules:2,seasonRootRules:1,seasonRootVariants:2});
 const sample={calendar:'lunar',birthDate:'1982-11-24',birthTime:'14:20',
  gender:'male',mbti:'ISFP',name:'검증용'};
 const packet=facts.build(sample,2027),draft=engine.compile(packet);
@@ -316,14 +316,14 @@ assert(summary.withDraft>=2&&summary.notCovered>0,
 assert.equal(summary.withDraft+summary.notCovered,summary.ready);
 assert(summary.distinctMonthContexts>summary.coveredMonthContexts,
  'the real-date grid exposes genuinely uncovered source contexts');
-assert(summary.withDraft>=14,
+assert(summary.withDraft>=23,
  'six new source-specific candidate contexts must increase true reader coverage');
-assert(summary.notCovered<=85,
+assert(summary.notCovered<=76,
  'actual fixed-date reader coverage must rise instead of creating only outlines');
 assert.equal(summary.draftsWithSeasonRootContext,2);
 assert.equal(summary.draftsWithHourContext,2,
  'known-hour reference cases must be distinguished by verified sources');
-assert(summary.distinctReaderDrafts>=13,
+assert(summary.distinctReaderDrafts>=22,
  'existing seven distinct drafts plus six new actual month readings');
 assert.equal(summary.readerReusedAcrossChartCount,0,
  'the known distinct-hour chart pair must not receive identical reader text');
@@ -332,6 +332,6 @@ assert.equal(summary.releaseVerdict,'not-approved');
 assert.equal(summary.apiCalls,0);
 console.log('OFFLINE_CORE_KNOWLEDGE_COVERAGE='+JSON.stringify(summary));
 assert(!Object.hasOwn(knowledge,'personalityScores'));
-console.log('PASS offline curated Saju knowledge v0.9: 12 branch-representative contextual month candidates,');
+console.log('PASS offline curated Saju knowledge v1.0: 12 individual and 9 family variant month manuscripts,');
 console.log('true natal graph, same-category anti-double guard, tampered evidence blocked, MBTI/year isolation,');
 console.log('no paid AI, no live app replacement, no human editorial approval');

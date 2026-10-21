@@ -74,11 +74,11 @@ assert.deepEqual(Object.keys(stats.bridgeKinds).sort(),[
  'hidden-controls-visible','hidden-generates-visible','same-element',
  'visible-controls-hidden','visible-generates-hidden'].sort());
 assert.equal(stats.outlinesWithoutReaderDraft,stats.notCovered);
-assert(stats.notCovered<=85,'six previously uncovered calendar contexts must have reader drafts');
+assert(stats.notCovered<=76,'six previously uncovered calendar contexts must have reader drafts');
 assert(stats.distinctEditorialOutlines>=90,
  'factorized outlines must differ across substantially different source charts');
 assert(stats.distinctEditorialOutlines<=stats.distinctCharts);
-assert(stats.withDraft>=14,'additional curated prose must come from new matching month rules');
+assert(stats.withDraft>=23,'additional curated prose must come from new matching month rules');
 assert.equal(stats.releaseVerdict,'not-approved');
 assert.equal(stats.apiCalls,0);
 console.log('PASS chart-wide source-backed editorial outlines for 99 fixed samples; '+
