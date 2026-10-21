@@ -12,6 +12,11 @@ assert.deepEqual(draft.scope.sourceIds,['natal.month.stem','natal.month.hidden.�
 assert.deepEqual([draft.scope.visibleTenGod,draft.scope.hiddenTenGod],['편인','편재']);
 assert.equal(draft.scope.monthElementRelation,'hidden-controls-visible');
 assert.equal(draft.scope.inferredPersonality,false);
+assert.equal(draft.review.readerMechanical.mechanicalPass,true);
+assert.equal(draft.review.readerMechanical.approval,'not-approved');
+assert.equal(draft.review.readerMechanical.humanReviewRequired,true);
+const lint=require('./report-core-reader-editorial');
+assert.equal(lint.inspect(draft.reader).mechanicalPass,true);
 assert.equal(draft.compositionPlan.status,'evidence-plan-for-editorial-review');
 assert.equal(draft.compositionPlan.releaseVerdict,'not-approved');
 assert.equal(draft.compositionPlan.apiCalls,0);
@@ -38,8 +43,8 @@ assert.equal(draft.releaseVerdict,'not-approved');
 assert(draft.review.humanReviewRequired&&draft.reader.paragraphs.temperament);
 assert.equal(draft.review.crossPillar.ruleId,'year-jeongin-versus-month-pyeonin-v1');
 assert.deepEqual(draft.review.crossPillar.sourceIds,['natal.year.stem','natal.month.stem']);
-assert(draft.reader.paragraphs.temperament.text.includes('태어난 해의 겉글자'));
-assert(draft.reader.paragraphs.temperament.text.includes('실제 학습 속도와 능력'));
+assert(draft.reader.paragraphs.temperament.text.includes('태어난 해와 달에서 각각 확인됩니다'));
+assert(draft.reader.paragraphs.temperament.text.includes('배우는 속도가 빠르거나'));
 const graph=draft.wholeChartEvidence;
 assert.equal(graph.monthVisible.tenGod,'편인');
 assert.equal(graph.monthVisible.category,'resource');
@@ -59,8 +64,8 @@ assert.equal(graph.personalityObserved,false);
 assert.equal(graph.measuredStrength,false);
 assert.equal(graph.usedAnnualFacts,false);
 assert.equal(graph.usedMbti,false);
-assert(draft.reader.paragraphs.strength.text.includes('설명서')&&
- draft.reader.paragraphs.strength.text.includes('부품')&&
+assert(draft.reader.paragraphs.strength.text.includes('사람·도구·정보')&&
+ draft.reader.paragraphs.strength.text.includes('쓸 만한 선택지')&&
  draft.reader.paragraphs.strength.text.includes('반대로'));
 assert(!/(?:원국|지장간|통근|월지|월령|일간|세운)/.test(
  [draft.reader.title,draft.reader.keyJudgment,draft.reader.paragraphs.strength.text].join(' ')));
@@ -97,10 +102,24 @@ assert.deepEqual([sameKind.scope.visibleTenGod,sameKind.scope.hiddenTenGod],['�
 assert.equal(sameKind.scope.monthBranch,'辰');
 assert.equal(sameKind.scope.monthElementRelation,'same-element');
 assert.deepEqual(sameKind.review.verifiedConditions,knowledge.pairRules[1].when);
-assert(sameKind.reader.paragraphs.strength.text.includes('두 개의 성격을 뜻한다기보다'));
+assert(sameKind.reader.paragraphs.strength.text.includes('서로 다른 성격 두 개를 만들기보다'));
 assert(!/두 배|반대 성향/.test(sameKind.reader.paragraphs.strength.text),
  'same classification cannot be doubled or invented as an inner conflict');
 assert.equal(sameKind.releaseVerdict,'not-approved');
+assert.equal(sameKind.review.readerMechanical.mechanicalPass,true);
+const falseScene=structuredClone(sameKind.reader);
+falseScene.paragraphs.strength.text='공식 안내와 먼저 다녀온 사람의 설명을 반복합니다. '.repeat(6);
+assert(lint.inspect(falseScene).problems.includes('unreviewed-canned-scene'),
+ 'previous stock travel story must be mechanically rejected');
+const jargonLeak=structuredClone(sameKind.reader);
+jargonLeak.paragraphs.strength.text+=' 원국 지장간 사령입니다.';
+assert(lint.inspect(jargonLeak).problems.includes('reader-visible-jargon'));
+const wordyGeneric=structuredClone(sameKind.reader);
+wordyGeneric.paragraphs.strength.text+=' 이때 살펴볼 필요가 있습니다.';
+assert(lint.inspect(wordyGeneric).problems.includes('generic-or-unnatural-filler'));
+const lastQuestion=structuredClone(sameKind.reader);
+lastQuestion.paragraphs.strength.text+=' 궁금하지 않으세요?';
+assert(lint.inspect(lastQuestion).problems.includes('final-reader-question'));
 assert.equal(sameKind.reader.paragraphs.temperament,null,
  'a separate same-category case cannot import the year resource contrast');
 assert.equal(sameKind.review.crossPillar,null);
