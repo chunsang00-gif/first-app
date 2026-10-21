@@ -78,37 +78,56 @@ function select(packet,graph){
       return [r.type,r.branches,r.positions]
      })))
   throw Error('CORE_CHART_SYNTHESIS_RELATION_DIVERGED');
+ const QUESTIONS={
+  peer:['누가 어떤 몫을 맡는지','서로의 담당 범위가 어디서 갈리는지','공동으로 쓸 몫은 어떻게 구분되는지'],
+  output:['어떤 내용을 결과물로 남길지','표현을 바꾸더라도 지킬 내용은 무엇인지','남에게 전달할 형태는 무엇인지'],
+  wealth:['어떤 자원이 필요한지','계속 준비할 항목과 별도로 구할 항목은 무엇인지','고른 자원이 실제 목적에 맞는지'],
+  authority:['어떤 기준이 정해져 있는지','담당하는 역할의 경계가 어디인지','새 조건에서도 규칙이 그대로 적용되는지'],
+  resource:['어떤 안내를 참고할지','낯선 내용을 어떻게 이해할지','이해한 내용의 출처를 어디서 확인할지']
+ };
+ const roleQuestions=[
+  {position:'year',tenGod:year.tenGod,category:year.category,question:QUESTIONS[year.category][0]},
+  {position:'month',tenGod:monthVisible.tenGod,category:monthVisible.category,question:QUESTIONS[monthVisible.category][1]},
+  {position:'hour',tenGod:hour.tenGod,category:hour.category,question:QUESTIONS[hour.category][2]}
+ ];
+ const described=roleQuestions.map(r=>
+  POS[r.position]+'의 '+r.tenGod+'에서 확인할 질문은 '+r.question+'입니다');
+ const sameYear=year.relativeToMonth==='same-category-same-subtype';
+ const sameHour=hour.relativeToMonth==='same-category-same-subtype';
+ const shared=[sameYear?'해·달':null,sameHour?'달·시간':null].filter(Boolean);
+ const relative=shared.length?
+  shared.join('과 ')+'에는 같은 십성 분류가 반복됩니다. 그렇지만 반복 횟수로 능력의 강약을 계산할 수 없습니다.':
+  '해·달·시간의 분류는 각 위치에서 확인하며, 서로 다른 근거를 하나의 성격으로 합치지 않습니다.';
+ const categoryContrast=
+  '해와 달을 비교하면 '+LINK[year.relativeToMonth]+
+  '. 달과 시간을 비교하면 '+LINK[hour.relativeToMonth]+'.';
  const clauses=[
-  '태어난 날의 중심 오행은 '+ELEMENT[month.dayElement]+' 계열입니다. 달의 겉글자 '+
-   monthVisible.tenGod+'는 '+meaning(monthVisible.tenGod)+'이고, 달 안쪽 대표 글자의 '+
-   rows[hid].tenGod+'는 '+meaning(rows[hid].tenGod)+
-   '이므로 서로 다른 위치의 의미를 먼저 구별합니다.',
-  '해의 겉글자 '+year.tenGod+'는 '+meaning(year.tenGod)+
-   '입니다. 달의 '+monthVisible.tenGod+'와 비교하면 '+LINK[year.relativeToMonth]+
-   '. 시간 겉글자의 '+hour.tenGod+'는 '+meaning(hour.tenGod)+
-   '이며 달과 비교할 때 '+LINK[hour.relativeToMonth]+
-   '. 따라서 출생월만으로 해와 시간의 의미까지 대신 설명할 수는 없습니다.'
+  '이 명식에서 출생월의 두 뜻은 앞에서 살펴봤습니다. 여기서는 태어난 날의 '+ELEMENT[month.dayElement]+
+   ' 오행을 기준으로 해·달·시간의 차이를 연결합니다.',
+  described.join(' ')+'.',
+  relative+' '+categoryContrast
  ];
  clauses.push(month.monthPhase==='transition'?
-  '이 달은 '+PERIOD[month.monthSeason]+'의 전환월이므로 달 안쪽 대표 글자를 실제 계절의 우세나 전체 사주의 강약으로 단정하지 않습니다.':
-  '이 달은 '+PERIOD[month.monthSeason]+'의 핵심월이며 '+
-   PERIOD_REL[month.seasonToDayRelation]+'로 계산됩니다. 계절 관계가 실제 능력이나 기운의 강약을 측정한 것은 아닙니다.');
+  '계절을 확인하면 '+PERIOD[month.monthSeason]+
+   '의 전환월입니다. 달의 대표 속글자가 있다고 해서 어느 오행이 실제로 우세한지는 결론내릴 수 없습니다.':
+  '계절을 확인하면 '+PERIOD[month.monthSeason]+'의 핵심월이고 '+
+   PERIOD_REL[month.seasonToDayRelation]+'입니다. 이는 전체 사주 강약을 확정하는 계산은 아닙니다.');
  const rootPositions=[...new Set(graphRoots.map(r=>r.position))];
  clauses.push(rootPositions.length?
-  '날의 중심과 같은 오행의 숨은 글자는 출생 '+
+  '날의 중심과 같은 오행의 숨은 글자가 확인된 출생 위치는 '+
    rootPositions.map(p=>POS[p]).join('·')+
-   ' 자리에서 확인됩니다. 위치의 목록은 효과의 크기나 실제 성격을 나타내는 점수가 아닙니다.':
-  '확인된 네 기둥의 숨은 글자에는 날의 중심과 같은 오행이 발견되지 않습니다. 찾지 못했다는 이유만으로 기운이 약하다고 판정할 수는 없습니다.');
+   '입니다. 어느 자리에 있는지와 그 작용이 어느 정도인지는 다른 문제입니다.':
+  '확인된 숨은 글자에는 날의 중심과 같은 오행이 나타나지 않습니다. 그렇다고 실제로 기운이 약하다고 단정할 수는 없습니다.');
  const priority={충:0,형:1,해:2,파:3,육합:4};
  const rank=r=>(r.positions.includes('day')?0:10)+(priority[r.type]??9);
  const picked=natal.pairs.slice().sort((a,b)=>rank(a)-rank(b)).slice(0,2);
- if(picked.length)clauses.push('출생 '+
+ if(picked.length)clauses.push('지지 관계표에서는 '+
   picked.map(r=>r.positions.map(p=>POS[p]).join('·')+' 사이의 '+r.type).join('와 ')+
-  ' 관계가 지지 관계표에 해당합니다. 이는 실제 충돌이나 사건 발생을 뜻하지 않습니다.');
- if(natal.groups.length)clauses.push('또한 출생 '+
-  natal.groups[0].positions.map(p=>POS[p]).join('·')+' 자리에 '+
-  natal.groups[0].type+'의 세 글자가 나타납니다. 이것만으로 실제 합화나 오행 변화가 일어났다고 할 수는 없습니다.');
- clauses.push('이 비교는 달의 기본 뜻을 해와 시간의 차이, 날의 같은 오행 위치와 계절 관계까지 연결한 설명입니다. 개인의 관찰된 행동이나 미래의 결과에 대한 판단은 별도의 근거 없이는 하지 않습니다.');
+  '가 확인됩니다. 다른 위치 간 관계라는 뜻만 기록하며 실제 충돌이나 사건으로 확대하지 않습니다.');
+ if(natal.groups.length)clauses.push('세 지지의 조합은 '+
+  natal.groups[0].positions.map(p=>POS[p]).join('·')+' 자리에서 '+
+  natal.groups[0].type+'으로 분류됩니다. 이것만으로 합화나 실제 오행 변화가 이루어졌다고 판단하지 않습니다.');
+ clauses.push('따라서 한 가지 선택을 설명할 때는 어느 안내를 볼지, 누가 어떤 몫을 맡을지, 어떤 기준을 확인할지처럼 계산된 각 분류의 질문을 따로 살피는 방식이 적절합니다. 이 전통 분류는 실제 생활을 관찰한 자료나 미래 사건의 증거가 아닙니다.');
  const text=clauses.join(' ');
  const sourceRefs=['natal.day.stem','natal.month.stem',hid,
   'natal.year.stem','natal.hour.stem','facts.seasonalEvidence',
@@ -120,6 +139,7 @@ function select(packet,graph){
   hiddenTenGod:rows[hid].tenGod,hourTenGod:hour.tenGod,
   yearRelativeToMonth:year.relativeToMonth,hourRelativeToMonth:hour.relativeToMonth,
   rootRefs:graphRoots.map(r=>r.id),
+  roleQuestions:roleQuestions.map(r=>({...r})),
   relationPairs:picked.map(r=>({...r,positions:r.positions.slice()})),
   relationGroups:natal.groups.map(r=>({...r,positions:r.positions.slice()}))};
  return {reader:{label:'네 기둥을 연결해 확인한 해석 근거',text},
