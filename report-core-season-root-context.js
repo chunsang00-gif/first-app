@@ -28,7 +28,7 @@ function audit(kb=knowledge){
      w.monthSeason!==seasonal.MONTH[w.monthBranch].season||
      w.dayRootRef!=='natal.day.hidden.'+w.dayStem||
      !seasonal.HIDDEN[w.dayBranch].includes(w.dayStem)||
-     !STEMS.some(monthStem=>verifiedGod(w.dayStem,monthStem)===base.visible)||
+     ![...STEMS].some(monthStem=>verifiedGod(w.dayStem,monthStem)===base.visible)||
      r.readerScope!=='verified-seasonal-and-same-element-root-locations-only'||
      r.evidenceRole!=='seasonal-classification-plus-recalculated-root-position-membership'||
      JSON.stringify(r.sourceRefs)!==JSON.stringify([
