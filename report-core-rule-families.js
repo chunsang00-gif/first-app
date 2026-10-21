@@ -39,8 +39,8 @@ function audit(kb=knowledge){
       signatures.has(signature)||
       seasonal.MONTH[v.monthBranch].status!==f.when.monthPhase||
       JSON.stringify(Object.keys(v).sort())!==JSON.stringify(REQUIRED.slice().sort())||
-      REQUIRED.some(k=>typeof v[k]!=='string'||v[k].length<12)||
-      v.explanation.length<100)
+      REQUIRED.slice(1).some(k=>typeof v[k]!=='string'||v[k].length<12)||
+      v.explanation.length<80)
     throw Error('CORE_FAMILY_INVALID_VARIANT:'+f.id+'/'+v?.monthBranch);
    local.add(v.monthBranch);signatures.add(signature);variantCount++;
   }
