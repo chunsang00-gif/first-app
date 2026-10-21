@@ -90,6 +90,60 @@ function select(packet,graph){
   {position:'month',tenGod:monthVisible.tenGod,category:monthVisible.category,question:QUESTIONS[monthVisible.category][1]},
   {position:'hour',tenGod:hour.tenGod,category:hour.category,question:QUESTIONS[hour.category][2]}
  ];
+ const insideGod=rows[hid].tenGod;
+ const insideCategory=CAT[insideGod];
+ const linkedYear=year.category===insideCategory;
+ const linkedHour=hour.category===insideCategory;
+ const focusKind=linkedYear&&linkedHour?'month-hidden-links-year-and-hour':
+  linkedYear?'month-hidden-links-year':
+  linkedHour?'month-hidden-links-hour':
+  year.tenGod===hour.tenGod?'year-hour-same-ten-god':
+  year.category===hour.category?'year-hour-same-category':
+  'three-separate-functions';
+ const hiddenQuestion=QUESTIONS[insideCategory][1];
+ const yearQuestion=roleQuestions[0].question;
+ const hourQuestion=roleQuestions[2].question;
+ const sameMeaning=(a,b)=>a===b?'같은 세부 분류':'같은 큰 계열의 다른 세부 분류';
+ let point='',comparison='';
+ if(focusKind==='month-hidden-links-year-and-hour'){
+  point='달의 안쪽 '+insideGod+'와 해의 '+year.tenGod+
+   ', 시간의 '+hour.tenGod+'가 같은 큰 계열이라는 점이 이 명식에서 먼저 구별할 부분입니다.';
+  comparison='세 출처가 같은 계열이라고 한 가지 의미만 세 번 반복하지 말고, 달 안쪽에서는 '+
+   hiddenQuestion+', 해에서는 '+yearQuestion+', 시간에서는 '+hourQuestion+'를 서로 구별해 살펴야 합니다.';
+ }else if(focusKind==='month-hidden-links-year'){
+  point='달의 안쪽 '+insideGod+'와 해의 '+year.tenGod+'는 '+
+   sameMeaning(insideGod,year.tenGod)+'입니다. 시간의 '+hour.tenGod+
+   '는 다른 계열로 계산된다는 점이 핵심 차이입니다.';
+  comparison='따라서 달 안쪽에서 '+hiddenQuestion+'와 해에서 '+yearQuestion+
+   '를 함께 확인하되, 시간에서는 별도로 '+hourQuestion+'를 물어야 합니다.';
+ }else if(focusKind==='month-hidden-links-hour'){
+  point='달의 안쪽 '+insideGod+'와 시간의 '+hour.tenGod+'는 '+
+   sameMeaning(insideGod,hour.tenGod)+'입니다. 해의 '+year.tenGod+
+   '는 다른 계열이므로 판단의 질문을 구별해야 합니다.';
+  comparison='달 안쪽에서 '+hiddenQuestion+'와 시간에서 '+hourQuestion+
+   '를 따로 확인하고, 해에서는 '+yearQuestion+'를 별도 질문으로 남겨 둡니다.';
+ }else if(focusKind==='year-hour-same-ten-god'){
+  point='해와 시간의 겉글자는 모두 '+year.tenGod+
+   '로 계산되지만, 달 안쪽의 '+insideGod+'는 다른 계열입니다.';
+  comparison='같은 십성이 반복된 사실을 성격이나 능력의 강도로 바꾸지 않고, 해에서 '+
+   yearQuestion+'와 시간에서 '+hourQuestion+'를 각각 확인해야 합니다. 달 안쪽에서는 '+hiddenQuestion+'라는 별도 질문이 남습니다.';
+ }else if(focusKind==='year-hour-same-category'){
+  point='해의 '+year.tenGod+'와 시간의 '+hour.tenGod+
+   '는 같은 큰 계열이지만 서로 다른 세부 분류입니다. 달 안쪽의 '+insideGod+'는 또 다른 계열입니다.';
+  comparison='따라서 해에서 '+yearQuestion+', 시간에서 '+hourQuestion+
+   '를 구별하고 달 안쪽에서는 '+hiddenQuestion+'라는 별도 조건을 확인해야 합니다.';
+ }else{
+  point='해의 '+year.tenGod+', 달 안쪽의 '+insideGod+
+   ', 시간의 '+hour.tenGod+'는 서로 다른 세 계열입니다.';
+  comparison='한 가지 상황에서 해의 '+yearQuestion+', 달 안쪽의 '+
+   hiddenQuestion+', 시간의 '+hourQuestion+'를 구별해야 하며, 어느 한 기호가 나머지를 대신 설명하지 않습니다.';
+ }
+ const interpretiveFocus={kind:focusKind,sourceRefs:['natal.year.stem',hid,'natal.hour.stem'],
+  categories:{year:year.category,monthHidden:insideCategory,hour:hour.category},
+  tenGods:{year:year.tenGod,monthHidden:insideGod,hour:hour.tenGod},
+  premise:point,conditionalReading:comparison,
+  verdict:'review-only',observedPersonality:false,determinedStrength:false,
+  eventPrediction:false};
  const described=roleQuestions.map(r=>
   '출생 '+POS[r.position]+'의 '+r.tenGod+'에서 확인할 질문은 '+r.question+'입니다.');
  const categoryContrast='해·달은 '+LINK[year.relativeToMonth]+
@@ -99,6 +153,7 @@ function select(packet,graph){
   '이 명식에서 출생월의 두 뜻은 앞에서 살펴봤습니다. 여기서는 태어난 날의 '+ELEMENT[month.dayElement]+
    ' 오행을 기준으로 해·달·시간의 차이를 연결합니다.',
   described.join(' '),
+  point+' '+comparison,
   categoryContrast
  ];
  clauses.push(month.monthPhase==='transition'?
@@ -121,7 +176,7 @@ function select(packet,graph){
  if(natal.groups.length)clauses.push('세 지지의 조합은 '+
   natal.groups[0].positions.map(p=>POS[p]).join('·')+' 자리에서 '+
   natal.groups[0].type+'으로 분류됩니다. 이것만으로 합화나 실제 오행 변화가 이루어졌다고 판단하지 않습니다.');
- clauses.push('따라서 한 가지 선택을 설명할 때는 어느 안내를 볼지, 누가 어떤 몫을 맡을지, 어떤 기준을 확인할지처럼 계산된 각 분류의 질문을 따로 살피는 방식이 적절합니다. 이 전통 분류는 실제 생활을 관찰한 자료나 미래 사건의 증거가 아닙니다.');
+ clauses.push('이 판단의 초점은 확인된 출생 위치의 전통 분류를 구별하는 데 있습니다. 실제 생활을 관찰했거나 미래 결과를 예측했다는 뜻은 아닙니다.');
  const text=clauses.join(' ');
  const sourceRefs=['natal.day.stem','natal.month.stem',hid,
   'natal.year.stem','natal.hour.stem','facts.seasonalEvidence',
@@ -134,6 +189,7 @@ function select(packet,graph){
   yearRelativeToMonth:year.relativeToMonth,hourRelativeToMonth:hour.relativeToMonth,
   rootRefs:graphRoots.map(r=>r.id),
   roleQuestions:roleQuestions.map(r=>({...r})),
+  interpretiveFocus,
   relationPairs:picked.map(r=>({...r,positions:r.positions.slice()})),
   relationGroups:natal.groups.map(r=>({...r,positions:r.positions.slice()}))};
  return {reader:{label:'네 기둥을 연결해 확인한 해석 근거',text},
