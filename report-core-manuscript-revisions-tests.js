@@ -9,7 +9,7 @@ const examples=[
  {data:{calendar:'solar',birthDate:'1994-04-15',birthTime:'14:20',
   gender:'male',mbti:'ISFP'},id:'month-pair-jeongin-jeongin-jin-v1',contrast:false}
 ];
-assert.equal(kb.version,'core-knowledge-v1.4');
+assert.equal(kb.version,'core-knowledge-v1.5');
 for(const x of examples){
  const out=core.compile(facts.build(x.data,2027));
  assert.equal(out.ruleId,x.id);
@@ -51,10 +51,50 @@ const fabricated=structuredClone(kb);
 fabricated.pairRules[0].explanation+=' 반드시 성공합니다.';
 assert.throws(()=>core.auditKnowledge(fabricated),
  /CORE_KNOWLEDGE_FALSE_EDITORIAL_DEPTH_CLAIM/);
+const additional=[
+ ['1988-12-15','month-pair-bigeon-jeongin-ja-v1','resource'],
+ ['1982-08-15','month-pair-pyeonin-bigeon-sin-v1','same-element'],
+ ['1994-09-15','month-pair-jeongin-jeonggwan-yu-v1','control-on-day'],
+ ['2000-02-15','month-pair-jeonggwan-sanggwan-in-v1','output'],
+ ['1982-10-15','month-pair-geopjae-jeongin-sul-v1','transitional-month-unresolved'],
+ ['1982-07-15','month-pair-pyeonin-bigeon-mi-v1','transitional-month-unresolved']
+];
+const auditReader=require('./report-core-reader-editorial');
+for(const [birthDate,id,seasonRelation] of additional){
+ const user={calendar:'solar',birthDate,birthTime:'14:20',gender:'male',mbti:'ISFP'};
+ const packet=facts.build(user,2027),result=core.compile(packet);
+ assert.equal(result.ruleId,id);
+ assert.equal(result.status,'draft-for-human-review');
+ assert.equal(result.scope.seasonToDayRelation,seasonRelation);
+ assert.equal(result.review.editorialRevision?.kind,'source-anchored-manuscript-revision-v1');
+ assert.equal(result.review.editorialRevision.releaseVerdict,'not-approved');
+ assert.deepEqual(result.review.sourceIds,['natal.month.stem',
+  'natal.month.hidden.'+packet.facts.structuralEvidence.monthCommand.mainHiddenStem]);
+ assert(result.reader.paragraphs.strength.text.startsWith(
+  '이 명식에서 먼저 확인할 근거는 태어난 달의'));
+ assert(result.reader.paragraphs.strength.text.includes(
+  seasonRelation==='transitional-month-unresolved'?'전환월':'핵심월'));
+ assert(result.reader.paragraphs.strength.text.length>500);
+ assert.equal(auditReader.inspect(result.reader).mechanicalPass,true);
+ assert.equal(result.review.humanReviewRequired,true);
+ assert.equal(result.releaseVerdict,'not-approved');
+ assert.equal(result.apiCalls,0);
+ assert.deepEqual(result.reader,
+  core.compile(facts.build({...user,mbti:'ENTP'},2028)).reader);
+}
+const fabricatedCore=structuredClone(kb);
+fabricatedCore.pairRules[2].explanation=
+ fabricatedCore.pairRules[2].explanation.replace('핵심월','전환월');
+assert.throws(()=>core.auditKnowledge(fabricatedCore),
+ /CORE_KNOWLEDGE_FALSE_EDITORIAL_DEPTH_CLAIM/);
+const falseScope=structuredClone(kb);
+falseScope.pairRules[3].editorialRevision.rules[2]='transition-month-not-a-strength-conclusion';
+assert.throws(()=>core.auditKnowledge(falseScope),
+ /CORE_KNOWLEDGE_FALSE_EDITORIAL_DEPTH_CLAIM/);
 const c=require('./report-core-knowledge-coverage')
  .assess(require('./report-core-knowledge-coverage').representativeInputs());
 assert.equal(c.withDraft,31);
 assert.equal(c.notCovered,68);
-assert.equal(c.sourceGroundedMonthRevisionDrafts,4);
+assert.equal(c.sourceGroundedMonthRevisionDrafts,10);
 assert.equal(c.apiCalls,0);
-console.log('PASS two evidence-led manuscript revisions, transition and anti-amplification guards; all editorial candidates, no paid API');
+console.log('PASS eight source-anchored month manuscripts, core/transition evidence boundaries, no paid API');

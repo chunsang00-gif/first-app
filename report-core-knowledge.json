@@ -1,5 +1,5 @@
 {
-  "version": "core-knowledge-v1.4",
+  "version": "core-knowledge-v1.5",
   "kind": "traditional-symbolic-interpretation-not-personality-measurement",
   "editorialStatus": "candidate-only-requires-human-review",
   "tenGodScopes": {
@@ -99,13 +99,13 @@
       "hidden": "정인",
       "status": "editorial-candidate",
       "claim": "子월 비견과 정인이라는 서로 다른 자리가 연결된다는 전통적 풀이이며 실제 협동 능력이나 강약의 관찰 결과는 아닙니다.",
-      "title": "배운 기준과 스스로 맡을 몫을 연결하는 방향",
-      "keyJudgment": "태어난 달에서 배움과 도움을 참고하는 뜻을 스스로 맡을 몫을 구분하는 뜻과 함께 살펴봅니다.",
-      "scene": "여러 사람이 함께 준비하는 작은 모임에서 역할을 나눠야 하는 가상 상황을 생각해 보겠습니다.",
-      "explanation": "월의 겉글자에는 자신과 동료의 몫을 나누는 뜻이, 안쪽 중심 글자에는 알려진 지식과 도움을 참고하는 뜻이 나타납니다. 안쪽 오행이 겉글자를 생하는 방향으로 놓여 있어, 함께 배운 기준을 바탕으로 맡을 일을 정한다는 해석의 틀을 살필 수 있습니다.",
-      "advantage": "먼저 모두가 이해할 기준을 확인한 뒤 각자가 맡을 일을 정한다면, 같은 안내를 보고도 어디까지 함께 결정할지 구분하는 데 도움이 되는 가상 예시가 됩니다.",
-      "downside": "반대로 전달받은 방법을 참고하면서도 누가 무엇을 맡는지 정하지 않거나, 자기 몫만 먼저 정하고 공통의 기준을 생략한다면 역할을 다시 나눠야 할 수 있습니다.",
-      "caution": "출생월의 두 계산 위치에서 확인된 전통 분류의 검토 후보로서 실제 성격·능력·경험이나 미래 사건을 판정하지 않습니다.",
+      "title": "배운 기준이 개인의 몫으로 이어지는 경우",
+      "keyJudgment": "태어난 달의 안쪽 대표 글자는 배운 기준을 참고하는 뜻이고 겉글자는 스스로 맡을 몫을 구분하는 뜻이므로 두 단계의 연결로 읽습니다.",
+      "scene": "이 명식에서 먼저 확인할 근거는 태어난 달의 겉글자에 비견, 안쪽 대표 글자에 정인이 계산된다는 점입니다.",
+      "explanation": "겉에 나타난 비견은 자기 몫이나 동료와의 역할 경계를 정하는 분류이고, 안쪽의 정인은 다른 사람에게서 받은 설명과 도움을 참고하는 분류입니다. 안쪽 오행이 겉의 오행을 생하는 관계가 계산되지만 실제로 그 사람이 남의 도움을 받아 독립한다는 행동 사실은 아닙니다. 출생월은 겨울 핵심월이며 계절 오행이 태어난 날 오행을 생하는 관계도 확인됩니다. 이는 전체 기운의 강약이나 성공 가능성이 아니라 출생월의 계절적 배경을 보여 줍니다. 따라서 공통 기준을 확인하는 일과 자기 몫을 정하는 일을 서로 다른 결정으로 분리하는 해석에 그쳐야 합니다.",
+      "advantage": "공통 안내를 받은 뒤 역할을 나누는 가상의 조건이라면 먼저 누구나 따라야 할 사항을 확인하고, 그다음 각자가 선택할 범위를 정한다는 순서를 생각해 볼 수 있습니다. 이때 기준을 이해했다는 것과 담당이 실제로 정해졌다는 것을 혼동하지 않는 점이 장점으로 설명됩니다.",
+      "downside": "반대로 안내 내용을 모두 이해했다는 사실만으로 분담까지 끝났다고 여기거나, 공통 기준을 확인하기 전에 개인 담당부터 정한다면 서로 맡은 범위가 어긋날 수 있습니다. 이는 성격을 예측하는 말이 아니라 두 전통 분류 가운데 하나를 빠뜨렸을 때 생기는 판단의 빈틈을 보여 주는 가상의 반대 조건입니다.",
+      "caution": "월간 비견·월지 본기 정인·겨울 핵심월 및 오행 생의 방향을 비교한 편집 후보입니다. 실제 성격·사회성·능력이나 미래 사건 또는 신강약을 판정하지 않습니다.",
       "evidenceRole": "month-visible-and-month-principal-hidden-only",
       "evidenceLimits": [
         "no-observed-trait",
@@ -118,6 +118,18 @@
         "monthPhase": "core",
         "monthElementRelation": "hidden-generates-visible",
         "seasonToDayRelation": "resource"
+      },
+      "editorialRevision": {
+        "kind": "source-anchored-manuscript-revision-v1",
+        "status": "candidate-only-not-human-approved",
+        "scope": "month-visible-and-month-main-hidden-only",
+        "releaseVerdict": "not-approved",
+        "rules": [
+          "two-verified-source-positions",
+          "five-element-direction-not-a-life-outcome",
+          "core-month-season-not-a-strength-conclusion",
+          "conditional-advantage-and-limitation"
+        ]
       }
     },
     {
@@ -126,13 +138,13 @@
       "hidden": "비견",
       "status": "editorial-candidate",
       "claim": "申월 편인과 비견의 월간·본기 분류를 비교할 뿐 현실의 팀워크나 창의력 수준을 측정하지 않습니다.",
-      "title": "새롭게 해석한 방법과 함께할 부분의 차이",
-      "keyJudgment": "낯선 내용을 자기 방식으로 이해하는 뜻과 자신이 맡을 몫을 정하는 뜻을 나누어 읽습니다.",
-      "scene": "공동으로 쓰는 자료를 새로운 방식으로 정리할지 검토하는 장면을 떠올려 보겠습니다.",
-      "explanation": "태어난 달의 겉글자는 낯선 정보를 달리 이해한다는 뜻이고, 안쪽의 중심 글자는 자신과 동료의 몫을 나눈다는 뜻입니다. 겉글자의 오행이 안쪽 오행을 생하는 관계까지 확인되므로, 가상의 작업에서 방법을 새로 이해하는 일과 누구의 책임으로 진행할지 정하는 일을 각각 살펴볼 수 있습니다.",
-      "advantage": "새로운 정리법을 제안하기 전에 누가 어떤 부분을 담당하는지 함께 정하는 상황이라면, 아이디어의 내용과 실제 실행의 몫을 구별하는 데 도움이 될 수 있습니다.",
-      "downside": "이해한 방법을 계속 바꾸기만 하면 맡을 일이 정해지지 않고, 역할만 먼저 고정하면 다른 설명 방법을 검토할 여지가 줄어드는 가상 상황도 생각할 수 있습니다.",
-      "caution": "출생월의 두 계산 위치에서 확인된 전통 분류의 검토 후보로서 실제 성격·능력·경험이나 미래 사건을 판정하지 않습니다.",
+      "title": "낯선 방법의 이해와 책임 범위를 분리하면",
+      "keyJudgment": "태어난 달 겉의 편인은 새로운 해석 방법을 살피는 뜻이고 안쪽의 비견은 직접 맡을 몫을 가르는 뜻이므로 서로 다른 판단을 연결합니다.",
+      "scene": "이 명식에서 먼저 확인할 근거는 태어난 달의 겉글자가 편인, 안쪽 대표 글자가 비견으로 계산된다는 점입니다.",
+      "explanation": "겉에 나타난 편인은 낯선 정보와 설명을 자기 방식으로 이해한다는 분류이고, 안쪽 대표 글자인 비견은 스스로 맡을 부분을 동료의 몫과 구분한다는 분류입니다. 겉의 오행이 안쪽 오행을 생하는 방향으로 계산되지만, 어떤 아이디어가 실제로 더 뛰어나다거나 자연스럽게 실행된다는 뜻은 아닙니다. 출생월은 가을 핵심월이고 계절 오행과 태어난 날 오행이 같은 계열로 계산됩니다. 같은 계열이라는 사실만으로 일의 추진력이나 자신감의 강도를 추정할 수도 없습니다. 풀이의 초점은 정보를 다시 해석하는 판단과 누가 그 내용을 실제로 맡을지 정하는 판단을 구별하는 데 있습니다.",
+      "advantage": "기존의 정리법을 바꾸는 가상 작업이라면 먼저 기존 방식의 한계를 이해하고, 변경한 내용을 누가 검토하고 실행할지 따로 정하는 순서가 의미를 갖습니다. 이러한 분리는 새로운 설명이 필요하다는 판단과 역할을 결정하는 판단을 하나로 뭉뚱그리지 않는 조건부 장점입니다.",
+      "downside": "반대로 새로운 방식을 검토하는 단계만 반복하면서 책임질 부분을 정하지 못하거나, 담당부터 정해놓고 설명이 왜 바뀌어야 하는지 묻지 않으면 두 과정이 엇갈릴 수 있습니다. 오행의 생 관계가 실제 성공이나 실패를 결정한다는 뜻이 아니라 해석할 때 두 출생 위치의 의미를 모두 고려해야 한다는 사례입니다.",
+      "caution": "출생월 편인과 비견, 가을 핵심월, 겉에서 안쪽으로 생하는 관계에 한정한 후보 원고입니다. 실제 창의성·책임감·직업 성과와 기운의 세기를 확정하지 않습니다.",
       "evidenceRole": "month-visible-and-month-principal-hidden-only",
       "evidenceLimits": [
         "no-observed-trait",
@@ -145,6 +157,18 @@
         "monthPhase": "core",
         "monthElementRelation": "visible-generates-hidden",
         "seasonToDayRelation": "same-element"
+      },
+      "editorialRevision": {
+        "kind": "source-anchored-manuscript-revision-v1",
+        "status": "candidate-only-not-human-approved",
+        "scope": "month-visible-and-month-main-hidden-only",
+        "releaseVerdict": "not-approved",
+        "rules": [
+          "two-verified-source-positions",
+          "five-element-direction-not-a-life-outcome",
+          "core-month-season-not-a-strength-conclusion",
+          "conditional-advantage-and-limitation"
+        ]
       }
     },
     {
@@ -153,13 +177,13 @@
       "hidden": "정관",
       "status": "editorial-candidate",
       "claim": "酉월 정인·정관의 의미는 실제 조직 적응력, 직책, 승진이나 개인의 성격을 증명하지 않습니다.",
-      "title": "배운 설명과 정해진 역할을 구분할 때",
-      "keyJudgment": "태어난 달에서 배우고 도움을 참고한다는 의미와 규칙에 맞춰 역할을 살핀다는 의미를 분리해 풀이합니다.",
-      "scene": "정해진 절차에 따라 참가자에게 안내할 내용을 준비하는 상황을 생각해 보겠습니다.",
-      "explanation": "월의 겉글자는 이미 알려진 지식을 받아 이해한다는 뜻이고, 안쪽의 중심 글자는 정해진 규칙과 맡은 역할을 살핀다는 뜻입니다. 안쪽 오행이 겉글자를 생하는 기본 방향도 확인됩니다. 전통적 의미를 연결할 때는 안내를 배우는 과정과 그 내용을 누가 어떤 역할에서 적용하는지를 구별할 수 있습니다.",
-      "advantage": "설명을 이해한 뒤 어떤 규칙을 누구에게 안내할지 나누어 생각하는 경우라면, 지식과 역할의 차이가 가상 장면에서 더 분명해질 수 있습니다.",
-      "downside": "절차의 이름만 알고 왜 필요한지 모르거나, 지식은 충분히 살펴도 적용할 범위를 정하지 않으면 안내와 실행의 역할 사이에 공백이 남을 수 있습니다.",
-      "caution": "출생월의 두 계산 위치에서 확인된 전통 분류의 검토 후보로서 실제 성격·능력·경험이나 미래 사건을 판정하지 않습니다.",
+      "title": "규칙에서 얻은 기준을 이해하고 전달하면",
+      "keyJudgment": "태어난 달 안쪽 대표 글자의 규칙과 역할이라는 뜻이 겉글자의 배움과 참고라는 뜻으로 이어지는 구조를 구별해 풀이합니다.",
+      "scene": "이 명식에서 먼저 확인할 근거는 태어난 달의 겉글자에 정인, 안쪽 대표 글자에 정관이 계산된다는 점입니다.",
+      "explanation": "겉의 정인은 정리된 설명이나 타인의 도움을 받아 이해하는 뜻이고, 안쪽 대표 글자인 정관은 정해진 규칙과 맡은 역할의 범위를 살피는 뜻입니다. 계산된 오행 관계는 안쪽 오행이 겉의 오행을 생하는 방향입니다. 따라서 규칙이 있다는 사실과 그 규칙을 이해해 적용한다는 문제를 나누어 볼 수 있지만, 실제로 질서를 잘 지킨다는 개인 성격을 확정할 수는 없습니다. 출생월은 가을 핵심월이며 계절 오행이 태어난 날 오행을 제어하는 관계로 계산됩니다. 이는 출생월에서 확인되는 계절적 조건일 뿐 사회적 압박이나 행운의 크기를 보여 주는 수치가 아닙니다.",
+      "advantage": "새로 들어온 사람이 공용 공간의 이용 기준을 배우는 조건이라면 어떤 규칙이 정해져 있는지와 그 규칙이 자신에게 언제 적용되는지를 따로 확인하는 과정이 유용합니다. 전달받은 설명과 실제 역할의 경계를 분리해 해석하면 규칙 자체와 자신의 이해를 하나라고 착각하지 않게 됩니다.",
+      "downside": "반대로 규칙의 이름만 외운 뒤 어떤 상황에서 적용하는지 확인하지 않거나, 충분히 설명을 들어도 누가 실행할지 정하지 않으면 빈틈이 생길 수 있습니다. 이 반대 조건은 실생활에서 정관과 정인이 충돌한다는 예측이 아니라, 두 의미를 하나의 결과로 단정하지 않는 명리 독해상의 주의점입니다.",
+      "caution": "정인·정관의 서로 다른 출생월 출처와 가을 핵심월의 계절 관계를 밝히는 편집 후보입니다. 실제 직책·준법성·조직 성과나 미래 사건을 판정하지 않습니다.",
       "evidenceRole": "month-visible-and-month-principal-hidden-only",
       "evidenceLimits": [
         "no-observed-trait",
@@ -172,6 +196,18 @@
         "monthPhase": "core",
         "monthElementRelation": "hidden-generates-visible",
         "seasonToDayRelation": "control-on-day"
+      },
+      "editorialRevision": {
+        "kind": "source-anchored-manuscript-revision-v1",
+        "status": "candidate-only-not-human-approved",
+        "scope": "month-visible-and-month-main-hidden-only",
+        "releaseVerdict": "not-approved",
+        "rules": [
+          "two-verified-source-positions",
+          "five-element-direction-not-a-life-outcome",
+          "core-month-season-not-a-strength-conclusion",
+          "conditional-advantage-and-limitation"
+        ]
       }
     },
     {
@@ -180,13 +216,13 @@
       "hidden": "상관",
       "status": "editorial-candidate",
       "claim": "寅월 정관과 상관의 극 관계는 현실의 규칙 위반이나 조직 갈등, 미래 불이익을 예측한 것이 아닙니다.",
-      "title": "정해진 형식과 다른 표현을 나누어 보는 관점",
-      "keyJudgment": "규칙과 역할을 살피는 뜻과 기존과 다른 방법을 표현하는 뜻을 실제 성격의 충돌로 단정하지 않고 비교합니다.",
-      "scene": "정해진 형식 안에서 새로운 설명 방법을 골라야 하는 가상 상황을 떠올려 보겠습니다.",
-      "explanation": "월의 겉자리에는 정해진 규칙과 역할을 살핀다는 뜻이 있고, 안쪽의 중심 글자에는 새로운 표현 방법을 생각한다는 뜻이 있습니다. 안쪽 오행이 겉글자를 극하는 관계도 계산되지만 이것만으로 실제 다툼이 생긴다는 증거는 아닙니다. 형식을 확인하는 문제와 그 안에서 표현을 바꿀 범위를 정하는 문제를 구별해 볼 수 있습니다.",
-      "advantage": "무엇을 지켜야 하고 어떤 표현은 바꿔도 되는지 범위가 명확한 상황이라면, 두 의미가 하나의 선택에서 각각 어떤 역할을 하는지 설명할 수 있습니다.",
-      "downside": "바꿀 수 있는 범위를 확인하지 않고 새 표현부터 적용하거나, 정해진 형식만 따르느라 전달 목적을 잊으면 가상 상황에서 결과물의 뜻이 흐려질 수 있습니다.",
-      "caution": "출생월의 두 계산 위치에서 확인된 전통 분류의 검토 후보로서 실제 성격·능력·경험이나 미래 사건을 판정하지 않습니다.",
+      "title": "지킬 규칙과 바꿀 표현을 따로 정하면",
+      "keyJudgment": "태어난 달의 겉에 있는 정관의 역할·규칙과 안쪽에 있는 상관의 다른 표현을 구별하고, 오행의 극을 실제 갈등으로 단정하지 않습니다.",
+      "scene": "이 명식에서 먼저 확인할 근거는 태어난 달의 겉글자가 정관, 안쪽 대표 글자가 상관으로 계산된다는 점입니다.",
+      "explanation": "겉에 나타난 정관은 정해진 규칙을 확인하고 자신의 역할을 구분하는 뜻입니다. 안쪽 대표 글자인 상관은 익숙한 방식과 다른 표현을 만들어 본다는 뜻입니다. 계산상 안쪽 오행이 겉의 오행을 제어하는 관계지만, 이것을 실제 반항이나 사람 사이의 갈등으로 옮길 근거는 없습니다. 출생월은 봄 핵심월로, 계절 오행이 태어난 날 오행에서 생겨나는 관계가 확인됩니다. 이 계절 관계 역시 개인의 능력이나 성격의 강도를 측정하는 값이 아닙니다. 규칙이 정한 범위와 그 범위 안에서 전달 형식을 바꿀 수 있는 지점을 분리하는 조건부 풀이로 읽는 것이 적절합니다.",
+      "advantage": "예를 들어 공지문을 다시 써야 한다는 조건에서는 반드시 유지할 안내 사항을 먼저 확인하고, 달리 설명해도 되는 표현을 별도로 정할 수 있습니다. 이런 해석은 규칙이라는 기준과 새로운 표현이라는 선택을 한 문장에 억지로 섞지 않는 점에서 의미가 있습니다.",
+      "downside": "반대로 지켜야 할 사항이 어디까지인지 확인하지 않고 문구부터 바꾸거나, 기존 표현을 그대로 유지하는 데만 집중해 전달하려는 목적을 잃는다면 의미의 한쪽이 빠집니다. 이것은 정관과 상관이 타고난 성격 안에서 반드시 싸운다는 판단이 아니라 두 출생 위치가 말하는 별개의 조건을 비교하는 예시입니다.",
+      "caution": "정관·상관의 출생월 출처와 안쪽에서 겉으로 극하는 오행 방향, 봄 핵심월을 근거로 한 후보 풀이입니다. 실제 반항·갈등·진로와 성패를 예언하지 않습니다.",
       "evidenceRole": "month-visible-and-month-principal-hidden-only",
       "evidenceLimits": [
         "no-observed-trait",
@@ -199,6 +235,18 @@
         "monthPhase": "core",
         "monthElementRelation": "hidden-controls-visible",
         "seasonToDayRelation": "output"
+      },
+      "editorialRevision": {
+        "kind": "source-anchored-manuscript-revision-v1",
+        "status": "candidate-only-not-human-approved",
+        "scope": "month-visible-and-month-main-hidden-only",
+        "releaseVerdict": "not-approved",
+        "rules": [
+          "two-verified-source-positions",
+          "five-element-direction-not-a-life-outcome",
+          "core-month-season-not-a-strength-conclusion",
+          "conditional-advantage-and-limitation"
+        ]
       }
     },
     {
@@ -315,13 +363,13 @@
       "hidden": "정인",
       "status": "editorial-candidate",
       "claim": "戌월에 계산된 겁재와 정인의 서로 다른 위치 및 hidden-generates-visible 오행 관계에 국한된 전통적 풀이입니다.",
-      "title": "함께 쓰는 자원과 배운 기준의 거리",
-      "keyJudgment": "함께 쓰는 것을 조정하는 뜻과 알려진 설명을 참고하는 뜻이 출생월에 나란히 존재한다고 풀이합니다.",
-      "scene": "한정된 공용 장비의 사용 순서를 정하면서 먼저 안내된 기준을 다시 확인하는 가상 장면을 보겠습니다.",
-      "explanation": "태어난 달의 겉글자는 다른 사람과 함께 쓰는 몫이나 경쟁하는 부분을 조정하는 뜻이고, 안쪽 대표 글자는 배우고 도움을 참고하는 뜻입니다. 안쪽 대표 글자의 오행이 겉글자 오행을 생하는 관계로 분류됩니다. 다만 이 달은 계절이 넘어가는 달이므로 대표 글자가 곧바로 가장 강하게 작용한다고 확정할 수 없습니다. 해석에서는 사용 순서를 정하는 문제와 그 기준을 어디에서 배웠는지를 구별해 살핍니다.",
-      "advantage": "이미 합의된 장비 사용 기준을 확인한 뒤 부족한 시간이나 장비를 어떻게 나눌지 다시 논의한다면, 기준을 확인하는 일과 실제 몫을 조정하는 일을 분리하는 예시가 됩니다.",
-      "downside": "반대로 누가 먼저 쓰는지만 다투며 기준을 확인하지 않거나, 기준을 아는 것만으로 부족한 장비가 해결된다고 생각한다면 같은 안내를 보고도 결정이 엇갈릴 수 있습니다.",
-      "caution": "전환월과 두 출생 위치의 상징을 설명하는 검토용 사례입니다. 실제 금전 손실·경쟁 사건이나 어떤 기운의 우세를 판정하지 않습니다.",
+      "title": "공동의 몫을 정하기 전 참고할 기준",
+      "keyJudgment": "태어난 달의 겉에서는 함께 쓰는 몫을 조정하는 뜻이, 안쪽에서는 배우고 참고하는 뜻이 확인되어 자원 배분의 기준을 나누어 읽습니다.",
+      "scene": "이 명식에서 먼저 확인할 근거는 태어난 달의 겉글자가 겁재, 안쪽 대표 글자가 정인으로 계산된다는 점입니다.",
+      "explanation": "겉에 나타난 겁재는 여러 사람이 함께 쓰는 몫을 조정하거나 경쟁하는 상황을 살핀다는 분류이고, 안쪽 대표 글자의 정인은 알려진 기준과 도움을 참고한다는 분류입니다. 안쪽 오행이 겉의 오행을 생하는 방향으로 계산됩니다. 그러나 이 배치를 실제로 다툼이 생긴다거나 조언을 받아 승리한다는 사건으로 풀이해서는 안 됩니다. 이 출생월은 가을에서 다음 계절로 넘어가는 전환월이며, 대표 글자와 계절의 실질적인 우세를 동일하다고 단정할 수 없습니다. 공통 기준을 확인하는 문제와 그 기준 아래 각자 사용할 몫을 정하는 문제를 분리해 읽는 데 해석의 근거가 있습니다.",
+      "advantage": "공유 물품을 배분하는 가상의 조건에서는 먼저 사용 규정을 확인한 다음 사용 시간을 협의하는 단계를 따로 두면 뜻의 차이가 분명해집니다. 무엇이 허용되는지를 배우는 일과 부족한 물품을 어떻게 나눌지 결정하는 일은 같은 문제가 아니기 때문입니다.",
+      "downside": "반대로 사용 순서만 빨리 정해 놓고 이용 기준을 확인하지 않거나, 안내를 이해했다는 이유로 실제 배분도 끝났다고 여기면 맡을 몫이 빠질 수 있습니다. 그렇다고 이 출생월의 오행 생 관계에서 실제 경쟁이 생긴다는 결과를 예측하는 것은 아닙니다.",
+      "caution": "겁재·정인의 월간과 본기, 안쪽이 겉을 생하는 관계, 계절 전환월이라는 조건만 검토했습니다. 실제 경제적 이해관계·대인 갈등·재산 결과나 기운의 세기는 알 수 없습니다.",
       "evidenceRole": "month-visible-and-month-principal-hidden-only",
       "evidenceLimits": [
         "no-observed-trait",
@@ -334,6 +382,18 @@
         "monthPhase": "transition",
         "monthElementRelation": "hidden-generates-visible",
         "seasonToDayRelation": "transitional-month-unresolved"
+      },
+      "editorialRevision": {
+        "kind": "source-anchored-manuscript-revision-v1",
+        "status": "candidate-only-not-human-approved",
+        "scope": "month-visible-and-month-main-hidden-only",
+        "releaseVerdict": "not-approved",
+        "rules": [
+          "two-verified-source-positions",
+          "five-element-direction-not-a-life-outcome",
+          "transition-month-not-a-strength-conclusion",
+          "conditional-advantage-and-limitation"
+        ]
       }
     },
     {
@@ -342,13 +402,13 @@
       "hidden": "비견",
       "status": "editorial-candidate",
       "claim": "未월에 계산된 편인와 비견의 서로 다른 위치 및 visible-generates-hidden 오행 관계에 국한된 전통적 풀이입니다.",
-      "title": "새로 이해한 방법과 직접 맡을 일을 정하면",
-      "keyJudgment": "정보를 낯설게 받아들여 다시 이해하는 뜻과 자신의 몫을 직접 구분하는 뜻이 출생월에서 연결된다고 읽습니다.",
-      "scene": "기존과 달라진 동네 행사 안내를 읽고 직접 맡아야 할 준비 항목을 다시 정하는 상황을 떠올려 보겠습니다.",
-      "explanation": "달의 겉글자에서는 익숙하지 않은 정보를 자기 방식으로 이해한다는 뜻이, 안쪽의 대표 글자에서는 스스로 맡을 몫을 구별한다는 뜻이 나타납니다. 겉글자의 오행이 안쪽 대표 글자 오행을 생하는 관계지만, 태어난 달이 계절의 전환월이므로 어느 의미가 실제로 우세한지까지 결론내리지는 않습니다. 무엇이 달라졌는지 이해하는 문제와 그에 맞춰 맡을 일을 다시 정하는 문제를 서로 다른 단계로 설명할 수 있습니다.",
-      "advantage": "바뀐 안내에서 새로운 부분을 먼저 확인하고 준비할 일을 다시 나눈다는 가정이라면, 정보를 이해한 결과가 실제 역할 분담과 어떻게 구별되는지 보여 줍니다.",
-      "downside": "반대로 새 안내를 자기 식으로 풀면서 원래 조건을 놓치거나 기존 담당을 확인하지 않은 채 해야 할 일부터 바꾸면, 서로 같은 행사라고 생각해도 준비한 내용이 달라질 수 있습니다.",
-      "caution": "다른 계절의 같은 십성 조합과 달리 전환월의 해석 유보까지 표시한 검토 후보입니다. 실제 책임감·이해력·미래 사건을 판정하지 않습니다.",
+      "title": "새로 이해한 내용과 직접 맡을 범위",
+      "keyJudgment": "태어난 달의 겉에는 낯선 내용을 재해석하는 뜻이 있고 안쪽에는 스스로 맡는 몫을 나누는 뜻이 있어 이해와 실행 범위를 따로 읽습니다.",
+      "scene": "이 명식에서 먼저 확인할 근거는 태어난 달의 겉글자에 편인, 안쪽 대표 글자에 비견이 계산된다는 점입니다.",
+      "explanation": "겉의 편인은 처음 접하는 설명을 자기 방식으로 이해한다는 뜻이고, 안쪽 대표 글자의 비견은 자신과 동료 사이에서 맡을 몫을 구별한다는 뜻입니다. 겉의 오행이 안쪽 오행을 생하는 방향으로 확인되지만 이 관계만으로 생각한 대로 행동하게 된다고 확정할 수는 없습니다. 특히 이 출생월은 여름이 넘어가는 전환월입니다. 안쪽의 대표 글자가 계산됐다는 사실과 그 기운이 실제로 가장 강하게 쓰인다는 판단은 다릅니다. 따라서 정보에서 달라진 조건을 파악하는 과정과 누가 무엇을 직접 맡을 것인지 정하는 과정을 서로 다른 질문으로 풀이해야 합니다.",
+      "advantage": "행사 운영 방식이 바뀌었다는 가상의 조건에서는 먼저 안내에서 달라진 내용을 살피고, 기존 담당과 새 담당을 나누어 확인한다는 절차가 의미 있습니다. 새로운 내용을 이해한 것과 그 내용을 누가 실제로 맡는지 정하는 것이 별개임을 드러내는 선택입니다.",
+      "downside": "반대로 변경된 설명만 계속 해석하고 실행할 담당을 미루거나, 기존 역할을 그대로 둔 채 새로운 조건을 확인하지 않으면 준비 과정에 어긋나는 부분이 생길 수 있습니다. 이는 편인과 비견의 관계로 현실에서 문제가 발생한다고 예측하는 말이 아니라 두 단계가 달라질 수 있다는 조건부 예시입니다.",
+      "caution": "편인·비견의 월간과 안쪽 대표 글자, 겉에서 안쪽으로 생하는 관계, 전환월의 미확정 계절 우세만 반영한 편집 후보입니다. 실제 능력·성격·역할 성과를 단정하지 않습니다.",
       "evidenceRole": "month-visible-and-month-principal-hidden-only",
       "evidenceLimits": [
         "no-observed-trait",
@@ -361,6 +421,18 @@
         "monthPhase": "transition",
         "monthElementRelation": "visible-generates-hidden",
         "seasonToDayRelation": "transitional-month-unresolved"
+      },
+      "editorialRevision": {
+        "kind": "source-anchored-manuscript-revision-v1",
+        "status": "candidate-only-not-human-approved",
+        "scope": "month-visible-and-month-main-hidden-only",
+        "releaseVerdict": "not-approved",
+        "rules": [
+          "two-verified-source-positions",
+          "five-element-direction-not-a-life-outcome",
+          "transition-month-not-a-strength-conclusion",
+          "conditional-advantage-and-limitation"
+        ]
       }
     }
   ],

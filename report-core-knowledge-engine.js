@@ -64,7 +64,7 @@ function possibleCrossSymbol(extra,baseRule){
  });
 }
 function auditKnowledge(kb=knowledge){
- if(kb.version!=='core-knowledge-v1.4'||
+ if(kb.version!=='core-knowledge-v1.5'||
     JSON.stringify(Object.keys(kb.tenGodScopes).sort())!==
     JSON.stringify([...GODS].sort()))throw Error('CORE_KNOWLEDGE_INCOMPLETE_TEN_GOD_SCOPES');
  const ids=new Set(),contexts=new Set();
@@ -108,17 +108,21 @@ function auditKnowledge(kb=knowledge){
    const revision=rule.editorialRevision;
    const required=['two-verified-source-positions',
     'five-element-direction-not-a-life-outcome',
-    'transition-month-not-a-strength-conclusion',
+    rule.when.monthPhase==='transition'?
+     'transition-month-not-a-strength-conclusion':
+     'core-month-season-not-a-strength-conclusion',
     'conditional-advantage-and-limitation'];
    if(revision.kind!=='source-anchored-manuscript-revision-v1'||
       revision.status!=='candidate-only-not-human-approved'||
       revision.scope!=='month-visible-and-month-main-hidden-only'||
       revision.releaseVerdict!=='not-approved'||
       JSON.stringify(revision.rules)!==JSON.stringify(required)||
-      rule.when.monthPhase!=='transition'||
       !rule.scene.startsWith('이 명식에서 먼저 확인할 근거는 태어난 달의')||
       !/겉/.test(rule.explanation)||!/안쪽/.test(rule.explanation)||
-      !/전환월/.test(rule.explanation)||rule.explanation.length<200||
+      !(rule.when.monthPhase==='transition'?
+        /전환월/.test(rule.explanation):
+        /핵심월/.test(rule.explanation)&&/계절 오행/.test(rule.explanation))||
+      rule.explanation.length<200||
       rule.advantage.length<125||rule.downside.length<125||
       !rule.caution.includes('실제')||
       /(?:반드시 성공|틀림없이|두 배 강해집니다)/.test(
