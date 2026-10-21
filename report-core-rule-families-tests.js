@@ -8,8 +8,8 @@ const knowledge=require('./report-core-knowledge.json');
 const expanded=families.expand();
 assert.deepEqual(families.audit(),{familyRules:8,familyVariants:17});
 assert.equal(expanded.length,17);
-assert.equal(new Set(expanded.map(r=>r.id)).size,9);
-assert.equal(new Set(expanded.map(r=>r.scene)).size,9);
+assert.equal(new Set(expanded.map(r=>r.id)).size,17);
+assert.equal(new Set(expanded.map(r=>r.scene)).size,17);
 const found=new Map(),texts=new Set();
 for(const input of coverage.representativeInputs()){
  const packet=facts.build(input,2027);
