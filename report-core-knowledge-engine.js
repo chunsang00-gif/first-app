@@ -6,6 +6,7 @@ const knowledge=require('./report-core-knowledge.json');
 const bindings=require('./report-fact-bindings');
 const seasonal=require('./report-seasonal-evidence');
 const chartContrast=require('./report-chart-contrast');
+const wholeChart=require('./report-core-evidence-graph');
 const GODS=['비견','겁재','식신','상관','정재','편재','정관','편관','정인','편인'];
 // Cross-check against the same canonical lunar calendar ten-god table.
 // Do not trust category labels copied from potentially corrupted fact rows.
@@ -19,7 +20,7 @@ function verifiedTenGod(dayStem,otherStem){
  return value;
 }
 function auditKnowledge(){
- if(knowledge.version!=='core-knowledge-v0.2'||
+ if(knowledge.version!=='core-knowledge-v0.3'||
     JSON.stringify(Object.keys(knowledge.tenGodScopes).sort())!==
     JSON.stringify([...GODS].sort()))throw Error('CORE_KNOWLEDGE_INCOMPLETE_TEN_GOD_SCOPES');
  const ids=new Set(),contexts=new Set();
@@ -55,7 +56,21 @@ function auditKnowledge(){
      !Array.isArray(rule.evidenceLimits)||!rule.evidenceLimits.includes('no-observed-trait'))
    throw Error('CORE_KNOWLEDGE_UNBOUNDED_CLAIM');
  }
- return {tenGods:GODS.length,curatedRules:contexts.size};
+ const crossIds=new Set();
+ for(const extra of knowledge.crossPillarRules||[]){
+  if(extra.status!=='editorial-candidate'||crossIds.has(extra.id)||
+     !knowledge.pairRules.some(r=>r.id===extra.when?.coreRuleId)||
+     extra.when?.relativeToMonth!=='same-category-different-subtype'||
+     extra.when?.yearTenGod==='일간'||
+     !GODS.includes(extra.when?.yearTenGod)||
+     !GODS.includes(extra.when?.monthTenGod)||
+     !['peer','resource','output','wealth','authority'].includes(extra.when?.category)||
+     typeof extra.reader?.text!=='string'||extra.reader.text.length<130||
+     !extra.reader?.label||extra.evidenceRole!=='distinct-year-month-visible-resource-symbols-only')
+   throw Error('CORE_KNOWLEDGE_INVALID_CROSS_PILLAR_RULE');
+  crossIds.add(extra.id);
+ }
+ return {tenGods:GODS.length,curatedRules:contexts.size,crossPillarRules:crossIds.size};
 }
 auditKnowledge();
 function compile(packet){
@@ -104,22 +119,42 @@ function compile(packet){
   r.when.seasonToDayRelation===season.seasonToDayRelation);
  if(matching.length>1)throw Error('CORE_KNOWLEDGE_AMBIGUOUS_CONTEXT_RULE');
  const rule=matching[0];
+ const graph=wholeChart.build(packet);
  const scope={sourceIds,visibleTenGod:first.tenGod,hiddenTenGod:second.tenGod,
   monthElementRelation:relation||'unresolved',
   seasonalPhase:season.monthPhase,monthBranch:branch,
   seasonToDayRelation:season.seasonToDayRelation,
   inferredPersonality:false,inferredEvent:false,dayMasterStrength:'not-assessed'};
  if(!rule)return {status:'not-covered',reason:'curated-contextual-rule-required',
-  knowledgeVersion:knowledge.version,scope,reader:null,releaseVerdict:'not-approved',apiCalls:0};
+  knowledgeVersion:knowledge.version,scope,wholeChartEvidence:graph,
+  reader:null,releaseVerdict:'not-approved',apiCalls:0};
+ // Only an explicitly curated extra rule may extend the month-only reading.
+ // Its sources must be independently verified outside the two month rows.
+ const year=graph.otherVisible.find(row=>row.position==='year');
+ const extras=(knowledge.crossPillarRules||[]).filter(x=>
+  x.when.coreRuleId===rule.id&&year?.tenGod===x.when.yearTenGod&&
+  graph.monthVisible.tenGod===x.when.monthTenGod&&
+  graph.monthVisible.category===x.when.category&&
+  year.category===x.when.category&&
+  year.relativeToMonth===x.when.relativeToMonth);
+ if(extras.length>1)throw Error('CORE_KNOWLEDGE_AMBIGUOUS_CROSS_PILLAR_RULE');
+ const cross=extras[0]||null;
+ const extraSourceIds=cross?['natal.year.stem','natal.month.stem']:[];
+ if(extraSourceIds.some(id=>!sourceRows[id]))
+  throw Error('CORE_KNOWLEDGE_MISSING_CROSS_PILLAR_SOURCE');
  const paragraph=[rule.scene,rule.explanation,rule.advantage,rule.downside].join(' ');
  return {
   status:'draft-for-human-review',knowledgeVersion:knowledge.version,ruleId:rule.id,
-  scope,sourceMeaning:[sourceRows[first.sourceId].traditionalMeaning,
+  scope,wholeChartEvidence:graph,
+  sourceMeaning:[sourceRows[first.sourceId].traditionalMeaning,
    sourceRows[second.sourceId].traditionalMeaning],
   reader:{title:rule.title,keyJudgment:rule.keyJudgment,
-   paragraphs:{temperament:null,strength:{label:'한 상황에서 드러나는 두 관점',text:paragraph}}},
+   paragraphs:{temperament:cross?{...cross.reader}:null,
+    strength:{label:'한 상황에서 드러나는 두 관점',text:paragraph}}},
   review:{ruleClaim:rule.claim,evidenceRole:rule.evidenceRole,
    verifiedConditions:{...rule.when},
+   crossPillar:cross?{ruleId:cross.id,sourceIds:extraSourceIds,
+    evidenceRole:cross.evidenceRole,prohibits:cross.prohibits.slice()}:null,
    caution:rule.caution,limits:rule.evidenceLimits.slice(),
    sourceIds:sourceIds.slice(),humanReviewRequired:true},
   releaseVerdict:'not-approved',apiCalls:0

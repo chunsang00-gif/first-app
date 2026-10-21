@@ -2,7 +2,7 @@
 const assert=require('node:assert/strict');
 const facts=require('./report-facts-node'),engine=require('./report-core-knowledge-engine');
 const knowledge=require('./report-core-knowledge.json');
-assert.deepEqual(engine.auditKnowledge(),{tenGods:10,curatedRules:2});
+assert.deepEqual(engine.auditKnowledge(),{tenGods:10,curatedRules:2,crossPillarRules:1});
 const sample={calendar:'lunar',birthDate:'1982-11-24',birthTime:'14:20',
  gender:'male',mbti:'ISFP',name:'검증용'};
 const packet=facts.build(sample,2027),draft=engine.compile(packet);
@@ -19,7 +19,30 @@ assert.deepEqual(draft.review.verifiedConditions,knowledge.pairRules[0].when);
 assert.equal(draft.scope.dayMasterStrength,'not-assessed');
 assert.equal(draft.apiCalls,0);
 assert.equal(draft.releaseVerdict,'not-approved');
-assert(draft.review.humanReviewRequired&&draft.reader.paragraphs.temperament===null);
+assert(draft.review.humanReviewRequired&&draft.reader.paragraphs.temperament);
+assert.equal(draft.review.crossPillar.ruleId,'year-jeongin-versus-month-pyeonin-v1');
+assert.deepEqual(draft.review.crossPillar.sourceIds,['natal.year.stem','natal.month.stem']);
+assert(draft.reader.paragraphs.temperament.text.includes('태어난 해의 겉글자'));
+assert(draft.reader.paragraphs.temperament.text.includes('실제 학습 속도와 능력'));
+const graph=draft.wholeChartEvidence;
+assert.equal(graph.monthVisible.tenGod,'편인');
+assert.equal(graph.monthVisible.category,'resource');
+const year=graph.otherVisible.find(x=>x.position==='year');
+assert.equal(year?.tenGod,'정인');
+assert.equal(year?.relativeToMonth,'same-category-different-subtype');
+assert.equal(graph.otherVisible.find(x=>x.position==='hour')?.tenGod,'편인');
+assert.equal(graph.unknownBirthHour,false);
+assert(graph.dayMasterRoots.every(x=>x.effectStrength==='not-assessed'));
+assert(graph.natalRelations.some(x=>x.type==='충'&&
+ x.positions.includes('month')&&x.positions.includes('day')),
+ 'actual lunar chart has an independently verified natal month/day clash');
+assert(graph.natalRelations.every(x=>x.verdict==='table-membership-only'&&
+ x.transformation==='not-assessed'&&
+ x.sourceIds.length===1&&x.sourceIds[0]==='facts.natalBranchRelations'));
+assert.equal(graph.personalityObserved,false);
+assert.equal(graph.measuredStrength,false);
+assert.equal(graph.usedAnnualFacts,false);
+assert.equal(graph.usedMbti,false);
 assert(draft.reader.paragraphs.strength.text.includes('설명서')&&
  draft.reader.paragraphs.strength.text.includes('부품')&&
  draft.reader.paragraphs.strength.text.includes('반대로'));
@@ -31,6 +54,9 @@ const mbtiChanged=engine.compile(facts.build({...sample,mbti:'INTJ'},2027));
 assert.deepEqual(mbtiChanged.reader,draft.reader,
  'Saju-only knowledge rules must not change with the user MBTI');
 const unknownTime=engine.compile(facts.build({...sample,unknownBirthTime:true,birthTime:''},2027));
+assert.equal(unknownTime.wholeChartEvidence.unknownBirthHour,true);
+assert(!unknownTime.wholeChartEvidence.otherVisible.some(x=>x.position==='hour'),
+ 'unknown birth time must not create hour-stem facts');
 assert.deepEqual(unknownTime.reader,draft.reader,
  'month-only evidence cannot silently infer or use the unreported birth hour');
 const altered=structuredClone(packet);
@@ -51,6 +77,9 @@ assert(sameKind.reader.paragraphs.strength.text.includes('두 개의 성격을 �
 assert(!/두 배|반대 성향/.test(sameKind.reader.paragraphs.strength.text),
  'same classification cannot be doubled or invented as an inner conflict');
 assert.equal(sameKind.releaseVerdict,'not-approved');
+assert.equal(sameKind.reader.paragraphs.temperament,null,
+ 'a separate same-category case cannot import the year resource contrast');
+assert.equal(sameKind.review.crossPillar,null);
 const uncovered=engine.compile(facts.build({calendar:'solar',
  birthDate:'1990-05-15',birthTime:'14:20',gender:'male',mbti:'ISFP'},2027));
 assert.equal(uncovered.status,'not-covered',
@@ -58,6 +87,8 @@ assert.equal(uncovered.status,'not-covered',
 assert.equal(uncovered.reader,null);
 assert.equal(uncovered.apiCalls,0);
 assert.equal(uncovered.releaseVerdict,'not-approved');
+assert(uncovered.wholeChartEvidence?.monthVisible?.id==='natal.month.stem',
+ 'valid but uncovered cases still receive an audited internal fact graph');
 const invalid=structuredClone(packet);
 invalid.facts.structuralEvidence.monthCommand.mainHiddenStem='辛';
 assert.throws(()=>engine.compile(invalid),/CALCULATED_MONTH_PROVENANCE_MISMATCH/);
@@ -76,7 +107,25 @@ tamperedSeasonBranch.facts.seasonalEvidence.monthBranch='未';
 assert.throws(()=>engine.compile(tamperedSeasonBranch),
  /CORE_KNOWLEDGE_SEASONAL_PROVENANCE_MISMATCH/,
  'matching symbolic pair alone cannot overwrite a different month branch');
+// Tampered non-month facts used by the NEW cross-pillar logic must fail
+// even if the two month categories have not changed.
+const tamperedYear=structuredClone(packet);
+tamperedYear.facts.tenGods.year.stemTenGod='정관';
+assert.throws(()=>engine.compile(tamperedYear),/CORE_GRAPH_VISIBLE_POSITION_DIVERGED/);
+const tamperedRoots=structuredClone(packet);
+tamperedRoots.facts.stemConnections.dayMasterRooting.sameElementRoots=[];
+assert.throws(()=>engine.compile(tamperedRoots),/CORE_GRAPH_CALCULATED_EVIDENCE_DIVERGED/);
+const tamperedQi=structuredClone(packet);
+tamperedQi.facts.qiEvidence.entries[0].category='authority';
+assert.throws(()=>engine.compile(tamperedQi),/CORE_GRAPH_CALCULATED_EVIDENCE_DIVERGED/);
+const tamperedRelation=structuredClone(packet);
+tamperedRelation.facts.natalBranchRelations.pairs=[];
+assert.throws(()=>engine.compile(tamperedRelation),/CORE_GRAPH_CALCULATED_EVIDENCE_DIVERGED/);
+const tamperedYearSymbol=structuredClone(packet);
+tamperedYearSymbol.chart.year='甲戌';
+assert.throws(()=>engine.compile(tamperedYearSymbol),
+ /CORE_GRAPH_CALCULATED_EVIDENCE_DIVERGED|CORE_GRAPH_VISIBLE_POSITION_DIVERGED/);
 assert(!Object.hasOwn(knowledge,'personalityScores'));
-console.log('PASS offline curated Saju knowledge v0.2: 2 contextual first-chapter candidate rules,');
-console.log('same-classification anti-double guard, unmatched conditions blocked, MBTI/year isolation,');
+console.log('PASS offline curated Saju knowledge v0.3: 2 month rules and 1 cross-pillar draft,');
+console.log('true natal graph, same-category anti-double guard, tampered evidence blocked, MBTI/year isolation,');
 console.log('no paid AI, no live app replacement, no human editorial approval');

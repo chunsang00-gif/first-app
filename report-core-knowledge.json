@@ -1,5 +1,5 @@
 {
-  "version": "core-knowledge-v0.2",
+  "version": "core-knowledge-v0.3",
   "kind": "traditional-symbolic-interpretation-not-personality-measurement",
   "editorialStatus": "candidate-only-requires-human-review",
   "tenGodScopes": {
@@ -67,6 +67,30 @@
         "no-qi-strength",
         "no-invented-clash",
         "no-predicted-event"
+      ]
+    }
+  ],
+  "crossPillarRules": [
+    {
+      "id": "year-jeongin-versus-month-pyeonin-v1",
+      "status": "editorial-candidate",
+      "when": {
+        "coreRuleId": "month-pair-pyeonin-pyeonjae-v1",
+        "yearTenGod": "정인",
+        "monthTenGod": "편인",
+        "category": "resource",
+        "relativeToMonth": "same-category-different-subtype"
+      },
+      "reader": {
+        "label": "다른 출생 위치까지 함께 보면",
+        "text": "누가 방법을 알려주는 것과 그 방법을 자기 말로 다시 풀어 이해하는 것은 다릅니다. 태어난 해의 겉글자는 배움과 도움을 받아들이는 전통적 분류이고, 태어난 달의 겉글자는 낯선 내용을 독자적으로 이해하는 분류입니다. 같은 상황에 적용하면 남이 알려준 방법을 참고하면서도 이해되지 않는 부분은 직접 다시 짚어 보는 선택을 비교할 수 있습니다. 하지만 어느 쪽을 더 자주 택하는지, 실제 학습 속도와 능력이 어떤지는 계산만으로 알 수 없습니다."
+      },
+      "evidenceRole": "distinct-year-month-visible-resource-symbols-only",
+      "prohibits": [
+        "day-master-strength",
+        "measured-learning-skill",
+        "invented-psychological-conflict",
+        "year-2027-inference"
       ]
     }
   ]
