@@ -9,7 +9,7 @@ const examples=[
  {data:{calendar:'solar',birthDate:'1994-04-15',birthTime:'14:20',
   gender:'male',mbti:'ISFP'},id:'month-pair-jeongin-jeongin-jin-v1',contrast:false}
 ];
-assert.equal(kb.version,'core-knowledge-v1.6');
+assert.equal(kb.version,'core-knowledge-v1.7');
 for(const x of examples){
  const out=core.compile(facts.build(x.data,2027));
  assert.equal(out.ruleId,x.id);
