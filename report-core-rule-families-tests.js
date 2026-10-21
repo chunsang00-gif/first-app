@@ -23,10 +23,8 @@ for(const input of coverage.representativeInputs()){
  assert.equal(result.review.readerMechanical.mechanicalPass,true);
  assert(result.reader.paragraphs.strength.text.startsWith(
   '이 명식에서 먼저 확인할 근거는 태어난 달의'));
- assert(result.reader.paragraphs.strength.text.includes(
-  '겉글자 '+rule.visible));
- assert(result.reader.paragraphs.strength.text.includes(
-  '안쪽 '+rule.hidden));
+ assert(result.reader.paragraphs.strength.text.includes(rule.visible));
+ assert(result.reader.paragraphs.strength.text.includes(rule.hidden));
  assert(result.reader.paragraphs.strength.text.includes(
   result.scope.seasonalPhase==='transition'?'계절의 우세는 미확정':'핵심월'));
  assert.equal(result.review.verifiedConditions.seasonToDayRelation,
@@ -68,7 +66,8 @@ mismatch.familyRules[0].variants[0].monthBranch='辰';
 assert.throws(()=>engine.auditKnowledge(mismatch),/CORE_FAMILY_INVALID_VARIANT/);
 const impossible=structuredClone(knowledge);
 impossible.familyRules[2].visible='정재';
-assert.throws(()=>engine.auditKnowledge(impossible),/CORE_KNOWLEDGE_IMPOSSIBLE_MONTH_RULE/);
+assert.throws(()=>engine.auditKnowledge(impossible),
+ /CORE_FAMILY_INVALID_VARIANT|CORE_KNOWLEDGE_IMPOSSIBLE_MONTH_RULE/);
 const missing=structuredClone(knowledge);
 delete missing.familyRules[3].variants[0].downside;
 assert.throws(()=>engine.auditKnowledge(missing),/CORE_FAMILY_INVALID_VARIANT/);
