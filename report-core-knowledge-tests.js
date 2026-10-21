@@ -125,6 +125,38 @@ const tamperedYearSymbol=structuredClone(packet);
 tamperedYearSymbol.chart.year='甲戌';
 assert.throws(()=>engine.compile(tamperedYearSymbol),
  /CORE_GRAPH_CALCULATED_EVIDENCE_DIVERGED|CORE_GRAPH_VISIBLE_POSITION_DIVERGED/);
+// The DB itself must be satisfiable by the CANONICAL ten-god/element
+// relationships, rather than relying on the shape of a JSON rule.
+const impossibleMonth=structuredClone(knowledge);
+impossibleMonth.pairRules[0].when.monthElementRelation='same-element';
+assert.throws(()=>engine.auditKnowledge(impossibleMonth),
+ /CORE_KNOWLEDGE_IMPOSSIBLE_MONTH_RULE/,
+ 'a same-element reinterpretation of the actual different-element pair is impossible');
+const impossibleCross=structuredClone(knowledge);
+impossibleCross.crossPillarRules[0].when.category='wealth';
+assert.throws(()=>engine.auditKnowledge(impossibleCross),
+ /CORE_KNOWLEDGE_IMPOSSIBLE_CROSS_RULE/,
+ 'resource-category ten-gods cannot be reclassified as wealth');
+const mismatchedCross=structuredClone(knowledge);
+mismatchedCross.crossPillarRules[0].when.monthTenGod='정인';
+assert.throws(()=>engine.auditKnowledge(mismatchedCross),
+ /CORE_KNOWLEDGE_IMPOSSIBLE_CROSS_RULE/,
+ 'a separate year/month reading must share the verified core month subtype');
+const coverage=require('./report-core-knowledge-coverage');
+const summary=coverage.assess(coverage.representativeInputs());
+assert.equal(summary.inputCount,99);
+assert.equal(summary.ready+summary.blocked,summary.inputCount);
+assert(summary.withDraft>=2&&summary.notCovered>0,
+ 'both verified samples must be supported, but this small knowledge DB is not complete');
+assert.equal(summary.withDraft+summary.notCovered,summary.ready);
+assert(summary.distinctMonthContexts>summary.coveredMonthContexts,
+ 'the real-date grid exposes genuinely uncovered source contexts');
+assert(summary.readerReuseGroups>=1&&summary.readerReusedAcrossChartCount>=1,
+ 'a meaningful difference in the full chart is still being ignored by some draft rules');
+assert.equal(summary.humanReviewRequired,true);
+assert.equal(summary.releaseVerdict,'not-approved');
+assert.equal(summary.apiCalls,0);
+console.log('OFFLINE_CORE_KNOWLEDGE_COVERAGE='+JSON.stringify(summary));
 assert(!Object.hasOwn(knowledge,'personalityScores'));
 console.log('PASS offline curated Saju knowledge v0.3: 2 month rules and 1 cross-pillar draft,');
 console.log('true natal graph, same-category anti-double guard, tampered evidence blocked, MBTI/year isolation,');

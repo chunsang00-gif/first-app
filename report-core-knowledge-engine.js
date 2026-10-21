@@ -19,12 +19,49 @@ function verifiedTenGod(dayStem,otherStem){
  if(!value)throw Error('CORE_KNOWLEDGE_UNKNOWN_CALENDAR_RELATION');
  return value;
 }
-function auditKnowledge(){
- if(knowledge.version!=='core-knowledge-v0.3'||
-    JSON.stringify(Object.keys(knowledge.tenGodScopes).sort())!==
+// The vocabulary in JSON must describe a mathematically possible pairing,
+// not merely a set of individually valid symbolic labels.
+const CATEGORY={'same-element':'peer',resource:'resource',output:'output',
+ 'day-controls':'wealth','control-on-day':'authority'};
+const PAIR_KIND={'same-element':'same-element',resource:'visible-generates-hidden',
+ output:'hidden-generates-visible',
+ 'control-on-day':'hidden-controls-visible','day-controls':'visible-controls-hidden'};
+const STEMS=Object.keys(seasonal.ELEMENTS);
+function actualContextPossible(rule){
+ const branch=rule.when.monthBranch,month=seasonal.MONTH[branch];
+ if(!month)return false;
+ const root=seasonal.HIDDEN[branch][0];
+ return STEMS.some(day=>
+  verifiedTenGod(day,root)===rule.hidden&&
+  STEMS.some(visible=>{
+   if(verifiedTenGod(day,visible)!==rule.visible)return false;
+   const link=PAIR_KIND[seasonal.relation(
+    seasonal.ELEMENTS[root],seasonal.ELEMENTS[visible])];
+   const direction=month.status==='transition'?
+    'transitional-month-unresolved':
+    seasonal.relation(month.dominant,seasonal.ELEMENTS[day]);
+   return link===rule.when.monthElementRelation&&
+    direction===rule.when.seasonToDayRelation;
+  }));
+}
+function possibleCrossSymbol(extra,baseRule){
+ if(extra.when.monthTenGod!==baseRule.visible||
+    extra.when.yearTenGod===extra.when.monthTenGod)return false;
+ return STEMS.some(day=>{
+  const month=STEMS.find(st=>verifiedTenGod(day,st)===extra.when.monthTenGod);
+  const year=STEMS.find(st=>verifiedTenGod(day,st)===extra.when.yearTenGod);
+  if(!month||!year)return false;
+  const m=CATEGORY[seasonal.relation(seasonal.ELEMENTS[month],seasonal.ELEMENTS[day])];
+  const y=CATEGORY[seasonal.relation(seasonal.ELEMENTS[year],seasonal.ELEMENTS[day])];
+  return m===extra.when.category&&y===m;
+ });
+}
+function auditKnowledge(kb=knowledge){
+ if(kb.version!=='core-knowledge-v0.4'||
+    JSON.stringify(Object.keys(kb.tenGodScopes).sort())!==
     JSON.stringify([...GODS].sort()))throw Error('CORE_KNOWLEDGE_INCOMPLETE_TEN_GOD_SCOPES');
  const ids=new Set(),contexts=new Set();
- for(const rule of knowledge.pairRules){
+ for(const rule of kb.pairRules){
   if(!GODS.includes(rule.visible)||!GODS.includes(rule.hidden)||
      rule.status!=='editorial-candidate')throw Error('CORE_KNOWLEDGE_BAD_RULE_CATEGORY');
 
@@ -43,6 +80,7 @@ function auditKnowledge(){
        ?when.seasonToDayRelation==='transitional-month-unresolved'
        :seasonRelations.includes(when.seasonToDayRelation)))
    throw Error('CORE_KNOWLEDGE_INVALID_CONTEXT_CONDITION');
+  if(!actualContextPossible(rule))throw Error('CORE_KNOWLEDGE_IMPOSSIBLE_MONTH_RULE:'+rule.id);
   const contextId=[rule.visible,rule.hidden,when.monthBranch,when.monthElementRelation,
    when.seasonToDayRelation].join('|');
   if(ids.has(rule.id)||contexts.has(contextId))
@@ -57,9 +95,9 @@ function auditKnowledge(){
    throw Error('CORE_KNOWLEDGE_UNBOUNDED_CLAIM');
  }
  const crossIds=new Set();
- for(const extra of knowledge.crossPillarRules||[]){
+ for(const extra of kb.crossPillarRules||[]){
   if(extra.status!=='editorial-candidate'||crossIds.has(extra.id)||
-     !knowledge.pairRules.some(r=>r.id===extra.when?.coreRuleId)||
+     !kb.pairRules.some(r=>r.id===extra.when?.coreRuleId)||
      extra.when?.relativeToMonth!=='same-category-different-subtype'||
      extra.when?.yearTenGod==='일간'||
      !GODS.includes(extra.when?.yearTenGod)||
@@ -68,6 +106,9 @@ function auditKnowledge(){
      typeof extra.reader?.text!=='string'||extra.reader.text.length<130||
      !extra.reader?.label||extra.evidenceRole!=='distinct-year-month-visible-resource-symbols-only')
    throw Error('CORE_KNOWLEDGE_INVALID_CROSS_PILLAR_RULE');
+  const baseRule=kb.pairRules.find(r=>r.id===extra.when.coreRuleId);
+  if(!possibleCrossSymbol(extra,baseRule))
+   throw Error('CORE_KNOWLEDGE_IMPOSSIBLE_CROSS_RULE:'+extra.id);
   crossIds.add(extra.id);
  }
  return {tenGods:GODS.length,curatedRules:contexts.size,crossPillarRules:crossIds.size};
