@@ -26,7 +26,7 @@ function assess(inputs){
  const stats={knowledgeVersion:knowledge.version,kind:'fixed-offline-grid-not-user-traffic',
   inputCount:inputs.length,ready:0,blocked:0,withDraft:0,notCovered:0,
   draftsWithNatalContext:0,draftsWithHourContext:0,draftsWithSeasonRootContext:0,
-  draftsWithYearLink:0,draftsWithFourPillar:0,
+  draftsWithYearLink:0,draftsWithFourPillar:0,draftsWithChartSynthesis:0,
   sourceGroundedMonthRevisionDrafts:0,sourceAnchoredFamilyDrafts:0,
   withEvidencePlan:0,withEditorialOutline:0,withDirectionalBridge:0,plansWithoutReaderDraft:0,
   outlinesWithoutReaderDraft:0,distinctEditorialOutlines:0,distinctPlans:0,
@@ -105,6 +105,23 @@ function assess(inputs){
         '이 명식에서 먼저 확인할 근거는 태어난 달의'))
       throw Error('CORE_COVERAGE_UNVERIFIED_EDITORIAL_DEPTH_REVISION');
     stats.sourceGroundedMonthRevisionDrafts++;
+   }
+   const synthesis=row.review?.chartSynthesis;
+   if(synthesis){
+    const fresh=require('./report-core-chart-integration').select(
+     packet,row.wholeChartEvidence);
+    if(row.review?.fourPillar||!fresh||
+       synthesis.editorialStatus!=='machine-composed-review-only'||
+       synthesis.releaseVerdict!=='not-approved'||synthesis.apiCalls!==0||
+       synthesis.humanReviewRequired!==true||
+       row.reader?.paragraphs?.chartSynthesis?.text!==fresh.reader.text||
+       JSON.stringify(synthesis.evidence)!==JSON.stringify(fresh.evidence)||
+       JSON.stringify(synthesis.sourceRefs)!==JSON.stringify(fresh.sourceRefs)||
+       !synthesis.sourceRefs?.includes('natal.year.stem')||
+       !synthesis.sourceRefs?.includes('natal.hour.stem')||
+       !synthesis.sourceRefs?.includes('facts.stemConnections'))
+      throw Error('CORE_COVERAGE_CHART_SYNTHESIS_UNVERIFIED');
+    stats.draftsWithChartSynthesis++;
    }
    const natt=row.review?.natalContext;
    if(natt){
