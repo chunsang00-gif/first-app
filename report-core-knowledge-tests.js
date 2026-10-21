@@ -174,7 +174,7 @@ const wordyGeneric=structuredClone(sameKind.reader);
 wordyGeneric.paragraphs.strength.text+=' 이때 살펴볼 필요가 있습니다.';
 assert(lint.inspect(wordyGeneric).problems.includes('generic-or-unnatural-filler'));
 const lastQuestion=structuredClone(sameKind.reader);
-lastQuestion.paragraphs.strength.text+=' 궁금하지 않으세요?';
+lastQuestion.paragraphs.chartSynthesis.text+=' 궁금하지 않으세요?';
 assert(lint.inspect(lastQuestion).problems.includes('final-reader-question'));
 assert.equal(sameKind.reader.paragraphs.temperament,null,
  'a separate same-category case cannot import the year resource contrast');
