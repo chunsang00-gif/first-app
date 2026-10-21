@@ -26,7 +26,7 @@ function assess(inputs){
  const stats={knowledgeVersion:knowledge.version,kind:'fixed-offline-grid-not-user-traffic',
   inputCount:inputs.length,ready:0,blocked:0,withDraft:0,notCovered:0,
   draftsWithNatalContext:0,draftsWithHourContext:0,draftsWithSeasonRootContext:0,
-  draftsWithYearLink:0,sourceGroundedMonthRevisionDrafts:0,
+  draftsWithYearLink:0,sourceGroundedMonthRevisionDrafts:0,sourceAnchoredFamilyDrafts:0,
   withEvidencePlan:0,withEditorialOutline:0,withDirectionalBridge:0,plansWithoutReaderDraft:0,
   outlinesWithoutReaderDraft:0,distinctEditorialOutlines:0,distinctPlans:0,
   bridgeKinds:{},
@@ -88,6 +88,14 @@ function assess(inputs){
    stats.notCovered++;if(row.reader!==null)throw Error('CORE_COVERAGE_UNCOVERED_READER');
   }else if(row.status==='draft-for-human-review'){
    stats.withDraft++;
+   if(row.familyId){
+    if(!row.reader.paragraphs.strength.text.startsWith(
+     '이 명식에서 먼저 확인할 근거는 태어난 달의')||
+     !row.review?.verifiedConditions||
+     row.review.verifiedConditions.monthBranch!==packet.chart.month[1])
+     throw Error('CORE_COVERAGE_FAMILY_MONTH_EVIDENCE_LEAD_MISSING');
+    stats.sourceAnchoredFamilyDrafts++;
+   }
    const revision=row.review?.editorialRevision;
    if(revision){
     if(revision.releaseVerdict!=='not-approved'||

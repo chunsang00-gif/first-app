@@ -4,7 +4,9 @@
 // branch variant. Drafts remain NOT APPROVED for any paid report.
 const seasonal=require('./report-seasonal-evidence');
 const knowledge=require('./report-core-knowledge.json');
-const REQUIRED=['monthBranch','title','keyJudgment','scene','explanation','advantage','downside'];
+const REQUIRED=['monthBranch','title','keyJudgment','scene','explanation','advantage','downside','evidenceLead'];
+const PAIR_PHRASE={"hidden-generates-visible":"안쪽 오행이 겉을 생하는 방향","hidden-controls-visible":"안쪽 오행이 겉을 제어하는 관계","same-element":"두 출생 글자의 오행은 같은 계열","visible-controls-hidden":"겉의 오행이 안쪽을 제어하는 관계","visible-generates-hidden":"겉의 오행이 안쪽을 생하는 방향"};
+const SEASON_PHRASE={"resource":"계절 오행이 태어난 날의 오행을 생하는","day-controls":"태어난 날의 오행이 계절 오행을 제어하는","same-element":"계절 오행과 태어난 날의 오행이 같은","output":"태어난 날의 오행이 계절 오행을 생하는","control-on-day":"계절 오행이 태어난 날의 오행을 제어하는","transitional-month-unresolved":"계절의 우세는 미확정"};
 function expand(kb=knowledge){
  const out=[];
  for(const f of kb.familyRules||[])for(const v of f.variants||[])
@@ -12,7 +14,7 @@ function expand(kb=knowledge){
    status:f.status,visible:f.visible,hidden:f.hidden,
    when:{monthBranch:v.monthBranch,...f.when},
    claim:f.claim,title:v.title,keyJudgment:v.keyJudgment,
-   scene:v.scene,explanation:f.explanation+' '+v.explanation,
+   scene:v.evidenceLead+' '+v.scene,explanation:f.explanation+' '+v.explanation,
    advantage:v.advantage,downside:v.downside,caution:f.caution,
    evidenceRole:f.evidenceRole,evidenceLimits:f.evidenceLimits});
  return out;
@@ -40,7 +42,12 @@ function audit(kb=knowledge){
       seasonal.MONTH[v.monthBranch].status!==f.when.monthPhase||
       JSON.stringify(Object.keys(v).sort())!==JSON.stringify(REQUIRED.slice().sort())||
       REQUIRED.slice(1).some(k=>typeof v[k]!=='string'||v[k].length<12)||
-      v.explanation.length<80)
+      v.explanation.length<80||
+      v.evidenceLead.length<145||
+      !v.evidenceLead.startsWith('이 명식에서 먼저 확인할 근거는 태어난 달의')||
+      !v.evidenceLead.includes(f.visible)||!v.evidenceLead.includes(f.hidden)||
+      !v.evidenceLead.includes(PAIR_PHRASE[f.when.monthElementRelation])||
+      !v.evidenceLead.includes(SEASON_PHRASE[f.when.seasonToDayRelation]))
     throw Error('CORE_FAMILY_INVALID_VARIANT:'+f.id+'/'+v?.monthBranch);
    local.add(v.monthBranch);signatures.add(signature);variantCount++;
   }

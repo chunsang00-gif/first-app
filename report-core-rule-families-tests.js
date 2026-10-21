@@ -21,6 +21,16 @@ for(const input of coverage.representativeInputs()){
  assert.equal(result.review.familyId,rule.familyId);
  assert.equal(result.review.verifiedConditions.monthBranch,packet.chart.month[1]);
  assert.equal(result.review.readerMechanical.mechanicalPass,true);
+ assert(result.reader.paragraphs.strength.text.startsWith(
+  '이 명식에서 먼저 확인할 근거는 태어난 달의'));
+ assert(result.reader.paragraphs.strength.text.includes(
+  '겉글자 '+rule.visible));
+ assert(result.reader.paragraphs.strength.text.includes(
+  '안쪽 '+rule.hidden));
+ assert(result.reader.paragraphs.strength.text.includes(
+  result.scope.seasonalPhase==='transition'?'계절의 우세는 미확정':'핵심월'));
+ assert.equal(result.review.verifiedConditions.seasonToDayRelation,
+  result.scope.seasonToDayRelation);
  assert(!/[\u3400-\u9fff]/.test([result.reader.title,result.reader.keyJudgment,
   ...Object.values(result.reader.paragraphs).filter(Boolean).map(x=>x.text)].join(' ')),
   'customer-visible draft must not leak raw Chinese characters');
@@ -37,6 +47,19 @@ for(const input of coverage.representativeInputs()){
 }
 assert.equal(found.size,17,'all 17 month-specific family manuscripts must match real calendar samples');
 assert.equal(texts.size,17,'different verified family variants must produce distinct full manuscripts');
+const corrected=knowledge.familyRules.find(x=>
+ x.id==='family-bigeon-jeongin-resource-v1').variants.find(x=>x.monthBranch==='亥');
+assert(corrected.explanation.includes('계절 오행이 태어난 날의 오행을 생하는 관계'));
+assert(!corrected.explanation.includes('태어난 날과 같은 계열'));
+const tamperedLead=structuredClone(knowledge);
+tamperedLead.familyRules[0].variants[0].evidenceLead=
+ tamperedLead.familyRules[0].variants[0].evidenceLead.replace(
+  '생하는','제어하는');
+assert.throws(()=>families.audit(tamperedLead),/CORE_FAMILY_INVALID_VARIANT/);
+const incompleteLead=structuredClone(knowledge);
+incompleteLead.familyRules[1].variants[0].evidenceLead=
+ incompleteLead.familyRules[1].variants[0].evidenceLead.replace('편인','겁재');
+assert.throws(()=>families.audit(incompleteLead),/CORE_FAMILY_INVALID_VARIANT/);
 const corrupt=structuredClone(knowledge);
 corrupt.familyRules[0].variants[1].monthBranch='亥';
 assert.throws(()=>engine.auditKnowledge(corrupt),/CORE_FAMILY_INVALID_VARIANT/);
