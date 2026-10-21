@@ -1,5 +1,5 @@
 {
-  "version": "core-knowledge-v1.7",
+  "version": "core-knowledge-v1.8",
   "kind": "traditional-symbolic-interpretation-not-personality-measurement",
   "editorialStatus": "candidate-only-requires-human-review",
   "tenGodScopes": {
@@ -1341,6 +1341,70 @@
       "limits": [
         "no-observed-trait",
         "no-strength-multiplier",
+        "no-event-prediction"
+      ]
+    }
+  ],
+  "fullChartRules": [
+    {
+      "id": "full-four-pillars-chukmi-day-hour-roots-v1",
+      "chart": {
+        "year": "壬戌",
+        "month": "癸丑",
+        "day": "乙未",
+        "hour": "癸未"
+      },
+      "yearGod": "정인",
+      "monthGod": "편인",
+      "hiddenGod": "편재",
+      "hourGod": "편인",
+      "dayBranchRelation": "충",
+      "hourRootExpected": true,
+      "reader": {
+        "label": "태어난 해·달·날·시간을 함께 읽는 기준",
+        "text": "태어난 날의 중심 글자를 기준으로 보면 태어난 해의 겉글자는 알려진 설명과 도움을 참고하는 뜻, 태어난 달의 겉글자는 낯선 정보를 스스로 해석하는 뜻, 달의 안쪽 대표 글자는 필요한 자원을 고르는 뜻으로 각각 구분됩니다. 달과 날의 자리는 전통 관계표에서 서로 마주 보는 충의 짝이지만 이것을 실제 갈등이나 재물 손실로 예언할 수는 없습니다. 한편 태어난 날의 안쪽에는 날의 중심 글자와 같은 오행의 글자가 있고 출생시간의 안쪽에서도 같은 오행의 글자가 확인됩니다. 시간 겉글자의 의미는 달 겉글자와 같은 편인 분류로 반복됩니다. 따라서 같은 이해의 뜻이 반복되는 위치와 동일 오행의 숨은 글자가 확인되는 위치를 나누어 읽어야 합니다. 이 명식에서는 두 곳에서 확인된 근거를 이유로 성격이 더 강하다거나 충으로 근거가 사라진다고 판단하지 않습니다. 달은 계절 전환기에 해당하므로 어느 오행이 전체 사주를 지배한다고 결론내릴 수도 없습니다."
+      },
+      "status": "editorial-candidate",
+      "coreRuleId": "month-pair-pyeonin-pyeonjae-v1",
+      "monthPhase": "transition",
+      "monthSeason": "winter",
+      "evidenceRole": "exact-four-pillar-canonical-plus-month-day-table-and-same-element-root-positions",
+      "readerScope": "verified-four-position-symbolic-comparison-only",
+      "limits": [
+        "no-strength-inference",
+        "no-clash-root-destruction",
+        "no-behavior-observation",
+        "no-event-prediction"
+      ]
+    },
+    {
+      "id": "full-four-pillars-chukmi-day-root-hour-expression-v1",
+      "chart": {
+        "year": "壬戌",
+        "month": "癸丑",
+        "day": "乙未",
+        "hour": "丙戌"
+      },
+      "yearGod": "정인",
+      "monthGod": "편인",
+      "hiddenGod": "편재",
+      "hourGod": "상관",
+      "dayBranchRelation": "충",
+      "hourRootExpected": false,
+      "reader": {
+        "label": "같은 출생월에도 시간의 뜻이 달라질 때",
+        "text": "태어난 날의 중심 글자를 기준으로 하면 해의 겉글자는 알려진 설명을 참고하는 정인, 달의 겉글자는 새 정보를 달리 이해하는 편인, 달의 대표 속글자는 필요한 자원을 살피는 편재로 계산됩니다. 달과 날의 지지는 전통 관계표에서 충이라는 짝에 해당하지만 실제 다툼이나 특정 사건을 뜻하는 자료는 아닙니다. 이 명식에서 태어난 날의 안쪽에는 중심 글자와 같은 오행이 확인되지만, 이번 출생시간의 안쪽에서는 같은 오행이 확인되지 않습니다. 대신 시간의 겉글자에는 생각을 밖으로 달리 표현하는 상관이라는 뜻이 놓입니다. 그러므로 태어난 달의 이해라는 주제와 출생시간의 표현이라는 주제를 각각 구별해야 합니다. 시간의 안쪽에서 같은 오행을 찾지 못했다는 사실은 그 사람의 기운이 약하다거나 자립성이 낮다는 뜻이 아닙니다. 계절이 바뀌는 달이라는 조건도 함께 남겨 두며, 다른 출생시간을 가정했을 때의 해석을 이 사람에게 섞어 쓰지 않습니다."
+      },
+      "status": "editorial-candidate",
+      "coreRuleId": "month-pair-pyeonin-pyeonjae-v1",
+      "monthPhase": "transition",
+      "monthSeason": "winter",
+      "evidenceRole": "exact-four-pillar-canonical-plus-month-day-table-and-same-element-root-positions",
+      "readerScope": "verified-four-position-symbolic-comparison-only",
+      "limits": [
+        "no-strength-inference",
+        "no-clash-root-destruction",
+        "no-behavior-observation",
         "no-event-prediction"
       ]
     }

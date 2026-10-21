@@ -2,7 +2,7 @@
 const assert=require('node:assert/strict');
 const facts=require('./report-facts-node'),engine=require('./report-core-knowledge-engine');
 const knowledge=require('./report-core-knowledge.json');
-assert.deepEqual(engine.auditKnowledge(),{tenGods:10,curatedRules:29,crossPillarRules:1,yearLinkRules:10,familyRules:8,familyVariants:17,natalContextRules:1,hourContextRules:6,seasonRootRules:1,seasonRootVariants:2});
+assert.deepEqual(engine.auditKnowledge(),{tenGods:10,curatedRules:29,crossPillarRules:1,yearLinkRules:10,fullChartRules:2,familyRules:8,familyVariants:17,natalContextRules:1,hourContextRules:6,seasonRootRules:1,seasonRootVariants:2});
 const sample={calendar:'lunar',birthDate:'1982-11-24',birthTime:'14:20',
  gender:'male',mbti:'ISFP',name:'검증용'};
 const packet=facts.build(sample,2027),draft=engine.compile(packet);
@@ -13,7 +13,7 @@ assert.deepEqual([draft.scope.visibleTenGod,draft.scope.hiddenTenGod],['편인',
 assert.equal(draft.scope.monthElementRelation,'hidden-controls-visible');
 assert.equal(draft.scope.inferredPersonality,false);
 assert.equal(draft.review.readerMechanical.mechanicalPass,true);
-assert.equal(draft.review.readerMechanical.checkedParagraphCount,5);
+assert.equal(draft.review.readerMechanical.checkedParagraphCount,6);
 assert.equal(draft.review.seasonRootContext.ruleId,
  'chuk-mi-winter-day-root-comparison-v1');
 assert.equal(draft.review.seasonRootContext.variantId,'day-and-hour-hidden-same-element-v1');
@@ -352,6 +352,8 @@ assert(summary.notCovered<=68,
  'eight verified previously uncovered family variants must produce drafts');
 assert.equal(summary.draftsWithSeasonRootContext,2);
 assert.equal(summary.draftsWithYearLink,10);
+assert.equal(summary.draftsWithFourPillar,2,
+ 'exact four-pillar evidence must change with the verified hour');
 assert.equal(summary.sourceGroundedMonthRevisionDrafts,14,
  'twelve distinct source-anchored month manuscripts must match 14 real-date samples');
 assert.equal(summary.sourceAnchoredFamilyDrafts,17,
@@ -367,6 +369,6 @@ assert.equal(summary.releaseVerdict,'not-approved');
 assert.equal(summary.apiCalls,0);
 console.log('OFFLINE_CORE_KNOWLEDGE_COVERAGE='+JSON.stringify(summary));
 assert(!Object.hasOwn(knowledge,'personalityScores'));
-console.log('PASS offline curated Saju knowledge v1.7: 12 individual manuscripts and 17 verified family evidence leads,');
+console.log('PASS offline curated Saju knowledge v1.8: two verified whole-chart comparative manuscripts,');
 console.log('true natal graph, same-category anti-double guard, tampered evidence blocked, MBTI/year isolation,');
 console.log('no paid AI, no live app replacement, no human editorial approval');

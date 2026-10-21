@@ -26,7 +26,8 @@ function assess(inputs){
  const stats={knowledgeVersion:knowledge.version,kind:'fixed-offline-grid-not-user-traffic',
   inputCount:inputs.length,ready:0,blocked:0,withDraft:0,notCovered:0,
   draftsWithNatalContext:0,draftsWithHourContext:0,draftsWithSeasonRootContext:0,
-  draftsWithYearLink:0,sourceGroundedMonthRevisionDrafts:0,sourceAnchoredFamilyDrafts:0,
+  draftsWithYearLink:0,draftsWithFourPillar:0,
+  sourceGroundedMonthRevisionDrafts:0,sourceAnchoredFamilyDrafts:0,
   withEvidencePlan:0,withEditorialOutline:0,withDirectionalBridge:0,plansWithoutReaderDraft:0,
   outlinesWithoutReaderDraft:0,distinctEditorialOutlines:0,distinctPlans:0,
   bridgeKinds:{},
@@ -115,6 +116,20 @@ function assess(inputs){
         r.positions.includes('day')&&r.branches===
         natt.matched.monthBranch+natt.matched.dayBranch))
      throw Error('CORE_COVERAGE_UNVERIFIED_NATAL_CONTEXT_TEXT');
+   }
+   const four=row.review?.fourPillar;
+   if(four){
+    const r=require('./report-core-four-pillar-synthesis').select(
+     packet,row.wholeChartEvidence,row.ruleId);
+    if(!r||r.ruleId!==four.ruleId||
+       row.reader?.paragraphs?.fourPillar?.text!==r.reader.text||
+       !four.sourceRefs?.includes('facts.natalBranchRelations')||
+       !four.sourceRefs?.includes('facts.stemConnections')||
+       !four.sourceRefs?.includes('natal.hour.stem')||
+       four.matched.hourRootExpected!==Boolean(
+        row.wholeChartEvidence.dayMasterRoots.filter(x=>x.position==='hour').length))
+     throw Error('CORE_COVERAGE_FOUR_PILLAR_NOT_VERIFIED');
+    stats.draftsWithFourPillar++;
    }
    const hour=row.review?.hourContext;
    if(hour){

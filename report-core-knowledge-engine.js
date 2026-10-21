@@ -14,6 +14,7 @@ const hourContext=require('./report-core-hour-context');
 const seasonRootContext=require('./report-core-season-root-context');
 const families=require('./report-core-rule-families');
 const yearLink=require('./report-core-year-link');
+const fourPillar=require('./report-core-four-pillar-synthesis');
 const GODS=['비견','겁재','식신','상관','정재','편재','정관','편관','정인','편인'];
 // Cross-check against the same canonical lunar calendar ten-god table.
 // Do not trust category labels copied from potentially corrupted fact rows.
@@ -64,7 +65,7 @@ function possibleCrossSymbol(extra,baseRule){
  });
 }
 function auditKnowledge(kb=knowledge){
- if(kb.version!=='core-knowledge-v1.7'||
+ if(kb.version!=='core-knowledge-v1.8'||
     JSON.stringify(Object.keys(kb.tenGodScopes).sort())!==
     JSON.stringify([...GODS].sort()))throw Error('CORE_KNOWLEDGE_INCOMPLETE_TEN_GOD_SCOPES');
  const ids=new Set(),contexts=new Set();
@@ -149,7 +150,7 @@ function auditKnowledge(kb=knowledge){
   crossIds.add(extra.id);
  }
  return {tenGods:GODS.length,curatedRules:contexts.size,
-  crossPillarRules:crossIds.size,...yearLink.audit(kb),...familyAudit,...natalContext.audit(kb),...hourContext.audit(kb),
+  crossPillarRules:crossIds.size,...yearLink.audit(kb),...fourPillar.audit(kb),...familyAudit,...natalContext.audit(kb),...hourContext.audit(kb),
   ...seasonRootContext.audit(kb)};
 }
 auditKnowledge();
@@ -228,6 +229,7 @@ function compile(packet){
  const hour=hourContext.select(packet,graph,rule.id);
  const root=seasonRootContext.select(packet,graph,rule.id);
  const integrated=yearLink.select(packet,graph,rule.id);
+ const four=fourPillar.select(packet,graph,rule.id);
  const paragraph=[rule.scene,rule.explanation,rule.advantage,rule.downside].join(' ');
  const reader={title:rule.title,keyJudgment:rule.keyJudgment,
   paragraphs:{temperament:cross?{...cross.reader}:null,
@@ -235,7 +237,8 @@ function compile(packet){
    context:natal?{...natal.reader}:null,
    hour:hour?{...hour.reader}:null,
    seasonRoot:root?{...root.reader}:null,
-   yearLink:integrated?{...integrated.reader}:null}};
+   yearLink:integrated?{...integrated.reader}:null,
+   fourPillar:four?{...four.reader}:null}};
  const mechanical=editorial.inspect(reader);
  if(!mechanical.mechanicalPass)
   throw Error('CORE_KNOWLEDGE_READER_MECHANICAL_REJECT:'+mechanical.problems.join(','));
@@ -250,6 +253,9 @@ function compile(packet){
    familyId:rule.familyId||null,
    editorialRevision:rule.editorialRevision?{...rule.editorialRevision,rules:rule.editorialRevision.rules.slice()}:null,
    verifiedConditions:{...rule.when},
+   fourPillar:four?{ruleId:four.ruleId,sourceRefs:four.sourceRefs,
+    matched:four.matched,evidenceRole:four.evidenceRole,
+    readerScope:four.readerScope,limits:four.limits}:null,
    yearLink:integrated?{ruleId:integrated.ruleId,
     sourceRefs:integrated.sourceRefs,matched:integrated.matched,
     evidenceRole:integrated.evidenceRole,readerScope:integrated.readerScope,
