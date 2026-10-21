@@ -13,9 +13,9 @@ const CAT={비견:'peer',겁재:'peer',식신:'output',상관:'output',
  정재:'wealth',편재:'wealth',정관:'authority',편관:'authority',
  정인:'resource',편인:'resource'};
 const LINK={
- 'same-category-same-subtype':'같은 세부 분류가 반복됩니다. 그러나 뜻의 크기가 두 배라는 말은 아닙니다',
- 'same-category-different-subtype':'같은 큰 계열이지만 세부 뜻이 달라 서로 나누어 해석해야 합니다',
- 'different-category':'다른 계열이므로 둘을 한 가지 성격이나 결과로 합치면 안 됩니다'
+ 'same-category-same-subtype':'같은 세부 분류',
+ 'same-category-different-subtype':'같은 큰 계열이지만 다른 세부 분류',
+ 'different-category':'서로 다른 계열'
 };
 const PERIOD_REL={
  'same-element':'계절 오행과 날의 중심 오행이 같은 계열',
@@ -92,9 +92,9 @@ function select(packet,graph){
  ];
  const described=roleQuestions.map(r=>
   '출생 '+POS[r.position]+'의 '+r.tenGod+'에서 확인할 질문은 '+r.question+'입니다.');
- const categoryContrast=
-  '해와 달을 비교하면 '+LINK[year.relativeToMonth]+
-  '. 달과 시간을 비교하면 '+LINK[hour.relativeToMonth]+'.';
+ const categoryContrast='해·달은 '+LINK[year.relativeToMonth]+
+  '이며, 달·시간은 '+LINK[hour.relativeToMonth]+
+  '입니다. 출생 위치 간 분류가 같다는 사실만으로 강도를 더하거나 실제 성격을 정할 수는 없습니다.';
  const clauses=[
   '이 명식에서 출생월의 두 뜻은 앞에서 살펴봤습니다. 여기서는 태어난 날의 '+ELEMENT[month.dayElement]+
    ' 오행을 기준으로 해·달·시간의 차이를 연결합니다.',
