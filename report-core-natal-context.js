@@ -3,6 +3,10 @@
 // is NOT a predicted event, psychological fact or measured strength.
 const knowledge=require('./report-core-knowledge.json');
 const branches=require('./report-branch-relations');
+// A branch-pair table match, without separately verified domain evidence, is
+// not a basis for work, money, family, health or relationship predictions.
+// Static wording guard is intentionally narrow: human semantic review remains required.
+const UNSUPPORTED_LIFE_DOMAIN=/(?:직장|회사|업무|이직|취업|승진|연봉|돈|재산|금전|수입|가족|배우자|부부|결혼|연애|자녀|건강|질병|이혼|싸움|다툼|갈등)/;
 function audit(kb=knowledge){
  const ids=new Set();
  for(const rule of kb.natalContextRules||[]){
@@ -14,6 +18,8 @@ function audit(kb=knowledge){
      !branches.pairRelations(w.monthBranch,w.dayBranch).includes(w.relation)||
      !['충','육합','형','파','해'].includes(w.relation)||
      rule.evidenceRole!=='verified-natal-month-day-pair-table-only'||
+     rule.readerScope!=='verified-branch-pair-only'||
+     UNSUPPORTED_LIFE_DOMAIN.test([rule.reader?.label,rule.reader?.text].join(' '))||
      JSON.stringify(rule.sourceRefs)!=='["facts.natalBranchRelations"]'||
      !Array.isArray(rule.limits)||
      !rule.limits.includes('no-event-prediction')||
@@ -42,6 +48,7 @@ function select(packet,graph,coreRuleId){
  return {ruleId:r.id,reader:{...r.reader},sourceRefs:r.sourceRefs.slice(),
   matched:{monthBranch,dayBranch,relation:r.when.relation,
    positions:r.when.positions.slice()},evidenceRole:r.evidenceRole,
+  readerScope:r.readerScope,
   limits:r.limits.slice(),humanReviewRequired:true,releaseVerdict:'not-approved'};
 }
 audit();

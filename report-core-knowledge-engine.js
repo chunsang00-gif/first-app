@@ -208,7 +208,7 @@ function compile(packet){
    verifiedConditions:{...rule.when},
    natalContext:natal?{ruleId:natal.ruleId,sourceRefs:natal.sourceRefs,
     matched:natal.matched,evidenceRole:natal.evidenceRole,
-    limits:natal.limits}:null,
+    readerScope:natal.readerScope,limits:natal.limits}:null,
    crossPillar:cross?{ruleId:cross.id,sourceIds:extraSourceIds,
     evidenceRole:cross.evidenceRole,prohibits:cross.prohibits.slice()}:null,
    caution:rule.caution,limits:rule.evidenceLimits.slice(),

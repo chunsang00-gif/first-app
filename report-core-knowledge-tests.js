@@ -15,7 +15,10 @@ assert.equal(draft.scope.inferredPersonality,false);
 assert.equal(draft.review.readerMechanical.mechanicalPass,true);
 assert.equal(draft.review.readerMechanical.checkedParagraphCount,3);
 assert(draft.reader.paragraphs.context?.text.includes('태어난 달과 날의 두 자리는'));
-assert(draft.reader.paragraphs.context.text.includes('직장에서 문제가 생겼다는 뜻도'));
+assert(draft.reader.paragraphs.context.text.includes('다른 출생 위치와 계절에 따라'));
+assert.equal(draft.review.natalContext.readerScope,'verified-branch-pair-only');
+assert(!/(?:직장|가족|결혼|연봉)/.test(draft.reader.paragraphs.context.text),
+ 'a bare branch clash must not be recast as a specific real-life domain');
 assert.equal(draft.review.natalContext.ruleId,'chuk-mi-month-day-opposition-v1');
 assert.deepEqual(draft.review.natalContext.matched,{
  monthBranch:'丑',dayBranch:'未',relation:'충',positions:['month','day']});
@@ -190,6 +193,14 @@ assert.throws(()=>engine.compile(tamperedYearSymbol),
 // The DB itself must be satisfiable by the CANONICAL ten-god/element
 // relationships, rather than relying on the shape of a JSON rule.
 const natal=require('./report-core-natal-context');
+const inventedDomain=structuredClone(knowledge);
+inventedDomain.natalContextRules[0].reader.text+=' 직장과 가족이 충돌합니다.';
+assert.throws(()=>natal.audit(inventedDomain),/CORE_NATAL_RULE_INVALID_OR_UNSUPPORTED/,
+ 'branch-only evidence must reject invented work and family claims');
+const removedScope=structuredClone(knowledge);
+delete removedScope.natalContextRules[0].readerScope;
+assert.throws(()=>natal.audit(removedScope),/CORE_NATAL_RULE_INVALID_OR_UNSUPPORTED/,
+ 'interpretive scope cannot be omitted from the knowledge rule');
 const wrongPair=structuredClone(knowledge);
 wrongPair.natalContextRules[0].when.dayBranch='子';
 assert.throws(()=>natal.audit(wrongPair),/CORE_NATAL_RULE_INVALID_OR_UNSUPPORTED/,
