@@ -16,7 +16,7 @@ function inspect(reader){
   problems.push('unsupported-or-verbose-judgment');
  if(!ps.strength||typeof ps.strength.text!=='string'||ps.strength.text.length<180)
   problems.push('missing-everyday-explanation');
- const paragraphRows=[ps.temperament,ps.strength,ps.context,ps.hour].filter(Boolean);
+ const paragraphRows=[ps.temperament,ps.strength,ps.context,ps.hour,ps.seasonRoot].filter(Boolean);
  if(paragraphRows.some(x=>typeof x.label!=='string'||typeof x.text!=='string'||
     x.text.trim().length<100))problems.push('unreadable-paragraph');
  const body=[title,judgment,...paragraphRows.flatMap(x=>[x.label,x.text])]

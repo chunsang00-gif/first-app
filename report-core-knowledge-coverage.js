@@ -25,7 +25,7 @@ function assess(inputs){
  const readers=new Map(),plans=new Map(),monthContexts=new Set(),coveredContexts=new Set();
  const stats={knowledgeVersion:knowledge.version,kind:'fixed-offline-grid-not-user-traffic',
   inputCount:inputs.length,ready:0,blocked:0,withDraft:0,notCovered:0,
-  draftsWithNatalContext:0,draftsWithHourContext:0,
+  draftsWithNatalContext:0,draftsWithHourContext:0,draftsWithSeasonRootContext:0,
   withEvidencePlan:0,plansWithoutReaderDraft:0,distinctPlans:0,
   reusedPlanAcrossCharts:0,
   distinctCharts:0,distinctMonthContexts:0,coveredMonthContexts:0,
@@ -81,6 +81,21 @@ function assess(inputs){
        hour.matched.relativeToMonth!==matched?.relativeToMonth||
        row.wholeChartEvidence.unknownBirthHour)
      throw Error('CORE_COVERAGE_UNVERIFIED_HOUR_CONTEXT_TEXT');
+   }
+   const root=row.review?.seasonRootContext;
+   if(root){
+    stats.draftsWithSeasonRootContext++;
+    if(!row.reader?.paragraphs?.seasonRoot?.text||
+       !root.sourceRefs?.includes('facts.seasonalEvidence')||
+       !root.sourceRefs?.includes('facts.qiEvidence')||
+       !root.sourceRefs?.includes('facts.stemConnections')||
+       !root.sourceRefs?.includes(root.matched.dayRootRef)||
+       !row.wholeChartEvidence?.dayMasterRoots?.some(
+        r=>r.id===root.matched.dayRootRef&&r.position==='day')||
+       root.matched.hourRootRefs.some(ref=>
+        !row.wholeChartEvidence.dayMasterRoots.some(
+         r=>r.id===ref&&r.position==='hour')))
+     throw Error('CORE_COVERAGE_SEASON_ROOT_UNVERIFIED');
    }
    if(row.releaseVerdict!=='not-approved'||row.review.humanReviewRequired!==true)
     throw Error('CORE_COVERAGE_RELEASE_GATE_BYPASSED');

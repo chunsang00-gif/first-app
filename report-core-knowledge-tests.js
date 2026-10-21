@@ -2,7 +2,7 @@
 const assert=require('node:assert/strict');
 const facts=require('./report-facts-node'),engine=require('./report-core-knowledge-engine');
 const knowledge=require('./report-core-knowledge.json');
-assert.deepEqual(engine.auditKnowledge(),{tenGods:10,curatedRules:2,crossPillarRules:1,natalContextRules:1,hourContextRules:2});
+assert.deepEqual(engine.auditKnowledge(),{tenGods:10,curatedRules:2,crossPillarRules:1,natalContextRules:1,hourContextRules:2,seasonRootRules:1,seasonRootVariants:2});
 const sample={calendar:'lunar',birthDate:'1982-11-24',birthTime:'14:20',
  gender:'male',mbti:'ISFP',name:'검증용'};
 const packet=facts.build(sample,2027),draft=engine.compile(packet);
@@ -13,7 +13,16 @@ assert.deepEqual([draft.scope.visibleTenGod,draft.scope.hiddenTenGod],['편인',
 assert.equal(draft.scope.monthElementRelation,'hidden-controls-visible');
 assert.equal(draft.scope.inferredPersonality,false);
 assert.equal(draft.review.readerMechanical.mechanicalPass,true);
-assert.equal(draft.review.readerMechanical.checkedParagraphCount,4);
+assert.equal(draft.review.readerMechanical.checkedParagraphCount,5);
+assert.equal(draft.review.seasonRootContext.ruleId,
+ 'chuk-mi-winter-day-root-comparison-v1');
+assert.equal(draft.review.seasonRootContext.variantId,'day-and-hour-hidden-same-element-v1');
+assert.deepEqual(draft.review.seasonRootContext.matched.hourRootRefs,
+ ['natal.hour.hidden.乙']);
+assert(draft.reader.paragraphs.seasonRoot.text.includes('위치를 두 곳으로'));
+assert(draft.review.seasonRootContext.sourceRefs.includes('facts.qiEvidence'));
+assert(draft.review.seasonRootContext.sourceRefs.includes('facts.stemConnections'));
+assert(draft.review.seasonRootContext.sourceRefs.includes('natal.day.hidden.乙'));
 assert.equal(packet.chart.hour,'癸未');
 assert.equal(draft.review.hourContext.ruleId,'hour-month-pyeonin-repeated-v1');
 assert.deepEqual(draft.review.hourContext.sourceRefs,
@@ -103,6 +112,9 @@ assert(!unknownTime.wholeChartEvidence.otherVisible.some(x=>x.position==='hour')
 assert.equal(unknownTime.reader.paragraphs.hour,null,
  'unknown birth time must never receive the hour-based interpretation');
 assert.equal(unknownTime.review.hourContext,null);
+assert.equal(unknownTime.review.seasonRootContext,null);
+assert.equal(unknownTime.reader.paragraphs.seasonRoot,null,
+ 'an unreported hour cannot support two-position root claims');
 assert.deepEqual(unknownTime.reader.paragraphs.strength,draft.reader.paragraphs.strength);
 assert.deepEqual(unknownTime.reader.paragraphs.context,draft.reader.paragraphs.context);
 const evening=engine.compile(facts.build({...sample,birthTime:'20:20'},2027));
@@ -111,11 +123,16 @@ assert.equal(evening.review.hourContext.ruleId,'hour-month-output-resource-contr
 assert.equal(evening.review.hourContext.matched.hourPillar,'丙戌');
 assert.equal(evening.review.hourContext.matched.hourTenGod,'상관');
 assert.equal(evening.review.hourContext.matched.relativeToMonth,'different-category');
+assert.equal(evening.review.seasonRootContext.variantId,'day-only-hidden-same-element-v1');
+assert.deepEqual(evening.review.seasonRootContext.matched.hourRootRefs,[]);
+assert(!evening.review.seasonRootContext.sourceRefs.includes('natal.hour.hidden.乙'));
+assert(evening.reader.paragraphs.seasonRoot.text.includes('한 곳입니다'));
 assert(evening.reader.paragraphs.hour.text.includes('이해한다는 뜻이 확인되지만'));
 assert.notDeepEqual(evening.reader,draft.reader,
  'a verified change of hour ten-god must change the relevant reader paragraph');
 assert.deepEqual(evening.reader.paragraphs.strength,draft.reader.paragraphs.strength);
 assert.deepEqual(evening.reader.paragraphs.context,draft.reader.paragraphs.context);
+assert.notDeepEqual(evening.reader.paragraphs.seasonRoot,draft.reader.paragraphs.seasonRoot);
 assert.equal(evening.apiCalls,0);
 assert.equal(evening.releaseVerdict,'not-approved');
 const altered=structuredClone(packet);
@@ -143,6 +160,7 @@ assert(!/두 배|반대 성향/.test(sameKind.reader.paragraphs.strength.text),
 assert.equal(sameKind.releaseVerdict,'not-approved');
 assert.equal(sameKind.review.readerMechanical.mechanicalPass,true);
 assert.equal(sameKind.reader.paragraphs.context,null);
+assert.equal(sameKind.reader.paragraphs.seasonRoot,null);
 assert.equal(sameKind.review.natalContext,null,
  'unrelated month context must not inherit the 丑未 relationship reading');
 const falseScene=structuredClone(sameKind.reader);
@@ -212,6 +230,27 @@ const tamperedYearSymbol=structuredClone(packet);
 tamperedYearSymbol.chart.year='甲戌';
 assert.throws(()=>engine.compile(tamperedYearSymbol),
  /CORE_GRAPH_CALCULATED_EVIDENCE_DIVERGED|CORE_GRAPH_VISIBLE_POSITION_DIVERGED/);
+const seasonRootContext=require('./report-core-season-root-context');
+const wrongSeasonRule=structuredClone(knowledge);
+wrongSeasonRule.seasonRootRules[0].when.monthSeason='summer';
+assert.throws(()=>seasonRootContext.audit(wrongSeasonRule),
+ /CORE_SEASON_ROOT_RULE_INVALID/);
+const wrongRootVariant=structuredClone(knowledge);
+wrongRootVariant.seasonRootRules[0].variants[1].hourRootExpected=true;
+assert.throws(()=>seasonRootContext.audit(wrongRootVariant),
+ /CORE_SEASON_ROOT_VARIANT_INVALID/);
+const wrongRootDomain=structuredClone(knowledge);
+wrongRootDomain.seasonRootRules[0].variants[0].reader.text+=' 직장 승진이 보장됩니다.';
+assert.throws(()=>seasonRootContext.audit(wrongRootDomain),
+ /CORE_SEASON_ROOT_VARIANT_INVALID/);
+const alteredSeasonClaim=structuredClone(packet);
+alteredSeasonClaim.facts.seasonalEvidence.monthSeason='spring';
+assert.throws(()=>seasonRootContext.select(alteredSeasonClaim,
+ draft.wholeChartEvidence,draft.ruleId),/CORE_SEASON_ROOT_SEASON_MISMATCH/);
+const removedDayRoot=structuredClone(draft.wholeChartEvidence);
+removedDayRoot.dayMasterRoots=removedDayRoot.dayMasterRoots.filter(x=>x.position!=='day');
+assert.throws(()=>seasonRootContext.select(packet,removedDayRoot,draft.ruleId),
+ /CORE_SEASON_ROOT_POSITION_MISMATCH/);
 const hourContext=require('./report-core-hour-context');
 const wrongHourGod=structuredClone(knowledge);
 wrongHourGod.hourContextRules[1].when.hourTenGod='편관';
@@ -277,6 +316,7 @@ assert(summary.withDraft>=2&&summary.notCovered>0,
 assert.equal(summary.withDraft+summary.notCovered,summary.ready);
 assert(summary.distinctMonthContexts>summary.coveredMonthContexts,
  'the real-date grid exposes genuinely uncovered source contexts');
+assert.equal(summary.draftsWithSeasonRootContext,2);
 assert.equal(summary.draftsWithHourContext,2,
  'known-hour reference cases must be distinguished by verified sources');
 assert.equal(summary.distinctReaderDrafts,3,
@@ -288,6 +328,6 @@ assert.equal(summary.releaseVerdict,'not-approved');
 assert.equal(summary.apiCalls,0);
 console.log('OFFLINE_CORE_KNOWLEDGE_COVERAGE='+JSON.stringify(summary));
 assert(!Object.hasOwn(knowledge,'personalityScores'));
-console.log('PASS offline curated Saju knowledge v0.6: 2 month rules, 1 cross-pillar, 1 natal relation and 2 hour-context drafts,');
+console.log('PASS offline curated Saju knowledge v0.7: validated seasonal root positions, conditional known hour comparison,');
 console.log('true natal graph, same-category anti-double guard, tampered evidence blocked, MBTI/year isolation,');
 console.log('no paid AI, no live app replacement, no human editorial approval');
