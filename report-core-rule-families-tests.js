@@ -6,8 +6,8 @@ const families=require('./report-core-rule-families');
 const coverage=require('./report-core-knowledge-coverage');
 const knowledge=require('./report-core-knowledge.json');
 const expanded=families.expand();
-assert.deepEqual(families.audit(),{familyRules:4,familyVariants:9});
-assert.equal(expanded.length,9);
+assert.deepEqual(families.audit(),{familyRules:8,familyVariants:17});
+assert.equal(expanded.length,17);
 assert.equal(new Set(expanded.map(r=>r.id)).size,9);
 assert.equal(new Set(expanded.map(r=>r.scene)).size,9);
 const found=new Map(),texts=new Set();
@@ -33,8 +33,8 @@ for(const input of coverage.representativeInputs()){
  const altered=engine.compile(facts.build({...input,mbti:'INTJ'},2028));
  assert.deepEqual(altered.reader,result.reader);
 }
-assert.equal(found.size,9,'all branch manuscripts must occur in fixed real-date sample');
-assert.equal(texts.size,9,'each month must have a distinct complete manuscript');
+assert.equal(found.size,17,'all 17 month-specific family manuscripts must match real calendar samples');
+assert.equal(texts.size,17,'different verified family variants must produce distinct full manuscripts');
 const corrupt=structuredClone(knowledge);
 corrupt.familyRules[0].variants[1].monthBranch='亥';
 assert.throws(()=>engine.auditKnowledge(corrupt),/CORE_FAMILY_INVALID_VARIANT/);
@@ -47,4 +47,4 @@ assert.throws(()=>engine.auditKnowledge(impossible),/CORE_KNOWLEDGE_IMPOSSIBLE_M
 const missing=structuredClone(knowledge);
 delete missing.familyRules[3].variants[0].downside;
 assert.throws(()=>engine.auditKnowledge(missing),/CORE_FAMILY_INVALID_VARIANT/);
-console.log('PASS 4 shared source families and 9 different month manuscripts, no paid API');
+console.log('PASS 8 verified families with 17 distinct month manuscripts, no paid API');
