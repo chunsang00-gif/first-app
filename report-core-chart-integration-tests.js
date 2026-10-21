@@ -31,6 +31,25 @@ for(const input of all){
   out.wholeChartEvidence.otherVisible.find(x=>x.position==='hour').tenGod);
  assert.deepEqual(out.review.chartSynthesis.evidence.rootRefs,
   out.wholeChartEvidence.dayMasterRoots.map(x=>x.id));
+ const q=out.review.chartSynthesis.evidence.roleQuestions;
+ assert.deepEqual(q.map(x=>x.position),['year','month','hour'],
+  'every source-specific question is bound to its own natal position');
+ assert.deepEqual(q.map(x=>x.tenGod),[
+  out.wholeChartEvidence.otherVisible.find(x=>x.position==='year').tenGod,
+  out.wholeChartEvidence.monthVisible.tenGod,
+  out.wholeChartEvidence.otherVisible.find(x=>x.position==='hour').tenGod]);
+ assert(q.every(x=>x.question.length>=10));
+ assert(q.every(x=>out.reader.paragraphs.chartSynthesis.text.includes(
+  x.position==='year'?'출생 해의 '+x.tenGod+'에서 확인할 질문은 '+x.question:
+   x.position==='month'?'출생 달의 '+x.tenGod+'에서 확인할 질문은 '+x.question:
+   '출생 시간의 '+x.tenGod+'에서 확인할 질문은 '+x.question)),
+  'reader must contain each grounded question under the matching pillar');
+ assert(!out.reader.paragraphs.chartSynthesis.text.includes('전통적 관점'),
+  'avoid repeating dictionary-like full ten-god definitions');
+ assert(!out.reader.paragraphs.chartSynthesis.text.includes('입니다 출생'),
+  'independent position statements must be separated into complete sentences');
+ assert(!out.reader.paragraphs.chartSynthesis.text.includes('그 뜻은 두 배'),
+  'do not amplify repeated ten-god symbols');
  assert(out.reader.paragraphs.chartSynthesis.text.length>350);
  assert.equal(out.review.readerMechanical.mechanicalPass,true);
  assert.equal(out.releaseVerdict,'not-approved');
