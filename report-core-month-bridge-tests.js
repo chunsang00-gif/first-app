@@ -44,7 +44,7 @@ const broken=structuredClone(b.source);
 broken.elementLink.kind='visible-generates-hidden';
 assert.throws(()=>bridge.build(b.packet,broken),/CORE_BRIDGE_DIRECTION_MISMATCH/);
 const falseGod=structuredClone(b.packet);
-falseGod.facts.tenGods.month.stemTenGod='상관';
+falseGod.facts.tenGods.month.stemTenGod=b.source.monthStem.tenGod==='상관'?'정관':'상관';
 assert.throws(()=>bridge.build(falseGod,b.source),/CORE_BRIDGE_MONTH_PROVENANCE_MISMATCH/);
 const falseSeason=structuredClone(b.packet);
 falseSeason.facts.seasonalEvidence.monthSeason='spring';
