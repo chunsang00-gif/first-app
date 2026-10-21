@@ -2,7 +2,7 @@
 const assert=require('node:assert/strict');
 const facts=require('./report-facts-node'),engine=require('./report-core-knowledge-engine');
 const knowledge=require('./report-core-knowledge.json');
-assert.deepEqual(engine.auditKnowledge(),{tenGods:10,curatedRules:2,crossPillarRules:1,natalContextRules:1});
+assert.deepEqual(engine.auditKnowledge(),{tenGods:10,curatedRules:2,crossPillarRules:1,natalContextRules:1,hourContextRules:2});
 const sample={calendar:'lunar',birthDate:'1982-11-24',birthTime:'14:20',
  gender:'male',mbti:'ISFP',name:'검증용'};
 const packet=facts.build(sample,2027),draft=engine.compile(packet);
@@ -13,7 +13,13 @@ assert.deepEqual([draft.scope.visibleTenGod,draft.scope.hiddenTenGod],['편인',
 assert.equal(draft.scope.monthElementRelation,'hidden-controls-visible');
 assert.equal(draft.scope.inferredPersonality,false);
 assert.equal(draft.review.readerMechanical.mechanicalPass,true);
-assert.equal(draft.review.readerMechanical.checkedParagraphCount,3);
+assert.equal(draft.review.readerMechanical.checkedParagraphCount,4);
+assert.equal(packet.chart.hour,'癸未');
+assert.equal(draft.review.hourContext.ruleId,'hour-month-pyeonin-repeated-v1');
+assert.deepEqual(draft.review.hourContext.sourceRefs,
+ ['natal.hour.stem','natal.month.stem']);
+assert.equal(draft.review.hourContext.matched.relativeToMonth,'same-category-same-subtype');
+assert(draft.reader.paragraphs.hour.text.includes('두 배로 강하거나'));
 assert(draft.reader.paragraphs.context?.text.includes('태어난 날까지 비교하면'));
 assert(draft.reader.paragraphs.context.text.includes('다른 출생 위치와 계절에 따라'));
 assert.equal(draft.review.natalContext.readerScope,'verified-branch-pair-only');
@@ -94,8 +100,24 @@ assert(!unknownTime.compositionPlan.steps.some(s=>s.id==='other-visible-hour'),
  'unknown birth hour must never produce inferred hour plan');
 assert(!unknownTime.wholeChartEvidence.otherVisible.some(x=>x.position==='hour'),
  'unknown birth time must not create hour-stem facts');
-assert.deepEqual(unknownTime.reader,draft.reader,
- 'month-only evidence cannot silently infer or use the unreported birth hour');
+assert.equal(unknownTime.reader.paragraphs.hour,null,
+ 'unknown birth time must never receive the hour-based interpretation');
+assert.equal(unknownTime.review.hourContext,null);
+assert.deepEqual(unknownTime.reader.paragraphs.strength,draft.reader.paragraphs.strength);
+assert.deepEqual(unknownTime.reader.paragraphs.context,draft.reader.paragraphs.context);
+const evening=engine.compile(facts.build({...sample,birthTime:'20:20'},2027));
+assert.equal(evening.status,'draft-for-human-review');
+assert.equal(evening.review.hourContext.ruleId,'hour-month-output-resource-contrast-v1');
+assert.equal(evening.review.hourContext.matched.hourPillar,'丙戌');
+assert.equal(evening.review.hourContext.matched.hourTenGod,'상관');
+assert.equal(evening.review.hourContext.matched.relativeToMonth,'different-category');
+assert(evening.reader.paragraphs.hour.text.includes('이해한다는 뜻이 확인되지만'));
+assert.notDeepEqual(evening.reader,draft.reader,
+ 'a verified change of hour ten-god must change the relevant reader paragraph');
+assert.deepEqual(evening.reader.paragraphs.strength,draft.reader.paragraphs.strength);
+assert.deepEqual(evening.reader.paragraphs.context,draft.reader.paragraphs.context);
+assert.equal(evening.apiCalls,0);
+assert.equal(evening.releaseVerdict,'not-approved');
 const altered=structuredClone(packet);
 altered.facts.annualTenGods={stemTenGod:'편관'};
 altered.person.mbti='ENTP';
@@ -190,6 +212,19 @@ const tamperedYearSymbol=structuredClone(packet);
 tamperedYearSymbol.chart.year='甲戌';
 assert.throws(()=>engine.compile(tamperedYearSymbol),
  /CORE_GRAPH_CALCULATED_EVIDENCE_DIVERGED|CORE_GRAPH_VISIBLE_POSITION_DIVERGED/);
+const hourContext=require('./report-core-hour-context');
+const wrongHourGod=structuredClone(knowledge);
+wrongHourGod.hourContextRules[1].when.hourTenGod='편관';
+assert.throws(()=>hourContext.audit(wrongHourGod),
+ /CORE_HOUR_CONTEXT_INVALID_OR_UNSUPPORTED/);
+const wrongHourSource=structuredClone(knowledge);
+wrongHourSource.hourContextRules[0].sourceRefs=['natal.year.stem','natal.month.stem'];
+assert.throws(()=>hourContext.audit(wrongHourSource),
+ /CORE_HOUR_CONTEXT_INVALID_OR_UNSUPPORTED/);
+const wrongHourGraph=structuredClone(draft.wholeChartEvidence);
+wrongHourGraph.otherVisible=wrongHourGraph.otherVisible.filter(r=>r.position!=='hour');
+assert.throws(()=>hourContext.select(packet,wrongHourGraph,draft.ruleId),
+ /CORE_HOUR_CONTEXT_VERIFIED_SOURCE_MISMATCH/);
 // The DB itself must be satisfiable by the CANONICAL ten-god/element
 // relationships, rather than relying on the shape of a JSON rule.
 const natal=require('./report-core-natal-context');
@@ -242,13 +277,17 @@ assert(summary.withDraft>=2&&summary.notCovered>0,
 assert.equal(summary.withDraft+summary.notCovered,summary.ready);
 assert(summary.distinctMonthContexts>summary.coveredMonthContexts,
  'the real-date grid exposes genuinely uncovered source contexts');
-assert(summary.readerReuseGroups>=1&&summary.readerReusedAcrossChartCount>=1,
- 'a meaningful difference in the full chart is still being ignored by some draft rules');
+assert.equal(summary.draftsWithHourContext,2,
+ 'known-hour reference cases must be distinguished by verified sources');
+assert.equal(summary.distinctReaderDrafts,3,
+ 'two distinct hour readings plus one other reviewed month draft');
+assert.equal(summary.readerReusedAcrossChartCount,0,
+ 'the known distinct-hour chart pair must not receive identical reader text');
 assert.equal(summary.humanReviewRequired,true);
 assert.equal(summary.releaseVerdict,'not-approved');
 assert.equal(summary.apiCalls,0);
 console.log('OFFLINE_CORE_KNOWLEDGE_COVERAGE='+JSON.stringify(summary));
 assert(!Object.hasOwn(knowledge,'personalityScores'));
-console.log('PASS offline curated Saju knowledge v0.3: 2 month rules and 1 cross-pillar draft,');
+console.log('PASS offline curated Saju knowledge v0.6: 2 month rules, 1 cross-pillar, 1 natal relation and 2 hour-context drafts,');
 console.log('true natal graph, same-category anti-double guard, tampered evidence blocked, MBTI/year isolation,');
 console.log('no paid AI, no live app replacement, no human editorial approval');

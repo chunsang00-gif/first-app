@@ -1,5 +1,5 @@
 {
-  "version": "core-knowledge-v0.5",
+  "version": "core-knowledge-v0.6",
   "kind": "traditional-symbolic-interpretation-not-personality-measurement",
   "editorialStatus": "candidate-only-requires-human-review",
   "tenGodScopes": {
@@ -123,6 +123,64 @@
         "no-strength-estimate"
       ],
       "readerScope": "verified-branch-pair-only"
+    }
+  ],
+  "hourContextRules": [
+    {
+      "id": "hour-month-pyeonin-repeated-v1",
+      "status": "editorial-candidate",
+      "when": {
+        "coreRuleId": "month-pair-pyeonin-pyeonjae-v1",
+        "dayStem": "乙",
+        "monthStem": "癸",
+        "hourPillar": "癸未",
+        "hourTenGod": "편인",
+        "monthTenGod": "편인",
+        "relativeToMonth": "same-category-same-subtype"
+      },
+      "reader": {
+        "label": "태어난 시간에도 같은 뜻이 있을 때",
+        "text": "태어난 달에는 낯선 내용을 자기 식으로 풀어 이해한다는 뜻이 있고, 태어난 시간에도 같은 분류가 확인됩니다. 서로 다른 두 출생 자리에서 비슷한 주제가 나타나는 셈입니다. 그렇다고 그 성향이 두 배로 강하거나 실제로 혼자 판단하기를 좋아한다고 단정할 수는 없습니다. 달에서 읽은 의미가 다른 자리에서도 확인된다는 점을 구별해 설명하는 것이며, 시간의 글자만으로 장래의 사건이나 행동을 정할 수는 없습니다."
+      },
+      "readerScope": "verified-hour-month-symbol-comparison-only",
+      "evidenceRole": "exact-natal-hour-and-month-visible-ten-god-pair-only",
+      "sourceRefs": [
+        "natal.hour.stem",
+        "natal.month.stem"
+      ],
+      "limits": [
+        "no-observed-trait",
+        "no-strength-multiplier",
+        "no-event-prediction"
+      ]
+    },
+    {
+      "id": "hour-month-output-resource-contrast-v1",
+      "status": "editorial-candidate",
+      "when": {
+        "coreRuleId": "month-pair-pyeonin-pyeonjae-v1",
+        "dayStem": "乙",
+        "monthStem": "癸",
+        "hourPillar": "丙戌",
+        "hourTenGod": "상관",
+        "monthTenGod": "편인",
+        "relativeToMonth": "different-category"
+      },
+      "reader": {
+        "label": "이해하는 뜻과 표현하는 뜻의 차이",
+        "text": "태어난 달에서는 낯선 내용을 자기 방식으로 이해한다는 뜻이 확인되지만, 태어난 시간에서는 생각을 밖으로 표현한다는 별개의 뜻이 나타납니다. 전통 분류가 서로 다르므로 두 글자를 하나의 성격으로 합쳐서는 안 됩니다. 어떤 생각을 머릿속에서 정리하는 일과 다른 사람이 알아듣도록 설명하는 일은 구별해서 볼 수 있습니다. 다만 이 비교는 출생 자리에 적힌 분류의 차이일 뿐, 실제 말솜씨나 창의력, 장래의 성과를 측정한 결과는 아닙니다."
+      },
+      "readerScope": "verified-hour-month-symbol-comparison-only",
+      "evidenceRole": "exact-natal-hour-and-month-visible-ten-god-pair-only",
+      "sourceRefs": [
+        "natal.hour.stem",
+        "natal.month.stem"
+      ],
+      "limits": [
+        "no-observed-trait",
+        "no-strength-multiplier",
+        "no-event-prediction"
+      ]
     }
   ]
 }

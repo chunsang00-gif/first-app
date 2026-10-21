@@ -10,6 +10,7 @@ const wholeChart=require('./report-core-evidence-graph');
 const composer=require('./report-core-composition');
 const editorial=require('./report-core-reader-editorial');
 const natalContext=require('./report-core-natal-context');
+const hourContext=require('./report-core-hour-context');
 const GODS=['비견','겁재','식신','상관','정재','편재','정관','편관','정인','편인'];
 // Cross-check against the same canonical lunar calendar ten-god table.
 // Do not trust category labels copied from potentially corrupted fact rows.
@@ -60,7 +61,7 @@ function possibleCrossSymbol(extra,baseRule){
  });
 }
 function auditKnowledge(kb=knowledge){
- if(kb.version!=='core-knowledge-v0.5'||
+ if(kb.version!=='core-knowledge-v0.6'||
     JSON.stringify(Object.keys(kb.tenGodScopes).sort())!==
     JSON.stringify([...GODS].sort()))throw Error('CORE_KNOWLEDGE_INCOMPLETE_TEN_GOD_SCOPES');
  const ids=new Set(),contexts=new Set();
@@ -115,7 +116,7 @@ function auditKnowledge(kb=knowledge){
   crossIds.add(extra.id);
  }
  return {tenGods:GODS.length,curatedRules:contexts.size,
-  crossPillarRules:crossIds.size,...natalContext.audit(kb)};
+  crossPillarRules:crossIds.size,...natalContext.audit(kb),...hourContext.audit(kb)};
 }
 auditKnowledge();
 function compile(packet){
@@ -190,11 +191,13 @@ function compile(packet){
  if(extraSourceIds.some(id=>!sourceRows[id]))
   throw Error('CORE_KNOWLEDGE_MISSING_CROSS_PILLAR_SOURCE');
  const natal=natalContext.select(packet,graph,rule.id);
+ const hour=hourContext.select(packet,graph,rule.id);
  const paragraph=[rule.scene,rule.explanation,rule.advantage,rule.downside].join(' ');
  const reader={title:rule.title,keyJudgment:rule.keyJudgment,
   paragraphs:{temperament:cross?{...cross.reader}:null,
    strength:{label:'하나의 선택에서 두 의미를 보면',text:paragraph},
-   context:natal?{...natal.reader}:null}};
+   context:natal?{...natal.reader}:null,
+   hour:hour?{...hour.reader}:null}};
  const mechanical=editorial.inspect(reader);
  if(!mechanical.mechanicalPass)
   throw Error('CORE_KNOWLEDGE_READER_MECHANICAL_REJECT:'+mechanical.problems.join(','));
@@ -206,6 +209,9 @@ function compile(packet){
   reader,
   review:{ruleClaim:rule.claim,evidenceRole:rule.evidenceRole,
    verifiedConditions:{...rule.when},
+   hourContext:hour?{ruleId:hour.ruleId,sourceRefs:hour.sourceRefs,
+    matched:hour.matched,evidenceRole:hour.evidenceRole,
+    readerScope:hour.readerScope,limits:hour.limits}:null,
    natalContext:natal?{ruleId:natal.ruleId,sourceRefs:natal.sourceRefs,
     matched:natal.matched,evidenceRole:natal.evidenceRole,
     readerScope:natal.readerScope,limits:natal.limits}:null,

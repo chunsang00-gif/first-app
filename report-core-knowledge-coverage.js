@@ -25,7 +25,7 @@ function assess(inputs){
  const readers=new Map(),plans=new Map(),monthContexts=new Set(),coveredContexts=new Set();
  const stats={knowledgeVersion:knowledge.version,kind:'fixed-offline-grid-not-user-traffic',
   inputCount:inputs.length,ready:0,blocked:0,withDraft:0,notCovered:0,
-  draftsWithNatalContext:0,
+  draftsWithNatalContext:0,draftsWithHourContext:0,
   withEvidencePlan:0,plansWithoutReaderDraft:0,distinctPlans:0,
   reusedPlanAcrossCharts:0,
   distinctCharts:0,distinctMonthContexts:0,coveredMonthContexts:0,
@@ -70,6 +70,17 @@ function assess(inputs){
         r.positions.includes('day')&&r.branches===
         natt.matched.monthBranch+natt.matched.dayBranch))
      throw Error('CORE_COVERAGE_UNVERIFIED_NATAL_CONTEXT_TEXT');
+   }
+   const hour=row.review?.hourContext;
+   if(hour){
+    stats.draftsWithHourContext++;
+    const matched=row.wholeChartEvidence?.otherVisible?.find(r=>r.position==='hour');
+    if(!row.reader?.paragraphs?.hour?.text||
+       hour.sourceRefs?.join('|')!=='natal.hour.stem|natal.month.stem'||
+       hour.matched.hourTenGod!==matched?.tenGod||
+       hour.matched.relativeToMonth!==matched?.relativeToMonth||
+       row.wholeChartEvidence.unknownBirthHour)
+     throw Error('CORE_COVERAGE_UNVERIFIED_HOUR_CONTEXT_TEXT');
    }
    if(row.releaseVerdict!=='not-approved'||row.review.humanReviewRequired!==true)
     throw Error('CORE_COVERAGE_RELEASE_GATE_BYPASSED');
