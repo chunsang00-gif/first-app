@@ -65,7 +65,7 @@ function possibleCrossSymbol(extra,baseRule){
  });
 }
 function auditKnowledge(kb=knowledge){
- if(kb.version!=='core-knowledge-v1.8'||
+ if(kb.version!=='core-knowledge-v1.9'||
     JSON.stringify(Object.keys(kb.tenGodScopes).sort())!==
     JSON.stringify([...GODS].sort()))throw Error('CORE_KNOWLEDGE_INCOMPLETE_TEN_GOD_SCOPES');
  const ids=new Set(),contexts=new Set();

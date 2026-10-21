@@ -11,6 +11,26 @@ const GOD={'比肩':'비견','劫财':'겁재','食神':'식신','伤官':'상�
  '偏印':'편인','正印':'정인'};
 const god=(d,x)=>GOD[LunarUtil.SHI_SHEN[d+x]];
 const P=['year','month','day','hour'];
+function natalAssertions(rule,chart){
+ const natal=branch.natal(chart);
+ const legacy=rule.natalEvidence==null;
+ const pairs=legacy?[{type:'충',positions:['month','day'],
+  branches:chart.month[1]+chart.day[1]}]:rule.natalEvidence;
+ const groups=rule.natalGroupEvidence||[];
+ const identity=row=>[row.type,row.positions.join('|'),row.branches].join(':');
+ const observedPairs=new Set(natal.pairs.map(identity));
+ const observedGroups=new Set(natal.groups.map(identity));
+ if(!Array.isArray(pairs)||pairs.length<1||
+    !Array.isArray(groups)||groups.some(x=>!Array.isArray(x.positions)||x.positions.length!==3||
+      new Set(x.positions).size!==3)||
+    pairs.some(x=>!Array.isArray(x.positions)||x.positions.length!==2||
+      new Set(x.positions).size!==2||!observedPairs.has(identity(x)))||
+    groups.some(x=>!observedGroups.has(identity(x)))||
+    new Set(pairs.map(identity)).size!==pairs.length||
+    new Set(groups.map(identity)).size!==groups.length)
+  return null;
+ return {pairs,groups,natal};
+}
 const FORBIDDEN=/(?:반드시 성공|승진이 보장|재산이 증가|성격이 강하다|기운이 약하다는 사실)/;
 function audit(data=kb){
  const bases=[...data.pairRules,...require('./report-core-rule-families').expand(data)];
@@ -27,9 +47,11 @@ function audit(data=kb){
    r.yearGod===god(chart.day[0],chart.year[0])&&
    r.monthGod===base.visible&&r.hiddenGod===base.hidden&&
    r.hourGod===god(chart.day[0],chart.hour[0])&&
-   r.dayBranchRelation==='충'&&
-   branch.pairRelations(chart.month[1],chart.day[1]).includes('충')&&
-   season.HIDDEN[chart.day[1]].some(x=>
+   (r.natalEvidence?
+    r.dayBranchRelation==='table-only':
+    r.dayBranchRelation==='충')&&
+   natalAssertions(r,chart)&&
+   (r.dayRootExpected??true)===season.HIDDEN[chart.day[1]].some(x=>
     season.ELEMENTS[x]===season.ELEMENTS[chart.day[0]])&&
    r.hourRootExpected===season.HIDDEN[chart.hour[1]].some(x=>
     season.ELEMENTS[x]===season.ELEMENTS[chart.day[0]])&&
@@ -61,18 +83,25 @@ function select(packet,graph,coreId){
  const roots=graph.dayMasterRoots||[];
  const dayRoots=roots.filter(x=>x.position==='day');
  const hourRoots=roots.filter(x=>x.position==='hour');
- const rel=graph.natalRelations?.find(x=>x.type==='충'&&
-  JSON.stringify(x.positions)==='["month","day"]'&&
-  x.branches===chart.month[1]+chart.day[1]&&
-  x.transformation==='not-assessed'&&
-  JSON.stringify(x.sourceIds)==='["facts.natalBranchRelations"]');
+ const rel=natalAssertions(r,chart);
+ const matchedRelation=rel&&rel.pairs.every(candidate=>
+  graph.natalRelations?.some(x=>x.type===candidate.type&&
+   JSON.stringify(x.positions)===JSON.stringify(candidate.positions)&&
+   x.branches===candidate.branches&&x.verdict==='table-membership-only'&&
+   x.transformation==='not-assessed'&&
+   JSON.stringify(x.sourceIds)==='["facts.natalBranchRelations"]'));
+ const official=branch.natal(chart);
+ const packetRelations=packet.facts?.natalBranchRelations;
+ const originalRelations=JSON.stringify(packetRelations?.pairs)===
+  JSON.stringify(official.pairs)&&
+  JSON.stringify(packetRelations?.groups)===JSON.stringify(official.groups);
  const refs=['natal.year.stem','natal.month.stem','natal.month.hidden.'+hidden,
   'natal.hour.stem','facts.natalBranchRelations','facts.seasonalEvidence',
   'facts.stemConnections','facts.qiEvidence',...dayRoots.map(x=>x.id),
   ...hourRoots.map(x=>x.id)];
  const s=season.evaluate(chart),provided=packet.facts?.seasonalEvidence;
  const valid=graph.measuredStrength===false&&graph.usedAnnualFacts===false&&
-  graph.unknownBirthHour===false&&rel&&
+  graph.unknownBirthHour===false&&rel&&matchedRelation&&originalRelations&&
   s.monthPhase===r.monthPhase&&s.monthSeason===r.monthSeason&&
   provided?.monthBranch===s.monthBranch&&provided?.monthPhase===s.monthPhase&&
   provided?.monthSeason===s.monthSeason&&
@@ -84,7 +113,7 @@ function select(packet,graph,coreId){
   graph.monthVisible?.tenGod===r.monthGod&&
   graph.otherVisible?.find(x=>x.position==='year')?.tenGod===r.yearGod&&
   graph.otherVisible?.find(x=>x.position==='hour')?.tenGod===r.hourGod&&
-  dayRoots.some(x=>x.id==='natal.day.hidden.'+chart.day[0])&&
+  Boolean(dayRoots.length)===(r.dayRootExpected??true)&&
   Boolean(hourRoots.length)===r.hourRootExpected&&
   roots.every(x=>x.effectStrength==='not-assessed')&&
   [ ['natal.year.stem',r.yearGod,chart.year[0]],
@@ -98,7 +127,9 @@ function select(packet,graph,coreId){
  return {ruleId:r.id,reader:{...r.reader},sourceRefs:refs,
   matched:{chart:{...r.chart},yearTenGod:r.yearGod,monthTenGod:r.monthGod,
    hiddenTenGod:r.hiddenGod,hourTenGod:r.hourGod,
-   relation:'충',dayRootRefs:dayRoots.map(x=>x.id),
+   relation:r.dayBranchRelation,natalPairs:rel.pairs.map(x=>({...x,positions:x.positions.slice()})),
+   natalGroups:rel.groups.map(x=>({...x,positions:x.positions.slice()})),
+   dayRootRefs:dayRoots.map(x=>x.id),dayRootExpected:r.dayRootExpected??true,
    hourRootRefs:hourRoots.map(x=>x.id),hourRootExpected:r.hourRootExpected,
    monthPhase:r.monthPhase,monthSeason:r.monthSeason},
   evidenceRole:r.evidenceRole,readerScope:r.readerScope,

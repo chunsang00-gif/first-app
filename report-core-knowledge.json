@@ -1,5 +1,5 @@
 {
-  "version": "core-knowledge-v1.8",
+  "version": "core-knowledge-v1.9",
   "kind": "traditional-symbolic-interpretation-not-personality-measurement",
   "editorialStatus": "candidate-only-requires-human-review",
   "tenGodScopes": {
@@ -1399,6 +1399,238 @@
       "coreRuleId": "month-pair-pyeonin-pyeonjae-v1",
       "monthPhase": "transition",
       "monthSeason": "winter",
+      "evidenceRole": "exact-four-pillar-canonical-plus-month-day-table-and-same-element-root-positions",
+      "readerScope": "verified-four-position-symbolic-comparison-only",
+      "limits": [
+        "no-strength-inference",
+        "no-clash-root-destruction",
+        "no-behavior-observation",
+        "no-event-prediction"
+      ]
+    },
+    {
+      "id": "full-1988-12-15-year-day-punishment-hour-duty-v1",
+      "coreRuleId": "month-pair-bigeon-jeongin-ja-v1",
+      "chart": {
+        "year": "戊辰",
+        "month": "甲子",
+        "day": "甲辰",
+        "hour": "辛未"
+      },
+      "yearGod": "편재",
+      "monthGod": "비견",
+      "hiddenGod": "정인",
+      "hourGod": "정관",
+      "hourRootExpected": true,
+      "dayRootExpected": true,
+      "dayBranchRelation": "table-only",
+      "natalEvidence": [
+        {
+          "type": "형",
+          "positions": [
+            "year",
+            "day"
+          ],
+          "branches": "辰辰"
+        },
+        {
+          "type": "해",
+          "positions": [
+            "month",
+            "hour"
+          ],
+          "branches": "子未"
+        }
+      ],
+      "natalGroupEvidence": [],
+      "reader": {
+        "label": "공동 기준과 개인 역할을 잇는 네 기둥",
+        "text": "태어난 날의 중심 글자로 네 기둥을 비교하면, 해의 겉글자는 여러 자원 가운데 필요한 것을 살피는 편재, 달의 겉글자는 자신이 맡을 몫을 구별하는 비견, 달의 안쪽은 알려진 기준을 참고하는 정인으로 각각 확인됩니다. 시간의 겉글자는 정해진 규칙과 책임의 범위를 살피는 정관에 해당합니다. 따라서 무엇을 준비할지 고르는 질문, 스스로 맡을 일을 정하는 질문, 이미 알려진 기준을 이해하는 질문, 실제 규칙의 적용 범위를 확인하는 질문을 한 사람의 고정된 성격으로 합치지 않고 단계별로 구별합니다. 해와 날의 글자에는 관계표상 형이라는 관계가, 달과 시간에는 해라는 관계가 확인되지만 실제 불화나 사고를 뜻한다는 근거는 아닙니다. 태어난 날과 시간의 안쪽에는 날의 중심과 같은 오행의 글자가 각각 확인됩니다. 그 위치가 반복된다고 능력이 두 배가 되거나, 특정 관계가 그 글자를 없애는 것으로 판단하지 않습니다. 겨울 핵심월의 계절 관계까지 함께 살피되 사주 전체의 강약을 단정하지 않습니다."
+      },
+      "status": "editorial-candidate",
+      "monthPhase": "core",
+      "monthSeason": "winter",
+      "evidenceRole": "exact-four-pillar-canonical-plus-month-day-table-and-same-element-root-positions",
+      "readerScope": "verified-four-position-symbolic-comparison-only",
+      "limits": [
+        "no-strength-inference",
+        "no-clash-root-destruction",
+        "no-behavior-observation",
+        "no-event-prediction"
+      ]
+    },
+    {
+      "id": "full-1988-12-15-year-hour-clash-peer-v1",
+      "coreRuleId": "month-pair-bigeon-jeongin-ja-v1",
+      "chart": {
+        "year": "戊辰",
+        "month": "甲子",
+        "day": "甲辰",
+        "hour": "甲戌"
+      },
+      "yearGod": "편재",
+      "monthGod": "비견",
+      "hiddenGod": "정인",
+      "hourGod": "비견",
+      "hourRootExpected": false,
+      "dayRootExpected": true,
+      "dayBranchRelation": "table-only",
+      "natalEvidence": [
+        {
+          "type": "형",
+          "positions": [
+            "year",
+            "day"
+          ],
+          "branches": "辰辰"
+        },
+        {
+          "type": "충",
+          "positions": [
+            "year",
+            "hour"
+          ],
+          "branches": "辰戌"
+        },
+        {
+          "type": "충",
+          "positions": [
+            "day",
+            "hour"
+          ],
+          "branches": "辰戌"
+        }
+      ],
+      "natalGroupEvidence": [],
+      "reader": {
+        "label": "같은 개인 역할의 반복과 시간 자리의 차이",
+        "text": "태어난 해에는 필요한 자원을 살피는 편재가, 달에는 스스로 맡을 몫을 구별하는 비견과 알려진 기준을 참고하는 정인이 놓입니다. 이번 출생시간의 겉글자에도 달과 같은 비견이 확인돼, 서로 다른 두 자리에 같은 역할의 상징이 반복된다는 사실을 먼저 구별할 수 있습니다. 그러나 반복 횟수는 자립성이나 행동의 강도를 나타내는 점수가 아닙니다. 날의 안쪽에서는 중심 글자와 같은 오행의 숨은 글자가 확인되는 반면 이번 시간의 안쪽에서는 해당 오행이 확인되지 않습니다. 해와 날은 관계표에서 형에 해당하고, 시간은 해 및 날과 각각 충의 짝으로 분류됩니다. 이는 계산된 지지 관계의 목록이지 실제로 다툼이 생긴다는 예언이나 날의 숨은 글자가 파괴됐다는 근거가 아닙니다. 따라서 출생시간을 달리 입력했을 때 책임을 규칙과 연결하던 설명 대신 개인 역할의 반복과 관계표 위치 차이가 나타난다고 읽으며, 실제 강약과 결과에 대한 판단은 보류합니다."
+      },
+      "status": "editorial-candidate",
+      "monthPhase": "core",
+      "monthSeason": "winter",
+      "evidenceRole": "exact-four-pillar-canonical-plus-month-day-table-and-same-element-root-positions",
+      "readerScope": "verified-four-position-symbolic-comparison-only",
+      "limits": [
+        "no-strength-inference",
+        "no-clash-root-destruction",
+        "no-behavior-observation",
+        "no-event-prediction"
+      ]
+    },
+    {
+      "id": "full-1994-08-15-month-root-hour-duty-v1",
+      "coreRuleId": "family-geopjae-jeongin-autumn-v1-申",
+      "chart": {
+        "year": "甲戌",
+        "month": "壬申",
+        "day": "癸酉",
+        "hour": "己未"
+      },
+      "yearGod": "상관",
+      "monthGod": "겁재",
+      "hiddenGod": "정인",
+      "hourGod": "편관",
+      "hourRootExpected": false,
+      "dayRootExpected": false,
+      "dayBranchRelation": "table-only",
+      "natalEvidence": [
+        {
+          "type": "해",
+          "positions": [
+            "year",
+            "day"
+          ],
+          "branches": "戌酉"
+        },
+        {
+          "type": "형",
+          "positions": [
+            "year",
+            "hour"
+          ],
+          "branches": "戌未"
+        }
+      ],
+      "natalGroupEvidence": [
+        {
+          "type": "방합",
+          "branches": "申酉戌",
+          "positions": [
+            "month",
+            "day",
+            "year"
+          ]
+        }
+      ],
+      "reader": {
+        "label": "표현·공유·기준과 갑작스러운 요청의 구분",
+        "text": "태어난 날의 중심을 기준으로 하면 해의 겉글자는 기존과 다른 표현을 제안하는 상관, 달의 겉글자는 함께 쓰는 몫을 조정하는 겁재, 달의 안쪽 대표 글자는 알려진 지식을 참고하는 정인으로 계산됩니다. 태어난 시간의 겉글자는 뜻밖의 요청 앞에서 책임의 경계를 살피는 편관이므로 세 가지 월·연의 의미와 구별해야 합니다. 날의 중심 오행과 같은 숨은 글자는 달의 안쪽 다른 위치에서 확인되지만, 날과 이번 출생시간의 안쪽에서는 확인되지 않습니다. 해·달·날의 지지는 전통 관계표에서 방합의 세 자리를 모두 채우며, 해와 날에는 해, 해와 시간에는 형이라는 관계도 확인됩니다. 방합의 구성 요소가 갖춰졌다는 사실만으로 실제 오행이 다른 오행으로 변하거나 운명이 결정됐다고 판정할 수는 없습니다. 이 명식에서는 표현하는 문제, 공유하는 문제, 참고할 기준과 예상 밖 요청의 범위를 따로 읽되, 가을 계절과 숨은 글자의 존재 여부를 실제 능력이나 기운의 세기로 바꾸지 않습니다."
+      },
+      "status": "editorial-candidate",
+      "monthPhase": "core",
+      "monthSeason": "autumn",
+      "evidenceRole": "exact-four-pillar-canonical-plus-month-day-table-and-same-element-root-positions",
+      "readerScope": "verified-four-position-symbolic-comparison-only",
+      "limits": [
+        "no-strength-inference",
+        "no-clash-root-destruction",
+        "no-behavior-observation",
+        "no-event-prediction"
+      ]
+    },
+    {
+      "id": "full-1994-08-15-month-root-hour-sharing-v1",
+      "coreRuleId": "family-geopjae-jeongin-autumn-v1-申",
+      "chart": {
+        "year": "甲戌",
+        "month": "壬申",
+        "day": "癸酉",
+        "hour": "壬戌"
+      },
+      "yearGod": "상관",
+      "monthGod": "겁재",
+      "hiddenGod": "정인",
+      "hourGod": "겁재",
+      "hourRootExpected": false,
+      "dayRootExpected": false,
+      "dayBranchRelation": "table-only",
+      "natalEvidence": [
+        {
+          "type": "해",
+          "positions": [
+            "year",
+            "day"
+          ],
+          "branches": "戌酉"
+        },
+        {
+          "type": "해",
+          "positions": [
+            "day",
+            "hour"
+          ],
+          "branches": "酉戌"
+        }
+      ],
+      "natalGroupEvidence": [
+        {
+          "type": "방합",
+          "branches": "申酉戌",
+          "positions": [
+            "month",
+            "day",
+            "year"
+          ]
+        }
+      ],
+      "reader": {
+        "label": "공유의 뜻이 반복될 때의 종합적 구분",
+        "text": "태어난 해의 겉글자는 새 표현을 제안하는 상관이고, 달의 겉글자는 함께 쓰는 몫을 정하는 겁재이며, 달의 대표 속글자는 배운 설명을 참고하는 정인입니다. 이번 태어난 시간의 겉글자에도 겁재가 확인되므로, 달과 시간에 공동으로 사용하는 몫의 의미가 반복된다는 계산상의 차이가 있습니다. 이것을 경쟁심이 두 배라는 뜻으로 읽어서는 안 됩니다. 날의 중심 오행과 같은 숨은 글자는 달 안쪽에서 확인되지만 날과 시간의 안쪽에서는 발견되지 않습니다. 또한 해·달·날은 전통 관계표의 방합 세 글자가 함께 있는 경우이고, 해와 날 및 날과 시간은 각각 해의 짝으로 계산됩니다. 같은 출생연월일에 다른 시간을 적용하면 전통 관계표의 위치와 시간 겉글자의 분류가 달라지지만, 방합이 실제로 완성된 변화로 작용한다거나 해가 현실의 인간관계를 해친다는 사실은 확인된 것이 아닙니다. 이미 확인된 네 기둥의 뜻과 근거만 구별하고 직업·돈·미래의 결과와 강약은 판단하지 않습니다."
+      },
+      "status": "editorial-candidate",
+      "monthPhase": "core",
+      "monthSeason": "autumn",
       "evidenceRole": "exact-four-pillar-canonical-plus-month-day-table-and-same-element-root-positions",
       "readerScope": "verified-four-position-symbolic-comparison-only",
       "limits": [
