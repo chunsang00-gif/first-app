@@ -1,5 +1,5 @@
 'use strict';
-// A data-driven, provider-free candidate for ONE paid-core interpretation.
+// A data-driven, provider-free, condition-qualified first-chapter draft.
 // Stage 1 of migration: do NOT silently replace the established AI report
 // or show drafts to paying users. Coverage must be explicitly curated.
 const knowledge=require('./report-core-knowledge.json');
@@ -19,16 +19,34 @@ function verifiedTenGod(dayStem,otherStem){
  return value;
 }
 function auditKnowledge(){
- if(knowledge.version!=='core-knowledge-v0.1'||
+ if(knowledge.version!=='core-knowledge-v0.2'||
     JSON.stringify(Object.keys(knowledge.tenGodScopes).sort())!==
     JSON.stringify([...GODS].sort()))throw Error('CORE_KNOWLEDGE_INCOMPLETE_TEN_GOD_SCOPES');
- const ids=new Set(),pairs=new Set();
+ const ids=new Set(),contexts=new Set();
  for(const rule of knowledge.pairRules){
   if(!GODS.includes(rule.visible)||!GODS.includes(rule.hidden)||
      rule.status!=='editorial-candidate')throw Error('CORE_KNOWLEDGE_BAD_RULE_CATEGORY');
-  if(ids.has(rule.id)||pairs.has(rule.visible+'>'+rule.hidden))
+
+  const when=rule.when;
+  const validRelations=['same-element','visible-generates-hidden',
+   'hidden-generates-visible','hidden-controls-visible','visible-controls-hidden'];
+  const seasonRelations=['same-element','resource','output',
+   'day-controls','control-on-day'];
+  if(!when||typeof when!=='object'||Array.isArray(when)||
+     JSON.stringify(Object.keys(when).sort())!==JSON.stringify(
+      ['monthBranch','monthElementRelation','monthPhase','seasonToDayRelation'].sort())||
+     !seasonal.MONTH[when.monthBranch]||
+     when.monthPhase!==seasonal.MONTH[when.monthBranch].status||
+     !validRelations.includes(when.monthElementRelation)||
+     !(when.monthPhase==='transition'
+       ?when.seasonToDayRelation==='transitional-month-unresolved'
+       :seasonRelations.includes(when.seasonToDayRelation)))
+   throw Error('CORE_KNOWLEDGE_INVALID_CONTEXT_CONDITION');
+  const contextId=[rule.visible,rule.hidden,when.monthBranch,when.monthElementRelation,
+   when.seasonToDayRelation].join('|');
+  if(ids.has(rule.id)||contexts.has(contextId))
    throw Error('CORE_KNOWLEDGE_DUPLICATED_RULE');
-  ids.add(rule.id);pairs.add(rule.visible+'>'+rule.hidden);
+  ids.add(rule.id);contexts.add(contextId);
   for(const key of ['title','keyJudgment','scene','explanation','advantage','downside','caution']){
    if(typeof rule[key]!=='string'||rule[key].length<12)
     throw Error('CORE_KNOWLEDGE_MISSING_READER_FIELD:'+rule.id+'/'+key);
@@ -37,7 +55,7 @@ function auditKnowledge(){
      !Array.isArray(rule.evidenceLimits)||!rule.evidenceLimits.includes('no-observed-trait'))
    throw Error('CORE_KNOWLEDGE_UNBOUNDED_CLAIM');
  }
- return {tenGods:GODS.length,curatedPairs:pairs.size};
+ return {tenGods:GODS.length,curatedRules:contexts.size};
 }
 auditKnowledge();
 function compile(packet){
@@ -54,6 +72,14 @@ function compile(packet){
     !month.hiddenStems?.some(x=>x.stem===command.mainHiddenStem&&
        x.tenGod===verifiedTenGod(dayStem,command.mainHiddenStem)))
   throw Error('CORE_KNOWLEDGE_CALCULATED_TEN_GOD_DIVERGED');
+ const season=packet.facts.seasonalEvidence;
+ if(season?.monthBranch!==branch||
+    season?.monthPhase!==seasonal.MONTH[branch]?.status||
+    season?.monthMainQiStem!==command.mainHiddenStem||
+    season?.seasonToDayRelation!==(seasonal.MONTH[branch]?.status==='transition'
+      ?'transitional-month-unresolved'
+      :seasonal.relation(seasonal.MONTH[branch].dominant,season.dayElement)))
+  throw Error('CORE_KNOWLEDGE_SEASONAL_PROVENANCE_MISMATCH');
  const context=chartContrast.build(packet)?.monthTenGodContext;
  if(!context?.monthStem||!context?.monthMainHidden)
   throw Error('CORE_KNOWLEDGE_MISSING_VERIFIED_MONTH_PAIR');
@@ -67,12 +93,23 @@ function compile(packet){
   throw Error('CORE_KNOWLEDGE_SOURCE_PAIR_INTEGRITY_FAILED');
  if(!knowledge.tenGodScopes[first.tenGod]||!knowledge.tenGodScopes[second.tenGod])
   throw Error('CORE_KNOWLEDGE_UNSUPPORTED_CALCULATED_TEN_GOD');
- const rule=knowledge.pairRules.find(r=>r.visible===first.tenGod&&r.hidden===second.tenGod);
+ const relation=context.elementLink?.kind;
+ if(context.elementLink?.inference!=='element-relation-only'||
+    context.elementLink?.realizedInteraction!=='not-assessed')
+  throw Error('CORE_KNOWLEDGE_UNSUPPORTED_ELEMENT_CAUSALITY');
+ const matching=knowledge.pairRules.filter(r=>
+  r.visible===first.tenGod&&r.hidden===second.tenGod&&
+  r.when.monthBranch===branch&&r.when.monthPhase===season.monthPhase&&
+  r.when.monthElementRelation===relation&&
+  r.when.seasonToDayRelation===season.seasonToDayRelation);
+ if(matching.length>1)throw Error('CORE_KNOWLEDGE_AMBIGUOUS_CONTEXT_RULE');
+ const rule=matching[0];
  const scope={sourceIds,visibleTenGod:first.tenGod,hiddenTenGod:second.tenGod,
-  monthElementRelation:context.elementLink?.kind||'unresolved',
-  seasonalPhase:packet.facts.seasonalEvidence?.monthPhase||'unknown',
+  monthElementRelation:relation||'unresolved',
+  seasonalPhase:season.monthPhase,monthBranch:branch,
+  seasonToDayRelation:season.seasonToDayRelation,
   inferredPersonality:false,inferredEvent:false,dayMasterStrength:'not-assessed'};
- if(!rule)return {status:'not-covered',reason:'curated-month-pair-rule-required',
+ if(!rule)return {status:'not-covered',reason:'curated-contextual-rule-required',
   knowledgeVersion:knowledge.version,scope,reader:null,releaseVerdict:'not-approved',apiCalls:0};
  const paragraph=[rule.scene,rule.explanation,rule.advantage,rule.downside].join(' ');
  return {
@@ -82,6 +119,7 @@ function compile(packet){
   reader:{title:rule.title,keyJudgment:rule.keyJudgment,
    paragraphs:{temperament:null,strength:{label:'한 상황에서 드러나는 두 관점',text:paragraph}}},
   review:{ruleClaim:rule.claim,evidenceRole:rule.evidenceRole,
+   verifiedConditions:{...rule.when},
    caution:rule.caution,limits:rule.evidenceLimits.slice(),
    sourceIds:sourceIds.slice(),humanReviewRequired:true},
   releaseVerdict:'not-approved',apiCalls:0
