@@ -46,6 +46,22 @@ assert.throws(()=>contrasts.monthHypothetical('편인','UNKNOWN',false),
 const seasonalGroups=require('./report-seasonal-evidence').MONTH;
 for(const branch of ['辰','未','戌','丑'])
  assert.equal(seasonalGroups[branch].status,'transition');
+// Hard-coded source-specific generation arrows: water -> wood; earth -> metal.
+for(const example of [
+ {date:'1988-12-15',month:'甲子',visible:'wood',hidden:'water',kind:'hidden-generates-visible'},
+ {date:'1982-08-15',month:'戊申',visible:'earth',hidden:'metal',kind:'visible-generates-hidden'}
+]){
+ const packet=facts.build({...common,calendar:'solar',birthDate:example.date},2027);
+ assert.equal(packet.status,'ready');
+ assert.equal(packet.chart.month,example.month);
+ const link=contrasts.build(packet).monthTenGodContext.elementLink;
+ assert.equal(link.visibleElement,example.visible);
+ assert.equal(link.hiddenElement,example.hidden);
+ assert.equal(link.kind,example.kind,'generating arrow cannot reverse');
+ assert(link.explanation.includes(
+  example.kind==='hidden-generates-visible'?'본기의 오행이 겉글자의 오행을 생하는':
+    '겉글자의 오행이 본기 오행을 생하는'));
+}
 const results=[];
 for(const input of cases){
  const packet=facts.build(input,2027);
@@ -96,8 +112,8 @@ for(const input of cases){
  const elements=require('./report-seasonal-evidence');
  const relation=elements.relation(hiddenQi.element,visibleQi.element);
  const expectedKinds={
-  'same-element':'same-element',resource:'visible-generates-hidden',
-  output:'hidden-generates-visible','control-on-day':'hidden-controls-visible',
+  'same-element':'same-element',resource:'hidden-generates-visible',
+  output:'visible-generates-hidden','control-on-day':'hidden-controls-visible',
   'day-controls':'visible-controls-hidden'
  };
  assert.equal(link.kind,expectedKinds[relation]);

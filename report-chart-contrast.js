@@ -16,8 +16,8 @@ const LAYER={main:'본기',secondary:'중기',residual:'여기'};
 // a verdict about realized 制化, seasonal governance, personality or fate.
 const MONTH_ELEMENT_PAIR={
  'same-element':{kind:'same-element',explanation:'출생월의 겉글자와 본기가 같은 오행에 속한다. 같은 십성이라는 뜻은 아니다.'},
- resource:{kind:'visible-generates-hidden',explanation:'출생월 겉글자의 오행이 본기 오행을 생하는 일반적인 오행 관계다.'},
- output:{kind:'hidden-generates-visible',explanation:'출생월 본기의 오행이 겉글자의 오행을 생하는 일반적인 오행 관계다.'},
+ resource:{kind:'hidden-generates-visible',explanation:'출생월 본기의 오행이 겉글자의 오행을 생하는 일반적인 오행 관계다.'},
+ output:{kind:'visible-generates-hidden',explanation:'출생월 겉글자의 오행이 본기 오행을 생하는 일반적인 오행 관계다.'},
  'control-on-day':{kind:'hidden-controls-visible',explanation:'출생월 본기의 오행이 겉글자의 오행을 극하는 일반적인 오행 관계다.'},
  'day-controls':{kind:'visible-controls-hidden',explanation:'출생월 겉글자의 오행이 본기 오행을 극하는 일반적인 오행 관계다.'}
 };

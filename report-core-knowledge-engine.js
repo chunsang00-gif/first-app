@@ -28,8 +28,8 @@ function verifiedTenGod(dayStem,otherStem){
 // not merely a set of individually valid symbolic labels.
 const CATEGORY={'same-element':'peer',resource:'resource',output:'output',
  'day-controls':'wealth','control-on-day':'authority'};
-const PAIR_KIND={'same-element':'same-element',resource:'visible-generates-hidden',
- output:'hidden-generates-visible',
+const PAIR_KIND={'same-element':'same-element',resource:'hidden-generates-visible',
+ output:'visible-generates-hidden',
  'control-on-day':'hidden-controls-visible','day-controls':'visible-controls-hidden'};
 const STEMS=Object.keys(seasonal.ELEMENTS);
 function actualContextPossible(rule){
