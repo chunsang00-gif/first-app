@@ -2,7 +2,7 @@
 const assert=require('node:assert/strict');
 const facts=require('./report-facts-node'),engine=require('./report-core-knowledge-engine');
 const knowledge=require('./report-core-knowledge.json');
-assert.deepEqual(engine.auditKnowledge(),{tenGods:10,curatedRules:2,crossPillarRules:1,natalContextRules:1,hourContextRules:2,seasonRootRules:1,seasonRootVariants:2});
+assert.deepEqual(engine.auditKnowledge(),{tenGods:10,curatedRules:6,crossPillarRules:1,natalContextRules:1,hourContextRules:2,seasonRootRules:1,seasonRootVariants:2});
 const sample={calendar:'lunar',birthDate:'1982-11-24',birthTime:'14:20',
  gender:'male',mbti:'ISFP',name:'검증용'};
 const packet=facts.build(sample,2027),draft=engine.compile(packet);
@@ -316,11 +316,13 @@ assert(summary.withDraft>=2&&summary.notCovered>0,
 assert.equal(summary.withDraft+summary.notCovered,summary.ready);
 assert(summary.distinctMonthContexts>summary.coveredMonthContexts,
  'the real-date grid exposes genuinely uncovered source contexts');
+assert.equal(summary.withDraft,8);
+assert.equal(summary.notCovered,91);
 assert.equal(summary.draftsWithSeasonRootContext,2);
 assert.equal(summary.draftsWithHourContext,2,
  'known-hour reference cases must be distinguished by verified sources');
-assert.equal(summary.distinctReaderDrafts,3,
- 'two distinct hour readings plus one other reviewed month draft');
+assert.equal(summary.distinctReaderDrafts,7,
+ 'existing three + four new distinct month reading drafts');
 assert.equal(summary.readerReusedAcrossChartCount,0,
  'the known distinct-hour chart pair must not receive identical reader text');
 assert.equal(summary.humanReviewRequired,true);
@@ -328,6 +330,6 @@ assert.equal(summary.releaseVerdict,'not-approved');
 assert.equal(summary.apiCalls,0);
 console.log('OFFLINE_CORE_KNOWLEDGE_COVERAGE='+JSON.stringify(summary));
 assert(!Object.hasOwn(knowledge,'personalityScores'));
-console.log('PASS offline curated Saju knowledge v0.7: validated seasonal root positions, conditional known hour comparison,');
+console.log('PASS offline curated Saju knowledge v0.8: corrected generating directions, 4 more curated month contexts,');
 console.log('true natal graph, same-category anti-double guard, tampered evidence blocked, MBTI/year isolation,');
 console.log('no paid AI, no live app replacement, no human editorial approval');

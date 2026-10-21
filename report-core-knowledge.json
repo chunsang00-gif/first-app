@@ -1,5 +1,5 @@
 {
-  "version": "core-knowledge-v0.7",
+  "version": "core-knowledge-v0.8",
   "kind": "traditional-symbolic-interpretation-not-personality-measurement",
   "editorialStatus": "candidate-only-requires-human-review",
   "tenGodScopes": {
@@ -68,6 +68,114 @@
         "no-invented-clash",
         "no-predicted-event"
       ]
+    },
+    {
+      "id": "month-pair-bigeon-jeongin-ja-v1",
+      "visible": "비견",
+      "hidden": "정인",
+      "status": "editorial-candidate",
+      "claim": "子월 비견과 정인이라는 서로 다른 자리가 연결된다는 전통적 풀이이며 실제 협동 능력이나 강약의 관찰 결과는 아닙니다.",
+      "title": "배운 기준과 스스로 맡을 몫을 연결하는 방향",
+      "keyJudgment": "태어난 달에서 배움과 도움을 참고하는 뜻을 스스로 맡을 몫을 구분하는 뜻과 함께 살펴봅니다.",
+      "scene": "여러 사람이 함께 준비하는 작은 모임에서 역할을 나눠야 하는 가상 상황을 생각해 보겠습니다.",
+      "explanation": "월의 겉글자에는 자신과 동료의 몫을 나누는 뜻이, 안쪽 중심 글자에는 알려진 지식과 도움을 참고하는 뜻이 나타납니다. 안쪽 오행이 겉글자를 생하는 방향으로 놓여 있어, 함께 배운 기준을 바탕으로 맡을 일을 정한다는 해석의 틀을 살필 수 있습니다.",
+      "advantage": "먼저 모두가 이해할 기준을 확인한 뒤 각자가 맡을 일을 정한다면, 같은 안내를 보고도 어디까지 함께 결정할지 구분하는 데 도움이 되는 가상 예시가 됩니다.",
+      "downside": "반대로 전달받은 방법을 참고하면서도 누가 무엇을 맡는지 정하지 않거나, 자기 몫만 먼저 정하고 공통의 기준을 생략한다면 역할을 다시 나눠야 할 수 있습니다.",
+      "caution": "출생월의 두 계산 위치에서 확인된 전통 분류의 검토 후보로서 실제 성격·능력·경험이나 미래 사건을 판정하지 않습니다.",
+      "evidenceRole": "month-visible-and-month-principal-hidden-only",
+      "evidenceLimits": [
+        "no-observed-trait",
+        "no-qi-strength",
+        "no-invented-clash",
+        "no-predicted-event"
+      ],
+      "when": {
+        "monthBranch": "子",
+        "monthPhase": "core",
+        "monthElementRelation": "hidden-generates-visible",
+        "seasonToDayRelation": "resource"
+      }
+    },
+    {
+      "id": "month-pair-pyeonin-bigeon-sin-v1",
+      "visible": "편인",
+      "hidden": "비견",
+      "status": "editorial-candidate",
+      "claim": "申월 편인과 비견의 월간·본기 분류를 비교할 뿐 현실의 팀워크나 창의력 수준을 측정하지 않습니다.",
+      "title": "새롭게 해석한 방법과 함께할 부분의 차이",
+      "keyJudgment": "낯선 내용을 자기 방식으로 이해하는 뜻과 자신이 맡을 몫을 정하는 뜻을 나누어 읽습니다.",
+      "scene": "공동으로 쓰는 자료를 새로운 방식으로 정리할지 검토하는 장면을 떠올려 보겠습니다.",
+      "explanation": "태어난 달의 겉글자는 낯선 정보를 달리 이해한다는 뜻이고, 안쪽의 중심 글자는 자신과 동료의 몫을 나눈다는 뜻입니다. 겉글자의 오행이 안쪽 오행을 생하는 관계까지 확인되므로, 가상의 작업에서 방법을 새로 이해하는 일과 누구의 책임으로 진행할지 정하는 일을 각각 살펴볼 수 있습니다.",
+      "advantage": "새로운 정리법을 제안하기 전에 누가 어떤 부분을 담당하는지 함께 정하는 상황이라면, 아이디어의 내용과 실제 실행의 몫을 구별하는 데 도움이 될 수 있습니다.",
+      "downside": "이해한 방법을 계속 바꾸기만 하면 맡을 일이 정해지지 않고, 역할만 먼저 고정하면 다른 설명 방법을 검토할 여지가 줄어드는 가상 상황도 생각할 수 있습니다.",
+      "caution": "출생월의 두 계산 위치에서 확인된 전통 분류의 검토 후보로서 실제 성격·능력·경험이나 미래 사건을 판정하지 않습니다.",
+      "evidenceRole": "month-visible-and-month-principal-hidden-only",
+      "evidenceLimits": [
+        "no-observed-trait",
+        "no-qi-strength",
+        "no-invented-clash",
+        "no-predicted-event"
+      ],
+      "when": {
+        "monthBranch": "申",
+        "monthPhase": "core",
+        "monthElementRelation": "visible-generates-hidden",
+        "seasonToDayRelation": "same-element"
+      }
+    },
+    {
+      "id": "month-pair-jeongin-jeonggwan-yu-v1",
+      "visible": "정인",
+      "hidden": "정관",
+      "status": "editorial-candidate",
+      "claim": "酉월 정인·정관의 의미는 실제 조직 적응력, 직책, 승진이나 개인의 성격을 증명하지 않습니다.",
+      "title": "배운 설명과 정해진 역할을 구분할 때",
+      "keyJudgment": "태어난 달에서 배우고 도움을 참고한다는 의미와 규칙에 맞춰 역할을 살핀다는 의미를 분리해 풀이합니다.",
+      "scene": "정해진 절차에 따라 참가자에게 안내할 내용을 준비하는 상황을 생각해 보겠습니다.",
+      "explanation": "월의 겉글자는 이미 알려진 지식을 받아 이해한다는 뜻이고, 안쪽의 중심 글자는 정해진 규칙과 맡은 역할을 살핀다는 뜻입니다. 안쪽 오행이 겉글자를 생하는 기본 방향도 확인됩니다. 전통적 의미를 연결할 때는 안내를 배우는 과정과 그 내용을 누가 어떤 역할에서 적용하는지를 구별할 수 있습니다.",
+      "advantage": "설명을 이해한 뒤 어떤 규칙을 누구에게 안내할지 나누어 생각하는 경우라면, 지식과 역할의 차이가 가상 장면에서 더 분명해질 수 있습니다.",
+      "downside": "절차의 이름만 알고 왜 필요한지 모르거나, 지식은 충분히 살펴도 적용할 범위를 정하지 않으면 안내와 실행의 역할 사이에 공백이 남을 수 있습니다.",
+      "caution": "출생월의 두 계산 위치에서 확인된 전통 분류의 검토 후보로서 실제 성격·능력·경험이나 미래 사건을 판정하지 않습니다.",
+      "evidenceRole": "month-visible-and-month-principal-hidden-only",
+      "evidenceLimits": [
+        "no-observed-trait",
+        "no-qi-strength",
+        "no-invented-clash",
+        "no-predicted-event"
+      ],
+      "when": {
+        "monthBranch": "酉",
+        "monthPhase": "core",
+        "monthElementRelation": "hidden-generates-visible",
+        "seasonToDayRelation": "control-on-day"
+      }
+    },
+    {
+      "id": "month-pair-jeonggwan-sanggwan-in-v1",
+      "visible": "정관",
+      "hidden": "상관",
+      "status": "editorial-candidate",
+      "claim": "寅월 정관과 상관의 극 관계는 현실의 규칙 위반이나 조직 갈등, 미래 불이익을 예측한 것이 아닙니다.",
+      "title": "정해진 형식과 다른 표현을 나누어 보는 관점",
+      "keyJudgment": "규칙과 역할을 살피는 뜻과 기존과 다른 방법을 표현하는 뜻을 실제 성격의 충돌로 단정하지 않고 비교합니다.",
+      "scene": "정해진 형식 안에서 새로운 설명 방법을 골라야 하는 가상 상황을 떠올려 보겠습니다.",
+      "explanation": "월의 겉자리에는 정해진 규칙과 역할을 살핀다는 뜻이 있고, 안쪽의 중심 글자에는 새로운 표현 방법을 생각한다는 뜻이 있습니다. 안쪽 오행이 겉글자를 극하는 관계도 계산되지만 이것만으로 실제 다툼이 생긴다는 증거는 아닙니다. 형식을 확인하는 문제와 그 안에서 표현을 바꿀 범위를 정하는 문제를 구별해 볼 수 있습니다.",
+      "advantage": "무엇을 지켜야 하고 어떤 표현은 바꿔도 되는지 범위가 명확한 상황이라면, 두 의미가 하나의 선택에서 각각 어떤 역할을 하는지 설명할 수 있습니다.",
+      "downside": "바꿀 수 있는 범위를 확인하지 않고 새 표현부터 적용하거나, 정해진 형식만 따르느라 전달 목적을 잊으면 가상 상황에서 결과물의 뜻이 흐려질 수 있습니다.",
+      "caution": "출생월의 두 계산 위치에서 확인된 전통 분류의 검토 후보로서 실제 성격·능력·경험이나 미래 사건을 판정하지 않습니다.",
+      "evidenceRole": "month-visible-and-month-principal-hidden-only",
+      "evidenceLimits": [
+        "no-observed-trait",
+        "no-qi-strength",
+        "no-invented-clash",
+        "no-predicted-event"
+      ],
+      "when": {
+        "monthBranch": "寅",
+        "monthPhase": "core",
+        "monthElementRelation": "hidden-controls-visible",
+        "seasonToDayRelation": "output"
+      }
     }
   ],
   "crossPillarRules": [

@@ -64,11 +64,11 @@ const stats=coverage.assess(coverage.representativeInputs());
 assert.equal(stats.ready,99);
 assert.equal(stats.withEditorialOutline,99);
 assert.equal(stats.outlinesWithoutReaderDraft,stats.notCovered);
-assert.equal(stats.notCovered,95);
+assert.equal(stats.notCovered,91);
 assert(stats.distinctEditorialOutlines>=90,
  'factorized outlines must differ across substantially different source charts');
 assert(stats.distinctEditorialOutlines<=stats.distinctCharts);
-assert.equal(stats.withDraft,4,'internal outlines must not be counted as curated prose');
+assert.equal(stats.withDraft,8,'internal outlines must not be counted as curated prose');
 assert.equal(stats.releaseVerdict,'not-approved');
 assert.equal(stats.apiCalls,0);
 console.log('PASS chart-wide source-backed editorial outlines for 99 fixed samples; '+
