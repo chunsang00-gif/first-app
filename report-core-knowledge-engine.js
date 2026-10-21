@@ -67,6 +67,7 @@ function auditKnowledge(kb=knowledge){
     JSON.stringify(Object.keys(kb.tenGodScopes).sort())!==
     JSON.stringify([...GODS].sort()))throw Error('CORE_KNOWLEDGE_INCOMPLETE_TEN_GOD_SCOPES');
  const ids=new Set(),contexts=new Set();
+ const familyAudit=families.audit(kb);
  const allRules=[...kb.pairRules,...families.expand(kb)];
  for(const rule of allRules){
   if(!GODS.includes(rule.visible)||!GODS.includes(rule.hidden)||
@@ -119,7 +120,7 @@ function auditKnowledge(kb=knowledge){
   crossIds.add(extra.id);
  }
  return {tenGods:GODS.length,curatedRules:contexts.size,
-  crossPillarRules:crossIds.size,...families.audit(kb),...natalContext.audit(kb),...hourContext.audit(kb),
+  crossPillarRules:crossIds.size,...familyAudit,...natalContext.audit(kb),...hourContext.audit(kb),
   ...seasonRootContext.audit(kb)};
 }
 auditKnowledge();
