@@ -14,7 +14,7 @@ assert.equal(draft.scope.monthElementRelation,'hidden-controls-visible');
 assert.equal(draft.scope.inferredPersonality,false);
 assert.equal(draft.review.readerMechanical.mechanicalPass,true);
 assert.equal(draft.review.readerMechanical.checkedParagraphCount,3);
-assert(draft.reader.paragraphs.context?.text.includes('태어난 달과 날의 두 자리는'));
+assert(draft.reader.paragraphs.context?.text.includes('태어난 날까지 비교하면'));
 assert(draft.reader.paragraphs.context.text.includes('다른 출생 위치와 계절에 따라'));
 assert.equal(draft.review.natalContext.readerScope,'verified-branch-pair-only');
 assert(!/(?:직장|가족|결혼|연봉)/.test(draft.reader.paragraphs.context.text),
