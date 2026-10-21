@@ -91,21 +91,15 @@ function select(packet,graph){
   {position:'hour',tenGod:hour.tenGod,category:hour.category,question:QUESTIONS[hour.category][2]}
  ];
  const described=roleQuestions.map(r=>
-  POS[r.position]+'의 '+r.tenGod+'에서 확인할 질문은 '+r.question+'입니다');
- const sameYear=year.relativeToMonth==='same-category-same-subtype';
- const sameHour=hour.relativeToMonth==='same-category-same-subtype';
- const shared=[sameYear?'해·달':null,sameHour?'달·시간':null].filter(Boolean);
- const relative=shared.length?
-  shared.join('과 ')+'에는 같은 십성 분류가 반복됩니다. 그렇지만 반복 횟수로 능력의 강약을 계산할 수 없습니다.':
-  '해·달·시간의 분류는 각 위치에서 확인하며, 서로 다른 근거를 하나의 성격으로 합치지 않습니다.';
+  '출생 '+POS[r.position]+'의 '+r.tenGod+'에서 확인할 질문은 '+r.question+'입니다.');
  const categoryContrast=
   '해와 달을 비교하면 '+LINK[year.relativeToMonth]+
   '. 달과 시간을 비교하면 '+LINK[hour.relativeToMonth]+'.';
  const clauses=[
   '이 명식에서 출생월의 두 뜻은 앞에서 살펴봤습니다. 여기서는 태어난 날의 '+ELEMENT[month.dayElement]+
    ' 오행을 기준으로 해·달·시간의 차이를 연결합니다.',
-  described.join(' ')+'.',
-  relative+' '+categoryContrast
+  described.join(' '),
+  categoryContrast
  ];
  clauses.push(month.monthPhase==='transition'?
   '계절을 확인하면 '+PERIOD[month.monthSeason]+
