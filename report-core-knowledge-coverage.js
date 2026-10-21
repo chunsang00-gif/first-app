@@ -22,9 +22,11 @@ function representativeInputs(){
 }
 function assess(inputs){
  if(!Array.isArray(inputs)||!inputs.length)throw Error('CORE_COVERAGE_INPUTS_REQUIRED');
- const readers=new Map(),monthContexts=new Set(),coveredContexts=new Set();
+ const readers=new Map(),plans=new Map(),monthContexts=new Set(),coveredContexts=new Set();
  const stats={knowledgeVersion:knowledge.version,kind:'fixed-offline-grid-not-user-traffic',
   inputCount:inputs.length,ready:0,blocked:0,withDraft:0,notCovered:0,
+  withEvidencePlan:0,plansWithoutReaderDraft:0,distinctPlans:0,
+  reusedPlanAcrossCharts:0,
   distinctCharts:0,distinctMonthContexts:0,coveredMonthContexts:0,
   distinctReaderDrafts:0,readerReuseGroups:0,readerReusedAcrossChartCount:0,
   byRule:{},apiCalls:0,releaseVerdict:'not-approved',humanReviewRequired:true};
@@ -39,6 +41,16 @@ function assess(inputs){
   const chartKey=[packet.chart.year,packet.chart.month,packet.chart.day,
    packet.chart.hour||'hour-not-known'].join('/');
   chartKeys.add(chartKey);
+  const plan=row.compositionPlan;
+  if(!plan||plan.status!=='evidence-plan-for-editorial-review'||
+     plan.releaseVerdict!=='not-approved'||plan.personalizedTextAvailable!==false||
+     plan.apiCalls!==0||!Array.isArray(plan.steps)||plan.steps.length<2)
+   throw Error('CORE_COVERAGE_MISSING_VERIFIED_COMPOSITION_PLAN');
+  stats.withEvidencePlan++;
+  if(row.status==='not-covered')stats.plansWithoutReaderDraft++;
+  const planKey=JSON.stringify({steps:plan.steps,unknownBirthHour:plan.unknownBirthHour});
+  if(!plans.has(planKey))plans.set(planKey,new Set());
+  plans.get(planKey).add(chartKey);
   const context=row.scope&&[row.scope.visibleTenGod,row.scope.hiddenTenGod,
    row.scope.monthBranch,row.scope.seasonalPhase,row.scope.monthElementRelation,
    row.scope.seasonToDayRelation].join('|');
@@ -56,6 +68,9 @@ function assess(inputs){
    readers.get(readKey).add(chartKey);
   }else throw Error('CORE_COVERAGE_UNEXPECTED_OUTPUT_STATUS:'+row.status);
  }
+ stats.distinctPlans=plans.size;
+ stats.reusedPlanAcrossCharts=[...plans.values()]
+  .reduce((n,rows)=>n+Math.max(0,rows.size-1),0);
  stats.distinctCharts=chartKeys.size;
  stats.distinctMonthContexts=monthContexts.size;
  stats.coveredMonthContexts=coveredContexts.size;

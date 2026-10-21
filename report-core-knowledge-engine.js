@@ -7,6 +7,7 @@ const bindings=require('./report-fact-bindings');
 const seasonal=require('./report-seasonal-evidence');
 const chartContrast=require('./report-chart-contrast');
 const wholeChart=require('./report-core-evidence-graph');
+const composer=require('./report-core-composition');
 const GODS=['비견','겁재','식신','상관','정재','편재','정관','편관','정인','편인'];
 // Cross-check against the same canonical lunar calendar ten-god table.
 // Do not trust category labels copied from potentially corrupted fact rows.
@@ -161,6 +162,7 @@ function compile(packet){
  if(matching.length>1)throw Error('CORE_KNOWLEDGE_AMBIGUOUS_CONTEXT_RULE');
  const rule=matching[0];
  const graph=wholeChart.build(packet);
+ const compositionPlan=composer.compose(packet,graph,context);
  const scope={sourceIds,visibleTenGod:first.tenGod,hiddenTenGod:second.tenGod,
   monthElementRelation:relation||'unresolved',
   seasonalPhase:season.monthPhase,monthBranch:branch,
@@ -168,6 +170,7 @@ function compile(packet){
   inferredPersonality:false,inferredEvent:false,dayMasterStrength:'not-assessed'};
  if(!rule)return {status:'not-covered',reason:'curated-contextual-rule-required',
   knowledgeVersion:knowledge.version,scope,wholeChartEvidence:graph,
+  compositionPlan,
   reader:null,releaseVerdict:'not-approved',apiCalls:0};
  // Only an explicitly curated extra rule may extend the month-only reading.
  // Its sources must be independently verified outside the two month rows.
@@ -186,7 +189,7 @@ function compile(packet){
  const paragraph=[rule.scene,rule.explanation,rule.advantage,rule.downside].join(' ');
  return {
   status:'draft-for-human-review',knowledgeVersion:knowledge.version,ruleId:rule.id,
-  scope,wholeChartEvidence:graph,
+  scope,wholeChartEvidence:graph,compositionPlan,
   sourceMeaning:[sourceRows[first.sourceId].traditionalMeaning,
    sourceRows[second.sourceId].traditionalMeaning],
   reader:{title:rule.title,keyJudgment:rule.keyJudgment,

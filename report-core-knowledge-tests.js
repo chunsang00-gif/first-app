@@ -12,6 +12,22 @@ assert.deepEqual(draft.scope.sourceIds,['natal.month.stem','natal.month.hidden.�
 assert.deepEqual([draft.scope.visibleTenGod,draft.scope.hiddenTenGod],['편인','편재']);
 assert.equal(draft.scope.monthElementRelation,'hidden-controls-visible');
 assert.equal(draft.scope.inferredPersonality,false);
+assert.equal(draft.compositionPlan.status,'evidence-plan-for-editorial-review');
+assert.equal(draft.compositionPlan.releaseVerdict,'not-approved');
+assert.equal(draft.compositionPlan.apiCalls,0);
+assert.equal(draft.compositionPlan.personalizedTextAvailable,false);
+assert.equal(draft.compositionPlan.steps[0].id,'month-symbol-pair');
+assert.deepEqual(draft.compositionPlan.steps[0].sourceRefs,
+ ['natal.month.stem','natal.month.hidden.己']);
+assert(draft.compositionPlan.steps.some(x=>x.id==='other-visible-year'&&
+ x.symbols[0].tenGod==='정인'));
+assert(draft.compositionPlan.steps.some(x=>x.id==='other-visible-hour'));
+assert(draft.compositionPlan.steps.some(x=>x.id.startsWith('natal-month-relation-')&&
+ x.relationship==='충'));
+assert(draft.compositionPlan.steps.every(x=>x.evidenceOnly===true&&
+ x.causalOrBehaviorVerdict==='not-assessed'));
+assert(!draft.compositionPlan.sourceRefs.some(x=>x.startsWith('annual.')||
+ x.startsWith('person.')));
 assert.equal(draft.scope.monthBranch,'丑');
 assert.equal(draft.scope.seasonalPhase,'transition');
 assert.equal(draft.scope.seasonToDayRelation,'transitional-month-unresolved');
@@ -55,6 +71,9 @@ assert.deepEqual(mbtiChanged.reader,draft.reader,
  'Saju-only knowledge rules must not change with the user MBTI');
 const unknownTime=engine.compile(facts.build({...sample,unknownBirthTime:true,birthTime:''},2027));
 assert.equal(unknownTime.wholeChartEvidence.unknownBirthHour,true);
+assert.equal(unknownTime.compositionPlan.unknownBirthHour,true);
+assert(!unknownTime.compositionPlan.steps.some(s=>s.id==='other-visible-hour'),
+ 'unknown birth hour must never produce inferred hour plan');
 assert(!unknownTime.wholeChartEvidence.otherVisible.some(x=>x.position==='hour'),
  'unknown birth time must not create hour-stem facts');
 assert.deepEqual(unknownTime.reader,draft.reader,
@@ -62,12 +81,17 @@ assert.deepEqual(unknownTime.reader,draft.reader,
 const altered=structuredClone(packet);
 altered.facts.annualTenGods={stemTenGod:'편관'};
 altered.person.mbti='ENTP';
+assert.deepEqual(engine.compile(altered).compositionPlan,draft.compositionPlan,
+ 'annual forecasting changes and MBTI may not change a natal-only analysis plan');
 assert.deepEqual(engine.compile(altered).reader,draft.reader,
  'annual fortune or MBTI cannot leak into core symbolic reading');
 const same=facts.build({calendar:'solar',birthDate:'1994-04-15',
  birthTime:'14:20',gender:'male',mbti:'ISFP'},2027);
 const sameKind=engine.compile(same);
 assert.equal(sameKind.status,'draft-for-human-review');
+assert.equal(sameKind.compositionPlan.steps[0].sameClassification,true);
+assert(sameKind.compositionPlan.steps[0].interpretationTask.includes('강도가 두 배'),
+ 'same classification cannot be treated as a doubled measured trait');
 assert.equal(sameKind.ruleId,'month-pair-jeongin-jeongin-jin-v1');
 assert.deepEqual([sameKind.scope.visibleTenGod,sameKind.scope.hiddenTenGod],['정인','정인']);
 assert.equal(sameKind.scope.monthBranch,'辰');
@@ -85,6 +109,10 @@ const uncovered=engine.compile(facts.build({calendar:'solar',
 assert.equal(uncovered.status,'not-covered',
  'unreviewed real chart must not generate general-purpose first-chapter prose');
 assert.equal(uncovered.reader,null);
+assert.equal(uncovered.compositionPlan.status,'evidence-plan-for-editorial-review');
+assert(uncovered.compositionPlan.steps.length>=2);
+assert.equal(uncovered.compositionPlan.personalizedTextAvailable,false,
+ 'missing reviewed prose must never silently become a published reading');
 assert.equal(uncovered.apiCalls,0);
 assert.equal(uncovered.releaseVerdict,'not-approved');
 assert(uncovered.wholeChartEvidence?.monthVisible?.id==='natal.month.stem',
@@ -145,6 +173,14 @@ assert.throws(()=>engine.auditKnowledge(mismatchedCross),
 const coverage=require('./report-core-knowledge-coverage');
 const summary=coverage.assess(coverage.representativeInputs());
 assert.equal(summary.inputCount,99);
+assert.equal(summary.withEvidencePlan,99,
+ 'all successfully calculated charts must receive audited evidence plans');
+assert.equal(summary.plansWithoutReaderDraft,summary.notCovered,
+ 'no generic paid text may be substituted for uncovered rule combinations');
+assert(summary.distinctPlans>summary.distinctReaderDrafts,
+ 'factorized plan must distinguish more verified fact combinations than hardcoded prose');
+assert(summary.distinctPlans<=summary.distinctCharts,
+ 'same calculated full chart must never produce a random new plan');
 assert.equal(summary.ready+summary.blocked,summary.inputCount);
 assert(summary.withDraft>=2&&summary.notCovered>0,
  'both verified samples must be supported, but this small knowledge DB is not complete');
