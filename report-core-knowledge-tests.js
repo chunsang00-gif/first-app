@@ -301,7 +301,7 @@ assert.throws(()=>engine.auditKnowledge(mismatchedCross),
  'a separate year/month reading must share the verified core month subtype');
 
 const yearLink=require('./report-core-year-link');
-assert.equal(yearLink.audit().yearLinkRules,5);
+assert.equal(yearLink.audit().yearLinkRules,10);
 for(const [date,rule] of [
  ['1982-06-15','yearlink-learning-maintenance-o-v1'],
  ['1988-03-15','yearlink-shared-duty-myo-v1'],
