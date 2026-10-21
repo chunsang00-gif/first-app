@@ -41,7 +41,9 @@ for(const x of examples){
  assert.deepEqual(result.scope.sourceIds,['natal.month.stem',
   'natal.month.hidden.'+packet.facts.structuralEvidence.monthCommand.mainHiddenStem]);
  assert.equal(result.review.natalContext,null);
- assert.equal(result.review.hourContext,null);
+ if(x.date==='1988-12-15')
+  assert.equal(result.review.hourContext?.ruleId,'hour-ja-jeonggwan-contrast-v1');
+ else assert.equal(result.review.hourContext,null);
  assert.equal(result.review.seasonRootContext,null);
  assert.equal(result.compositionPlan.editorialOutline.customerReady,false);
  assert.equal(result.releaseVerdict,'not-approved');
