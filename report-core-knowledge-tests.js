@@ -2,7 +2,7 @@
 const assert=require('node:assert/strict');
 const facts=require('./report-facts-node'),engine=require('./report-core-knowledge-engine');
 const knowledge=require('./report-core-knowledge.json');
-assert.deepEqual(engine.auditKnowledge(),{tenGods:10,curatedRules:2,crossPillarRules:1});
+assert.deepEqual(engine.auditKnowledge(),{tenGods:10,curatedRules:2,crossPillarRules:1,natalContextRules:1});
 const sample={calendar:'lunar',birthDate:'1982-11-24',birthTime:'14:20',
  gender:'male',mbti:'ISFP',name:'검증용'};
 const packet=facts.build(sample,2027),draft=engine.compile(packet);
@@ -13,6 +13,16 @@ assert.deepEqual([draft.scope.visibleTenGod,draft.scope.hiddenTenGod],['편인',
 assert.equal(draft.scope.monthElementRelation,'hidden-controls-visible');
 assert.equal(draft.scope.inferredPersonality,false);
 assert.equal(draft.review.readerMechanical.mechanicalPass,true);
+assert.equal(draft.review.readerMechanical.checkedParagraphCount,3);
+assert(draft.reader.paragraphs.context?.text.includes('태어난 달과 날의 두 자리는'));
+assert(draft.reader.paragraphs.context.text.includes('직장에서 문제가 생겼다는 뜻도'));
+assert.equal(draft.review.natalContext.ruleId,'chuk-mi-month-day-opposition-v1');
+assert.deepEqual(draft.review.natalContext.matched,{
+ monthBranch:'丑',dayBranch:'未',relation:'충',positions:['month','day']});
+assert.deepEqual(draft.review.natalContext.sourceRefs,['facts.natalBranchRelations']);
+assert(draft.compositionPlan.steps.some(x=>x.relationship==='충'&&
+ x.positions.includes('month')&&x.positions.includes('day')),
+ 'a context interpretation may only be selected when its own computed source is present');
 assert.equal(draft.review.readerMechanical.approval,'not-approved');
 assert.equal(draft.review.readerMechanical.humanReviewRequired,true);
 const lint=require('./report-core-reader-editorial');
@@ -107,6 +117,9 @@ assert(!/두 배|반대 성향/.test(sameKind.reader.paragraphs.strength.text),
  'same classification cannot be doubled or invented as an inner conflict');
 assert.equal(sameKind.releaseVerdict,'not-approved');
 assert.equal(sameKind.review.readerMechanical.mechanicalPass,true);
+assert.equal(sameKind.reader.paragraphs.context,null);
+assert.equal(sameKind.review.natalContext,null,
+ 'unrelated month context must not inherit the 丑未 relationship reading');
 const falseScene=structuredClone(sameKind.reader);
 falseScene.paragraphs.strength.text='공식 안내와 먼저 다녀온 사람의 설명을 반복합니다. '.repeat(6);
 assert(lint.inspect(falseScene).problems.includes('unreviewed-canned-scene'),
@@ -128,6 +141,8 @@ const uncovered=engine.compile(facts.build({calendar:'solar',
 assert.equal(uncovered.status,'not-covered',
  'unreviewed real chart must not generate general-purpose first-chapter prose');
 assert.equal(uncovered.reader,null);
+assert.equal(uncovered.review?.natalContext,undefined,
+ 'charts lacking a reviewed core rule must not receive isolated natal prose');
 assert.equal(uncovered.compositionPlan.status,'evidence-plan-for-editorial-review');
 assert(uncovered.compositionPlan.steps.length>=2);
 assert.equal(uncovered.compositionPlan.personalizedTextAvailable,false,
@@ -174,6 +189,16 @@ assert.throws(()=>engine.compile(tamperedYearSymbol),
  /CORE_GRAPH_CALCULATED_EVIDENCE_DIVERGED|CORE_GRAPH_VISIBLE_POSITION_DIVERGED/);
 // The DB itself must be satisfiable by the CANONICAL ten-god/element
 // relationships, rather than relying on the shape of a JSON rule.
+const natal=require('./report-core-natal-context');
+const wrongPair=structuredClone(knowledge);
+wrongPair.natalContextRules[0].when.dayBranch='子';
+assert.throws(()=>natal.audit(wrongPair),/CORE_NATAL_RULE_INVALID_OR_UNSUPPORTED/,
+ 'the stored month/day relation must exist in the actual traditional table');
+assert.equal(natal.select(packet,{natalRelations:[]},draft.ruleId),null,
+ 'missing verified chart-specific collision must not produce the paragraph');
+const noRel=structuredClone(draft.wholeChartEvidence);
+noRel.natalRelations=noRel.natalRelations.filter(x=>x.type!=='충');
+assert.equal(natal.select(packet,noRel,draft.ruleId),null);
 const impossibleMonth=structuredClone(knowledge);
 impossibleMonth.pairRules[0].when.monthElementRelation='same-element';
 assert.throws(()=>engine.auditKnowledge(impossibleMonth),

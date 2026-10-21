@@ -25,6 +25,7 @@ function assess(inputs){
  const readers=new Map(),plans=new Map(),monthContexts=new Set(),coveredContexts=new Set();
  const stats={knowledgeVersion:knowledge.version,kind:'fixed-offline-grid-not-user-traffic',
   inputCount:inputs.length,ready:0,blocked:0,withDraft:0,notCovered:0,
+  draftsWithNatalContext:0,
   withEvidencePlan:0,plansWithoutReaderDraft:0,distinctPlans:0,
   reusedPlanAcrossCharts:0,
   distinctCharts:0,distinctMonthContexts:0,coveredMonthContexts:0,
@@ -59,6 +60,17 @@ function assess(inputs){
    stats.notCovered++;if(row.reader!==null)throw Error('CORE_COVERAGE_UNCOVERED_READER');
   }else if(row.status==='draft-for-human-review'){
    stats.withDraft++;
+   const natt=row.review?.natalContext;
+   if(natt){
+    stats.draftsWithNatalContext++;
+    if(row.reader?.paragraphs?.context?.text==null||
+       natt.sourceRefs?.[0]!=='facts.natalBranchRelations'||
+       !row.wholeChartEvidence?.natalRelations.some(r=>
+        r.type===natt.matched.relation&&r.positions.includes('month')&&
+        r.positions.includes('day')&&r.branches===
+        natt.matched.monthBranch+natt.matched.dayBranch))
+     throw Error('CORE_COVERAGE_UNVERIFIED_NATAL_CONTEXT_TEXT');
+   }
    if(row.releaseVerdict!=='not-approved'||row.review.humanReviewRequired!==true)
     throw Error('CORE_COVERAGE_RELEASE_GATE_BYPASSED');
    if(context)coveredContexts.add(context);

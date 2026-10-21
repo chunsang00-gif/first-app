@@ -1,5 +1,5 @@
 {
-  "version": "core-knowledge-v0.4",
+  "version": "core-knowledge-v0.5",
   "kind": "traditional-symbolic-interpretation-not-personality-measurement",
   "editorialStatus": "candidate-only-requires-human-review",
   "tenGodScopes": {
@@ -91,6 +91,36 @@
         "measured-learning-skill",
         "invented-psychological-conflict",
         "year-2027-inference"
+      ]
+    }
+  ],
+  "natalContextRules": [
+    {
+      "id": "chuk-mi-month-day-opposition-v1",
+      "status": "editorial-candidate",
+      "when": {
+        "coreRuleId": "month-pair-pyeonin-pyeonjae-v1",
+        "monthBranch": "丑",
+        "dayBranch": "未",
+        "positions": [
+          "month",
+          "day"
+        ],
+        "relation": "충"
+      },
+      "reader": {
+        "label": "일과 개인 생활의 기준을 함께 보면",
+        "text": "태어난 달과 날의 두 자리는 전통적으로 서로 마주 보는 관계입니다. 그래서 태어난 달에서 읽은 '방법을 이해하고 필요한 것을 찾는 방향'만 보고 모든 선택이 순조롭게 이어진다고 결론내리지는 않습니다. 예를 들어 맡은 일의 기준과 가까운 사람과의 약속을 함께 고려해야 하는 상황이라면, 어느 쪽을 먼저 챙기느냐에 따라 선택이 달라질 수 있습니다. 다만 이는 두 출생 자리의 관계를 설명하기 위한 예시입니다. 실제로 가족과 다퉜거나 직장에서 문제가 생겼다는 뜻도, 앞으로 그런 일이 생긴다는 예측도 아닙니다."
+      },
+      "evidenceRole": "verified-natal-month-day-pair-table-only",
+      "sourceRefs": [
+        "facts.natalBranchRelations"
+      ],
+      "limits": [
+        "no-observed-personal-conflict",
+        "no-event-prediction",
+        "no-root-destruction",
+        "no-strength-estimate"
       ]
     }
   ]
