@@ -9,7 +9,7 @@ const examples=[
  {data:{calendar:'solar',birthDate:'1994-04-15',birthTime:'14:20',
   gender:'male',mbti:'ISFP'},id:'month-pair-jeongin-jeongin-jin-v1',contrast:false}
 ];
-assert.equal(kb.version,'core-knowledge-v1.5');
+assert.equal(kb.version,'core-knowledge-v1.6');
 for(const x of examples){
  const out=core.compile(facts.build(x.data,2027));
  assert.equal(out.ruleId,x.id);
@@ -91,10 +91,38 @@ const falseScope=structuredClone(kb);
 falseScope.pairRules[3].editorialRevision.rules[2]='transition-month-not-a-strength-conclusion';
 assert.throws(()=>core.auditKnowledge(falseScope),
  /CORE_KNOWLEDGE_FALSE_EDITORIAL_DEPTH_CLAIM/);
+const lastFour=[
+ ['1982-11-15','month-pair-jeongin-bigeon-hai-v1','same-element'],
+ ['1982-06-15','month-pair-jeongin-pyeonin-o-v1','resource'],
+ ['1982-03-15','month-pair-pyeongwan-pyeonin-myo-v1','resource'],
+ ['1982-05-15','month-pair-jeonggwan-pyeonin-sa-v1','resource']
+];
+for(const [birthDate,id,seasonToDay] of lastFour){
+ const input={calendar:'solar',birthDate,birthTime:'14:20',gender:'male',mbti:'ISFP'};
+ const packet=facts.build(input,2027),result=core.compile(packet);
+ assert.equal(result.status,'draft-for-human-review');
+ assert.equal(result.ruleId,id);
+ assert.equal(result.scope.seasonToDayRelation,seasonToDay);
+ assert.equal(result.review.editorialRevision?.status,'candidate-only-not-human-approved');
+ assert.equal(result.review.readerMechanical.mechanicalPass,true);
+ assert(result.reader.paragraphs.strength.text.startsWith(
+  '이 명식에서 먼저 확인할 근거는 태어난 달의'));
+ assert(result.reader.paragraphs.strength.text.includes('핵심월'));
+ assert(result.reader.paragraphs.strength.text.includes('계절 오행'));
+ assert(result.reader.paragraphs.strength.text.length>500);
+ assert.equal(result.apiCalls,0);
+ assert.equal(result.releaseVerdict,'not-approved');
+ assert.deepEqual(core.compile(facts.build({...input,mbti:'INTJ'},2028)).reader,
+  result.reader);
+}
+const tamperedFinal=structuredClone(kb);
+tamperedFinal.pairRules[6].editorialRevision.rules[2]='transition-month-not-a-strength-conclusion';
+assert.throws(()=>core.auditKnowledge(tamperedFinal),
+ /CORE_KNOWLEDGE_FALSE_EDITORIAL_DEPTH_CLAIM/);
 const c=require('./report-core-knowledge-coverage')
  .assess(require('./report-core-knowledge-coverage').representativeInputs());
 assert.equal(c.withDraft,31);
 assert.equal(c.notCovered,68);
-assert.equal(c.sourceGroundedMonthRevisionDrafts,10);
+assert.equal(c.sourceGroundedMonthRevisionDrafts,14);
 assert.equal(c.apiCalls,0);
-console.log('PASS eight source-anchored month manuscripts, core/transition evidence boundaries, no paid API');
+console.log('PASS all twelve individual source-anchored month manuscripts, no paid API');
