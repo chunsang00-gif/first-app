@@ -21,6 +21,9 @@ for(const input of coverage.representativeInputs()){
  assert.equal(result.review.familyId,rule.familyId);
  assert.equal(result.review.verifiedConditions.monthBranch,packet.chart.month[1]);
  assert.equal(result.review.readerMechanical.mechanicalPass,true);
+ assert(!/[\u3400-\u9fff]/.test([result.reader.title,result.reader.keyJudgment,
+  ...Object.values(result.reader.paragraphs).filter(Boolean).map(x=>x.text)].join(' ')),
+  'customer-visible draft must not leak raw Chinese characters');
  assert.equal(result.releaseVerdict,'not-approved');
  assert.equal(result.apiCalls,0);
  assert.equal(result.reader.paragraphs.hour,null);
