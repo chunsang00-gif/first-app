@@ -91,6 +91,34 @@ for(const birthDate of ['1982-03-15','1982-06-15']){
 const unsupported=engine.compile(facts.build({calendar:'solar',birthDate:'1990-05-15',
  birthTime:'14:20',gender:'male',mbti:'ISFP'},2027));
 assert.equal(unsupported.status,'not-covered');assert.equal(unsupported.reader,null);
+// General-purpose fact composition is exercised over ALL 99 calendar
+// fixtures, but unsupported contexts must still be blocked by the reader gate.
+const evidenceGraph=require('./report-core-evidence-graph');
+let verifiedFactCombos=0;
+for(const input of all){
+ const packet=facts.build(input,2027);
+ const graph=evidenceGraph.build(packet);
+ const joined=merge.select(packet,graph);
+ assert(joined);
+ assert.deepEqual(joined.evidence.chart,packet.chart);
+ assert.equal(joined.editorialStatus,'machine-composed-review-only');
+ assert.equal(joined.releaseVerdict,'not-approved');
+ assert.equal(joined.apiCalls,0);
+ assert.equal(joined.evidence.roleQuestions.length,3);
+ assert(joined.reader.text.includes('출생 해의'));
+ assert(joined.reader.text.includes('출생 달의'));
+ assert(joined.reader.text.includes('출생 시간의'));
+ assert(!joined.reader.text.includes('전통적 관점'));
+ assert(!joined.reader.text.includes('입니다 출생'));
+ const sentences=(joined.reader.text.match(/[^.!?。！？]+[.!?。！？]/g)||[])
+  .map(x=>x.replace(/\\s+/g,' ').trim());
+ assert.equal(new Set(sentences).size,sentences.length,
+  'machine editor cannot repeat an identical sentence within one paragraph');
+ if(engine.compile(packet).status==='not-covered')assert.equal(
+  engine.compile(packet).reader,null,'verified facts alone must not bypass the curated reader gate');
+ verifiedFactCombos++;
+}
+assert.equal(verifiedFactCombos,99);
 const sums=coverage.assess(all);
 assert.equal(sums.withDraft,31);
 assert.equal(sums.notCovered,68);
