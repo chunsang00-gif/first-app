@@ -17,6 +17,12 @@ function decode(value,prompt){
  }
  if(!value||typeof value!=='object'||Array.isArray(value))
   throw Error('AI report service returned invalid report data');
- return reader.normalizeVisible(wire.decode(generation.restoreEvidence(value,prompt),prompt));
+ // This semantic gate is explicitly limited to operator QA: the live
+ // first-chapter decoder and every other paid chapter remain unchanged.
+ // First verify strict basis and source IDs, then check what the reader sees.
+ const restored=generation.restoreEvidence(value,prompt);
+ if(prompt?.qaNatalDepthPreview===true)
+  require('./report-core-paid-natal-depth-response-gate').assert(value,prompt);
+ return reader.normalizeVisible(wire.decode(restored,prompt));
 }
 module.exports={decode};
