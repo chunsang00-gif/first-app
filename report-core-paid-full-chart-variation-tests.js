@@ -53,8 +53,8 @@ const fixed=require('./report-core-paid-full-prompt-capture').FIXTURE;
    const topic=qa.payload.task.chapters.saju_core.topics.natal_depth;
    const ids=topic.citableFacts.map(row=>row.id);
    const permitted=qa.schema.properties.chapters.properties.saju_core
-    .properties.paragraphs.properties.natal_depth.anyOf
-    .find(v=>v.type==='object').properties.basis.properties.refs.items.enum;
+    .properties.paragraphs.properties.natal_depth
+    .properties.basis.properties.refs.items.enum;
    assert.deepEqual(ids,permitted,'strict JSON citation options must match transported source rows');
    assert.deepEqual(preflight.inspect(qa.prompt,qa.payload,qa.schema),[]);
    const verified=Object.fromEntries(bindings.build(packet).map(row=>[row.id,row]));
