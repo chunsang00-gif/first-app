@@ -32,6 +32,13 @@ for(const item of input){
   .map(x=>x.hiddenId);
  assert.deepEqual(exposure.nonDayExposedHiddenStemIds,nonDay);
  assert.deepEqual(exposure.dayMasterOnlyExposedHiddenStemIds,dayOnly);
+ assert.equal(result.methodCandidates[2].id,
+  'exact-month-hidden-to-non-day-visible-stem-screen');
+ assert.deepEqual(result.methodCandidates[2].rowIds,nonDay,
+  'a match to day master only cannot silently become a non-day exposure candidate');
+ assert.equal(result.methodCandidates[2].interpretivePriority,'not-assessed');
+ assert.equal(result.methodCandidates[2].status,
+  'exploratory-non-day-exposure-screen-not-adopted');
  assert(exposure.rows.every(x=>
   x.matchOnlyDayMaster===(x.dayMasterVisibleMatch&&
    x.nonDayVisibleSourceIds.length===0)));
