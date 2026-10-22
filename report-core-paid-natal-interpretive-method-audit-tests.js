@@ -81,7 +81,8 @@ for(const input of samples){
   /QA_METHOD_REVIEW_CALCULATED_LINKAGE_DRIFT/,
   'a false positional match must block before interpreting');
  const wrongStem=structuredClone(p.payload);
- wrongStem.source['natal.year.stem'].stem='甲';
+ wrongStem.source['natal.year.stem'].stem=
+  wrongStem.source['natal.year.stem'].stem==='甲'?'乙':'甲';
  assert.throws(()=>audit.assess(p.prompt,wrongStem),
   /QA_METHOD_REVIEW_TRADITIONAL_ROLE_DRIFT:year/,
   'a source can retain a correct category while hiding the WRONG calendar stem');
