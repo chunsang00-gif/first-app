@@ -40,6 +40,25 @@ const writer=require('./report-generation-request');
    const expected=writer.compile(qa.prompt);
    const brief=expected.task.chapters.saju_core.topics.natal_depth.evidenceFocus;
    assert.equal(brief.kind,'qa-verified-natal-interpretive-contrast');
+   const verifiedLinks=require('./report-core-paid-natal-linkage-brief').select(chart);
+   assert.deepEqual(brief.verifiedLinks,verifiedLinks);
+   assert.equal(verifiedLinks.dataScope,'calculated-position-and-same-element-only');
+   assert.equal(verifiedLinks.measuredStrength,false);
+   assert.equal(verifiedLinks.observedPersonality,false);
+   assert(verifiedLinks.visible.every(x=>Array.isArray(x.observedSameElementRoots)));
+   const guard=require('./report-instruction-audit');
+   assert.deepEqual(guard.inspectTransport(qa.prompt,qa.payload),[]);
+   const tampered=structuredClone(qa.payload);
+   tampered.task.chapters.saju_core.topics.natal_depth.evidenceFocus
+    .verifiedLinks.visible[0].observedSameElementRoots=[];
+   // If this chart happens to have no year root, alter another position.
+   const first=verifiedLinks.visible.findIndex(x=>x.observedSameElementRoots.length>0);
+   assert(first>=0,'QA synthetic chart must contain observable links');
+   tampered.task.chapters.saju_core.topics.natal_depth.evidenceFocus
+    .verifiedLinks.visible[first].observedSameElementRoots=[];
+   assert(guard.inspectTransport(qa.prompt,tampered)
+    .includes('qa-natal-depth-evidence-brief-drift'),
+    'changing computed roots in model instructions must fail before payment');
    assert.deepEqual(brief.positions.map(x=>x.sourceId),
     ['natal.year.stem','natal.month.stem','natal.day.stem','natal.hour.stem']);
    assert.equal(brief.positions[0].traditionalMeaning,year.traditionalMeaning);
