@@ -289,6 +289,14 @@ function schema(prompt,transport){
    basis.description=limited
     ?'직접 근거가 없는 항목. refs·interpretation·condition은 반드시 null로 반환하고, limit에는 무엇을 판단할 수 없는지만 구체적으로 적는다. 독자에게 성격이나 사건을 만들어 설명하지 않는다.'
     :'내부 근거 기록. 이 질문과 관련된 계산 참조만 선택한다. 실제 자료의 의미와 해석의 연결, 적용 조건, 판단 한계를 구분한다. 독자용 본문이 아니다.';
+   if(chapterId==='saju_core'&&topic==='natal_depth'&&
+      prompt.qaNatalDepthPreview===true){
+    const locked=require('./report-core-paid-natal-depth-fact-lock')
+     .fromPayload(payload);
+    basis.properties.interpretation.enum=[locked.literal];
+    basis.properties.interpretation.description=
+     'QA용 출생 해·달·날·시간의 계산 근거는 이 문자열 그대로 적습니다. 독자용 본문에는 전문 명칭을 옮기지 않습니다.';
+   }
    p.properties={basis,...p.properties};p.required=['basis',...p.required];
   }
  }
@@ -427,6 +435,12 @@ function restoreEvidence(value,prompt){
       ['interpretation','condition'].some(k=>typeof b[k]!=='string'||!b[k].trim())))
     throw Error('AI report service missing verified paragraph basis');
    if(!task)throw Error('AI report service unexpected paragraph topic: '+id+':'+topic);
+   if(id==='saju_core'&&topic==='natal_depth'&&prompt.qaNatalDepthPreview===true){
+    const locked=require('./report-core-paid-natal-depth-fact-lock')
+     .fromPayload(payload);
+    if(b.interpretation!==locked.literal)
+     throw Error('QA_NATAL_DEPTH_FACT_LOCK_DIVERGED');
+   }
    if(task.mode==='state-limits'){
     // A chapter's mandatory limit paragraph may explain unavailable evidence,
     // but must never substitute unrelated references for missing direct evidence.
