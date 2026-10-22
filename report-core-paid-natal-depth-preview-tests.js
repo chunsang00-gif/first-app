@@ -74,6 +74,30 @@ const p=facts.build(sameUser,2027),plan=base.preflight(p).saju_core;
 const defaultPrompt={stage:'body',facts:p,requestedSections:['saju_core'],
  analysisGuidance:{...base.forRequest(['saju_core'],sameUser.mbti),
   editorialBlueprint:{saju_core:plan}}};
+const locked=require('./report-core-thesis').forPrompt(early.prompt);
+const mockOutput={chapters:{saju_core:{
+ title:locked.title,keyJudgment:locked.keyJudgment,
+ paragraphs:{
+  temperament:null,
+  strength:{label:'태어난 달의 검증된 두 가지 뜻',text:'월간과 대표 속글자의 실제 계산을 구별한 가상의 선택에 대한 풀이입니다.'},
+  natal_depth:{label:'연·일·시의 차이를 구별한 추가 해석',text:'출생 해와 날과 시간의 다른 계산 위치를 별도로 설명한 검토용 문단입니다.'}
+ }}},finalJudgment:null,cover:null};
+const rebuilt=wire.decode(mockOutput,early.prompt);
+assert.deepEqual(rebuilt.sections[0].bodyTopics,['strength','natal_depth'],
+ 'the QA-only depth paragraph must survive the ACTUAL provider response decoder');
+assert.equal(rebuilt.sections[0].body.length,2);
+const auditTransport=require('./report-instruction-audit');
+const forged=structuredClone(early.payload);
+forged.task.chapters.saju_core.topics.natal_depth.evidenceFocus.sourceRefs=
+ ['natal.month.stem'];
+assert(auditTransport.inspectTransport(early.prompt,forged)
+ .includes('qa-natal-depth-evidence-brief-drift'),
+ 'tampering with contextual provenance must fail the paid transport audit');
+const forgedSource=structuredClone(early.payload);
+delete forgedSource.source['natal.year.stem'];
+assert(preflight.inspect(early.prompt,forgedSource,
+ writer.schema(early.prompt,wire.schemaFor(early.prompt,schema))).length>0,
+ 'wrong outgoing sources may not satisfy the optional depth topic');
 const defaultWire=wire.schemaFor(defaultPrompt,schema);
 assert.deepEqual(Object.keys(defaultWire.properties.chapters.properties.saju_core.properties.paragraphs.properties),
  ['temperament','strength']);
