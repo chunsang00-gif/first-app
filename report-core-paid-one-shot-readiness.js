@@ -11,6 +11,7 @@ const preflight=require('./report-provider-preflight');
 const instruction=require('./report-instruction-audit');
 const thesis=require('./report-core-thesis');
 const factLock=require('./report-core-paid-natal-depth-fact-lock');
+const methodReview=require('./report-core-paid-natal-interpretive-method-audit');
 const {outputLimit}=require('./report-paid-batch-plan');
 const FIXTURE=Object.freeze({calendar:'solar',birthDate:'1982-06-15',
  birthTime:'14:20',gender:'male',mbti:'ISFP'});
@@ -69,6 +70,10 @@ async function build(){
   'live-default-depth-exposure');
  yes(generation.allowedRefs(provider,chapter.topics.strength,'saju_core','strength').size===
   new Set(baseTopic).size,'core-source-boundary');
+ const interpretation=methodReview.assess(candidate.prompt,provider);
+ yes(interpretation.methodStatus==='unverified-interpretive-bridge'&&
+    interpretation.independentMethodApproved===false&&
+    interpretation.providerCalls===0,'traditional-meaning-not-certified');
  const checks=[
   'four-pillar-facts-match-calendar',
   'independent-month-core-preserved',
@@ -82,7 +87,7 @@ async function build(){
  return {
   sample:SAMPLE_ID,kind:'one-shot-paid-qa-readiness-offline',
   approvalToSpendTokens:false,releaseVerdict:'not-approved',
-  runStatus:'dry-run-ready',providerCalls:0,
+  runStatus:'transport-ready-interpretation-unverified',providerCalls:0,
   isLiveCustomerRequest:false,
   qaTopic:'natal_depth',reviewKind:candidate.reviewKind,
   actualServerRulesVerified:true,
@@ -94,6 +99,7 @@ async function build(){
   verifiedNatalSummary:lock.literal,
   lockedYearTenGod:source['natal.year.stem'].tenGod,
   lockedHourTenGod:source['natal.hour.stem'].tenGod,
+  interpretiveMethodReview:interpretation,
   apiResponseQuality:'not-tested',
   modelSelection:'not-authorized',
   maxOutputTokenSettingIfGPT41:outputLimit('gpt-4.1',candidate.prompt),
@@ -111,7 +117,7 @@ async function build(){
    systemPolicy:generation.policyFor(candidate.prompt)+' '+wire.instruction,
    providerPayload:provider,strictSchema}),
   checklist:checks,
-  nextGate:'explicit-approval-for-one-billable-model-call-then-human-review'
+  nextGate:'independent-traditional-method-review-before-any-new-paid-model-approval'
  };
 }
 module.exports={build,FIXTURE,SAMPLE_ID};
