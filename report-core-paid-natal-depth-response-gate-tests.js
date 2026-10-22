@@ -37,6 +37,33 @@ assert.deepEqual(decoded.sections[0].body,[anchor,quality]);
 assert(decoded.sections[0].evidence.some(x=>x.startsWith('natal_depth:')&&
  x.includes('natal.year.stem')&&x.includes('natal.hour.stem')));
 assert.equal(validator.assert(response(),p.prompt).releaseVerdict,'not-approved');
+
+ // The human-written offline benchmark lives beside the editorial audit.
+ // Check its evidence attribution through the ACTUAL QA response gate,
+ // rather than treating a glossary-like mock as proof of reader value.
+ // These tests verify mechanical consistency only, not premium approval.
+ const fs=require('node:fs');
+ const path=require('node:path');
+ const authored=fs.readFileSync(path.join(__dirname,
+  'qa/paid-natal-depth-editorial-benchmark-20261022.md'),'utf8');
+ const benchmark=authored.match(/^> (.+)$/m)?.[1]?.replace(/\\*\\*/g,'');
+ assert(benchmark&&benchmark.length>400,'authored benchmark missing or emptied');
+ const reviewSample=response();
+ reviewSample.chapters.saju_core.paragraphs.natal_depth.text=benchmark;
+ const benchmarkErrors=validator.inspect(reviewSample,p.prompt);
+ assert.deepEqual(benchmarkErrors,[],
+  'human-written, chart-bound text must remain grounded and technically reviewable');
+ assert.equal(validator.assert(reviewSample,p.prompt).releaseVerdict,'not-approved',
+  'an authored fixture cannot self-approve publication');
+ const wrongYear=structuredClone(reviewSample);
+ wrongYear.chapters.saju_core.paragraphs.natal_depth.text=
+  benchmark.replace('매달 감당할 비용을 얼마나 꾸준히 유지할 수 있는지를',
+   '배운 내용과 주변 조언을 참고하는지를');
+ assert(validator.inspect(wrongYear,p.prompt).some(x=>
+  x==='QA_DEPTH_POSITION_MEANING_UNGROUNDED:year'||
+  x==='QA_DEPTH_POSITION_CONFLICTING_MEANING:year'),
+  'the same prose with a substituted source meaning must be rejected');
+
 // Position names are not interchangeable: 연간 is year, 일간 is day;
 // elapsed time is not the birth-hour pillar.
 assert.deepEqual(validator.referencedPositions('연간과 일간을 비교합니다.'),
