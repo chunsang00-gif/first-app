@@ -65,4 +65,27 @@ assert(gate.check({
 assert(gate.check({sections:[{id:'career',keyJudgment:'저는 이미 승진했습니다.'}]}).length===0,
  'ordinary past-work passages outside annual prediction must not be classified');
 assert(gate.check({sections:[{id:'year_2027_career',body:['승진한다고 단정할 수 없습니다.']}]}).length===0);
+// Previously a disclaimer anywhere in the SAME sentence exempted a real
+// guarantee. These are still categorical promises to the reader, not limits.
+for(const [id,claim] of [
+ ['year_2027_career','2027년에는 승진합니다, 다만 결과는 보장하지 않습니다.'],
+ ['year_2027_money','2027년에는 연봉이 증가합니다, 하지만 실제 결과는 예측할 수 없습니다.'],
+ ['year_2027_relationship','2027년에 결혼합니다만 결과를 보장하지 않습니다.'],
+ ['year_2027_career','승진 여부를 예측할 수 없지만 2027년에는 승진합니다.']
+]){
+ assert(gate.check({sections:[{id,keyJudgment:claim}]}).some(x=>x.code==='deterministic-2027-outcome'),
+  'qualifier must not excuse a real-world promise in the same sentence: '+claim);
+ assert(check(id,claim).some(e=>e.includes('deterministic 2027 real-world outcome')),
+  'the production evidence gate must also reject mixed disclaimer/promise: '+claim);
+}
+// A negated QUOTATION is not a promise; ordinary prediction limits are valid.
+for(const [id,claim] of [
+ ['year_2027_career','2027년에 ‘승진합니다’라고 말할 수 없습니다.'],
+ ['year_2027_money','2027년에 ‘연봉이 증가합니다’라는 뜻은 아닙니다.'],
+ ['year_2027_career','2027년 승진 여부는 예측할 수 없습니다.']
+]){
+ assert.equal(gate.check({sections:[{id,keyJudgment:claim}]}).length,0,
+  'a directly negated quote or limit should remain permitted: '+claim);
+}
+
 console.log('PASS deterministic 2027 outcomes blocked in chapters and synthesis; ordinary limits allowed; no paid calls');
