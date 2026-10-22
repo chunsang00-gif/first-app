@@ -15,7 +15,7 @@ function prepare(packet){
   return null;
  const selected=candidate.review?.fourPillar||candidate.review?.chartSynthesis;
  if(!selected)return null;
- const ids=selected.sourceRefs;
+ const ids=[...new Set([...selected.sourceRefs,'natal.day.stem'])];
  if(!Array.isArray(ids)||!ids.includes('natal.year.stem')||
   !ids.includes('natal.month.stem')||!ids.includes('natal.hour.stem')||
   !ids.includes('natal.day.stem')||
@@ -43,7 +43,10 @@ function prepare(packet){
  };
  modelPlan.activeTopicKeys=[...modelPlan.activeTopicKeys,TOPIC];
  const prompt={stage:'body',facts:packet,requestedSections:['saju_core'],
-  qaNatalDepthPreview:true,analysisGuidance:{
+  qaNatalDepthPreview:true,
+  editorialTask:'검증된 출생월 풀이를 유지하고 별도 출생 해·날·시간의 전통 분류를 출처별로 구별해 설명하는 사전 심화 검증 원고만 작성한다.',
+  rules:{},
+  analysisGuidance:{
    ...guidance.forRequest(['saju_core'],packet.person?.mbti),
    editorialBlueprint:{saju_core:modelPlan}}};
  const payload=sources.compile(prompt);
