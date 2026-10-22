@@ -53,11 +53,16 @@ function inspect(value,prompt){
  const standard=parts.strength,depth=parts.natal_depth;
  if(!standard||typeof standard.text!=='string'||!standard.text.trim())
   fail('QA_DEPTH_MISSING_CORE_ANCHOR');
- // Valid nullable expansion. Not enough editorial differentiation to
- // warrant a third chapter: explicitly omit the optional response.
- if(depth===null)return [...new Set(errors)];
+ // The 2026-10-22 paid response had natal_depth:null. After qualifying
+ // this one QA input in advance, absence of the ONLY depth under review is
+ // a failed sample, never a technical pass. Preserve the original response
+ // in the existing encrypted rejected-archive path; do not retry the model.
+ // The ordinary paid schema/decoder is unaffected by this QA-only gate.
+ if(depth===null)return [...new Set([...errors,'QA_DEPTH_REQUIRED_READING_MISSING'])];
  if(!depth||typeof depth!=='object'||Array.isArray(depth))
   return [...errors,'QA_DEPTH_WRONG_PARAGRAPH_TYPE'];
+ if(parts.temperament!==null)
+  fail('QA_DEPTH_SEASONAL_SLOT_NOT_NULL');
  const basis=depth.basis;
  if(!basis||!Array.isArray(basis.refs)||
     basis.refs.some(id=>typeof id!=='string'||!allowed.has(id))||
