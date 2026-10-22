@@ -698,7 +698,7 @@ for(const a of ['I','E'])for(const b of ['S','N'])for(const c of ['T','F'])for(c
   assert(p.rules.annualDeltaRule.includes('변화가 확인되지 않는다고'));
   assert.equal(Object.keys(p.analysisGuidance.editorialBlueprint).length,p.requestedSections.length);
   assert(p.crossChapterNoveltyRule.includes('이전 장과 하나씩 대조'));
-  assert.equal(p.priorChapterConclusions.length,(calls-1)*2);
+   assert.equal(p.priorChapterConclusions.length,p.priorSections.length,'each earlier completed chapter must have exactly one tracked prior conclusion even after optional chapter omissions');
   assert.equal(JSON.stringify(p.priorChapterConclusions.map(s=>s.chapterId)),JSON.stringify(p.priorSections.map(s=>s.id)));
   for(const chapter of p.priorChapterConclusions){
    assert.equal(typeof chapter.judgment,'string');
