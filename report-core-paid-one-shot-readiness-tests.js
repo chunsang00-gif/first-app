@@ -83,8 +83,11 @@ assert.notEqual(factLock.fromPayload(later.payload).literal,
  'the source-locked four-pillar interpretation must follow the input');
 for(const draft of [fixed,later]){
  const refs=draft.payload.task.chapters.saju_core.topics.natal_depth.citableFacts.map(x=>x.id);
- const enforced=draft.schema.properties.chapters.properties.saju_core
-  .properties.paragraphs.properties.natal_depth.anyOf.find(x=>x.type==='object')
+ const paragraphSchema=draft.schema.properties.chapters.properties.saju_core
+  .properties.paragraphs.properties;
+ assert.deepEqual(paragraphSchema.temperament,{type:'null'});
+ assert.equal(paragraphSchema.natal_depth.type,'object');
+ const enforced=paragraphSchema.natal_depth
   .properties.basis.properties.refs.items.enum;
  assert.deepEqual(enforced,refs,'real-server QA transport/schema source integrity');
  assert(refs.every(x=>Object.hasOwn(draft.payload.source,x)));
