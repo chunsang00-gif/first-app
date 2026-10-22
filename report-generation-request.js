@@ -120,6 +120,13 @@ function sources(prompt){
    }else result[path]=value;
   }
  }
+ // Only the optional QA natal-depth topic may cite independently checked
+ // natal relation facts. The normal paid first chapter remains month-only.
+ if(prompt.qaNatalDepthPreview===true){
+  if(!p?.facts?.natalBranchRelations)
+   throw Error('QA_NATAL_DEPTH_MISSING_NATAL_RELATION_TABLE');
+  result['facts.natalBranchRelations']=p.facts.natalBranchRelations;
+ }
  const mbti=prompt.analysisGuidance?.mbtiReference||require('./report-analysis-guidance').forRequest([],p?.person?.mbti).mbtiReference;
  if(mbti)result['person.mbti']=mbti;
  return result;
