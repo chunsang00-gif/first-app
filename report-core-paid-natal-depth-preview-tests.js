@@ -44,7 +44,8 @@ for(const user of samples){
  assert.deepEqual(preflight.inspect(preview.prompt,preview.payload,jsonSchema),[]);
  const paragraphs=jsonSchema.properties.chapters.properties.saju_core.properties.paragraphs.properties;
  assert.deepEqual(Object.keys(paragraphs),['temperament','strength','natal_depth']);
- const depth=paragraphs.natal_depth.anyOf.find(x=>x.type==='object');
+ assert.deepEqual(paragraphs.temperament,{type:'null'},'QA-only seasonal duplicate must not be generated');
+ const depth=paragraphs.natal_depth;
  assert(depth);
  assert.deepEqual(depth.properties.basis.properties.refs.items.enum,permissible);
  const verifiedLock=require('./report-core-paid-natal-depth-fact-lock').fromPayload(preview.payload);
