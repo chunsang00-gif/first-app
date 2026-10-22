@@ -69,7 +69,7 @@ refuse('Chinese symbol',v=>v.chapters.saju_core.paragraphs.natal_depth.text+=' �
 refuse('actual lifetime claim',v=>v.chapters.saju_core.paragraphs.natal_depth.text+=' 타고난 성격을 반드시 성공으로 이끌 것입니다.',
  'QA_DEPTH_UNSUPPORTED_PERSONAL_OUTCOME');
 refuse('no contextual scenario',v=>v.chapters.saju_core.paragraphs.natal_depth.text=
- quality.replace('새로운 일을 함께 설명해야 하는 상황이라면','새로운 내용을 정리하면서'),
+ '태어난 해에서는 자료를 참고하는 뜻이 계산됩니다. 태어난 시간에는 표현 방식의 뜻이 계산됩니다. 두 출생 위치의 의미를 분리해 다르게 설명할 수 있습니다. 그러나 각각의 상징은 실제 관찰된 행동을 보여 주지 않습니다. 해와 시간의 뜻이 같지 않다는 것은 계산된 분류의 차이입니다.',
  'QA_DEPTH_NO_CONDITIONAL_INTERPRETATION');
 refuse('no pillar contrast',v=>v.chapters.saju_core.paragraphs.natal_depth.text=
  '태어난 해에는 안내가 있습니다. 태어난 시간에도 자료가 있습니다. 예를 들어 두 자료가 있는 상황이라면 정리해 볼 수 있습니다. 출생한 날의 의미가 확인됐습니다. 이 결과는 실제 성격을 증명하지 않는다는 제한을 덧붙입니다.',
