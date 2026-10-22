@@ -27,6 +27,22 @@ for(const input of samples){
  assert.equal(result.releaseVerdict,'not-approved');
  assert.equal(result.providerCalls,0);
  assert.equal(result.calculatedObservations.positionsVerified,4);
+ const visible=result.traditionalVisibleRelations;
+ assert.equal(visible.kind,'qa-three-visible-stem-element-directions-v1');
+ assert.equal(visible.pairs.length,3);
+ assert.equal(visible.methodAdopted,false);
+ assert.equal(visible.symbolicLifeInterpretationVerified,false);
+ assert.equal(visible.eligibleForPremiumReaderClaim,false);
+ assert(visible.pairs.every(pair=>
+  pair.positionalClaimVerified===true&&
+  pair.realizedInfluence==='not-assessed'&&
+  pair.relativePriority==='not-assessed'&&
+  pair.observedPersonality===false));
+ if(input.birthDate==='1982-06-15'){
+  assert.deepEqual(visible.pairs.map(x=>x.elementalDirection),[
+   'left-controls-right','right-generates-left','left-controls-right'
+  ],'specific 1982 natal positions have a verified directional contrast');
+ }
  assert.equal(result.decisions.length,5);
  assert.equal(result.falsifiableChecks.length,5);
  assert(Object.keys(result.exactStemsByPosition).every(k=>
@@ -64,6 +80,11 @@ for(const input of samples){
  assert.throws(()=>audit.assess(p.prompt,wrong),
   /QA_METHOD_REVIEW_CALCULATED_LINKAGE_DRIFT/,
   'a false positional match must block before interpreting');
+ const wrongStem=structuredClone(p.payload);
+ wrongStem.source['natal.year.stem'].stem='甲';
+ assert.throws(()=>audit.assess(p.prompt,wrongStem),
+  /QA_METHOD_REVIEW_TRADITIONAL_ROLE_DRIFT:year/,
+  'a source can retain a correct category while hiding the WRONG calendar stem');
  const badRole=structuredClone(p.payload);
  badRole.task.chapters.saju_core.topics.natal_depth.evidenceFocus
   .positions[0].category='조작한 분류';
