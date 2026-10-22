@@ -73,4 +73,55 @@ function build({providerResponse,decoded,qa}){
   }
  };
 }
-module.exports={build,CRITERIA};
+// Preserve reviewable paragraphs even when the already-paid result failed
+// decoding, provenance QA, or returned natal_depth=null. This is diagnostic
+// evidence, NEVER a validated checkpoint or an automatic retry.
+function buildRejected({providerResponse,qa,reason}){
+ if(!qa?.prompt?.qaNatalDepthPreview||qa.releaseVerdict!=='not-approved'||
+    !qa.payload?.task?.chapters?.saju_core?.topics?.natal_depth)
+  throw Error('QA_PRIVATE_REVIEW_INVALID_SCOPE');
+ const scope=qa.payload.task.chapters.saju_core.topics.natal_depth;
+ const refs=scope.citableFacts.map(x=>x.id);
+ const chapter=providerResponse?.chapters?.saju_core;
+ const parts=chapter?.paragraphs;
+ const paragraphs=Object.fromEntries(CORE.map(k=>{
+  const piece=parts&&Object.hasOwn(parts,k)?parts[k]:null;
+  return [k,piece&&typeof piece==='object'&&!Array.isArray(piece)?
+   {label:text(piece.label),body:text(piece.text),basis:piece.basis||null}:null];
+ }));
+ const visible=CORE.flatMap(k=>paragraphs[k]?
+  [paragraphs[k].label,paragraphs[k].body]:[]);
+ const depth=paragraphs.natal_depth;
+ const cited=Array.isArray(depth?.basis?.refs)?depth.basis.refs:[];
+ let issues=[];
+ // Some charged outputs have malformed structure. Do not treat a validator
+ // exception as approval or lose their original archived response.
+ if(chapter&&parts){
+  try{issues=semantic.inspect(providerResponse,qa.prompt)}
+  catch{issues=['QA_PRIVATE_REVIEW_CANNOT_PARSE_SEMANTIC_GUARD'];}
+ }
+ const status=typeof providerResponse?.status==='string'?
+  providerResponse.status:'json-response-rejected';
+ const reasonCode=String(reason||'quality-rejected').slice(0,80);
+ return {
+  kind:'qa-natal-depth-private-rejected-editorial-review-v1',
+  confidentiality:'PRIVATE ENCRYPTED ARTIFACT ONLY — do not expose source or manuscript in logs',
+  automatedStatus:'rejected',releaseVerdict:'not-approved',
+  apiCallsForThisReview:0,rejectionCode:reasonCode,
+  providerResponseStatus:status,
+  sourceContext:Object.fromEntries(refs.map(id=>[id,qa.payload.source[id]||null])),
+  paragraphs,
+  diagnostics:{
+   depthPresent:!!depth?.body,depthChars:depth?.body.length||0,
+   sourceRefsAvailable:refs.length,sourceRefsCited:cited.length,
+   referenceMismatch:cited.filter(id=>!refs.includes(id)),
+   visibleJargon:reader.errors(visible),
+   modelResponseGuardErrors:issues
+  },
+  humanReview:{status:'pending',decision:'not-assessed',
+   items:CRITERIA.map(row=>({...row,result:'pending',reason:''})),
+   conclusion:'',releaseVerdict:'not-approved'}
+ };
+}
+module.exports={build,buildRejected,CRITERIA};
+
