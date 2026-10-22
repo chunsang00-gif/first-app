@@ -11,7 +11,9 @@ assert(p);
 const fixed=require('./report-core-thesis').forPrompt(p.prompt);
 const month='natal.month.hidden.'+packet.facts.structuralEvidence.monthCommand.mainHiddenStem;
 const anchor='태어난 달에 놓인 서로 다른 뜻은 한 가지 선택을 설명할 때 함께 살펴볼 수 있습니다. 예를 들어 새 과정을 시작하는 상황이라면 알려진 설명을 이해하는 일과 실제로 고를 자원을 별개로 생각할 수 있습니다.';
-const quality='태어난 해에서는 이미 알고 있는 자료를 참고하는 뜻이 확인되지만, 태어난 시간에는 다른 방식으로 내용을 표현하는 뜻이 계산됩니다. 새로운 일을 함께 설명해야 하는 상황이라면 해에서 가져온 자료만 정리하는 경우와 시간의 표현 방식을 따로 살피는 경우를 구별해 볼 수 있습니다. 이는 어떤 능력이 뛰어나다는 평가가 아니라 두 출생 위치에서 서로 다른 질문을 만들 수 있다는 조건부 풀이입니다.';
+const quality='태어난 해에서는 반복되는 비용과 맡은 일을 꾸준히 관리하는 뜻이 확인됩니다. 반면 태어난 시간에는 생각을 차근차근 결과물로 만들어 남기는 뜻이 계산됩니다. 새로운 일을 함께 준비해야 하는 상황이라면 비용을 꾸준히 관리하는 선택과 어떤 결과물로 남길지 정하는 선택을 구별해 볼 수 있습니다. 이는 실제로 일을 잘한다는 평가가 아니라 출생 위치마다 비교할 질문이 다르다는 뜻입니다.';
+assert.equal(p.payload.source['natal.year.stem'].tenGod,'정재');
+assert.equal(p.payload.source['natal.hour.stem'].tenGod,'식신');
 function response(){
  return {chapters:{saju_core:{
   title:fixed.title,keyJudgment:fixed.keyJudgment,mood:'reflective',
@@ -71,6 +73,14 @@ refuse('jargon in reader',v=>v.chapters.saju_core.paragraphs.natal_depth.text+='
  'QA_DEPTH_READER_JARGON');
 refuse('Chinese symbol',v=>v.chapters.saju_core.paragraphs.natal_depth.text+=' 甲이라는 글자가 있습니다.',
  'QA_DEPTH_READER_CHINESE_SYMBOL');
+refuse('wrong year meaning despite correct citations',v=>
+ v.chapters.saju_core.paragraphs.natal_depth.text=
+  quality.replace('반복되는 비용과 맡은 일을 꾸준히 관리하는','배운 내용과 주변 조언을 참고하는'),
+ 'QA_DEPTH_POSITION_MEANING_UNGROUNDED:year');
+refuse('wrong hour meaning despite correct citations',v=>
+ v.chapters.saju_core.paragraphs.natal_depth.text=
+  quality.replace('생각을 차근차근 결과물로 만들어 남기는','익숙한 방식에 새로운 제안을 하는'),
+ 'QA_DEPTH_POSITION_MEANING_UNGROUNDED:hour');
 refuse('actual lifetime claim',v=>v.chapters.saju_core.paragraphs.natal_depth.text+=' 타고난 성격을 반드시 성공으로 이끌 것입니다.',
  'QA_DEPTH_UNSUPPORTED_PERSONAL_OUTCOME');
 refuse('no contextual scenario',v=>v.chapters.saju_core.paragraphs.natal_depth.text=
