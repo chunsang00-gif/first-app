@@ -133,6 +133,35 @@ refuse('copy existing paid month paragraph',v=>v.chapters.saju_core.paragraphs.n
 refuse('inappropriate ending question',v=>v.chapters.saju_core.paragraphs.natal_depth.text=
  quality+' 궁금하지 않으세요?',
  'QA_DEPTH_ENDING_QUESTION');
+// Existing first-paragraph content was not previously compared against the
+// optional paid expansion. A long recycled paragraph is still not new value.
+refuse('copy the first core paragraph instead of adding paid depth',v=>{
+ v.chapters.saju_core.paragraphs.temperament={
+  label:'첫 번째 기본 풀이',text:quality,
+  basis:{refs:['natal.month.stem'],interpretation:'기본 풀이',
+   condition:'가상 상황',limit:'실제 성격은 알 수 없음'}
+ };
+},'QA_DEPTH_REPEATS_TEMPERAMENT_CORE');
+refuse('pad the deep paragraph with exactly repeated sentences',v=>{
+ v.chapters.saju_core.paragraphs.natal_depth.text=quality+' '+quality;
+},'QA_DEPTH_SELF_REPEATED_SENTENCE');
+const repeatedChoice='새로운 일을 함께 준비해야 하는 상황이라면 비용을 꾸준히 관리하는 선택과 어떤 결과물로 남길지 정하는 선택을 구별해 볼 수 있습니다.';
+refuse('pad length by lightly rewording the same choice',v=>{
+ v.chapters.saju_core.paragraphs.natal_depth.text=quality+' '+
+  repeatedChoice.replace('어떤 결과물','무슨 결과물');
+},'QA_DEPTH_SELF_REPEATED_SENTENCE');
+// A DISTINCT additional core explanation is not rejected merely for existing.
+const distinctCore=response();
+distinctCore.chapters.saju_core.paragraphs.temperament={
+ label:'기본 풀이의 독립적인 상황',
+ text:'태어난 계절을 구분하는 자료는 보통 언제 달의 기준이 바뀌는지를 설명합니다. 이를 개인의 실제 능력이나 성취에 대한 기록으로 바꾸지 않습니다.',
+ basis:{refs:['natal.month.stem'],interpretation:'계산 근거',
+  condition:'가상의 일상 장면',limit:'실제 능력은 알 수 없음'}
+};
+assert(!validator.inspect(distinctCore,p.prompt).some(x=>
+ x.startsWith('QA_DEPTH_REPEATS_')||x==='QA_DEPTH_SELF_REPEATED_SENTENCE'),
+ 'different core prose must remain eligible for later human review');
+
 // Optional slot may legitimately be null when no separate depth exists.
 const suppressed=response();
 suppressed.chapters.saju_core.paragraphs.natal_depth=null;
