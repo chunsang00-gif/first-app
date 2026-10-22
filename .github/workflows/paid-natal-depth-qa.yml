@@ -8,11 +8,15 @@ on:
         type: string
 permissions:
   contents: read
+  actions: read
 jobs:
   natal-depth-qa:
     if: ${{ github.ref_name == 'fix-paid-qa-fact-bindings-20261014' && inputs.paid_natal_depth_confirmation == 'RUN_ONE_NATAL_DEPTH_SAMPLE' }}
     runs-on: ubuntu-latest
     timeout-minutes: 25
+    concurrency:
+      group: one-shot-natal-depth-qa
+      cancel-in-progress: false
     env:
       REPORT_MODEL: ${{ vars.REPORT_MODEL }}
       REPORT_QA_OUTPUT: ${{ github.workspace }}/private-qa-first-chapter.json
@@ -36,6 +40,10 @@ jobs:
           test -n "$REPORT_MODEL" || { echo "Missing REPORT_MODEL"; exit 1; }
           test -n "$OPENAI_API_KEY" || { echo "Missing OpenAI API secret"; exit 1; }
           test "${#OPENAI_API_KEY}" -ge 32 || { echo "Configured API secret cannot encrypt private QA archive"; exit 1; }
+      - name: Enforce repository-wide one-shot dispatch lock BEFORE paid call
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node qa-natal-depth-dispatch-guard.js
       - name: ONE paid natal-depth report sample (no retries or subsequent chapters)
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
