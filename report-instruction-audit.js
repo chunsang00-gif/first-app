@@ -56,6 +56,8 @@ function inspect(prompt){
    if(!writingTopics||typeof writingTopics!=='object')errors.push('missing model topic plan: '+id);
    else {
     const validTopicIds=Object.keys(require('./report-outline').topics[id]||{});
+    if(prompt.qaNatalDepthPreview===true&&id==='saju_core')
+     validTopicIds.push('natal_depth');
     for(const topic of Object.keys(writingTopics))if(!validTopicIds.includes(topic))errors.push('model topic not in transport schema: '+id+'/'+topic);
     for(const topic of validTopicIds)if(!Object.hasOwn(writingTopics,topic))errors.push('transport topic missing from model prompt: '+id+'/'+topic);
    }
@@ -101,6 +103,8 @@ function inspect(prompt){
    // This catches disagreements before a paid provider can return an empty chapter.
    if(plan.anchorTopic&&plan.topicTasks){
     const expectedTopics=Object.keys(require('./report-outline').topics[id]||{});
+    if(prompt.qaNatalDepthPreview===true&&id==='saju_core')
+     expectedTopics.push('natal_depth');
     const taskTopics=Object.keys(plan.topicTasks);
     if(JSON.stringify(expectedTopics)!==JSON.stringify(taskTopics))errors.push('plan/outline topic mismatch: '+id);
     const activeExpected=taskTopics.filter(topic=>plan.topicTasks[topic].mode!=='state-limits');
