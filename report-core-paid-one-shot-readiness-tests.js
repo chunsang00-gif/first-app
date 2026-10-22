@@ -56,7 +56,7 @@ const qaGoal=fixed.payload.task.editorialGoal;
 // discarded previous QA additions. Verify the REAL compact provider payload.
 assert.equal(qaGoal,generation.editorialGoalFor(fixed.prompt));
 assert.equal(later.payload.task.editorialGoal,qaGoal);
-for(const phrase of ['구체적인 가상 선택 상황','유리하게 읽히는 조건','사전적인 뜻 두 문장','새 통찰이 없으면 natal_depth는 null']){
+for(const phrase of ['temperament는 반드시 null','natal_depth는','필수 원고','필수 인용 없이 작성하는 것은 실패']){
  assert(qaGoal.includes(phrase),'QA editorial content must reach the actual provider: '+phrase);
  assert(!ordinaryGoal.includes(phrase),'ordinary paid flow must not inherit QA-only instructions: '+phrase);
 }
