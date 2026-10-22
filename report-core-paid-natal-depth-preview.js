@@ -34,6 +34,17 @@ function prepare(packet){
     planned.topicTasks.strength?.mode!=='use-primary')
   throw Error('QA_NATAL_DEPTH_CORRUPTED_CORE_PLAN');
  const modelPlan=structuredClone(planned);
+ // QA-only: the paid sample repeated the seasonal intro and dropped its
+ // mandatory qi citation. Suppress this OPTIONAL subtopic rather than
+ // weakening qi evidence requirements or silently inventing missing refs.
+ // The ordinary/production core plan remains untouched.
+ modelPlan.topicTasks.temperament={
+  ...modelPlan.topicTasks.temperament,mode:'state-limits',
+  primaryEvidencePath:null,verifiedFallbackPaths:[],
+  allowedSourceRefs:[],requiredSourceKinds:[],
+  interpretationBoundary:'이 QA의 심화 문단 검증에서만 생략한다. 기존 유료 앱의 기질 문단은 변경하지 않는다.'
+ };
+ modelPlan.activeTopicKeys=modelPlan.activeTopicKeys.filter(x=>x!=='temperament');
  modelPlan.topicTasks[TOPIC]={
   question:'기본 출생월 풀이와 중복하지 않으면서 출생 해·날·시간의 독립된 계산 근거로 어떤 조건부 차이만 더 설명할 수 있는가?',
   primaryEvidencePath:'facts.stemConnections',
