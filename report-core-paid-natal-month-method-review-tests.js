@@ -18,7 +18,25 @@ for(const item of input){
  const result=audit.assess(packet);
  assert.equal(result.status,'method-priority-not-selected');
  assert.equal(result.methodCandidates.length,3);
- assert.equal(result.counterexamples.length,4);
+ assert.equal(result.counterexamples.length,5);
+ const exposure=result.observed.exactExposureScopeComparison;
+ assert.equal(exposure.selectionRuleAdopted,false);
+ assert.equal(exposure.traditionalMeaningAndPriorityVerified,false);
+ const visible=packet.facts.stemConnections.exposure
+  .filter(x=>x.position==='month'&&x.exactExposure);
+ assert.deepEqual(exposure.allPositionsExposedHiddenStemIds,
+  visible.map(x=>x.hiddenId));
+ const nonDay=visible.filter(x=>x.exactVisibleMatches.some(v=>v.id!=='natal.day.stem'))
+  .map(x=>x.hiddenId);
+ const dayOnly=visible.filter(x=>x.exactVisibleMatches.every(v=>v.id==='natal.day.stem'))
+  .map(x=>x.hiddenId);
+ assert.deepEqual(exposure.nonDayExposedHiddenStemIds,nonDay);
+ assert.deepEqual(exposure.dayMasterOnlyExposedHiddenStemIds,dayOnly);
+ assert(exposure.rows.every(x=>
+  x.matchOnlyDayMaster===(x.dayMasterVisibleMatch&&
+   x.nonDayVisibleSourceIds.length===0)));
+ assert(result.counterexamples.some(x=>
+  x.id==='day-master-is-not-an-automatically-ranked-exposure'));
  assert.equal(result.adoptedMethodId,null);
  assert.equal(result.activeHiddenStemId,null);
  assert.equal(result.governingDayVerified,false);
@@ -46,6 +64,8 @@ for(const item of input){
   approximate:proposed?.stem||null,
   candidateDiffersFromMain:observed.comparedMethodCandidateDiffersFromMain,
   monthExposures:observed.exactExposuresOfMonthHidden.length,
+  nonDayExposures:exposure.nonDayExposedHiddenStemIds.length,
+  dayMasterOnlyExposures:exposure.dayMasterOnlyExposedHiddenStemIds.length,
   natalMonthRelationCount:observed.natalRelationsTouchingMonth.pairs.length+
    observed.natalRelationsTouchingMonth.groups.length,
   approved:false});
