@@ -102,6 +102,12 @@ async function build(){
   fullInstructionHash:hash({rules:candidate.prompt.rules,
    planningInstruction:candidate.prompt.planningInstruction,
    editorialTask:candidate.prompt.editorialTask}),
+  // Freeze the full model-facing QA envelope (including writer policy), not
+  // just local editorialTask fields. This is NOT approval to spend tokens.
+  operatorEnvelopeHash:hash({model:'gpt-4.1',
+   tokenLimit:outputLimit('gpt-4.1',candidate.prompt),
+   systemPolicy:generation.policyFor(candidate.prompt)+' '+wire.instruction,
+   providerPayload:provider,strictSchema}),
   checklist:checks,
   nextGate:'explicit-approval-for-one-billable-model-call-then-human-review'
  };
