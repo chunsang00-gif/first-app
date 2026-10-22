@@ -88,12 +88,21 @@ async function run(){
  if(first?.length!==1||first[0]?.id!=='saju_core'||
     !first[0]?.bodyTopics?.includes('natal_depth'))
   throw Error('QA_NATAL_DEPTH_MODEL_RETURNED_NO_ADDITIONAL_READING');
+ // The original model response is already preserved in the private
+ // provider archive. Prepare the editor's source-to-prose comparison without
+ // another model call, and encrypt it inside the SAME private checkpoint.
+ const archived=JSON.parse(fs.readFileSync(provider,'utf8'));
+ const editorialReview=require('./report-core-paid-natal-editorial-packet')
+  .build({providerResponse:archived.response,decoded,qa});
+ if(editorialReview.humanReview.status!=='pending'||
+    editorialReview.releaseVerdict!=='not-approved')
+  throw Error('QA_NATAL_DEPTH_REVIEW_NOT_PENDING');
  savePrivate(checkpoint,{kind:'natal-depth-review-candidate',
   model:process.env.REPORT_MODEL,providerCalls:count,
   qaTopic:'natal_depth',technicalResponsePassed:true,
   humanReviewRequired:true,releaseVerdict:'not-approved',
-  // Private decoded manuscript kept for editorial reading, never public.
-  sections:first});
+  // Private decoded manuscript AND evidence-bound editorial worksheet.
+  sections:first,editorialReview});
  savePrivate(output,{status:'qa-natal-depth-technical-pass',
   providerCalls:count,qaTopic:'natal_depth',
   humanReviewRequired:true,releaseVerdict:'not-approved',
