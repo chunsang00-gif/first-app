@@ -40,7 +40,7 @@ function refuse(label,mutate,match){
  const value=response();mutate(value);
  const errors=validator.inspect(value,p.prompt);
  assert(errors.some(x=>x.includes(match)),label+': '+JSON.stringify(errors));
- assert.throws(()=>decode(value,p.prompt),/QA_NATAL_DEPTH_RESPONSE_REJECTED|verified paragraph basis/,
+ assert.throws(()=>decode(value,p.prompt),/QA_NATAL_DEPTH_RESPONSE_REJECTED|verified paragraph basis|missing required grounded stem connection evidence/,
   label+' must fail before becoming a report section');
  cases++;
 }
