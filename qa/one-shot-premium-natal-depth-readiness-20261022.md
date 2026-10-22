@@ -14,10 +14,19 @@
 
 ## 재현 가능한 고정 지문
 - 입력/인용/핵심 판단 지문 SHA-256: `3f4c2d93d5ff2dc2af73339d6caaf116a422443d877239536a23704fd68f09ee`
-- AI 공급자 요청 task SHA-256: `60c9a0995920b17afb9de3ca10dfd71afac8f424446aa2c92f3f3b0d3dc7ec18`
+- AI 공급자 요청 task SHA-256: `145b9903fe93e9e49384b56bc93e3c70fb5e9b81b21697113a2da9d8cc667fe2`
 - strict JSON 응답 schema SHA-256: `fa2af20bc427053e26e2a84342e36f1c6d91346cb24771b7d8eb675b315d122d`
-- 전체 작성 지침 SHA-256: `e32c27a677b34e9832a36afc1e1dc29c2704e0ad5444a9e2f0d36415a3b68faa`
+- 전체 작성 지침 SHA-256: `7f8d299cc94d6082082b321fea76b78166afc9e66ec209bd526508e2c13e0974`
 - 별도 `node report-core-paid-one-shot-readiness.js`로 모두 오프라인 재계산 가능. 지문이 달라지면 동일한 승인값으로 유료 테스트하지 않는다.
+
+## 2026-10-22 후속 지침 감사와 지문 갱신
+
+- 과거 실제 결제 원문의 독립 편집 심사에서는 계산한 뜻을 나열한 뒤 일반적 준비 조언을 붙이는 문제가 반복되었다. 과거 원고가 새 지침을 통과했다는 뜻은 아니다.
+- QA 전용 `natal_depth`의 입력 자료는 유지하고, **한 가지 구체적인 가상의 선택에서 서로 다른 출생 위치가 연결하는 선택·유리한 조건·놓치기 쉬운 조건을 근거로 설명**하도록 모델에 보내는 좁은 편집 목적을 추가했다. 분류 목록·용어 설명·일반 조언으로 문단을 채우면 안 된다. 실제 성격·성공·미래 사건의 확정은 여전히 금지한다.
+- **전송 경계의 근본 차이 확인:** 단일 사주 첫 장은 `report-generation-request.editorialGoalFor()`에서 `editorialTask`를 재작성해 실제 `payload.task.editorialGoal`로 보낸다. QA용 로컬 `editorialTask`만 바꾸면 해당 변경이 전송되지 않는다. 이번에는 실제 송신 지침의 QA 분기에 제한적으로 반영하고, 일반 유료 생성의 문구·구조가 변경되지 않도록 별도 테스트했다.
+- `report-core-paid-one-shot-readiness-tests.js`에서 실제 생성 경로를 가로챈 **송신 task**에 개선된 QA 지침이 있는지, 정상 유료 생성 경로에는 없는지 확인했다. 테스트 및 스모크는 GitHub Actions [39745754631](https://github.com/chunsang00-gif/first-app/actions/runs/39745754631)에서 통과했다.
+- 이전 `providerTaskHash` **60c9a099…**와 `fullInstructionHash` **e32c27a6…**는 더 이상 현재 지문이 아니다. 위 고정 지문으로 갱신하며, 다음 유료 생성 전에는 최신 커밋에서 다시 계산해 확인해야 한다.
+- 이 변경은 **생성할 지침의 정확한 전송만 증명**한다. 새 AI 생성 문단은 0건이므로 새 문장 품질이 향상됐다고 판정하지 않는다. 유료 호출 0회, 배포 없음, 출시 미승인.
 
 ## 유료 원문 평가 기준 (아직 미실시)
 1. **실제 계산 정확성:** 연·일·시간 출처의 십성과 지지·숨은 글자를 오인하지 않을 것.
