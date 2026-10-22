@@ -37,6 +37,15 @@ assert.deepEqual(decoded.sections[0].body,[anchor,quality]);
 assert(decoded.sections[0].evidence.some(x=>x.startsWith('natal_depth:')&&
  x.includes('natal.year.stem')&&x.includes('natal.hour.stem')));
 assert.equal(validator.assert(response(),p.prompt).releaseVerdict,'not-approved');
+// Position names are not interchangeable: 연간 is year, 일간 is day;
+// elapsed time is not the birth-hour pillar.
+assert.deepEqual(validator.referencedPositions('연간과 일간을 비교합니다.'),
+ ['year','day']);
+assert.deepEqual(validator.referencedPositions('검토 시간은 두 시간입니다.'),[]);
+assert.deepEqual(validator.referencedPositions('시간에는 결과물을 남기는 뜻이 있습니다.'),
+ ['hour']);
+assert.deepEqual(validator.referencedPositions('태어난 해와 태어난 시간은 다릅니다.'),
+ ['year','hour']);
 let cases=0;
 function refuse(label,mutate,match){
  const value=response();mutate(value);
@@ -99,6 +108,14 @@ refuse('limit disguised as nonempty filler',v=>
  v.chapters.saju_core.paragraphs.natal_depth.basis.limit=
   '좋게 생각하면 좋습니다',
  'QA_DEPTH_BASIS_HAS_NO_LIMIT');
+refuse('prediction hidden behind a later disclaimer in the SAME sentence',v=>
+ v.chapters.saju_core.paragraphs.natal_depth.text=
+  quality+' 이 사주의 사람은 반드시 승진합니다, 하지만 실제 승진을 예측할 수 없다는 뜻입니다.',
+ 'QA_DEPTH_UNSUPPORTED_PERSONAL_OUTCOME');
+refuse('invented certainty qualified by another claim in same sentence',v=>
+ v.chapters.saju_core.paragraphs.natal_depth.text=
+  quality+' 이 사람은 무조건 합격합니다만, 실제로 보장되는 결과는 아닙니다.',
+ 'QA_DEPTH_UNSUPPORTED_PERSONAL_OUTCOME');
 refuse('actual lifetime claim',v=>v.chapters.saju_core.paragraphs.natal_depth.text+=' 타고난 성격을 반드시 성공으로 이끌 것입니다.',
  'QA_DEPTH_UNSUPPORTED_PERSONAL_OUTCOME');
 refuse('no contextual scenario',v=>v.chapters.saju_core.paragraphs.natal_depth.text=
