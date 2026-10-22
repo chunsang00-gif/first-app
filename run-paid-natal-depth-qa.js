@@ -14,7 +14,7 @@ const {outputLimit}=require('./report-paid-batch-plan');
 // Freeze exactly the reviewed synthetic prompt/model envelope. Recompute
 // from the REAL prepared QA request before any attempt marker or paid fetch.
 const APPROVED_MODEL='gpt-4.1';
-const APPROVED_ENVELOPE_SHA256='cf624ba237fe34f95f2740fe7238f9bd8311ad3474f024fa74e5f5e59556e2be';
+const APPROVED_ENVELOPE_SHA256='898442fb087aa5a167c4d54c4df5187a0f6a3bb9a2713f8d6218e915c969b062';
 const fingerprint=v=>crypto.createHash('sha256').update(JSON.stringify(v)).digest('hex');
 async function assertFrozenRequest(qa){
  const built=await readiness.build();
@@ -30,7 +30,10 @@ async function assertFrozenRequest(qa){
   throw Error('QA_NATAL_DEPTH_APPROVED_ENVELOPE_DRIFT_NO_BILLING');
  return actual;
 }
-const APPROVAL='RUN_ONE_NATAL_DEPTH_SAMPLE';
+// The old V1 consent was consumed by run #39753663547. The existing
+// GitHub Actions workflow still uses V1, so no new charged run is possible
+// without a NEW explicit decision and deliberately revised workflow.
+const APPROVAL='RUN_ONE_NATAL_DEPTH_SAMPLE_V2_NEW_APPROVAL_REQUIRED';
 function savePrivate(file,data){
  const fd=fs.openSync(file,'wx',0o600);
  try{fs.writeFileSync(fd,JSON.stringify(data,null,2));fs.fsyncSync(fd)}
