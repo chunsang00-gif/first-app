@@ -187,6 +187,21 @@ const read=(dir,name)=>JSON.parse(fs.readFileSync(path.join(dir,name),'utf8'));
   assert.equal(read(brokenDir,'private-qa-first-chapter-provider-calls.json')
    .response.status,'invalid_json');
   assert(!fs.existsSync(output(brokenDir)));
+  const rejectedName='private-qa-first-chapter-rejected-review.json';
+  const brokenReview=read(brokenDir,rejectedName);
+  assert.equal(brokenReview.automatedStatus,'rejected');
+  assert.equal(brokenReview.releaseVerdict,'not-approved');
+  assert.equal(brokenReview.providerResponseStatus,'invalid_json');
+  assert.equal(brokenReview.paragraphs.natal_depth,null,
+   'malformed raw text must not be invented into a chapter');
+  assert.equal(brokenReview.humanReview.status,'pending');
+  assert.equal(brokenReview.apiCallsForThisReview,0);
+  assert.equal(fs.statSync(path.join(brokenDir,rejectedName)).mode&0o777,0o600);
+  assert.equal(archive.encrypt(brokenDir),true);
+  const brokenRecovered=path.join(brokenDir,'recovered');
+  assert(archive.decrypt(path.join(brokenDir,archive.ARCHIVE),brokenRecovered)
+   .includes(rejectedName));
+  assert.equal(read(brokenRecovered,rejectedName).releaseVerdict,'not-approved');
   // Structurally valid but empty optional depth also cannot pass paid QA.
   const emptyDir=outputDir();
   process.env.REPORT_QA_OUTPUT=output(emptyDir);
@@ -197,6 +212,43 @@ const read=(dir,name)=>JSON.parse(fs.readFileSync(path.join(dir,name),'utf8'));
   assert.equal(count(),1);
   assert(fs.existsSync(path.join(emptyDir,'private-qa-first-chapter-provider-calls.json')));
   assert(!fs.existsSync(output(emptyDir)));
+  const emptyReview=read(emptyDir,rejectedName);
+  assert.equal(emptyReview.automatedStatus,'rejected');
+  assert.equal(emptyReview.diagnostics.depthPresent,false);
+  assert.equal(emptyReview.paragraphs.natal_depth,null);
+  assert.equal(emptyReview.paragraphs.strength.body,good.chapters.saju_core.paragraphs.strength.text,
+   'a paid but rejected sample retains its useful ORIGINAL core prose');
+  assert.equal(emptyReview.humanReview.items.length,7);
+  assert(emptyReview.humanReview.items.every(x=>x.result==='pending'));
+  assert.equal(emptyReview.releaseVerdict,'not-approved');
+  assert.equal(emptyReview.apiCallsForThisReview,0);
+  assert.equal(archive.encrypt(emptyDir),true);
+  const emptyRecovered=path.join(emptyDir,'recovered');
+  const emptyFiles=archive.decrypt(path.join(emptyDir,archive.ARCHIVE),emptyRecovered);
+  assert(emptyFiles.includes(rejectedName));
+  assert.equal(read(emptyRecovered,rejectedName).paragraphs.strength.body,
+   good.chapters.saju_core.paragraphs.strength.text);
+  // Even when a paid response has a valid JSON shape, the semantic decoder
+  // can reject invented traits or misattributed source explanations.
+  const rejectedDir=outputDir();
+  process.env.REPORT_QA_OUTPUT=output(rejectedDir);
+  const semanticallyBad=structuredClone(good);
+  semanticallyBad.chapters.saju_core.paragraphs.natal_depth.text+=
+   ' 당신은 원래 반드시 성공하고 타고난 능력이 매우 뛰어납니다.';
+  count=intercept(JSON.stringify(semanticallyBad));
+  await assert.rejects(runner.run(),/QA_NATAL_DEPTH_RESPONSE_REJECTED/);
+  assert.equal(count(),1,'semantic rejection must NOT cause a second paid call');
+  assert(!fs.existsSync(output(rejectedDir)));
+  const semanticReview=read(rejectedDir,rejectedName);
+  assert.equal(semanticReview.paragraphs.natal_depth.body,
+   semanticallyBad.chapters.saju_core.paragraphs.natal_depth.text);
+  assert(semanticReview.diagnostics.modelResponseGuardErrors.length>0);
+  assert.equal(semanticReview.humanReview.status,'pending');
+  assert.equal(semanticReview.releaseVerdict,'not-approved');
+  assert.equal(archive.encrypt(rejectedDir),true);
+  const semanticRecovered=path.join(rejectedDir,'recovered');
+  assert(archive.decrypt(path.join(rejectedDir,archive.ARCHIVE),semanticRecovered)
+   .includes(rejectedName));
   console.log('PASS isolated natal-depth one-call runner: scope, explicit approval, no retry, private raw capture, null-depth rejection; 0 real provider calls');
  }finally{
   global.fetch=old.fetch;
