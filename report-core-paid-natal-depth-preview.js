@@ -56,7 +56,13 @@ function prepare(packet){
     JSON.stringify(Object.keys(payload.source).sort())!==
     JSON.stringify([...new Set(Object.values(payload.task.chapters.saju_core.topics)
      .flatMap(x=>x.citableFacts.map(v=>v.id)))].sort()))
-  throw Error('QA_NATAL_DEPTH_PROVIDER_SOURCE_SCOPE_DIVERGED');
+  throw Error('QA_NATAL_DEPTH_PROVIDER_SOURCE_SCOPE_DIVERGED:'+JSON.stringify({
+   requested:ids,
+   permitted:topic?.citableFacts?.map(x=>x.id)||[],
+   sourceKeys:Object.keys(payload.source),
+   allTopics:Object.values(payload.task.chapters.saju_core.topics)
+    .flatMap(x=>x.citableFacts.map(v=>v.id))
+  }));
  if(topic.citableFacts.some(x=>PROHIBITED.test(x.id)))
   throw Error('QA_NATAL_DEPTH_PERSONAL_OR_FUTURE_SOURCE');
  return {prompt,payload,previewTopic:TOPIC,offlineRuleId:candidate.ruleId,
