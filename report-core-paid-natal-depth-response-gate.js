@@ -33,7 +33,7 @@ function inspect(value,prompt){
  const payload=generation.compile(prompt);
  const depthTask=payload?.task?.chapters?.saju_core?.topics?.natal_depth;
  const allowed=new Set(depthTask?.citableFacts?.map(x=>x.id)||[]);
- if(!depthTask||!MIN.every(x=>allowed.has(x))||!depthTask.allowedSourceRefs?.every(x=>allowed.has(x)))
+ if(!depthTask||!MIN.every(x=>allowed.has(x))||depthTask.allowedSourceRefs?.some(x=>!allowed.has(x)))
   fail('QA_DEPTH_UNVERIFIED_TASK');
  const core=value?.chapters?.saju_core;
  const parts=core?.paragraphs;
@@ -70,11 +70,13 @@ function inspect(value,prompt){
  if(/(?:궁금하지\s*않으세요|어떨까요|어떤가요|하시겠습니까)\s*[?？]?\s*$/.test(text)||
     /[?？]\s*$/.test(text))
   fail('QA_DEPTH_ENDING_QUESTION');
- if(READER_CLAIMS.test(text)&&!VOID_OUTPUT.test(text))
-  fail('QA_DEPTH_UNSUPPORTED_PERSONAL_OUTCOME');
+ for(const sentence of text.split(/[.!?。！？\\n]+/).map(simple).filter(Boolean)){
+  if(READER_CLAIMS.test(sentence)&&!VOID_OUTPUT.test(sentence))
+   fail('QA_DEPTH_UNSUPPORTED_PERSONAL_OUTCOME');
+ }
  if(!CONDITIONAL.test(text))fail('QA_DEPTH_NO_CONDITIONAL_INTERPRETATION');
  if(!COMPARISON.test(text))fail('QA_DEPTH_NO_PILLAR_CONTRAST');
- const positions=new Set([...text.matchAll(POS)].map(x=>x[0].includes('해')?'year':
+ const positions=new Set([...text.matchAll(POSITION)].map(x=>x[0].includes('해')?'year':
   x[0].includes('날')?'day':'hour'));
  if(positions.size<2)fail('QA_DEPTH_NO_DISTINCT_NATAL_POSITIONS');
  if(overlap(strengthText,text)>0.55||
