@@ -26,7 +26,9 @@ const result=core.all(packet);
 assert.equal(result.money.relevant,false,'annual official classification cannot predict money');
 assert.equal(result.career.relevant,true,'calculated official/learning pair is eligible for a LIMITED traditional comparison');
 assert(result.career.comparisons.some(p=>p.annualId==='annual.stem'&&p.natalId==='natal.month.stem'&&p.family==='authority'));
-assert(result.career.comparisons.some(p=>p.annualId==='annual.hidden.己'&&p.natalId==='natal.day.hidden.戊'&&p.family==='learning'));
+assert(!result.career.comparisons.some(p=>p.annualId==='annual.hidden.己'),
+ 'hidden annual stem is preserved in original facts, but cannot solely justify another paid domain chapter');
+assert(result.career.withheldWeakComparisonCount>=1);
 assert(!result.career.guaranteesRealWorldOutcome);
 assert.equal(result.career.evidenceType,'traditional-classification-comparison-only');
 
@@ -47,15 +49,16 @@ assert.deepEqual(duplicateCareer.comparisons,[]);
 assert.deepEqual(duplicateCareer.sourceIds,[]);
 assert.equal(guidance.preflight(duplicate).year_2027_career.topicTasks.change.mode,'state-limits',
  'duplicate category with no semantic contrast must be omitted BEFORE billing');
-// A real contrast is not a prediction: exact same classification at two
-// different visibility layers is a valid comparison of traditional placements.
+// A visible-to-hidden difference remains a real traditional comparison,
+// but without a subtype change it is too thin for an extra paid chapter.
 const visibility=structuredClone(duplicate);
 visibility.facts.tenGods.month={
  stem:'庚',stemTenGod:'일간',hiddenStems:[{stem:'丁',tenGod:'정관'}]};
 const visibleVsHidden=core.plan(visibility,'career');
-assert.equal(visibleVsHidden.relevant,true);
-assert.equal(visibleVsHidden.comparisons.length,1);
-assert.equal(visibleVsHidden.comparisons[0].contrast,'visibility');
+assert.equal(visibleVsHidden.relevant,false);
+assert.equal(visibleVsHidden.comparisons.length,0);
+assert.equal(visibleVsHidden.withheldWeakComparisonCount,1);
+assert.deepEqual(visibleVsHidden.sourceIds,[]);
 assert.equal(visibleVsHidden.guaranteesRealWorldOutcome,false);
 const subtype=structuredClone(duplicate);
 subtype.facts.tenGods.month={stem:'丙',stemTenGod:'편관',hiddenStems:[]};
@@ -75,6 +78,14 @@ assert.equal(blockedMoney.relevant,false,
  'repeated visible 偏財 by itself is not a second paid 2027 money reading');
 assert.equal(guidance.preflight(duplicateMoney).year_2027_money.hasGroundedTopic,false,
  'same money symbol must be omitted rather than padded with generic cost advice');
+const annualHiddenOnly=structuredClone(duplicateMoney);
+annualHiddenOnly.facts.annualTenGods={
+ stem:'丁',stemTenGod:'정관',hiddenStems:[{stem:'己',tenGod:'편재'}]};
+annualHiddenOnly.facts.tenGods.month={
+ stem:'戊',stemTenGod:'정재',hiddenStems:[]};
+assert.equal(core.plan(annualHiddenOnly,'money').relevant,false,
+ 'annual hidden-only money subtype matches must not trigger paid money chapter');
+assert.equal(guidance.preflight(annualHiddenOnly).year_2027_money.annualDomainEvidence.relevant,false);
 const moneySubtype=structuredClone(duplicateMoney);
 moneySubtype.facts.tenGods.month={stem:'戊',stemTenGod:'정재',hiddenStems:[]};
 assert.equal(core.plan(moneySubtype,'money').relevant,true,
