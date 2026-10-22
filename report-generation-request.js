@@ -133,7 +133,8 @@ function editorialGoalFor(prompt){
  if(original&&prompt.stage==='body'&&
     Array.isArray(prompt.requestedSections)&&
     prompt.requestedSections.length===1&&prompt.requestedSections[0]==='saju_core')
-  return coreEditorialGoal;
+  return coreEditorialGoal+(prompt.qaNatalDepthPreview===true?
+   ' QA 전용 세 번째 natal_depth 문단만 독립적인 원국 해·날·시간 비교를 할 수 있다. 필수 strength 월간·월지 풀이에 추가 원국 출처를 섞지 말고, 인용 가능한 출처에 근거한 새로운 해석이 없으면 natal_depth는 null이다. 실제 성격·신강약·충의 사건·합화의 효력을 단정하지 않는다. 이 문단은 고객 출시 미승인 후보이며 첫 두 문단의 역할은 그대로 유지한다.':'');
  return original;
 }
 function compile(prompt){
@@ -196,7 +197,17 @@ function compile(prompt){
     });
     // The model's actual compact task is now one factual question per
     // comparison pair, rather than a four-part undifferentiated chapter table.
-    if(coreContrast)topic.evidenceFocus=require('./report-chart-contrast').forProvider(coreContrast,topicId,permitted);
+    if(coreContrast&&topicId!=='natal_depth')
+     topic.evidenceFocus=require('./report-chart-contrast').forProvider(coreContrast,topicId,permitted);
+    if(topicId==='natal_depth'){
+     if(prompt.qaNatalDepthPreview!==true||chapterId!=='saju_core'||
+        topic.mode!=='use-primary'||permitted.length<5||
+        !['natal.year.stem','natal.month.stem','natal.day.stem',
+          'natal.hour.stem','facts.stemConnections'].every(x=>permitted.includes(x)))
+      throw Error('QA_NATAL_DEPTH_OUTGOING_SCOPE_REJECTED');
+     topic.evidenceFocus={kind:'qa-verified-natal-provenance-only',
+      sourceRefs:permitted.slice(),readerScope:'separate-from-month-pair-core'};
+    }
     // Only supported, actually citable topics receive the specific
     // submitted MBTI dimension; state-limits never get a free type claim.
     topic.mbtiFocus=topic.mode!=='state-limits'&&permitted.includes('person.mbti')&&
