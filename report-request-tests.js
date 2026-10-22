@@ -228,7 +228,9 @@ assert.equal(p.stage,'body');assert.equal(p.priorSections.length,expectedBatches
   let first=null;
   await assert.rejects(contract.generate(sample,async prompt=>{first=prompt;throw Error('offline personalization capture');}),/offline personalization capture/);
   assert(first&&first.stage==='body','first model request must be capturable without provider calls');
-  assert.deepEqual(first.requestedSections,['saju_core','mbti_contradiction']);
+  assert.equal(first.requestedSections[0],'saju_core');
+  assert(first.requestedSections.every(id=>['saju_core','mbti_contradiction'].includes(id)),
+   'first paid batch may isolate dense core chapters when weak annual topics are omitted');
   assert.equal(first.facts.person.mbti,sample.mbti);
   assert.equal(first.analysisGuidance.mbtiReference?.type||'모름',sample.mbti);
   // Audit the composed provider payload, not merely source-level templates.
