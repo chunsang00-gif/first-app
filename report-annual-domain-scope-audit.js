@@ -18,6 +18,17 @@ for(const input of grid){
  result.calendarReady++;
  const parts=core.all(packet);
  const plan=guidance.preflight(packet);
+ for(const [domain,proof] of Object.entries(parts)){
+  const eligible=proof.comparisons;
+  if(proof.relevant!==Boolean(eligible.length)||
+     eligible.some(c=>c.annualLayer!=='visible-stem'||
+      !['subtype','subtype-and-visibility'].includes(c.contrast))||
+     eligible.some(c=>!proof.sourceIds.includes(c.annualId)||
+      !proof.sourceIds.includes(c.natalId))||
+     (!proof.relevant&&proof.sourceIds.length)||
+     proof.editorialThreshold!=='annual-visible-stem-and-verified-subtype-difference')
+   throw Error('ANNUAL_PREMIUM_SOURCE_THRESHOLD_BYPASS:'+domain);
+ }
  if(parts.money.relevant){
   result.moneyEligible++;
   if(parts.money.comparisons.every(x=>x.contrast==='visibility'))
@@ -46,6 +57,15 @@ for(const input of grid){
  if(parts.money.relevant&&parts.career.relevant&&money.some(id=>career.includes(id)))
   result.relevantWithoutUniqueAnnualEvidence++;
 }
-if(result.cases!==99||result.calendarReady!==99)throw Error('EXPECTED_99_CALCULABLE_FIXED_INPUTS');
+if(result.cases!==99||result.calendarReady!==99)
+ throw Error('EXPECTED_99_CALCULABLE_FIXED_INPUTS');
+if(result.moneyMatchedAnnualHiddenOnly!==0||
+   result.careerMatchedAnnualHiddenOnly!==0||
+   result.moneyOnlyVisibility!==0||
+   result.careerOnlyVisibility!==0)
+ throw Error('ANNUAL_DOMAIN_PREMIUM_WITH_WEAK_SOURCE');
+if(result.moneyEligible>=result.cases||
+   result.careerEligible>=result.cases)
+ throw Error('ALL_ANNUAL_DOMAINS_FORCED_INTO_PAID_SCOPE');
 console.log('ANNUAL_SCOPE_AUDIT='+JSON.stringify(result));
 module.exports={result};
