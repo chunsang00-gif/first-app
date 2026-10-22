@@ -97,9 +97,11 @@ function assess(packet){
   {id:'approximate-thirty-day-governing-table',
    rowIds:candidateId?[candidateId]:[],
    status:'exploratory-not-adopted',interpretivePriority:'not-assessed'},
-  {id:'exact-month-hidden-to-visible-stem',
-   rowIds:exposed.map(x=>x.sourceId),
-   status:'exact-character-match-only',interpretivePriority:'not-assessed'}
+  {id:'exact-month-hidden-to-non-day-visible-stem-screen',
+   rowIds:nonDayExactExposureIds,
+   status:'exploratory-non-day-exposure-screen-not-adopted',
+   note:'전체 대응 관계는 observed.exactExposureScopeComparison에 보존한다. 일간 포함 여부와 실제 취격 우선순위는 별도 학파 검증이 필요하다.',
+   interpretivePriority:'not-assessed'}
  ];
  const counterexamples=[
   {id:'main-stem-is-not-active-qi',
