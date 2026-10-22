@@ -99,6 +99,16 @@ const read=(dir,name)=>JSON.parse(fs.readFileSync(path.join(dir,name),'utf8'));
   for(const name of fs.readdirSync(successDir))
    assert.equal(fs.statSync(path.join(successDir,name)).mode&0o777,0o600,
     'QA raw/decoded manuscripts must be private');
+  // The unchanged encrypted archive utility must accept this new runner's
+  // exact private filenames; never upload raw reports to GitHub artifacts.
+  const archive=require('./report-qa-secure-archive');
+  assert.equal(archive.encrypt(successDir),true);
+  assert(fs.existsSync(path.join(successDir,archive.ARCHIVE)));
+  const decodedDir=path.join(successDir,'archive-unpacked');
+  const restored=archive.decrypt(path.join(successDir,archive.ARCHIVE),decodedDir);
+  assert(restored.includes('private-qa-first-chapter-provider-calls.json'));
+  assert(restored.includes('private-qa-first-chapter-validated-first-chapter.json'));
+  assert.equal(read(decodedDir,'private-qa-first-chapter.json').releaseVerdict,'not-approved');
   // Repeated operator execution with existing attempt files must fail CLOSED.
   await assert.rejects(runner.run(),/QA_NATAL_DEPTH_EXISTING_EVIDENCE_NO_OVERWRITE/);
   assert.equal(count(),1,'existing paid artifact must not trigger another call');
