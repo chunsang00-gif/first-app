@@ -102,9 +102,14 @@ for(const input of samples){
  cases.push({date:input.birthDate,
   checks:Object.fromEntries(result.falsifiableChecks.map(x=>[x.id,x.observed])),
   yearExact:result.exactStemsByPosition.year.exactHiddenSourceIds.length,
-  hourExact:result.exactStemsByPosition.hour.exactHiddenSourceIds.length});
+  hourExact:result.exactStemsByPosition.hour.exactHiddenSourceIds.length,
+  visibleDirections:result.traditionalVisibleRelations.pairs.map(row=>({
+   from:row.from,to:row.to,direction:row.elementalDirection
+  }))});
  checked++;
 }
+assert(new Set(cases.map(x=>JSON.stringify(x.visibleDirections))).size>=2,
+ 'a generic relation template cannot describe every birth chart');
 assert.equal(new Set(cases.map(x=>JSON.stringify(x.checks))).size>=3,true,
  'real chart-specific stem observations must be distinguishable');
 assert.notDeepEqual(cases.find(x=>x.date==='1988-12-15').checks,
