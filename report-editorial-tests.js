@@ -763,7 +763,7 @@ for(const a of ['I','E'])for(const b of ['S','N'])for(const c of ['T','F'])for(c
    body:Object.keys(outline.topics[id]).map((topic,i)=>'서로 다른 주제 '+id+i+'에서 논리와 근거를 확인하고 설명에 납득해야 합니다.'+(id==='saju_core'&&topic==='strength'?' '+require('./qa/core-meaning-mock').body(p):''))
   }))};
  }),/cross-chapter recycled thesis/);
- assert.equal(preflightCalls,3);
+ assert.equal(preflightCalls,4,'recycled thesis must still fail before synthesis with isolated first paid core chapter');
  console.log('PASS editorial phrases, repetitive templates, natural phrasing, active body/summary rules, topic memory, 29 topics and seven calls; no paid API');
 })().catch(e=>{console.error(e);process.exitCode=1});
 
