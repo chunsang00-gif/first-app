@@ -138,7 +138,7 @@ refuse('inappropriate ending question',v=>v.chapters.saju_core.paragraphs.natal_
 refuse('copy the first core paragraph instead of adding paid depth',v=>{
  v.chapters.saju_core.paragraphs.temperament={
   label:'첫 번째 기본 풀이',text:quality,
-  basis:{refs:['natal.month.stem'],interpretation:'기본 풀이',
+  basis:{refs:p.payload.task.chapters.saju_core.topics.temperament.citableFacts.map(x=>x.id),interpretation:'기본 풀이',
    condition:'가상 상황',limit:'실제 성격은 알 수 없음'}
  };
 },'QA_DEPTH_REPEATS_TEMPERAMENT_CORE');
@@ -155,7 +155,7 @@ const distinctCore=response();
 distinctCore.chapters.saju_core.paragraphs.temperament={
  label:'기본 풀이의 독립적인 상황',
  text:'태어난 계절을 구분하는 자료는 보통 언제 달의 기준이 바뀌는지를 설명합니다. 이를 개인의 실제 능력이나 성취에 대한 기록으로 바꾸지 않습니다.',
- basis:{refs:['natal.month.stem'],interpretation:'계산 근거',
+ basis:{refs:p.payload.task.chapters.saju_core.topics.temperament.citableFacts.map(x=>x.id),interpretation:'계산 근거',
   condition:'가상의 일상 장면',limit:'실제 능력은 알 수 없음'}
 };
 assert(!validator.inspect(distinctCore,p.prompt).some(x=>
