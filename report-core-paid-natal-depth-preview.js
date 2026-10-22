@@ -39,7 +39,7 @@ function prepare(packet){
   primaryEvidencePath:'facts.stemConnections',
   mode:'use-primary',verifiedFallbackPaths:[],allowedSourceRefs:ids.slice(),
   requiredSourceKinds:['natal','stem-linkage'],
-  interpretationBoundary:'독립 심화 검토용 문단이다. 직접 인용 가능한 원국의 해·달·날·시간 위치를 비교한다. 기존 strength의 월간·월지 풀이를 반복하지 않는다. 동일 오행 숨은 글자나 충·형·해·합 관계의 존재만으로 강약·실제 행동·충돌·합화·사건을 단정하지 않는다. 새로운 판단이 근거로 구별되지 않으면 null로 반환한다.'
+  interpretationBoundary:'QA 전용 심화 검토 문단이다. 검증된 출생 해·날·시간의 서로 다른 분류를 출처별로 구별한다. 독자에게는 한 가지 가상의 구체적인 선택 상황에서 (1) 어느 출처의 뜻이 어떤 선택에 연결되는지 (2) 그 선택이 유리하게 해석되는 조건과 놓치기 쉬운 조건이 무엇인지 근거와 함께 설명한다. 단순 상징 풀이·계산 위치 소개·일반적인 준비 조언을 새로운 통찰처럼 판매하지 않는다. 기존 strength와 temperament의 결론을 다시 쓰지 않는다. 강약·실제 성격·능력·충돌·합화·사건은 관찰하거나 확정하지 않았다. 둘 사이에 검증 가능한 새로운 차이를 설명할 수 없으면 natal_depth는 null로 반환한다.'
  };
  modelPlan.activeTopicKeys=[...modelPlan.activeTopicKeys,TOPIC];
  const prompt={stage:'body',facts:packet,requestedSections:['saju_core'],
