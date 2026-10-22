@@ -95,7 +95,17 @@ function inspect(prompt){
     if(!slot){errors.push('missing transport slot: '+id+'/'+topic);continue}
     if(topic===plan.anchorTopic&&slot.type!=='object')errors.push('nullable mandatory anchor: '+id+'/'+topic);
     if(task.mode==='state-limits'&&topic!==plan.anchorTopic&&slot.type!=='null')errors.push('unsupported topic writable: '+id+'/'+topic);
-    if(task.mode!=='state-limits'&&topic!==plan.anchorTopic&&!slot.anyOf?.some(v=>v.type==='null'))errors.push('supported optional topic cannot be omitted: '+id+'/'+topic);
+    // QA-only natal-depth is a deliberate evidence-qualified writing
+    // diagnostic; null would leave the ONLY requested depth unwritten.
+    // All ordinary/production optional report topics remain nullable.
+    const requiredQaDepth=prompt.qaNatalDepthPreview===true&&
+      id==='saju_core'&&topic==='natal_depth'&&task.mode==='use-primary';
+    if(requiredQaDepth){
+     if(slot.type!=='object'||slot.anyOf)
+      errors.push('qa-required-depth-not-structurally-present: '+id+'/'+topic);
+    }else if(task.mode!=='state-limits'&&topic!==plan.anchorTopic&&
+      !slot.anyOf?.some(v=>v.type==='null'))
+     errors.push('supported optional topic cannot be omitted: '+id+'/'+topic);
    }
    for(const [topic,t] of Object.entries(plan.topicTasks||{}))if(t.mode==='state-limits'&&active.has(topic))errors.push('unsupported active topic: '+id+'/'+topic);
    if(/^year_2027_(money|career|relationship)$/.test(id)&&!plan.annualDomainEvidence?.relevant)errors.push('ungrounded annual domain: '+id);
