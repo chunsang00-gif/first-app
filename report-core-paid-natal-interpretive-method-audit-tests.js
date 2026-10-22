@@ -20,6 +20,10 @@ for(const input of samples){
  assert.equal(result.methodStatus,'unverified-interpretive-bridge');
  assert.equal(result.independentMethodApproved,false);
  assert.equal(result.eligibleForPaidQualityApproval,false);
+ assert.equal(result.monthMethodReview.status,'method-priority-not-selected');
+ assert.equal(result.monthMethodReview.adoptedMethodId,null);
+ assert.equal(result.monthMethodReview.activeHiddenStemId,null);
+ assert.equal(result.monthMethodReview.canApproveDeepSajuInterpretation,false);
  assert.equal(result.releaseVerdict,'not-approved');
  assert.equal(result.providerCalls,0);
  assert.equal(result.calculatedObservations.positionsVerified,4);
