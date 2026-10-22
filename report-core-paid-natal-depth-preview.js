@@ -50,7 +50,7 @@ function prepare(packet){
   primaryEvidencePath:'facts.stemConnections',
   mode:'use-primary',verifiedFallbackPaths:[],allowedSourceRefs:ids.slice(),
   requiredSourceKinds:['natal','stem-linkage'],
-  interpretationBoundary:'QA 전용 심화 검토 문단이다. 검증된 출생 해·날·시간의 서로 다른 분류를 출처별로 구별한다. 독자에게는 한 가지 가상의 구체적인 선택 상황에서 (1) 어느 출처의 뜻이 어떤 선택에 연결되는지 (2) 그 선택이 유리하게 해석되는 조건과 놓치기 쉬운 조건이 무엇인지 근거와 함께 설명한다. 단순 상징 풀이·계산 위치 소개·일반적인 준비 조언을 새로운 통찰처럼 판매하지 않는다. 기존 strength와 temperament의 결론을 다시 쓰지 않는다. 강약·실제 성격·능력·충돌·합화·사건은 관찰하거나 확정하지 않았다. 둘 사이에 검증 가능한 새로운 차이를 설명할 수 없으면 natal_depth는 null로 반환한다.'
+  interpretationBoundary:'QA 전용 심화 검토 문단이다. 검증된 출생 해·날·시간의 서로 다른 분류를 출처별로 구별한다. 독자에게는 한 가지 가상의 구체적인 선택 상황에서 (1) 어느 출처의 뜻이 어떤 선택에 연결되는지 (2) 그 선택이 유리하게 해석되는 조건과 놓치기 쉬운 조건이 무엇인지 근거와 함께 설명한다. 단순 상징 풀이·계산 위치 소개·일반적인 준비 조언을 새로운 통찰처럼 판매하지 않는다. 기존 strength와 temperament의 결론을 다시 쓰지 않는다. 강약·실제 성격·능력·충돌·합화·사건은 관찰하거나 확정하지 않았다. 이 QA의 사전 선별된 독립 근거가 독자용 차이로 이어지는지 실제 원고로 검증한다. 근거를 설명할 수 없다면 그럴듯한 문장으로 대체하지 말고 사후 QA에서 실패 처리한다.'
  };
  modelPlan.activeTopicKeys=[...modelPlan.activeTopicKeys,TOPIC];
  const prompt={stage:'body',facts:packet,requestedSections:['saju_core'],
