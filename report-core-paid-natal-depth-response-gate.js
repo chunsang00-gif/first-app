@@ -9,7 +9,7 @@ const READER_CLAIMS=/(?:타고난|반드시|틀림없이|무조건|항상|분명
 const CONDITIONAL=/(?:경우|상황|조건|때(?:에는|라면|에는|에는|\s)|예를\s*들어|가정)/;
 const COMPARISON=/(?:다르|구별|반면|한편|비교|따로|연결|반대로|반면에|그에\s*비해|하지만)/;
 const POSITION=/(?:태어난\s*해|태어난\s*날|태어난\s*시간|해에서|날에는|시간에는|해의|날의|시간의|연간|일간|시간)/g;
-const VOID_OUTPUT=/(?:알\s*수\s*없습니다|확인할\s*수\s*없습니다|판단할\s*수\s*없습니다)/;
+const VOID_OUTPUT=/(?:알\\s*수\\s*없습니다|확인할\\s*수\\s*없습니다|판단할\\s*수\\s*없습니다|평가가\\s*아니|판정하지\\s*않|뜻이\\s*아니|증거가\\s*아니)/;
 const simple=s=>String(s||'').replace(/\s+/g,' ').trim();
 function overlap(a,b){
  const clean=s=>simple(s).replace(/[^가-힣a-z0-9]/gi,'');
