@@ -4,6 +4,7 @@
 // A source link is NEVER evidence that a personal tendency, superior
 // influence, or paid reader value has been established.
 const linkage=require('./report-core-paid-natal-linkage-brief');
+const monthMethod=require('./report-core-paid-natal-month-method-review');
 const REQUIRED=['natal.year.stem','natal.month.stem','natal.day.stem',
  'natal.hour.stem','facts.stemConnections'];
 const POSITIONS=['year','month','day','hour'];
@@ -84,6 +85,10 @@ function assess(prompt,provider){
    ];
   })
  ];
+ const monthMethodReview=monthMethod.assess(prompt.facts);
+ if(monthMethodReview.canApproveDeepSajuInterpretation!==false||
+    monthMethodReview.interpretivePriorityVerified!==false)
+  throw Error('QA_METHOD_REVIEW_PREMATURE_MONTH_PRIORITY');
  const decisions=[
   {id:'calculated-position-and-stem-links',status:'verified-by-deterministic-code',
    scope:'position and exact/same-element connections only'},
@@ -103,7 +108,7 @@ function assess(prompt,provider){
   kind:'isolated-natal-depth-interpretive-method-audit-v1',
   methodStatus:'unverified-interpretive-bridge',
   calculatedObservations:observations,
-  exactStemsByPosition,falsifiableChecks,
+  exactStemsByPosition,falsifiableChecks,monthMethodReview,
   // Passing these checks only verifies calculated identity/difference.
   // A school-specific interpretation and independent editorial validation
   // remain separate, unresolved gates.
