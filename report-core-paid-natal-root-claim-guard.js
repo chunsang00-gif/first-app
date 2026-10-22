@@ -15,7 +15,8 @@ function inspect(text){
  const issues=[];
  const sentences=String(text||'').split(/[.!?。！？\n]+/).map(s=>s.trim()).filter(Boolean);
  for(const sentence of sentences){
-  if(!rootSource.test(sentence)||!causal.test(sentence)||!outcome.test(sentence))continue;
+  if(!rootSource.test(sentence)||!causal.test(sentence)||
+    (!outcome.test(sentence)&&!unsupportedPriority.test(sentence)))continue;
   // An explicit denial of inference is allowed, but a positive assertion
   // followed by a disclaimer in the same sentence must not be laundered.
   // The positive portion before the denial is checked independently.
