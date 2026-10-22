@@ -23,7 +23,7 @@ function response(){
      condition:'가상의 선택 상황에서만 풀이',limit:'실제 성격을 알 수 없음'}},
    natal_depth:{label:'해와 시간을 다르게 살피는 기준',text:quality,
     basis:{refs:['natal.year.stem','natal.day.stem','natal.hour.stem','facts.stemConnections'],
-     interpretation:'연간과 시간의 서로 다른 전통 분류를 비교',
+     interpretation:require('./report-core-paid-natal-depth-fact-lock').fromPayload(p.payload).literal,
      condition:'새로운 설명을 준비하는 가상 조건',limit:'실제 행동이나 성공을 판단하지 않음'}}
   }
  }},finalJudgment:null,cover:null};
@@ -40,7 +40,7 @@ function refuse(label,mutate,match){
  const value=response();mutate(value);
  const errors=validator.inspect(value,p.prompt);
  assert(errors.some(x=>x.includes(match)),label+': '+JSON.stringify(errors));
- assert.throws(()=>decode(value,p.prompt),/QA_NATAL_DEPTH_RESPONSE_REJECTED|verified paragraph basis|missing required grounded stem connection evidence/,
+ assert.throws(()=>decode(value,p.prompt),/QA_NATAL_DEPTH_RESPONSE_REJECTED|QA_NATAL_DEPTH_FACT_LOCK_DIVERGED|verified paragraph basis|missing required grounded stem connection evidence/,
   label+' must fail before becoming a report section');
  cases++;
 }
@@ -62,6 +62,11 @@ refuse('duplicate citations',v=>v.chapters.saju_core.paragraphs.natal_depth.basi
  'QA_DEPTH_INVALID_EVIDENCE_REFS');
 refuse('missing interpretation',v=>v.chapters.saju_core.paragraphs.natal_depth.basis.interpretation='',
  'QA_DEPTH_MISSING_REASON_OR_LIMIT');
+refuse('invented position facts despite correct citation IDs',v=>
+ v.chapters.saju_core.paragraphs.natal_depth.basis.interpretation=
+  v.chapters.saju_core.paragraphs.natal_depth.basis.interpretation.replace(
+   p.payload.source['natal.year.stem'].tenGod,'비교적 다른 분류'),
+ 'QA_DEPTH_FACT_LOCK_DIVERGED');
 refuse('jargon in reader',v=>v.chapters.saju_core.paragraphs.natal_depth.text+=' 이 원국은 월지의 지장간을 확인한 것입니다.',
  'QA_DEPTH_READER_JARGON');
 refuse('Chinese symbol',v=>v.chapters.saju_core.paragraphs.natal_depth.text+=' 甲이라는 글자가 있습니다.',
