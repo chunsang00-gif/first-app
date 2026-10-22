@@ -4,6 +4,31 @@
 // A fresh ephemeral checkout must NOT erase the one-shot budget.
 const PATH='.github/workflows/paid-natal-depth-qa.yml';
 const BRANCH='fix-paid-qa-fact-bindings-20261014';
+// The first registered manual run was mistakenly launched from the
+// workflow-registration branch, so GitHub skipped its ONLY job (0 steps).
+// Exception is tied to this verified exact run, never to all skipped runs.
+const VERIFIED_ZERO_COST_SKIP=Object.freeze({
+ id:39753002399,head_branch:'register-natal-depth-qa-workflow-20261022'
+});
+async function isVerifiedSkippedRun(run,request,headers,repository){
+ if(run.id!==VERIFIED_ZERO_COST_SKIP.id||
+    run.head_branch!==VERIFIED_ZERO_COST_SKIP.head_branch||
+    run.event!=='workflow_dispatch'||run.status!=='completed'||
+    run.conclusion!=='skipped'||run.run_attempt!==1)return false;
+ let reply,payload;
+ try{
+  reply=await request('https://api.github.com/repos/'+repository+
+   '/actions/runs/'+run.id+'/jobs?per_page=100',{headers});
+  if(!reply?.ok)return false;
+  payload=await reply.json();
+ }catch{return false;}
+ return payload?.total_count===1&&payload.jobs?.length===1&&
+  payload.jobs[0].name==='natal-depth-qa'&&
+  payload.jobs[0].status==='completed'&&
+  payload.jobs[0].conclusion==='skipped'&&
+  payload.jobs[0].run_attempt===1&&
+  Array.isArray(payload.jobs[0].steps)&&payload.jobs[0].steps.length===0;
+}
 async function check(env=process.env,request=global.fetch){
  const reject=reason=>{throw Error('QA_NATAL_DEPTH_DISPATCH_BLOCKED:'+reason);};
  if(env.GITHUB_ACTIONS!=='true'||!env.GITHUB_TOKEN||
@@ -48,8 +73,10 @@ async function check(env=process.env,request=global.fetch){
        run.run_attempt!==1)reject('current-run-mismatch');
     foundCurrent=true;
    }else{
-    // Any other run, including failed or canceled, may already have consumed
-    // tokens. Never infer safety from a previous run's conclusion.
+    // Reject all older dispatches except the independently checked, exact
+    // wrong-branch job that GitHub skipped BEFORE running any code.
+    if(await isVerifiedSkippedRun(run,request,headers,env.GITHUB_REPOSITORY))
+     continue;
     reject('previous-natal-depth-dispatch-exists');
    }
   }
