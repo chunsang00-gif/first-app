@@ -34,6 +34,12 @@ const read=(dir,name)=>JSON.parse(fs.readFileSync(path.join(dir,name),'utf8'));
   await assert.rejects(runner.run(),/QA_NATAL_DEPTH_EXPLICIT_APPROVAL_REQUIRED/);
   assert.equal(network,0);
   assert.equal(fs.readdirSync(dryDir).length,0,'unapproved call must create no evidence');
+  // V1 confirmation was already consumed by the 2026-10-22 real call.
+  // The UI is intentionally still V1, while the non-billable mock uses V2.
+  process.env.REPORT_QA_CONFIRM='RUN_ONE_NATAL_DEPTH_SAMPLE';
+  await assert.rejects(runner.run(),/QA_NATAL_DEPTH_EXPLICIT_APPROVAL_REQUIRED/);
+  assert.equal(network,0);
+  assert.equal(fs.readdirSync(dryDir).length,0);
   process.env.REPORT_QA_CONFIRM=runner.APPROVAL;
   // A changed model price/tokens or a changed approved prompt must fail
   // BEFORE the attempt marker, before fetch, and without charging again.
@@ -120,7 +126,7 @@ const read=(dir,name)=>JSON.parse(fs.readFileSync(path.join(dir,name),'utf8'));
   let count=intercept(JSON.stringify(good));
   const result=await runner.run();
   assert.equal(actualHTTPEnvelopeHash,
-   'cf624ba237fe34f95f2740fe7238f9bd8311ad3474f024fa74e5f5e59556e2be',
+   '898442fb087aa5a167c4d54c4df5187a0f6a3bb9a2713f8d6218e915c969b062',
    'actual outgoing OpenAI schema/brief drifted from the frozen QA fingerprint');
   assert.equal(count(),1);
   assert.equal(result.providerCalls,1);
