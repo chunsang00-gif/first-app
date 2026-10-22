@@ -208,13 +208,14 @@ const read=(dir,name)=>JSON.parse(fs.readFileSync(path.join(dir,name),'utf8'));
   assert(archive.decrypt(path.join(brokenDir,archive.ARCHIVE),brokenRecovered)
    .includes(rejectedName));
   assert.equal(read(brokenRecovered,rejectedName).releaseVerdict,'not-approved');
-  // Structurally valid but empty optional depth also cannot pass paid QA.
+  // Exact 2026-10-22 failure: paid natal_depth:null must fail the decoder before
+  // any success artifact, and the original provider response remains archived.
   const emptyDir=outputDir();
   process.env.REPORT_QA_OUTPUT=output(emptyDir);
   const withoutDepth=structuredClone(good);
   withoutDepth.chapters.saju_core.paragraphs.natal_depth=null;
   count=intercept(JSON.stringify(withoutDepth));
-  await assert.rejects(runner.run(),/QA_NATAL_DEPTH_MODEL_RETURNED_NO_ADDITIONAL_READING/);
+  await assert.rejects(runner.run(),/QA_NATAL_DEPTH_RESPONSE_REJECTED:QA_DEPTH_REQUIRED_READING_MISSING/);
   assert.equal(count(),1);
   assert(fs.existsSync(path.join(emptyDir,'private-qa-first-chapter-provider-calls.json')));
   assert(!fs.existsSync(output(emptyDir)));
