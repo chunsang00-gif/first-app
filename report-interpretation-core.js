@@ -63,14 +63,22 @@ function plan(packet,domain){
     '같은 십성이나 겉글자·숨은 글자 위치가 다르다. 나타나는 강도나 실제 영향은 계산하지 않음'
   });
  }
- // Deterministic: a domain chapter needs TWO verified positions with a
- // describable traditional contrast beyond the annual baseline, not a copy
- // of the same ten-god label at the same visibility layer.
- const ids=[...new Set(comparisons.flatMap(row=>[row.annualId,row.natalId]))];
- return {domain,relevant:comparisons.length>0,sourceIds:ids,comparisons,
-  rule:comparisons.length?
-   '2027년과 출생 사주에 같은 전통 분류군이 있지만 십성 종류나 겉글자·숨은 글자의 배치가 서로 다른 계산 출처를 확인했다. 명시된 종류·위치 차이만 설명하고 실제 소득·승진·업무 능력·사건·운의 강약을 예측하지 않는다. 지장간은 겉에 드러난 천간처럼 강조하지 않는다.':
-   '2027년과 출생 사주에서 별도 분야 해석을 뒷받침할 십성 종류 또는 겉글자·숨은 글자 차이가 확인되지 않는다. 단순히 같은 상징이 두 위치에 있다는 이유로 공통 2027년 풀이를 반복하지 않는다.',
+ // These are ALL traditional symbolic comparisons, not all independent
+ // premium insights. Hidden annual stems and visibility-only contrasts can
+ // inform the general year discussion but must not, by themselves, launch a
+ // separate money/career paid chapter. This is an editorial sufficiency
+ // boundary, NOT a classical claim that hidden stems have no significance.
+ const eligibleComparisons=comparisons.filter(row=>
+  row.annualLayer==='visible-stem'&&
+  (row.contrast==='subtype'||row.contrast==='subtype-and-visibility'));
+ const ids=[...new Set(eligibleComparisons.flatMap(row=>[row.annualId,row.natalId]))];
+ return {domain,relevant:eligibleComparisons.length>0,sourceIds:ids,
+  comparisons:eligibleComparisons,
+  withheldWeakComparisonCount:comparisons.length-eligibleComparisons.length,
+  editorialThreshold:'annual-visible-stem-and-verified-subtype-difference',
+  rule:eligibleComparisons.length?
+   '2027년의 겉글자와 출생 사주를 비교하여 같은 전통 분류군 안에서 십성 종류가 실제로 다른 두 계산 출처를 확인했다. 그 종류 차이와 출생 위치만 설명하고 실제 소득·승진·직업 능력·사건·운의 강약은 예측하지 않는다. 지장간은 겉에 드러난 천간처럼 강조하지 않는다.':
+   '2027년의 겉글자와 출생 사주 사이에서 별도 금전·직업 장을 뒷받침할 같은 분류군의 십성 종류 차이는 확인되지 않는다. 숨은 글자만의 분류 비교나 겉·숨은 위치 차이만으로는 추가 유료 장을 만들지 않으며, 이는 숨은 글자의 전통적 의미가 없다는 뜻은 아니다.',
   evidenceType:'traditional-classification-comparison-only',
   guaranteesRealWorldOutcome:false};
 }
