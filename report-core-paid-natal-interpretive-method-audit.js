@@ -44,6 +44,46 @@ function assess(prompt,provider){
    x=>x.observedSameElementRoots.length>0).map(x=>x.position),
   traditionalClassificationRowsVerified:POSITIONS.length
  };
+ // Input-specific, falsifiable chart facts for an editor. These do not
+ // establish how strongly any traditional symbol operates in real life.
+ const exactStemsByPosition=Object.fromEntries(actual.visible.map(row=>[
+  row.position,{
+   visibleSourceId:row.id,
+   exactHiddenSourceIds:row.observedSameElementRoots
+    .filter(root=>root.matchType==='exact-stem').map(root=>root.hiddenId),
+   sameElementOtherStemSourceIds:row.observedSameElementRoots
+    .filter(root=>root.matchType==='same-element-different-stem')
+    .map(root=>root.hiddenId)
+  }
+ ]));
+ const sameDayHour=actual.sameVisibleStems.some(pair=>
+  [pair.leftId,pair.rightId].includes('natal.day.stem')&&
+  [pair.leftId,pair.rightId].includes('natal.hour.stem'));
+ const falsifiableChecks=[
+  {id:'day-and-hour-visible-same-exact-character',
+   observed:sameDayHour,
+   refs:['natal.day.stem','natal.hour.stem'],
+   incorrectOpposite:sameDayHour?
+    '태어난 날과 시간의 겉글자가 다르다는 주장은 이 명식에 틀리다.':
+    '태어난 날과 시간의 겉글자가 정확히 같다는 주장은 이 명식에 틀리다.'},
+  ...['year','hour'].flatMap(position=>{
+   const entry=exactStemsByPosition[position];
+   return [
+    {id:position+'-visible-matched-exact-hidden-character',
+     observed:entry.exactHiddenSourceIds.length>0,
+     refs:[entry.visibleSourceId,...entry.exactHiddenSourceIds],
+     incorrectOpposite:entry.exactHiddenSourceIds.length?
+      '정확히 같은 숨은 글자 대응이 없다는 주장은 이 명식에 틀리다.':
+      '정확히 같은 숨은 글자 대응이 있다는 주장은 이 명식에 틀리다.'},
+    {id:position+'-visible-matched-same-element-different-character',
+     observed:entry.sameElementOtherStemSourceIds.length>0,
+     refs:[entry.visibleSourceId,...entry.sameElementOtherStemSourceIds],
+     incorrectOpposite:entry.sameElementOtherStemSourceIds.length?
+      '같은 기운이지만 다른 글자 대응이 없다는 주장은 이 명식에 틀리다.':
+      '같은 기운이지만 다른 글자 대응이 있다는 주장은 이 명식에 틀리다.'}
+   ];
+  })
+ ];
  const decisions=[
   {id:'calculated-position-and-stem-links',status:'verified-by-deterministic-code',
    scope:'position and exact/same-element connections only'},
@@ -63,6 +103,10 @@ function assess(prompt,provider){
   kind:'isolated-natal-depth-interpretive-method-audit-v1',
   methodStatus:'unverified-interpretive-bridge',
   calculatedObservations:observations,
+  exactStemsByPosition,falsifiableChecks,
+  // Passing these checks only verifies calculated identity/difference.
+  // A school-specific interpretation and independent editorial validation
+  // remain separate, unresolved gates.
   decisions,
   independentMethodApproved:false,
   eligibleForPaidQualityApproval:false,
