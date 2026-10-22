@@ -129,6 +129,39 @@ const read=(dir,name)=>JSON.parse(fs.readFileSync(path.join(dir,name),'utf8'));
   assert.equal(read(successDir,'private-qa-first-chapter-validated-first-chapter.json').releaseVerdict,'not-approved');
   assert(read(successDir,'private-qa-first-chapter-validated-first-chapter.json')
    .sections[0].bodyTopics.includes('natal_depth'));
+  // The only paid sample must yield a PRIVATE editorial worksheet with
+  // the unchanged model paragraphs and their cited source rows. Passing the
+  // technical gate must NEVER imply human/premium release approval.
+  const approvedArchive=read(successDir,'private-qa-first-chapter-validated-first-chapter.json');
+  const review=approvedArchive.editorialReview;
+  assert.equal(review.kind,'qa-natal-depth-private-editorial-review-v1');
+  assert.equal(review.automatedStatus,'technically-passed-not-editorially-reviewed');
+  assert.equal(review.releaseVerdict,'not-approved');
+  assert.equal(review.apiCallsForThisReview,0);
+  assert.equal(review.humanReview.status,'pending');
+  assert.equal(review.humanReview.decision,'not-assessed');
+  assert.equal(review.humanReview.items.length,7);
+  assert(review.humanReview.items.every(x=>x.result==='pending'&&x.reason===''));
+  assert.deepEqual(review.diagnostics.modelResponseGuardErrors,[]);
+  assert.deepEqual(review.diagnostics.referenceMismatch,[]);
+  assert.equal(review.paragraphs.natal_depth.body,good.chapters.saju_core.paragraphs.natal_depth.text);
+  assert.equal(review.paragraphs.strength.body,good.chapters.saju_core.paragraphs.strength.text);
+  assert.equal(review.paragraphs.temperament,null);
+  assert(review.sourceContext['natal.year.stem']);
+  assert(review.sourceContext['natal.hour.stem']);
+  assert(!JSON.stringify(read(successDir,'private-qa-first-chapter.json'))
+    .includes(good.chapters.saju_core.paragraphs.natal_depth.text),
+    'public-style success marker must not include manuscript');
+  const editorialModule=require('./report-core-paid-natal-editorial-packet');
+  assert.throws(()=>editorialModule.build({
+   providerResponse:{chapters:{saju_core:{paragraphs:{strength:null}}}},
+   decoded:{sections:[]},qa
+  }),/QA_PRIVATE_REVIEW_DEPTH_MISSING/);
+  assert.throws(()=>editorialModule.build({
+   providerResponse:good,decoded:{sections:[{bodyTopics:['natal_depth']}]},
+   qa:{...qa,releaseVerdict:'approved'}
+  }),/QA_PRIVATE_REVIEW_INVALID_SCOPE/);
+
   for(const name of fs.readdirSync(successDir))
    assert.equal(fs.statSync(path.join(successDir,name)).mode&0o777,0o600,
     'QA raw/decoded manuscripts must be private');
