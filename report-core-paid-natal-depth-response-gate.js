@@ -132,7 +132,7 @@ function inspect(value,prompt){
   for(let j=i+1;j<depthSentences.length;j++){
    if(depthSentences[i]===depthSentences[j]||
       (depthSentences[i].length>=36&&depthSentences[j].length>=36&&
-       overlap(depthSentences[i],depthSentences[j])>0.85))
+       overlap(depthSentences[i],depthSentences[j])>0.80))
     fail('QA_DEPTH_SELF_REPEATED_SENTENCE');
   }
  }
