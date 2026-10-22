@@ -105,6 +105,11 @@ function inspect(value,prompt){
   if(READER_CLAIMS.test(clause)&&!VOID_OUTPUT.test(clause))
    fail('QA_DEPTH_UNSUPPORTED_PERSONAL_OUTCOME');
  }
+ // A link to exact/same-element natal roots does not establish a real
+ // personality trait, personal skill or future event. Separate from the
+ // general fabricated-outcome check because a causal graph claim can
+ // masquerade as an otherwise conditional interpretation.
+ errors.push(...require('./report-core-paid-natal-root-claim-guard').inspect(text));
  if(!CONDITIONAL.test(text))fail('QA_DEPTH_NO_CONDITIONAL_INTERPRETATION');
  if(!COMPARISON.test(text))fail('QA_DEPTH_NO_PILLAR_CONTRAST');
  const positions=new Set(referencedPositions(text));
