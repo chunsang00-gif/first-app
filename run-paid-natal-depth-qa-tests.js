@@ -2,6 +2,7 @@
 // Free integration test of the REAL one-call natal-depth QA runner.
 // All calls are intercepted in-process; NO real credentials or HTTP traffic.
 const assert=require('node:assert/strict');
+const crypto=require('node:crypto');
 const fs=require('node:fs'),os=require('node:os'),path=require('node:path');
 const runner=require('./run-paid-natal-depth-qa');
 const {assemble}=require('./report-core-paid-full-qa-compose');
@@ -90,6 +91,19 @@ const read=(dir,name)=>JSON.parse(fs.readFileSync(path.join(dir,name),'utf8'));
     calls++; assert.equal(calls,1,'no second paid-model call');
     assert.equal(url,'https://api.openai.com/v1/responses');
     const sent=JSON.parse(opts.body);
+    // Hash the ACTUAL intercepted OpenAI request, not only the QA builder.
+    // This catches server-side provider schema rewriting or instruction drift.
+    const prefix='Return only the requested premium report JSON. ';
+    assert(sent.input[0].content.startsWith(prefix));
+    const actualFingerprint=crypto.createHash('sha256').update(JSON.stringify({
+     model:sent.model,tokenLimit:sent.max_output_tokens,
+     systemPolicy:sent.input[0].content.slice(prefix.length),
+     providerPayload:JSON.parse(sent.input[1].content),
+     strictSchema:sent.text.format.schema
+    })).digest('hex');
+    assert.equal(actualFingerprint,
+     '78136da25c6da6cdd261e49d6186c7aa80828d842fcf96237d4cd42266cc5615',
+     'the frozen QA envelope must match the REAL provider-bound request');
     assert.equal(sent.store,false);
     assert.equal(sent.text.format.strict,true);
     const payload=JSON.parse(sent.input[1].content);
