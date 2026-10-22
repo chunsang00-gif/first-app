@@ -61,6 +61,9 @@ function inspect(value,prompt){
  if(!['interpretation','condition','limit'].every(k=>
   typeof basis?.[k]==='string'&&basis[k].trim()))
   fail('QA_DEPTH_MISSING_REASON_OR_LIMIT');
+ if(basis?.interpretation!==
+    require('./report-core-paid-natal-depth-fact-lock').fromPayload(payload).literal)
+  fail('QA_DEPTH_FACT_LOCK_DIVERGED');
  const title=simple(depth.label),text=simple(depth.text);
  const strengthText=simple(standard.text),visible=title+' '+text;
  if(title.length<5||text.length<100)fail('QA_DEPTH_EMPTY_OR_TRIVIAL_READER_TEXT');
