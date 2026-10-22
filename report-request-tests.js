@@ -312,7 +312,8 @@ assert.equal(p.stage,'body');assert.equal(p.priorSections.length,expectedBatches
   duplicatedEvidenceCalls++;
   return {sections:prompt.requestedSections.map(id=>({id,title:'본문 증거 검증',keyJudgment:'설명한 내용을 검토합니다.',bodyTopics:Object.keys(outline.topics[id]),bodyLabels:Object.keys(outline.topics[id]).map((_,i)=>'검증 항목 '+i),body:Object.keys(outline.topics[id]).map(topic=> '서로 다른 질문에 답하는 검증 문장입니다.'+(id==='saju_core'&&topic==='strength'?' '+require('./qa/core-meaning-mock').body(prompt):'')),evidence:['사주 계산값을 살펴보고 명리학의 위치를 확인한 검증용 근거 문장입니다.']}))};
  }),/repeated chapter evidence/);
- assert.equal(duplicatedEvidenceCalls,1,'duplicate evidence in first batch must not incur further provider calls');
+ assert.equal(duplicatedEvidenceCalls,expectedBatches[0].length===1?2:1,
+  'cross-chapter duplicate must be detected at earliest possible second batch for isolated first chapter');
  let emptyCalls=0;await assert.rejects(contract.generate({calendar:'solar',birthDate:'1990-06-15',unknownBirthTime:true,gender:'male',mbti:'INFP'},async()=>{emptyCalls++;return {sections:[]}}));assert.equal(emptyCalls,1);
  const originalFetch=global.fetch,originalKey=process.env.OPENAI_API_KEY,originalModel=process.env.REPORT_MODEL;let providerCalls=0;
  try{process.env.OPENAI_API_KEY='local-test-placeholder';process.env.REPORT_MODEL='local-test-model';global.fetch=async()=>{providerCalls++;return {ok:false,status:429,json:async()=>({error:{code:'rate_limit_exceeded',message:'tokens per min'}})}};await assert.rejects(require('./server').callOpenAI({}),/token rate limit/);assert.equal(providerCalls,1)}finally{global.fetch=originalFetch;for(const [key,value] of [['OPENAI_API_KEY',originalKey],['REPORT_MODEL',originalModel]])if(value===undefined)delete process.env[key];else process.env[key]=value}
