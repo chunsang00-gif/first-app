@@ -132,7 +132,13 @@ const {createQueue,retryDelay,rateLimitKind}=require('./report-request-control')
   }
 
  const originalBatches=[['saju_core','mbti_contradiction'],['decision','stress'],['money','career'],['relationship','integrated_judgment'],['year_2027','year_2027_money'],['year_2027_career','year_2027_relationship']];
- const expectedBatches=originalBatches.map(ids=>ids.filter(id=>!['year_2027_money','year_2027_career','year_2027_relationship'].includes(id)||blueprint[id]?.annualDomainEvidence?.relevant)).filter(ids=>ids.length);
+ const selectedScope=require('./report-chapter-selection').select(originalBatches,blueprint);
+ assert(selectedScope.canGenerate,'the fixture must still support a genuine paid report');
+ const expectedBatches=require('./report-paid-batch-plan').plan(selectedScope.groups);
+ for(const id of ['year_2027_money','year_2027_career','year_2027_relationship'])
+  assert.equal(expectedBatches.flat().includes(id),
+   blueprint[id].annualDomainEvidence.relevant,
+   'weak yearly classifications must be omitted before provider batching: '+id);
  const expectedCount=expectedBatches.flat().length;
  const stages=[];const checkpoints=[];let calls=0;
  const mockedReport=await contract.generate({calendar:'solar',birthDate:'1990-06-15',unknownBirthTime:true,gender:'male',mbti:'INFP'},async p=>{calls++;if(p.stage==='body'){assert(p.rules.sectionGoals,'actual model request must include premium section goals');
