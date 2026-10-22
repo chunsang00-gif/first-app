@@ -8,12 +8,18 @@ const POS=['year','month','hour'];
 function direction(left,right){
  const a=season.ELEMENTS[left],b=season.ELEMENTS[right];
  if(!a||!b)throw Error('QA_VISIBLE_RELATION_UNKNOWN_STEM');
- if(a===b)return 'same-element';
- if(season.GENERATES[a]===b)return 'left-generates-right';
- if(season.GENERATES[b]===a)return 'right-generates-left';
- if(season.CONTROLS[a]===b)return 'left-controls-right';
- if(season.CONTROLS[b]===a)return 'right-controls-left';
- throw Error('QA_VISIBLE_RELATION_UNCLASSIFIED');
+ // Reuse the existing independently tested Five Element direction
+ // resolver. Its two parameters are the left and right visible stems.
+ const category=season.relation(a,b);
+ const names={
+  'same-element':'same-element',
+  resource:'left-generates-right',
+  output:'right-generates-left',
+  'control-on-day':'left-controls-right',
+  'day-controls':'right-controls-left'
+ };
+ if(!names[category])throw Error('QA_VISIBLE_RELATION_UNCLASSIFIED');
+ return names[category];
 }
 function build(packet,source){
  if(packet?.status!=='ready'||!packet?.chart?.hour||!source)
