@@ -47,6 +47,23 @@ const assemble=require('./report-core-paid-full-qa-compose').assemble;
 const fixed=await assemble();
 const later=await assemble({...readiness.FIXTURE,birthTime:'20:20'});
 const factLock=require('./report-core-paid-natal-depth-fact-lock');
+const generation=require('./report-generation-request');
+const capture=require('./report-core-paid-full-prompt-capture').capture;
+const captured=await capture();
+const ordinaryGoal=generation.compile(captured.prompt).task.editorialGoal;
+const qaGoal=fixed.payload.task.editorialGoal;
+// The server-facing editorialGoal used to override editorialTask and silently
+// discarded previous QA additions. Verify the REAL compact provider payload.
+assert.equal(qaGoal,generation.editorialGoalFor(fixed.prompt));
+assert.equal(later.payload.task.editorialGoal,qaGoal);
+for(const phrase of ['구체적인 가상 선택 상황','유리하게 읽히는 조건','사전적인 뜻 두 문장','새 통찰이 없으면 natal_depth는 null']){
+ assert(qaGoal.includes(phrase),'QA editorial content must reach the actual provider: '+phrase);
+ assert(!ordinaryGoal.includes(phrase),'ordinary paid flow must not inherit QA-only instructions: '+phrase);
+}
+assert.equal(fixed.prompt.editorialTask,captured.prompt.editorialTask,
+ 'QA must not rely on untransmitted editorialTask suffixes');
+assert(!ordinaryGoal.includes('QA 전용 세 번째 natal_depth'));
+
 const firstDepth=fixed.payload.task.chapters.saju_core.topics.natal_depth;
 const laterDepth=later.payload.task.chapters.saju_core.topics.natal_depth;
 assert.deepEqual(fixed.originalRequestedSections,['saju_core','mbti_contradiction']);
