@@ -8,7 +8,18 @@ const MIN=['natal.year.stem','natal.day.stem','natal.hour.stem','facts.stemConne
 const READER_CLAIMS=/(?:타고난|반드시|틀림없이|무조건|항상|분명히\s*(?:성공|좋)|성격(?:이|은)\s*(?:강|약)|능력(?:이|은)\s*(?:뛰어|우수|높)|승진(?:할|합니다|한다)|합격(?:할|합니다|한다)|이별(?:할|합니다|한다)|결혼(?:할|합니다|한다)|돈을\s*많이\s*(?:벌|모으)|당신은\s*원래)/;
 const CONDITIONAL=/(?:경우|상황|조건(?:에서|이라면|에|일\s*때)|때(?:에는|라면|\s)|예를\s*들어|가정)/;
 const COMPARISON=/(?:다르|구별|반면|한편|비교|따로|연결|반대로|반면에|그에\s*비해|하지만)/;
-const POSITION=/(?:태어난\s*해|태어난\s*날|태어난\s*시간|해에서|날에는|시간에는|해의|날의|시간의|연간|일간|시간)/g;
+// Generic "시간" can mean elapsed time, not a birth pillar. Likewise
+// 연간/일간 must never be classified as the hour pillar.
+const POSITION_RULES={
+ year:/(?:태어난\s*해|해에서|해의|연간)/,
+ day:/(?:태어난\s*날|날에는|날의|일간)/,
+ hour:/(?:태어난\s*시간|시간에는|시간에서|시간의|시간\s*겉글자)/
+};
+function referencedPositions(text){
+ return Object.entries(POSITION_RULES)
+  .filter(([,pattern])=>pattern.test(String(text||'')))
+  .map(([position])=>position);
+}
 const VOID_OUTPUT=/(?:알\s*수\s*없습니다|확인할\s*수\s*없습니다|판단할\s*수\s*없습니다|평가가\s*아니|판정하지\s*않|뜻이\s*아니|증거가\s*아니)/;
 const simple=s=>String(s||'').replace(/\s+/g,' ').trim();
 function overlap(a,b){
@@ -81,14 +92,17 @@ function inspect(value,prompt){
  if(/(?:궁금하지\s*않으세요|어떨까요|어떤가요|하시겠습니까)\s*[?？]?\s*$/.test(text)||
     /[?？]\s*$/.test(text))
   fail('QA_DEPTH_ENDING_QUESTION');
- for(const sentence of text.split(/[.!?。！？\\n]+/).map(simple).filter(Boolean)){
-  if(READER_CLAIMS.test(sentence)&&!VOID_OUTPUT.test(sentence))
+ // A disclaimer tacked onto an asserted prediction in the same sentence
+ // must NOT excuse the prediction. Inspect each independent clause, not
+ // just the whole sentence, while still allowing an explicit denial.
+ for(const clause of text.split(/[.!?。！？\\n,，;；]+|(?:하지만|그러나|다만|그렇지만)/)
+  .map(simple).filter(Boolean)){
+  if(READER_CLAIMS.test(clause)&&!VOID_OUTPUT.test(clause))
    fail('QA_DEPTH_UNSUPPORTED_PERSONAL_OUTCOME');
  }
  if(!CONDITIONAL.test(text))fail('QA_DEPTH_NO_CONDITIONAL_INTERPRETATION');
  if(!COMPARISON.test(text))fail('QA_DEPTH_NO_PILLAR_CONTRAST');
- const positions=new Set([...text.matchAll(POSITION)].map(x=>x[0].includes('해')?'year':
-  x[0].includes('날')?'day':'hour'));
+ const positions=new Set(referencedPositions(text));
  if(positions.size<2)fail('QA_DEPTH_NO_DISTINCT_NATAL_POSITIONS');
  // Independently verify that everyday descriptions attributed to year/hour
  // match those positions' computed symbolic classifications. This is a
@@ -110,4 +124,4 @@ function assert(value,prompt){
   verifiedTopic:'natal_depth',proseProfessionallyReviewed:false,
   apiCalls:0};
 }
-module.exports={inspect,assert,overlap};
+module.exports={inspect,assert,overlap,referencedPositions};
