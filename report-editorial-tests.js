@@ -715,7 +715,7 @@ for(const a of ['I','E'])for(const b of ['S','N'])for(const c of ['T','F'])for(c
   }
 
    assert(p.analysisGuidance.editorialBlueprint[p.requestedSections[0]].question);
-   assert(p.rules.mbtiDepthRule);assert.equal(p.priorSections.length,(calls-1)*2);
+   assert(p.rules.mbtiDepthRule);assert.equal(p.priorSections.length,p.priorChapterConclusions.length,'each prior section is preserved even when fewer annual chapters lead to split body batches');
   if(calls>1){assert(p.priorSections.every(s=>s.topicConclusions.length===s.bodyLabels.length)); assert(p.priorSections.every(s=>s.topicConclusions.every(t=>typeof t==='string'&&t.length>0)),'previous chapter text must be preserved after domain-evidence enforcement');}
   assert.deepEqual(Object.keys(p.analysisGuidance.chapterTasks),Array.from(p.requestedSections));
   assert.equal(p.analysisGuidance.mbtiReference.type,'ISFP');
