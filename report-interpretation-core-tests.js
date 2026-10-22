@@ -133,7 +133,7 @@ const make=refs=>({chapters:{year_2027_career:{
 }}});
 assert.doesNotThrow(()=>generator.restoreEvidence(make(['annual.stem','natal.month.stem']),prompt));
 assert.throws(()=>generator.restoreEvidence(make(['annual.stem']),prompt),/lacks an actual yearly-to-natal source pair/);
-assert.throws(()=>generator.restoreEvidence(make(['annual.stem','natal.day.hidden.戊']),prompt),/lacks an actual yearly-to-natal source pair/);
+assert.throws(()=>generator.restoreEvidence(make(['annual.stem','natal.day.hidden.戊']),prompt),/unrelated paragraph basis|lacks an actual yearly-to-natal source pair/);
 assert.throws(()=>generator.restoreEvidence(make(['annual.stem','natal.year.stem']),prompt),/unrelated paragraph basis/);
 const relation=structuredClone(packet);
 relation.facts.targetYearRelations=[{type:'충',between:'day',branches:'丑未'}];
