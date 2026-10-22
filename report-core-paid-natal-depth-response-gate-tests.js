@@ -81,6 +81,24 @@ refuse('wrong hour meaning despite correct citations',v=>
  v.chapters.saju_core.paragraphs.natal_depth.text=
   quality.replace('생각을 차근차근 결과물로 만들어 남기는','익숙한 방식에 새로운 제안을 하는'),
  'QA_DEPTH_POSITION_MEANING_UNGROUNDED:hour');
+refuse('wrong year attribution disguised by a correct phrase',v=>
+ v.chapters.saju_core.paragraphs.natal_depth.text=
+  quality.replace('태어난 해에서는 반복되는 비용과',
+   '태어난 해에서는 배운 내용과 주변 조언을 먼저 따르고 반복되는 비용과'),
+ 'QA_DEPTH_POSITION_CONFLICTING_MEANING:year');
+refuse('wrong hour attribution disguised by a correct phrase',v=>
+ v.chapters.saju_core.paragraphs.natal_depth.text=
+  quality.replace('태어난 시간에는 생각을',
+   '태어난 시간에는 새로운 제안을 해야 한다고 주장하며 생각을'),
+ 'QA_DEPTH_POSITION_CONFLICTING_MEANING:hour');
+refuse('empty meaning behind a nonempty condition',v=>
+ v.chapters.saju_core.paragraphs.natal_depth.basis.condition=
+  '종합적으로 참고한다',
+ 'QA_DEPTH_BASIS_HAS_NO_CONDITION');
+refuse('limit disguised as nonempty filler',v=>
+ v.chapters.saju_core.paragraphs.natal_depth.basis.limit=
+  '좋게 생각하면 좋습니다',
+ 'QA_DEPTH_BASIS_HAS_NO_LIMIT');
 refuse('actual lifetime claim',v=>v.chapters.saju_core.paragraphs.natal_depth.text+=' 타고난 성격을 반드시 성공으로 이끌 것입니다.',
  'QA_DEPTH_UNSUPPORTED_PERSONAL_OUTCOME');
 refuse('no contextual scenario',v=>v.chapters.saju_core.paragraphs.natal_depth.text=
