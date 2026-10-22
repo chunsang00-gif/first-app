@@ -14,7 +14,7 @@ const {outputLimit}=require('./report-paid-batch-plan');
 // Freeze exactly the reviewed synthetic prompt/model envelope. Recompute
 // from the REAL prepared QA request before any attempt marker or paid fetch.
 const APPROVED_MODEL='gpt-4.1';
-const APPROVED_ENVELOPE_SHA256='78136da25c6da6cdd261e49d6186c7aa80828d842fcf96237d4cd42266cc5615';
+const APPROVED_ENVELOPE_SHA256='cf624ba237fe34f95f2740fe7238f9bd8311ad3474f024fa74e5f5e59556e2be';
 const fingerprint=v=>crypto.createHash('sha256').update(JSON.stringify(v)).digest('hex');
 async function assertFrozenRequest(qa){
  const built=await readiness.build();
