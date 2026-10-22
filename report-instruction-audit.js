@@ -177,11 +177,21 @@ function inspectTransport(prompt,actual){
     // validated original calculations. A source list alone cannot prove the
     // paid writer received the right interpretation goal.
     if(id==='saju_core'){
-     const contrast=require('./report-chart-contrast');
-     const original=contrast.build(prompt.facts);
-     const expected=original&&contrast.forProvider(original,topicId,permitted);
-     if(!expected||JSON.stringify(topic.evidenceFocus)!==JSON.stringify(expected))
-      errors.push('core-reader-evidence-brief-drift:'+id+'/'+topicId);
+     if(topicId==='natal_depth'){
+      const correct=prompt.qaNatalDepthPreview===true&&
+       ['natal.year.stem','natal.month.stem','natal.day.stem',
+        'natal.hour.stem','facts.stemConnections'].every(x=>permitted.includes(x));
+      const expected={kind:'qa-verified-natal-provenance-only',
+       sourceRefs:permitted.slice(),readerScope:'separate-from-month-pair-core'};
+      if(!correct||JSON.stringify(topic.evidenceFocus)!==JSON.stringify(expected))
+       errors.push('qa-natal-depth-evidence-brief-drift');
+     }else{
+      const contrast=require('./report-chart-contrast');
+      const original=contrast.build(prompt.facts);
+      const expected=original&&contrast.forProvider(original,topicId,permitted);
+      if(!expected||JSON.stringify(topic.evidenceFocus)!==JSON.stringify(expected))
+       errors.push('core-reader-evidence-brief-drift:'+id+'/'+topicId);
+     }
     }
     for(const candidate of candidates){
      const truth=actual.source?.[candidate.id]||{};
