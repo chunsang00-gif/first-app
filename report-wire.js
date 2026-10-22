@@ -80,6 +80,11 @@ function schemaFor(prompt,reportSchema){
   if(!topics[id])throw Error('unknown report section');
   const plan=prompt.analysisGuidance?.editorialBlueprint?.[id]?.topicTasks||{};
   const keys=Object.keys(topics[id]);
+  if(prompt.qaNatalDepthPreview===true&&id==='saju_core'){
+   if(!plan.natal_depth?.allowedSourceRefs?.length)
+    throw Error('QA_NATAL_DEPTH_SCHEMA_MISSING_CITATIONS');
+   keys.push('natal_depth');
+  }
   const plannedAnchor=prompt.analysisGuidance?.editorialBlueprint?.[id]?.anchorTopic;
   const anchor=plannedAnchor||keys.find(k=>plan[k]?.mode==='use-primary')||keys.find(k=>plan[k]?.mode==='use-verified-fallback')||keys[0];
   if(plannedAnchor&&!keys.includes(plannedAnchor))throw Error('Invalid report chapter writing plan');
@@ -99,7 +104,8 @@ function schemaFor(prompt,reportSchema){
    judgment.description+=' 첫 장 핵심 판단은 제목의 조건부 기질 해석을 자연스러운 한국어 한 문장으로 제시한다. 먼저 검증된 두 출생 위치가 뒷받침하는 전통적 기질 해석을 조건부로 말하고, 생활 조언이나 자료 분석 계획만으로 대체하지 않는다. 계산 과정·근거 목록·검토하겠다는 작성 계획이 아니다. 본문 두 문단의 조건부 전통 해석을 넘어 실제 성격·과거 행동을 확인했다고 단정하지 않는다.';
   }
   return [id,object({title,keyJudgment:judgment,evidence:reader.describe(section.evidence,reader.evidenceField),mood:section.mood,
-   paragraphs:object(Object.fromEntries(keys.map(topic=>[topic,topic===anchor?paragraph(plan[topic]?.question||topics[id][topic],false,roles?.[topic]):plan[topic]?.mode==='state-limits'?{type:'null'}:{anyOf:[paragraph(plan[topic]?.question||topics[id][topic],true,roles?.[topic]),{type:'null'}]}])))})];
+   paragraphs:object(Object.fromEntries(keys.map(topic=>[topic,topic===anchor?paragraph(plan[topic]?.question||topics[id][topic],false,roles?.[topic]):plan[topic]?.mode==='state-limits'?{type:'null'}:{anyOf:[paragraph(plan[topic]?.question||topics[id][topic],true,
+     topic==='natal_depth'?{label:'별도의 네 기둥 심화 검토 문단. 기존 기질 문단을 다시 쓰지 않는다.',text:'사용할 수 있는 출처는 natal_depth.citableFacts뿐이다. 검증된 연주·일주·시주 관련 계산을 월간 중심의 기본 풀이와 다른 한 가지 조건부 해석으로 연결하라. 출생시간 미상은 다루지 않는다. 계산된 통근 위치·지지 관계표의 존재를 성격의 강도, 실제 관계 사건이나 합화 성공으로 쓰지 않는다. 새 통찰이 없으면 null을 반환한다. 이 문단은 출시 전 QA 검토 대상이다.'}:roles?.[topic]),{type:'null'}]}])))})];
  }));
  return object({chapters:object(chapters),finalJudgment:prompt.includeFinal?visible(reportSchema.properties.finalJudgment):{type:'null'},cover:prompt.includeCover?visible(reportSchema.properties.cover):{type:'null'}});
 }
@@ -113,7 +119,9 @@ function decode(value,prompt){
   const anchor=plan?.anchorTopic;
   if(anchor&&(!s.paragraphs[anchor]||typeof s.paragraphs[anchor].text!=='string'||!s.paragraphs[anchor].text.trim()||typeof s.paragraphs[anchor].label!=='string'||!s.paragraphs[anchor].label.trim()))throw Error('AI report service missing planned evidence anchor: '+id+':'+anchor);
   for(const [topic,task] of Object.entries(plan?.topicTasks||{}))if(task.mode==='state-limits'&&topic!==anchor&&s.paragraphs[topic]!==null)throw Error('AI report service generated unsupported topic: '+id+':'+topic);
-  const bodyTopics=Object.keys(topics[id]).filter(t=>s.paragraphs[t]&&typeof s.paragraphs[t].text==='string'&&s.paragraphs[t].text.trim()&&typeof s.paragraphs[t].label==='string'&&s.paragraphs[t].label.trim());
+  const topicKeys=[...Object.keys(topics[id])];
+  if(prompt.qaNatalDepthPreview===true&&id==='saju_core')topicKeys.push('natal_depth');
+  const bodyTopics=topicKeys.filter(t=>s.paragraphs[t]&&typeof s.paragraphs[t].text==='string'&&s.paragraphs[t].text.trim()&&typeof s.paragraphs[t].label==='string'&&s.paragraphs[t].label.trim());
   if(!bodyTopics.length){console.error('[Report empty chapter diagnostic]',{chapterId:id,requestedSections:prompt.requestedSections,topics:Object.fromEntries(Object.keys(topics[id]).map(t=>[t,s.paragraphs[t]===null?'null':typeof s.paragraphs[t]?.text==='string'?'blank-or-incomplete':'missing']))});throw Error('AI report service returned an empty chapter');}
   return {id,title:s.title,keyJudgment:s.keyJudgment,evidence:s.evidence,mood:s.mood,bodyTopics,
    bodyLabels:bodyTopics.map(t=>s.paragraphs[t]?.label),body:bodyTopics.map(t=>s.paragraphs[t]?.text)};
