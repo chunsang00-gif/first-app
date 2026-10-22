@@ -11,7 +11,8 @@ const NAMES=[
  'private-qa-first-chapter.json',
  'private-qa-first-chapter-attempt.json',
  'private-qa-first-chapter-provider-calls.json',
- 'private-qa-first-chapter-validated-first-chapter.json'
+ 'private-qa-first-chapter-validated-first-chapter.json',
+ 'private-qa-first-chapter-rejected-review.json'
 ];
 const ARCHIVE='premium-first-chapter-qa.enc';
 function secret(){
