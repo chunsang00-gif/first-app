@@ -8,6 +8,20 @@ const audit=require('./report-instruction-audit');
 const generation=require('./report-generation-request');
 const wire=require('./report-wire');
 const schema=require('./report-schema.json');
+// Match server.callOpenAI() strict-schema cleanup BEFORE wire/schema binding.
+// Do not modify the production server just to make a QA digest pass.
+function providerStrictBase(value){
+ if(Array.isArray(value))return value.map(providerStrictBase);
+ if(!value||typeof value!=='object')return value;
+ const out={};
+ for(const [key,item] of Object.entries(value)){
+  if(['$schema','minLength','maxLength','minItems','maxItems',
+    'minimum','maximum','pattern','format'].includes(key)||
+    (key==='title'&&typeof item==='string'))continue;
+  out[key]=providerStrictBase(item);
+ }
+ return out;
+}
 const preflight=require('./report-provider-preflight');
 const MIN=['natal.year.stem','natal.month.stem','natal.day.stem',
  'natal.hour.stem','facts.stemConnections'];
@@ -58,7 +72,7 @@ async function assemble(input){
  const errors=audit.inspect(full);
  if(errors.length)throw Error('QA_COMPOSE_FULL_INSTRUCTIONS_REJECTED:'+errors.join('|'));
  const provider=generation.compile(full);
- const strictSchema=generation.schema(full,wire.schemaFor(full,schema));
+ const strictSchema=generation.schema(full,wire.schemaFor(full,providerStrictBase(schema)));
  const transportErrors=audit.inspectTransport(full,provider);
  const preflightErrors=preflight.inspect(full,provider,strictSchema);
  if(transportErrors.length||preflightErrors.length)throw Error(
