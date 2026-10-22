@@ -47,6 +47,11 @@ for(const user of samples){
  const depth=paragraphs.natal_depth.anyOf.find(x=>x.type==='object');
  assert(depth);
  assert.deepEqual(depth.properties.basis.properties.refs.items.enum,permissible);
+ const verifiedLock=require('./report-core-paid-natal-depth-fact-lock').fromPayload(preview.payload);
+ assert.deepEqual(depth.properties.basis.properties.interpretation.enum,
+  [verifiedLock.literal]);
+ assert(verifiedLock.literal.includes(preview.payload.source['natal.year.stem'].tenGod));
+ assert(verifiedLock.literal.includes(preview.payload.source['natal.hour.stem'].tenGod));
  const strength=paragraphs.strength;
  const monthRefs=strength.properties.basis.properties.refs.items.enum;
  assert(monthRefs.includes('natal.month.stem'));
@@ -69,6 +74,9 @@ const late=builder.prepare(facts.build({...sameUser,birthTime:'20:20'},2027));
 assert(early&&late);
 assert.notDeepEqual(early.payload.task.chapters.saju_core.topics.natal_depth.citableFacts,
  late.payload.task.chapters.saju_core.topics.natal_depth.citableFacts);
+assert.notEqual(require('./report-core-paid-natal-depth-fact-lock').fromPayload(early.payload).literal,
+ require('./report-core-paid-natal-depth-fact-lock').fromPayload(late.payload).literal,
+ 'the deterministic provider evidence lock must change with the hour');
 const base=require('./report-analysis-guidance');
 const p=facts.build(sameUser,2027),plan=base.preflight(p).saju_core;
 const defaultPrompt={stage:'body',facts:p,requestedSections:['saju_core'],
