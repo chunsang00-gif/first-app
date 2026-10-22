@@ -161,6 +161,25 @@ refuse('positive assertion followed by a denial in same sentence',v=>
  v.chapters.saju_core.paragraphs.natal_depth.text=
  quality+' 숨은 글자가 많아서 수입이 늘어납니다만 실제 수입은 예측할 수 없습니다.',
  'QA_DEPTH_ROOT_TO_PERSONAL_OUTCOME');
+// 2026-10-23 methodological regression: a repeated or exactly matching
+// natal character is a calculation, not proof of an interpretive hierarchy.
+refuse('root count cannot rank year above hour',v=>
+ v.chapters.saju_core.paragraphs.natal_depth.text=
+ quality+' 숨은 글자가 많아서 해의 뜻이 시간의 뜻보다 더 중요합니다.',
+ 'QA_DEPTH_ROOT_TO_UNVERIFIED_PRIORITY');
+refuse('exact root match does not grant first action',v=>
+ v.chapters.saju_core.paragraphs.natal_depth.text=
+ quality+' 연결된 글자 덕분에 태어난 시간의 뜻이 우선 작용합니다.',
+ 'QA_DEPTH_ROOT_TO_UNVERIFIED_PRIORITY');
+refuse('same element cannot prove stronger influence',v=>
+ v.chapters.saju_core.paragraphs.natal_depth.text=
+ quality+' 같은 오행이므로 해에서의 작용력이 더 높습니다.',
+ 'QA_DEPTH_ROOT_TO_UNVERIFIED_PRIORITY');
+const cautiousComparison=response();
+cautiousComparison.chapters.saju_core.paragraphs.natal_depth.text+=
+ ' 같은 글자의 연결이 관찰되더라도 어느 해석이 우세한지는 판단할 수 없습니다.';
+assert.deepEqual(validator.inspect(cautiousComparison,p.prompt),[],
+ 'a correct refusal to rank root strengths must remain permitted');
 const safeRootReview=response();
 safeRootReview.chapters.saju_core.paragraphs.natal_depth.text+=
  ' 연결된 글자가 여러 곳에 나타나더라도 실제 수입을 예측할 수 없습니다.';
