@@ -5,6 +5,7 @@
 // This packet must be placed only inside the existing encrypted QA archive.
 const reader=require('./report-reader-policy');
 const semantic=require('./report-core-paid-natal-depth-response-gate');
+const methodReview=require('./report-core-paid-natal-interpretive-method-audit');
 const CORE=['temperament','strength','natal_depth'];
 const CRITERIA=Object.freeze([
  {id:'accurate_calculated_basis',question:'계산 근거와 해석 의미가 실제로 맞는가?'},
@@ -62,6 +63,7 @@ function build({providerResponse,decoded,qa}){
   automatedStatus:automated.length?'rejected':'technically-passed-not-editorially-reviewed',
   releaseVerdict:'not-approved',apiCallsForThisReview:0,
   sourceContext:Object.fromEntries(roleRefs.map(id=>[id,qa.payload.source[id]||null])),
+  interpretiveMethodReview:methodReview.assess(qa.prompt,qa.payload),
   paragraphs:documents,
   diagnostics,
   // Only a human editor may change pending to pass/fail after reading.
@@ -110,6 +112,7 @@ function buildRejected({providerResponse,qa,reason}){
   apiCallsForThisReview:0,rejectionCode:reasonCode,
   providerResponseStatus:status,
   sourceContext:Object.fromEntries(refs.map(id=>[id,qa.payload.source[id]||null])),
+  interpretiveMethodReview:methodReview.assess(qa.prompt,qa.payload),
   paragraphs,
   diagnostics:{
    depthPresent:!!depth?.body,depthChars:depth?.body.length||0,
