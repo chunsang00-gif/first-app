@@ -26,6 +26,55 @@ const history=items=>async(url,options)=>{
    check(base,history([thisRun,{...another,status:pastState}])),
    /previous-natal-depth-dispatch-exists/);
  }
+ // GitHub's actual first paid-depth dispatch (#39753002399) was launched
+ // from the registration branch and had exactly one SKIPPED job with NO
+ // steps. The exemption is scoped to this run ID and validated job history.
+ const skipped={id:39753002399,path:PATH,event:'workflow_dispatch',
+  head_branch:'register-natal-depth-qa-workflow-20261022',
+  run_attempt:1,status:'completed',conclusion:'skipped'};
+ const zeroJob={id:119737975797,name:'natal-depth-qa',run_attempt:1,
+  status:'completed',conclusion:'skipped',steps:[]};
+ const verifySkip=(old=skipped,job=zeroJob,broken=false)=>async(url,options)=>{
+  assert.equal(options.headers.authorization,'Bearer OFFLINE_GITHUB_TEST_TOKEN');
+  if(url.includes('/actions/runs?'))return {
+   ok:true,json:async()=>({total_count:2,workflow_runs:[thisRun,old]})};
+  assert(url.endsWith('/actions/runs/39753002399/jobs?per_page=100'));
+  if(broken==='throw')throw Error('job API unavailable');
+  if(broken==='http')return {ok:false};
+  return {ok:true,json:async()=>({total_count:1,jobs:[job]})};
+ };
+ const allowed=await check(base,verifySkip());
+ assert.equal(allowed.allowed,true);
+ assert.equal(allowed.previousDispatches,0);
+ for(const wrong of [
+  {...skipped,conclusion:'success'},
+  {...skipped,head_branch:BRANCH},
+  {...skipped,run_attempt:2},
+  {...skipped,id:39753002400},
+  {...skipped,status:'in_progress'}
+ ]){
+  await assert.rejects(check(base,verifySkip(wrong)),
+   /previous-natal-depth-dispatch-exists/);
+ }
+ for(const badJob of [
+  {...zeroJob,conclusion:'success'},
+  {...zeroJob,run_attempt:2},
+  {...zeroJob,steps:[{name:'ONE paid natal-depth report sample'}]},
+  {...zeroJob,name:'other-job'}
+ ]){
+  await assert.rejects(check(base,verifySkip(skipped,badJob)),
+   /previous-natal-depth-dispatch-exists/);
+ }
+ for(const failure of ['throw','http'])
+  await assert.rejects(check(base,verifySkip(skipped,zeroJob,failure)),
+   /previous-natal-depth-dispatch-exists/);
+ const charged={...another,id:99999,conclusion:'failure'};
+ await assert.rejects(check(base,async(url,options)=>{
+  if(url.includes('/actions/runs?'))return {ok:true,json:async()=>({
+   total_count:3,workflow_runs:[thisRun,skipped,charged]})};
+  return {ok:true,json:async()=>({total_count:1,jobs:[zeroJob]})};
+ }),/previous-natal-depth-dispatch-exists/,
+ 'other failed paid-depth runs remain blocked after allowing the exact zero-step skip');
  // Existing dispatches of OTHER workflows do not consume the natal QA quota.
  const other={...another,path:'.github/workflows/paid-report-qa.yml'};
  assert.equal((await check(base,history([thisRun,other]))).allowed,true);
