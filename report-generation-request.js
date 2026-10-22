@@ -141,7 +141,7 @@ function editorialGoalFor(prompt){
     Array.isArray(prompt.requestedSections)&&
     prompt.requestedSections.length===1&&prompt.requestedSections[0]==='saju_core')
   return coreEditorialGoal+(prompt.qaNatalDepthPreview===true?
-   ' QA 전용 세 번째 natal_depth 문단만 독립적인 원국 해·날·시간 비교를 할 수 있다. 필수 strength 월간·월지 풀이에 추가 원국 출처를 섞지 말고, 인용 가능한 출처에 근거한 새로운 해석이 없으면 natal_depth는 null이다. 실제 성격·신강약·충의 사건·합화의 효력을 단정하지 않는다. 이 문단은 고객 출시 미승인 후보이며 첫 두 문단의 역할은 그대로 유지한다.':'');
+   ' QA 전용 세 번째 natal_depth 문단만 출생 해·날·시간의 독립된 계산 근거를 사용할 수 있다. 기본 strength와 temperament의 기존 근거·핵심 판단은 바꾸지 않는다. 내부에서는 서로 다른 출생 위치의 전통적 뜻과 그 연결을 검산한다. 독자에게는 한 가지 구체적인 가상 선택 상황에서 각 뜻이 서로 다른 선택에 어떻게 연결되는지, 무엇이 유리하게 읽히는 조건이고 한쪽만 보면 어떤 조건을 놓치는지 그 이유를 자연스러운 말로 설명한다. 단순 계산 위치 소개·사전적인 뜻 두 문장·누구에게나 통하는 준비 조언·면책 반복으로 새 해석을 대신하지 않는다. 출생 분류만으로 실제 성격·능력·신강약·충의 결과·합화·미래 사건을 단정하지 않는다. 검증된 별도 근거와 새 통찰이 없으면 natal_depth는 null로 반환한다. 이 문단은 고객 출시 미승인 후보이며 전문적인 원문 검수를 별도로 받아야 한다.':'');
  return original;
 }
 function compile(prompt){
