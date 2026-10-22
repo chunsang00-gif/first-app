@@ -37,6 +37,27 @@ function assess(packet){
  const monthHidden=season.HIDDEN[branch].map(stem=>'natal.month.hidden.'+stem);
  const exposed=graph.exposure.filter(x=>x.position==='month'&&x.exactExposure)
   .map(x=>({sourceId:x.hiddenId,visibleSourceIds:x.exactVisibleMatches.map(v=>v.id)}));
+ // The day stem is the day master used as the reference for ten-god
+ // classification. Do not silently count that self-reference as identical
+ // to exposure through a DIFFERENT visible position when comparing texts
+ // about month-hidden-to-visible selection. Both observations remain visible;
+ // neither is an approved 格局/priority decision.
+ const exposureScope=exposed.map(row=>{
+  const nonDayVisibleSourceIds=row.visibleSourceIds.filter(id=>
+   id!=='natal.day.stem');
+  return {
+   sourceId:row.sourceId,
+   allVisibleSourceIds:row.visibleSourceIds.slice(),
+   nonDayVisibleSourceIds,
+   dayMasterVisibleMatch:row.visibleSourceIds.includes('natal.day.stem'),
+   matchOnlyDayMaster:row.visibleSourceIds.length>0&&
+    nonDayVisibleSourceIds.length===0
+  };
+ });
+ const dayMasterOnlyExposureIds=exposureScope.filter(x=>x.matchOnlyDayMaster)
+  .map(x=>x.sourceId);
+ const nonDayExactExposureIds=exposureScope.filter(x=>x.nonDayVisibleSourceIds.length)
+  .map(x=>x.sourceId);
  const pairs=natal.pairs.filter(x=>x.positions.includes('month'))
   .map(x=>({type:x.type,positions:x.positions.slice(),branches:x.branches}));
  const groups=natal.groups.filter(x=>x.positions.includes('month'))
@@ -48,6 +69,17 @@ function assess(packet){
   monthBranch:branch,monthPhase:seasonal.monthPhase,
   mainHiddenStemSourceId:monthMain,hiddenStemSourceIds:monthHidden,
   exactExposuresOfMonthHidden:exposed,
+  // A methodological sensitivity analysis, not a chosen school rule:
+  // the all-positions graph includes natal.day.stem while a proposed
+  // non-day exposure screen considers only year/month/hour stems.
+  exactExposureScopeComparison:{
+   allPositionsExposedHiddenStemIds:exposureScope.map(x=>x.sourceId),
+   nonDayExposedHiddenStemIds:nonDayExactExposureIds,
+   dayMasterOnlyExposedHiddenStemIds:dayMasterOnlyExposureIds,
+   rows:exposureScope,
+   selectionRuleAdopted:false,
+   traditionalMeaningAndPriorityVerified:false
+  },
   approximateGoverningCandidate:candidate?{
    stem:candidate.stem,natalSourceId:candidateId,
    status:exploratory.status,
@@ -83,6 +115,11 @@ function assess(packet){
     '월의 숨은 글자 중 겉글자와 정확히 대응하는 후보가 있다.':
     '월의 숨은 글자와 정확히 일치하는 겉글자가 확인되지 않았다.',
    invalidClaim:'글자 일치만으로 격국의 우위 또는 용신을 확정한다.'},
+  {id:'day-master-is-not-an-automatically-ranked-exposure',
+   observed:dayMasterOnlyExposureIds.length?
+    '월의 숨은 글자 중 태어난 날의 기준 글자에만 대응하는 경우가 있다.':
+    '이번 명식의 월 숨은 글자에서 날의 기준 글자에만 대응하는 사례는 확인되지 않았다.',
+   invalidClaim:'태어난 날의 기준 글자와 대응하면 곧바로 취격·우위가 확정된다.'},
   {id:'branch-overlap-is-not-transformation',
    observed:pairs.length+groups.length>1?
     '월을 포함한 지지 관계가 서로 겹치는 것이 관찰된다.':
