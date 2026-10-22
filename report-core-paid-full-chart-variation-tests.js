@@ -75,8 +75,8 @@ const fixed=require('./report-core-paid-full-prompt-capture').FIXTURE;
    const lock=factLock.fromPayload(qa.payload);
    assert(lock.sourceRefs.every(id=>ids.includes(id)));
    assert.equal(qa.schema.properties.chapters.properties.saju_core
-    .properties.paragraphs.properties.natal_depth.anyOf
-    .find(v=>v.type==='object').properties.basis.properties.interpretation.enum[0],
+    .properties.paragraphs.properties.natal_depth
+    .properties.basis.properties.interpretation.enum[0],
     lock.literal);
    assert.equal(qa.schema.properties.chapters.properties.saju_core
     .properties.keyJudgment.enum[0],coreThesis.forPrompt(qa.prompt).keyJudgment);
