@@ -34,6 +34,24 @@ const read=(dir,name)=>JSON.parse(fs.readFileSync(path.join(dir,name),'utf8'));
   assert.equal(network,0);
   assert.equal(fs.readdirSync(dryDir).length,0,'unapproved call must create no evidence');
   process.env.REPORT_QA_CONFIRM=runner.APPROVAL;
+  // A changed model price/tokens or a changed approved prompt must fail
+  // BEFORE the attempt marker, before fetch, and without charging again.
+  const mismatchDir=outputDir();
+  process.env.REPORT_QA_OUTPUT=output(mismatchDir);
+  process.env.REPORT_MODEL='gpt-4.1-mini';
+  await assert.rejects(runner.run(),/QA_NATAL_DEPTH_APPROVED_ENVELOPE_DRIFT_NO_BILLING/);
+  assert.equal(fs.readdirSync(mismatchDir).length,0);
+  assert.equal(network,0);
+  process.env.REPORT_MODEL='gpt-4.1';
+  const readiness=require('./report-core-paid-one-shot-readiness');
+  const oldBuild=readiness.build;
+  try{
+   readiness.build=async()=>({...await oldBuild(),
+    operatorEnvelopeHash:'0'.repeat(64)});
+   await assert.rejects(runner.run(),/QA_NATAL_DEPTH_APPROVED_ENVELOPE_DRIFT_NO_BILLING/);
+   assert.equal(fs.readdirSync(mismatchDir).length,0);
+   assert.equal(network,0);
+  }finally{readiness.build=oldBuild;}
   // Capture the actual single QA request offline and produce a minimally valid
   // test response. These words are a structural fixture, NOT human-approved prose.
   const qa=await assemble();
