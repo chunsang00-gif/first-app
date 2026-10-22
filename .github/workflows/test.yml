@@ -50,7 +50,7 @@ jobs:
 
   recover-paid-natal-once:
     # ONE specific push, feature branch only. No model invocation ever.
-    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/fix-paid-qa-fact-bindings-20261014' && github.event.head_commit.message == 'ci(qa): one-time recover encrypted natal-depth manuscript without provider' }}
+    if: "${{ github.event_name == 'push' && github.ref == 'refs/heads/fix-paid-qa-fact-bindings-20261014' && github.event.head_commit.message == 'ci(qa): one-time recover encrypted natal-depth manuscript without provider' }}"
     runs-on: ubuntu-latest
     timeout-minutes: 8
     permissions:
