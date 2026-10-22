@@ -17,10 +17,13 @@ const FIXTURE=Object.freeze({calendar:'solar',birthDate:'1982-06-15',
 const SAMPLE_ID='fixed-synthetic-natal-qa-1982-06-15-1420';
 const hash=v=>crypto.createHash('sha256').update(JSON.stringify(v)).digest('hex');
 const yes=(ok,reason)=>{if(!ok)throw Error('QA_ONE_SHOT_NOT_READY:'+reason);};
-function build(){
+async function build(){
  const packet=facts.build({...FIXTURE},2027);
  yes(packet.status==='ready','calendar-not-ready');
- const candidate=preview.prepare(packet);
+ const candidate=await require('./report-core-paid-full-qa-compose').assemble();
+ yes(candidate.prompt?.facts?.chart&&
+  JSON.stringify(candidate.prompt.facts.chart)===JSON.stringify(packet.chart),
+  'captured-server-chart-mismatch');
  yes(candidate?.releaseVerdict==='not-approved'&&
   candidate.reviewKind==='machine-composed-review','candidate-not-curated-or-reviewable');
  yes(candidate.prompt?.qaNatalDepthPreview===true,'qa-only-flag-missing');
@@ -80,6 +83,9 @@ function build(){
   runStatus:'dry-run-ready',providerCalls:0,
   isLiveCustomerRequest:false,
   qaTopic:'natal_depth',reviewKind:candidate.reviewKind,
+  actualServerRulesVerified:true,
+  derivedFromRealServerBatch:true,
+  capturedServerBatchSections:candidate.originalRequestedSections.slice(),
   requestedSections:candidate.prompt.requestedSections.slice(),
   sourceRefs:refs,sourceCount:refs.length,
   coreThesis:core.keyJudgment,
@@ -93,9 +99,14 @@ function build(){
    coreJudgment:core.keyJudgment,natalFactLock:lock.literal}),
   providerTaskHash:hash(provider.task),
   strictResponseSchemaHash:hash(strictSchema),
+  fullInstructionHash:hash({rules:candidate.prompt.rules,
+   planningInstruction:candidate.prompt.planningInstruction,
+   editorialTask:candidate.prompt.editorialTask}),
   checklist:checks,
   nextGate:'explicit-approval-for-one-billable-model-call-then-human-review'
  };
 }
 module.exports={build,FIXTURE,SAMPLE_ID};
-if(require.main===module)console.log('QA_ONE_SHOT_READINESS='+JSON.stringify(build()));
+if(require.main===module)build().then(x=>
+ console.log('QA_ONE_SHOT_READINESS='+JSON.stringify(x))
+ ).catch(e=>{console.error(e);process.exitCode=1;});
