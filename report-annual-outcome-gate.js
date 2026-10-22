@@ -21,7 +21,15 @@ const outcomes={
   /(?:새로운\s*(?:인연|연인)|배우자|애인)(?:을|이|가)?\s*(?:만납니다|생깁니다|찾아옵니다)/
  ]
 };
-const qualified=/(?:단정할\s*수\s*없|예측할\s*수\s*없|확인할\s*수\s*없|알\s*수\s*없|보장하지\s*않|의미하지\s*않|확정할\s*수\s*없|판단할\s*수\s*없|라는\s*뜻은\s*아닙니다|라고\s*말할\s*수\s*없|는\s*것은\s*아닙니다)/;
+// An unrelated disclaimer in the same sentence must not excuse an
+// otherwise categorical future prediction. Only a directly negated QUOTE
+// of that exact assertion is exempt (e.g. "승진합니다"라고 말할 수 없습니다).
+function explicitlyNegatedQuote(sentence,match){
+ const before=sentence.slice(0,match.index);
+ const after=sentence.slice(match.index+match[0].length);
+ return /['"‘“「『]$/.test(before)&&
+  /^[’”"'」』]\\s*(?:라고\\s*말할\\s*수\\s*없|라는\\s*뜻은\\s*아닙니다)/.test(after);
+}
 const explicitYear=/(?:2027\s*년|내년)/;
 function sentences(value){
  return String(value||'').split(/[.!?。！？\n]+/).map(x=>x.trim()).filter(Boolean);
@@ -50,9 +58,9 @@ function check(report){
   ]){
    for(let i=0;i<parts.length;i++)for(const sentence of sentences(parts[i])){
     if(summary&&!section.annualSource&&!annual&&!explicitYear.test(sentence))continue;
-    if(qualified.test(sentence))continue;
     for(const category of domain?[domain]:Object.keys(outcomes)){
-     if(!outcomes[category].some(re=>re.test(sentence)))continue;
+     const matches=outcomes[category].map(re=>re.exec(sentence)).filter(Boolean);
+     if(!matches.some(match=>!explicitlyNegatedQuote(sentence,match)))continue;
      findings.push({section:section.id,field,index:i,category,code:'deterministic-2027-outcome'});
     }
    }
