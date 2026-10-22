@@ -15,7 +15,7 @@
 ## 재현 가능한 고정 지문
 - 입력/인용/핵심 판단 지문 SHA-256: `3f4c2d93d5ff2dc2af73339d6caaf116a422443d877239536a23704fd68f09ee`
 - AI 공급자 요청 task SHA-256: `145b9903fe93e9e49384b56bc93e3c70fb5e9b81b21697113a2da9d8cc667fe2`
-- strict JSON 응답 schema SHA-256: `fa2af20bc427053e26e2a84342e36f1c6d91346cb24771b7d8eb675b315d122d`
+- strict JSON 응답 schema SHA-256: `b635bb2987da960b1b004cf06b121303db92f161580e10af12f0d2cac64a410a`
 - 전체 작성 지침 SHA-256: `7f8d299cc94d6082082b321fea76b78166afc9e66ec209bd526508e2c13e0974`
 - 별도 `node report-core-paid-one-shot-readiness.js`로 모두 오프라인 재계산 가능. 지문이 달라지면 동일한 승인값으로 유료 테스트하지 않는다.
 
@@ -48,7 +48,16 @@
 
 - 독립 심화 QA 실행기 `run-paid-natal-depth-qa.js`는 단순히 승인 문자열이 맞는지만 검사하지 않는다. **실제 요청에 쓰는 모델, 최댓값 토큰 설정, 시스템 정책, 전체 압축 근거, strict JSON 스키마를 포함한 승인 지문**을 오프라인에서 재계산해 하나라도 달라지면 호출 전에 중단한다.
 - **허용 모델:** `gpt-4.1` (다른 모델로 설정 변경 시 호출 차단).
-- **고정된 모델 전송 지문 SHA-256:** `78136da25c6da6cdd261e49d6186c7aa80828d842fcf96237d4cd42266cc5615`.
+- **고정된 모델 전송 지문 SHA-256:** `cf624ba237fe34f95f2740fe7238f9bd8311ad3474f024fa74e5f5e59556e2be`.
 - `operatorEnvelopeHash`는 위 숫자여야 하며, `report-core-paid-one-shot-readiness.js`에서 오프라인으로 다시 계산한다. 새 QA 지침이나 코드가 바뀌면 **이전 승인을 재사용하지 않고** 재검토해야 한다.
 - 회귀 테스트는 모델 변경 및 지문 위조가 **네트워크 호출 0회, 시도 기록 0건인 상태에서 거절**되는지 확인한다.
 - 지문 일치와 기술 테스트는 **실제 유료 모델이 쓸 독자 원고의 품질을 증명하지 않는다.** 출시 승인 및 비용 승인 상태는 기존대로 `not-approved`와 `false`다.
+
+## 2026-10-22 수정 — 서버 최종 전송 스키마와 승인 지문 정렬
+
+- **재현한 실제 결함:** 이전 `operatorEnvelopeHash`는 원본 `report-schema.json`에서 만든 응답 스키마를 사용했다. 그러나 `server.callOpenAI()`는 공급자에게 보내기 전에 지원되지 않는 제약어(`minLength`, `maxLength` 등)를 제거한다. 그러므로 당시 승인 지문은 **최종 HTTP 요청 지문과 불일치**했다.
+- 무료 테스트에서 AI 호출 직전에 `fetch`를 가로채 실제 `model`, `max_output_tokens`, `system` 지침, `user` 압축 요청, `text.format.schema`를 종합해 SHA-256으로 확인했다. 초기 HTTP 지문은 `cf624ba…`였고 기존 승인 지문 `78136da…`와 달랐다.
+- QA 전용 `report-core-paid-full-qa-compose.js`에서 서버와 **같은 엄격 스키마 전처리**를 적용하고, `report-core-paid-one-shot-readiness.js`가 실제 QA 구성의 최종 스키마를 사용하도록 수정했다. 운영 서버의 공용 실행 코드는 바꾸지 않았다.
+- 승인 지문 `cf624ba237fe34f95f2740fe7238f9bd8311ad3474f024fa74e5f5e59556e2be`, strict 응답 스키마 지문 `b635bb2987da960b1b004cf06b121303db92f161580e10af12f0d2cac64a410a`로 갱신했다.
+- `run-paid-natal-depth-qa-tests.js`는 **실제 HTTP 요청 자체를 해시**해 위 지문과 일치하는지 검사한다. 성공한 `npm test`와 `npm run smoke`: [GitHub Actions #39750240900](https://github.com/chunsang00-gif/first-app/actions/runs/39750240900). 실제 과금 0회.
+- 사전 지문 일치는 입력 계약의 일관성 검증이다. **AI가 쓴 유료 해석의 품질·출시 승인과는 무관**하다. PR #3 병합 및 유료 API 1회 실행 모두 별도 명시적 승인을 필요로 한다.
