@@ -49,7 +49,7 @@ async function build(){
  yes(instruction.inspectTransport(candidate.prompt,provider).length===0,
   'transport-instruction-audit');
  const depthSchema=strictSchema.properties.chapters.properties.saju_core
-  .properties.paragraphs.properties.natal_depth.anyOf.find(x=>x.type==='object');
+  .properties.paragraphs.properties.natal_depth;
  yes(depthSchema?.properties?.basis?.properties?.refs?.items?.enum?.join('|')===
   refs.join('|'),'schema-citation-mismatch');
  const baseTopic=chapter.topics.strength.citableFacts.map(x=>x.id);
