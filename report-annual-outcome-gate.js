@@ -28,7 +28,7 @@ function explicitlyNegatedQuote(sentence,match){
  const before=sentence.slice(0,match.index);
  const after=sentence.slice(match.index+match[0].length);
  return /['"‘“「『]$/.test(before)&&
-  /^[’”"'」』]\\s*(?:라고\\s*말할\\s*수\\s*없|라는\\s*뜻은\\s*아닙니다)/.test(after);
+  /^[’”"'」』]\s*(?:라고\s*말할\s*수\s*없|라는\s*뜻은\s*아닙니다)/.test(after);
 }
 const explicitYear=/(?:2027\s*년|내년)/;
 function sentences(value){
