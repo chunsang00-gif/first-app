@@ -134,6 +134,38 @@ const writer=require('./report-generation-request');
    crossChartRejections++;
   }
   assert.equal(crossChartRejections,6);
+  // A citation to facts.stemConnections is not proof that prose used its
+  // observed exact-stem exposures / same-element roots. Surface this
+  // actual, input-specific graph to the editorial reviewer, with no new
+  // fortune-strength or personality claims and no model usage.
+  const stemGraph=require('./report-stem-connections');
+  const linkages=selected.map(({input,qa})=>{
+   const actual=stemGraph.build(qa.prompt.facts.chart);
+   const inRequest=qa.payload.source['facts.stemConnections'];
+   assert.deepEqual(inRequest,actual,'writer must receive the real computed natal stem graph');
+   assert.equal(actual.sourcePolicy.strength,'not-assessed');
+   assert.equal(actual.sourcePolicy.seasonAndTransformation,'not-assessed');
+   assert.equal(actual.sourcePolicy.hourPolicy,'observed-hour');
+   const observation=id=>{
+    const r=actual.rooting.find(x=>x.visibleId===id);
+    assert(r&&r.visiblePosition,'required natal position must exist in rooted graph');
+    return {hasObservedRoot:r.hasObservedRoot,
+     roots:r.sameElementRoots.map(x=>({
+      id:x.hiddenId,position:x.position,type:x.type}))};
+   };
+   return {syntheticDate:input.birthDate,
+    year:observation('natal.year.stem'),
+    day:observation('natal.day.stem'),
+    hour:observation('natal.hour.stem'),
+    exactExposures:actual.exposure.filter(x=>x.exactExposure)
+     .map(x=>({hiddenId:x.hiddenId,
+      visibleIds:x.exactVisibleMatches.map(v=>v.id)})),
+    assessedStrength:false,assessedPersonality:false};
+  });
+  assert.equal(linkages.length,3);
+  console.log('QA_THREE_CHART_REAL_STEM_LINKS='+JSON.stringify({
+   source:'verified natal stem relation graph; not a personality inference',
+   checked:3,providerCalls:0,releaseVerdict:'not-approved',linkages}));
   console.log('QA_THREE_CHART_EDITORIAL_PROBES='+JSON.stringify({
    distinctHandAuthoredDrafts:3,crossChartMisattributionRejected:crossChartRejections,
    offlineTechnicalGatesPassed:true,providerCalls:0,
