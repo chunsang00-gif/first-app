@@ -40,6 +40,45 @@ assert.equal(a.checklist.length,8);
 assert.equal(a.nextGate,
  'explicit-approval-for-one-billable-model-call-then-human-review');
 assert.equal(inspect.assert===undefined,false);
+// The same REAL server first-batch composer must also work for a different
+// synthetic birth hour. It must not recycle the earlier four-pillar evidence
+// or make the QA-only topic available to normal paying users.
+const assemble=require('./report-core-paid-full-qa-compose').assemble;
+const fixed=await assemble();
+const later=await assemble({...readiness.FIXTURE,birthTime:'20:20'});
+const factLock=require('./report-core-paid-natal-depth-fact-lock');
+const firstDepth=fixed.payload.task.chapters.saju_core.topics.natal_depth;
+const laterDepth=later.payload.task.chapters.saju_core.topics.natal_depth;
+assert.deepEqual(fixed.originalRequestedSections,['saju_core','mbti_contradiction']);
+assert.deepEqual(later.originalRequestedSections,fixed.originalRequestedSections);
+assert.equal(later.prompt.qaNatalDepthPreview,true);
+assert.equal(later.releaseVerdict,'not-approved');
+assert.equal(later.providerCalls,0);
+assert.equal(later.prompt.facts.chart.month,fixed.prompt.facts.chart.month);
+assert.notEqual(later.prompt.facts.chart.hour,fixed.prompt.facts.chart.hour);
+assert.deepEqual(later.payload.task.chapters.saju_core.topics.strength,
+ fixed.payload.task.chapters.saju_core.topics.strength,
+ 'the month-only paid anchor must not be silently widened');
+assert.notDeepEqual(laterDepth.citableFacts,firstDepth.citableFacts,
+ 'a different birth hour must reach the QA provider as different evidence');
+assert.notEqual(factLock.fromPayload(later.payload).literal,
+ factLock.fromPayload(fixed.payload).literal,
+ 'the source-locked four-pillar interpretation must follow the input');
+for(const draft of [fixed,later]){
+ const refs=draft.payload.task.chapters.saju_core.topics.natal_depth.citableFacts.map(x=>x.id);
+ const enforced=draft.schema.properties.chapters.properties.saju_core
+  .properties.paragraphs.properties.natal_depth.anyOf.find(x=>x.type==='object')
+  .properties.basis.properties.refs.items.enum;
+ assert.deepEqual(enforced,refs,'real-server QA transport/schema source integrity');
+ assert(refs.every(x=>Object.hasOwn(draft.payload.source,x)));
+ assert(!Object.hasOwn(draft.payload.task.chapters,'mbti_contradiction'));
+ assert.deepEqual(Object.keys(draft.payload.task.chapters.saju_core.topics),
+  ['temperament','strength','natal_depth']);
+}
+// Missing birth hour may be supported by the normal report, but must never
+// fabricate the hour-based QA depth. No customer or API data is involved.
+await assert.rejects(assemble({...readiness.FIXTURE,
+ unknownBirthTime:true,birthTime:''}),/QA_COMPOSE_(?:CURATED_SAMPLE_NOT_COVERED|NO_VALID_FULL_PROMPT)/);
 console.log('QA_ONE_SHOT_READINESS='+JSON.stringify(a));
 console.log('PASS real server rules preserved in QA one-shot readiness, fixed response schema fingerprint, zero provider requests');
 })().catch(e=>{console.error(e);process.exitCode=1;});
