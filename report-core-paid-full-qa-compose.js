@@ -11,8 +11,8 @@ const schema=require('./report-schema.json');
 const preflight=require('./report-provider-preflight');
 const MIN=['natal.year.stem','natal.month.stem','natal.day.stem',
  'natal.hour.stem','facts.stemConnections'];
-async function assemble(){
- const captured=await capture();
+async function assemble(input){
+ const captured=await capture(input);
  if(captured.status!=='captured-full-paid-composition')
   throw Error('QA_COMPOSE_NO_VALID_FULL_PROMPT:'+captured.reason);
  const original=captured.prompt;
