@@ -82,6 +82,11 @@ function inspect(value,prompt){
  const positions=new Set([...text.matchAll(POSITION)].map(x=>x[0].includes('해')?'year':
   x[0].includes('날')?'day':'hour'));
  if(positions.size<2)fail('QA_DEPTH_NO_DISTINCT_NATAL_POSITIONS');
+ // Independently verify that everyday descriptions attributed to year/hour
+ // match those positions' computed symbolic classifications. This is a
+ // conservative QA filter, not an approval of a full interpretive narrative.
+ errors.push(...require('./report-core-paid-natal-depth-role-check')
+  .inspect(text,payload.source));
  if(overlap(strengthText,text)>0.55||
     simple(text)===simple(strengthText))
   fail('QA_DEPTH_REPEATS_MONTH_CORE');
