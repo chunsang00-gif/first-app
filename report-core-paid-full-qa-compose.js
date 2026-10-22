@@ -60,7 +60,7 @@ async function assemble(input){
  full.rules.annualDomainScopes={};
  full.rules.topicPlan={saju_core:{
   ...original.rules.topicPlan.saju_core,
-  natal_depth:'QA 전용이다. 계산된 출생 해·일·시간의 분류를 각각 독립적으로 확인하고, 한 가지 가상의 구체적인 선택 상황에서 서로 다른 뜻이 선택과 판단 조건에 어떻게 연결되는지 이유를 설명한다. 유리하게 읽을 조건과 한쪽 뜻만 따르면 놓치기 쉬운 조건을 근거로 구별한다. 분류 이름·계산 위치를 소개한 다음 일반 조언만 덧붙이거나 앞선 기본 풀이를 다시 쓰지 않는다. 새로 뒷받침할 수 있는 해석 차이가 없으면 null로 반환한다.'
+  natal_depth:'QA 전용이다. 계산된 출생 해·일·시간의 분류를 각각 독립적으로 확인하고, 한 가지 가상의 구체적인 선택 상황에서 서로 다른 뜻이 선택과 판단 조건에 어떻게 연결되는지 이유를 설명한다. 유리하게 읽을 조건과 한쪽 뜻만 따르면 놓치기 쉬운 조건을 근거로 구별한다. 분류 이름·계산 위치를 소개한 다음 일반 조언만 덧붙이거나 앞선 기본 풀이를 다시 쓰지 않는다. 근거를 바탕으로 새 해석을 작성하지 못하면 품질 검증에서 거절되며, 그 사실을 감추려고 내용을 지어내지 않는다.'
  }};
  full.rules.returnOnlyRequestedSections=true;
  full.output={...full.output,requestedSections:ids,
