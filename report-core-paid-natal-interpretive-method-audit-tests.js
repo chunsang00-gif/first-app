@@ -11,6 +11,7 @@ const samples=[
  {calendar:'solar',birthDate:'1988-12-15',birthTime:'14:20',gender:'male',mbti:'ISFP'},
  {calendar:'solar',birthDate:'1994-04-15',birthTime:'14:20',gender:'male',mbti:'ISFP'}
 ];
+const cases=[];
 let checked=0;
 for(const input of samples){
  const p=preview.prepare(facts.build(input,2027));
@@ -23,6 +24,33 @@ for(const input of samples){
  assert.equal(result.providerCalls,0);
  assert.equal(result.calculatedObservations.positionsVerified,4);
  assert.equal(result.decisions.length,5);
+ assert.equal(result.falsifiableChecks.length,5);
+ assert(Object.keys(result.exactStemsByPosition).every(k=>
+  ['year','month','day','hour'].includes(k)));
+ for(const entry of result.falsifiableChecks){
+  assert.equal(typeof entry.observed,'boolean');
+  assert(entry.refs.every(id=>id.startsWith('natal.')));
+  assert(entry.incorrectOpposite.includes('이 명식에 틀리다'));
+ }
+ const evidence=result.exactStemsByPosition;
+ const flags=Object.fromEntries(result.falsifiableChecks.map(row=>[row.id,row.observed]));
+ const date=input.birthDate;
+ if(date==='1982-03-15'){
+  assert.equal(flags['day-and-hour-visible-same-exact-character'],true,
+   'matching visible day/hour chars are a positional observation, not a trait');
+  assert(evidence.hour.exactHiddenSourceIds.length>0);
+ }else if(date==='1988-12-15'){
+  assert(evidence.year.exactHiddenSourceIds.length>0);
+  assert.equal(evidence.hour.exactHiddenSourceIds.length,0,
+   'absence of exact matching does NOT imply weaker influence');
+  assert.equal(evidence.hour.sameElementOtherStemSourceIds.length,0);
+ }else if(date==='1994-04-15'){
+  assert(evidence.hour.exactHiddenSourceIds.length>=3);
+  assert.equal(evidence.year.exactHiddenSourceIds.length,0);
+  assert(evidence.year.sameElementOtherStemSourceIds.length>=3);
+  assert.equal(flags['year-visible-matched-same-element-different-character'],true);
+ }
+
  assert(result.decisions.some(x=>x.id==='which-connection-changes-interpretive-priority'&&
    x.status==='independent-method-review-required'));
  const wrong=structuredClone(p.payload);
@@ -45,7 +73,18 @@ for(const input of samples){
  const nonQa=structuredClone(p.prompt);delete nonQa.qaNatalDepthPreview;
  assert.throws(()=>audit.assess(nonQa,p.payload),
   /QA_METHOD_REVIEW_OUTSIDE_ISOLATED_DEPTH_SCOPE/);
+ cases.push({date:input.birthDate,
+  checks:Object.fromEntries(result.falsifiableChecks.map(x=>[x.id,x.observed])),
+  yearExact:result.exactStemsByPosition.year.exactHiddenSourceIds.length,
+  hourExact:result.exactStemsByPosition.hour.exactHiddenSourceIds.length});
  checked++;
 }
+assert.equal(new Set(cases.map(x=>JSON.stringify(x.checks))).size>=3,true,
+ 'real chart-specific stem observations must be distinguishable');
+assert.notDeepEqual(cases.find(x=>x.date==='1988-12-15').checks,
+ cases.find(x=>x.date==='1994-04-15').checks,
+ 'a year root and an hour root cannot be interchanged between charts');
+console.log('QA_NATAL_FALSIFIABLE_CASES='+JSON.stringify({
+ checked,syntheticOnly:true,providerCalls:0,methodApproved:false,cases}));
 console.log('PASS independent natal methodology pending across '+checked+
  ' calculated synthetic charts; mutated source refused; provider calls 0');
