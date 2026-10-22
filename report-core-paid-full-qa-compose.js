@@ -51,8 +51,10 @@ async function assemble(input){
  full.rules.returnOnlyRequestedSections=true;
  full.output={...full.output,requestedSections:ids,
   cover:'null',finalJudgment:'null'};
- full.editorialTask=original.editorialTask+
-  ' QA 전용 선택적 natal_depth에서만 출생 해·날·시간의 독립된 계산 근거를 사용한다. 먼저 내부적으로 출처 두 위치의 정확한 전통적 뜻과 차이를 확인한 뒤 독자에게는 그 차이가 한 가지 구체적인 가정 상황에서 서로 다른 선택과 유리하거나 주의할 조건으로 이어지는 이유를 자연스러운 한국어로 적는다. 계산 항목 나열, 사전적 뜻 두 문장+범용 생활 팁, 같은 면책의 반복은 유료 심화 설명이 아니다. 실제 성격이나 성과가 입증된 것처럼 쓰지 않는다. 기본 strength/temperament 내용과 고정 핵심 판단은 변경하지 않고 새 근거·별도 판단이 부족하면 natal_depth는 null로 비운다.';
+ // The local copy keeps the captured server task unchanged. The REAL compact
+ // outgoing model brief is scoped in generation.editorialGoalFor(qa flag).
+ // Do not append a second, untransmitted or contradictory writing directive.
+ full.editorialTask=original.editorialTask;
  const errors=audit.inspect(full);
  if(errors.length)throw Error('QA_COMPOSE_FULL_INSTRUCTIONS_REJECTED:'+errors.join('|'));
  const provider=generation.compile(full);
