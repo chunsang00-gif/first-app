@@ -109,12 +109,33 @@ function inspect(value,prompt){
  // conservative QA filter, not an approval of a full interpretive narrative.
  errors.push(...require('./report-core-paid-natal-depth-role-check')
   .inspect(text,payload.source));
- if(overlap(strengthText,text)>0.55||
-    simple(text)===simple(strengthText))
-  fail('QA_DEPTH_REPEATS_MONTH_CORE');
- const a=String(strengthText).split(/[.!?。！？\n]+/).map(simple).filter(x=>x.length>18);
- const b=String(text).split(/[.!?。！？\n]+/).map(simple).filter(x=>x.length>18);
- if(b.some(s=>a.includes(s)))fail('QA_DEPTH_REPEATS_EXACT_SENTENCE');
+ // A paid-depth addition must differ from BOTH existing core paragraphs.
+ // Previously only strength was compared, so copying temperament or padding
+ // the new paragraph with its own repeated sentences could pass QA.
+ const sentences=s=>String(s||'').split(/[.!?。！？\n]+/)
+  .map(simple).filter(x=>x.length>18);
+ const depthSentences=sentences(text);
+ for(const [prior,code] of [
+  [parts.strength,'QA_DEPTH_REPEATS_MONTH_CORE'],
+  [parts.temperament,'QA_DEPTH_REPEATS_TEMPERAMENT_CORE']
+ ]){
+  if(!prior||typeof prior.text!=='string'||!prior.text.trim())continue;
+  const earlier=simple(prior.text);
+  if(overlap(earlier,text)>0.55||earlier===text)
+   fail(code);
+  if(depthSentences.some(s=>sentences(earlier).includes(s)))
+   fail('QA_DEPTH_REPEATS_EXACT_SENTENCE');
+ }
+ // Length alone is not premium depth. Catch identical and minimally reworded
+ // sentence padding INSIDE the new paragraph, without judging all prose.
+ for(let i=0;i<depthSentences.length;i++){
+  for(let j=i+1;j<depthSentences.length;j++){
+   if(depthSentences[i]===depthSentences[j]||
+      (depthSentences[i].length>=36&&depthSentences[j].length>=36&&
+       overlap(depthSentences[i],depthSentences[j])>0.85))
+    fail('QA_DEPTH_SELF_REPEATED_SENTENCE');
+  }
+ }
  return [...new Set(errors)];
 }
 function assert(value,prompt){
