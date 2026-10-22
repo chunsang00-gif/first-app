@@ -6,6 +6,30 @@ const fs=require('node:fs');
 const path=require('node:path');
 const {assemble}=require('./report-core-paid-full-qa-compose');
 const {callOpenAI}=require('./server');
+const crypto=require('node:crypto');
+const readiness=require('./report-core-paid-one-shot-readiness');
+const generation=require('./report-generation-request');
+const wire=require('./report-wire');
+const {outputLimit}=require('./report-paid-batch-plan');
+// Freeze exactly the reviewed synthetic prompt/model envelope. Recompute
+// from the REAL prepared QA request before any attempt marker or paid fetch.
+const APPROVED_MODEL='gpt-4.1';
+const APPROVED_ENVELOPE_SHA256='78136da25c6da6cdd261e49d6186c7aa80828d842fcf96237d4cd42266cc5615';
+const fingerprint=v=>crypto.createHash('sha256').update(JSON.stringify(v)).digest('hex');
+async function assertFrozenRequest(qa){
+ const built=await readiness.build();
+ const actual=fingerprint({
+  model:APPROVED_MODEL,
+  tokenLimit:outputLimit(APPROVED_MODEL,qa.prompt),
+  systemPolicy:generation.policyFor(qa.prompt)+' '+wire.instruction,
+  providerPayload:qa.payload,strictSchema:qa.schema
+ });
+ if(process.env.REPORT_MODEL!==APPROVED_MODEL||
+    actual!==APPROVED_ENVELOPE_SHA256||
+    built.operatorEnvelopeHash!==APPROVED_ENVELOPE_SHA256)
+  throw Error('QA_NATAL_DEPTH_APPROVED_ENVELOPE_DRIFT_NO_BILLING');
+ return actual;
+}
 const APPROVAL='RUN_ONE_NATAL_DEPTH_SAMPLE';
 function savePrivate(file,data){
  const fd=fs.openSync(file,'wx',0o600);
@@ -40,6 +64,7 @@ async function run(){
     Object.keys(chapters||{}).length!==1||
     qa.releaseVerdict!=='not-approved')
   throw Error('QA_NATAL_DEPTH_WRONG_PAID_SCOPE');
+ await assertFrozenRequest(qa);
  // Durable marker written BEFORE the sole potentially billable call.
  // If the process ends ambiguously, do not generate again automatically.
  savePrivate(attempt,{kind:'natal-depth-qa',status:'provider-attempt-started',
