@@ -104,8 +104,25 @@ function schemaFor(prompt,reportSchema){
    judgment.description+=' 첫 장 핵심 판단은 제목의 조건부 기질 해석을 자연스러운 한국어 한 문장으로 제시한다. 먼저 검증된 두 출생 위치가 뒷받침하는 전통적 기질 해석을 조건부로 말하고, 생활 조언이나 자료 분석 계획만으로 대체하지 않는다. 계산 과정·근거 목록·검토하겠다는 작성 계획이 아니다. 본문 두 문단의 조건부 전통 해석을 넘어 실제 성격·과거 행동을 확인했다고 단정하지 않는다.';
   }
   return [id,object({title,keyJudgment:judgment,evidence:reader.describe(section.evidence,reader.evidenceField),mood:section.mood,
-   paragraphs:object(Object.fromEntries(keys.map(topic=>[topic,topic===anchor?paragraph(plan[topic]?.question||topics[id][topic],false,roles?.[topic]):plan[topic]?.mode==='state-limits'?{type:'null'}:{anyOf:[paragraph(plan[topic]?.question||topics[id][topic],true,
-     topic==='natal_depth'?{label:'별도의 네 기둥 심화 검토 문단. 기존 기질 문단을 다시 쓰지 않는다.',text:'사용할 수 있는 출처는 natal_depth.citableFacts뿐이다. 검증된 연주·일주·시주 관련 계산을 월간 중심의 기본 풀이와 다른 한 가지 조건부 해석으로 연결하라. 출생시간 미상은 다루지 않는다. 계산된 통근 위치·지지 관계표의 존재를 성격의 강도, 실제 관계 사건이나 합화 성공으로 쓰지 않는다. 새 통찰이 없으면 null을 반환한다. 이 문단은 출시 전 QA 검토 대상이다.'}:roles?.[topic]),{type:'null'}]}])))})];
+   paragraphs:object(Object.fromEntries(keys.map(topic=>{
+    const readerRole=topic==='natal_depth'?{
+     label:'기본 월 중심 풀이에 없는 독립적인 출생 해·날·시간 비교 판단을 제목에 담는다.',
+     text:'QA 전용 독립 원고다. 실제 계산된 해의 전통 분류와 시간의 전통 분류를 한 가지 가상 선택의 서로 다른 판단 기준으로 연결한다. 달의 설명을 다시 쓰지 않는다. 가상 상황의 구체적인 선택과 유리한 조건, 놓치기 쉬운 조건을 이유와 함께 구별한다. 의미가 없는 계산 명칭 소개·용어 풀이·누구에게나 맞는 체크리스트·반복 면책은 해석이 아니다. 출생 분류만으로 실제 행동이나 성공을 단정하지 않는다. 내용이 근거를 벗어나면 기술 검증에서 거절된다.'
+    }:roles?.[topic];
+    const item=paragraph(plan[topic]?.question||topics[id][topic],false,readerRole);
+    // Paid QA is testing whether independently VERIFIED year/day/hour facts
+    // can produce a real reading. The ordinary paid schema remains untouched.
+    // The optional seasonal draft is suppressed here because the paid sample
+    // repeated the mandatory month topic and omitted facts.qiEvidence.
+    // Do NOT add missing citations automatically or weaken the decoder.
+    if(prompt.qaNatalDepthPreview===true&&id==='saju_core'){
+     if(topic==='temperament')return [topic,{type:'null'}];
+     if(topic==='natal_depth')return [topic,item];
+    }
+    if(topic===anchor)return [topic,paragraph(plan[topic]?.question||topics[id][topic],false,roles?.[topic])];
+    if(plan[topic]?.mode==='state-limits')return [topic,{type:'null'}];
+    return [topic,{anyOf:[paragraph(plan[topic]?.question||topics[id][topic],true,roles?.[topic]),{type:'null'}]}];
+   })))})];
  }));
  return object({chapters:object(chapters),finalJudgment:prompt.includeFinal?visible(reportSchema.properties.finalJudgment):{type:'null'},cover:prompt.includeCover?visible(reportSchema.properties.cover):{type:'null'}});
 }
