@@ -85,6 +85,7 @@ const read=(dir,name)=>JSON.parse(fs.readFileSync(path.join(dir,name),'utf8'));
     status:'completed',output_text:outputValue,usage:{output_tokens:1500}
    })
   });
+  let actualHTTPEnvelopeHash=null;
   function intercept(value){
    let calls=0;
    global.fetch=async(url,opts)=>{
@@ -95,15 +96,12 @@ const read=(dir,name)=>JSON.parse(fs.readFileSync(path.join(dir,name),'utf8'));
     // This catches server-side provider schema rewriting or instruction drift.
     const prefix='Return only the requested premium report JSON. ';
     assert(sent.input[0].content.startsWith(prefix));
-    const actualFingerprint=crypto.createHash('sha256').update(JSON.stringify({
+    actualHTTPEnvelopeHash=crypto.createHash('sha256').update(JSON.stringify({
      model:sent.model,tokenLimit:sent.max_output_tokens,
      systemPolicy:sent.input[0].content.slice(prefix.length),
      providerPayload:JSON.parse(sent.input[1].content),
      strictSchema:sent.text.format.schema
     })).digest('hex');
-    assert.equal(actualFingerprint,
-     '78136da25c6da6cdd261e49d6186c7aa80828d842fcf96237d4cd42266cc5615',
-     'the frozen QA envelope must match the REAL provider-bound request');
     assert.equal(sent.store,false);
     assert.equal(sent.text.format.strict,true);
     const payload=JSON.parse(sent.input[1].content);
@@ -121,6 +119,9 @@ const read=(dir,name)=>JSON.parse(fs.readFileSync(path.join(dir,name),'utf8'));
   process.env.REPORT_QA_OUTPUT=output(successDir);
   let count=intercept(JSON.stringify(good));
   const result=await runner.run();
+  assert.equal(actualHTTPEnvelopeHash,
+   '78136da25c6da6cdd261e49d6186c7aa80828d842fcf96237d4cd42266cc5615',
+   'actual outgoing OpenAI schema/brief drifted from the frozen QA fingerprint');
   assert.equal(count(),1);
   assert.equal(result.providerCalls,1);
   assert.equal(result.releaseVerdict,'not-approved');
