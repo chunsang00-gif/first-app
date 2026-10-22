@@ -16,7 +16,12 @@ assert.equal(a.actualServerRulesVerified,true);
 assert.equal(a.derivedFromRealServerBatch,true);
 assert.deepEqual(a.capturedServerBatchSections,['saju_core','mbti_contradiction']);
 assert.equal(a.kind,'one-shot-paid-qa-readiness-offline');
-assert.equal(a.runStatus,'dry-run-ready');
+assert.equal(a.runStatus,'transport-ready-interpretation-unverified');
+assert.equal(a.interpretiveMethodReview.methodStatus,'unverified-interpretive-bridge');
+assert.equal(a.interpretiveMethodReview.independentMethodApproved,false);
+assert.equal(a.interpretiveMethodReview.eligibleForPaidQualityApproval,false);
+assert.equal(a.interpretiveMethodReview.calculatedObservations.positionsVerified,4);
+assert.equal(a.interpretiveMethodReview.providerCalls,0);
 assert.equal(a.approvalToSpendTokens,false);
 assert.equal(a.releaseVerdict,'not-approved');
 assert.equal(a.providerCalls,0);
@@ -38,7 +43,7 @@ for(const h of ['inputHash','providerTaskHash','strictResponseSchemaHash','fullI
  assert.match(a[h],/^[0-9a-f]{64}$/);
 assert.equal(a.checklist.length,8);
 assert.equal(a.nextGate,
- 'explicit-approval-for-one-billable-model-call-then-human-review');
+ 'independent-traditional-method-review-before-any-new-paid-model-approval');
 assert.equal(inspect.assert===undefined,false);
 // The same REAL server first-batch composer must also work for a different
 // synthetic birth hour. It must not recycle the earlier four-pillar evidence
