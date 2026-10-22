@@ -32,6 +32,20 @@ function reportOne(packet){
     !actual.includes('facts.structuralEvidence.monthCommand'))
   throw Error('PAID_DEPTH_AUDIT_MISSING_MONTH_EVIDENCE');
  const extraNatal=REAL_NATAL.filter(id=>actual.includes(id));
+ // Evaluate what the real payload contains, not an assumed disconnected
+ // status. Four-pillar research needs exact source rows PLUS an explicit,
+ // provenance-checked draft boundary in the outgoing topic.
+ const strength=p.topics.strength;
+ const transmittedDraft=strength?.editorialCandidate||
+  strength?.verifiedFourPillarReview||strength?.chartSynthesis||null;
+ const paidReceivesOfflineSynthesis=Boolean(transmittedDraft&&
+  extraNatal.includes('natal.year.stem')&&
+  extraNatal.includes('natal.day.stem')&&
+  extraNatal.includes('natal.hour.stem')&&
+  extraNatal.includes('facts.stemConnections'));
+ if(!paidReceivesOfflineSynthesis&&
+    JSON.stringify(payload.task).includes('machine-composed-review-only'))
+  throw Error('PAID_DEPTH_AUDIT_UNVERIFIED_OFFLINE_CLAIM_IN_WRITER_TASK');
  const draft=core.compile(packet);
  const fixed=thesis.forPrompt(prompt);
  if(!fixed?.keyJudgment||!fixed.title||
@@ -54,7 +68,7 @@ function reportOne(packet){
   offlineDraft:draft.status==='draft-for-human-review',
   offlineFourPillarAuthored:Boolean(draft.review?.fourPillar),
   offlineMachineSynthesis:Boolean(draft.review?.chartSynthesis),
-  paidReceivesOfflineSynthesis:false,
+  paidReceivesOfflineSynthesis,
   provenanceVerified:true,hasHour,
   releaseVerdict:'blocked-unreviewed-paid-depth',
   apiCalls:0};
@@ -77,8 +91,8 @@ function assess(inputs=coverage.representativeInputs()){
   if(row.offlineDraft)summary.offlineDrafts++;
   if(row.offlineFourPillarAuthored)summary.offlineFourPillarAuthored++;
   if(row.offlineMachineSynthesis)summary.offlineMachineSynthesis++;
-  if(row.offlineFourPillarAuthored||row.offlineMachineSynthesis)
-   summary.offlineDepthNotSentToPaid++;
+  if((row.offlineFourPillarAuthored||row.offlineMachineSynthesis)&&
+     !row.paidReceivesOfflineSynthesis)summary.offlineDepthNotSentToPaid++;
   if(!byJudgment.has(row.lockedJudgment))byJudgment.set(row.lockedJudgment,new Set());
   byJudgment.get(row.lockedJudgment).add(row.chartFingerprint);
  }
