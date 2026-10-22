@@ -52,7 +52,8 @@ async function run(){
  const attempt=path.join(dir,'private-qa-first-chapter-attempt.json');
  const provider=path.join(dir,'private-qa-first-chapter-provider-calls.json');
  const checkpoint=path.join(dir,'private-qa-first-chapter-validated-first-chapter.json');
- if([output,attempt,provider,checkpoint].some(file=>fs.existsSync(file)))
+ const rejectedReview=path.join(dir,'private-qa-first-chapter-rejected-review.json');
+ if([output,attempt,provider,checkpoint,rejectedReview].some(file=>fs.existsSync(file)))
   throw Error('QA_NATAL_DEPTH_EXISTING_EVIDENCE_NO_OVERWRITE');
  const qa=await assemble(); // Intercepts REAL server rules BEFORE model transport.
  const chapters=qa.payload?.task?.chapters;
@@ -81,13 +82,32 @@ async function run(){
    rawArchived=true;
   });
  };
- // Single direct call. No generate() multi-chapter loop, no automatic retry.
- const decoded=await invoke();
+ // Single direct call. No generate() multi-chapter loop or retry.
+ // Preserve a review worksheet for charged-but-rejected results as well.
+ // The first provider record is always written BEFORE downstream decoding.
+ function preserveRejectedReview(reason){
+  if(!rawArchived)return; // No stored response: uncertain remote outcome.
+  const archive=JSON.parse(fs.readFileSync(provider,'utf8'));
+  const review=require('./report-core-paid-natal-editorial-packet')
+   .buildRejected({providerResponse:archive.response,qa,reason});
+  savePrivate(rejectedReview,review);
+ }
+ let decoded;
+ try{decoded=await invoke();}
+ catch(err){
+  // Do not let a diagnostic failure hide the ORIGINAL provider error.
+  // The raw private provider file remains the primary archived evidence.
+  try{preserveRejectedReview(String(err?.message||'provider-rejected'));}
+  catch(reviewError){console.error('QA private review archive unavailable:',reviewError?.code||'write-error');}
+  throw err;
+ }
  if(!rawArchived)throw Error('QA_NATAL_DEPTH_PROVIDER_ARCHIVE_MISSING');
  const first=decoded?.sections;
  if(first?.length!==1||first[0]?.id!=='saju_core'||
-    !first[0]?.bodyTopics?.includes('natal_depth'))
+    !first[0]?.bodyTopics?.includes('natal_depth')){
+  preserveRejectedReview('QA_NATAL_DEPTH_MODEL_RETURNED_NO_ADDITIONAL_READING');
   throw Error('QA_NATAL_DEPTH_MODEL_RETURNED_NO_ADDITIONAL_READING');
+ }
  // The original model response is already preserved in the private
  // provider archive. Prepare the editor's source-to-prose comparison without
  // another model call, and encrypt it inside the SAME private checkpoint.
