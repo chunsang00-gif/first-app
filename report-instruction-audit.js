@@ -195,9 +195,21 @@ function inspectTransport(prompt,actual){
       const correct=prompt.qaNatalDepthPreview===true&&
        ['natal.year.stem','natal.month.stem','natal.day.stem',
         'natal.hour.stem','facts.stemConnections'].every(x=>permitted.includes(x));
-      const expected={kind:'qa-verified-natal-provenance-only',
-       sourceRefs:permitted.slice(),readerScope:'separate-from-month-pair-core'};
-      if(!correct||JSON.stringify(topic.evidenceFocus)!==JSON.stringify(expected))
+      const independent=['year','month','day','hour'].map(position=>{
+       const sourceId='natal.'+position+'.stem';
+       const truth=actual.source?.[sourceId]||{};
+       return {position,sourceId,category:truth.tenGod,
+        traditionalMeaning:truth.traditionalMeaning||null,
+        observedBehavior:false};
+      });
+      const expected={kind:'qa-verified-natal-interpretive-contrast',
+       sourceRefs:permitted.slice(),positions:independent,
+       readerScope:'distinct-from-month-pair-core',
+       writingQuestion:'한 가지 선택을 가정하고 태어난 달에서 이미 제시한 설명은 되풀이하지 않는다. 태어난 해의 분류가 더하는 기준과 태어난 시간의 분류가 더하는 기준을 각각 실제 계산된 뜻으로 연결한다. 둘의 뜻이 같으면 역할이 다르다고 성격의 반대 면을 꾸미지 않는다. 전통 상징의 유리한 조건과 놓치기 쉬운 조건을 실제 행동을 관찰했다는 식으로 단정하지 않는다.',
+       requiredCitations:['natal.year.stem','natal.day.stem','natal.hour.stem','facts.stemConnections']};
+      if(!correct||independent.some(x=>!x.category)||
+         !independent[0].traditionalMeaning||!independent[3].traditionalMeaning||
+         JSON.stringify(topic.evidenceFocus)!==JSON.stringify(expected))
        errors.push('qa-natal-depth-evidence-brief-drift');
      }else{
       const contrast=require('./report-chart-contrast');
