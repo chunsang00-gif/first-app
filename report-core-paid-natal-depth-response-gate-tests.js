@@ -145,6 +145,28 @@ refuse('invented certainty qualified by another claim in same sentence',v=>
  'QA_DEPTH_UNSUPPORTED_PERSONAL_OUTCOME');
 refuse('actual lifetime claim',v=>v.chapters.saju_core.paragraphs.natal_depth.text+=' 타고난 성격을 반드시 성공으로 이끌 것입니다.',
  'QA_DEPTH_UNSUPPORTED_PERSONAL_OUTCOME');
+refuse('invented wealth result from hidden-root count',v=>
+ v.chapters.saju_core.paragraphs.natal_depth.text=
+ quality+' 숨은 글자가 많아서 재물이 크게 늘어납니다.',
+ 'QA_DEPTH_ROOT_TO_PERSONAL_OUTCOME');
+refuse('invented weak personality from unobserved roots',v=>
+ v.chapters.saju_core.paragraphs.natal_depth.text=
+ quality+' 뿌리가 없으니 성격이 약해집니다.',
+ 'QA_DEPTH_ROOT_TO_PERSONAL_OUTCOME');
+refuse('invented competence from exact visible links',v=>
+ v.chapters.saju_core.paragraphs.natal_depth.text=
+ quality+' 연결된 글자 덕분에 실행력이 높아집니다.',
+ 'QA_DEPTH_ROOT_TO_PERSONAL_OUTCOME');
+refuse('positive assertion followed by a denial in same sentence',v=>
+ v.chapters.saju_core.paragraphs.natal_depth.text=
+ quality+' 숨은 글자가 많아서 수입이 늘어납니다만 실제 수입은 예측할 수 없습니다.',
+ 'QA_DEPTH_ROOT_TO_PERSONAL_OUTCOME');
+const safeRootReview=response();
+safeRootReview.chapters.saju_core.paragraphs.natal_depth.text+=
+ ' 연결된 글자가 여러 곳에 나타나더라도 실제 수입을 예측할 수 없습니다.';
+assert.deepEqual(validator.inspect(safeRootReview,p.prompt),[],
+ 'explicit non-causal source boundary must not be treated as a fabricated outcome');
+
 refuse('no contextual scenario',v=>v.chapters.saju_core.paragraphs.natal_depth.text=
  '태어난 해에서는 자료를 참고하는 뜻이 계산됩니다. 태어난 시간에는 표현 방식의 뜻이 계산됩니다. 두 출생 위치의 의미를 분리해 다르게 설명할 수 있습니다. 그러나 각각의 상징은 실제 관찰된 행동을 보여 주지 않습니다. 해와 시간의 뜻이 같지 않다는 것은 계산된 분류의 차이입니다.',
  'QA_DEPTH_NO_CONDITIONAL_INTERPRETATION');
