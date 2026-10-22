@@ -34,7 +34,7 @@ assert(/^.{5,}$/.test(a.verifiedNatalSummary));
 assert.equal(a.maxOutputTokenSettingIfGPT41,18000);
 assert.equal(a.lockedYearTenGod,'정재');
 assert.equal(a.lockedHourTenGod,'식신');
-for(const h of ['inputHash','providerTaskHash','strictResponseSchemaHash','fullInstructionHash'])
+for(const h of ['inputHash','providerTaskHash','strictResponseSchemaHash','fullInstructionHash','operatorEnvelopeHash'])
  assert.match(a[h],/^[0-9a-f]{64}$/);
 assert.equal(a.checklist.length,8);
 assert.equal(a.nextGate,
