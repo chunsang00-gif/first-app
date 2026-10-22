@@ -39,8 +39,10 @@ async function build(){
  yes(refs.every(id=>Object.hasOwn(source,id)),'source-row-not-in-provider');
  yes(refs.every(id=>!id.startsWith('annual.')&&
   !id.startsWith('person.')&&!id.startsWith('fortune.')),'foreign-source-cited');
- const wireSchema=wire.schemaFor(candidate.prompt,schema);
- const strictSchema=generation.schema(candidate.prompt,wireSchema);
+ // Use exactly the provider-bound schema produced by the intercepted
+ // real request path. Building from the raw JSON template omitted the
+ // server's strict-schema pruning and produced a misleading approval hash.
+ const strictSchema=candidate.schema;
  yes(preflight.inspect(candidate.prompt,provider,strictSchema).length===0,
   'source-schema-preflight');
  yes(instruction.inspect(candidate.prompt).length===0,'instruction-audit');
