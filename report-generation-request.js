@@ -232,7 +232,7 @@ function compile(prompt){
       sourceRefs:permitted.slice(),positions:independent,
       verifiedLinks:require('./report-core-paid-natal-linkage-brief').select(prompt.facts),
       readerScope:'distinct-from-month-pair-core',
-      writingQuestion:'한 가지 선택을 가정하고 태어난 달에서 이미 제시한 설명은 되풀이하지 않는다. 태어난 해의 분류가 더하는 기준과 태어난 시간의 분류가 더하는 기준을 각각 실제 계산된 뜻으로 연결한다. 둘의 뜻이 같으면 역할이 다르다고 성격의 반대 면을 꾸미지 않는다. 전통 상징의 유리한 조건과 놓치기 쉬운 조건을 실제 행동을 관찰했다는 식으로 단정하지 않는다.',
+      writingQuestion:'기본 월 풀이를 되풀이하거나 해와 시간의 분류 뜻을 두 줄로 병렬 나열해 심화인 척하지 않는다. positions의 각 전통 분류와 verifiedLinks의 실제 같은 겉글자·숨은 글자 대응, 같은 오행이지만 다른 글자의 차이를 구분해서 이 명식에서 새로 확인되는 계산 연결을 찾아본다. 그 연결 자체로 성격의 강약이나 사건 우선순위·성공을 단정할 수 없다. 검증된 관계가 독자 해석을 뒷받침하는지 불확실하면 근거 없는 이야기를 꾸며 내지 말고 인간 편집 검수 대상으로 남긴다.',
       requiredCitations:['natal.year.stem','natal.day.stem','natal.hour.stem','facts.stemConnections']};
     }
     // Only supported, actually citable topics receive the specific
