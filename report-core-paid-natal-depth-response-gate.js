@@ -61,6 +61,14 @@ function inspect(value,prompt){
  if(!['interpretation','condition','limit'].every(k=>
   typeof basis?.[k]==='string'&&basis[k].trim()))
   fail('QA_DEPTH_MISSING_REASON_OR_LIMIT');
+ // Nonempty boilerplate is not a real boundary. Require a hypothetical
+ // condition and an explicit limitation; these remain internal evidence.
+ if(typeof basis?.condition==='string'&&basis.condition.trim()&&
+    !/(?:가상|예시|경우|상황|조건|가정|할 때|이라면)/.test(basis.condition))
+  fail('QA_DEPTH_BASIS_HAS_NO_CONDITION');
+ if(typeof basis?.limit==='string'&&basis.limit.trim()&&
+    !/(?:실제|확인|알 수|단정|보장|미판정|판정하지|증명|근거가 없)/.test(basis.limit))
+  fail('QA_DEPTH_BASIS_HAS_NO_LIMIT');
  if(basis?.interpretation!==
     require('./report-core-paid-natal-depth-fact-lock').fromPayload(payload).literal)
   fail('QA_DEPTH_FACT_LOCK_DIVERGED');
