@@ -11,15 +11,15 @@ const sourceUrl='https://donglishuzhai.net/chapter/3722.html';
 const edited={
  '壬戌':{
   label:'같은 완화 조건에도 다른 자리의 관계가 겹칠 때',
-  text:'태어난 달의 규칙을 뜻하는 글자, 이를 제약하는 표현의 글자, 그리고 그 제약을 완화할 수 있는 글자가 겉에 확인됩니다. 해와 달은 서로 마주보는 관계로 계산되고, 태어난 날과 달의 같은 두 자리에는 관계표의 이름이 두 개 붙습니다. 이를 서로 다른 사건 두 개로 세어서는 안 됩니다. 따라서 해와 달의 관계 하나만으로 이 고전 사례의 결론을 정할 수 없습니다. 예를 들어 기존 작업 지침을 바꿔야 할 때는 개선할 부분을 살피면서도 승인 기준을 확인할 수 있습니다. 이는 상징을 비교하는 가상의 상황이며, 실제 갈등이나 완화의 성공을 뜻하지 않습니다.'
+  text:'태어난 달의 규칙을 뜻하는 글자, 이를 제약하는 표현의 글자, 그리고 그 제약을 완화할 수 있는 글자가 겉에 확인됩니다. 해와 달의 같은 두 자리에도 관계 이름이 두 개 붙으며, 태어난 날과 달의 같은 두 자리에도 다른 관계 이름이 두 개 붙습니다. 하나의 자리 쌍에 여러 이름이 붙었다고 사건이 여러 개 발생한다는 뜻은 아닙니다. 따라서 고전의 완화 조건이 실제로 어떻게 작용할지는 여기서 결정하지 않습니다. 예를 들어 기존 작업 지침을 바꿔야 할 때는 개선할 부분을 살피면서도 승인 기준을 확인할 수 있습니다. 이는 상징을 비교하는 가상의 상황이며, 실제 갈등이나 완화의 성공을 뜻하지 않습니다.'
  },
  '壬申':{
   label:'완화 글자가 보여도 해와 달의 관계가 남을 때',
-  text:'규칙을 뜻하는 글자, 이를 제약하는 표현의 글자, 그리고 그 제약을 완화할 수 있는 글자가 겉에 함께 확인됩니다. 해와 달 사이에는 서로 마주보는 관계가 기록되지만, 태어난 날과 달 사이에는 같은 관계표의 별도 항목이 확인되지 않습니다. 다른 자리의 관계가 적다고 해서 완화의 효과가 더 강하다고 정할 수는 없습니다. 예를 들어 새로운 작업 방법을 검토할 때는 개선할 점과 지킬 승인 기준을 나란히 놓아 볼 수 있습니다. 이 예시는 전통 상징의 비교이지 실제 판단력이나 성공을 확인한 결과가 아닙니다.'
+  text:'규칙을 뜻하는 글자, 이를 제약하는 표현의 글자, 그리고 그 제약을 완화할 수 있는 글자가 겉에 함께 확인됩니다. 해와 달 사이에는 두 개의 관계 이름이 기록되지만, 태어난 날과 달 사이에는 같은 관계표의 별도 항목이 확인되지 않습니다. 다른 자리의 관계가 적다고 해서 완화의 효과가 더 강하다고 정할 수는 없습니다. 예를 들어 새로운 작업 방법을 검토할 때는 개선할 점과 지킬 승인 기준을 나란히 놓아 볼 수 있습니다. 이 예시는 전통 상징의 비교이지 실제 판단력이나 성공을 확인한 결과가 아닙니다.'
  },
  '壬午':{
   label:'완화 글자와 서로 다른 자리 관계를 함께 볼 때',
-  text:'규칙을 뜻하는 글자, 이를 제약하는 표현의 글자, 그리고 그 제약을 완화할 수 있는 글자가 겉에 함께 확인됩니다. 해와 달은 서로 마주보는 관계인 반면, 태어난 날과 달은 묶이는 관계로 별도 기록됩니다. 두 관계의 이름이 다르다는 사실만으로 어느 쪽이 더 중요하거나 완화의 효과가 커진다고 판단하지 않습니다. 예를 들어 새 작업 방식을 시험한다면 개선할 항목과 그대로 지켜야 할 승인 기준을 구분해 볼 수 있습니다. 실제로 두 관계가 어떤 방식으로 작용하는지와 업무 결과는 이 계산만으로 확인할 수 없습니다.'
+  text:'규칙을 뜻하는 글자, 이를 제약하는 표현의 글자, 그리고 그 제약을 완화할 수 있는 글자가 겉에 함께 확인됩니다. 해와 달 사이에는 두 관계 이름이 기록되며, 태어난 날과 달은 묶이는 관계로 별도 기록됩니다. 두 관계의 이름이 다르다는 사실만으로 어느 쪽이 더 중요하거나 완화의 효과가 커진다고 판단하지 않습니다. 예를 들어 새 작업 방식을 시험한다면 개선할 항목과 그대로 지켜야 할 승인 기준을 구분해 볼 수 있습니다. 실제로 두 관계가 어떤 방식으로 작용하는지와 업무 결과는 이 계산만으로 확인할 수 없습니다.'
  }
 };
 function audit(packet){
@@ -50,7 +50,7 @@ function audit(packet){
    existing.match!==true||
    existing.assessment!=='candidate-rescue-condition-visible'||
    existing.observed.independentlyProvenProtectionIds.join()!=='natal.year.stem'||
-   monthYear.length!==1||monthYear[0].type!=='충'||
+   JSON.stringify(monthYear.map(x=>x.type))!==JSON.stringify(['충','형'])||
    JSON.stringify(monthDay.map(row=>row.type))!==JSON.stringify(
     packet.chart.day==='壬戌'?['형','파']:
     packet.chart.day==='壬午'?['육합']:[])||
@@ -72,6 +72,8 @@ function audit(packet){
   monthBranchPairs:contact,monthBranchGroups:groups,
   monthContacts:{year:monthYear.length,day:monthDay.length,
    hour:monthHour.length},
+  uniqueMonthContactPairs:new Set(contact.map(x=>x.positions.slice().sort().join('/'))).size,
+  overlappingLabelsAreNotSeparateIncidents:true,
   textualMethodScope:'officer-output-seal-example-only',
   branchPairsAreOnlyTableMembership:true,
   branchCombinationRealised:false,
