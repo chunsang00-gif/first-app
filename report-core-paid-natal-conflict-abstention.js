@@ -8,6 +8,7 @@ const example=require('./report-core-paid-natal-classical-method-applicability')
 const chapter11=require('./report-core-paid-natal-ch11-two-cases');
 const mixedDirections=require('./report-core-paid-natal-mixed-visible-reconciliation');
 const chapter9=require('./report-core-paid-natal-classical-rescue-priority');
+const branchRescue=require('./report-core-paid-natal-rescue-branch-relation-review');
 function inspect(packet){
  const m=review.assess(packet),classical=example.evaluate(packet);
  if(m.status!=='method-priority-not-selected'||
@@ -121,6 +122,24 @@ function inspect(packet){
     ...rescue.observed.outputVisibleIds,
     ...rescue.observed.independentlyProvenProtectionIds]);
  }
+ const rescueBranch=branchRescue.audit(packet);
+ if(rescueBranch.rescueVisible!==(rescue.match&&
+    rescue.assessment==='candidate-rescue-condition-visible')||
+    rescueBranch.rescueEffectVerified!==false||
+    rescueBranch.branchCombinationRealised!==false||
+    rescueBranch.anyPairDominant!==false||
+    rescueBranch.fullTraditionalPatternConfirmed!==false)
+  throw Error('QA_NATAL_CONFLICT_RESCUE_BRANCH_PRIORITY_LEAK');
+ if(rescueBranch.rescueVisible&&
+    (rescueBranch.monthBranchPairs.length>0||
+     rescueBranch.monthBranchGroups.length>0))
+  push('visible-rescue-and-unresolved-month-branch-relations-coexist',
+   {observedMonthPairCount:rescueBranch.monthBranchPairs.length,
+    observedMonthGroupCount:rescueBranch.monthBranchGroups.length,
+    monthDayContacts:rescueBranch.monthContacts.day,
+    anyContactConfirmedToOverrideRescue:false},
+   ['facts.natalBranchRelations','facts.stemConnections',
+    ...rescue.observed.independentlyProvenProtectionIds]);
  const sourceLimited=classical.textuallyMatchedExample;
  if(sourceLimited!==null){
   if(classical.status!=='exact-textual-conditions-only'||
@@ -152,6 +171,14 @@ function inspect(packet){
  return {
   kind:'qa-natal-interpretation-conflict-abstention-v1',
   calculatedFacts:factsEvidence,
+  rescueBranchContext:rescueBranch.rescueVisible?{
+   monthContacts:{...rescueBranch.monthContacts},
+   monthPairTypes:rescueBranch.monthBranchPairs.map(x=>x.type),
+   independentlyEditedExampleAvailable:rescueBranch.readerDraft!==null,
+   sourceRefs:['facts.stemConnections','facts.natalBranchRelations'],
+   rescueEffectVerified:false,branchTransformationRealised:false,
+   anyDominantEffectChosen:false,approvedForPaid:false
+  }:null,
   chapter9ConditionalRescueEvidence:rescue.match?{
    assessment:rescue.assessment,
    visibleProtectionIds:rescue.observed.independentlyProvenProtectionIds.slice(),
