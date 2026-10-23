@@ -11,7 +11,7 @@ const sourceUrl='https://donglishuzhai.net/chapter/3722.html';
 const edited={
  '壬戌':{
   label:'같은 완화 조건에도 다른 자리의 관계가 겹칠 때',
-  text:'태어난 달의 규칙을 뜻하는 글자, 이를 제약하는 표현의 글자, 그리고 그 제약을 완화할 수 있는 글자가 겉에 확인됩니다. 여기에 해와 달이 서로 마주보는 관계뿐 아니라, 태어난 날과 달 사이에 별도의 관계도 계산됩니다. 두 관계가 함께 나타나므로 해와 달만 보고 이 고전 사례의 결론을 정해서는 안 됩니다. 예를 들어 기존 작업 지침을 바꿔야 할 때는 개선할 부분을 살피면서도 승인 기준을 확인할 수 있습니다. 이는 상징을 비교하는 가상의 상황이며, 실제 갈등이나 완화의 성공을 뜻하지 않습니다.'
+  text:'태어난 달의 규칙을 뜻하는 글자, 이를 제약하는 표현의 글자, 그리고 그 제약을 완화할 수 있는 글자가 겉에 확인됩니다. 해와 달은 서로 마주보는 관계로 계산되고, 태어난 날과 달의 같은 두 자리에는 관계표의 이름이 두 개 붙습니다. 이를 서로 다른 사건 두 개로 세어서는 안 됩니다. 따라서 해와 달의 관계 하나만으로 이 고전 사례의 결론을 정할 수 없습니다. 예를 들어 기존 작업 지침을 바꿔야 할 때는 개선할 부분을 살피면서도 승인 기준을 확인할 수 있습니다. 이는 상징을 비교하는 가상의 상황이며, 실제 갈등이나 완화의 성공을 뜻하지 않습니다.'
  },
  '壬申':{
   label:'완화 글자가 보여도 해와 달의 관계가 남을 때',
@@ -51,9 +51,9 @@ function audit(packet){
    existing.assessment!=='candidate-rescue-condition-visible'||
    existing.observed.independentlyProvenProtectionIds.join()!=='natal.year.stem'||
    monthYear.length!==1||monthYear[0].type!=='충'||
-   monthDay.length!==(packet.chart.day==='壬申'?0:1)||
-   (packet.chart.day==='壬戌'&&monthDay[0].type!=='형')||
-   (packet.chart.day==='壬午'&&monthDay[0].type!=='육합')||
+   JSON.stringify(monthDay.map(row=>row.type))!==JSON.stringify(
+    packet.chart.day==='壬戌'?['형','파']:
+    packet.chart.day==='壬午'?['육합']:[])||
    monthHour.length!==0||groups.length!==0))
   throw Error('QA_RESCUE_BRANCH_EDITORIAL_CHART_CONDITION_DRIFT');
  if(draft&&(reader.errors([draft.label,draft.text]).length||
