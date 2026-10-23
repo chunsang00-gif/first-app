@@ -58,6 +58,24 @@ for(const row of checks){
   'natal.month.hidden.甲');
  assert.equal(x.textualCaseFirstRole,row.first);
  assert.equal(x.textualCaseSecondaryRole,row.second);
+ const dual=row.second!==null;
+ if(dual){
+  assert.equal(x.crossChapterReading?.kind,
+   'exact-chapter11-mutual-category-example-only');
+  assert.equal(x.crossChapterReading.chapter,'十一、論用神純雜');
+  assert.equal(x.crossChapterReading.verifiedElementalDirection,
+   'left-generates-right');
+  assert.equal(x.crossChapterReading.traditionalFirstCategory,'정재');
+  assert.equal(x.crossChapterReading.traditionalSecondCategory,'정관');
+  assert.deepEqual(x.crossChapterReading.exposedMainPositionRefs,
+   ['natal.year.stem']);
+  assert.deepEqual(x.crossChapterReading.exposedSecondPositionRefs,
+   ['natal.month.stem']);
+  assert.equal(x.crossChapterReading.chartClassifiedAsFavorable,false);
+  assert.equal(x.crossChapterReading.actualCareerOutcomeInferred,false);
+  assert.equal(x.crossChapterReading.overallPatternConfirmed,false);
+  assert.equal(x.crossChapterReading.observedBehavior,false);
+ }else assert.equal(x.crossChapterReading,null);
  assert.equal(x.methodConflict.governingDayStatus,'unresolved');
  assert.equal(x.methodConflict.realizedBranchTransformation,'not-assessed');
  assert.equal(x.chosenCommercialTraditionalSchool,null);
@@ -93,6 +111,7 @@ for(const [date,calendar,hour] of disallowed){
  assert.equal(x.status,'no-applicable-textual-precedent');
  assert.equal(x.textuallyMatchedExample,null);
  assert.equal(x.textualCaseFirstRole,null);
+ assert.equal(x.crossChapterReading,null);
  assert.equal(x.finalPatternSelected,false);
  assert.equal(x.readyForCustomer,false);
 }
@@ -104,6 +123,7 @@ for(const date of ['1989-02-10','2024-02-17']){
 }
 console.log('QA_CLASSICAL_METHOD_APPLICABILITY='+JSON.stringify({
  sourceBoundNarrowCases:2,unrelatedFourPillarDraftsBlocked:6,
+ exactChapter11CooperationCases:1,
  nearMissesRejected:5,monthCalculationTamperingRejected:2,
  standardsCompared:['Zi Ping Zhen Quan: visible month hidden stem cases',
   'Di Tian Sui: governing month-day active qi'],
