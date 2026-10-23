@@ -54,6 +54,19 @@ assert.equal(xinScreen.monthMethodCandidate,'competing-visible-month-candidates'
 assert.equal(xinScreen.classicalTextualExample.dualExposureTextualPriority.scopeMatched,true);
 assert.equal(xinScreen.classicalTextualExample.dualExposureTextualPriority.firstRole,'정재');
 assert.equal(xinScreen.classicalTextualExample.dualExposureTextualPriority.additionalRole,'정관');
+const monthTouch=xinScreen.conditions.find(x=>
+ x.id==='overlapping-month-branch-relations');
+assert.equal(monthTouch.status,'same-position-pair-has-different-traditional-labels');
+assert.equal(monthTouch.observedCount,2,'two table labels, not two distinct contacts');
+assert.equal(monthTouch.labelCount,2);
+assert.equal(monthTouch.independentPairContactCount,1);
+assert.deepEqual(monthTouch.otherPositions,['day']);
+assert.equal(monthTouch.completeGroupCount,0);
+assert.deepEqual(monthTouch.samePairMultipleLabels,[{
+ monthPosition:'month',otherPosition:'day',
+ branches:'寅亥',tableLabels:['육합','파']
+}]);
+assert.equal(monthTouch.interpretationPriority,'not-assessed');
 assert.equal(xinScreen.validPremiumInterpretationEstablished,false);
 assert.equal(xinScreen.methodAdopted,false);
 const notXin=facts.build({calendar:'solar',birthDate:'2024-02-15',
@@ -70,6 +83,8 @@ console.log('QA_CLASSICAL_PRIORITY_WRITER_SCOPE='+JSON.stringify({
  candidate:xinScreen.monthMethodCandidate,
  classicalRoleOrder:xinScreen.classicalTextualExample.dualExposureTextualPriority,
  monthRelationOverlapCount:xinScreen.conditions[3].observedCount,
+ uniqueMonthPartnerCount:monthTouch.independentPairContactCount,
+ samePairRelationLabels:monthTouch.samePairMultipleLabels,
  qaWriterEligible:!!yinProvider,paidCalls:0,fullReadingApproved:false
 }));
 assert.equal(diagnostic.length,5);
