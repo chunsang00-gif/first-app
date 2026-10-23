@@ -62,8 +62,9 @@ for(const sample of cases){
  assert(draft.text.includes('고전의 해당 사례'));
  assert(draft.text.includes('가정해 보겠습니다'));
  assert(draft.text.includes('반대로')||draft.text.includes('다만'));
- assert(draft.text.includes('우선순위')||draft.text.includes('추가 검토')||
-  draft.text.includes('판단할 근거'));
+ assert(draft.readerReasoning.branchUncertainty.length>=40);
+ assert(/판단|확정|검토|단정/.test(draft.readerReasoning.branchUncertainty),
+  'each competing chart fact must state why the full-chart order is unresolved');
  assert.equal(draft.replacesClassicalCandidateKind,x.candidate.kind);
  assert.equal(draft.readerReasoning.coreReadingIsConditional,true);
  assert.equal(draft.readerReasoning.verifiedPersonalBehavior,false);
