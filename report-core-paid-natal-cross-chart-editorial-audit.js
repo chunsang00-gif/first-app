@@ -9,7 +9,7 @@ const normalize=s=>String(s||'').normalize('NFKC')
 const sentences=s=>String(s||'').split(/[.!?。！？\n]+/)
  .map(x=>x.trim()).filter(x=>normalize(x).length>=24);
 const sceneNeutral=s=>normalize(s).replace(
- /(작업|업무|행사|매장|학교|직장|가게|프로젝트|동네)/g,'');
+ /(작업|업무|행사|매장|학교|직장|가게|프로젝트|동네)(?:을|를|은|는|에|의|에서)?/g,'');
 function inspect(items){
  if(!Array.isArray(items)||items.length<2)
   throw Error('QA_CROSS_CHART_EDITORIAL_REQUIRES_MULTIPLE_CHARTS');
