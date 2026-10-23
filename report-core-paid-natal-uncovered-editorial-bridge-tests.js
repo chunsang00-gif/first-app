@@ -75,7 +75,7 @@ for(const sample of cases){
  const third=draft.readerReasoning.thirdHiddenStemCompetingCase;
  assert(reverse.length>=55&&third.length>=35);
  assert(draft.text.includes(reverse)&&draft.text.includes(third));
- assert(third.includes('우선순위를 정하지 않습니다'));
+ assert(/결론을 정할 수 없습니다|추가 검토해야 합니다/.test(third));
  assert(reverse.includes('그대로 적용해서는 안 됩니다'));
  if(sample.category==='bing-only-textual-change')
   assert(reverse.includes('바탕 글자가 해나 시간의 겉에 드러나면'));
