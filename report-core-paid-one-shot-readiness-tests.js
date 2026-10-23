@@ -23,6 +23,17 @@ assert.equal(a.interpretiveMethodReview.eligibleForPaidQualityApproval,false);
 assert.equal(a.interpretiveMethodReview.calculatedObservations.positionsVerified,4);
 assert.equal(a.interpretiveMethodReview.providerCalls,0);
 assert.equal(a.approvalToSpendTokens,false);
+assert.equal(a.editorialMethodGate.kind,'pre-billable-interpretive-feasibility-v1');
+assert.equal(a.editorialMethodGate.readyForAnotherPaidModelProbe,false);
+assert.equal(a.editorialMethodGate.verifiedTransportOnly,true);
+assert.equal(a.editorialMethodGate.modelCallToResolveThisGate,false);
+assert.equal(a.editorialMethodGate.approvalToSpendTokens,false);
+assert.deepEqual(a.editorialMethodGate.blockingReasons,[
+ 'independent-traditional-method-not-validated',
+ 'month-led-chart-inference-not-established',
+ 'sample-specific-premium-reader-manuscript-not-editorially-approved'
+]);
+
 assert.equal(a.releaseVerdict,'not-approved');
 assert.equal(a.providerCalls,0);
 assert.equal(a.isLiveCustomerRequest,false);
