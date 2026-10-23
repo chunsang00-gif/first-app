@@ -69,7 +69,10 @@ function build(packet){
    competingHiddenExposureNeedsReview:exemplar.alternativeExposuresNeedReview,
    // Printed only as a conditional citation to ONE named classical example.
    // It does not rank the full chart or the person's likely behavior.
-   singleExposureTextualChange:exemplar.singleExposureTextualChange,
+   // Keep all other charts' previously frozen QA envelope byte-for-byte.
+   // Only the source-matched Xin/Yin/Bing-only chart gains this extra note.
+   ...(exemplar.singleExposureTextualChange.scopeMatched===true?
+    {singleExposureTextualChange:exemplar.singleExposureTextualChange}:{}),
    dualExposureTextualPriority:exemplar.dualExposureTextualPriority,
    methodAdopted:false,finalPatternApproved:false
   },
