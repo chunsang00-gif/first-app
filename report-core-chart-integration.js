@@ -100,43 +100,53 @@ function select(packet,graph){
   year.tenGod===hour.tenGod?'year-hour-same-ten-god':
   year.category===hour.category?'year-hour-same-category':
   'three-separate-functions';
- const hiddenQuestion=QUESTIONS[insideCategory][1];
- const yearQuestion=roleQuestions[0].question;
- const hourQuestion=roleQuestions[2].question;
- const sameMeaning=(a,b)=>a===b?'같은 세부 분류':'같은 큰 계열의 다른 세부 분류';
+ // Keep specialized ten-god classifications and editorial questions in
+ // evidence, not in prose. The following meaning categories are a symbolic
+ // editorial analogy; no chart-specific behavior or success is inferred.
+ const MEANING={
+  peer:'함께 맡는 역할과 몫',
+  output:'생각을 밖으로 표현하고 결과로 남기는 일',
+  wealth:'필요한 자원과 비용의 관리',
+  authority:'맡은 책임과 지켜야 할 기준',
+  resource:'정보와 도움을 받아 배우는 과정'
+ };
+ const yearMeaning=MEANING[year.category];
+ const hiddenMeaning=MEANING[insideCategory];
+ const hourMeaning=MEANING[hour.category];
+ if(!yearMeaning||!hiddenMeaning||!hourMeaning)
+  throw Error('CORE_CHART_SYNTHESIS_READER_MEANING_MISSING');
+ const sameMeaning=(a,b)=>a===b?'같은 성격의 상징':'비슷한 주제를 다른 방식으로 나타내는 상징';
  let point='',comparison='';
  if(focusKind==='month-hidden-links-year-and-hour'){
-  point='달의 안쪽 '+insideGod+'와 해의 '+year.tenGod+
-   ', 시간의 '+hour.tenGod+'가 같은 큰 계열이라는 점이 이 명식에서 먼저 구별할 부분입니다.';
-  comparison='세 출처가 같은 계열이라고 한 가지 의미만 세 번 반복하지 말고, 달 안쪽에서는 '+
-   hiddenQuestion+', 해에서는 '+yearQuestion+', 시간에서는 '+hourQuestion+'를 서로 구별해 살펴야 합니다.';
+  point='태어난 달의 안쪽과 태어난 해, 시간에는 '+hiddenMeaning+
+   '에 관한 비슷한 주제가 겹칩니다. 그렇다고 세 자리가 똑같은 역할을 한다는 뜻은 아닙니다.';
+  comparison='예를 들어 함께 일을 준비하는 상황이라면, 달에서는 어떤 자원이 바탕이 되는지, 해에서는 누구와 그 몫을 나누는지, 시간에서는 무엇을 결과로 남길지를 구분해 읽어볼 수 있습니다. 이 차이는 계산 위치에 따른 풀이의 관점입니다.';
  }else if(focusKind==='month-hidden-links-year'){
-  point='달의 안쪽 '+insideGod+'와 해의 '+year.tenGod+'는 '+
-   sameMeaning(insideGod,year.tenGod)+'입니다. 시간의 '+hour.tenGod+
-   '는 다른 계열로 계산된다는 점이 핵심 차이입니다.';
-  comparison='따라서 달 안쪽에서 '+hiddenQuestion+'와 해에서 '+yearQuestion+
-   '를 함께 확인하되, 시간에서는 별도로 '+hourQuestion+'를 물어야 합니다.';
+  point='태어난 달의 안쪽과 해에는 '+sameMeaning(insideGod,year.tenGod)+
+   '이 나타나고, 시간에는 '+hourMeaning+'라는 별도의 주제가 있습니다.';
+  comparison='예를 들어 새 일을 준비할 때 달과 해에서 겹치는 뜻은 '+hiddenMeaning+
+   '을 중심으로 비교하고, 시간에 드러난 '+hourMeaning+
+   '은 별도의 관점으로 살펴볼 수 있습니다. 서로 다른 종류의 뜻을 한 가지 성격으로 뭉뚱그리지 않는 방식입니다.';
  }else if(focusKind==='month-hidden-links-hour'){
-  point='달의 안쪽 '+insideGod+'와 시간의 '+hour.tenGod+'는 '+
-   sameMeaning(insideGod,hour.tenGod)+'입니다. 해의 '+year.tenGod+
-   '는 다른 계열이므로 판단의 질문을 구별해야 합니다.';
-  comparison='달 안쪽에서 '+hiddenQuestion+'와 시간에서 '+hourQuestion+
-   '를 따로 확인하고, 해에서는 '+yearQuestion+'를 별도 질문으로 남겨 둡니다.';
+  point='태어난 달의 안쪽과 시간에는 '+sameMeaning(insideGod,hour.tenGod)+
+   '이 나타나고, 해에서는 '+yearMeaning+'라는 다른 주제를 보여줍니다.';
+  comparison='예를 들어 함께 일을 준비한다면 달과 시간에 겹치는 '+hiddenMeaning+
+   '의 뜻을 비교하고, 해에 드러난 '+yearMeaning+
+   '은 따로 살펴볼 수 있습니다. 어느 한 뜻이 다른 뜻보다 강하다는 결론은 아닙니다.';
  }else if(focusKind==='year-hour-same-ten-god'){
-  point='해와 시간의 겉글자는 모두 '+year.tenGod+
-   '로 계산되지만, 달 안쪽의 '+insideGod+'는 다른 계열입니다.';
-  comparison='같은 십성이 반복된 사실을 성격이나 능력의 강도로 바꾸지 않고, 해에서 '+
-   yearQuestion+'와 시간에서 '+hourQuestion+'를 각각 확인해야 합니다. 달 안쪽에서는 '+hiddenQuestion+'라는 별도 질문이 남습니다.';
+  point='태어난 해와 시간에는 같은 종류의 상징이 반복되지만, 달의 안쪽에는 '+hiddenMeaning+'이라는 다른 주제가 있습니다.';
+  comparison='예를 들어 새로운 역할을 맡는다면 해와 시간에 모두 나타난 '+yearMeaning+
+   '을 같은 출발점으로 보고, 달 안쪽의 '+hiddenMeaning+
+   '은 다른 조건으로 분리해 읽을 수 있습니다. 반복된다는 사실을 실제 능력의 크기로 바꾸지는 않습니다.';
  }else if(focusKind==='year-hour-same-category'){
-  point='해의 '+year.tenGod+'와 시간의 '+hour.tenGod+
-   '는 같은 큰 계열이지만 서로 다른 세부 분류입니다. 달 안쪽의 '+insideGod+'는 또 다른 계열입니다.';
-  comparison='따라서 해에서 '+yearQuestion+', 시간에서 '+hourQuestion+
-   '를 구별하고 달 안쪽에서는 '+hiddenQuestion+'라는 별도 조건을 확인해야 합니다.';
+  point='태어난 해와 시간에는 모두 '+yearMeaning+
+   '과 관련된 상징이 있지만 세부적인 구분은 다릅니다. 달의 안쪽에는 '+hiddenMeaning+'라는 다른 주제가 놓입니다.';
+  comparison='예를 들어 함께 일을 준비할 때 해와 시간의 비슷한 뜻도 구분해 살펴보고, 달 안쪽의 '+hiddenMeaning+
+   '을 별도의 관점으로 놓을 수 있습니다. 계산상 비슷하다는 이유로 동일한 행동을 예측하지는 않습니다.';
  }else{
-  point='해의 '+year.tenGod+', 달 안쪽의 '+insideGod+
-   ', 시간의 '+hour.tenGod+'는 서로 다른 세 계열입니다.';
-  comparison='한 가지 상황에서 해의 '+yearQuestion+', 달 안쪽의 '+
-   hiddenQuestion+', 시간의 '+hourQuestion+'를 구별해야 하며, 어느 한 기호가 나머지를 대신 설명하지 않습니다.';
+  point='태어난 해에서는 '+yearMeaning+', 달의 안쪽에서는 '+hiddenMeaning+
+   ', 시간에서는 '+hourMeaning+'이라는 서로 다른 주제가 나타납니다.';
+  comparison='예를 들어 새로운 일을 계획할 때 이 세 뜻을 각각 분담, 준비 조건, 결과를 살피는 관점에 대입할 수 있습니다. 서로 다른 상징을 하나의 단정적인 성격 평가로 합치지 않는 풀이입니다.';
  }
  const interpretiveFocus={kind:focusKind,sourceRefs:['natal.year.stem',hid,'natal.hour.stem'],
   categories:{year:year.category,monthHidden:insideCategory,hour:hour.category},
@@ -144,39 +154,26 @@ function select(packet,graph){
   premise:point,conditionalReading:comparison,
   verdict:'review-only',observedPersonality:false,determinedStrength:false,
   eventPrediction:false};
- const described=roleQuestions.map(r=>
-  '출생 '+POS[r.position]+'의 '+r.tenGod+'에서 확인할 질문은 '+r.question+'입니다.');
- const categoryContrast='해·달은 '+LINK[year.relativeToMonth]+
-  '이며, 달·시간은 '+LINK[hour.relativeToMonth]+
-  '입니다. 출생 위치 간 분류가 같다는 사실만으로 강도를 더하거나 실제 성격을 정할 수는 없습니다.';
+ // The reader should not be forced through an internal questionnaire.
+ // Show a chart-specific contrast once, with a concrete hypothetical frame.
  const clauses=[
-  '이 명식에서 출생월의 두 뜻은 앞에서 살펴봤습니다. 여기서는 태어난 날의 '+ELEMENT[month.dayElement]+
-   ' 오행을 기준으로 해·달·시간의 차이를 연결합니다.',
-  described.join(' '),
-  point+' '+comparison,
-  categoryContrast
+  '태어난 해와 달, 시간에 있는 서로 다른 뜻을 비교하면 '+point+' '+comparison,
+  month.monthPhase==='transition'?
+   '태어난 달은 '+PERIOD[month.monthSeason]+'이 바뀌는 시기에 해당합니다. 계절의 경계에 있다는 계산 사실만으로 무엇이 더 강하게 작용하는지는 알 수 없습니다.':
+   '태어난 달은 '+PERIOD[month.monthSeason]+'에 속합니다. 태어난 날을 기준으로 계절과의 관계가 계산되지만, 이것만으로 전체 사주의 강약을 판정할 수는 없습니다.'
  ];
- clauses.push(month.monthPhase==='transition'?
-  '계절을 확인하면 '+PERIOD[month.monthSeason]+
-   '의 전환월입니다. 달의 대표 속글자가 있다고 해서 어느 오행이 실제로 우세한지는 결론내릴 수 없습니다.':
-  '계절을 확인하면 '+PERIOD[month.monthSeason]+'의 핵심월이고 '+
-   PERIOD_REL[month.seasonToDayRelation]+'입니다. 이는 전체 사주 강약을 확정하는 계산은 아닙니다.');
  const rootPositions=[...new Set(graphRoots.map(r=>r.position))];
  clauses.push(rootPositions.length?
-  '날의 중심과 같은 오행의 숨은 글자가 확인된 출생 위치는 '+
+  '태어난 날의 기준과 같은 종류의 기운이 안쪽에서 확인되는 자리는 '+
    rootPositions.map(p=>POS[p]).join('·')+
    '입니다. 어느 자리에 있는지와 그 작용이 어느 정도인지는 다른 문제입니다.':
   '확인된 숨은 글자에는 날의 중심과 같은 오행이 나타나지 않습니다. 그렇다고 실제로 기운이 약하다고 단정할 수는 없습니다.');
  const priority={충:0,형:1,해:2,파:3,육합:4};
  const rank=r=>(r.positions.includes('day')?0:10)+(priority[r.type]??9);
  const picked=natal.pairs.slice().sort((a,b)=>rank(a)-rank(b)).slice(0,2);
- if(picked.length)clauses.push('지지 관계표에서는 '+
-  picked.map(r=>r.positions.map(p=>POS[p]).join('·')+' 사이의 '+r.type).join('와 ')+
-  '가 확인됩니다. 다른 위치 간 관계라는 뜻만 기록하며 실제 충돌이나 사건으로 확대하지 않습니다.');
- if(natal.groups.length)clauses.push('세 지지의 조합은 '+
-  natal.groups[0].positions.map(p=>POS[p]).join('·')+' 자리에서 '+
-  natal.groups[0].type+'으로 분류됩니다. 이것만으로 합화나 실제 오행 변화가 이루어졌다고 판단하지 않습니다.');
- clauses.push('이 판단의 초점은 확인된 출생 위치의 전통 분류를 구별하는 데 있습니다. 실제 생활을 관찰했거나 미래 결과를 예측했다는 뜻은 아닙니다.');
+ if(picked.length)clauses.push('태어난 자리를 서로 비교하는 전통 관계표에도 대응하는 위치가 있습니다. 단순한 분류표의 일치만으로 생활 속 갈등이나 실제 사건을 예상할 수는 없습니다.');
+ if(natal.groups.length)clauses.push('태어난 세 자리 사이에도 전통 관계표에 해당하는 조합이 확인됩니다. 이 표시만으로 어떤 변화가 실제 일어난다고 판단하지 않습니다.');
+ clauses.push('이 설명은 계산된 상징을 읽어보는 예시입니다. 실제로 그런 행동을 한다거나 미래에 같은 일이 일어난다는 주장은 아닙니다.');
  const text=clauses.join(' ');
  const sourceRefs=['natal.day.stem','natal.month.stem',hid,
   'natal.year.stem','natal.hour.stem','facts.seasonalEvidence',
