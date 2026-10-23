@@ -69,6 +69,7 @@ function build(packet){
    competingHiddenExposureNeedsReview:exemplar.alternativeExposuresNeedReview,
    // Printed only as a conditional citation to ONE named classical example.
    // It does not rank the full chart or the person's likely behavior.
+   singleExposureTextualChange:exemplar.singleExposureTextualChange,
    dualExposureTextualPriority:exemplar.dualExposureTextualPriority,
    methodAdopted:false,finalPatternApproved:false
   },
@@ -104,13 +105,23 @@ function writingQuestion(review){
   '기본 출생월 풀이와 다른 근거 하나를 골라, 그 명식에서만 확인되는 위치와 연결의 차이를 독자에게 자연스럽게 설명한다. 분류 이름만 나열하거나 일반적인 선택 조언으로 심화를 대신하지 않는다.',
   'positions와 verifiedLinks는 실제 계산 위치와 글자의 대응을 뜻한다. verifiedElementDirections는 오행 간 방향만 계산하며, 그 관계만으로 기질·작용력·직업·금전·시기·우선순위를 확정하지 않는다.'
  ];
- if(example.dualExposureTextualPriority?.scopeMatched===true){
+ const single=example.singleExposureTextualChange;
+ const dual=example.dualExposureTextualPriority;
+ if(single?.scopeMatched===true&&dual?.scopeMatched===true)
+  throw Error('QA_MONTH_WRITING_CONFLICTING_CLASSICAL_CASES');
+ if(single?.scopeMatched===true&&(
+     example.matched!==true||single.firstRole!=='정관'||
+     dual?.scopeMatched!==false))
+  throw Error('QA_MONTH_WRITING_CLASSICAL_SINGLE_ROLE_TAMPERED');
+ if(dual?.scopeMatched===true){
   const role=example.dualExposureTextualPriority;
   if(role.firstRole!=='정재'||role.additionalRole!=='정관')
    throw Error('QA_MONTH_WRITING_CLASSICAL_ROLE_TAMPERED');
   parts.push('이 명식에 한해 고전의 寅월·辛일간·甲과 丙 동시 겉노출 사례를 참고한다. 고전에서 정재를 중심에, 정관을 곁에 두는 이유는 월의 대표 숨은 글자 甲과 다른 글자 丙의 겉노출 조건이며, 단순한 목생화 방향이 아니다. 이는 개인의 재물 능력이나 실제 직업 성향의 검증이 아니다.');
+ }else if(single?.scopeMatched===true){
+  parts.push('이 명식에 한해 고전의 辛일간·寅월·甲 비노출·丙 노출 사례를 참고한다. 이 고전은 월의 기본 자원 분류가 아니라 책임·규칙 분류로 해석의 출발점이 바뀌는 경우를 설명한다. 丙과 甲이 동시에 드러난 경우의 정재 우선·정관 보조라는 별도 문장을 이 명식에 옮기지 않는다. 이것만으로 개인의 실제 직업 성향이나 재물 결과를 확정하지 않는다.');
  }else if(example.matched===true){
-  parts.push('이 명식은 寅월 대표 글자 甲이 겉에 없고 다른 숨은 글자 丙이 드러난 고전의 좁은 예시와 맞는다. 다른 후보가 동시에 드러나거나 다른 출생 관계가 있으면 어느 뜻이 중심인지 단정하지 않는다.');
+  parts.push('이 명식은 寅월 대표 글자 甲이 겉에 없고 다른 숨은 글자 丙이 드러난 고전의 일반적인 좁은 예시와 맞는다. 다만 辛일간에 한정된 정관 우선 결론은 일간까지 맞을 때만 인용한다. 다른 후보가 동시에 드러나거나 다른 출생 관계가 있으면 어느 뜻이 중심인지 단정하지 않는다.');
  }
  const contacts=review.conditions.find(x=>x.id==='overlapping-month-branch-relations');
  if(!contacts)throw Error('QA_MONTH_WRITING_MISSING_CONTACT_SCOPE');
