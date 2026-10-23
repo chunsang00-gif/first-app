@@ -45,6 +45,40 @@ assert(names.has('textual-condition-fails-main-is-exposed'),
  'contrast: month main appears elsewhere, so never assume absence');
 assert(names.has('textual-condition-fails-secondary-not-exposed'),
  'contrast: no secondary exposed, so never borrow the classical example');
+// Second literal clause of the same classical chapter: Xin day in Yin
+// month with both Jia and Bing visible gives a textual first/second rank.
+const paired=facts.build({calendar:'solar',birthDate:'2024-02-17',
+ birthTime:'14:20',gender:'male',mbti:'ISFP'},2027);
+assert.equal(paired.status,'ready');
+assert.equal(paired.chart.month[1],'寅');
+assert.equal(paired.chart.day[0],'辛');
+const resultPaired=source.inspect(paired);
+assert.equal(resultPaired.dualExposureTextualPriority.scopeMatched,true);
+assert.equal(resultPaired.dualExposureTextualPriority.firstRole,'정재');
+assert.equal(resultPaired.dualExposureTextualPriority.additionalRole,'정관');
+assert.equal(resultPaired.dualExposureTextualPriority.finalTraditionalPatternEstablished,false);
+assert.equal(resultPaired.dualExposureTextualPriority.observedBehavior,false);
+assert.deepEqual(resultPaired.observed.exposedMainStemPositions,['year']);
+assert.deepEqual(resultPaired.observed.exposedSecondaryStemPositions,['month']);
+// Nearby date shares the same month/visible stems but has another day stem:
+// the same literary priority may NEVER be copied just from month+exposures.
+const differentDay=facts.build({calendar:'solar',birthDate:'2024-02-15',
+ birthTime:'14:20',gender:'male',mbti:'ISFP'},2027);
+assert.equal(differentDay.chart.month,paired.chart.month);
+assert.equal(source.inspect(differentDay).dualExposureTextualPriority.scopeMatched,false);
+assert.equal(source.inspect(differentDay).dualExposureTextualPriority.firstRole,null);
+// Another month also invalidates the classical example.
+const changedMonth=facts.build({calendar:'solar',birthDate:'2024-03-17',
+ birthTime:'14:20',gender:'male',mbti:'ISFP'},2027);
+assert.equal(source.inspect(changedMonth).dualExposureTextualPriority.scopeMatched,false);
+console.log('QA_CLASSICAL_DUAL_EXPOSURE='+JSON.stringify({
+ date:'2024-02-17',chart:paired.chart,
+ main:resultPaired.observed.exposedMainStemPositions,
+ secondary:resultPaired.observed.exposedSecondaryStemPositions,
+ textualFirst:resultPaired.dualExposureTextualPriority.firstRole,
+ textualSupplementary:resultPaired.dualExposureTextualPriority.additionalRole,
+ fullChartApproved:false,paidCalls:0
+}));
 const other=facts.build({calendar:'solar',birthDate:'1982-06-15',
  birthTime:'14:20',gender:'male',mbti:'ISFP'},2027);
 assert.equal(source.inspect(other).candidate,'out-of-example-scope');
