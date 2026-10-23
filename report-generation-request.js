@@ -140,6 +140,10 @@ function sources(prompt){
 // This writer-only first-chapter goal replaces the generic 12-chapter
 // editorialTask at the actual provider boundary. The original input and all
 // non-core batches remain untouched. There is no second model call/rewrite.
+// References an already source-checked manuscript as a comparison benchmark
+// only when explicitly building an OFFLINE editorial research payload. This
+// instruction does not run in the one-call paid QA or customer-facing app.
+const offlineEditorialBenchmarkDirective=' 이 QA 오프라인 검증에서는 task.chapters.saju_core.topics.natal_depth.qaOfflineEditorialResearch.fullFirstChapterResearch를 품질 비교용 초안으로만 참고한다. 각 문단의 계산 위치별 뜻, 상반되는 근거, 가상 상황의 유리한 조건과 놓칠 조건, 자연스러운 독자용 문장이 실제 허용된 출처와 맞는지 검토한다. 원고를 실제 고객의 관찰된 성격처럼 복사하거나 다른 출생 정보에 재사용하지 않는다. 자료가 검수 미완료 상태이므로 품질 승인을 선언하거나 정식 유료 생성에 포함하지 않는다.';
 const coreEditorialGoal='이 응답은 결제 고객이 읽을 첫 번째 사주 기질 장의 최종 본문 원고다. 계산된 태어난 달의 두 전통 분류를 실제 인용 가능한 근거로 사용한다. 먼저 그래서 어떤 기질로 읽는지 독자가 한 번에 이해할 말로 풀고, 하나의 구체적인 가상 선택에서 두 의미를 함께 고려하면 어떤 조건에서 유리하고 한쪽만 따르면 무엇을 놓치는지 연결해 설명한다. 계산 위치와 두 분류의 사전 뜻을 차례로 소개하거나 누구에게나 맞는 확인·준비 조언으로 채우지 않는다. 같은 분류가 두 위치에서 나왔다면 반대 성향이나 기질의 강도 증가를 만들어내지 않는다. 계절 보충 문단은 핵심 풀이와 다른 해석 근거가 실제로 있을 때만 작성하고 중복이라면 null로 둔다. 내부 basis에는 실제 두 출처·해석·적용 조건·한계를 기록하되 독자용 제목과 본문에는 전문용어·출처 ID·검증 순서를 나열하지 않는다. 확인하지 않은 실제 성격·능력·경험·성공이나 사건을 단정하지 않는다. 한국어 조사와 서술어를 자연스럽게 고치고 추상적인 수식·반복되는 한계 안내·마지막 요약으로 분량을 늘리지 않는다.';
 function editorialGoalFor(prompt){
  const original=typeof prompt?.editorialTask==='string'?prompt.editorialTask:null;
@@ -147,7 +151,8 @@ function editorialGoalFor(prompt){
     Array.isArray(prompt.requestedSections)&&
     prompt.requestedSections.length===1&&prompt.requestedSections[0]==='saju_core')
   return coreEditorialGoal+(prompt.qaNatalDepthPreview===true?
-   ' QA 전용 검증 응답이다. temperament는 반드시 null로 둔다. strength는 기존 월 중심 핵심 판단과 두 분류의 의미를 유지한다. 세 번째 natal_depth는 검증된 출생 해·날·시간의 독립된 뜻이 월 중심 풀이에 더하는 새로운 판단을 검토하는 필수 원고다. 새 제안을 선택하는 등 한 가지 현실적인 가상 상황을 잡고, 해와 시간의 전통적 분류가 서로 다른 선택 기준에 연결되는 이유와 어떤 조건에서 유리하고 불리한지 구별한다. 실제로 계산된 분류가 같으면 거짓 반전을 만들지 않는다. 단순 계산 위치 소개·사전적인 뜻 두 문장·누구에게나 통하는 준비 조언·면책 반복으로 원고를 대신하지 않는다. 기준이 되는 출생 근거가 충분하지 않다면 임의로 생성하지 말고 QA 실패로 남긴다. 이 요청은 사전 근거 선별이 끝난 1회 검증 원고이며, natal_depth를 null로 제출하거나 필수 인용 없이 작성하는 것은 실패다. 실제 성격·능력·신강약·충의 결과·합화·미래 사건은 단정하지 않는다. 이 문단은 출시 미승인 후보이므로 사람의 문장 감수가 따로 필요하다.':'');
+   ' QA 전용 검증 응답이다. temperament는 반드시 null로 둔다. strength는 기존 월 중심 핵심 판단과 두 분류의 의미를 유지한다. 세 번째 natal_depth는 검증된 출생 해·날·시간의 독립된 뜻이 월 중심 풀이에 더하는 새로운 판단을 검토하는 필수 원고다. 새 제안을 선택하는 등 한 가지 현실적인 가상 상황을 잡고, 해와 시간의 전통적 분류가 서로 다른 선택 기준에 연결되는 이유와 어떤 조건에서 유리하고 불리한지 구별한다. 실제로 계산된 분류가 같으면 거짓 반전을 만들지 않는다. 단순 계산 위치 소개·사전적인 뜻 두 문장·누구에게나 통하는 준비 조언·면책 반복으로 원고를 대신하지 않는다. 기준이 되는 출생 근거가 충분하지 않다면 임의로 생성하지 말고 QA 실패로 남긴다. 이 요청은 사전 근거 선별이 끝난 1회 검증 원고이며, natal_depth를 null로 제출하거나 필수 인용 없이 작성하는 것은 실패다. 실제 성격·능력·신강약·충의 결과·합화·미래 사건은 단정하지 않는다. 이 문단은 출시 미승인 후보이므로 사람의 문장 감수가 따로 필요하다.':'')+
+   (prompt.qaOfflineEditorialResearchPreview===true?offlineEditorialBenchmarkDirective:'');
  return original;
 }
 function compile(prompt){

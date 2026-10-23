@@ -30,6 +30,12 @@ const research=offlinePayload.task.chapters.saju_core.topics.natal_depth
  .qaOfflineEditorialResearch.fullFirstChapterResearch;
 assert(research);
 assert.equal(research.text,draft.text);
+assert(offlinePayload.task.editorialGoal.includes(
+ 'qaOfflineEditorialResearch.fullFirstChapterResearch'));
+assert(!built.payload.task.editorialGoal.includes(
+ 'qaOfflineEditorialResearch.fullFirstChapterResearch'));
+assert.equal(offlinePayload.task.editorialGoal,
+ writer.editorialGoalFor(offlinePrompt));
 assert.equal(research.sourceInApprovedPaidRequest,false);
 assert.deepEqual(audit.inspectTransport(offlinePrompt,offlinePayload),[]);
 assert.deepEqual(audit.inspectTransport(built.prompt,built.payload),[]);

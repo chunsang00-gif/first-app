@@ -51,6 +51,12 @@ assert.equal(built.response.chapters.saju_core.paragraphs.natal_depth.text,
 const topic=built.payload.task.chapters.saju_core.topics.natal_depth;
 assert.equal(topic.qaOfflineEditorialResearch
  .fullFirstChapterResearch.text,authored.text);
+assert(built.payload.task.editorialGoal.includes(
+ 'qaOfflineEditorialResearch.fullFirstChapterResearch'),
+ 'the QA research benchmark must be referenced by the actual model-facing editorial brief');
+assert(built.payload.task.editorialGoal.includes('품질 비교용 초안'));
+assert(built.payload.task.editorialGoal.includes('검수 미완료'));
+assert.equal(built.payload.task.editorialGoal,writer.editorialGoalFor(built.prompt));
 assert.deepEqual(audit.inspectTransport(built.prompt,built.payload),[]);
 const strict=writer.schema(built.prompt,wire.schemaFor(built.prompt,schema));
 assert.deepEqual(validateStrict(strict,built.response),[],
@@ -68,6 +74,21 @@ assert.equal(rendered.sections[0].evidence.some(s=>s.includes('natal.year.stem')
 assert.equal(gate.assert(built.response,built.prompt).releaseVerdict,'not-approved');
 const ordinary=preview.prepare(packet);
 assert(ordinary);
+assert(!ordinary.payload.task.editorialGoal.includes(
+ 'qaOfflineEditorialResearch.fullFirstChapterResearch'),
+ 'previously authorized paid QA must remain unchanged');
+assert(!Object.hasOwn(ordinary.payload.task.chapters.saju_core.topics.natal_depth,
+ 'qaOfflineEditorialResearch'));
+assert.deepEqual(writer.compile({...built.prompt,
+ qaOfflineEditorialResearchPreview:false}),ordinary.payload,
+ 'the offline comparison must be the only source of new model-facing guidance');
+const replacedGoal=structuredClone(built.payload);
+replacedGoal.task.editorialGoal=ordinary.payload.task.editorialGoal;
+assert(audit.inspectTransport(built.prompt,replacedGoal).includes(
+ 'body-editorial-brief-dropped'),
+ 'transport audits must reject a dropped offline editorial benchmark');
+assert.throws(()=>writer.compile({...built.prompt,qaNatalDepthPreview:false}),
+ /QA_EDITORIAL_OFFLINE_SCOPE_REQUIRED/);
 const oldPayload=writer.compile(ordinary.prompt);
 assert(!Object.hasOwn(oldPayload.task.chapters.saju_core.topics.natal_depth,
  'qaOfflineEditorialResearch'));
