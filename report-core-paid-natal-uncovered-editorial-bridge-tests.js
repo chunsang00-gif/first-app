@@ -33,6 +33,24 @@ for(const sample of cases){
  assert(x.candidate.text.length>=180);
  assert.deepEqual(reader.errors([x.candidate.label,x.candidate.text]),[]);
  assert(x.candidate.sourceRefs.includes('natal.day.stem'));
+ const context=x.contextualReview;
+ assert.equal(context.status,'full-chart-structural-comparison-only');
+ assert.equal(context.releaseVerdict,'not-approved');
+ assert.equal(context.overallMethodApproved,false);
+ assert.equal(context.chosenClassicalPriorityForFullChart,false);
+ assert.equal(context.monthExposureStatus,
+  sample.category==='bing-only-textual-change'?
+   'other-month-hidden-exposed-only':'main-and-other-exposed');
+ assert(context.monthExposureExplanation.length>=90);
+ assert(context.text.includes(context.monthExposureExplanation));
+ assert(context.sourceRefs.includes('facts.stemConnections'));
+ assert(context.sourceRefs.some(id=>id.startsWith('natal.month.hidden.')));
+ assert.deepEqual(reader.errors([context.label,context.text]),[]);
+ assert.equal(context.mainVisiblePositions.length,
+  sample.category==='bing-only-textual-change'?0:1);
+ assert(context.otherMatches.length>=1);
+ assert.equal(typeof context.independentMonthBranchContacts,'number');
+ assert.equal(typeof context.multipleLabelsForOneBranchContact,'boolean');
  const t=triage.inspect(packet);
  assert.equal(t.status,'missing-curated-coverage');
  assert.equal(t.readerPresent,false);
@@ -46,6 +64,11 @@ for(const sample of cases){
 }
 assert.notEqual(candidates[0].text,candidates[1].text);
 assert.notEqual(candidates[0].textualRule,candidates[1].textualRule);
+const contextualCases=cases.map(x=>bridge.review(
+ facts.build(input(x.date),2027)).contextualReview);
+assert.notEqual(contextualCases[0].monthExposureExplanation,
+ contextualCases[1].monthExposureExplanation,
+ 'single vs dual classical exposure must produce different factual rationale');
 for(const row of [
  input('1989-02-10','20:20'), // third Yin-month hidden stem competes
  input('2024-02-17','20:20'),
@@ -74,6 +97,7 @@ assert.throws(()=>bridge.review(corrupted),
  /QA_COUNTERFACTUAL_SOURCE_ROLE_DRIFT:month/);
 console.log('QA_TWO_UNCOVERED_CLASSICAL_EDITORIAL_CANDIDATES='+JSON.stringify({
  missingFullCuratedCore:2,sourceMatchedTextualPreviewCandidates:2,
+ contextualFourPillarEvidenceCompanions:contextualCases.length,
  disallowedNearMatches:5,distinctNarrowReaderTexts:2,
  specialistMethodReviewRequired:true,fullChartReadingApproved:false,
  billableCalls:0,releaseVerdict:'not-approved'
