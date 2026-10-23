@@ -50,7 +50,7 @@ const after=output.editorialAlternative.after;
 assert(after.text.includes('달과 시간이 같은 뜻으로 반복되는 구성이 아니라'));
 assert(after.text.includes('새로운 표현이나 결과물로 밖에 내놓는 뜻'));
 assert(after.text.includes('달과 시간에는 이전과 달리 마주보는 관계가 표시되지 않습니다'));
-assert(after.text.includes('출생시간을 바꿔도 이 세 글자는 그대로입니다'));
+assert(after.text.includes('태어난 시간을 바꿔도 이 세 글자는 그대로입니다'));
 assert(after.text.includes('실제 인계 능력을 평가한 결과는 아닙니다'));
 assert.equal(after.paragraphs.length,4);
 assert(after.sourceRefs.includes('natal.hour.stem'));
