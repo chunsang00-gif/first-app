@@ -60,16 +60,36 @@ for(const sample of cases){
  assert.equal(draft.textualOrdering,sample.category==='bing-only-textual-change'?
   'responsibility-before-resources':'resources-before-responsibility');
  assert(draft.text.includes('고전의 해당 사례'));
- assert(draft.text.includes('예를 들어'));
+ assert(draft.text.includes('가정해 보겠습니다'));
  assert(draft.text.includes('반대로')||draft.text.includes('다만'));
- assert(draft.text.includes('별도 검토')||draft.text.includes('확인되지')||
-  draft.text.includes('확정하지')||draft.text.includes('우선순위'));
+ assert(draft.text.includes('우선순위')||draft.text.includes('추가 검토')||
+  draft.text.includes('판단할 근거'));
+ assert.equal(draft.replacesClassicalCandidateKind,x.candidate.kind);
+ assert.equal(draft.readerReasoning.coreReadingIsConditional,true);
+ assert.equal(draft.readerReasoning.verifiedPersonalBehavior,false);
+ assert(draft.text.includes(draft.readerReasoning.monthPremise));
+ assert(draft.text.includes(draft.readerReasoning.conditionalScenario));
+ assert(draft.text.includes(draft.readerReasoning.rootObservation));
+ assert(draft.text.includes(draft.readerReasoning.branchUncertainty));
+ assert(draft.readerReasoning.rootObservation.includes('태어난 날의 기준'));
+ assert.equal(x.editorialComparison.kind,'qa-original-vs-revised-classical-reader-v1');
+ assert.equal(x.editorialComparison.originalChars,x.candidate.text.length);
+ assert.equal(x.editorialComparison.revisedChars,draft.text.length);
+ assert.equal(x.editorialComparison.exactFullSentenceReuseCount,0);
+ assert.equal(x.editorialComparison.saleableQualityEstablished,false);
+ assert.equal(x.editorialComparison.humanReviewStillRequired,true);
+ assert.equal(x.editorialComparison.personalInsightValidated,false);
  assert(draft.text.length>=350);
  assert.deepEqual(reader.errors([draft.label,draft.text]),[]);
  assert(!/[?？]\\s*$/.test(draft.text));
  assert(draft.sourceRefs.includes('natal.day.stem'));
  assert(draft.sourceRefs.includes('natal.month.stem'));
  assert(draft.sourceRefs.includes('facts.stemConnections'));
+ for(const root of require('./report-core-evidence-graph')
+  .build(packet).dayMasterRoots){
+  assert(draft.sourceRefs.includes(root.id),
+   'reader root observation must be traceable to cited exact source rows');
+ }
  assert(draft.sourceRefs.length===new Set(draft.sourceRefs).size);
  const t=triage.inspect(packet);
  assert.equal(t.status,'missing-curated-coverage');
@@ -124,6 +144,8 @@ console.log('QA_TWO_UNCOVERED_CLASSICAL_EDITORIAL_CANDIDATES='+JSON.stringify({
  missingFullCuratedCore:2,sourceMatchedTextualPreviewCandidates:2,
  contextualFourPillarEvidenceCompanions:contextualCases.length,
  distinctConditionalReasoningDrafts:conditionalCases.length,
+ originalToRevisionSentenceReuse:cases.map(row=>bridge.review(
+  facts.build(input(row.date),2027)).editorialComparison.exactFullSentenceReuseCount),
  disallowedNearMatches:5,distinctNarrowReaderTexts:2,
  specialistMethodReviewRequired:true,fullChartReadingApproved:false,
  billableCalls:0,releaseVerdict:'not-approved'
