@@ -6,6 +6,7 @@
 const review=require('./report-core-paid-natal-month-method-review');
 const example=require('./report-core-paid-natal-classical-method-applicability');
 const chapter11=require('./report-core-paid-natal-ch11-two-cases');
+const mixedDirections=require('./report-core-paid-natal-mixed-visible-reconciliation');
 function inspect(packet){
  const m=review.assess(packet),classical=example.evaluate(packet);
  if(m.status!=='method-priority-not-selected'||
@@ -75,6 +76,22 @@ function inspect(packet){
   push('month-included-in-branch-group',
    {groupTableEntries:cardinality.completeGroupEntryCount},
    ['facts.natalBranchRelations']);
+ const visibleMixed=mixedDirections.review(packet);
+ if(visibleMixed.finalTraditionalPattern!==null||
+    visibleMixed.customerReady!==false||
+    visibleMixed.noWinnerChosen!==true||
+    visibleMixed.notOffsettingForces!==true)
+  throw Error('QA_NATAL_CONFLICT_MIXED_VISIBLE_UNVERIFIED_DECISION');
+ if(visibleMixed.mixed){
+  push('visible-generating-and-controlling-pairs-coexist',
+   {generatingPairCount:visibleMixed.counts.generating,
+    controllingPairCount:visibleMixed.counts.restricting,
+    noDominantArrowCalculated:true,
+    individualPairs:visibleMixed.edges.map(x=>({
+     from:x.from,to:x.to,direction:x.elementalDirection,
+     relativePriority:'not-assessed'}))},
+   visibleMixed.sourceRefs);
+ }
  const extended=chapter11.evaluate(packet);
  if(extended.examples.length>1||
     extended.clientReleaseAllowed!==false||
@@ -118,6 +135,14 @@ function inspect(packet){
  return {
   kind:'qa-natal-interpretation-conflict-abstention-v1',
   calculatedFacts:factsEvidence,
+  visibleMixedDirectionReview:{
+   mixed:visibleMixed.mixed,
+   counts:{...visibleMixed.counts},
+   sourceRefs:visibleMixed.sourceRefs.slice(),
+   candidateForEditorialReviewOnly:visibleMixed.combinedReaderDraft!==null,
+   realizedDirectionPriority:'not-assessed',
+   anyPaidCopyApproved:false
+  },
   additionalPublishedSymbolRelation:furtherExample?{
    id:furtherExample.id,
    relation:furtherExample.sourceTextualRelation,
