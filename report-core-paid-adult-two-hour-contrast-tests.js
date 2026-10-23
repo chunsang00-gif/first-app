@@ -26,7 +26,12 @@ const stable=output.changed.unchangedThreeBranchContext;
 assert.equal(stable.kind,'qa-cited-three-branch-same-structure-contrast-v1');
 assert.deepEqual(stable.unalteredPositions,['year','month','day']);
 assert.deepEqual(stable.unalteredBranchCharacters,['戌','丑','未']);
-assert.equal(stable.unalteredPairRelations.length,4);
+assert.equal(stable.unalteredPairRelations.length,5);
+assert(stable.unalteredPairRelations.some(x=>x.type==='파'&&
+ x.positions.includes('year')&&x.positions.includes('day')));
+assert.equal(new Set(stable.unalteredPairRelations.map(x=>
+ x.positions.join('/'))).size,3,
+ 'multiple table labels are still just three underlying position contacts');
 assert.equal(stable.source.url,'https://m.donglishuzhai.net/chapter/3720.html');
 assert.equal(stable.distinctBranchTypesBefore,3);
 assert.equal(stable.distinctBranchTypesAfter,3);

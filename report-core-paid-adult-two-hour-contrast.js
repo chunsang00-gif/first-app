@@ -83,12 +83,14 @@ function invariantBranchContext(left,right){
       b.positions.join('/')+b.type));
  };
  const lp=gather(left),rp=gather(right);
- if(!same(lp,rp)||lp.length!==4||
+ if(!same(lp,rp)||lp.length!==5||
     !lp.some(x=>x.type==='충'&&
      x.positions.includes('month')&&x.positions.includes('day'))||
     !lp.some(x=>x.type==='형'&&
      x.positions.includes('year')&&x.positions.includes('month'))||
     !lp.some(x=>x.type==='형'&&
+     x.positions.includes('year')&&x.positions.includes('day'))||
+    !lp.some(x=>x.type==='파'&&
      x.positions.includes('year')&&x.positions.includes('day')))
   throw Error('QA_TWO_HOURS_THREE_POSITION_RELATIONS_DRIFT');
  const beforeHour=left.chart.hour[1],afterHour=right.chart.hour[1];
