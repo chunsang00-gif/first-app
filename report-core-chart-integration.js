@@ -120,7 +120,7 @@ function select(packet,graph){
  if(focusKind==='month-hidden-links-year-and-hour'){
   point='태어난 달의 안쪽과 태어난 해, 시간에는 '+hiddenMeaning+
    '에 관한 비슷한 주제가 겹칩니다. 그렇다고 세 자리가 똑같은 역할을 한다는 뜻은 아닙니다.';
-  comparison='예를 들어 함께 일을 준비하는 상황이라면, 달에서는 어떤 자원이 바탕이 되는지, 해에서는 누구와 그 몫을 나누는지, 시간에서는 무엇을 결과로 남길지를 구분해 읽어볼 수 있습니다. 이 차이는 계산 위치에 따른 풀이의 관점입니다.';
+  comparison='예를 들어 함께 일을 준비하는 상황이라면 세 자리에 공통으로 나타난 '+hiddenMeaning+'이라는 주제를 위치별로 나눠 읽어볼 수 있습니다. 하지만 반복됐다는 이유로 실제 능력이 크거나 삶에서 그 일을 더 많이 겪는다고 판단할 수는 없습니다.';
  }else if(focusKind==='month-hidden-links-year'){
   point='태어난 달의 안쪽과 해에는 '+sameMeaning(insideGod,year.tenGod)+
    '이 나타나고, 시간에는 '+hourMeaning+'라는 별도의 주제가 있습니다.';
@@ -167,7 +167,7 @@ function select(packet,graph){
   '태어난 날의 기준과 같은 종류의 기운이 안쪽에서 확인되는 자리는 '+
    rootPositions.map(p=>POS[p]).join('·')+
    '입니다. 어느 자리에 있는지와 그 작용이 어느 정도인지는 다른 문제입니다.':
-  '확인된 숨은 글자에는 날의 중심과 같은 오행이 나타나지 않습니다. 그렇다고 실제로 기운이 약하다고 단정할 수는 없습니다.');
+  '태어난 날의 기준과 같은 종류의 기운이 안쪽에서 확인되지 않습니다. 그렇다고 실제로 기운이 약하다고 단정할 수는 없습니다.');
  const priority={충:0,형:1,해:2,파:3,육합:4};
  const rank=r=>(r.positions.includes('day')?0:10)+(priority[r.type]??9);
  const picked=natal.pairs.slice().sort((a,b)=>rank(a)-rank(b)).slice(0,2);
