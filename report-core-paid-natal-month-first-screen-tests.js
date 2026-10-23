@@ -53,6 +53,9 @@ const xinScreen=candidate.build(xinSample);
 assert.equal(xinScreen.monthMethodCandidate,'competing-visible-month-candidates');
 assert.equal(xinScreen.classicalTextualExample.dualExposureTextualPriority.scopeMatched,true);
 assert.equal(xinScreen.classicalTextualExample.dualExposureTextualPriority.firstRole,'정재');
+assert.equal(
+ xinScreen.classicalTextualExample.dualExposureTextualPriority.notDeterminedByElementGenerationArrow,
+ true);
 assert.equal(xinScreen.classicalTextualExample.dualExposureTextualPriority.additionalRole,'정관');
 const monthTouch=xinScreen.conditions.find(x=>
  x.id==='overlapping-month-branch-relations');
@@ -72,6 +75,7 @@ assert.equal(xinScreen.methodAdopted,false);
 const notXin=facts.build({calendar:'solar',birthDate:'2024-02-15',
  birthTime:'14:20',gender:'male',mbti:'ISFP'},2027);
 assert.equal(candidate.build(notXin).classicalTextualExample.dualExposureTextualPriority.scopeMatched,false);
+assert.equal(candidate.build(notXin).classicalTextualExample.dualExposureTextualPriority.textualPriorityBasis,null);
 const yinProvider=preview.prepare(xinSample);
 if(yinProvider){
  const focus=yinProvider.payload.task.chapters.saju_core.topics.natal_depth.evidenceFocus;
