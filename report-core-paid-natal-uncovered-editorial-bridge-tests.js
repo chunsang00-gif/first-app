@@ -68,6 +68,17 @@ for(const sample of cases){
  assert.equal(draft.replacesClassicalCandidateKind,x.candidate.kind);
  assert.equal(draft.readerReasoning.coreReadingIsConditional,true);
  assert.equal(draft.readerReasoning.verifiedPersonalBehavior,false);
+ const manuscriptRelation=draft.readerReasoning.citedMutualSupportWithinClassicalText;
+ if(sample.category==='jia-and-bing-textual-priority'){
+  assert.equal(manuscriptRelation?.chapter,'十一、論用神純雜');
+  assert.equal(manuscriptRelation.observedSymbolRelation,
+   'resource-symbol-generates-authority-symbol');
+  assert.equal(manuscriptRelation.personalSuccessInferred,false);
+  assert(draft.text.includes('고전의 다음 장에서는 자원에 관한 글자와 책임에 관한 글자가 서로 이어지는 관계'));
+ }else{
+  assert.equal(manuscriptRelation,null);
+  assert(!draft.text.includes('고전의 다음 장에서는'));
+ }
  assert(draft.text.includes(draft.readerReasoning.monthPremise));
  assert.equal(draft.textualApplicabilityCannotBeGeneralized,true);
  assert.equal(draft.rejectedCounterfactualIsAChartConditionNotPredictedBehavior,true);
@@ -162,6 +173,7 @@ console.log('QA_TWO_UNCOVERED_CLASSICAL_EDITORIAL_CANDIDATES='+JSON.stringify({
  contextualFourPillarEvidenceCompanions:contextualCases.length,
  distinctConditionalReasoningDrafts:conditionalCases.length,
  explicitlyExplainedReversalConditions:2,thirdHiddenStemAbstentionConditions:2,
+ exactlyMatchedMutualSupportChapter11Cases:1,
  originalToRevisionSentenceReuse:cases.map(row=>bridge.review(
   facts.build(input(row.date),2027)).editorialComparison.exactFullSentenceReuseCount),
  disallowedNearMatches:5,distinctNarrowReaderTexts:2,
