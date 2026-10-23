@@ -43,6 +43,12 @@ for(const input of all){
  assert(out.review.chartSynthesis.sourceRefs.includes('facts.stemConnections'));
  assert(out.reader.paragraphs.chartSynthesis.text.includes(exposure.displayedReaderReason));
  assert(exposure.sourceRefs.every(id=>out.review.chartSynthesis.sourceRefs.includes(id)));
+ for(const hiddenId of new Set(exposure.otherMatches.map(x=>x.hiddenId))){
+  assert(exposure.sourceRefs.includes(hiddenId),
+   'each secondary exposed stem needs its own cited source record');
+  assert(out.review.chartSynthesis.sourceRefs.includes(hiddenId),
+   'a secondary hidden-stem claim must be traceable from the final paragraph');
+ }
  const computed=require('./report-stem-connections').build(p.chart);
  const mainRow=computed.exposure.find(row=>row.hiddenId===exposure.mainSourceId);
  assert(mainRow);
@@ -139,6 +145,20 @@ for(const birthDate of ['1982-03-15','1982-06-15']){
  const badSeason=structuredClone(p);
  badSeason.facts.seasonalEvidence.monthPhase='corrupted';
  assert.throws(()=>merge.select(badSeason,o.wholeChartEvidence),/CORE_CHART_SYNTHESIS_SEASON_DIVERGED/);
+ const hiddenSecondary=require('./report-seasonal-evidence').HIDDEN[p.chart.month[1]][1];
+ if(hiddenSecondary){
+  const brokenRole=structuredClone(p);
+  const row=brokenRole.facts.tenGods.month.hiddenStems.find(x=>x.stem===hiddenSecondary);
+  if(row){
+   row.tenGod=row.tenGod==='정재'?'편재':'정재';
+   if(require('./report-stem-connections').build(p.chart).exposure.some(x=>
+    x.hiddenId==='natal.month.hidden.'+hiddenSecondary&&
+    x.exactVisibleMatches.some(v=>v.position!=='day')))
+    assert.throws(()=>merge.select(brokenRole,o.wholeChartEvidence),
+     /CORE_CHART_SYNTHESIS_SECONDARY_EXPOSURE_SOURCE_DIVERGED/,
+     'a corrupted secondary role must fail even with unchanged source IDs');
+  }
+ }
  const badExposed=structuredClone(p);
  badExposed.facts.stemConnections.exposure[0].hiddenStem='invented';
  assert.throws(()=>merge.select(badExposed,o.wholeChartEvidence),
