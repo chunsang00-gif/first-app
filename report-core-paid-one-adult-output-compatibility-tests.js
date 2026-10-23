@@ -134,8 +134,13 @@ assert.deepEqual(guard.inspect(output,built.prompt),[],
 const restored=decoder.decode(output,built.prompt);
 assert.deepEqual(restored.sections.map(s=>s.id),['saju_core']);
 assert.deepEqual(restored.sections[0].bodyTopics,['strength','natal_depth']);
-assert.deepEqual(restored.sections[0].bodyLabels,[month.label,draft.label]);
-assert.deepEqual(restored.sections[0].body,[month.text,draft.text]);
+assert.deepEqual(restored.sections[0].bodyLabels,
+ [reader.plainText(month.label),draft.label]);
+assert.deepEqual(restored.sections[0].body,
+ [reader.plainText(month.text),draft.text],
+ 'paid reader normalization must remove legacy jargon from month baseline while leaving the authored adult text intact');
+assert.notEqual(reader.plainText(month.text),month.text,
+ 'the legacy month editor still requires jargon normalization');
 assert(restored.sections[0].evidence.some(x=>
  x.includes('natal.year.stem')&&x.includes('natal.hour.stem')));
 assert.deepEqual(reader.errors(reader.visibleFields(restored)),[]);
