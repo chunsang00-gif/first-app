@@ -37,7 +37,17 @@ for(const user of samples){
  assert(permissible.includes('facts.stemConnections'));
  assert(!permissible.some(x=>x.startsWith('annual.')||x.startsWith('person.')));
  assert.equal(preview.payload.task.mbti,null);
- const brief=topics.natal_depth.qaOfflineEditorialResearch;
+ assert(!Object.hasOwn(topics.natal_depth,'qaOfflineEditorialResearch'),
+  'the one-shot approved QA envelope must remain unchanged');
+ const offlinePrompt={...preview.prompt,qaOfflineEditorialResearchPreview:true};
+ const offlinePayload=writer.compile(offlinePrompt);
+ const offlineTopics=offlinePayload.task.chapters.saju_core.topics;
+ const brief=offlineTopics.natal_depth.qaOfflineEditorialResearch;
+ assert.deepEqual(offlineTopics.natal_depth.citableFacts,topics.natal_depth.citableFacts,
+  'offline writer may add a reference but never change source permissions');
+ assert.deepEqual(preflight.inspect(offlinePrompt,offlinePayload,
+  writer.schema(offlinePrompt,wire.schemaFor(offlinePrompt,schema))),[]);
+
  assert(brief,'QA outgoing request must include the genuinely curated offline research');
  assert.equal(brief.kind,'qa-offline-saju-research-bridge-v1');
  assert.equal(brief.releaseVerdict,'not-approved');
@@ -113,7 +123,9 @@ const authoredInput={calendar:'lunar',birthDate:'1982-11-24',leapMonth:false,
  birthTime:'14:20',gender:'male',mbti:'ISFP'};
 const handwritten=builder.prepare(facts.build(authoredInput,2027));
 assert(handwritten);
-const handwrittenResearch=handwritten.payload.task.chapters.saju_core
+const handwrittenOfflinePrompt={...handwritten.prompt,qaOfflineEditorialResearchPreview:true};
+const handwrittenOfflinePayload=writer.compile(handwrittenOfflinePrompt);
+const handwrittenResearch=handwrittenOfflinePayload.task.chapters.saju_core
  .topics.natal_depth.qaOfflineEditorialResearch;
 assert.equal(handwrittenResearch.sourceClass,'authored-specific-four-pillar-candidate');
 assert(handwrittenResearch.editorialReference.text.includes('기존 작업 지침'));
@@ -121,10 +133,12 @@ assert.equal(handwrittenResearch.chartFingerprint,'壬戌/癸丑/乙未/癸未')
 const contrastHour=builder.prepare(facts.build({...authoredInput,birthTime:'20:20'},2027));
 assert(contrastHour);
 assert.notEqual(handwrittenResearch.chartFingerprint,
- contrastHour.payload.task.chapters.saju_core.topics.natal_depth
+ writer.compile({...contrastHour.prompt,qaOfflineEditorialResearchPreview:true})
+  .task.chapters.saju_core.topics.natal_depth
   .qaOfflineEditorialResearch.chartFingerprint);
 assert.notEqual(handwrittenResearch.editorialReference.text,
- contrastHour.payload.task.chapters.saju_core.topics.natal_depth
+ writer.compile({...contrastHour.prompt,qaOfflineEditorialResearchPreview:true})
+  .task.chapters.saju_core.topics.natal_depth
   .qaOfflineEditorialResearch.editorialReference.text);
 const base=require('./report-analysis-guidance');
 const p=facts.build(sameUser,2027),plan=base.preflight(p).saju_core;
@@ -146,24 +160,36 @@ assert.equal(rebuilt.sections[0].body.length,2);
 const auditTransport=require('./report-instruction-audit');
 assert.deepEqual(auditTransport.inspectTransport(early.prompt,early.payload),[],
  'actual QA compact request must preserve both the established facts and separate editorial reference');
+const offlineEarly={...early.prompt,qaOfflineEditorialResearchPreview:true};
+const offlineEarlyPayload=writer.compile(offlineEarly);
+assert.deepEqual(auditTransport.inspectTransport(offlineEarly,offlineEarlyPayload),[],
+ 'separate offline preview must preserve canonical QA sources and verified research');
+assert(!Object.hasOwn(early.payload.task.chapters.saju_core.topics.natal_depth,
+ 'qaOfflineEditorialResearch'));
+const leaked=structuredClone(early.payload);
+leaked.task.chapters.saju_core.topics.natal_depth.qaOfflineEditorialResearch=
+ offlineEarlyPayload.task.chapters.saju_core.topics.natal_depth.qaOfflineEditorialResearch;
+assert(auditTransport.inspectTransport(early.prompt,leaked)
+ .includes('qa-offline-reference-leaked-into-billable-envelope'),
+ 'the previously approved billed QA task must never acquire unapproved offline prose');
 const forged=structuredClone(early.payload);
 forged.task.chapters.saju_core.topics.natal_depth.evidenceFocus.sourceRefs=
  ['natal.month.stem'];
 assert(auditTransport.inspectTransport(early.prompt,forged)
  .includes('qa-natal-depth-evidence-brief-drift'),
  'tampering with contextual provenance must fail the paid transport audit');
-const alteredEditorial=structuredClone(handwritten.payload);
+const alteredEditorial=structuredClone(handwrittenOfflinePayload);
 alteredEditorial.task.chapters.saju_core.topics.natal_depth
  .qaOfflineEditorialResearch.editorialReference.text=
  'NO VALIDATED INTERPRETATION';
-assert(auditTransport.inspectTransport(handwritten.prompt,alteredEditorial)
+assert(auditTransport.inspectTransport(handwrittenOfflinePrompt,alteredEditorial)
  .includes('qa-natal-depth-editorial-reference-drift'),
  'an editorial excerpt changed after source verification must be rejected');
-const alteredMachine=structuredClone(early.payload);
+const alteredMachine=structuredClone(offlineEarlyPayload);
 alteredMachine.task.chapters.saju_core.topics.natal_depth
  .qaOfflineEditorialResearch.computedContrast.premise=
  'INVALID MACHINE CLAIM';
-assert(auditTransport.inspectTransport(early.prompt,alteredMachine)
+assert(auditTransport.inspectTransport(offlineEarly,alteredMachine)
  .includes('qa-natal-depth-editorial-reference-drift'),
  'a forged machine contrast must be rejected before any provider call');
 const forgedSource=structuredClone(early.payload);
@@ -191,13 +217,9 @@ assert.deepEqual(Object.keys(writer.compile(defaultPrompt).task.chapters.saju_co
    const sent=JSON.parse(payload.input[1].content);
    assert.equal(payload.text.format.strict,true);
    assert(sent.task.chapters.saju_core.topics.natal_depth);
-   const outResearch=sent.task.chapters.saju_core.topics.natal_depth
-    .qaOfflineEditorialResearch;
-   assert.deepEqual(outResearch,early.payload.task.chapters.saju_core.topics
-    .natal_depth.qaOfflineEditorialResearch,
-    'the actual intercepted provider JSON must carry the verified offline review brief');
-   assert.equal(outResearch.editorialReference,null);
-   assert.equal(outResearch.releaseVerdict,'not-approved');
+   assert(!Object.hasOwn(sent.task.chapters.saju_core.topics.natal_depth,
+    'qaOfflineEditorialResearch'),
+    'the frozen approved QA request must never include an unapproved editorial excerpt');
    assert.deepEqual(sent.task.chapters.saju_core.topics.natal_depth.citableFacts.map(x=>x.id),
     early.payload.task.chapters.saju_core.topics.natal_depth.citableFacts.map(x=>x.id));
    assert.deepEqual(
@@ -208,6 +230,10 @@ assert.deepEqual(Object.keys(writer.compile(defaultPrompt).task.chapters.saju_co
   };
   await assert.rejects(require('./server').callOpenAI(early.prompt),/STOP_BEFORE_NETWORK|AI report service request failed/);
   assert.equal(count,1);
+  await assert.rejects(require('./server').callOpenAI(offlineEarly),
+   /QA_OFFLINE_EDITORIAL_REFERENCE_NEVER_BILLABLE/,
+   'new editorial preview must fail before even an intercepted provider fetch');
+  assert.equal(count,1,'offline reference must not cause a second or billable fetch');
  }finally{
   global.fetch=oldFetch;
   if(oldKey===undefined)delete process.env.OPENAI_API_KEY;
