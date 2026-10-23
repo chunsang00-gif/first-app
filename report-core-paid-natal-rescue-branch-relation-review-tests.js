@@ -10,11 +10,11 @@ const {readerCompare}=require('./report-core-paid-natal-counterfactual-audit');
 const make=date=>facts.build({calendar:'solar',birthDate:date,
  birthTime:'18:20',gender:'male',mbti:'ISFP'},2027);
 const cases=[
- {date:'2021-07-13',day:'壬戌',other:['형','파'],contacts:3,
+ {date:'2021-07-13',day:'壬戌',other:['형','파'],contacts:4,pairs:2,
   title:'같은 완화 조건에도 다른 자리의 관계가 겹칠 때'},
- {date:'2021-07-23',day:'壬申',other:[],contacts:1,
+ {date:'2021-07-23',day:'壬申',other:[],contacts:2,pairs:1,
   title:'완화 글자가 보여도 해와 달의 관계가 남을 때'},
- {date:'2021-08-02',day:'壬午',other:['육합'],contacts:2,
+ {date:'2021-08-02',day:'壬午',other:['육합'],contacts:3,pairs:2,
   title:'완화 글자와 서로 다른 자리 관계를 함께 볼 때'}
 ];
 const snapshots=[];
@@ -33,11 +33,13 @@ for(const x of cases){
  assert.equal(q.rescueVisible,true);
  assert.equal(q.monthBranchPairs.length,x.contacts);
  assert.deepEqual(q.monthBranchPairs.filter(v=>v.positions.includes('year'))
-  .map(v=>v.type),['충']);
+  .map(v=>v.type),['충','형']);
  assert.deepEqual(q.monthBranchPairs.filter(v=>v.positions.includes('day'))
   .map(v=>v.type),x.other);
  assert.equal(q.monthContacts.day,x.other.length);
  assert.equal(q.monthContacts.hour,0);
+ assert.equal(q.uniqueMonthContactPairs,x.pairs);
+ assert.equal(q.overlappingLabelsAreNotSeparateIncidents,true);
  assert.equal(q.monthBranchGroups.length,0);
  assert(q.monthBranchPairs.every(y=>y.tableOnly===true&&
   y.realisedEffect==='not-assessed'&&
@@ -47,7 +49,7 @@ for(const x of cases){
   assert.equal(new Set(q.monthBranchPairs.filter(v=>v.positions.includes('day'))
    .map(v=>v.positions.join('/'))).size,1,
    'two labels on same month/day pair must not count as two separate life events');
-  assert(q.readerDraft.text.includes('이름이 두 개 붙습니다'));
+  assert(q.readerDraft.text.includes('관계 이름이 두 개 붙습니다'));
  }
  assert.equal(q.branchCombinationRealised,false);
  assert.equal(q.rescueEffectVerified,false);
@@ -89,7 +91,7 @@ for(const x of cases){
 const [first,second,third]=snapshots;
 assert.equal(new Set(snapshots.map(x=>x.review.readerDraft.text)).size,3);
 assert.deepEqual(snapshots.map(x=>x.monthTypes),[
- ['충','형','파'],['충'],['충','육합']]);
+ ['충','형','형','파'],['충','형'],['충','형','육합']]);
 for(let i=0;i<snapshots.length;i++)
  for(let j=i+1;j<snapshots.length;j++){
   const a=snapshots[i],b=snapshots[j];
