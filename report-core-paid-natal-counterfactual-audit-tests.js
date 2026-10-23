@@ -65,6 +65,38 @@ const unrelated=core.readerCompare(packets[0],packets[1],{
 });
 assert.equal(unrelated.status,'no-shared-cited-fact-changed',
  'do not flag an unchanged assertion solely because unrelated hour changed');
+// Measure the existing OFFLINE first-chapter manuscripts, not just invented
+// QA prose. Count unsupported coverage separately; never call a paid model.
+const writer=require('./report-core-knowledge-engine');
+const current=packets.map(packet=>{
+ const generated=writer.compile(packet);
+ if(generated.status!=='draft-for-human-review')return null;
+ const kind=generated.reader.paragraphs.fourPillar?'fourPillar':'chartSynthesis';
+ const reader=generated.reader.paragraphs[kind];
+ const refs=generated.review[kind]?.sourceRefs;
+ return reader&&Array.isArray(refs)?{text:reader.text,sourceRefs:refs,kind}:null;
+});
+let actualPairs=0,actualReuseWarnings=0;
+const editorialSamples=[];
+for(let i=0;i<current.length;i++)for(let j=i+1;j<current.length;j++){
+ if(!current[i]||!current[j])continue;
+ const check=core.readerCompare(packets[i],packets[j],current[i],current[j]);
+ actualPairs++;
+ if(check.status==='copied-reader-reasoning-needs-editor-review')
+  actualReuseWarnings++;
+ editorialSamples.push({left:i,right:j,status:check.status,
+  changedCited:check.changedSharedCitedFacts.length});
+ assert.equal(check.eligibleForRelease,false,
+  'even distinct real offline manuscripts remain unapproved');
+}
+assert(actualPairs>=1,'at least one real offline candidate pair must be compared');
+console.log('QA_REAL_OFFLINE_MANUSCRIPT_COMPARISON='+JSON.stringify({
+ eligibleDrafts:current.filter(Boolean).length,
+ unavailableDrafts:current.filter(x=>!x).length,
+ comparedPairs:actualPairs,copiedProseWarnings:actualReuseWarnings,
+ samples:editorialSamples.slice(0,10),
+ independentlyApproved:false,providerCalls:0
+}));
 const tampered=structuredClone(packets[0]);
 tampered.facts.tenGods.hour.stemTenGod='정인';
 assert.throws(()=>core.snapshot(tampered),
