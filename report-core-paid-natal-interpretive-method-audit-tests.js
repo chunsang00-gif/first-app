@@ -28,6 +28,8 @@ for(const input of samples){
  assert.equal(result.providerCalls,0);
  assert.equal(result.calculatedObservations.positionsVerified,4);
  const visible=result.traditionalVisibleRelations;
+ assert.deepEqual(p.payload.task.chapters.saju_core.topics.natal_depth.evidenceFocus.verifiedElementDirections,visible,
+  'writer must receive actual month-year-hour relations, not just the private worksheet');
  assert.equal(visible.kind,'qa-three-visible-stem-element-directions-v1');
  assert.equal(visible.pairs.length,3);
  assert.equal(visible.methodAdopted,false);
@@ -86,6 +88,12 @@ for(const input of samples){
  assert.throws(()=>audit.assess(p.prompt,wrongStem),
   /QA_METHOD_REVIEW_TRADITIONAL_ROLE_DRIFT:year/,
   'a source can retain a correct category while hiding the WRONG calendar stem');
+ const swappedDirection=structuredClone(p.payload);
+ swappedDirection.task.chapters.saju_core.topics.natal_depth.evidenceFocus
+  .verifiedElementDirections.pairs[0].elementalDirection='invented-direction';
+ assert.throws(()=>audit.assess(p.prompt,swappedDirection),
+  /QA_METHOD_REVIEW_VISIBLE_DIRECTION_PROVIDER_DRIFT/,
+  'a transmitted reversed directional relation cannot pass editorial provenance');
  const badRole=structuredClone(p.payload);
  badRole.task.chapters.saju_core.topics.natal_depth.evidenceFocus
   .positions[0].category='조작한 분류';
