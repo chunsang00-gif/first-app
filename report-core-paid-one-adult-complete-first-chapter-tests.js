@@ -35,6 +35,26 @@ assert.deepEqual(result.claimOrigin.hypotheticalAndGeneralClaims,[
 assert.equal(result.claimOrigin.methodPriorityUnresolved,true);
 assert.equal(result.claimOrigin.paidValueProven,false);
 assert.equal(result.claimOrigin.releaseVerdict,'not-approved');
+assert.equal(result.valueDecision.kind,'qa-editorial-free-versus-depth-decision-v1');
+assert.equal(result.valueDecision.verdict,'not-demonstrably-more-valuable-than-free');
+assert.equal(result.valueDecision.realFreeBaselineRuleId,
+ 'month-pair-pyeonin-pyeonjae-v1');
+assert.deepEqual(result.valueDecision.realFreeBaselineSourceRefs,
+ ['natal.month.stem','natal.month.hidden.己']);
+assert.equal(result.valueDecision.comparedAgainstActualCoreText,true);
+assert.equal(result.valueDecision.repeatedReaderPropositions.length,3);
+assert.equal(result.valueDecision.newComparedWithMonthOnly.length,3);
+assert(result.valueDecision.newComparedWithMonthOnly.some(x=>
+ x.refs.includes('facts.natalBranchRelations')&&
+ x.addedValue==='positional-relationship-not-two-events'));
+assert.equal(result.valueDecision.personalizedConclusionBeyondFreeValidated,false);
+assert.equal(result.valueDecision.userDecisionWouldChangeFromFree,false);
+assert.equal(result.valueDecision.ordinaryPaidWriterReceivesTheseNewFacts,false);
+assert.equal(result.valueDecision.readerFacingPremiumValueProven,false);
+assert.equal(result.valueDecision.fullTraditionalMethodChosen,false);
+assert.equal(result.valueDecision.releaseBlockers.length,5);
+assert.equal(result.valueDecision.providerCalls,0);
+assert.equal(result.valueDecision.releaseVerdict,'not-approved');
 for(const claim of result.claimOrigin.claims){
  assert(result.paragraphs.find(p=>p.kind===claim.paragraph)?.text.includes(claim.exactText));
  assert(claim.sourceRefs.every(ref=>result.sourceRefs.includes(ref)));
@@ -84,6 +104,7 @@ for(const text of [
 assert(result.editorialAssessment.concreteHypotheticalExample);
 assert(result.editorialAssessment.counterevidenceIncluded);
 assert.equal(result.editorialAssessment.readerPaidValueEmpiricallyValidated,false);
+assert.equal(result.editorialAssessment.incrementalPremiumValueEstablished,false);
 assert.equal(result.editorialAssessment.copiesIntoRealProviderRequest,false);
 const ledger=Object.fromEntries(refs.build(p).map(x=>[x.id,x]));
 for(const [id,role] of Object.entries(result.evidence.verifiedStemRoles))
@@ -104,6 +125,7 @@ assert.equal(result.evidence.methodPriority,'not-established');
 const draft=core.compile(p);
 assert.equal(draft.status,'draft-for-human-review');
 const month=draft.reader.paragraphs.strength.text;
+assert.equal(result.valueDecision.actualFreeCoreLength,month.length);
 const previous=draft.reader.paragraphs.fourPillar.text;
 assert(typeof month==='string'&&month.length>150);
 assert(typeof previous==='string'&&previous.length>600);

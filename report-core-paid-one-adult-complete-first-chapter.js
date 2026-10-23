@@ -3,6 +3,7 @@
 // This is a human-readable EXAMPLE under QA, not the paid provider output;
 // Saju categories are traditional symbols, not observed personality facts.
 const factsCore=require('./report-core-knowledge-engine');
+const knowledge=require('./report-core-knowledge.json');
 const source=require('./report-fact-bindings');
 const readerPolicy=require('./report-reader-policy');
 const paidAudit=require('./report-core-paid-depth-gap-audit');
@@ -191,7 +192,79 @@ function build(packet){
      canonicalPair({branches:packet.chart.month[1]+packet.chart.day[1]})))
   throw Error('QA_ADULT_CORE_DUPLICATED_BRANCH_PAIR_NOT_VERIFIED');
  const claimOrigin=traceClaims(rows);
+ // Side-by-side EDITORIAL judgment, not a lexical score or inferred value.
+ // The ordinary paid chapter gets the same month-only symbols as the
+ // free/core baseline. More birth-chart citations alone do not prove depth.
+ const freeRule=knowledge.pairRules.find(r=>
+  r.id==='month-pair-pyeonin-pyeonjae-v1');
+ const freeText=calculated.reader.paragraphs.strength?.text;
+ const freeRefs=calculated.scope.sourceIds;
+ if(!freeRule||freeRule.visible!=='편인'||freeRule.hidden!=='편재'||
+    !Array.isArray(freeRefs)||freeRefs.join('|')!==
+      'natal.month.stem|natal.month.hidden.己'||
+    typeof freeText!=='string'||freeText.length<180||
+    !freeRule.explanation.includes('낯선 설명')||
+    !freeRule.explanation.includes('자원을 살피는 일')||
+    !freeRule.advantage.includes('수단')||
+    !freeRule.downside.includes('수단을 고르지 못하거나'))
+  throw Error('QA_ADULT_VALUE_REAL_FREE_BASELINE_DRIFT');
+ const valueDecision={
+  kind:'qa-editorial-free-versus-depth-decision-v1',
+  verdict:'not-demonstrably-more-valuable-than-free',
+  realFreeBaselineRuleId:freeRule.id,
+  realFreeBaselineSourceRefs:freeRefs.slice(),
+  comparedAgainstActualCoreText:true,
+  actualFreeCoreLength:freeText.length,
+  // These *ideas* occur in both versions, even when sentence overlap is 0.
+  repeatedReaderPropositions:[
+   {id:'understanding-unfamiliar-information',
+    freeEvidence:'낯선 설명을 자기 방식으로 해석',
+    qaEvidence:'낯선 내용을 자기 방식으로 이해',
+    strongerPersonalConclusionEstablished:false},
+   {id:'choosing-resources-for-implementation',
+    freeEvidence:'실제로 사용할 자원을 살피는 일',
+    qaEvidence:'실제 사용할 자원을 살피는 뜻',
+    strongerPersonalConclusionEstablished:false},
+   {id:'information-versus-available-means-tradeoff',
+    freeEvidence:'필요한 이유를 충분히 파악하기 전에',
+    qaEvidence:'기존 자료만 보면 새 설명이 필요한 이유를 놓칠 수',
+    strongerPersonalConclusionEstablished:false}
+  ],
+  // Genuinely additional factual references, NOT causally approved insight.
+  newComparedWithMonthOnly:[
+   {id:'year-known-guidance-category',refs:['natal.year.stem'],
+    addedValue:'additional-calculated-traditional-category-only'},
+   {id:'hour-category-repeats-month-category',
+    refs:['natal.hour.stem','natal.month.stem'],
+    addedValue:'repeated-symbol-position-only-not-extra-strength'},
+   {id:'day-hour-same-branch-pair-appears-twice',
+    refs:['facts.natalBranchRelations','natal.day.hidden.乙',
+     'natal.hour.hidden.乙'],
+    addedValue:'positional-relationship-not-two-events'}
+  ],
+  personalizedConclusionBeyondFreeValidated:false,
+  userDecisionWouldChangeFromFree:false,
+  readerFacingPremiumValueProven:false,
+  ordinaryPaidWriterReceivesTheseNewFacts:false,
+  fullTraditionalMethodChosen:false,
+  priorityForNextRevision:'establish-source-backed-specific-conclusion-before-polishing',
+  releaseBlockers:[
+   'independently-review-traditional-method-and-counterexamples',
+   'demonstrate-a-person-specific-consequence-not-entailed-by-the-free-month-story',
+   'give-hour-change-counterexample-with-different-valid-conclusion',
+   'verify-normal-paid-writer-has-relevant-full-chart-facts',
+   'blind-reader-comparison-and-human-specialist-editorial-signoff'
+  ],
+  noBillableModelProbeAuthorized:true,providerCalls:0,
+  releaseVerdict:'not-approved'
+ };
+ // Pin the reviewed premises to the actual source texts and draft, so
+ // nobody can pass this review using an unrelated or weakened free reading.
  const copy=PARAGRAPHS.map(x=>x.text).join('\n\n');
+ if(valueDecision.repeatedReaderPropositions.some(x=>
+    !freeRule.explanation.includes(x.freeEvidence)&&
+    !freeRule.downside.includes(x.freeEvidence)||!copy.includes(x.qaEvidence)))
+  throw Error('QA_ADULT_VALUE_FREE_PREMIUM_CONCEPT_DRIFT');
  if(readerPolicy.errors([TITLE,copy]).length||
     /[?？]\s*$/.test(copy)||
     /(?:실제 직업이 정해집니다|갈등이 반복될 운명)/.test(copy))
@@ -201,7 +274,7 @@ function build(packet){
   label:TITLE,paragraphs:PARAGRAPHS.map(x=>({...x})),text:copy,
   ageAtTargetYear:age,audience:'adult',
   sourceChart:{...CHART},sourceRefs:REFS.slice(),
-  claimOrigin,
+  claimOrigin,valueDecision,
   evidence:{
    verifiedStemRoles:expected,
    monthDayAndMonthHourClashTablePairs:2,
@@ -223,6 +296,7 @@ function build(packet){
    professionalTraditionalInterpretationApproved:false,
    userPersonalityVerified:false,
    readerPaidValueEmpiricallyValidated:false,
+   incrementalPremiumValueEstablished:false,
    practicalScenarioNotDerivedFromBirthChart:true,
    copiesIntoRealProviderRequest:false
   },

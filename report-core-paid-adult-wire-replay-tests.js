@@ -97,6 +97,11 @@ const topic=built.payload.task.chapters.saju_core.topics.natal_depth;
 assert.equal(topic.qaOfflineEditorialResearch
  .fullFirstChapterResearch.text,authored.text);
 const origin=topic.qaOfflineEditorialResearch.fullFirstChapterResearch.claimOrigin;
+const decision=topic.qaOfflineEditorialResearch.fullFirstChapterResearch.valueDecision;
+assert.deepEqual(decision,authored.valueDecision);
+assert.equal(decision.verdict,'not-demonstrably-more-valuable-than-free');
+assert.equal(decision.ordinaryPaidWriterReceivesTheseNewFacts,false);
+assert.equal(decision.readerFacingPremiumValueProven,false);
 assert.deepEqual(origin,authored.claimOrigin);
 assert.equal(origin.methodPriorityUnresolved,true);
 assert.equal(origin.paidValueProven,false);
