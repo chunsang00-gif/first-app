@@ -6,6 +6,11 @@ const stems=require('./report-stem-connections');
 const branch=require('./report-branch-relations');
 const bindings=require('./report-fact-bindings');
 const kb=require('./report-core-knowledge.json');
+const {LunarUtil}=require('lunar-javascript');
+const TRADITIONAL_ROLE={'比肩':'비견','劫财':'겁재','食神':'식신',
+ '伤官':'상관','偏财':'편재','正财':'정재','七杀':'편관',
+ '正官':'정관','偏印':'편인','正印':'정인'};
+const role=(day,stem)=>TRADITIONAL_ROLE[LunarUtil.SHI_SHEN[day+stem]];
 const ELEMENT={wood:'나무',fire:'불',earth:'흙',metal:'쇠',water:'물'};
 const PERIOD={spring:'봄',summer:'여름',autumn:'가을',winter:'겨울'};
 const POS={year:'해',month:'달',day:'날',hour:'시간'};
@@ -50,6 +55,7 @@ function select(packet,graph){
     rows['natal.day.stem']?.tenGod!=='일간'||
     rows[hid]?.stem!==hiddenStem||
     rows[hid]?.tenGod!==packet.facts?.structuralEvidence?.monthCommand?.mainHiddenStemTenGod||
+    rows[hid]?.tenGod!==role(chart.day[0],hiddenStem)||
     !kb.tenGodScopes[rows[hid]?.tenGod])
   throw Error('CORE_CHART_SYNTHESIS_HIDDEN_DIVERGED');
  const check=[['year',year],['month',monthVisible],['hour',hour]];
@@ -114,7 +120,8 @@ function select(packet,graph){
  for(const item of otherExposures){
   const row=rows[item.hiddenId];
   if(!row||row.stem!==item.hiddenStem||
-     !CAT[row.tenGod]||row.observedBehavior!==false||
+     !CAT[row.tenGod]||row.tenGod!==role(chart.day[0],item.hiddenStem)||
+     row.observedBehavior!==false||
      row.interpretationScope!=='traditional-symbol-only')
    throw Error('CORE_CHART_SYNTHESIS_SECONDARY_EXPOSURE_SOURCE_DIVERGED:'+item.hiddenId);
  }
