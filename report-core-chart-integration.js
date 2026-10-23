@@ -139,7 +139,7 @@ function select(packet,graph){
  };
  const mainMeaning=MEANING[CAT[rows[hid]?.tenGod]];
  const otherMeaning=otherExposures.length?
-  [...new Set(otherExposures.map(x=>MEANING[CAT[rows[x.hiddenId]?.tenGod]]))].join('과 '):null;
+  [...new Set(otherExposures.map(x=>MEANING[CAT[rows[x.hiddenId]?.tenGod]]))].join(' 그리고 '):null;
  if(!mainMeaning||(otherExposures.length&&!otherMeaning))
   throw Error('CORE_CHART_SYNTHESIS_MONTH_EXPOSURE_READER_MEANING_MISSING');
  const exposureReason=exposureStatus==='main-and-other-exposed'?
