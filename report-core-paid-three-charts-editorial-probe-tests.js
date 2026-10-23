@@ -9,6 +9,7 @@ const assemble=require('./report-core-paid-full-qa-compose').assemble;
 const factLock=require('./report-core-paid-natal-depth-fact-lock');
 const writer=require('./report-generation-request');
 const usage=require('./report-core-paid-natal-editorial-depth-usage');
+const crossEditorial=require('./report-core-paid-natal-cross-chart-editorial-audit');
 (async()=>{
  const old=global.fetch,selected=[],rolePairs=new Set();
  let network=0;
@@ -152,6 +153,48 @@ const usage=require('./report-core-paid-natal-editorial-depth-usage');
     status:review.status});
    responses.push(response);
   }
+  const corpus=responses.map((response,i)=>({
+   response,prompt:selected[i].qa.prompt,payload:selected[i].qa.payload
+  }));
+  const healthyReuse=crossEditorial.inspect(corpus);
+  assert.equal(healthyReuse.inspectedCharts,3);
+  assert.equal(healthyReuse.pairs,3);
+  assert.equal(healthyReuse.needsHumanEditorialReview,false,
+   'three independent role-locked drafts should not reuse canned endings');
+  assert(healthyReuse.comparisons.every(c=>
+   c.warnings.length===0&&c.rolePairsDifferent===true));
+
+  // A copied whole manuscript must fail despite correct-looking refs.
+  const duplicate=structuredClone(corpus);
+  duplicate[1].response.chapters.saju_core.paragraphs.natal_depth.text=
+   corpus[0].response.chapters.saju_core.paragraphs.natal_depth.text;
+  const copiedReview=crossEditorial.inspect(duplicate);
+  assert(copiedReview.comparisons.some(c=>
+   c.warnings.includes('near-duplicate-reading-across-distinct-role-pairs')));
+  assert(copiedReview.needsHumanEditorialReview);
+
+  // Replacing only the closing advice with an otherwise identical generic
+  // recommendation is subtler: the factual paragraphs can remain unique.
+  const endingOnly=structuredClone(corpus);
+  endingOnly[0].response.chapters.saju_core.paragraphs.natal_depth.text+=
+   ' 작업을 할 때는 상황과 조건을 충분히 살펴보고 결정하는 것이 좋습니다.';
+  endingOnly[1].response.chapters.saju_core.paragraphs.natal_depth.text+=
+   ' 행사를 할 때는 상황과 조건을 충분히 살펴보고 결정하는 것이 좋습니다.';
+  const endingReview=crossEditorial.inspect(endingOnly);
+  assert(endingReview.comparisons.some(c=>
+   c.warnings.includes('reused-closing-advice-scene-swap')),
+   'changing only the scene noun must not disguise recycled advice');
+  assert(endingReview.needsHumanEditorialReview);
+  assert.equal(endingReview.readyForPaidRelease,false);
+  assert.equal(endingReview.providerCalls,0);
+  assert.throws(()=>crossEditorial.inspect([corpus[0],corpus[0]]),
+   /QA_CROSS_CHART_EDITORIAL_DUPLICATE_CHART/);
+  console.log('QA_CROSS_CHART_EDITORIAL_REUSE='+JSON.stringify({
+   distinctCharts:healthyReuse.inspectedCharts,
+   cleanComparisonPairs:healthyReuse.pairs,
+   clonedManuscriptCaught:true,sceneWordOnlyEndingCaught:true,
+   automatedMeaningApproval:false,providerCalls:0,
+   releaseVerdict:'not-approved'}));
   let crossChartRejections=0;
   for(let i=0;i<selected.length;i++)for(let j=0;j<selected.length;j++){
    if(i===j)continue;

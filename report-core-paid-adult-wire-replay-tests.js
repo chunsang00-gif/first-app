@@ -11,6 +11,7 @@ const audit=require('./report-instruction-audit');
 const preview=require('./report-core-paid-natal-depth-preview');
 const expected=require('./report-core-paid-one-adult-complete-first-chapter');
 const usage=require('./report-core-paid-natal-editorial-depth-usage');
+const crossEditorial=require('./report-core-paid-natal-cross-chart-editorial-audit');
 function validateStrict(node,data,path='$'){
  if(node.anyOf)return node.anyOf.some(x=>validateStrict(x,data,path).length===0)?
   []:['SCHEMA_ANY_OF:'+path];
@@ -61,6 +62,10 @@ assert.deepEqual(readerUsage.anchorOnlyCitations,[]);
 assert.equal(readerUsage.scenarioReview.concreteChoice,true);
 assert.deepEqual(readerUsage.scenarioReview.editorialWarnings,[]);
 assert.equal(readerUsage.providerCalls,0);
+assert.throws(()=>crossEditorial.inspect([{response:built.response,
+ prompt:built.prompt,payload:built.payload}]),
+ /QA_CROSS_CHART_EDITORIAL_REQUIRES_MULTIPLE_CHARTS/,
+ 'one hand-authored sample cannot establish genuine cross-customer variety');
 const withVagueAdvice=structuredClone(built.response);
 withVagueAdvice.chapters.saju_core.paragraphs.natal_depth.text=
  '태어난 해의 뜻은 기준을 살피는 것으로 읽습니다. '+
