@@ -51,7 +51,8 @@ function attributionValid(rule,actualRows=null){
     entry.example.computedConsequence!==false||
     entry.example.domainFitEstablished!==false||
     typeof entry.example.readerSpan!=='string'||
-    entry.example.readerSpan.length<22||
+    entry.example.readerSpan.length<16||
+    !/(?:가정|상황|라면|다면)/.test(entry.example.readerSpan)||
     !rule.reader.text.includes(entry.example.readerSpan))return false;
  for(let i=0;i<expected.length;i++){
   const row=entry.sourceClaims[i],id=expected[i][0],role=expected[i][1];
