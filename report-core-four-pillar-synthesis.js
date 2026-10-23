@@ -5,6 +5,7 @@ const kb=require('./report-core-knowledge.json');
 const season=require('./report-seasonal-evidence');
 const binding=require('./report-fact-bindings');
 const branch=require('./report-branch-relations');
+const methodReview=require('./report-core-paid-natal-month-method-review');
 const {LunarUtil}=require('lunar-javascript');
 const GOD={'比肩':'비견','劫财':'겁재','食神':'식신','伤官':'상관',
  '偏财':'편재','正财':'정재','七杀':'편관','正官':'정관',
@@ -170,7 +171,48 @@ function select(packet,graph,coreId){
  if(!valid)throw Error('CORE_FOUR_PILLAR_INTEGRITY_DIVERGED');
  if(!attributionValid(r,sourceRows))
   throw Error('CORE_FOUR_PILLAR_READER_ATTRIBUTION_DIVERGED');
+ // The month-main hidden stem is a computable structural reference,
+ // NOT an adopted active-qi, school, pattern or interpretive priority.
+ // Explicitly compare all three existing screens before describing any
+ // ordering as anything more than a hypothetical workplace procedure.
+ const review=methodReview.assess(packet);
+ const scope=review.observed.exactExposureScopeComparison;
+ const contact=review.observed.natalRelationsTouchingMonth.relationshipCardinality;
+ if(review.status!=='method-priority-not-selected'||
+    review.interpretivePriorityVerified!==false||
+    review.adoptedMethodId!==null||review.activeHiddenStemId!==null||
+    review.canApproveDeepSajuInterpretation!==false||
+    review.methodCandidates.length!==3||
+    review.methodCandidates.some(x=>x.interpretivePriority!=='not-assessed')||
+    scope.selectionRuleAdopted!==false||
+    scope.traditionalMeaningAndPriorityVerified!==false||
+    review.observed.mainHiddenStemSourceId!=='natal.month.hidden.'+hidden||
+    contact.whichLabelPrevails!=='not-assessed'||
+    contact.realizedCombinationOrBreakage!=='not-assessed')
+  throw Error('CORE_FOUR_PILLAR_UNRESOLVED_METHOD_PRIORITY_DIVERGED');
+ const methodPriorityReview={
+  kind:'qa-unselected-natal-method-priority-v1',
+  priorityVerdict:'not-established',
+  selectedTraditionalMethod:null,activeQiVerified:false,
+  currentMonthMainSourceId:review.observed.mainHiddenStemSourceId,
+  alternativeCandidateRefs:review.methodCandidates.map(m=>({
+   id:m.id,sourceIds:m.rowIds.slice(),status:m.status,
+   priority:m.interpretivePriority
+  })),
+  dayMasterOnlyExposedHiddenStemIds:
+   scope.dayMasterOnlyExposedHiddenStemIds.slice(),
+  nonDayExposedHiddenStemIds:scope.nonDayExposedHiddenStemIds.slice(),
+  independentMonthBranchContacts:contact.independentPairContactCount,
+  monthBranchTableEntries:contact.pairTableEntryCount,
+  monthBranchGroupEntries:contact.completeGroupEntryCount,
+  branchRelationPriority:'not-assessed',
+  scenarioOrderingStatus:'hypothetical-workflow-not-deduced-from-chart',
+  professionalTraditionalMethodApproved:false,
+  possibleReaderBenefitVerified:false,
+  releaseVerdict:'not-approved'
+ };
  return {ruleId:r.id,reader:{...r.reader},sourceRefs:refs,
+  methodPriorityReview,
   readerAttribution:structuredClone(r.readerAttribution),
   matched:{chart:{...r.chart},yearTenGod:r.yearGod,monthTenGod:r.monthGod,
    hiddenTenGod:r.hiddenGod,hourTenGod:r.hourGod,
