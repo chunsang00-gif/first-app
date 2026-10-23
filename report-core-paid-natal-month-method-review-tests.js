@@ -66,6 +66,19 @@ for(const item of input){
   monthRelations.pairs.filter(x=>x.positions.includes('month')).length);
  assert.equal(observed.natalRelationsTouchingMonth.groups.length,
   monthRelations.groups.filter(x=>x.positions.includes('month')).length);
+ const cardinality=observed.natalRelationsTouchingMonth.relationshipCardinality;
+ assert.equal(cardinality.pairTableEntryCount,
+  monthRelations.pairs.filter(x=>x.positions.includes('month')).length);
+ assert.equal(cardinality.completeGroupEntryCount,
+  monthRelations.groups.filter(x=>x.positions.includes('month')).length);
+ assert.equal(cardinality.independentPairContactCount,
+  new Set(monthRelations.pairs.filter(x=>x.positions.includes('month')).map(x=>
+   x.positions.find(pos=>pos!=='month'))).size);
+ assert.equal(cardinality.hasDuplicateLabelsForSameTwoPositions,
+  cardinality.multipleLabelsOnSamePair.length>0);
+ assert.equal(cardinality.whichLabelPrevails,'not-assessed');
+ assert.equal(cardinality.realizedCombinationOrBreakage,'not-assessed');
+
  rows.push({date:item.birthDate,branch:observed.monthBranch,phase:observed.monthPhase,
   main:observed.mainHiddenStemSourceId,
   approximate:proposed?.stem||null,
