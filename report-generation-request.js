@@ -232,6 +232,7 @@ function compile(prompt){
       sourceRefs:permitted.slice(),positions:independent,
       verifiedLinks:require('./report-core-paid-natal-linkage-brief').select(prompt.facts),
       verifiedElementDirections:require('./report-core-paid-natal-visible-relation-bridge').build(prompt.facts,source),
+      monthFirstApplicability:require('./report-core-paid-natal-month-first-screen').build(prompt.facts),
       readerScope:'distinct-from-month-pair-core',
       writingQuestion:'기본 월 풀이를 되풀이하거나 해와 시간의 분류 뜻을 두 줄로 병렬 나열해 심화인 척하지 않는다. positions와 verifiedLinks를 사용해 실제 계산 위치를 구별하고, verifiedElementDirections의 해·달·시간 오행 관계 방향이 이 명식에서 어떻게 다른지도 검토한다. 오행의 생극 방향은 계산된 상징 관계일 뿐 실제 성격·관계·직업에 적용된 작용, 우선순위, 성공을 증명하지 않는다. 근거와 채택된 전통 해석 방법 없이 생극 방향을 개인 행동·예측으로 바꾸거나 상투적 생활 조언으로 대신하지 않는다. 이런 의미 연결이 불확실하면 더 깊은 결론을 억지로 만들어 내지 말고 인간 편집 검수 대상으로 남긴다.',
       requiredCitations:['natal.year.stem','natal.day.stem','natal.hour.stem','facts.stemConnections']};
