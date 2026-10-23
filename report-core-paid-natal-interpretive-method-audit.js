@@ -88,6 +88,8 @@ function assess(prompt,provider){
   })
  ];
  const traditionalVisibleRelations=visibleRelations.build(prompt.facts,source);
+ if(JSON.stringify(focus.verifiedElementDirections)!==JSON.stringify(traditionalVisibleRelations))
+  throw Error('QA_METHOD_REVIEW_VISIBLE_DIRECTION_PROVIDER_DRIFT');
  const monthMethodReview=monthMethod.assess(prompt.facts);
  if(monthMethodReview.canApproveDeepSajuInterpretation!==false||
     monthMethodReview.interpretivePriorityVerified!==false)
