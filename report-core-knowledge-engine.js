@@ -261,6 +261,7 @@ function compile(packet){
     limits:combined.limits,releaseVerdict:combined.releaseVerdict,
     humanReviewRequired:combined.humanReviewRequired,apiCalls:combined.apiCalls}:null,
    fourPillar:four?{ruleId:four.ruleId,sourceRefs:four.sourceRefs,
+    readerAttribution:four.readerAttribution,
     matched:four.matched,evidenceRole:four.evidenceRole,
     readerScope:four.readerScope,limits:four.limits}:null,
    yearLink:integrated?{ruleId:integrated.ruleId,
