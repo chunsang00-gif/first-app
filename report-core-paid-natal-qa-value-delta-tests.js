@@ -33,7 +33,9 @@ for(const user of inputs){
  assert.deepEqual(delta.baselineSourceRefs,draft.scope.sourceIds);
  assert(delta.extraSourceRefs.includes('natal.year.stem'));
  assert(delta.extraSourceRefs.includes('natal.hour.stem'));
- assert(delta.extraSourceRefs.includes('natal.day.stem'));
+ assert.equal(delta.dayMasterVisibleExplicitlyCited,
+  delta.extraSourceRefs.includes('natal.day.stem'),
+  'do not count calculation context as separately quoted day-master evidence');
  assert(delta.extraSourceRefs.includes('facts.stemConnections'));
  assert(delta.extraSourceRefs.every(id=>topic.citableFacts.some(x=>x.id===id)));
  assert(delta.yearOrHourDistinctFromMonth.every(x=>
