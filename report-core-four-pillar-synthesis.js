@@ -32,6 +32,49 @@ function natalAssertions(rule,chart){
  return {pairs,groups,natal};
 }
 const FORBIDDEN=/(?:반드시 성공|승진이 보장|재산이 증가|성격이 강하다|기운이 약하다는 사실)/;
+const READER_POSITIONS=['year','month','monthHidden','hour'];
+function attributionValid(rule,actualRows=null){
+ const entry=rule.readerAttribution,chart=rule.chart;
+ const main=season.HIDDEN[chart.month[1]][0];
+ const expected=[
+  ['natal.year.stem',god(chart.day[0],chart.year[0])],
+  ['natal.month.stem',god(chart.day[0],chart.month[0])],
+  ['natal.month.hidden.'+main,god(chart.day[0],main)],
+  ['natal.hour.stem',god(chart.day[0],chart.hour[0])]
+ ];
+ if(entry?.kind!=='qa-reader-attribution-ledger-v1'||
+    entry.sourceClaims?.length!==4||
+    entry.priority!=='not-approved-for-full-chart-causal-order'||
+    entry.observedPersonality!==false||entry.paidReaderValueApproved!==false||
+    entry.example?.class!=='hypothetical-editorial-application'||
+    entry.example.verifiedUserSituation!==false||
+    entry.example.computedConsequence!==false||
+    entry.example.domainFitEstablished!==false||
+    typeof entry.example.readerSpan!=='string'||
+    entry.example.readerSpan.length<22||
+    !rule.reader.text.includes(entry.example.readerSpan))return false;
+ for(let i=0;i<expected.length;i++){
+  const row=entry.sourceClaims[i],id=expected[i][0],role=expected[i][1];
+  if(!row||row.sourceId!==id||row.calculatedRole!==role||
+     typeof row.readerSpan!=='string'||row.readerSpan.length<14||
+     !rule.reader.text.includes(row.readerSpan))return false;
+  if(actualRows){
+   const actual=actualRows[id];
+   if(!actual||actual.tenGod!==row.calculatedRole||
+      actual.observedBehavior!==false||
+      actual.interpretationScope!=='traditional-symbol-only'||
+      !actual.traditionalMeaning)return false;
+  }
+ }
+ // A shared phrase is permissible ONLY for the same category in the
+ // month/hour pair and it must explicitly identify both natal positions.
+ const monthClaim=entry.sourceClaims[1],hourClaim=entry.sourceClaims[3];
+ if(monthClaim.readerSpan===hourClaim.readerSpan&&
+    (monthClaim.calculatedRole!==hourClaim.calculatedRole||
+     !/(?:달과 시간|달과 시간의|달과 시간에는|달과 시간에|태어난 달과 시간)/.test(monthClaim.readerSpan)))
+  return false;
+ return true;
+}
 function audit(data=kb){
  const bases=[...data.pairRules,...require('./report-core-rule-families').expand(data)];
  const ids=new Set(),contexts=new Set();
@@ -63,7 +106,7 @@ function audit(data=kb){
     .every(x=>r.limits?.includes(x))&&
    typeof r.reader?.label==='string'&&r.reader.label.length>=12&&
    typeof r.reader?.text==='string'&&r.reader.text.length>=250&&
-   !FORBIDDEN.test(r.reader.text);
+   !FORBIDDEN.test(r.reader.text)&&attributionValid(r);
   if(!r.id||ids.has(r.id)||contexts.has(key)||!valid)
    throw Error('CORE_FOUR_PILLAR_RULE_INVALID:'+r.id);
   ids.add(r.id);contexts.add(key);
@@ -124,7 +167,10 @@ function select(packet,graph,coreId){
      sourceRows[id]?.stem===stem)&&
   [...dayRoots,...hourRoots].every(x=>sourceRows[x.id]?.stem);
  if(!valid)throw Error('CORE_FOUR_PILLAR_INTEGRITY_DIVERGED');
+ if(!attributionValid(r,sourceRows))
+  throw Error('CORE_FOUR_PILLAR_READER_ATTRIBUTION_DIVERGED');
  return {ruleId:r.id,reader:{...r.reader},sourceRefs:refs,
+  readerAttribution:structuredClone(r.readerAttribution),
   matched:{chart:{...r.chart},yearTenGod:r.yearGod,monthTenGod:r.monthGod,
    hiddenTenGod:r.hiddenGod,hourTenGod:r.hourGod,
    relation:r.dayBranchRelation,natalPairs:rel.pairs.map(x=>({...x,positions:x.positions.slice()})),
