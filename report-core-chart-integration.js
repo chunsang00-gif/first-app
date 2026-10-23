@@ -130,17 +130,33 @@ function select(packet,graph){
   (otherMatches.length?'other-month-hidden-exposed-only':'no-nonday-exposure');
  const display=positions=>[...new Set(positions)].map(p=>
   p==='month'?'태어난 달':p==='year'?'태어난 해':'태어난 시간').join('·');
+ const MEANING={
+  peer:'함께 맡는 역할과 몫',
+  output:'생각을 밖으로 표현하고 결과로 남기는 일',
+  wealth:'필요한 자원과 비용의 관리',
+  authority:'맡은 책임과 지켜야 할 기준',
+  resource:'정보와 도움을 받아 배우는 과정'
+ };
+ const mainMeaning=MEANING[CAT[rows[hid]?.tenGod]];
+ const otherMeaning=otherExposures.length?
+  [...new Set(otherExposures.map(x=>MEANING[CAT[rows[x.hiddenId]?.tenGod]]))].join('과 '):null;
+ if(!mainMeaning||(otherExposures.length&&!otherMeaning))
+  throw Error('CORE_CHART_SYNTHESIS_MONTH_EXPOSURE_READER_MEANING_MISSING');
  const exposureReason=exposureStatus==='main-and-other-exposed'?
   '태어난 달의 가장 기본이 되는 안쪽 글자가 '+display(mainPositions)+
    '의 겉에도 그대로 나타나고, 달의 다른 안쪽 글자도 '+display(otherMatches.map(x=>x.position))+
-   '에서 확인됩니다. 드러난 글자가 둘 이상이라는 사실만으로 어떤 의미가 중심인지 결정할 수는 없습니다.':
+   '에서 확인됩니다. 앞의 글자는 '+mainMeaning+', 다른 글자는 '+otherMeaning+
+   '이라는 관점으로 구분됩니다. 둘 다 드러났다는 사실만으로 무엇이 중심인지 결정할 수는 없습니다.':
   exposureStatus==='month-main-exposed-only'?
    '태어난 달의 가장 기본이 되는 안쪽 글자는 '+display(mainPositions)+
-    '의 겉에도 그대로 나타납니다. 달의 다른 안쪽 글자에서는 그와 같은 겉자리 대응이 확인되지 않습니다. 그렇다고 기본 글자의 의미가 실제 생활에서 더 강하다고 단정할 수는 없습니다.':
+    '의 겉에도 그대로 나타납니다. 여기에서 확인되는 주제는 '+mainMeaning+
+    '입니다. 다른 안쪽 글자에서는 같은 겉자리 대응이 확인되지 않지만, 이것만으로 실제 능력이나 강약을 판단할 수는 없습니다.':
   exposureStatus==='other-month-hidden-exposed-only'?
    '태어난 달의 가장 기본이 되는 안쪽 글자는 해·달·시간의 겉에 그대로 나타나지 않습니다. 대신 달의 다른 안쪽 글자가 '+display(otherMatches.map(x=>x.position))+
-    '의 겉에 나타납니다. 전통 풀이에서는 이 차이를 따져보지만, 어느 의미가 중심인지는 별도의 전체 사주 검토가 필요합니다.':
-   '태어난 달의 안쪽 글자 가운데 해·달·시간의 겉글자와 정확히 일치하는 경우는 확인되지 않습니다. 이렇게 드러난 글자가 없다는 사실도 해석의 출발 조건일 뿐, 특정 성향이 약하다는 결론은 아닙니다.';
+    '의 겉에 나타납니다. 기본 글자는 '+mainMeaning+', 실제로 드러난 다른 글자는 '+otherMeaning+
+    '이라는 주제로 구분해 읽습니다. 어느 쪽을 우선할지는 전체 사주를 따로 검토해야 합니다.':
+   '태어난 달의 기본 글자는 '+mainMeaning+
+   '을 뜻하지만, 달의 안쪽 글자 가운데 해·달·시간의 겉글자에 그대로 드러난 경우는 확인되지 않습니다. 그렇다고 이 주제가 실제 생활에서 없거나 약하다는 뜻은 아닙니다.';
  const exposureEvidence={
   kind:'month-hidden-to-nonday-visible-observation-v1',
   sourceRefs:['facts.stemConnections',hid,
@@ -169,13 +185,7 @@ function select(packet,graph){
  // Keep specialized ten-god classifications and editorial questions in
  // evidence, not in prose. The following meaning categories are a symbolic
  // editorial analogy; no chart-specific behavior or success is inferred.
- const MEANING={
-  peer:'함께 맡는 역할과 몫',
-  output:'생각을 밖으로 표현하고 결과로 남기는 일',
-  wealth:'필요한 자원과 비용의 관리',
-  authority:'맡은 책임과 지켜야 할 기준',
-  resource:'정보와 도움을 받아 배우는 과정'
- };
+
  const yearMeaning=MEANING[year.category];
  const hiddenMeaning=MEANING[insideCategory];
  const hourMeaning=MEANING[hour.category];
