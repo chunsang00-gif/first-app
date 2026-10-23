@@ -77,8 +77,9 @@ function build(){
  const alteredKeys=ab.map(x=>x.key);
  if(!alteredKeys.includes('hour-stem-and-role')||
     !alteredKeys.includes('hour-branch')||
-    alteredKeys.some(x=>x.startsWith('year-')||x.startsWith('month-')||
-     x.startsWith('day-'))||
+    alteredKeys.some(x=>['year-stem-and-role','year-branch',
+     'month-stem-and-role','month-branch','month-main-symbol',
+     'month-phase','day-stem-and-role','day-branch'].includes(x))||
     !ab.every(x=>ba.some(y=>y.key===x.key&&
       same(y.before,x.after)&&same(y.after,x.before)))||
     a.positions.hour.tenGod!=='편인'||
