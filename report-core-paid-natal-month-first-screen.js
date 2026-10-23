@@ -3,9 +3,11 @@
 // stems is not equivalent to a month-command-centred traditional interpretation.
 // This screen NEVER chooses a pattern, useful god, personality or career.
 const monthReview=require('./report-core-paid-natal-month-method-review');
+const classical=require('./report-core-paid-natal-classical-yin-example');
 function build(packet){
  const monthly=monthReview.assess(packet);
  const o=monthly.observed,scope=o.exactExposureScopeComparison;
+ const exemplar=classical.inspect(packet);
  const n=scope.nonDayExposedHiddenStemIds.length;
  const relationCount=o.natalRelationsTouchingMonth.pairs.length+
   o.natalRelationsTouchingMonth.groups.length;
@@ -43,6 +45,18 @@ function build(packet){
   // it tests one candidate interpretive order and explicitly does not adopt it.
   referenceTradition:'zi-ping-zhen-quan-month-command-candidate-not-adopted',
   visibleArrowOnlyIsNotAReading:true,
+  // This is the first textually specified case checked, not a general
+  // interpretation algorithm and never a personality inference.
+  classicalTextualExample:{
+   id:'zi-ping-zhen-quan-yin-jia-not-exposed-bing-exposed',
+   chapter:'論用神變化',monthBranch:exemplar.natalMonthBranch,
+   condition:exemplar.candidate,
+   matched:exemplar.observed.exactTextualExampleConditionsMet,
+   mainExposurePositions:exemplar.observed.exposedMainStemPositions,
+   secondaryExposurePositions:exemplar.observed.exposedSecondaryStemPositions,
+   competingHiddenExposureNeedsReview:exemplar.alternativeExposuresNeedReview,
+   methodAdopted:false,finalPatternApproved:false
+  },
   monthMethodCandidate: candidate,
   conditions,
   allowedAutomatedConclusions:[
