@@ -87,6 +87,22 @@ const singleQuestion=candidate.writingQuestion(singleScreen);
 assert(singleQuestion.includes('해석의 출발점이 바뀌는 경우'));
 assert(!singleQuestion.includes('정재를 중심에, 정관을 곁에'));
 assert.equal(singleScreen.validPremiumInterpretationEstablished,false);
+const singleProvider=preview.prepare(singleXin);
+if(singleProvider){
+ const focus=singleProvider.payload.task.chapters.saju_core.topics.natal_depth.evidenceFocus;
+ assert.deepEqual(focus.monthFirstApplicability,singleScreen);
+ assert.equal(focus.writingQuestion,singleQuestion);
+ assert.deepEqual(transport.inspectTransport(singleProvider.prompt,singleProvider.payload),[]);
+ const wrong=structuredClone(singleProvider.payload);
+ wrong.task.chapters.saju_core.topics.natal_depth.evidenceFocus.writingQuestion+=
+  ' 겉에 두 글자가 다 보이므로 정재가 중심이다.';
+ assert(transport.inspectTransport(singleProvider.prompt,wrong).includes(
+  'qa-natal-depth-evidence-brief-drift'));
+}
+const invalid=structuredClone(singleScreen);
+invalid.classicalTextualExample.dualExposureTextualPriority.scopeMatched=true;
+assert.throws(()=>candidate.writingQuestion(invalid),
+ /QA_MONTH_WRITING_CONFLICTING_CLASSICAL_CASES/);
 const xinSample=facts.build({calendar:'solar',birthDate:'2024-02-17',
  birthTime:'14:20',gender:'male',mbti:'ISFP'},2027);
 const xinScreen=candidate.build(xinSample);
