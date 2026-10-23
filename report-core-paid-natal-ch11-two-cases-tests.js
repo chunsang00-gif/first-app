@@ -4,6 +4,7 @@ const facts=require('./report-facts-node');
 const qa=require('./report-core-paid-natal-ch11-two-cases');
 const month=require('./report-core-paid-natal-month-method-review');
 const engine=require('./report-core-knowledge-engine');
+const conflicts=require('./report-core-paid-natal-conflict-abstention');
 const policy=require('./report-reader-policy');
 function packet(date,time='19:20'){
  return facts.build({calendar:'solar',birthDate:date,birthTime:time,
@@ -54,6 +55,18 @@ for(const x of fixtures){
   ex.writerDraft.label+ex.writerDraft.text));
  assert(!/[?？]\s*$/.test(ex.writerDraft.text));
  assert.equal(ex.providerCalls,0);
+ const competing=conflicts.inspect(p);
+ assert.equal(competing.allowedInterpretationScope,
+  'narrow-document-specific-symbolic-relation-only');
+ assert.equal(competing.additionalPublishedSymbolRelation?.id,x.id);
+ assert.equal(competing.additionalPublishedSymbolRelation.relation,x.direction);
+ assert.equal(competing.additionalPublishedSymbolRelation.fullPatternReviewed,false);
+ assert.equal(competing.additionalPublishedSymbolRelation
+  .manuscriptProhibitedFromPaidRelease,true);
+ assert(competing.findings.some(x=>x.id===
+  'chapter11-symbol-relation-requires-full-chart-method-review'));
+ assert.equal(competing.conclusion,'abstain-from-full-chart-interpretation');
+ assert.equal(competing.downstreamPaidApproval,false);
  const m=month.assess(p);
  assert.equal(m.adoptedMethodId,null);
  assert.equal(m.interpretivePriorityVerified,false);
@@ -84,6 +97,10 @@ for(const [date,time] of near){
  assert.equal(r.examples.length,0,
   'changing an actual clock/date/month must not reuse a narrow chapter-11 case');
  assert.equal(r.sourceMatched,false);
+ const result=conflicts.inspect(packet(date,time));
+ assert.equal(result.additionalPublishedSymbolRelation,null);
+ assert(!result.findings.some(x=>x.id===
+  'chapter11-symbol-relation-requires-full-chart-method-review'));
  assert.equal(r.clientReleaseAllowed,false);
 }
 const forged=packet('2023-08-18','19:20');
