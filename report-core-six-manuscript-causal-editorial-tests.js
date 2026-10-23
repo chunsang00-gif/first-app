@@ -10,6 +10,7 @@ const kb=require('./report-core-knowledge.json');
 const binding=require('./report-fact-bindings');
 const policy=require('./report-reader-policy');
 const {assess}=require('./report-core-paid-natal-qa-value-delta');
+const synthesis=require('./report-core-four-pillar-synthesis');
 const cases=[
  {birthDate:'1982-11-24',calendar:'lunar',birthTime:'14:20',
   id:'full-four-pillars-chukmi-day-hour-roots-v1',
@@ -58,6 +59,31 @@ for(const example of cases){
  assert.equal(draft.apiCalls,0);
  assert.equal(draft.review.humanReviewRequired,true);
  const author=draft.reader.paragraphs.fourPillar;
+ const attribution=draft.review.fourPillar.readerAttribution;
+ assert.equal(attribution.kind,'qa-reader-attribution-ledger-v1');
+ assert.equal(attribution.sourceClaims.length,4);
+ assert.equal(attribution.priority,'not-approved-for-full-chart-causal-order');
+ assert.equal(attribution.paidReaderValueApproved,false);
+ assert.equal(attribution.observedPersonality,false);
+ assert.equal(attribution.example.class,'hypothetical-editorial-application');
+ assert.equal(attribution.example.computedConsequence,false);
+ assert.equal(attribution.example.verifiedUserSituation,false);
+ assert.equal(attribution.example.domainFitEstablished,false);
+ assert(author.text.includes(attribution.example.readerSpan));
+ const expected=[
+  ['natal.year.stem',rule.yearGod],['natal.month.stem',rule.monthGod],
+  ['natal.month.hidden.'+require('./report-seasonal-evidence')
+   .HIDDEN[packet.chart.month[1]][0],rule.hiddenGod],
+  ['natal.hour.stem',rule.hourGod]
+ ];
+ for(let i=0;i<expected.length;i++){
+  const claim=attribution.sourceClaims[i];
+  assert.equal(claim.sourceId,expected[i][0]);
+  assert.equal(claim.calculatedRole,expected[i][1]);
+  assert(author.text.includes(claim.readerSpan));
+  assert(draft.review.fourPillar.sourceRefs.includes(claim.sourceId));
+ }
+
  const text=author.text,ref=draft.review.fourPillar.sourceRefs;
  assert.equal(author.text,rule.reader.text);
  assert(text.length>=490&&text.length<=760);
@@ -103,6 +129,29 @@ for(const example of cases){
   sourceRefs:ref.length,reviewPriority:delta.reviewPriority});
 }
 assert.equal(observations.length,6);
+assert.deepEqual(synthesis.audit(),{fullChartRules:6});
+for(let i=0;i<6;i++){
+ const input=structuredClone(kb);
+ const rule=input.fullChartRules[i];
+ rule.readerAttribution.sourceClaims[0].calculatedRole='가짜분류';
+ assert.throws(()=>synthesis.audit(input),/CORE_FOUR_PILLAR_RULE_INVALID/,
+  'a changed symbolic classification must block the editorial claim');
+ const wrongPosition=structuredClone(kb);
+ wrongPosition.fullChartRules[i].readerAttribution.sourceClaims[0].sourceId=
+  'natal.hour.stem';
+ assert.throws(()=>synthesis.audit(wrongPosition),/CORE_FOUR_PILLAR_RULE_INVALID/,
+  'a source attribution cannot be moved to an unrelated natal position');
+ const discarded=structuredClone(kb);
+ discarded.fullChartRules[i].readerAttribution.sourceClaims[0].readerSpan=
+  '출처에 없는 허위 해석 문장';
+ assert.throws(()=>synthesis.audit(discarded),/CORE_FOUR_PILLAR_RULE_INVALID/,
+  'reader prose and claim ledger must always describe identical actual text');
+ const falselyPersonal=structuredClone(kb);
+ falselyPersonal.fullChartRules[i].readerAttribution.example.verifiedUserSituation=true;
+ assert.throws(()=>synthesis.audit(falselyPersonal),/CORE_FOUR_PILLAR_RULE_INVALID/,
+  'a hypothetical scenario cannot become an observed personal event');
+}
+
 assert.equal(new Set(observations.map(x=>x.scene)).size,6);
 for(let i=0;i<6;i+=2){
  const a=observations[i],b=observations[i+1];
@@ -112,6 +161,8 @@ for(let i=0;i<6;i+=2){
 console.log('QA_SIX_NATAL_READER_CAUSAL_EDITORIAL_REVIEW='+JSON.stringify({
  sixExactBirthCharts:observations,
  casesWithSpecificScenario:6,casesWithDownsideAndAction:6,
+ independentlyReconciledPositionClaims:24,
+ disallowedRoleTextOrScenarioForgeries:24,
  professionalInterpretationValidated:0,
  releaseReady:0,apiCalls:0}));
 console.log('PASS six chart-bound editorial scenarios remain specific, non-predictive and unapproved');
