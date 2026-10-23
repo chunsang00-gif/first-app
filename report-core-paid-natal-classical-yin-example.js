@@ -29,6 +29,10 @@ function inspect(packet){
   firstRole:dualCaseApplies?'정재':null,
   additionalRole:dualCaseApplies?'정관':null,
   source:'Zi Ping Zhen Quan, chapter 10, final examples',
+  textualPriorityBasis:dualCaseApplies?
+   'Jia is the main hidden stem of the Yin month and is exposed alongside Bing; this classical case retains the month-main pattern and adds the Bing category':
+   null,
+  notDeterminedByElementGenerationArrow:true,
   subjectToIndependentFullChartReview:true,
   finalTraditionalPatternEstablished:false,
   observedBehavior:false
