@@ -49,6 +49,8 @@ const present=cases.filter(x=>x.readerPresent);
 const missing=cases.filter(x=>!x.readerPresent);
 assert.equal(present.length,6,'baseline: six of eight have an offline candidate');
 assert.equal(missing.length,2,'baseline: two of eight lack a curated candidate');
+assert(present.every(x=>!x.flags.includes('visible-jargon-needs-editor')),
+ 'all six real offline manuscripts must now meet reader-language policy');
 const machineDrafts=present.filter(x=>x.reviewType==='chartSynthesis');
 assert.equal(machineDrafts.length,4);
 assert(machineDrafts.every(x=>
