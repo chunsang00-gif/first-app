@@ -124,6 +124,31 @@ assert.notEqual(singleReader.text,readerCandidate.text,
 assert.notDeepEqual(singleReader.sourceRefs,readerCandidate.sourceRefs);
 assert.equal(source.offlineSingleReaderCandidate(paired),null,
  'the single-exposure text cannot be reused when Jia is exposed');
+// Exposing the third Yin-month hidden stem introduces another competing
+// condition. Neither narrow text example authorizes a reader conclusion.
+for(const [input,which] of [
+ [{calendar:'solar',birthDate:'1989-02-10',birthTime:'20:20',
+   gender:'male',mbti:'ISFP'},'single'],
+ [{calendar:'solar',birthDate:'2024-02-17',birthTime:'20:20',
+   gender:'male',mbti:'ISFP'},'dual']
+]){
+ const competing=facts.build(input,2027);
+ assert.equal(competing.status,'ready');
+ const result=source.inspect(competing);
+ assert(result.observed.exposedOtherHiddenStemPositions.includes('hour'),
+  'synthetic changed-hour sample must expose the third hidden-month stem');
+ assert.equal(result.singleExposureTextualChange.scopeMatched,false);
+ assert.equal(result.dualExposureTextualPriority.scopeMatched,false);
+ assert.equal(source.offlineSingleReaderCandidate(competing),null);
+ assert.equal(source.offlineReaderCandidate(competing),null);
+ assert.equal(result.alternativeExposuresNeedReview,true);
+ assert.equal(result.releaseVerdict,'not-approved');
+ console.log('QA_CLASSICAL_COMPETING_EXPOSURE='+JSON.stringify({
+  which,day:competing.chart.day,month:competing.chart.month,
+  addedStemPositions:result.observed.exposedOtherHiddenStemPositions,
+  readerAllowed:false,paidCalls:0
+ }));
+}
 console.log('QA_CLASSICAL_SINGLE_EXPOSURE='+JSON.stringify({
  day:onlyBing.chart.day,month:onlyBing.chart.month,
  primary:single.observed.exposedMainStemPositions,
