@@ -23,8 +23,11 @@ function inspect(packet){
   s.monthHiddenStems.some(x=>x.stem===SECONDARY);
  const exactMatch=scoped&&primary.length===0&&secondary.length>0;
  const xinDay=scoped&&packet.chart.day[0]==='辛';
- const singleExposureCaseApplies=xinDay&&primary.length===0&&secondary.length>0;
- const dualCaseApplies=xinDay&&primary.length>0&&secondary.length>0;
+ // An additional exposed Yin-month stem is a competing textual condition.
+ // Observe it, but do not promote either narrow rule to a sole priority.
+ const uncluttered=xinDay&&third.length===0;
+ const singleExposureCaseApplies=uncluttered&&primary.length===0&&secondary.length>0;
+ const dualCaseApplies=uncluttered&&primary.length>0&&secondary.length>0;
  // The same classical chapter distinguishes a Bing-only change of the
  // month-command category from the Jia+Bing case that retains Jia first.
  // These are TEXTUAL applicability checks, not approval of a full pattern.
@@ -97,7 +100,8 @@ function offlineReaderCandidate(packet){
  const rank=caseResult.dualExposureTextualPriority;
  if(rank.scopeMatched!==true||
     !caseResult.observed.exposedMainStemPositions.includes('year')||
-    !caseResult.observed.exposedSecondaryStemPositions.includes('month'))
+    !caseResult.observed.exposedSecondaryStemPositions.includes('month')||
+    caseResult.observed.exposedOtherHiddenStemPositions.length!==0)
   return null;
  const ledger=Object.fromEntries(require('./report-fact-bindings').build(packet)
   .map(row=>[row.id,row]));
