@@ -7,6 +7,10 @@ const visible=require('./report-core-paid-natal-visible-relation-bridge');
 const season=require('./report-seasonal-evidence');
 const classical=require('./report-core-paid-natal-ch11-two-cases');
 const readerPolicy=require('./report-reader-policy');
+const {LunarUtil}=require('lunar-javascript');
+const godNames={'比肩':'비견','劫财':'겁재','食神':'식신',
+ '伤官':'상관','偏财':'편재','正财':'정재','七杀':'편관',
+ '正官':'정관','偏印':'편인','正印':'정인'};
 const positions=['year','month','hour'];
 const kinds=new Set(['left-generates-right','right-generates-left',
  'left-controls-right','right-controls-left','same-element']);
@@ -29,7 +33,8 @@ function review(packet){
   if(!row||row.stem!==packet.chart[p][0]||
      row.observedBehavior!==false||
      row.interpretationScope!=='traditional-symbol-only'||
-     !row.traditionalMeaning)
+     !row.traditionalMeaning||
+     row.tenGod!==godNames[LunarUtil.SHI_SHEN[packet.chart.day[0]+row.stem]])
    throw Error('QA_MIXED_VISIBLE_SOURCE_DRIFT:'+id);
   return {id,position:p,stem:row.stem,tenGod:row.tenGod};
  });
@@ -97,11 +102,11 @@ function review(packet){
   combinedReaderDraft:exact?{
    kind:'qa-exact-chart-hand-edited-hypothesis-v1',
    label:readerDraft.label,text:readerDraft.text,
-   observedYearMonthHourOnly:true,
+   basedOnThreeVisibleStemDirections:true,
    publishedRelationCoversAllThreePairs:false,
    scenarioIsHypothetical:true,claimOfRealPersonality:false,
-   sourceRefs:[...sources.map(x=>x.id),'facts.stemConnections',
-    ...example.sourceRefs],
+   sourceRefs:[...new Set([...sources.map(x=>x.id),'facts.stemConnections',
+    ...example.sourceRefs])],
    humanMethodReviewed:false,readerValueValidated:false,
    releaseVerdict:'not-approved'
   }:null,
