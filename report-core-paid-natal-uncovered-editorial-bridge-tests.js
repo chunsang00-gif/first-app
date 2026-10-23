@@ -51,6 +51,26 @@ for(const sample of cases){
  assert(context.otherMatches.length>=1);
  assert.equal(typeof context.independentMonthBranchContacts,'number');
  assert.equal(typeof context.multipleLabelsForOneBranchContact,'boolean');
+ const draft=x.interpretiveCaseDraft;
+ assert.equal(draft.kind,'qa-classical-case-conditional-manuscript-v1');
+ assert.equal(draft.releaseVerdict,'not-approved');
+ assert.equal(draft.customerReady,false);
+ assert.equal(draft.independentlyReviewed,false);
+ assert.equal(draft.competingFullChartEvidenceStillUnresolved,true);
+ assert.equal(draft.textualOrdering,sample.category==='bing-only-textual-change'?
+  'responsibility-before-resources':'resources-before-responsibility');
+ assert(draft.text.includes('고전의 해당 사례'));
+ assert(draft.text.includes('예를 들어'));
+ assert(draft.text.includes('반대로')||draft.text.includes('다만'));
+ assert(draft.text.includes('별도 검토')||draft.text.includes('확인되지')||
+  draft.text.includes('확정하지')||draft.text.includes('우선순위'));
+ assert(draft.text.length>=350);
+ assert.deepEqual(reader.errors([draft.label,draft.text]),[]);
+ assert(!/[?？]\\s*$/.test(draft.text));
+ assert(draft.sourceRefs.includes('natal.day.stem'));
+ assert(draft.sourceRefs.includes('natal.month.stem'));
+ assert(draft.sourceRefs.includes('facts.stemConnections'));
+ assert(draft.sourceRefs.length===new Set(draft.sourceRefs).size);
  const t=triage.inspect(packet);
  assert.equal(t.status,'missing-curated-coverage');
  assert.equal(t.readerPresent,false);
@@ -66,6 +86,11 @@ assert.notEqual(candidates[0].text,candidates[1].text);
 assert.notEqual(candidates[0].textualRule,candidates[1].textualRule);
 const contextualCases=cases.map(x=>bridge.review(
  facts.build(input(x.date),2027)).contextualReview);
+const conditionalCases=cases.map(x=>bridge.review(
+ facts.build(input(x.date),2027)).interpretiveCaseDraft);
+assert.notEqual(conditionalCases[0].text,conditionalCases[1].text);
+assert.notEqual(conditionalCases[0].textualOrdering,
+ conditionalCases[1].textualOrdering);
 assert.notEqual(contextualCases[0].monthExposureExplanation,
  contextualCases[1].monthExposureExplanation,
  'single vs dual classical exposure must produce different factual rationale');
@@ -98,6 +123,7 @@ assert.throws(()=>bridge.review(corrupted),
 console.log('QA_TWO_UNCOVERED_CLASSICAL_EDITORIAL_CANDIDATES='+JSON.stringify({
  missingFullCuratedCore:2,sourceMatchedTextualPreviewCandidates:2,
  contextualFourPillarEvidenceCompanions:contextualCases.length,
+ distinctConditionalReasoningDrafts:conditionalCases.length,
  disallowedNearMatches:5,distinctNarrowReaderTexts:2,
  specialistMethodReviewRequired:true,fullChartReadingApproved:false,
  billableCalls:0,releaseVerdict:'not-approved'
