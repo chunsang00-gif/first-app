@@ -5,7 +5,7 @@
 const core=require('./report-core-knowledge-engine');
 const bindings=require('./report-fact-bindings');
 const {overlap}=require('./report-core-paid-natal-depth-response-gate');
-const INDEPENDENT=['natal.year.stem','natal.day.stem','natal.hour.stem'];
+const INDEPENDENT=['natal.year.stem','natal.hour.stem'];
 const getSentences=text=>String(text||'').split(/[.!?。！？\n]+/)
  .map(x=>x.replace(/\s+/g,' ').trim()).filter(x=>x.length>=22);
 const sourceMeaning=r=>r?{id:r.id,position:r.position||null,
@@ -57,6 +57,7 @@ function assess(packet,computed,selected,draftKind){
   baselineRuleId:computed.ruleId,
   baselineSourceRefs:month.slice(),
   extraSourceRefs:extra.slice(),
+  dayMasterVisibleExplicitlyCited:extra.includes('natal.day.stem'),
   independentPositions:{
    year:sourceMeaning(year),hour:sourceMeaning(hour),
    monthVisible:sourceMeaning(visible),monthPrincipalHidden:sourceMeaning(main)
