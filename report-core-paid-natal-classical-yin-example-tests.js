@@ -59,7 +59,7 @@ assert.equal(readerCandidate.audience,'child-and-caregiver');
 assert.equal(readerCandidate.ageAtTargetYear,3);
 assert.equal(readerCandidate.hypotheticalExampleNotObservedBehavior,true);
 assert(readerCandidate.text.includes('새로운 놀이'));
-assert(!/(?:직장|직책|급여|직업을 바라보는 초점|업무 성과|재물 능력)/.test(readerCandidate.label+' '+readerCandidate.text));
+assert(!/(?:직장|직책|직업|급여|새 프로젝트|업무 성과|재물 능력)/.test(readerCandidate.label+' '+readerCandidate.text));
 assert.equal(readerCandidate.releaseVerdict,'not-approved');
 assert.equal(readerCandidate.readyForPaidModelProbe,false);
 assert.equal(readerCandidate.providerCalls,0);

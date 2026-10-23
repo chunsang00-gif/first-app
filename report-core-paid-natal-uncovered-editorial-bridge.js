@@ -203,7 +203,7 @@ function review(packet){
   independentlyReviewed:false,customerReady:false,
   releaseVerdict:'not-approved'
  };
- if(child&&/(?:직장|직책|급여|새 프로젝트|업무 성과|재물 능력)/.test(
+ if(child&&/(?:직장|직책|직업|급여|새 프로젝트|업무 성과|재물 능력)/.test(
     interpretiveCaseDraft.label+' '+interpretiveCaseDraft.text))
   throw Error('QA_UNCOVERED_CLASSICAL_CHILD_ADULT_LANGUAGE_LEAK');
  if(!interpretiveCaseDraft.sourceRefs.every(id=>

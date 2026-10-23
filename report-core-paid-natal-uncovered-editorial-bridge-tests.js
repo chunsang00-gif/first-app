@@ -61,7 +61,7 @@ for(const sample of cases){
  assert.equal(draft.exampleIsNotObservedChildOrAdultBehavior,true);
  if(young){
   assert(draft.readerReasoning.conditionalScenario.includes('아이가 새로운 놀이'));
-  assert(!/(?:직장|직책|급여|새 프로젝트|업무 성과|재물 능력)/.test(
+  assert(!/(?:직장|직책|직업|급여|새 프로젝트|업무 성과|재물 능력)/.test(
    x.candidate.label+' '+x.candidate.text+' '+draft.label+' '+draft.text),
    'a three-year-old must not receive an adult occupation or income reading');
  }else assert(draft.readerReasoning.conditionalScenario.includes('새로운 관리 업무'));
