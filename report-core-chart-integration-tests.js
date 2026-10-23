@@ -8,6 +8,7 @@ const all=coverage.representativeInputs();
 let machine=0,human=0,missing=0;
 const texts=new Set();
 const focusKinds=new Set();
+let categoryBoundSeparateScenes=0;
 const exposureKinds=new Set();
 for(const input of all){
  const p=facts.build(input,2027),out=engine.compile(p);
@@ -140,6 +141,25 @@ for(const input of all){
  assert.equal(focused.kind,expectedFocus,
   'judgment emphasis must arise from independently checked natal category comparisons');
  focusKinds.add(focused.kind);
+ if(focused.kind==='three-separate-functions'){
+  categoryBoundSeparateScenes++;
+  const task={
+   peer:'함께 맡을 일과 몫을 구분하는 일',
+   output:'생각을 결과물로 정리하는 일',
+   wealth:'준비할 자원과 비용을 확인하는 일',
+   authority:'맡을 책임과 따라야 할 기준을 정하는 일',
+   resource:'참고할 설명과 자료를 확인하는 일'
+  };
+  const cats=focused.categories;
+  assert(focused.conditionalReading.includes('해에서는 '+task[cats.year]),
+   'year case must track its own calculated category');
+  assert(focused.conditionalReading.includes('달의 안쪽에서는 '+task[cats.monthHidden]),
+   'month hidden case must track the independently calculated category');
+  assert(focused.conditionalReading.includes('시간에서는 '+task[cats.hour]),
+   'hour case must track its own calculated category');
+  assert(!focused.conditionalReading.includes('각각 분담, 준비 조건, 결과'),
+   'arbitrary fixed sequence cannot substitute for a chart-derived comparison');
+ }
  assert(!out.reader.paragraphs.chartSynthesis.text.includes('확인할 질문은'),
   'do not sell a three-question glossary as individual depth');
  assert.deepEqual(require('./report-reader-policy').errors(
@@ -164,6 +184,8 @@ assert.equal(human,4);
 assert.equal(machine,27);
 assert(texts.size>=26);
 assert(focusKinds.size>=3, 'multiple genuinely distinct judgment types must be exercised');
+assert(categoryBoundSeparateScenes>0,
+ 'the 99 real calculation examples must exercise bound, non-generic three-role reader prose');
 assert(exposureKinds.size>=3,
  'the real 99-chart grid must cover at least three different month exposure patterns');
 for(const birthDate of ['1982-03-15','1982-06-15']){
