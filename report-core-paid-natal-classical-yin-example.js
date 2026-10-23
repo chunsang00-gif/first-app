@@ -70,4 +70,46 @@ function inspect(packet){
   providerCalls:0,releaseVerdict:'not-approved'
  };
 }
-module.exports={inspect};
+
+// Single narrowly curated reader example for an INTERNAL offline editorial
+// comparison. Not a generalized natal generator, paid report, or prediction.
+// Only the explicit YEAR-Jia / MONTH-Bing / DAY-Xin / MONTH-Yin configuration
+// may receive this copy; never fill other charts with the same text.
+function offlineReaderCandidate(packet){
+ const caseResult=inspect(packet);
+ const rank=caseResult.dualExposureTextualPriority;
+ if(rank.scopeMatched!==true||
+    !caseResult.observed.exposedMainStemPositions.includes('year')||
+    !caseResult.observed.exposedSecondaryStemPositions.includes('month'))
+  return null;
+ const ledger=Object.fromEntries(require('./report-fact-bindings').build(packet)
+  .map(row=>[row.id,row]));
+ const expected={
+  'natal.day.stem':['辛','일간'],
+  'natal.year.stem':['甲','정재'],
+  'natal.month.stem':['丙','정관'],
+  'natal.month.hidden.甲':['甲','정재']
+ };
+ for(const [id,[stem,tenGod]] of Object.entries(expected)){
+  const row=ledger[id];
+  if(row?.stem!==stem||row?.tenGod!==tenGod)
+   throw Error('QA_CLASSICAL_READER_FACT_DRIFT:'+id);
+ }
+ const label='책임보다 먼저 보는 자원의 의미';
+ const text='이 사주를 고전의 한 방식으로 읽을 때는 높은 자리를 맡는다는 말보다, 그 자리를 뒷받침할 자원을 다루는 뜻을 먼저 살펴봅니다. 태어난 달에서 가장 기본이 되는 글자는 태어난 해에도 드러나 자원 관리에 관한 뜻으로 읽힙니다. 같은 달에 드러난 다른 글자는 맡은 역할과 지켜야 할 기준을 나타냅니다. 그래서 두 뜻의 순서를 정할 때도 막연히 어느 쪽이 더 강하다고 말하지 않습니다. 달의 기본 글자가 실제로 드러났고 다른 뜻도 함께 나타났다는 조건에 따라, 이 고전은 자원에 관한 뜻을 중심에 두고 책임에 관한 뜻을 곁들입니다. 이 풀이에서 직업을 바라보는 초점 역시 직책의 크기 자체보다 자원과 책임을 어떻게 연결해 해석하는지에 있습니다. 실제로 돈을 잘 모으거나 직장에서 인정받는다는 결론은 아닙니다.';
+ return {
+  kind:'qa-classical-natal-reader-candidate-v1',
+  calculatedChart:packet.chart,
+  label,text,
+  sourceRefs:Object.keys(expected),
+  textualRule:'xin-yin-jia-and-bing-both-exposed; primary wealth, supplementary authority',
+  cause:'month-main-Jia-and-additional-Bing-visible-not-element-arrow',
+  otherBranchEffects:'not-assessed',
+  individualPersonalityOrCareerVerified:false,
+  independentlyProfessionallyReviewed:false,
+  readyForPaidModelProbe:false,
+  releaseVerdict:'not-approved',
+  providerCalls:0
+ };
+}
+module.exports={inspect,offlineReaderCandidate};
