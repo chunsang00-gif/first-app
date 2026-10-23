@@ -5,6 +5,7 @@
 const month=require('./report-core-paid-natal-month-method-review');
 const classical=require('./report-core-paid-natal-classical-yin-example');
 const {LunarUtil}=require('lunar-javascript');
+const directions=require('./report-core-paid-natal-visible-relation-bridge');
 const GOD={'比肩':'비견','劫财':'겁재','食神':'식신','伤官':'상관',
  '偏财':'편재','正财':'정财','七杀':'편관','正官':'정관',
  '偏印':'편인','正印':'정인'};
@@ -45,6 +46,35 @@ function evaluate(packet){
     (mainPositions.length===0||
      !exposure.nonDayExposedHiddenStemIds.includes('natal.month.hidden.甲')))
   throw Error('QA_CLASSICAL_METHOD_DUAL_EXPOSURE_DIVERGED');
+ const dualExact=intended==='xin-yin-jia-and-bing-coexposed-month-main-plus-authority';
+ const relation=dualExact?directions.direction('甲','丙'):null;
+ if(dualExact&&(
+    relation!=='left-generates-right'||
+    !mainPositions.length||!secondaryPositions.length||
+    mainPositions.some(id=>!['natal.year.stem','natal.month.stem','natal.hour.stem'].includes(id))||
+    secondaryPositions.some(id=>!['natal.year.stem','natal.month.stem','natal.hour.stem'].includes(id))))
+  throw Error('QA_CLASSICAL_DUAL_CHAPTER11_RELATION_DIVERGED');
+ // Chapter 11 explicitly names the SAME dual-exposure Xin/Yin situation,
+ // describing the *traditional categories' cooperation* (財官相生).
+ // It does NOT warrant judging the entire chart 'pure', auspicious or
+ // predicting income, career or anything about the person's conduct.
+ const crossChapterReading=dualExact?{
+  kind:'exact-chapter11-mutual-category-example-only',
+  chapter:'十一、論用神純雜',
+  sourceUrl:'https://www.diancangwang.cn/xuanxuewushu/03cf53eede8a/46649fec6649.html',
+  monthHiddenMainStemSourceId:'natal.month.hidden.甲',
+  exposedMainPositionRefs:mainPositions.slice(),
+  exposedSecondPositionRefs:secondaryPositions.slice(),
+  verifiedElementalDirection:relation,
+  traditionalFirstCategory:'정재',
+  traditionalSecondCategory:'정관',
+  restrictedTextualRelation:'resource-symbol-generates-authority-symbol',
+  supportedScope:'these-two-classical-symbols-connect-in-the-cited-example',
+  chartClassifiedAsFavorable:false,
+  actualCareerOutcomeInferred:false,
+  overallPatternConfirmed:false,
+  observedBehavior:false
+ }:null;
  const branchCounts=review.observed.natalRelationsTouchingMonth.relationshipCardinality;
  const doc={
   kind:'qa-source-bound-month-method-applicability-v1',
@@ -71,6 +101,7 @@ function evaluate(packet){
   textualCaseFirstRole:intended?(
    intended==='xin-yin-bing-only-month-command-change'?'정관':'정재'):null,
   textualCaseSecondaryRole:intended?.includes('coexposed')?'정관':null,
+  crossChapterReading,
   methodConflict:{
    governingDayStatus:'unresolved',
    approximateDayRuleStatus:review.methodCandidates[1].status,
