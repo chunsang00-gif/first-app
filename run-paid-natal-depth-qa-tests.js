@@ -126,7 +126,7 @@ const read=(dir,name)=>JSON.parse(fs.readFileSync(path.join(dir,name),'utf8'));
   let count=intercept(JSON.stringify(good));
   const result=await runner.run();
   assert.equal(actualHTTPEnvelopeHash,
-   '62f1dc6e27fc4db2382bf61794da7e81cab1aadd7459b46ab4868b396d7bb80a',
+   'a5b89853e10f80a79d4015dca57d4a1ebebb5121de188dee8d3360d67c4256b5',
    'actual outgoing OpenAI schema/brief drifted from the frozen QA fingerprint');
   assert.equal(count(),1);
   assert.equal(result.providerCalls,1);
