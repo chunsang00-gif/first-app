@@ -31,6 +31,8 @@ for(const [index,fixture] of fixtures.entries()){
   assert.equal(text,rule.reader.text);
   assert(text.length>=350&&text.length<=650);
   assert.deepEqual(policy.errors([rule.reader.label,text]),[]);
+  assert(!/(?:다른 출생시간|시간이 달라져|시간이 다른 사례|다른 경우와 달리|이 원고는)/.test(text),
+   'a paying reader must never see internal counterfactual fixture comparisons');
   assert(text.includes('시간')&&text.includes('달')&&text.includes('안쪽'));
   assert(/가정|예를 들어/.test(text));
   assert(/하지만|그러나|다만|아닙니다|없습니다|않습니다|수는 없습니다|아니며|아니라/.test(text));
@@ -38,6 +40,8 @@ for(const [index,fixture] of fixtures.entries()){
   assert.equal(built.apiCalls,0);
   assert(built.review.fourPillar.sourceRefs.includes('facts.stemConnections'));
   assert(built.review.fourPillar.sourceRefs.includes('facts.natalBranchRelations'));
+  assert(!/(?:실제로 이해력이 두 배|성격이 (?:강해|약해)|연봉이 올라)/.test(text),
+   'traditional repetition and symbols are not observed behavior');
   pair.push({text,ruleId:rule.id,hour:packet.chart.hour,
    sourceRefs:built.review.fourPillar.sourceRefs});
   full.push({kind:'curated-four-pillars',text});
