@@ -94,6 +94,12 @@ assert.equal(dayIsAnchor.customerReleaseApproved,false);
 const topic=built.payload.task.chapters.saju_core.topics.natal_depth;
 assert.equal(topic.qaOfflineEditorialResearch
  .fullFirstChapterResearch.text,authored.text);
+const origin=topic.qaOfflineEditorialResearch.fullFirstChapterResearch.claimOrigin;
+assert.deepEqual(origin,authored.claimOrigin);
+assert.equal(origin.methodPriorityUnresolved,true);
+assert.equal(origin.paidValueProven,false);
+assert(origin.claims.some(c=>c.id==='practical-steps-not-premium-personality'&&
+ c.sourceRefs.length===0&&c.licensedAsPersonalConclusion===false));
 assert.equal(topic.qaOfflineEditorialResearch.methodHandoff.exactTextualDecision,null);
 assert.equal(topic.qaOfflineEditorialResearch.methodHandoff.expertDecisions.length,5);
 assert.equal(topic.qaOfflineEditorialResearch.methodHandoff.readyForPaidModelProbe,false);

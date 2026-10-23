@@ -122,6 +122,7 @@ function build(packet,permitted,source){
   fullFirstChapterResearch:adult?{
    kind:'qa-complete-adult-first-chapter-edit-v1',
    label:adult.label,text:adult.text,
+   claimOrigin:structuredClone(adult.claimOrigin),
    paragraphs:adult.paragraphs.map(x=>({...x})),
    sourceChart:{...adult.sourceChart},
    sourceRefs:adult.sourceRefs.slice(),

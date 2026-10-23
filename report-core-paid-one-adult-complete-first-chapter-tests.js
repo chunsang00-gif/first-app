@@ -21,6 +21,24 @@ assert.equal(result.ageAtTargetYear,45);
 assert.equal(result.audience,'adult');
 assert.equal(result.status,'draft-for-human-review');
 assert.equal(result.releaseVerdict,'not-approved');
+assert.equal(result.text.includes('이 풀이의 중심은 기준을 지키는 일'),false,
+ 'do not invent a rules-first priority from this chart roles');
+assert(result.text.includes('무엇을 우선할지는 이 계산만으로 정할 수 없습니다'));
+assert.equal(result.claimOrigin.kind,'qa-adult-first-chapter-claim-origin-review-v1');
+assert.equal(result.claimOrigin.tracedClaimCount,9);
+assert.equal(result.claimOrigin.concreteComputedRelationCount,2);
+assert.equal(result.claimOrigin.traditionalSymbolExplanationCount,3);
+assert.deepEqual(result.claimOrigin.hypotheticalAndGeneralClaims,[
+ 'workplace-change-only-an-example','practical-steps-not-premium-personality']);
+assert.equal(result.claimOrigin.methodPriorityUnresolved,true);
+assert.equal(result.claimOrigin.paidValueProven,false);
+assert.equal(result.claimOrigin.releaseVerdict,'not-approved');
+for(const claim of result.claimOrigin.claims){
+ assert(result.paragraphs.find(p=>p.kind===claim.paragraph)?.text.includes(claim.exactText));
+ assert(claim.sourceRefs.every(ref=>result.sourceRefs.includes(ref)));
+ assert.equal(claim.licensedAsPersonalConclusion,false);
+}
+assert.equal(result.editorialAssessment.practicalScenarioNotDerivedFromBirthChart,true);
 assert.equal(result.readyForSale,false);
 assert.equal(result.providerCalls,0);
 assert.equal(result.paragraphs.length,4);

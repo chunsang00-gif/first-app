@@ -19,7 +19,7 @@ const REFS=['natal.year.stem','natal.month.stem','natal.day.stem',
 const TITLE='기존 기준과 새 방식을 함께 검토하는 선택';
 const PARAGRAPHS=[
  {kind:'interpretation',
-  text:'이 사주에서 태어난 해에는 이미 알려진 설명을 참고하는 뜻이 있습니다. 달과 시간의 윗글자에는 낯선 내용을 자기 방식으로 이해하는 뜻이 반복되고, 달의 안쪽 대표 글자는 사람·도구·시간처럼 실제 사용할 자원을 살피는 뜻으로 따로 분류됩니다. 그래서 이 풀이의 중심은 기준을 지키는 일, 새로운 설명을 검토하는 일, 실행에 필요한 수단을 고르는 일을 한데 섞지 않는 데 있습니다. 같은 뜻이 두 자리에 있다고 이해력이 더 좋다고 판단하지는 않습니다.'},
+  text:'이 사주에서 태어난 해에는 이미 알려진 설명을 참고하는 뜻이 있습니다. 달과 시간의 윗글자에는 낯선 내용을 자기 방식으로 이해하는 뜻이 반복되고, 달의 안쪽 대표 글자는 사람·도구·시간처럼 실제 사용할 자원을 살피는 뜻으로 따로 분류됩니다. 다만 여기서 확인되는 것은 익숙한 설명, 새로운 정보, 필요한 자원이 서로 다른 뜻으로 분류된다는 점까지입니다. 무엇을 우선할지는 이 계산만으로 정할 수 없습니다. 같은 뜻이 두 자리에 있다고 이해력이 더 좋다고 판단하지는 않습니다.'},
  {kind:'opposing-evidence',
   text:'태어난 날과 시간의 안쪽에는 날의 기준과 같은 종류의 글자가 각각 확인됩니다. 반면 달과 날, 달과 시간의 두 자리 쌍에는 서로 마주보는 관계가 기록됩니다. 새로운 내용을 이해한다는 뜻이 반복되더라도, 이 다른 근거를 무시하고 한쪽 성향이 더 강하다고 결론낼 수는 없습니다. 관계표상의 마주봄을 실제 다툼이나 실패로 해석할 수도 없습니다.'},
  {kind:'adult-scenario',
@@ -27,6 +27,84 @@ const PARAGRAPHS=[
  {kind:'bounded-action',
   text:'이 상황에서는 유지할 기준, 시험할 변경점, 필요한 자원과 결과를 확인할 시점을 따로 적는 방식이 가능합니다. 다만 이 사례는 계산된 전통 상징을 이해하기 위한 가정입니다. 실제 업무 능력이나 행동을 관찰한 결과가 아니며, 어느 사주 요소를 우선할지도 아직 전문적인 검토가 필요합니다.'}
 ];
+// Each reader-facing paragraph is checked against a precise origin. The
+// scenario and its practical recommendation are NOT paid personal insights.
+// No inference priority or user behaviour is established by this ledger.
+const CLAIMS=[
+ {id:'year-known-guidance',kind:'traditional-symbol-meaning',paragraph:'interpretation',
+  quote:'태어난 해에는 이미 알려진 설명을 참고하는 뜻이 있습니다',
+  refs:['natal.year.stem']},
+ {id:'month-hour-unfamiliar-understanding',kind:'traditional-symbol-meaning',
+  paragraph:'interpretation',
+  quote:'달과 시간의 윗글자에는 낯선 내용을 자기 방식으로 이해하는 뜻이 반복되고',
+  refs:['natal.month.stem','natal.hour.stem']},
+ {id:'month-hidden-resources',kind:'traditional-symbol-meaning',
+  paragraph:'interpretation',
+  quote:'달의 안쪽 대표 글자는 사람·도구·시간처럼 실제 사용할 자원을 살피는 뜻',
+  refs:['natal.month.hidden.己']},
+ {id:'no-auto-priority',kind:'unresolved-interpretive-method',
+  paragraph:'interpretation',
+  quote:'무엇을 우선할지는 이 계산만으로 정할 수 없습니다',
+  refs:[]},
+ {id:'day-hour-hidden-same-stem',kind:'verified-computed-relation',
+  paragraph:'opposing-evidence',
+  quote:'태어난 날과 시간의 안쪽에는 날의 기준과 같은 종류의 글자가 각각 확인됩니다',
+  refs:['natal.day.hidden.乙','natal.hour.hidden.乙','facts.stemConnections']},
+ {id:'month-day-and-month-hour-table-pairs',kind:'verified-computed-relation',
+  paragraph:'opposing-evidence',
+  quote:'달과 날, 달과 시간의 두 자리 쌍에는 서로 마주보는 관계가 기록됩니다',
+  refs:['facts.natalBranchRelations']},
+ {id:'workplace-change-only-an-example',kind:'hypothetical-not-chart-inference',
+  paragraph:'adult-scenario',
+  quote:'예를 들어 기존 작업 절차를 바꾸자는 제안이 나왔다고 가정해 보겠습니다',
+  refs:[]},
+ {id:'practical-steps-not-premium-personality',kind:'generic-practical-advice',
+  paragraph:'bounded-action',
+  quote:'이 상황에서는 유지할 기준, 시험할 변경점, 필요한 자원과 결과를 확인할 시점을 따로 적는 방식이 가능합니다',
+  refs:[]},
+ {id:'traditional-priority-remains-unreviewed',kind:'unresolved-interpretive-method',
+  paragraph:'bounded-action',
+  quote:'어느 사주 요소를 우선할지도 아직 전문적인 검토가 필요합니다',
+  refs:[]}
+];
+function traceClaims(rows){
+ const allowed=new Set(REFS),positions=new Map(PARAGRAPHS.map(p=>[p.kind,p.text]));
+ if(new Set(CLAIMS.map(c=>c.id)).size!==CLAIMS.length)
+  throw Error('QA_ADULT_CLAIM_TRACE_DUPLICATE');
+ const result=[];
+ for(const claim of CLAIMS){
+  if(!positions.get(claim.paragraph)?.includes(claim.quote)||
+     !Array.isArray(claim.refs)||claim.refs.some(id=>!allowed.has(id)))
+   throw Error('QA_ADULT_CLAIM_TRACE_TEXT_OR_REFS_DRIFT:'+claim.id);
+  const sourceBased=['traditional-symbol-meaning','verified-computed-relation'].includes(claim.kind);
+  if(sourceBased!==Boolean(claim.refs.length))
+   throw Error('QA_ADULT_CLAIM_TRACE_UNSUPPORTED_SOURCE_CLASS:'+claim.id);
+  for(const id of claim.refs){
+   if(id.startsWith('natal.')){
+    if(!rows[id]||rows[id].interpretationScope!=='traditional-symbol-only')
+     throw Error('QA_ADULT_CLAIM_TRACE_MISSING_CALCULATION:'+id);
+   }else if(!['facts.stemConnections','facts.natalBranchRelations'].includes(id))
+    throw Error('QA_ADULT_CLAIM_TRACE_UNVERIFIED_FACT:'+id);
+  }
+  result.push({id:claim.id,kind:claim.kind,paragraph:claim.paragraph,
+   exactText:claim.quote,sourceRefs:claim.refs.slice(),
+   calculationOnly:claim.kind==='verified-computed-relation',
+   symbolOnly:claim.kind==='traditional-symbol-meaning',
+   licensedAsPersonalConclusion:false});
+ }
+ return {
+  kind:'qa-adult-first-chapter-claim-origin-review-v1',
+  claims:result,
+  tracedClaimCount:result.length,
+  concreteComputedRelationCount:result.filter(c=>c.calculationOnly).length,
+  traditionalSymbolExplanationCount:result.filter(c=>c.symbolOnly).length,
+  hypotheticalAndGeneralClaims:result.filter(c=>
+   ['hypothetical-not-chart-inference','generic-practical-advice'].includes(c.kind))
+   .map(c=>c.id),
+  methodPriorityUnresolved:true,realWorldTraitInferred:false,
+  paidValueProven:false,releaseVerdict:'not-approved',providerCalls:0
+ };
+}
 function build(packet){
  if(packet?.status!=='ready'||!packet.chart?.hour)throw Error('QA_ADULT_CORE_VALID_PACKET_REQUIRED');
  const input=packet.calculationInput||{};
@@ -74,6 +152,7 @@ function build(packet){
  if(pairMatches.length!==2||
     new Set(pairMatches.map(x=>x.positions.slice().sort().join('/'))).size!==2)
   throw Error('QA_ADULT_CORE_DAY_HOUR_MONTH_CONTRAST_MISSING');
+ const claimOrigin=traceClaims(rows);
  const copy=PARAGRAPHS.map(x=>x.text).join('\n\n');
  if(readerPolicy.errors([TITLE,copy]).length||
     /[?？]\s*$/.test(copy)||
@@ -84,6 +163,7 @@ function build(packet){
   label:TITLE,paragraphs:PARAGRAPHS.map(x=>({...x})),text:copy,
   ageAtTargetYear:age,audience:'adult',
   sourceChart:{...CHART},sourceRefs:REFS.slice(),
+  claimOrigin,
   evidence:{
    verifiedStemRoles:expected,
    monthDayAndMonthHourClashTablePairs:2,
@@ -98,6 +178,7 @@ function build(packet){
    professionalTraditionalInterpretationApproved:false,
    userPersonalityVerified:false,
    readerPaidValueEmpiricallyValidated:false,
+   practicalScenarioNotDerivedFromBirthChart:true,
    copiesIntoRealProviderRequest:false
   },
   status:'draft-for-human-review',releaseVerdict:'not-approved',
