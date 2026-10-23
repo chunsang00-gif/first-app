@@ -30,6 +30,12 @@ async function assertFrozenRequest(qa){
     actual!==APPROVED_ENVELOPE_SHA256||
     built.operatorEnvelopeHash!==APPROVED_ENVELOPE_SHA256)
   throw Error('QA_NATAL_DEPTH_APPROVED_ENVELOPE_DRIFT_NO_BILLING');
+ // A pinned/valid request is only transport-ready. Do not buy another
+ // response to fix a missing interpretive method or unreviewed editorial
+ // premise. Block before ANY attempt marker, archive, or provider call.
+ if(built.editorialMethodGate?.readyForAnotherPaidModelProbe!==true||
+    built.editorialMethodGate?.blockingReasons?.length!==0)
+  throw Error('QA_NATAL_DEPTH_UNREVIEWED_METHOD_NO_BILLING');
  return actual;
 }
 // The old V1 consent was consumed by run #39753663547. The existing
