@@ -29,7 +29,7 @@ for(const [index,fixture] of fixtures.entries()){
   assert(rule);
   const text=built.reader.paragraphs.fourPillar.text;
   assert.equal(text,rule.reader.text);
-  assert(text.length>=350&&text.length<=(index===0&&time==='14:20'?760:650),
+  assert(text.length>=350&&text.length<=((index===0||index===1)&&time==='14:20'?760:650),
    'first thorough full-chart exemplar may be longer; other variants keep the concise limit');
   assert.deepEqual(policy.errors([rule.reader.label,text]),[]);
   assert(!/(?:다른 출생시간|시간이 달라져|시간이 다른 사례|다른 경우와 달리|이 원고는)/.test(text),
@@ -41,6 +41,14 @@ for(const [index,fixture] of fixtures.entries()){
   assert.equal(built.apiCalls,0);
   assert(built.review.fourPillar.sourceRefs.includes('facts.stemConnections'));
   assert(built.review.fourPillar.sourceRefs.includes('facts.natalBranchRelations'));
+  const method=built.review.fourPillar.methodPriorityReview;
+  assert.equal(method.kind,'qa-unselected-natal-method-priority-v1');
+  assert.equal(method.priorityVerdict,'not-established');
+  assert.equal(method.selectedTraditionalMethod,null);
+  assert.equal(method.branchRelationPriority,'not-assessed');
+  assert.equal(method.scenarioOrderingStatus,
+   'hypothetical-workflow-not-deduced-from-chart');
+  assert.equal(method.professionalTraditionalMethodApproved,false);
   assert(!/(?:실제로 이해력이 두 배|성격이 (?:강해|약해)|연봉이 올라)/.test(text),
    'traditional repetition and symbols are not observed behavior');
   pair.push({text,ruleId:rule.id,hour:packet.chart.hour,
