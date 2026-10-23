@@ -62,7 +62,10 @@ function select(packet,graph){
  }
  if(!LINK[year.relativeToMonth]||!LINK[hour.relativeToMonth])
   throw Error('CORE_CHART_SYNTHESIS_COMPARISON_DIVERGED');
- const roots=stems.build(chart).dayMasterRooting.sameElementRoots;
+ const stemLinks=stems.build(chart);
+ if(!equal(packet.facts?.stemConnections,stemLinks))
+  throw Error('CORE_CHART_SYNTHESIS_STEM_EXPOSURE_SOURCE_DIVERGED');
+ const roots=stemLinks.dayMasterRooting.sameElementRoots;
  const graphRoots=graph.dayMasterRoots||[];
  if(!equal(roots.map(r=>[r.hiddenId,r.position,r.layer,r.type]),
   graphRoots.map(r=>[r.id,r.position,r.layer,r.matchType]))||
@@ -84,6 +87,51 @@ function select(packet,graph){
   wealth:['어떤 자원이 필요한지','계속 준비할 항목과 별도로 구할 항목은 무엇인지','고른 자원이 실제 목적에 맞는지'],
   authority:['어떤 기준이 정해져 있는지','담당하는 역할의 경계가 어디인지','새 조건에서도 규칙이 그대로 적용되는지'],
   resource:['어떤 안내를 참고할지','낯선 내용을 어떻게 이해할지','이해한 내용의 출처를 어디서 확인할지']
+ };
+ // An exact month-hidden-to-visible match is a concrete explanation
+ // constraint, not a priority, strength, or personality decision.
+ // Ignore the day master as a separate exposure: it is the reference for
+ // classification, not an independent year/month/hour visible placement.
+ const monthExposures=stemLinks.exposure.filter(row=>row.position==='month')
+  .map(row=>({
+   hiddenId:row.hiddenId,hiddenStem:row.hiddenStem,layer:row.layer,
+   visibleMatches:row.exactVisibleMatches
+    .filter(v=>v.position!=='day')
+    .map(v=>({sourceId:v.id,position:v.position}))
+  }));
+ const mainExposure=monthExposures.find(row=>row.hiddenId===hid);
+ if(!mainExposure||mainExposure.layer!=='main')
+  throw Error('CORE_CHART_SYNTHESIS_MONTH_MAIN_EXPOSURE_MISSING');
+ const mainPositions=mainExposure.visibleMatches.map(x=>x.position);
+ const otherExposures=monthExposures.filter(row=>row.layer!=='main'&&
+  row.visibleMatches.length>0);
+ const otherMatches=otherExposures.flatMap(row=>row.visibleMatches.map(v=>({
+  hiddenId:row.hiddenId,sourceId:v.sourceId,position:v.position
+ })));
+ const exposureStatus=mainPositions.length?
+  (otherMatches.length?'main-and-other-exposed':'month-main-exposed-only'):
+  (otherMatches.length?'other-month-hidden-exposed-only':'no-nonday-exposure');
+ const display=positions=>[...new Set(positions)].map(p=>
+  p==='month'?'태어난 달':p==='year'?'태어난 해':'태어난 시간').join('·');
+ const exposureReason=exposureStatus==='main-and-other-exposed'?
+  '태어난 달의 가장 기본이 되는 안쪽 글자가 '+display(mainPositions)+
+   '의 겉에도 그대로 나타나고, 달의 다른 안쪽 글자도 '+display(otherMatches.map(x=>x.position))+
+   '에서 확인됩니다. 드러난 글자가 둘 이상이라는 사실만으로 어떤 의미가 중심인지 결정할 수는 없습니다.':
+  exposureStatus==='month-main-exposed-only'?
+   '태어난 달의 가장 기본이 되는 안쪽 글자는 '+display(mainPositions)+
+    '의 겉에도 그대로 나타납니다. 달의 다른 안쪽 글자에서는 그와 같은 겉자리 대응이 확인되지 않습니다. 그렇다고 기본 글자의 의미가 실제 생활에서 더 강하다고 단정할 수는 없습니다.':
+  exposureStatus==='other-month-hidden-exposed-only'?
+   '태어난 달의 가장 기본이 되는 안쪽 글자는 해·달·시간의 겉에 그대로 나타나지 않습니다. 대신 달의 다른 안쪽 글자가 '+display(otherMatches.map(x=>x.position))+
+    '의 겉에 나타납니다. 전통 풀이에서는 이 차이를 따져보지만, 어느 의미가 중심인지는 별도의 전체 사주 검토가 필요합니다.':
+   '태어난 달의 안쪽 글자 가운데 해·달·시간의 겉글자와 정확히 일치하는 경우는 확인되지 않습니다. 이렇게 드러난 글자가 없다는 사실도 해석의 출발 조건일 뿐, 특정 성향이 약하다는 결론은 아닙니다.';
+ const exposureEvidence={
+  kind:'month-hidden-to-nonday-visible-observation-v1',
+  sourceRefs:['facts.stemConnections',hid,
+   'natal.year.stem','natal.month.stem','natal.hour.stem'],
+  status:exposureStatus,mainSourceId:hid,mainVisiblePositions:mainPositions,
+  otherMatches,displayedReaderReason:exposureReason,
+  monthPatternPriority:'not-assessed',
+  strengthVerified:false,personalBehaviorObserved:false
  };
  const roleQuestions=[
   {position:'year',tenGod:year.tenGod,category:year.category,question:QUESTIONS[year.category][0]},
@@ -158,6 +206,7 @@ function select(packet,graph){
  // Show a chart-specific contrast once, with a concrete hypothetical frame.
  const clauses=[
   '태어난 해와 달, 시간에 있는 서로 다른 뜻을 비교하면 '+point+' '+comparison,
+  exposureReason,
   month.monthPhase==='transition'?
    '태어난 달은 '+PERIOD[month.monthSeason]+'이 바뀌는 시기에 해당합니다. 계절의 경계에 있다는 계산 사실만으로 무엇이 더 강하게 작용하는지는 알 수 없습니다.':
    '태어난 달은 '+PERIOD[month.monthSeason]+'에 속합니다. 태어난 날을 기준으로 계절과의 관계가 계산되지만, 이것만으로 전체 사주의 강약을 판정할 수는 없습니다.'
@@ -185,6 +234,7 @@ function select(packet,graph){
   hiddenTenGod:rows[hid].tenGod,hourTenGod:hour.tenGod,
   yearRelativeToMonth:year.relativeToMonth,hourRelativeToMonth:hour.relativeToMonth,
   rootRefs:graphRoots.map(r=>r.id),
+  exposureEvidence,
   roleQuestions:roleQuestions.map(r=>({...r})),
   interpretiveFocus,
   relationPairs:picked.map(r=>({...r,positions:r.positions.slice()})),
