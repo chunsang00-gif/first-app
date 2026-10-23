@@ -62,6 +62,40 @@ function assess(packet){
   .map(x=>({type:x.type,positions:x.positions.slice(),branches:x.branches}));
  const groups=natal.groups.filter(x=>x.positions.includes('month'))
   .map(x=>({type:x.type,positions:x.positions.slice(),branches:x.branches}));
+ // A pair-table can attach TWO labels to the SAME positions. Example:
+ // 寅(月) + 亥(日) is listed as both 六合 and 破 in this table.
+ // "Two entries" MUST NOT be described as "two independent contacts".
+ const contacts=new Map();
+ for(const pair of pairs){
+  const other=pair.positions.find(pos=>pos!=='month');
+  if(!other)throw Error('QA_MONTH_RELATION_INVALID_PAIR');
+  const key=other;
+  if(!contacts.has(key))contacts.set(key,{
+   monthPosition:'month',otherPosition:other,
+   branches:pair.branches,tableLabels:[]
+  });
+  const contact=contacts.get(key);
+  if(contact.branches!==pair.branches)
+   throw Error('QA_MONTH_RELATION_CONTACT_COLLISION');
+  contact.tableLabels.push(pair.type);
+ }
+ const uniqueMonthContacts=[...contacts.values()];
+ const multipleLabelsOnOneContact=uniqueMonthContacts.filter(
+  row=>row.tableLabels.length>1);
+ const relationshipCardinality={
+  // Strictly table entries, never calculated qi / relative strength.
+  pairTableEntryCount:pairs.length,
+  completeGroupEntryCount:groups.length,
+  independentPairContactCount:uniqueMonthContacts.length,
+  distinctOtherPositions:uniqueMonthContacts.map(row=>row.otherPosition),
+  uniquePairContacts:uniqueMonthContacts,
+  multipleLabelsOnSamePair:multipleLabelsOnOneContact,
+  hasDuplicateLabelsForSameTwoPositions:multipleLabelsOnOneContact.length>0,
+  realizedCombinationOrBreakage:'not-assessed',
+  whichLabelPrevails:'not-assessed',
+  traditionalSchoolForPaRelations:'not-selected'
+ };
+
  const candidate=exploratory.approximateStageCandidate;
  const candidateId=candidate?.natalSourceId||null;
  const different=Boolean(candidate&&candidateId!==monthMain);
@@ -87,7 +121,9 @@ function assess(packet){
    outsideCanonicalHiddenStems:!candidate.natalHiddenStemPresent
   }:null,
   natalRelationsTouchingMonth:{pairs,groups,
-   overlappingCandidates:pairs.length+groups.length>1},
+   // Legacy flag means multiple TABLE entries, not multiple contacts.
+   overlappingCandidates:pairs.length+groups.length>1,
+   relationshipCardinality},
   comparedMethodCandidateDiffersFromMain:different,
   determinedActiveQi:false,determinedSymbolPriority:false
  };
