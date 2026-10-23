@@ -22,7 +22,24 @@ function inspect(packet){
  const scoped=branch==='寅'&&s.monthMainQiStem===PRIMARY&&
   s.monthHiddenStems.some(x=>x.stem===SECONDARY);
  const exactMatch=scoped&&primary.length===0&&secondary.length>0;
- const dualCaseApplies=scoped&&packet.chart.day[0]==='辛'&&primary.length>0&&secondary.length>0;
+ const xinDay=scoped&&packet.chart.day[0]==='辛';
+ const singleExposureCaseApplies=xinDay&&primary.length===0&&secondary.length>0;
+ const dualCaseApplies=xinDay&&primary.length>0&&secondary.length>0;
+ // The same classical chapter distinguishes a Bing-only change of the
+ // month-command category from the Jia+Bing case that retains Jia first.
+ // These are TEXTUAL applicability checks, not approval of a full pattern.
+ const singleExposureTextualChange={
+  example:'Xin-day Yin-month, Bing exposed, Jia not exposed',
+  scopeMatched:singleExposureCaseApplies,
+  firstRole:singleExposureCaseApplies?'정관':null,
+  source:'Zi Ping Zhen Quan, chapter 10, Xin-in-Yin change example',
+  textualChangeBasis:singleExposureCaseApplies?
+   'In a Xin-day Yin month, Bing exposure without Jia exposure changes the textually described month-command interpretation from wealth to authority':null,
+  distinctFromDualExposurePriority:true,
+  finalTraditionalPatternEstablished:false,
+  subjectToIndependentFullChartReview:true,
+  observedBehavior:false
+ };
  const dualExposureTextualPriority={
   example:'Xin-day Yin-month with Jia and Bing both exposed',
   scopeMatched:dualCaseApplies,
@@ -62,7 +79,7 @@ function inspect(packet){
    '이 명식은 고전의 특정 예시처럼 달의 대표 글자는 다른 겉자리에 없고, 달의 다른 숨은 글자가 겉자리에 나타나는 계산 조건을 충족한다.':
    '이 명식은 해당 고전 예시의 계산 조건을 그대로 충족하지 않는다.',
   alternativeExposuresNeedReview:third.length>0,
-  dualExposureTextualPriority,
+  singleExposureTextualChange,dualExposureTextualPriority,
   chapterExampleIsNotFullPatternRule:true,
   otherBranchesAndCombinedRelationsNotAssessed:true,
   actualPersonalityOrCareerNotEstablished:true,
