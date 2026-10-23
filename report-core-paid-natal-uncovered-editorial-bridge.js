@@ -114,7 +114,9 @@ function review(packet){
  const reversalCondition=single?
   '같은 달에 태어나도 바탕 글자가 해나 시간의 겉에 드러나면, 이 고전은 자원의 뜻을 먼저 읽는 다른 사례를 제시합니다. 이때 지금의 설명을 그대로 적용해서는 안 됩니다.':
   '반대로 달의 바탕 글자가 해·달·시간의 겉에 전혀 드러나지 않는다면, 이 고전에서는 기준과 책임의 뜻을 먼저 보는 다른 사례가 됩니다. 지금의 순서를 그대로 적용해서는 안 됩니다.';
- const competingExposure='두 경우 모두 달의 또 다른 숨은 글자가 겉에 드러나면 이 비교만으로 우선순위를 정하지 않습니다.';
+ const competingExposure=single?
+  '달에 숨어 있는 또 다른 글자까지 해나 시간의 겉에서 확인된다면, 지금의 책임 중심 설명만으로 결론을 정할 수 없습니다.':
+  '달의 바탕 글자와 규칙의 글자 외에 세 번째 숨은 글자가 겉에 드러난다면, 지금의 자원 중심 설명을 그대로 유지할지 추가 검토해야 합니다.';
 
  const rootPositions=[...new Set(structural.evidence.rootRefs.map(id=>
   id.split('.')[1]))];
