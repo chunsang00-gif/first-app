@@ -65,6 +65,23 @@ for(const input of all){
  assert.equal(exposure.personalBehaviorObserved,false);
  assert(out.review.chartSynthesis.sourceRefs.includes('facts.stemConnections'));
  assert(out.reader.paragraphs.chartSynthesis.text.includes(exposure.displayedReaderReason));
+ const symbolic={
+  비견:'함께 맡는 역할과 몫',겁재:'함께 맡는 역할과 몫',
+  식신:'생각을 밖으로 표현하고 결과로 남기는 일',상관:'생각을 밖으로 표현하고 결과로 남기는 일',
+  정재:'필요한 자원과 비용의 관리',편재:'필요한 자원과 비용의 관리',
+  정관:'맡은 책임과 지켜야 할 기준',편관:'맡은 책임과 지켜야 할 기준',
+  정인:'정보와 도움을 받아 배우는 과정',편인:'정보와 도움을 받아 배우는 과정'
+ };
+ const mainStem=exposure.mainSourceId.split('.').at(-1);
+ const mainRole=p.facts.tenGods.month.hiddenStems.find(x=>x.stem===mainStem).tenGod;
+ assert(exposure.displayedReaderReason.includes(symbolic[mainRole]),
+  'reader needs a human-readable meaning of its central calculated month symbol');
+ for(const hiddenId of new Set(exposure.otherMatches.map(x=>x.hiddenId))){
+  const stem=hiddenId.split('.').at(-1);
+  const role=p.facts.tenGods.month.hiddenStems.find(x=>x.stem===stem).tenGod;
+  assert(exposure.displayedReaderReason.includes(symbolic[role]),
+   'other exposed source must also add a distinct grounded meaning');
+ }
  assert(exposure.sourceRefs.every(id=>out.review.chartSynthesis.sourceRefs.includes(id)));
  for(const hiddenId of new Set(exposure.otherMatches.map(x=>x.hiddenId))){
   assert(exposure.sourceRefs.includes(hiddenId),
