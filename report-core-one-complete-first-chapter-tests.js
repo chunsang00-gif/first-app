@@ -8,6 +8,8 @@ const core=require('./report-core-knowledge-engine');
 const policy=require('./report-reader-policy');
 const contrast=require('./report-core-paid-natal-counterfactual-audit');
 const source=require('./report-fact-bindings');
+const paidScope=require('./report-core-paid-depth-gap-audit');
+const kb=require('./report-core-knowledge.json');
 const input=time=>({
  calendar:'lunar',birthDate:'1982-11-24',birthTime:time,leapMonth:false,
  gender:'male',mbti:'ISFP'
@@ -88,6 +90,47 @@ assert.throws(()=>core.compile(tampered),
 assert.equal(built.releaseVerdict,'not-approved');
 assert.equal(built.apiCalls,0);
 assert.equal(built.review.humanReviewRequired,true);
+// Real paid request comparison, not an invented 'free copy'. The app's
+// /api/calculate exposes verified calculations; a public standalone narrative
+// copy was not used as the comparator. The actual paid writer still has only
+// month-based first chapter support; do not silently claim this research
+// paragraph improves the paid call.
+const live=paidScope.reportOne(packet);
+const baseRule=kb.pairRules.find(x=>x.id===built.ruleId);
+assert(baseRule,'the baseline month-only reading must come from the real core');
+const monthParagraph=[
+ baseRule.scene,baseRule.explanation,baseRule.advantage,baseRule.downside
+].join(' ');
+assert.equal(live.provenanceVerified,true);
+assert.equal(live.paidReceivesOfflineSynthesis,false);
+assert.equal(live.paidWholeChartGrounded,false);
+assert.equal(live.offlineFourPillarAuthored,true);
+assert(live.paidCitableRefs.includes('natal.month.stem'));
+assert(live.paidCitableRefs.includes('natal.month.hidden.己'));
+for(const ref of ['natal.year.stem','natal.day.stem','natal.hour.stem',
+ 'facts.stemConnections','facts.natalBranchRelations']){
+ assert(!live.paidCitableRefs.includes(ref),
+  'current paid first-chapter request does not receive reviewed full-chart citations');
+}
+assert.notEqual(live.lockedJudgment,label);
+assert(!monthParagraph.includes('회사에서 기존 작업 지침을 바꾸자는 제안을 받았다면'));
+assert(!monthParagraph.includes('바꾸지 않을 안전 기준'));
+assert(text.includes('기존 작업 지침을 바꾸자는 제안을 받았다면'));
+assert(text.includes('달과 시간에는 낯선 내용을 자기 방식으로 이해하는 뜻이 반복됩니다'));
+const sentences=t=>t.split(/[.!?。！？]+/).map(v=>v.trim()).filter(v=>v.length>=25);
+const overlapping=sentences(text).filter(v=>sentences(monthParagraph).includes(v));
+assert.deepEqual(overlapping,[],
+ 'the research chapter must explain a new full-chart scenario, not repeat the original month text');
+console.log('QA_FIRST_CHAPTER_REAL_PAID_SCOPE_DELTA='+JSON.stringify({
+ baseline:'real-paid-month-only-first-chapter-request',
+ actualPaidWholeChartFacts:false,
+ researchHasFourPillarContext:true,
+ longExactSentencesDuplicated:overlapping.length,
+ actualPaidReceivesResearchDraft:false,
+ canClaimCustomerPaidDepth:false,
+ selectedScenario:'standards-versus-experimental-change',
+ billableCalls:0,releaseVerdict:'not-approved'
+}));
 console.log('QA_ONE_COMPLETE_FIRST_CHAPTER='+JSON.stringify({
  source:built.review.fourPillar.ruleId,chars:text.length,
  integratedParts:Object.keys(domains),verifiedRoles:4,
