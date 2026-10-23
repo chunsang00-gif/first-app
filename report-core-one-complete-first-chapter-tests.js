@@ -30,8 +30,8 @@ const otherText=alternative.reader.paragraphs.fourPillar.text;
 const refs=built.review.fourPillar.sourceRefs;
 const ledger=Object.fromEntries(source.build(packet).map(row=>[row.id,row]));
 const snapshot=contrast.snapshot(packet),otherSnapshot=contrast.snapshot(other);
-assert.equal(label,'새로운 정보를 이해하고 실행하기 전에 볼 것');
-assert(text.length>=580&&text.length<=650);
+assert.equal(label,'익숙한 기준을 지키면서 새 방식을 검토할 때');
+assert(text.length>=650&&text.length<=760);
 assert.deepEqual(policy.errors([label,text]),[]);
 assert.equal(built.review.readerMechanical.mechanicalPass,true);
 for(const id of ['natal.year.stem','natal.month.stem','natal.hour.stem',
@@ -49,20 +49,22 @@ assert.equal(otherSnapshot.positions.hour.tenGod,'상관');
 assert.equal(built.review.fourPillar.matched.hourRootExpected,true);
 assert.equal(alternative.review.fourPillar.matched.hourRootExpected,false);
 const domains={
- thesis:'정보를 이해하는 기준과 실행에 쓸 자원을 고르는 기준',
- reason:'태어난 해에는 이미 알려진 설명을 참고하는 뜻',
- repeated:'달과 시간의 겉에는 새로운 내용을 자기 방식으로 이해하는 뜻',
- other:'달의 안쪽에는 사람·도구·비용처럼 필요한 자원을 살피는 뜻',
- hypothetical:'새 업무를 맡는 상황을 가정하면',
- strength:'도움이 되는 접근은 확인된 자료와 아직 가정에 머무는 내용을 먼저 나누고',
- downside:'반대로 설명을 계속 검토하느라 시작하지 못하거나',
- action:'실제로는 시작 전에 확인된 사실, 추가로 확인할 가정',
- actionResult:'작은 실행을 해 본 뒤 결과를 확인하는 순서',
- caveat:'이 기록만으로 실제 성격이나 행동, 갈등의 발생과 미래 성과를 단정하지 않습니다'
+ thesis:'이미 검증된 기준을 참고하는 일과 새로운 설명을 이해하는 일',
+ reason:'태어난 해에는 알려진 설명을 참고하는 뜻',
+ repeated:'달과 시간에는 낯선 내용을 자기 방식으로 이해하는 뜻',
+ other:'달 안쪽에는 필요한 사람과 도구를 살피는 별도의 의미',
+ hypothetical:'회사에서 기존 작업 지침을 바꾸자는 제안을 받았다면',
+ strength:'이 풀이가 도움이 되는 조건은 확인된 기준을 무조건 버리지 않으면서도',
+ downside:'반대로 기존 지침만 고수하면 개선 가능성을 놓칠 수 있고',
+ action:'실제 선택에서는 바꾸지 않을 안전 기준, 시험할 한 가지 변경점',
+ actionResult:'소규모로 점검하는 방식이 가능합니다',
+ caveat:'실제 행동, 성공이나 갈등을 예측하지는 않습니다'
 };
 for(const [k,part] of Object.entries(domains))
  assert(text.includes(part),'real integrated chapter missing '+k);
 assert(text.indexOf(domains.thesis)<text.indexOf(domains.reason));
+assert(text.indexOf(domains.other)<text.indexOf(domains.hypothetical));
+assert(text.indexOf(domains.hypothetical)<text.indexOf(domains.strength));
 assert(text.indexOf(domains.reason)<text.indexOf(domains.hypothetical));
 assert(text.indexOf(domains.hypothetical)<text.indexOf(domains.downside));
 assert(text.indexOf(domains.downside)<text.indexOf(domains.action));
