@@ -6,6 +6,7 @@ const engine=require('./report-core-knowledge-engine');
 const factsAudit=require('./report-core-paid-natal-counterfactual-audit');
 const binding=require('./report-fact-bindings');
 const readerPolicy=require('./report-reader-policy');
+const uncovered=require('./report-core-paid-natal-uncovered-editorial-bridge');
 const CHECKLIST=[
  'accurate_calculated_basis','distinct_from_free_reading',
  'interprets_not_glossary','condition_and_downside','natural_korean',
@@ -20,12 +21,26 @@ function inspect(packet){
     !['not-covered','draft-for-human-review'].includes(result.status))
   throw Error('QA_MANUSCRIPT_UNAPPROVED_SCOPE_REQUIRED');
  if(result.status==='not-covered'){
+  const bridge=uncovered.review(packet);
+  if(bridge.releaseVerdict!=='not-approved'||
+     bridge.curatedCoreStillMissing!==true||
+     bridge.providerCalls!==0)
+   throw Error('QA_MANUSCRIPT_UNCOVERED_BRIDGE_RELEASE_DRIFT');
+  // QA source-matched textual examples are NOT missing core coverage fixes.
+  // Count them separately; no reader slot can be released from this path.
+  const limited=bridge.status==='narrow-textual-editorial-candidate-only';
   return {
    kind:'qa-natal-manuscript-editorial-triage-v1',
    status:'missing-curated-coverage',readerPresent:false,
    reviewType:null,sourceRefs:[],
+   supplementalCandidateAvailable:limited,
+   supplementalCandidateKind:limited?bridge.candidate.category:null,
+   supplementalCitedRefs:limited?bridge.candidate.sourceRefs.slice():[],
    findings:[{id:'no-chart-specific-manuscript',
-    severity:'coverage-blocker',evidence:'no curated first-chapter manuscript'}],
+    severity:'coverage-blocker',evidence:'no curated first-chapter manuscript'},
+    ...(limited?[{id:'narrow-classical-editorial-candidate-available',
+     severity:'editorial-only-not-full-report',
+     evidence:'textual case matches; full chart and reader quality not approved'}]:[])],
    humanReview:{status:'pending',criteria:CHECKLIST},
    provedIndividualInsight:false,independentMethodApproved:false,
    eligibleForPaidRelease:false,providerCalls:0,releaseVerdict:'not-approved'
