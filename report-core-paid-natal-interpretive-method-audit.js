@@ -5,6 +5,7 @@
 // influence, or paid reader value has been established.
 const linkage=require('./report-core-paid-natal-linkage-brief');
 const monthMethod=require('./report-core-paid-natal-month-method-review');
+const monthFirst=require('./report-core-paid-natal-month-first-screen');
 const visibleRelations=require('./report-core-paid-natal-visible-relation-bridge');
 const REQUIRED=['natal.year.stem','natal.month.stem','natal.day.stem',
  'natal.hour.stem','facts.stemConnections'];
@@ -91,6 +92,9 @@ function assess(prompt,provider){
  if(JSON.stringify(focus.verifiedElementDirections)!==JSON.stringify(traditionalVisibleRelations))
   throw Error('QA_METHOD_REVIEW_VISIBLE_DIRECTION_PROVIDER_DRIFT');
  const monthMethodReview=monthMethod.assess(prompt.facts);
+ const monthFirstReview=monthFirst.build(prompt.facts);
+ if(JSON.stringify(focus.monthFirstApplicability)!==JSON.stringify(monthFirstReview))
+  throw Error('QA_METHOD_REVIEW_MONTH_FIRST_PROVIDER_DRIFT');
  if(monthMethodReview.canApproveDeepSajuInterpretation!==false||
     monthMethodReview.interpretivePriorityVerified!==false)
   throw Error('QA_METHOD_REVIEW_PREMATURE_MONTH_PRIORITY');
@@ -113,7 +117,7 @@ function assess(prompt,provider){
   kind:'isolated-natal-depth-interpretive-method-audit-v1',
   methodStatus:'unverified-interpretive-bridge',
   calculatedObservations:observations,
-  exactStemsByPosition,falsifiableChecks,monthMethodReview,
+  exactStemsByPosition,falsifiableChecks,monthMethodReview,monthFirstReview,
   traditionalVisibleRelations,
   // Passing these checks only verifies calculated identity/difference.
   // A school-specific interpretation and independent editorial validation
