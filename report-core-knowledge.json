@@ -1364,6 +1364,7 @@
         "label": "익숙한 기준을 지키면서 새 방식을 검토할 때",
         "text": "이 사주를 하나의 선택으로 풀면, 이미 검증된 기준을 참고하는 일과 새로운 설명을 이해하는 일, 실제로 쓸 자원을 고르는 일을 서로 나누어 보는 관점이 됩니다. 태어난 해에는 알려진 설명을 참고하는 뜻이, 달과 시간에는 낯선 내용을 자기 방식으로 이해하는 뜻이 반복됩니다. 달 안쪽에는 필요한 사람과 도구를 살피는 별도의 의미가 있습니다. 세 뜻이 함께 있다고 해서 실제로 변화에 능하거나 이해력이 높다는 판단은 할 수 없습니다. 예를 들어 회사에서 기존 작업 지침을 바꾸자는 제안을 받았다면, 먼저 유지할 기준을 구분하고, 새 방식이 개선하려는 부분을 분리해 비교하는 상황을 생각할 수 있습니다. 이 풀이가 도움이 되는 조건은 확인된 기준을 무조건 버리지 않으면서도 새로운 설명을 검토할 여지를 두는 것입니다. 반대로 기존 지침만 고수하면 개선 가능성을 놓칠 수 있고, 새 방법에만 관심을 두면 필요한 인력과 도구를 고려하지 못할 수 있습니다. 실제 선택에서는 바꾸지 않을 안전 기준, 시험할 한 가지 변경점, 필요한 자원과 결과를 확인할 시점을 나눠 적어 소규모로 점검하는 방식이 가능합니다. 날과 시간의 안쪽에는 날의 기준과 같은 종류의 기운이 확인되며 달과 날 사이에는 관계표상의 대응도 있습니다. 이런 계산 기록과 계절이 바뀌는 출생월이라는 조건만으로 실제 행동, 성공이나 갈등을 예측하지는 않습니다."
       },
+      "readerAttribution": {"kind":"qa-reader-attribution-ledger-v1","sourceClaims":[{"sourceId":"natal.year.stem","calculatedRole":"정인","readerSpan":"태어난 해에는 알려진 설명을 참고하는 뜻"},{"sourceId":"natal.month.stem","calculatedRole":"편인","readerSpan":"달과 시간에는 낯선 내용을 자기 방식으로 이해하는 뜻"},{"sourceId":"natal.month.hidden.己","calculatedRole":"편재","readerSpan":"달 안쪽에는 필요한 사람과 도구를 살피는 별도의 의미"},{"sourceId":"natal.hour.stem","calculatedRole":"편인","readerSpan":"달과 시간에는 낯선 내용을 자기 방식으로 이해하는 뜻"}],"example":{"readerSpan":"회사에서 기존 작업 지침을 바꾸자는 제안을 받았다면","class":"hypothetical-editorial-application","verifiedUserSituation":false,"computedConsequence":false,"domainFitEstablished":false},"priority":"not-approved-for-full-chart-causal-order","observedPersonality":false,"paidReaderValueApproved":false},
       "status": "editorial-candidate",
       "coreRuleId": "month-pair-pyeonin-pyeonjae-v1",
       "monthPhase": "transition",
@@ -1395,6 +1396,7 @@
         "label": "이해한 내용을 다른 사람에게 전달할 때",
         "text": "이 사주에서는 이해하는 과정과 그것을 밖으로 표현하는 과정을 구분해 읽습니다. 태어난 해에는 이미 알려진 설명을 참고하는 뜻이 있고, 달에는 낯선 내용을 자기 방식으로 이해하는 뜻이 나타납니다. 시간에는 이해한 것을 말이나 결과물로 옮기는 의미가 따로 놓이며, 달의 안쪽에는 필요한 사람과 도구를 살피는 뜻도 있습니다. 그래서 내용에 익숙해지는 것과 남에게 쓸 수 있는 형태로 전달하는 것은 같은 단계가 아닙니다. 예를 들어 새 작업 절차를 동료에게 인계한다고 가정해 보겠습니다. 도움이 되는 접근은 기존 안내에서 유지할 부분을 확인하고, 새로 알게 된 내용을 실제 작업 순서와 예시 하나로 바꿔 보여주는 것입니다. 반대로 스스로 이해했다는 이유로 설명을 생략하면 인계받는 사람에게 중요한 조건이 빠질 수 있고, 자료를 지나치게 많이 모으면 정작 전달할 핵심이 흐려질 수 있습니다. 이때는 작업 순서 세 가지와 주의할 조건 하나를 먼저 적어 상대가 직접 따라 해 보도록 확인하는 방법이 가능합니다. 태어난 날의 안쪽에는 날의 기준과 같은 종류의 기운이 있으나 시간 안쪽에서는 확인되지 않습니다. 달과 날의 관계표상 대응과 계절 경계까지 계산되어도 실제 설명 능력이나 업무 성과를 예측하는 근거는 아닙니다."
       },
+      "readerAttribution": {"kind":"qa-reader-attribution-ledger-v1","sourceClaims":[{"sourceId":"natal.year.stem","calculatedRole":"정인","readerSpan":"태어난 해에는 이미 알려진 설명을 참고하는 뜻"},{"sourceId":"natal.month.stem","calculatedRole":"편인","readerSpan":"달에는 낯선 내용을 자기 방식으로 이해하는 뜻"},{"sourceId":"natal.month.hidden.己","calculatedRole":"편재","readerSpan":"달의 안쪽에는 필요한 사람과 도구를 살피는 뜻도"},{"sourceId":"natal.hour.stem","calculatedRole":"상관","readerSpan":"시간에는 이해한 것을 말이나 결과물로 옮기는 의미"}],"example":{"readerSpan":"새 작업 절차를 동료에게 인계한다고 가정해 보겠습니다","class":"hypothetical-editorial-application","verifiedUserSituation":false,"computedConsequence":false,"domainFitEstablished":false},"priority":"not-approved-for-full-chart-causal-order","observedPersonality":false,"paidReaderValueApproved":false},
       "status": "editorial-candidate",
       "coreRuleId": "month-pair-pyeonin-pyeonjae-v1",
       "monthPhase": "transition",
@@ -1447,6 +1449,7 @@
         "label": "담당을 나누고 승인 기준을 정할 때",
         "text": "이 사주에서는 함께 맡을 몫과 지켜야 할 기준을 같은 말로 뭉뚱그리지 않는 것이 해석의 출발점입니다. 태어난 해에는 사용할 자원과 비용을 살피는 뜻, 달에는 각자 맡을 일을 구분하는 뜻이 있습니다. 달의 안쪽에는 익숙한 안내를 참고하는 의미가 있고, 시간에는 책임과 규칙을 점검하는 뜻이 따로 나타납니다. 예를 들어 여러 사람이 설비 점검 업무를 나눠 맡는 상황을 가정해 보겠습니다. 이 상징들을 적용한다면 준비할 부품과 비용을 먼저 적고, 누가 점검할지 정한 다음, 최종 확인과 작업 승인 권한이 누구에게 있는지 분리해 보는 접근이 가능합니다. 도움이 되는 점은 담당자와 승인자를 구별하여 빈틈을 확인할 수 있다는 것입니다. 반대로 비용 절감만 먼저 정하거나 담당 이름만 적고 승인 기준을 빼놓으면, 일이 끝났는지 판단하는 조건이 모호해질 수 있습니다. 실행할 때는 자원 목록, 담당자, 최종 확인 기준을 서로 다른 칸에 적고 시험 업무 한 건으로 대조해 볼 수 있습니다. 태어난 날과 시간의 안쪽에서 날의 기준과 같은 종류의 기운이 확인되고 해·날과 달·시간 사이에 관계표상의 대응이 있지만, 이 표시를 실제 다툼이나 능력의 강도로 해석하지 않습니다."
       },
+      "readerAttribution": {"kind":"qa-reader-attribution-ledger-v1","sourceClaims":[{"sourceId":"natal.year.stem","calculatedRole":"편재","readerSpan":"태어난 해에는 사용할 자원과 비용을 살피는 뜻"},{"sourceId":"natal.month.stem","calculatedRole":"비견","readerSpan":"달에는 각자 맡을 일을 구분하는 뜻"},{"sourceId":"natal.month.hidden.癸","calculatedRole":"정인","readerSpan":"달의 안쪽에는 익숙한 안내를 참고하는 의미"},{"sourceId":"natal.hour.stem","calculatedRole":"정관","readerSpan":"시간에는 책임과 규칙을 점검하는 뜻"}],"example":{"readerSpan":"여러 사람이 설비 점검 업무를 나눠 맡는 상황을 가정해 보겠습니다","class":"hypothetical-editorial-application","verifiedUserSituation":false,"computedConsequence":false,"domainFitEstablished":false},"priority":"not-approved-for-full-chart-causal-order","observedPersonality":false,"paidReaderValueApproved":false},
       "status": "editorial-candidate",
       "monthPhase": "core",
       "monthSeason": "winter",
@@ -1506,6 +1509,7 @@
         "label": "함께 맡은 일이 겹치지 않게 구분할 때",
         "text": "이 사주는 역할을 나누는 뜻이 달과 시간의 겉에 반복된다는 계산 조건에서 읽습니다. 태어난 해에는 필요한 자원과 비용을 고르는 뜻, 달의 안쪽에는 익숙한 안내를 참고하는 의미가 있습니다. 달과 시간에 같은 종류의 상징이 있다고 실제 경쟁심이 크거나 독립적인 사람이라고 볼 수는 없습니다. 예를 들어 공동으로 자재를 관리하는 상황을 가정하면, 자재를 누가 사용할지 정하는 일과 재고를 누가 확인하고 기록할지 정하는 일을 나눠 볼 수 있습니다. 반복된 역할의 뜻을 이런 두 가지 질문으로 풀어 보면 한 업무를 모두가 맡았다고 생각하면서 정작 아무도 마무리하지 않는 상황을 점검하는 데 도움이 됩니다. 반대로 담당자를 지나치게 세분화하면 작은 변경마다 서로 승인을 기다리는 문제가 생길 수도 있습니다. 실제로 적용해 본다면 자재 한 품목을 정해 사용 담당, 기록 담당, 변경 시 확인할 사람을 적고 중복된 칸만 조정하는 방식이 가능합니다. 태어난 날의 안쪽에는 날의 기준과 같은 종류의 기운이 확인되지만 시간 안쪽에는 같은 대응이 없습니다. 해·날·시간에 기록된 관계표의 이름만으로 갈등이 생긴다고 판단하지 않습니다."
       },
+      "readerAttribution": {"kind":"qa-reader-attribution-ledger-v1","sourceClaims":[{"sourceId":"natal.year.stem","calculatedRole":"편재","readerSpan":"태어난 해에는 필요한 자원과 비용을 고르는 뜻"},{"sourceId":"natal.month.stem","calculatedRole":"비견","readerSpan":"역할을 나누는 뜻이 달과 시간의 겉에 반복"},{"sourceId":"natal.month.hidden.癸","calculatedRole":"정인","readerSpan":"달의 안쪽에는 익숙한 안내를 참고하는 의미"},{"sourceId":"natal.hour.stem","calculatedRole":"비견","readerSpan":"역할을 나누는 뜻이 달과 시간의 겉에 반복"}],"example":{"readerSpan":"공동으로 자재를 관리하는 상황을 가정하면","class":"hypothetical-editorial-application","verifiedUserSituation":false,"computedConsequence":false,"domainFitEstablished":false},"priority":"not-approved-for-full-chart-causal-order","observedPersonality":false,"paidReaderValueApproved":false},
       "status": "editorial-candidate",
       "monthPhase": "core",
       "monthSeason": "winter",
@@ -1567,6 +1571,7 @@
         "label": "갑작스러운 요청의 책임 범위를 정할 때",
         "text": "이 사주에서는 새로운 제안, 공동으로 나눌 몫, 갑작스럽게 맡는 책임을 서로 다른 주제로 읽습니다. 태어난 해에는 익숙한 방식을 바꿔 표현하는 뜻이 있고, 달에는 함께 쓰는 몫을 조정하는 뜻이 나타납니다. 달의 안쪽에는 이미 배운 내용을 참고하는 의미가 있으며, 시간에는 예상하지 못한 요구 앞에서 책임의 기준을 살피는 뜻이 따로 있습니다. 예를 들어 진행 중인 공동 프로젝트에 긴급 변경 요청이 들어온 상황을 가정해 보겠습니다. 새 방법을 제안하는 일과 추가 자원을 나누는 일, 최종 책임을 정하는 일을 차례로 구분하는 접근이 가능합니다. 도움이 되는 조건은 제안 자체의 장점만 보지 않고 누가 변경을 승인하며 어느 일정까지 감당할지 확인하는 것입니다. 반대로 책임의 범위를 정하지 않은 채 요청을 모두 받아들이면 기존 업무와 변경 업무가 충돌할 여지가 있습니다. 대응할 때는 변경할 항목, 추가로 쓸 자원, 승인할 담당자, 다시 확인할 시점을 한 번에 적어 비교할 수 있습니다. 날의 기준과 같은 종류의 기운은 달 안쪽에서 확인되지만 날과 시간의 안쪽에서는 같은 대응이 없습니다. 출생 자리 사이의 관계표상 조합만으로 돌발 사건이나 성패를 예언할 수는 없습니다."
       },
+      "readerAttribution": {"kind":"qa-reader-attribution-ledger-v1","sourceClaims":[{"sourceId":"natal.year.stem","calculatedRole":"상관","readerSpan":"태어난 해에는 익숙한 방식을 바꿔 표현하는 뜻"},{"sourceId":"natal.month.stem","calculatedRole":"겁재","readerSpan":"달에는 함께 쓰는 몫을 조정하는 뜻"},{"sourceId":"natal.month.hidden.庚","calculatedRole":"정인","readerSpan":"달의 안쪽에는 이미 배운 내용을 참고하는 의미"},{"sourceId":"natal.hour.stem","calculatedRole":"편관","readerSpan":"시간에는 예상하지 못한 요구 앞에서 책임의 기준을 살피는 뜻"}],"example":{"readerSpan":"공동 프로젝트에 긴급 변경 요청이 들어온 상황을 가정해 보겠습니다","class":"hypothetical-editorial-application","verifiedUserSituation":false,"computedConsequence":false,"domainFitEstablished":false},"priority":"not-approved-for-full-chart-causal-order","observedPersonality":false,"paidReaderValueApproved":false},
       "status": "editorial-candidate",
       "monthPhase": "core",
       "monthSeason": "autumn",
@@ -1628,6 +1633,7 @@
         "label": "함께 쓰는 자원을 나누고 새 방식을 시험할 때",
         "text": "이 사주에서는 함께 쓰는 몫을 조정하는 뜻이 태어난 달과 시간에 반복됩니다. 해에는 익숙한 방식을 달리 표현하는 의미가 있고, 달의 안쪽에는 이미 배운 안내를 참고하는 뜻이 있습니다. 두 자리에 역할 분담의 상징이 반복되었다고 경쟁심이 크거나 협업을 잘한다는 성격 판정으로 이어지지는 않습니다. 예를 들어 팀이 새로운 작업 방식을 시험한다면, 제안 내용을 검토하는 일과 그 시험에 쓸 사람·도구·시간을 나누는 일을 따로 살펴볼 수 있습니다. 도움이 되는 조건은 새로운 아이디어의 목적을 먼저 적고 공동 자원 중 어디까지 시험에 사용할 수 있는지 합의하는 것입니다. 반대로 아이디어를 낸 사람에게 자원 배분까지 전부 맡기거나 모두에게 같은 몫을 주면 실제 업무량의 차이를 놓칠 수 있습니다. 먼저 한 가지 시험 항목을 고르고, 제안을 검토할 사람과 자원을 관리할 사람을 구분한 뒤, 결과를 확인할 날짜를 정하는 방식이 가능합니다. 날의 기준과 같은 종류의 기운은 달 안쪽에서만 확인되며 날과 시간 안쪽에는 해당 대응이 없습니다. 해·달·날의 관계표상 조합은 계산 기록일 뿐 실제 변화나 성공의 증거는 아닙니다."
       },
+      "readerAttribution": {"kind":"qa-reader-attribution-ledger-v1","sourceClaims":[{"sourceId":"natal.year.stem","calculatedRole":"상관","readerSpan":"해에는 익숙한 방식을 달리 표현하는 의미"},{"sourceId":"natal.month.stem","calculatedRole":"겁재","readerSpan":"함께 쓰는 몫을 조정하는 뜻이 태어난 달과 시간에 반복"},{"sourceId":"natal.month.hidden.庚","calculatedRole":"정인","readerSpan":"달의 안쪽에는 이미 배운 안내를 참고하는 뜻"},{"sourceId":"natal.hour.stem","calculatedRole":"겁재","readerSpan":"함께 쓰는 몫을 조정하는 뜻이 태어난 달과 시간에 반복"}],"example":{"readerSpan":"팀이 새로운 작업 방식을 시험한다면","class":"hypothetical-editorial-application","verifiedUserSituation":false,"computedConsequence":false,"domainFitEstablished":false},"priority":"not-approved-for-full-chart-causal-order","observedPersonality":false,"paidReaderValueApproved":false},
       "status": "editorial-candidate",
       "monthPhase": "core",
       "monthSeason": "autumn",
