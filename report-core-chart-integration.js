@@ -235,18 +235,43 @@ function select(packet,graph){
    rootPositions.map(p=>POS[p]).join('·')+
    '입니다. 어느 자리에 있는지와 그 작용이 어느 정도인지는 다른 문제입니다.':
   '태어난 날의 기준과 같은 종류의 기운이 안쪽에서 확인되지 않습니다. 그렇다고 실제로 기운이 약하다고 단정할 수는 없습니다.');
- const priority={충:0,형:1,해:2,파:3,육합:4};
- const rank=r=>(r.positions.includes('day')?0:10)+(priority[r.type]??9);
- const picked=natal.pairs.slice().sort((a,b)=>rank(a)-rank(b)).slice(0,2);
- if(picked.length)clauses.push('태어난 자리를 서로 비교하는 전통 관계표에도 대응하는 위치가 있습니다. 단순한 분류표의 일치만으로 생활 속 갈등이나 실제 사건을 예상할 수는 없습니다.');
- if(natal.groups.length)clauses.push('태어난 세 자리 사이에도 전통 관계표에 해당하는 조합이 확인됩니다. 이 표시만으로 어떤 변화가 실제 일어난다고 판단하지 않습니다.');
+ // Preserve ALL independently calculated table labels. An arbitrary
+ // "clash before combination" order, or truncating to the first two labels,
+ // silently asserts an unvalidated traditional priority. The exact table
+ // data is already available and must be used without selective ranking.
+ const fullPairs=natal.pairs.map(r=>({...r,positions:r.positions.slice()}));
+ const contacts=new Map();
+ for(const relation of fullPairs){
+  const key=relation.positions.slice().sort().join('/');
+  if(!contacts.has(key))contacts.set(key,{
+   positions:relation.positions.slice(),tableLabels:[]});
+  contacts.get(key).tableLabels.push(relation.type);
+ }
+ const distinctContacts=[...contacts.values()];
+ const duplicatedLabels=distinctContacts.filter(x=>x.tableLabels.length>1);
+ const displayPositions=x=>x.map(p=>POS[p]).join('·');
+ const directContacts=distinctContacts.filter(x=>x.positions.includes('month'));
+ const contactReason=duplicatedLabels.length?
+  '태어난 '+displayPositions(duplicatedLabels[0].positions)+
+   ' 사이의 관계가 표에서 서로 다른 이름으로도 표시됩니다. 이를 별개의 두 사건이나 더 강한 영향으로 세지 않습니다.':
+  directContacts.length>1?
+   '태어난 달과 연결된 관계가 '+directContacts.length+
+   '개의 서로 다른 출생 자리 조합에서 확인됩니다. 어느 관계가 먼저 작용하는지 이 계산만으로 결정하지 않습니다.':
+  directContacts.length===1?
+   '태어난 '+displayPositions(directContacts[0].positions)+
+   ' 사이에 관계표의 대응이 있습니다. 같은 조건에서 실제 일이 일어나는지는 알 수 없습니다.':
+  distinctContacts.length?
+   '출생 자리 사이에 관계표의 대응이 있지만, 태어난 달의 의미가 다른 자리보다 우선한다고 볼 근거는 아닙니다.':
+   '출생 자리 사이에 이 관계표에서 확인된 짝은 없습니다. 그렇다고 특정한 인간관계나 변화가 없다는 뜻은 아닙니다.';
+ if(distinctContacts.length)clauses.push(contactReason);
+ if(natal.groups.length)clauses.push('태어난 세 자리 사이에도 관계표에 기록된 조합이 있습니다. 이 사실만으로 어떤 변화가 실제 일어난다고 예측하지 않습니다.');
  clauses.push('이 설명은 계산된 상징을 읽어보는 예시입니다. 실제로 그런 행동을 한다거나 미래에 같은 일이 일어난다는 주장은 아닙니다.');
  const text=clauses.join(' ');
  const sourceRefs=['natal.day.stem','natal.month.stem',hid,
   'natal.year.stem','natal.hour.stem','facts.seasonalEvidence',
   'facts.stemConnections',...otherExposures.map(r=>r.hiddenId),
   ...graphRoots.map(r=>r.id)];
- if(picked.length||natal.groups.length)sourceRefs.push('facts.natalBranchRelations');
+ if(fullPairs.length||natal.groups.length)sourceRefs.push('facts.natalBranchRelations');
  const evidence={chart:{...chart},dayElement:month.dayElement,monthPhase:month.monthPhase,
   seasonToDayRelation:month.seasonToDayRelation,
   yearTenGod:year.tenGod,monthTenGod:monthVisible.tenGod,
@@ -256,8 +281,21 @@ function select(packet,graph){
   exposureEvidence,
   roleQuestions:roleQuestions.map(r=>({...r})),
   interpretiveFocus,
-  relationPairs:picked.map(r=>({...r,positions:r.positions.slice()})),
-  relationGroups:natal.groups.map(r=>({...r,positions:r.positions.slice()}))};
+  relationPairs:fullPairs,
+  relationGroups:natal.groups.map(r=>({...r,positions:r.positions.slice()})),
+  relationSummary:{
+   kind:'unranked-calculated-branch-table-contacts-v1',
+   pairTableEntries:fullPairs.length,
+   independentContacts:distinctContacts.map(x=>({
+    positions:x.positions.slice(),tableLabels:x.tableLabels.slice()})),
+   sameContactWithMultipleLabels:duplicatedLabels.map(x=>({
+    positions:x.positions.slice(),tableLabels:x.tableLabels.slice()})),
+   monthIndependentContactCount:directContacts.length,
+   anyGroupCount:natal.groups.length,
+   displayedReaderReason:contactReason,
+   adoptedPriority:'none',inferredLifeEvents:false,
+   measuredInteractionStrength:false
+  }};
  return {reader:{label:'네 기둥을 연결해 확인한 해석 근거',text},
   sourceRefs:[...new Set(sourceRefs)],evidence,
   editorialStatus:'machine-composed-review-only',humanReviewRequired:true,
