@@ -12,6 +12,8 @@ const GOD={'比肩':'비견','劫财':'겁재','食神':'식신','伤官':'상�
  '偏印':'편인','正印':'정인'};
 const SOURCE='https://www.donglishuzhai.net/chapter/3722.html';
 const texts={
+ childPresent:{label:'새로운 생각과 지켜야 할 약속이 함께 나타날 때',text:'이 사주에는 새로운 표현을 뜻하는 글자와 정해진 약속을 살피는 글자가 함께 보입니다. 태어난 해의 글자는 표현의 글자를 제약하는 관계라, 고전에서는 이를 앞선 충돌을 완화할 수 있는 조건으로 다룹니다. 예를 들어 아이가 놀이 규칙을 바꾸고 싶다고 말한다면, 보호자가 생각을 충분히 듣고도 다치지 않도록 지켜야 할 약속은 함께 확인하는 장면으로 설명할 수 있습니다. 이 예시는 사주의 상징을 쉽게 이해하기 위한 것이지, 아이가 실제로 규칙을 잘 지키거나 어긴다는 뜻은 아닙니다. 다른 출생 자리까지 고려한 완화의 효과나 미래의 행동은 확인되지 않았습니다.'},
+ childAbsent:{label:'새로운 표현과 놀이 약속을 함께 살필 때',text:'태어난 달에는 정해진 약속을 살피는 글자가 있고 다른 자리에는 그 기준을 제약하는 표현의 글자가 있습니다. 해·달·시간의 윗글자에서는 고전이 설명하는 완화 조건을 찾지 못했습니다. 다만 완화 글자가 보이지 않는다고 아이가 약속을 어기는 성격이라는 뜻은 아닙니다. 놀이 규칙을 새로 정할 때 아이의 생각을 듣고 지켜야 할 안전 약속을 함께 살피는 장면을 떠올릴 수 있습니다. 이 비교는 계산된 관계를 설명하기 위한 예시일 뿐, 실제 놀이 습관이나 앞으로의 행동을 예상할 근거는 아닙니다.'},
  present:{
   label:'새로운 제안과 기존 기준을 함께 살필 때',
   text:'태어난 달의 중심에는 규칙과 책임을 뜻하는 글자가 있으며, 그 기준을 제약하는 표현의 글자도 겉에 나타납니다. 여기에 태어난 해의 글자는 표현의 글자를 다시 제약하는 관계입니다. 고전에서는 이러한 조건을 앞의 충돌을 완화할 수 있는 사례로 설명합니다. 예를 들어 기존 작업 기준을 개선하려는 제안을 검토한다면, 새 제안의 장점을 확인하면서도 기존 승인 절차가 지키려는 조건을 함께 볼 수 있습니다. 반대로 겉으로 드러난 관계만으로 실제 협업 능력이나 성과가 좋아진다고 판단해서는 안 됩니다. 태어난 달과 다른 자리의 관계가 어떻게 작용하는지, 여러 조건 중 무엇이 더 중요한지는 아직 확인되지 않았습니다.'
@@ -78,7 +80,12 @@ function evaluate(packet){
  // This source explicitly provides 官逢傷而透印以解之 as an example,
  // but it does not warrant full chart 成格 or protection being realized.
  const state=protection.length?'present':'absent';
- const draft=texts[state];
+ const birthYear=Number(String(packet.calculationInput?.birthDate||'').slice(0,4));
+ const year=packet.targetYear?.year;
+ const age=Number.isInteger(birthYear)&&Number.isInteger(year)?
+  year-birthYear:null;
+ const child=age!==null&&age>=0&&age<13;
+ const draft=texts[child?(state==='present'?'childPresent':'childAbsent'):state];
  if(reader.errors([draft.label,draft.text]).length)
   throw Error('QA_CLASSICAL_RESCUE_READER_TERMINOLOGY');
  return {
@@ -104,6 +111,8 @@ function evaluate(packet){
   observedConflictInRealLife:false,
   cannotGeneralizeToOtherChartTypes:true,
   readerDraft:{label:draft.label,text:draft.text,
+   audience:child?'child-and-caregiver':'adult',
+   ageAtTargetYear:age,
    hypotheticalScenario:true,professionallyReviewed:false,
    approvedForPaid:false},
   approved:false,providerCalls:0,releaseVerdict:'not-approved'
