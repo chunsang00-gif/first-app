@@ -25,11 +25,13 @@ assert.equal(result.text.includes('이 풀이의 중심은 기준을 지키는 �
  'do not invent a rules-first priority from this chart roles');
 assert(result.text.includes('무엇을 우선할지는 이 계산만으로 정할 수 없습니다'));
 assert.equal(result.claimOrigin.kind,'qa-adult-first-chapter-claim-origin-review-v1');
-assert.equal(result.claimOrigin.tracedClaimCount,11);
+assert.equal(result.claimOrigin.tracedClaimCount,15);
 assert.equal(result.claimOrigin.concreteComputedRelationCount,3);
 assert.equal(result.claimOrigin.traditionalSymbolExplanationCount,3);
+assert.equal(result.claimOrigin.sourceBoundIllustrationCount,3);
+assert.equal(result.claimOrigin.genericPracticalAdviceCount,0);
 assert.deepEqual(result.claimOrigin.hypotheticalAndGeneralClaims,[
- 'workplace-change-only-an-example','practical-steps-not-premium-personality']);
+ 'workplace-change-only-an-example','example-not-observed-personality']);
 assert.equal(result.claimOrigin.methodPriorityUnresolved,true);
 assert.equal(result.claimOrigin.paidValueProven,false);
 assert.equal(result.claimOrigin.releaseVerdict,'not-approved');
@@ -39,6 +41,8 @@ for(const claim of result.claimOrigin.claims){
  assert.equal(claim.licensedAsPersonalConclusion,false);
 }
 assert.equal(result.editorialAssessment.practicalScenarioNotDerivedFromBirthChart,true);
+assert.equal(result.claimOrigin.sourceBoundIllustrationCount,3);
+assert(!result.text.includes('유지할 기준, 시험할 변경점, 필요한 자원과 결과를 확인할 시점을'));
 assert.equal(result.readyForSale,false);
 assert.equal(result.providerCalls,0);
 assert.equal(result.paragraphs.length,4);
@@ -56,11 +60,12 @@ assert(result.paragraphs[0].text.includes('태어난 해에는')&&
 assert(result.paragraphs[1].text.includes('태어난 날과 시간은 아랫글자가 똑같고')&&
  result.paragraphs[1].text.includes('같은 달 글자와 같은 날·시간 글자의 조합')&&
  result.paragraphs[1].text.includes('서로 다른 두 사건의 예고가 아닙니다'));
-assert(result.paragraphs[2].text.includes('기존 방식만 따지면')&&
- result.paragraphs[2].text.includes('새 방법만 살피면')&&
- result.paragraphs[2].text.includes('실제 작업 규정'));
-assert(result.paragraphs[3].text.includes('확인할 시점을')&&
- result.paragraphs[3].text.includes('실제 업무 능력이나 행동을 관찰한 결과가 아니며'));
+assert(result.paragraphs[2].text.includes('태어난 해의 뜻은')&&
+ result.paragraphs[2].text.includes('달과 시간의 뜻은')&&
+ result.paragraphs[2].text.includes('달 안쪽의 뜻은')&&
+ result.paragraphs[2].text.includes('준비할 자원을 빠뜨릴 수 있습니다'));
+assert(result.paragraphs[3].text.includes('실제 직업 능력이나 행동에 대한 판정이 아니라')&&
+ result.paragraphs[3].text.includes('변화를 더 잘 받아들이는 사람이라는 증거는 아닙니다'));
 
 for(const text of [
  '태어난 해에는 이미 알려진 설명',
@@ -70,10 +75,11 @@ for(const text of [
  '두 자리 안쪽에는 날의 기준과 같은 종류의 글자가 확인됩니다',
  '달과 날, 달과 시간에는 서로 마주보는 관계가 하나씩 표시되는데',
  '이 표시는 서로 다른 두 사건의 예고가 아닙니다',
- '기존 작업 절차를 바꾸자는 제안',
- '새 방법만 살피면 준비할 자원이나 안전 조건',
- '유지할 기준, 시험할 변경점, 필요한 자원과 결과를 확인할 시점',
- '어느 사주 요소를 우선할지도 아직 전문적인 검토가 필요합니다'
+ '기존 작업 절차를 바꿀지 검토하는 상황',
+ '태어난 해의 뜻은 이미 알려진 설명을 참고하는 쪽이고',
+ '달과 시간의 뜻은 낯선 정보를 이해하는 쪽입니다',
+ '실제 준비할 자원을 빠뜨릴 수 있습니다',
+ '변화를 더 잘 받아들이는 사람이라는 증거는 아닙니다'
 ]) assert(result.text.includes(text),'missing source or counterpoint: '+text);
 assert(result.editorialAssessment.concreteHypotheticalExample);
 assert(result.editorialAssessment.counterevidenceIncluded);
