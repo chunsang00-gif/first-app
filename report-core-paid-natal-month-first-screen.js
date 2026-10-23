@@ -9,8 +9,9 @@ function build(packet){
  const o=monthly.observed,scope=o.exactExposureScopeComparison;
  const exemplar=classical.inspect(packet);
  const n=scope.nonDayExposedHiddenStemIds.length;
- const relationCount=o.natalRelationsTouchingMonth.pairs.length+
-  o.natalRelationsTouchingMonth.groups.length;
+ const relationCounts=o.natalRelationsTouchingMonth.relationshipCardinality;
+ const relationCount=relationCounts.pairTableEntryCount+
+  relationCounts.completeGroupEntryCount;
  const candidate=n===0?'no-independent-visible-month-exposure':
   n===1?'one-visible-month-candidate-needs-method-review':
   'competing-visible-month-candidates';
@@ -26,9 +27,20 @@ function build(packet){
   {id:'transition-month',status:o.monthPhase==='transition'?'unresolved':'known-core-season',
    meaning:'core-season category is not proof of operative hidden qi'},
   {id:'overlapping-month-branch-relations',
-   status:relationCount>1?'requires-combined-relation-review':'no-multiple-overlap-observed',
+   status:relationCounts.hasDuplicateLabelsForSameTwoPositions?
+    'same-position-pair-has-different-traditional-labels':
+    relationCounts.independentPairContactCount>1?
+     'multiple-distinct-month-contacts':relationCounts.completeGroupEntryCount?
+     'full-group-membership-requires-review':'single-or-no-month-contact',
+   // Retain the old diagnostic's count, explicitly name the unit.
    observedCount:relationCount,
-   meaning:'a relation count never expresses strength'},
+   labelCount:relationCounts.pairTableEntryCount,
+   independentPairContactCount:relationCounts.independentPairContactCount,
+   otherPositions:relationCounts.distinctOtherPositions,
+   samePairMultipleLabels:relationCounts.multipleLabelsOnSamePair,
+   completeGroupCount:relationCounts.completeGroupEntryCount,
+   interpretationPriority:'not-assessed',
+   meaning:'multiple names on one pair are NOT independent contacts or measured strength'},
   {id:'operative-hidden-qi',status:'not-determined',
    meaning:'the approximate day-split table is not a validated authority'},
   {id:'full-traditional-pattern-and-life-inference',
