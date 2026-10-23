@@ -8,6 +8,8 @@ const runner=require('./run-paid-natal-depth-qa');
 const {assemble}=require('./report-core-paid-full-qa-compose');
 const {forPrompt}=require('./report-core-thesis');
 const {fromPayload}=require('./report-core-paid-natal-depth-fact-lock');
+const readiness=require('./report-core-paid-one-shot-readiness');
+const realReadinessBuild=readiness.build;
 const old={
  fetch:global.fetch,
  key:process.env.OPENAI_API_KEY,model:process.env.REPORT_MODEL,
@@ -50,7 +52,6 @@ const read=(dir,name)=>JSON.parse(fs.readFileSync(path.join(dir,name),'utf8'));
   assert.equal(fs.readdirSync(mismatchDir).length,0);
   assert.equal(network,0);
   process.env.REPORT_MODEL='gpt-4.1';
-  const readiness=require('./report-core-paid-one-shot-readiness');
   const oldBuild=readiness.build;
   try{
    readiness.build=async()=>({...await oldBuild(),
@@ -59,6 +60,24 @@ const read=(dir,name)=>JSON.parse(fs.readFileSync(path.join(dir,name),'utf8'));
    assert.equal(fs.readdirSync(mismatchDir).length,0);
    assert.equal(network,0);
   }finally{readiness.build=oldBuild;}
+  // Even with a syntactically valid, frozen QA envelope and the V2
+  // confirmation string, UNREVIEWED natal inference is a HARD billable stop.
+  await assert.rejects(runner.run(),
+   /QA_NATAL_DEPTH_UNREVIEWED_METHOD_NO_BILLING/);
+  assert.equal(fs.readdirSync(mismatchDir).length,0,
+   'blocked interpretive QA must write no attempt marker');
+  assert.equal(network,0);
+  // The remaining tests intentionally simulate only the archive/decoder
+  // transport with an in-memory fake HTTP responder and dummy API key.
+  // This monkeypatch exists in tests only: it is NOT a production bypass,
+  // a certificate of interpretation, or user approval to spend tokens.
+  readiness.build=async()=>{
+   const result=await realReadinessBuild();
+   return {...result,editorialMethodGate:{
+    ...result.editorialMethodGate,
+    readyForAnotherPaidModelProbe:true,blockingReasons:[]
+   }};
+  };
   // Capture the actual single QA request offline and produce a minimally valid
   // test response. These words are a structural fixture, NOT human-approved prose.
   const qa=await assemble();
@@ -258,6 +277,7 @@ const read=(dir,name)=>JSON.parse(fs.readFileSync(path.join(dir,name),'utf8'));
    .includes(rejectedName));
   console.log('PASS isolated natal-depth one-call runner: scope, explicit approval, no retry, private raw capture, null-depth rejection; 0 real provider calls');
  }finally{
+  readiness.build=realReadinessBuild;
   global.fetch=old.fetch;
   for(const [key,value] of [['OPENAI_API_KEY',old.key],['REPORT_MODEL',old.model],
    ['REPORT_MODEL_URL',old.url],['REPORT_QA_CONFIRM',old.approval],
