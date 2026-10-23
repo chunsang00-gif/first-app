@@ -7,6 +7,7 @@ const review=require('./report-core-paid-natal-month-method-review');
 const example=require('./report-core-paid-natal-classical-method-applicability');
 const chapter11=require('./report-core-paid-natal-ch11-two-cases');
 const mixedDirections=require('./report-core-paid-natal-mixed-visible-reconciliation');
+const chapter9=require('./report-core-paid-natal-classical-rescue-priority');
 function inspect(packet){
  const m=review.assess(packet),classical=example.evaluate(packet);
  if(m.status!=='method-priority-not-selected'||
@@ -104,6 +105,22 @@ function inspect(packet){
     otherPillarEffect:'not-assessed'},
    furtherExample.sourceRefs);
  }
+ const rescue=chapter9.evaluate(packet);
+ if(rescue.match){
+  if(rescue.restorationEffectVerified!==false||
+     rescue.fullPatternAssigned!==false||
+     rescue.approved!==false)
+   throw Error('QA_NATAL_CONFLICT_UNAPPROVED_CHAPTER9_RESCUE');
+  push('chapter9-officer-output-rescue-condition-must-be-considered',
+   {sourceChapter:'九、論用神成敗救應',
+    condition:rescue.assessment,
+    observedProtectionIds:rescue.observed.independentlyProvenProtectionIds.slice(),
+    restorationEffect:'not-assessed'},
+   ['facts.stemConnections',rescue.observed.monthMainSourceId,
+    ...rescue.observed.officerVisibleIds,
+    ...rescue.observed.outputVisibleIds,
+    ...rescue.observed.independentlyProvenProtectionIds]);
+ }
  const sourceLimited=classical.textuallyMatchedExample;
  if(sourceLimited!==null){
   if(classical.status!=='exact-textual-conditions-only'||
@@ -135,6 +152,13 @@ function inspect(packet){
  return {
   kind:'qa-natal-interpretation-conflict-abstention-v1',
   calculatedFacts:factsEvidence,
+  chapter9ConditionalRescueEvidence:rescue.match?{
+   assessment:rescue.assessment,
+   visibleProtectionIds:rescue.observed.independentlyProvenProtectionIds.slice(),
+   sourceUrl:rescue.source.url,
+   rescueActuallyEstablished:false,
+   fullChartApproval:false
+  }:null,
   visibleMixedDirectionReview:{
    mixed:visibleMixed.mixed,
    counts:{...visibleMixed.counts},
