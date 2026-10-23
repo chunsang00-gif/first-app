@@ -49,9 +49,16 @@ const present=cases.filter(x=>x.readerPresent);
 const missing=cases.filter(x=>!x.readerPresent);
 assert.equal(present.length,6,'baseline: six of eight have an offline candidate');
 assert.equal(missing.length,2,'baseline: two of eight lack a curated candidate');
-assert(present.some(x=>x.flags.includes(
- 'multiple-symbolic-questions-not-personal-conclusion')),
- 'at least one actual manuscript must show question-template dependence');
+const machineDrafts=present.filter(x=>x.reviewType==='chartSynthesis');
+assert.equal(machineDrafts.length,4);
+assert(machineDrafts.every(x=>
+ !x.flags.includes('multiple-symbolic-questions-not-personal-conclusion')&&
+ !x.flags.includes('visible-jargon-needs-editor')&&
+ !x.flags.includes('position-description-over-reader-insight')),
+ 'the four revised machine drafts must not regress to jargon or question lists');
+assert(machineDrafts.every(x=>x.flags.includes(
+ 'traditional-causal-bridge-not-independently-reviewed')),
+ 'plain language never implies an approved traditional reading');
 const tampered=facts.build({calendar:'solar',birthDate:'1982-06-15',
  birthTime:'14:20',gender:'male',mbti:'ISFP'},2027);
 tampered.facts.tenGods.year.stemTenGod='정인';
