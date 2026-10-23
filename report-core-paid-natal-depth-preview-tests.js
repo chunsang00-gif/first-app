@@ -7,7 +7,7 @@ const writer=require('./report-generation-request');
 const preflight=require('./report-provider-preflight');
 const coverage=require('./report-core-knowledge-coverage');
 const schema=require('./report-schema.json');
-let allowed=0,missing=0,authored=0,machine=0;
+let allowed=0,missing=0,authored=0,machine=0,authoredReferences=0,machineOnlyHypotheses=0;
 const samples=coverage.representativeInputs();
 for(const user of samples){
  const packet=facts.build(user,2027);
@@ -37,6 +37,34 @@ for(const user of samples){
  assert(permissible.includes('facts.stemConnections'));
  assert(!permissible.some(x=>x.startsWith('annual.')||x.startsWith('person.')));
  assert.equal(preview.payload.task.mbti,null);
+ const brief=topics.natal_depth.evidenceFocus.qaOfflineEditorialResearch;
+ assert(brief,'QA outgoing request must include the genuinely curated offline research');
+ assert.equal(brief.kind,'qa-offline-saju-research-bridge-v1');
+ assert.equal(brief.releaseVerdict,'not-approved');
+ assert.equal(brief.customerReady,false);
+ assert.equal(brief.methodProfessionallyReviewed,false);
+ assert.equal(brief.readerValueApproved,false);
+ assert.equal(brief.paidApiCalls,0);
+ assert.deepEqual(brief.sourceRefs.filter(id=>!permissible.includes(id)),[],
+  'a manuscript must never cite a source unavailable to the same strict schema');
+ assert(brief.chartFingerprint.split('/').length===4);
+ if(preview.reviewKind==='human-authored-candidate'){
+  authoredReferences++;
+  assert.equal(brief.sourceClass,'authored-specific-four-pillar-candidate');
+  assert.equal(brief.computedContrast,null);
+  assert(brief.editorialReference?.text?.length>=350);
+  assert.equal(brief.editorialReference?.copyAsCustomerFact,false);
+  assert.equal(brief.editorialReference.scope,'exact-chart-editorial-hypothesis-only');
+ }else{
+  machineOnlyHypotheses++;
+  assert.equal(brief.sourceClass,'machine-structural-comparison-only');
+  assert.equal(brief.editorialReference,null,
+   'machine review prose must not be exported as an approved customer manuscript');
+  assert(brief.computedContrast?.premise);
+  assert.equal(brief.computedContrast.status,
+   'symbolic-editorial-hypothesis-not-validated');
+  assert(brief.computedContrast.sourceRefs.every(id=>permissible.includes(id)));
+ }
  assert.deepEqual(Object.keys(preview.payload.source).sort(),
   [...new Set(Object.values(topics).flatMap(topic=>
    topic.citableFacts.map(r=>r.id)))].sort());
@@ -65,6 +93,8 @@ assert.equal(allowed,31);
 assert.equal(missing,68);
 assert.equal(authored,4);
 assert.equal(machine,27);
+assert.equal(authoredReferences,4);
+assert.equal(machineOnlyHypotheses,27);
 const unknown=facts.build({calendar:'solar',birthDate:'1990-11-15',
  unknownBirthTime:true,birthTime:'',gender:'male',mbti:'ISFP'},2027);
 assert.equal(builder.prepare(unknown),null);
@@ -78,6 +108,24 @@ assert.notDeepEqual(early.payload.task.chapters.saju_core.topics.natal_depth.cit
 assert.notEqual(require('./report-core-paid-natal-depth-fact-lock').fromPayload(early.payload).literal,
  require('./report-core-paid-natal-depth-fact-lock').fromPayload(late.payload).literal,
  'the deterministic provider evidence lock must change with the hour');
+// Exercise a four-position handwritten candidate for the exact source scope.
+const authoredInput={calendar:'lunar',birthDate:'1982-11-24',leapMonth:false,
+ birthTime:'14:20',gender:'male',mbti:'ISFP'};
+const handwritten=builder.prepare(facts.build(authoredInput,2027));
+assert(handwritten);
+const handwrittenResearch=handwritten.payload.task.chapters.saju_core
+ .topics.natal_depth.evidenceFocus.qaOfflineEditorialResearch;
+assert.equal(handwrittenResearch.sourceClass,'authored-specific-four-pillar-candidate');
+assert(handwrittenResearch.editorialReference.text.includes('기존 작업 지침'));
+assert.equal(handwrittenResearch.chartFingerprint,'壬戌/癸丑/乙未/癸未');
+const contrastHour=builder.prepare(facts.build({...authoredInput,birthTime:'20:20'},2027));
+assert(contrastHour);
+assert.notEqual(handwrittenResearch.chartFingerprint,
+ contrastHour.payload.task.chapters.saju_core.topics.natal_depth
+  .evidenceFocus.qaOfflineEditorialResearch.chartFingerprint);
+assert.notEqual(handwrittenResearch.editorialReference.text,
+ contrastHour.payload.task.chapters.saju_core.topics.natal_depth
+  .evidenceFocus.qaOfflineEditorialResearch.editorialReference.text);
 const base=require('./report-analysis-guidance');
 const p=facts.build(sameUser,2027),plan=base.preflight(p).saju_core;
 const defaultPrompt={stage:'body',facts:p,requestedSections:['saju_core'],
@@ -102,6 +150,20 @@ forged.task.chapters.saju_core.topics.natal_depth.evidenceFocus.sourceRefs=
 assert(auditTransport.inspectTransport(early.prompt,forged)
  .includes('qa-natal-depth-evidence-brief-drift'),
  'tampering with contextual provenance must fail the paid transport audit');
+const alteredEditorial=structuredClone(handwritten.payload);
+alteredEditorial.task.chapters.saju_core.topics.natal_depth
+ .evidenceFocus.qaOfflineEditorialResearch.editorialReference.text=
+ 'NO VALIDATED INTERPRETATION';
+assert(auditTransport.inspectTransport(handwritten.prompt,alteredEditorial)
+ .includes('qa-natal-depth-evidence-brief-drift'),
+ 'an editorial excerpt changed after source verification must be rejected');
+const alteredMachine=structuredClone(early.payload);
+alteredMachine.task.chapters.saju_core.topics.natal_depth
+ .evidenceFocus.qaOfflineEditorialResearch.computedContrast.premise=
+ 'INVALID MACHINE CLAIM';
+assert(auditTransport.inspectTransport(early.prompt,alteredMachine)
+ .includes('qa-natal-depth-evidence-brief-drift'),
+ 'a forged machine contrast must be rejected before any provider call');
 const forgedSource=structuredClone(early.payload);
 delete forgedSource.source['natal.year.stem'];
 assert(preflight.inspect(early.prompt,forgedSource,
@@ -127,6 +189,13 @@ assert.deepEqual(Object.keys(writer.compile(defaultPrompt).task.chapters.saju_co
    const sent=JSON.parse(payload.input[1].content);
    assert.equal(payload.text.format.strict,true);
    assert(sent.task.chapters.saju_core.topics.natal_depth);
+   const outResearch=sent.task.chapters.saju_core.topics.natal_depth
+    .evidenceFocus.qaOfflineEditorialResearch;
+   assert.deepEqual(outResearch,early.payload.task.chapters.saju_core.topics
+    .natal_depth.evidenceFocus.qaOfflineEditorialResearch,
+    'the actual intercepted provider JSON must carry the verified offline review brief');
+   assert.equal(outResearch.editorialReference,null);
+   assert.equal(outResearch.releaseVerdict,'not-approved');
    assert.deepEqual(sent.task.chapters.saju_core.topics.natal_depth.citableFacts.map(x=>x.id),
     early.payload.task.chapters.saju_core.topics.natal_depth.citableFacts.map(x=>x.id));
    assert.deepEqual(
@@ -147,6 +216,7 @@ assert.deepEqual(Object.keys(writer.compile(defaultPrompt).task.chapters.saju_co
   else process.env.REPORT_MODEL_URL=oldURL;
  }
  console.log('QA_NATAL_DEPTH_PREVIEW='+JSON.stringify({eligible:allowed,blocked:missing,authored,
-  machine,transportIntercepted:count,apiCalls:0,productionEnabled:false}));
+  machine,authoredReferences,machineOnlyHypotheses,
+  transportIntercepted:count,apiCalls:0,productionEnabled:false}));
  console.log('PASS QA-only verified natal-depth strict provider request, exact citation enum, default live-core unchanged');
 })().catch(e=>{console.error(e);process.exitCode=1});
