@@ -24,6 +24,9 @@ for(const sample of cases){
  assert.equal(x.kind,'qa-uncovered-natal-editorial-bridge-v1');
  assert.equal(x.status,'narrow-textual-editorial-candidate-only');
  assert.equal(x.candidate.category,sample.category);
+ const young=sample.date==='2024-02-17';
+ assert.equal(x.candidate.audience,young?'child-and-caregiver':'adult');
+ assert.equal(x.candidate.ageAtTargetYear,young?3:38);
  assert.equal(x.curatedCoreStillMissing,true);
  assert.equal(x.releaseVerdict,'not-approved');
  assert.equal(x.providerCalls,0);
@@ -53,6 +56,15 @@ for(const sample of cases){
  assert.equal(typeof context.multipleLabelsForOneBranchContact,'boolean');
  const draft=x.interpretiveCaseDraft;
  assert.equal(draft.kind,'qa-classical-case-conditional-manuscript-v1');
+ assert.equal(draft.audience,young?'child-and-caregiver':'adult');
+ assert.equal(draft.ageAtTargetYear,young?3:38);
+ assert.equal(draft.exampleIsNotObservedChildOrAdultBehavior,true);
+ if(young){
+  assert(draft.readerReasoning.conditionalScenario.includes('아이가 새로운 놀이'));
+  assert(!/(?:직장|직책|급여|새 프로젝트|업무 성과|재물 능력)/.test(
+   x.candidate.label+' '+x.candidate.text+' '+draft.label+' '+draft.text),
+   'a three-year-old must not receive an adult occupation or income reading');
+ }else assert(draft.readerReasoning.conditionalScenario.includes('새로운 관리 업무'));
  assert.equal(draft.releaseVerdict,'not-approved');
  assert.equal(draft.customerReady,false);
  assert.equal(draft.independentlyReviewed,false);

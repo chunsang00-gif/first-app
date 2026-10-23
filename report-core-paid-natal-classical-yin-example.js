@@ -7,6 +7,17 @@
 const seasonal=require('./report-seasonal-evidence');
 const POS=['year','month','hour'];
 const PRIMARY='甲',SECONDARY='丙';
+function readerAudience(packet){
+ const born=Number(String(packet.calculationInput?.birthDate||'').slice(0,4));
+ const target=packet.targetYear?.year;
+ const age=Number.isInteger(born)&&Number.isInteger(target)?target-born:null;
+ if(age===null||age<0||age>125)
+  throw Error('QA_CLASSICAL_EDITORIAL_AGE_OR_TARGET_INVALID');
+ return {ageAtTargetYear:age,
+  audience:age<13?'child-and-caregiver':'adult',child:age<13};
+}
+// The source condition is independent of audience; the everyday analogy is not.
+// A toddler's matched classical symbol must NEVER surface as a career reading.
 function inspect(packet){
  if(packet?.status!=='ready'||!packet.chart?.hour||!packet.facts?.seasonalEvidence)
   throw Error('QA_CLASSICAL_MONTH_EXAMPLE_INCOMPLETE');
@@ -116,12 +127,16 @@ function offlineReaderCandidate(packet){
   if(row?.stem!==stem||row?.tenGod!==tenGod)
    throw Error('QA_CLASSICAL_READER_FACT_DRIFT:'+id);
  }
- const label='책임보다 먼저 보는 자원의 의미';
- const text='이 사주를 고전의 한 방식으로 읽을 때는 높은 자리를 맡는다는 말보다, 그 자리를 뒷받침할 자원을 다루는 뜻을 먼저 살펴봅니다. 태어난 달에서 가장 기본이 되는 글자는 태어난 해에도 드러나 자원 관리에 관한 뜻으로 읽힙니다. 같은 달에 드러난 다른 글자는 맡은 역할과 지켜야 할 기준을 나타냅니다. 그래서 두 뜻의 순서를 정할 때도 막연히 어느 쪽이 더 강하다고 말하지 않습니다. 달의 기본 글자가 실제로 드러났고 다른 뜻도 함께 나타났다는 조건에 따라, 이 고전은 자원에 관한 뜻을 중심에 두고 책임에 관한 뜻을 곁들입니다. 이 풀이에서 직업을 바라보는 초점 역시 직책의 크기 자체보다 자원과 책임을 어떻게 연결해 해석하는지에 있습니다. 실제로 돈을 잘 모으거나 직장에서 인정받는다는 결론은 아닙니다.';
+ const target=readerAudience(packet);
+ const label=target.child?'물건을 준비하는 일과 함께 지키는 약속':'책임보다 먼저 보는 자원의 의미';
+ const text=target.child?
+  '이 사주를 고전의 한 예시로 읽으면 태어난 달에서 가장 기본이 되는 글자는 태어난 해에도 나타나 자원을 살피는 뜻으로 분류됩니다. 달에 겉으로 드러난 다른 글자는 함께 지킬 기준과 약속에 관한 뜻입니다. 이 고전은 기본 글자가 드러난 경우에 자원에 관한 뜻을 중심에 두고 책임에 관한 뜻을 곁들입니다. 이를 아이가 새로운 놀이를 해 보는 상황에 빗대면, 보호자가 필요한 물건과 시간을 마련하고 함께 지킬 안전 약속을 알려 주는 장면이 됩니다. 다만 이는 계산된 두 분류를 설명하는 비유일 뿐 아이의 성격이나 놀이 능력을 확인한 것이 아닙니다. 앞으로의 직업이나 결과도 예측하지 않습니다.':
+  '이 사주를 고전의 한 방식으로 읽을 때는 높은 자리를 맡는다는 말보다, 그 자리를 뒷받침할 자원을 다루는 뜻을 먼저 살펴봅니다. 태어난 달에서 가장 기본이 되는 글자는 태어난 해에도 드러나 자원 관리에 관한 뜻으로 읽힙니다. 같은 달에 드러난 다른 글자는 맡은 역할과 지켜야 할 기준을 나타냅니다. 그래서 두 뜻의 순서를 정할 때도 막연히 어느 쪽이 더 강하다고 말하지 않습니다. 달의 기본 글자가 실제로 드러났고 다른 뜻도 함께 나타났다는 조건에 따라, 이 고전은 자원에 관한 뜻을 중심에 두고 책임에 관한 뜻을 곁들입니다. 이 풀이에서 직업을 바라보는 초점 역시 직책의 크기 자체보다 자원과 책임을 어떻게 연결해 해석하는지에 있습니다. 실제로 돈을 잘 모으거나 직장에서 인정받는다는 결론은 아닙니다.';
  return {
   kind:'qa-classical-natal-reader-candidate-v1',
   calculatedChart:packet.chart,
-  label,text,
+  label,text,audience:target.audience,ageAtTargetYear:target.ageAtTargetYear,
+  hypotheticalExampleNotObservedBehavior:true,
   sourceRefs:Object.keys(expected),
   textualRule:'xin-yin-jia-and-bing-both-exposed; primary wealth, supplementary authority',
   cause:'month-main-Jia-and-additional-Bing-visible-not-element-arrow',
@@ -163,11 +178,16 @@ function offlineSingleReaderCandidate(packet){
      row.stem==='甲'||row.stem==='戊')
    throw Error('QA_CLASSICAL_SINGLE_READER_VISIBLE_SCOPE_DRIFT:'+id);
  }
- const label='먼저 살펴보는 책임의 의미';
- const text='이 사주를 고전의 한 방식으로 읽으면 자원을 다루는 뜻보다 맡은 역할과 지켜야 할 기준을 먼저 살펴봅니다. 태어난 달에는 자원에 관한 뜻도 들어 있지만, 그 달의 기본 글자는 태어난 해와 달과 시간의 겉글자에 나타나지 않습니다. 대신 책임과 규칙에 해당하는 다른 글자가 태어난 달에 드러납니다. 그래서 이 고전은 기본 글자가 드러난 경우와 구별해 해석의 출발점을 바꿉니다. 새로운 역할을 맡는 상황을 가정한다면, 이는 자원을 얼마나 갖추었는지부터 읽는 방식이 아니라 어떤 책임과 기준이 그 역할에 담겨 있는지를 먼저 살펴보는 방식입니다. 실제로 책임감이 강하거나 높은 직책을 맡는다는 뜻은 아닙니다.';
+ const target=readerAudience(packet);
+ const label=target.child?'함께 지킬 약속부터 생각해 보는 경우':'먼저 살펴보는 책임의 의미';
+ const text=target.child?
+  '태어난 달에는 준비할 자원을 살피는 뜻과 정해진 약속을 살피는 뜻이 함께 들어 있습니다. 다만 달의 기본 글자는 해·달·시간의 겉에 나타나지 않고, 약속과 역할에 해당하는 다른 글자가 겉으로 드러납니다. 그래서 이 고전은 기본 글자가 드러난 경우와 구별해 해석의 출발점을 바꿉니다. 예를 들어 아이가 새로운 놀이를 시작하는 상황을 가정해 보겠습니다. 보호자가 함께 지킬 안전 약속을 정해 주는 장면에 빗대어 설명할 수 있지만, 실제 아이가 약속을 잘 지키는 성격인지 확인한 것은 아닙니다. 앞으로의 성격이나 행동을 정해 놓은 해석도 아닙니다.':
+  '이 사주를 고전의 한 방식으로 읽으면 자원을 다루는 뜻보다 맡은 역할과 지켜야 할 기준을 먼저 살펴봅니다. 태어난 달에는 자원에 관한 뜻도 들어 있지만, 그 달의 기본 글자는 태어난 해와 달과 시간의 겉글자에 나타나지 않습니다. 대신 책임과 규칙에 해당하는 다른 글자가 태어난 달에 드러납니다. 그래서 이 고전은 기본 글자가 드러난 경우와 구별해 해석의 출발점을 바꿉니다. 새로운 역할을 맡는 상황을 가정한다면, 이는 자원을 얼마나 갖추었는지부터 읽는 방식이 아니라 어떤 책임과 기준이 그 역할에 담겨 있는지를 먼저 살펴보는 방식입니다. 실제로 책임감이 강하거나 높은 직책을 맡는다는 뜻은 아닙니다.';
  return {
   kind:'qa-classical-natal-single-reader-candidate-v1',
   calculatedChart:packet.chart,label,text,
+  audience:target.audience,ageAtTargetYear:target.ageAtTargetYear,
+  hypotheticalExampleNotObservedBehavior:true,
   sourceRefs:['natal.day.stem','natal.year.stem','natal.month.stem',
    'natal.hour.stem','natal.month.hidden.甲','natal.month.hidden.丙'],
   textualRule:'xin-yin-bing-exposed-jia-absent; changed-classical-point-of-departure',
