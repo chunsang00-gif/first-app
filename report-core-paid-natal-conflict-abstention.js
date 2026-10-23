@@ -5,6 +5,7 @@
 // not itself prove two classical schools are incompatible.
 const review=require('./report-core-paid-natal-month-method-review');
 const example=require('./report-core-paid-natal-classical-method-applicability');
+const chapter11=require('./report-core-paid-natal-ch11-two-cases');
 function inspect(packet){
  const m=review.assess(packet),classical=example.evaluate(packet);
  if(m.status!=='method-priority-not-selected'||
@@ -74,6 +75,18 @@ function inspect(packet){
   push('month-included-in-branch-group',
    {groupTableEntries:cardinality.completeGroupEntryCount},
    ['facts.natalBranchRelations']);
+ const extended=chapter11.evaluate(packet);
+ if(extended.examples.length>1||
+    extended.clientReleaseAllowed!==false||
+    extended.fullChartVerdict!=='not-assessed')
+  throw Error('QA_NATAL_CONFLICT_EXTRA_CLASSICAL_SCOPE');
+ const furtherExample=extended.examples[0]||null;
+ if(furtherExample){
+  push('chapter11-symbol-relation-requires-full-chart-method-review',
+   {id:furtherExample.id,symbolRelation:furtherExample.sourceTextualRelation,
+    otherPillarEffect:'not-assessed'},
+   furtherExample.sourceRefs);
+ }
  const sourceLimited=classical.textuallyMatchedExample;
  if(sourceLimited!==null){
   if(classical.status!=='exact-textual-conditions-only'||
@@ -100,10 +113,18 @@ function inspect(packet){
   classicalCaseOnly:sourceLimited
  };
  const allowable=sourceLimited?'narrow-document-specific-starting-role-only':
-   'calculated-positions-and-competing-candidate-descriptions-only';
+   furtherExample?'narrow-document-specific-symbolic-relation-only':
+    'calculated-positions-and-competing-candidate-descriptions-only';
  return {
   kind:'qa-natal-interpretation-conflict-abstention-v1',
   calculatedFacts:factsEvidence,
+  additionalPublishedSymbolRelation:furtherExample?{
+   id:furtherExample.id,
+   relation:furtherExample.sourceTextualRelation,
+   sourceRefs:furtherExample.sourceRefs.slice(),
+   manuscriptProhibitedFromPaidRelease:true,
+   fullPatternReviewed:false
+  }:null,
   findings:cases,
   distinctObservedTensions:cases.length,
   allowedInterpretationScope:allowable,
