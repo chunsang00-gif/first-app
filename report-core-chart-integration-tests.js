@@ -27,6 +27,29 @@ for(const input of all){
  assert(out.review.chartSynthesis.sourceRefs.includes('natal.year.stem'));
  assert(out.review.chartSynthesis.sourceRefs.includes('natal.hour.stem'));
  assert.deepEqual(out.review.chartSynthesis.evidence.chart,p.chart);
+ const relationFacts=p.facts.natalBranchRelations;
+ const relationEvidence=out.review.chartSynthesis.evidence;
+ const summary=relationEvidence.relationSummary;
+ assert.equal(summary.kind,'unranked-calculated-branch-table-contacts-v1');
+ assert.equal(summary.adoptedPriority,'none');
+ assert.equal(summary.inferredLifeEvents,false);
+ assert.equal(summary.measuredInteractionStrength,false);
+ assert.deepEqual(relationEvidence.relationPairs,relationFacts.pairs,
+  'all branch table labels must be preserved without priority/truncation');
+ assert.deepEqual(relationEvidence.relationGroups,relationFacts.groups);
+ assert.equal(summary.pairTableEntries,relationFacts.pairs.length);
+ const observedKeys=new Set(relationFacts.pairs.map(r=>
+  r.positions.slice().sort().join('/')));
+ assert.equal(summary.independentContacts.length,observedKeys.size,
+  'multiple labels for a single pair are one structural contact');
+ assert(summary.independentContacts.every(x=>x.tableLabels.length>0));
+ assert.equal(summary.sameContactWithMultipleLabels.length,
+  summary.independentContacts.filter(x=>x.tableLabels.length>1).length);
+ if(relationFacts.pairs.length){
+  assert(out.reader.paragraphs.chartSynthesis.text.includes(
+   summary.displayedReaderReason));
+ }
+
  assert.equal(out.review.chartSynthesis.evidence.yearTenGod,
   out.wholeChartEvidence.otherVisible.find(x=>x.position==='year').tenGod);
  assert.equal(out.review.chartSynthesis.evidence.hourTenGod,
@@ -185,6 +208,14 @@ for(const input of all){
  const joined=merge.select(packet,graph);
  assert(joined);
  assert.deepEqual(joined.evidence.chart,packet.chart);
+ assert.deepEqual(joined.evidence.relationPairs,
+  packet.facts.natalBranchRelations.pairs,
+  'every calendar fixture must preserve the complete pair relation table');
+ assert.equal(joined.evidence.relationSummary.adoptedPriority,'none');
+ assert.equal(joined.evidence.relationSummary.measuredInteractionStrength,false);
+ assert.equal(joined.evidence.relationSummary.independentContacts.length,
+  new Set(packet.facts.natalBranchRelations.pairs.map(x=>
+   x.positions.slice().sort().join('/'))).size);
  assert.equal(joined.editorialStatus,'machine-composed-review-only');
  assert.equal(joined.releaseVerdict,'not-approved');
  assert.equal(joined.apiCalls,0);
