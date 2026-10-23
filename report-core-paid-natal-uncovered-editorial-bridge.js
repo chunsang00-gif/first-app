@@ -111,7 +111,7 @@ function review(packet){
  // that an actual person's work, character or future changes with a stem.
  // Both cases share a Xin day and Yin month. Only non-day visible Jia
  // differs; exposing Wu creates a third competing condition and abstention.
- const counterfactual=single?
+ const reversalCondition=single?
   '같은 달에 태어나도 바탕 글자가 해나 시간의 겉에 드러나면, 이 고전은 자원의 뜻을 먼저 읽는 다른 사례를 제시합니다. 이때 지금의 설명을 그대로 적용해서는 안 됩니다.':
   '반대로 달의 바탕 글자가 해·달·시간의 겉에 전혀 드러나지 않는다면, 이 고전에서는 기준과 책임의 뜻을 먼저 보는 다른 사례가 됩니다. 지금의 순서를 그대로 적용해서는 안 됩니다.';
  const competingExposure='두 경우 모두 달의 또 다른 숨은 글자가 겉에 드러나면 이 비교만으로 우선순위를 정하지 않습니다.';
@@ -148,7 +148,7 @@ function review(packet){
  const shortSentences=t=>t.split(/[.!?。！？]+/).map(x=>x.trim())
   .filter(x=>x.length>=18);
  const oldSentences=new Set(shortSentences(found.text));
- const revisedText=explanation+' '+conditional+' '+counterfactual+' '+competingExposure+' '+rootEvidence+' '+branchUncertainty;
+ const revisedText=explanation+' '+conditional+' '+reversalCondition+' '+competingExposure+' '+rootEvidence+' '+branchUncertainty;
  const repeatedSentences=shortSentences(revisedText)
   .filter(x=>oldSentences.has(x));
  const interpretiveCaseDraft={
@@ -163,7 +163,7 @@ function review(packet){
   textualOrdering:single?'responsibility-before-resources':
    'resources-before-responsibility',
   readerReasoning:{monthPremise:explanation,conditionalScenario:conditional,
-   sourceConditionCounterfactual:counterfactual,
+   sourceConditionCounterfactual:reversalCondition,
    thirdHiddenStemCompetingCase:competingExposure,
    rootObservation:rootEvidence,branchUncertainty,
    coreReadingIsConditional:true,verifiedPersonalBehavior:false},
