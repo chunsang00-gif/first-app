@@ -11,10 +11,12 @@ const readiness=require('./report-core-paid-one-shot-readiness');
 const generation=require('./report-generation-request');
 const wire=require('./report-wire');
 const {outputLimit}=require('./report-paid-batch-plan');
-// Freeze exactly the reviewed synthetic prompt/model envelope. Recompute
+// Freeze exactly the synthetic prompt/model envelope. A matching hash
+// is NOT consent to spend; explicit NEW approval and workflow redesign are
+// still required. The former V1 approval was already consumed. Recompute
 // from the REAL prepared QA request before any attempt marker or paid fetch.
 const APPROVED_MODEL='gpt-4.1';
-const APPROVED_ENVELOPE_SHA256='cba4f2be01d1f1dbaa21494946a4858d455d19c47efb57a6c14093d55303bc13';
+const APPROVED_ENVELOPE_SHA256='25620804ed8164e74f25cb9b2b384efa594e466ae98b38b610eff3b05181092d';
 const fingerprint=v=>crypto.createHash('sha256').update(JSON.stringify(v)).digest('hex');
 async function assertFrozenRequest(qa){
  const built=await readiness.build();
