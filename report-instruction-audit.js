@@ -210,7 +210,9 @@ function inspectTransport(prompt,actual){
        monthFirstApplicability:methodScreen,
        readerScope:'distinct-from-month-pair-core',
        writingQuestion:require('./report-core-paid-natal-month-first-screen').writingQuestion(methodScreen),
-       requiredCitations:['natal.year.stem','natal.day.stem','natal.hour.stem','facts.stemConnections']};
+       requiredCitations:['natal.year.stem','natal.day.stem','natal.hour.stem','facts.stemConnections'],
+       qaOfflineEditorialResearch:require('./report-core-paid-natal-qa-editorial-bridge')
+        .build(prompt.facts,permitted,actual.source)};
       if(!correct||independent.some(x=>!x.category)||
          !independent[0].traditionalMeaning||!independent[3].traditionalMeaning||
          JSON.stringify(topic.evidenceFocus)!==JSON.stringify(expected))
