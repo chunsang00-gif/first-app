@@ -10,16 +10,16 @@ const P=['year','month','day','hour'];
 const sourceUrl='https://donglishuzhai.net/chapter/3722.html';
 const edited={
  '壬戌':{
-  label:'같은 완화 조건에도 다른 자리의 관계가 겹칠 때',
-  text:'태어난 달의 규칙을 뜻하는 글자, 이를 제약하는 표현의 글자, 그리고 그 제약을 완화할 수 있는 글자가 겉에 확인됩니다. 해와 달의 같은 두 자리에도 관계 이름이 두 개 붙으며, 태어난 날과 달의 같은 두 자리에도 다른 관계 이름이 두 개 붙습니다. 하나의 자리 쌍에 여러 이름이 붙었다고 사건이 여러 개 발생한다는 뜻은 아닙니다. 따라서 고전의 완화 조건이 실제로 어떻게 작용할지는 여기서 결정하지 않습니다. 예를 들어 기존 작업 지침을 바꿔야 할 때는 개선할 부분을 살피면서도 승인 기준을 확인할 수 있습니다. 이는 상징을 비교하는 가상의 상황이며, 실제 갈등이나 완화의 성공을 뜻하지 않습니다.'
+  label:'규칙을 바꿔 보고 싶은 마음과 약속을 함께 살필 때',
+  text:'이 사주의 달에는 새로운 표현과 정해진 약속을 살피는 뜻이 함께 나타납니다. 해의 글자는 표현의 글자를 제약하는 관계라, 고전에서는 이를 앞선 충돌을 완화할 수 있는 조건으로 다룹니다. 한편 해와 달의 같은 두 자리에도 관계 이름이 두 개 붙습니다. 날과 달의 같은 두 자리에도 다른 관계 이름이 두 개 붙습니다. 이름이 여러 개라고 사건이 여러 번 일어난다는 뜻은 아닙니다. 놀이 규칙을 바꿔 보자는 이야기가 나왔다고 가정하면, 보호자가 아이의 생각을 듣되 안전을 위해 지켜야 할 약속은 분명히 하는 장면으로 비유할 수 있습니다. 새로운 생각을 모두 막는 것도, 약속 없이 바꾸는 것도 이 예시의 목적은 아닙니다. 실제 아이가 규칙을 얼마나 잘 지키는지나 갈등을 겪는지는 이 계산만으로 알 수 없습니다.'
  },
  '壬申':{
-  label:'완화 글자가 보여도 해와 달의 관계가 남을 때',
-  text:'규칙을 뜻하는 글자, 이를 제약하는 표현의 글자, 그리고 그 제약을 완화할 수 있는 글자가 겉에 함께 확인됩니다. 해와 달 사이에는 두 개의 관계 이름이 기록되지만, 태어난 날과 달 사이에는 같은 관계표의 별도 항목이 확인되지 않습니다. 다른 자리의 관계가 적다고 해서 완화의 효과가 더 강하다고 정할 수는 없습니다. 예를 들어 새로운 작업 방법을 검토할 때는 개선할 점과 지킬 승인 기준을 나란히 놓아 볼 수 있습니다. 이 예시는 전통 상징의 비교이지 실제 판단력이나 성공을 확인한 결과가 아닙니다.'
+  label:'새로운 놀이를 떠올릴 때 지켜야 할 약속',
+  text:'태어난 달에는 표현하려는 뜻과 정해진 약속을 살피는 뜻이 함께 계산됩니다. 해의 글자는 표현의 글자를 제약하는 관계여서, 고전에서는 앞선 관계를 완화할 수 있는 조건으로 설명합니다. 해와 달의 같은 두 자리에는 관계 이름이 두 개 붙지만, 날과 달 사이에는 이 관계표의 별도 항목이 확인되지 않습니다. 관계 이름이 적다고 완화가 더 강하다는 뜻은 아닙니다. 예를 들어 아이가 블록 놀이에 새 규칙을 더하자고 한다면 보호자가 제안을 들어 보고, 함께 쓰는 물건을 안전하게 다루는 약속을 확인하는 장면을 떠올릴 수 있습니다. 이는 상징을 이해하기 위한 비유이며, 실제 아이의 성격이나 행동을 확인한 결과는 아닙니다.'
  },
  '壬午':{
-  label:'완화 글자와 서로 다른 자리 관계를 함께 볼 때',
-  text:'규칙을 뜻하는 글자, 이를 제약하는 표현의 글자, 그리고 그 제약을 완화할 수 있는 글자가 겉에 함께 확인됩니다. 해와 달 사이에는 두 관계 이름이 기록되며, 태어난 날과 달은 묶이는 관계로 별도 기록됩니다. 두 관계의 이름이 다르다는 사실만으로 어느 쪽이 더 중요하거나 완화의 효과가 커진다고 판단하지 않습니다. 예를 들어 새 작업 방식을 시험한다면 개선할 항목과 그대로 지켜야 할 승인 기준을 구분해 볼 수 있습니다. 실제로 두 관계가 어떤 방식으로 작용하는지와 업무 결과는 이 계산만으로 확인할 수 없습니다.'
+  label:'함께 정한 규칙을 바꿔 보는 상황',
+  text:'이 사주에는 새로운 표현을 뜻하는 글자와 규칙을 살피는 글자가 함께 나타나며, 태어난 해에는 표현의 글자를 제약하는 뜻도 확인됩니다. 해와 달의 같은 두 자리에는 관계 이름이 두 개 붙고, 날과 달에는 서로 묶이는 관계가 따로 기록됩니다. 이 둘의 이름이 다르다고 어느 쪽이 더 강하다거나 아이가 남들과 더 잘 어울린다고 판단할 수는 없습니다. 놀이 순서를 바꾸자는 아이디어가 나왔다고 가정한다면, 보호자가 새로운 방식을 짧게 시도하되 친구와 미리 정한 안전 약속은 함께 확인하는 상황으로 설명할 수 있습니다. 실제 또래 관계나 놀이 습관을 예측하는 풀이가 아니며, 다른 자리의 관계가 어떻게 작용할지는 아직 검증되지 않았습니다.'
  }
 };
 function audit(packet){
@@ -60,7 +60,15 @@ function audit(packet){
  const fullSameVisible=packet.chart.year==='辛丑'&&
   packet.chart.month==='乙未'&&packet.chart.hour==='己酉'&&
   ['壬戌','壬申','壬午'].includes(packet.chart.day);
- const draft=fullSameVisible?edited[packet.chart.day]:null;
+ // These three chart-identical samples were authored specifically for
+ // young children. A matching natal chart from another 60-year cycle is
+ // NOT permission to give an adult an early-childhood reading.
+ const birthYear=Number(String(packet.calculationInput?.birthDate||'').slice(0,4));
+ const reportYear=packet.targetYear?.year;
+ const age=Number.isInteger(birthYear)&&Number.isInteger(reportYear)?
+  reportYear-birthYear:null;
+ const schoolAgeAppropriate=age!==null&&age>=0&&age<13;
+ const draft=fullSameVisible&&schoolAgeAppropriate?edited[packet.chart.day]:null;
  if(draft&&(
    existing.match!==true||
    existing.assessment!=='candidate-rescue-condition-visible'||
@@ -129,6 +137,8 @@ function audit(packet){
     'natal.hour.stem','natal.month.hidden.己',
     'facts.stemConnections','facts.natalBranchRelations'],
    sourceUrl,
+   audience:'child-and-caregiver',ageAtTargetYear:age,
+   ageAppropriateExampleOnly:true,
    professionallyReviewed:false,lifeOutcomePredicted:false,
    approvedForPaid:false
   }:null,
