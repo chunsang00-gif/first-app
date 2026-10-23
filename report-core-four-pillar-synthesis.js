@@ -6,6 +6,7 @@ const season=require('./report-seasonal-evidence');
 const binding=require('./report-fact-bindings');
 const branch=require('./report-branch-relations');
 const methodReview=require('./report-core-paid-natal-month-method-review');
+const sourceMethod=require('./report-core-paid-natal-classical-method-applicability');
 const {LunarUtil}=require('lunar-javascript');
 const GOD={'比肩':'비견','劫财':'겁재','食神':'식신','伤官':'상관',
  '偏财':'편재','正财':'정재','七杀':'편관','正官':'정관',
@@ -190,11 +191,19 @@ function select(packet,graph,coreId){
     contact.whichLabelPrevails!=='not-assessed'||
     contact.realizedCombinationOrBreakage!=='not-assessed')
   throw Error('CORE_FOUR_PILLAR_UNRESOLVED_METHOD_PRIORITY_DIVERGED');
+ const sourceApplicability=sourceMethod.evaluate(packet);
+ // The published Xin/Yin case cannot be used to claim a result for charts
+ // with another day stem or month. Never inflate exact six authored cases.
+ if(sourceApplicability.status!=='no-applicable-textual-precedent'||
+    sourceApplicability.textuallyMatchedExample!==null)
+  throw Error('CORE_FOUR_PILLAR_FOREIGN_CLASSICAL_CASE_APPLIED');
  const methodPriorityReview={
   kind:'qa-unselected-natal-method-priority-v1',
   priorityVerdict:'not-established',
   selectedTraditionalMethod:null,activeQiVerified:false,
   currentMonthMainSourceId:review.observed.mainHiddenStemSourceId,
+  specificPublishedClassicalExample:sourceApplicability.status,
+  classicalMethodsCompared:sourceApplicability.sourceDocuments.map(x=>x.url),
   alternativeCandidateRefs:review.methodCandidates.map(m=>({
    id:m.id,sourceIds:m.rowIds.slice(),status:m.status,
    priority:m.interpretivePriority
