@@ -33,10 +33,13 @@ assert.equal(withSeal.fullPatternAssigned,false);
 assert.equal(withSeal.dayMasterStrengthAssessed,false);
 assert.equal(withSeal.approved,false);
 assert.equal(withSeal.readerDraft.approvedForPaid,false);
+assert.equal(withSeal.readerDraft.audience,'child-and-caregiver');
+assert.equal(withSeal.readerDraft.ageAtTargetYear,6);
+assert(!/회사|직장|업무|직책|급여|작업 기준/.test(withSeal.readerDraft.text));
 assert.equal(withSeal.readerDraft.professionallyReviewed,false);
 assert.deepEqual(reader.errors([withSeal.readerDraft.label,withSeal.readerDraft.text]),[]);
-assert(withSeal.readerDraft.text.includes('해의 글자는 표현의 글자를 다시 제약'));
-assert(withSeal.readerDraft.text.includes('기존 작업 기준을 개선하려는 제안'));
+assert(withSeal.readerDraft.text.includes('태어난 해의 글자는 표현의 글자를 제약하는 관계'));
+assert(withSeal.readerDraft.text.includes('아이가 놀이 규칙을 바꾸고 싶다고 말한다면'));
 const base=make('2023-07-13','10:20');
 assert.deepEqual(base.chart,{year:'癸卯',month:'己未',
  day:'壬申',hour:'乙巳'});
@@ -49,6 +52,8 @@ assert.equal(withoutSeal.assessment,'candidate-rescue-condition-not-visible');
 assert.equal(withoutSeal.observed.potentialProtectionDirection,
  'not-seen-in-three-visible-stems');
 assert(withoutSeal.readerDraft.text.includes('완화 조건을 찾지 못했습니다'));
+assert.equal(withoutSeal.readerDraft.audience,'child-and-caregiver');
+assert.equal(withoutSeal.readerDraft.ageAtTargetYear,4);
 assert.notEqual(withoutSeal.readerDraft.text,withSeal.readerDraft.text);
 assert.equal(withoutSeal.restorationEffectVerified,false);
 const wrongHour=method.evaluate(make(good.date,'10:20'));
