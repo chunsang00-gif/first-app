@@ -108,8 +108,7 @@ assert.equal(alt.providerCalls,0);
 const tampered=structuredClone(first.packet);
 tampered.facts.natalBranchRelations.pairs=[];
 assert.throws(()=>branch.audit(tampered),
- /QA_MONTH_METHOD_CALCULATION_DIVERGED:branch-relations|
- QA_RESCUE_BRANCH_RELATION_SOURCE_DIVERGED/.source.replace(/\n /g,''));
+ /QA_MONTH_METHOD_CALCULATION_DIVERGED:branch-relations|QA_RESCUE_BRANCH_RELATION_SOURCE_DIVERGED/);
 const badStem=structuredClone(first.packet);
 badStem.facts.tenGods.year.stemTenGod='편재';
 assert.throws(()=>branch.audit(badStem),
