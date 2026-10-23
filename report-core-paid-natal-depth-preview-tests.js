@@ -58,6 +58,21 @@ for(const user of samples){
  assert.deepEqual(brief.sourceRefs.filter(id=>!permissible.includes(id)),[],
   'a manuscript must never cite a source unavailable to the same strict schema');
  assert(brief.chartFingerprint.split('/').length===4);
+ if(brief.fullFirstChapterResearch!==null){
+  const full=brief.fullFirstChapterResearch;
+  assert.equal(full.kind,'qa-complete-adult-first-chapter-edit-v1');
+  assert.equal(brief.sourceClass,'authored-specific-four-pillar-candidate');
+  assert.equal(full.releaseVerdict,'not-approved');
+  assert.equal(full.sourceInApprovedPaidRequest,false);
+  assert.equal(full.separateFromMonthOnlyWriter,true);
+  assert.equal(full.independentTraditionalMethodVerified,false);
+  assert.equal(full.professionalReaderReviewComplete,false);
+  assert.equal(full.customerPaidValueProven,false);
+  assert.equal(full.copyAsCustomerFact,false);
+  assert.deepEqual(full.sourceRefs.filter(id=>!permissible.includes(id)),[],
+   'the complete first chapter must cite only the actual provider-schema allowed refs');
+  assert.equal(full.text,full.paragraphs.map(x=>x.text).join('\n\n'));
+ }
  if(preview.reviewKind==='human-authored-candidate'){
   authoredReferences++;
   assert.equal(brief.sourceClass,'authored-specific-four-pillar-candidate');
@@ -138,6 +153,22 @@ const handwrittenOfflinePrompt={...handwritten.prompt,qaOfflineEditorialResearch
 const handwrittenOfflinePayload=writer.compile(handwrittenOfflinePrompt);
 const handwrittenResearch=handwrittenOfflinePayload.task.chapters.saju_core
  .topics.natal_depth.qaOfflineEditorialResearch;
+const complete=handwrittenResearch.fullFirstChapterResearch;
+const standalone=require('./report-core-paid-one-adult-complete-first-chapter')
+ .build(facts.build(authoredInput,2027));
+assert(complete,'latest adult full chapter must travel with the provider-ready offline brief');
+assert(standalone);
+assert.equal(complete.text,standalone.text);
+assert.equal(complete.label,standalone.label);
+assert.deepEqual(complete.paragraphs,standalone.paragraphs);
+assert.deepEqual(complete.sourceRefs,standalone.sourceRefs);
+assert(complete.text.length>=720&&complete.text.length<=900);
+assert.notEqual(complete.text,handwrittenResearch.editorialReference.text,
+ 'the offline writer must not silently use the superseded four-pillar excerpt');
+assert.equal(complete.sourceInApprovedPaidRequest,false);
+assert.equal(handwritten.payload.task.chapters.saju_core.topics.natal_depth
+ .qaOfflineEditorialResearch,undefined,
+ 'the frozen approved and billable QA request remains unchanged');
 assert.equal(handwrittenResearch.sourceClass,'authored-specific-four-pillar-candidate');
 assert(handwrittenResearch.editorialReference.text.includes('기존 작업 지침'));
 assert.equal(handwrittenResearch.chartFingerprint,'壬戌/癸丑/乙未/癸未');
@@ -147,6 +178,10 @@ assert.notEqual(handwrittenResearch.chartFingerprint,
  writer.compile({...contrastHour.prompt,qaOfflineEditorialResearchPreview:true})
   .task.chapters.saju_core.topics.natal_depth
   .qaOfflineEditorialResearch.chartFingerprint);
+assert.equal(writer.compile({...contrastHour.prompt,
+ qaOfflineEditorialResearchPreview:true}).task.chapters.saju_core.topics.natal_depth
+ .qaOfflineEditorialResearch.fullFirstChapterResearch,null,
+ 'changed birth hour must not reuse the complete adult first chapter');
 assert.notEqual(handwrittenResearch.editorialReference.text,
  writer.compile({...contrastHour.prompt,qaOfflineEditorialResearchPreview:true})
   .task.chapters.saju_core.topics.natal_depth
@@ -189,6 +224,21 @@ forged.task.chapters.saju_core.topics.natal_depth.evidenceFocus.sourceRefs=
 assert(auditTransport.inspectTransport(early.prompt,forged)
  .includes('qa-natal-depth-evidence-brief-drift'),
  'tampering with contextual provenance must fail the paid transport audit');
+const alteredComplete=structuredClone(handwrittenOfflinePayload);
+alteredComplete.task.chapters.saju_core.topics.natal_depth
+ .qaOfflineEditorialResearch.fullFirstChapterResearch.paragraphs[1].text=
+ 'FORGED READABLE CONTENT';
+assert(require('./report-instruction-audit')
+ .inspectTransport(handwrittenOfflinePrompt,alteredComplete)
+ .includes('qa-natal-depth-editorial-reference-drift'),
+ 'a changed full-chapter paragraph must fail the provider-payload audit');
+const addedCitation=structuredClone(handwrittenOfflinePayload);
+addedCitation.task.chapters.saju_core.topics.natal_depth
+ .qaOfflineEditorialResearch.fullFirstChapterResearch.sourceRefs.push('annual.fake');
+assert(require('./report-instruction-audit')
+ .inspectTransport(handwrittenOfflinePrompt,addedCitation)
+ .includes('qa-natal-depth-editorial-reference-drift'),
+ 'invented provider citations must fail the exact source check');
 const alteredEditorial=structuredClone(handwrittenOfflinePayload);
 alteredEditorial.task.chapters.saju_core.topics.natal_depth
  .qaOfflineEditorialResearch.editorialReference.text=
@@ -256,6 +306,8 @@ assert.deepEqual(Object.keys(writer.compile(defaultPrompt).task.chapters.saju_co
  }
  console.log('QA_NATAL_DEPTH_PREVIEW='+JSON.stringify({eligible:allowed,blocked:missing,authored,
   machine,authoredReferences,machineOnlyHypotheses,
+  editedAdultFirstChapterInOfflinePayload:true,
+  approvedPaidRequestFrozen:true,completeDraftProviderCalls:0,
   transportIntercepted:count,apiCalls:0,productionEnabled:false}));
  console.log('PASS QA-only verified natal-depth strict provider request, exact citation enum, default live-core unchanged');
 })().catch(e=>{console.error(e);process.exitCode=1});
