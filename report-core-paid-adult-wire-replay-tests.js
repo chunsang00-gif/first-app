@@ -10,6 +10,7 @@ const schema=require('./report-schema.json');
 const audit=require('./report-instruction-audit');
 const preview=require('./report-core-paid-natal-depth-preview');
 const expected=require('./report-core-paid-one-adult-complete-first-chapter');
+const usage=require('./report-core-paid-natal-editorial-depth-usage');
 function validateStrict(node,data,path='$'){
  if(node.anyOf)return node.anyOf.some(x=>validateStrict(x,data,path).length===0)?
   []:['SCHEMA_ANY_OF:'+path];
@@ -48,6 +49,15 @@ assert.equal(built.approvedForCustomer,false);
 assert.equal(built.billableProviderCalls,0);
 assert.equal(built.response.chapters.saju_core.paragraphs.natal_depth.text,
  authored.text);
+const readerUsage=usage.assess(built.response,built.prompt);
+assert.deepEqual(readerUsage.missingDepthPositions,[],
+ 'the complete adult manuscript must visibly use its year/day/hour evidence');
+assert.deepEqual(readerUsage.citedButUnexplained,[],
+ 'all four cited natal stems should be explained in the complete adult draft');
+assert.equal(readerUsage.monthHasIndependentCoreSlot,true);
+assert.equal(readerUsage.semanticClaimVerified,false);
+assert.equal(readerUsage.customerReleaseApproved,false);
+assert.equal(readerUsage.providerCalls,0);
 const topic=built.payload.task.chapters.saju_core.topics.natal_depth;
 assert.equal(topic.qaOfflineEditorialResearch
  .fullFirstChapterResearch.text,authored.text);

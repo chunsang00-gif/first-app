@@ -8,6 +8,7 @@ const preview=require('./report-core-paid-natal-depth-preview');
 const assemble=require('./report-core-paid-full-qa-compose').assemble;
 const factLock=require('./report-core-paid-natal-depth-fact-lock');
 const writer=require('./report-generation-request');
+const usage=require('./report-core-paid-natal-editorial-depth-usage');
 (async()=>{
  const old=global.fetch,selected=[],rolePairs=new Set();
  let network=0;
@@ -101,7 +102,7 @@ const writer=require('./report-generation-request');
   const validator=require('./report-core-paid-natal-depth-response-gate');
   const decoder=require('./report-response-decoder').decode;
   const thesis=require('./report-core-thesis');
-  const responses=[];
+  const responses=[],usageFindings=[];
   for(let i=0;i<selected.length;i++){
    const row=selected[i],draft=samples[i];
    assert.equal(row.year.tenGod,draft.year);
@@ -132,6 +133,17 @@ const writer=require('./report-generation-request');
    assert.deepEqual(decoded.sections[0].bodyTopics,['strength','natal_depth']);
    assert(decoded.sections[0].body.some(v=>v.includes(draft.prose.slice(0,25))));
    assert.equal(validator.assert(response,row.qa.prompt).releaseVerdict,'not-approved');
+   const review=usage.assess(response,row.qa.prompt);
+   assert.deepEqual(review.missingDepthPositions,['day'],
+    'a technical PASS must not conceal an unexplained day-stem citation: '+draft.date);
+   assert.equal(review.readerPositions.year.usedInReader,true);
+   assert.equal(review.readerPositions.hour.usedInReader,true);
+   assert.equal(review.readerPositions.day.cited,true);
+   assert.equal(review.readerPositions.day.usedInReader,false);
+   assert.equal(review.customerReleaseApproved,false);
+   usageFindings.push({syntheticDate:draft.date,
+    missingDepthPositions:review.missingDepthPositions,
+    status:review.status});
    responses.push(response);
   }
   let crossChartRejections=0;
@@ -153,6 +165,11 @@ const writer=require('./report-generation-request');
    crossChartRejections++;
   }
   assert.equal(crossChartRejections,6);
+  assert.equal(usageFindings.length,3);
+  console.log('QA_THREE_CHART_READER_EVIDENCE_USAGE='+JSON.stringify({
+   samples:usageFindings,reviewOnly:true,
+   technicallyValidButNotFullDepth:3,paidProviderCalls:0,
+   releaseVerdict:'not-approved'}));
   // A citation to facts.stemConnections is not proof that prose used its
   // observed exact-stem exposures / same-element roots. Surface this
   // actual, input-specific graph to the editorial reviewer, with no new
