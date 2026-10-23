@@ -134,9 +134,11 @@ function inspect(packet){
     (rescueBranch.monthBranchPairs.length>0||
      rescueBranch.monthBranchGroups.length>0))
   push('visible-rescue-and-unresolved-month-branch-relations-coexist',
-   {observedMonthPairCount:rescueBranch.monthBranchPairs.length,
+   {observedMonthPairCount:rescueBranch.uniqueMonthContactPairs,
+    observedMonthRelationLabels:rescueBranch.monthBranchPairs.length,
     observedMonthGroupCount:rescueBranch.monthBranchGroups.length,
     monthDayContacts:rescueBranch.monthContacts.day,
+    monthDayTableLabels:rescueBranch.monthRelationLabelCounts.day,
     anyContactConfirmedToOverrideRescue:false},
    ['facts.natalBranchRelations','facts.stemConnections',
     ...rescue.observed.independentlyProvenProtectionIds]);
@@ -173,7 +175,10 @@ function inspect(packet){
   calculatedFacts:factsEvidence,
   rescueBranchContext:rescueBranch.rescueVisible?{
    monthContacts:{...rescueBranch.monthContacts},
+   monthRelationLabelCounts:{...rescueBranch.monthRelationLabelCounts},
+   uniqueMonthContactPairs:rescueBranch.uniqueMonthContactPairs,
    monthPairTypes:rescueBranch.monthBranchPairs.map(x=>x.type),
+   conditionalDecisionPath:structuredClone(rescueBranch.conditionalDecisionPath),
    independentlyEditedExampleAvailable:rescueBranch.readerDraft!==null,
    sourceRefs:['facts.stemConnections','facts.natalBranchRelations'],
    rescueEffectVerified:false,branchTransformationRealised:false,
