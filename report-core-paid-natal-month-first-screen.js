@@ -55,6 +55,9 @@ function build(packet){
    mainExposurePositions:exemplar.observed.exposedMainStemPositions,
    secondaryExposurePositions:exemplar.observed.exposedSecondaryStemPositions,
    competingHiddenExposureNeedsReview:exemplar.alternativeExposuresNeedReview,
+   // Printed only as a conditional citation to ONE named classical example.
+   // It does not rank the full chart or the person's likely behavior.
+   dualExposureTextualPriority:exemplar.dualExposureTextualPriority,
    methodAdopted:false,finalPatternApproved:false
   },
   monthMethodCandidate: candidate,
