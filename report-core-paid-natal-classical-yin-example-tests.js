@@ -58,6 +58,9 @@ const rows=require('./report-fact-bindings').build(paired);
 assert(rows.some(r=>r.id==='natal.year.stem'&&r.tenGod==='정재'));
 assert(rows.some(r=>r.id==='natal.month.stem'&&r.tenGod==='정관'));
 assert.equal(resultPaired.dualExposureTextualPriority.firstRole,'정재');
+assert.equal(resultPaired.dualExposureTextualPriority.notDeterminedByElementGenerationArrow,true);
+assert.match(resultPaired.dualExposureTextualPriority.textualPriorityBasis,/main hidden stem of the Yin month/);
+assert.match(resultPaired.dualExposureTextualPriority.textualPriorityBasis,/exposed alongside Bing/);
 assert.equal(resultPaired.dualExposureTextualPriority.additionalRole,'정관');
 assert.equal(resultPaired.dualExposureTextualPriority.finalTraditionalPatternEstablished,false);
 assert.equal(resultPaired.dualExposureTextualPriority.observedBehavior,false);
@@ -73,6 +76,7 @@ assert(otherRows.some(r=>r.id==='natal.year.stem'&&r.tenGod==='정관'));
 assert(otherRows.some(r=>r.id==='natal.month.stem'&&r.tenGod==='정인'));
 assert.equal(source.inspect(differentDay).dualExposureTextualPriority.scopeMatched,false);
 assert.equal(source.inspect(differentDay).dualExposureTextualPriority.firstRole,null);
+assert.equal(source.inspect(differentDay).dualExposureTextualPriority.textualPriorityBasis,null);
 // Another month also invalidates the classical example.
 const changedMonth=facts.build({calendar:'solar',birthDate:'2024-03-17',
  birthTime:'14:20',gender:'male',mbti:'ISFP'},2027);
