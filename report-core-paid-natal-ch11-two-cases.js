@@ -7,6 +7,15 @@ const month=require('./report-core-paid-natal-month-method-review');
 const binding=require('./report-fact-bindings');
 const {direction}=require('./report-core-paid-natal-visible-relation-bridge');
 const policy=require('./report-reader-policy');
+const {LunarUtil}=require('lunar-javascript');
+const godNames={'比肩':'비견','劫财':'겁재','食神':'식신',
+ '伤官':'상관','偏财':'편재','正财':'정재','七杀':'편관',
+ '正官':'정관','偏印':'편인','正印':'정인'};
+function verifiedGod(day,stem){
+ const mapped=godNames[LunarUtil.SHI_SHEN[day+stem]];
+ if(!mapped)throw Error('QA_CLASSICAL_CH11_MISSING_CANONICAL_GOD');
+ return mapped;
+}
 const SOURCE='https://libokang.com/zh-hant/classics/bazi/%E5%AD%90%E5%B9%B3%E7%9C%9F%E8%A9%AE%E5%8E%9F%E6%96%87/';
 const RULES=[
  {
@@ -33,6 +42,17 @@ function evaluate(packet){
  const matched=[];
  const {chart}=packet;
  const sources=Object.fromEntries(binding.build(packet).map(x=>[x.id,x]));
+ // Recompute independently of the packet's claimed ten-god labels.
+ // Otherwise a corrupted payload can silently reproduce a convincing
+ // looking classical sentence with an incorrect attribution.
+ for(const id of ['natal.year.stem','natal.month.stem','natal.hour.stem',
+  ...review.observed.hiddenStemSourceIds]){
+  const row=sources[id];
+  if(!row||row.tenGod!==verifiedGod(chart.day[0],row.stem)||
+     row.observedBehavior!==false||
+     row.interpretationScope!=='traditional-symbol-only')
+   throw Error('QA_CLASSICAL_CH11_ROLE_OR_RELATION_DIVERGED:'+id);
+ }
  const candidates=review.observed.exactExposureScopeComparison
    .nonDayExposedHiddenStemIds;
  const monthStems=review.observed.hiddenStemSourceIds;
