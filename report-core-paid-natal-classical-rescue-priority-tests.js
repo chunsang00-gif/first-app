@@ -71,10 +71,16 @@ for(const p of [good.p,base]){
  assert(!previews.some(text=>JSON.stringify(c).includes(text)),
   'no approved or ordinary core writer contains an unreviewed rescue hypothesis');
 }
-for(const packet of [good.p,base]){
+for(const [packet,expected] of [[good.p,'candidate-rescue-condition-visible'],
+ [base,'candidate-rescue-condition-not-visible']]){
  const x=conflict.inspect(packet);
  assert.equal(x.downstreamPaidApproval,false);
  assert.equal(x.finalTraditionalPattern,null);
+ assert.equal(x.chapter9ConditionalRescueEvidence.assessment,expected);
+ assert.equal(x.chapter9ConditionalRescueEvidence.rescueActuallyEstablished,false);
+ assert.equal(x.chapter9ConditionalRescueEvidence.fullChartApproval,false);
+ assert(x.findings.some(y=>y.id==='chapter9-officer-output-rescue-condition-must-be-considered'
+  &&y.observed.condition===expected&&y.relativePriority==='not-assessed'));
 }
 console.log('QA_CHAPTER9_RESCUE_PRIORITY='+JSON.stringify({
  matchedRealCalendarDate:good.date,
