@@ -36,7 +36,7 @@ assert.equal(withSeal.readerDraft.approvedForPaid,false);
 assert.equal(withSeal.readerDraft.professionallyReviewed,false);
 assert.deepEqual(reader.errors([withSeal.readerDraft.label,withSeal.readerDraft.text]),[]);
 assert(withSeal.readerDraft.text.includes('해의 글자는 표현의 글자를 다시 제약'));
-assert(withSeal.readerDraft.text.includes('업무'));
+assert(withSeal.readerDraft.text.includes('기존 작업 기준을 개선하려는 제안'));
 const base=make('2023-07-13','10:20');
 assert.deepEqual(base.chart,{year:'癸卯',month:'己未',
  day:'壬申',hour:'乙巳'});
