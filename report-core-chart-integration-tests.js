@@ -8,6 +8,7 @@ const all=coverage.representativeInputs();
 let machine=0,human=0,missing=0;
 const texts=new Set();
 const focusKinds=new Set();
+const exposureKinds=new Set();
 for(const input of all){
  const p=facts.build(input,2027),out=engine.compile(p);
  if(out.status==='not-covered'){
@@ -32,6 +33,27 @@ for(const input of all){
   out.wholeChartEvidence.otherVisible.find(x=>x.position==='hour').tenGod);
  assert.deepEqual(out.review.chartSynthesis.evidence.rootRefs,
   out.wholeChartEvidence.dayMasterRoots.map(x=>x.id));
+ const exposure=out.review.chartSynthesis.evidence.exposureEvidence;
+ assert.equal(exposure.kind,'month-hidden-to-nonday-visible-observation-v1');
+ assert.equal(exposure.mainSourceId,
+  out.review.chartSynthesis.sourceRefs.find(x=>x.startsWith('natal.month.hidden.')));
+ assert.equal(exposure.monthPatternPriority,'not-assessed');
+ assert.equal(exposure.strengthVerified,false);
+ assert.equal(exposure.personalBehaviorObserved,false);
+ assert(out.review.chartSynthesis.sourceRefs.includes('facts.stemConnections'));
+ assert(out.reader.paragraphs.chartSynthesis.text.includes(exposure.displayedReaderReason));
+ assert(exposure.sourceRefs.every(id=>out.review.chartSynthesis.sourceRefs.includes(id)));
+ const computed=require('./report-stem-connections').build(p.chart);
+ const mainRow=computed.exposure.find(row=>row.hiddenId===exposure.mainSourceId);
+ assert(mainRow);
+ assert.deepEqual(exposure.mainVisiblePositions,mainRow.exactVisibleMatches
+  .filter(v=>v.position!=='day').map(v=>v.position));
+ assert.deepEqual(exposure.otherMatches,computed.exposure.filter(
+  row=>row.position==='month'&&row.layer!=='main').flatMap(row=>
+   row.exactVisibleMatches.filter(v=>v.position!=='day').map(v=>({
+    hiddenId:row.hiddenId,sourceId:v.id,position:v.position
+   }))));
+ exposureKinds.add(exposure.status);
  const q=out.review.chartSynthesis.evidence.roleQuestions;
  assert.deepEqual(q.map(x=>x.position),['year','month','hour'],
   'every source-specific question is bound to its own natal position');
@@ -96,6 +118,8 @@ assert.equal(human,4);
 assert.equal(machine,27);
 assert(texts.size>=26);
 assert(focusKinds.size>=3, 'multiple genuinely distinct judgment types must be exercised');
+assert(exposureKinds.size>=3,
+ 'the real 99-chart grid must cover at least three different month exposure patterns');
 for(const birthDate of ['1982-03-15','1982-06-15']){
  const input={calendar:'solar',birthDate,birthTime:'14:20',gender:'male',mbti:'ISFP'};
  const p=facts.build(input,2027),o=engine.compile(p);
@@ -115,6 +139,11 @@ for(const birthDate of ['1982-03-15','1982-06-15']){
  const badSeason=structuredClone(p);
  badSeason.facts.seasonalEvidence.monthPhase='corrupted';
  assert.throws(()=>merge.select(badSeason,o.wholeChartEvidence),/CORE_CHART_SYNTHESIS_SEASON_DIVERGED/);
+ const badExposed=structuredClone(p);
+ badExposed.facts.stemConnections.exposure[0].hiddenStem='invented';
+ assert.throws(()=>merge.select(badExposed,o.wholeChartEvidence),
+  /CORE_CHART_SYNTHESIS_STEM_EXPOSURE_SOURCE_DIVERGED/,
+  'a stale source graph must never justify month-to-visible prose');
  const badVisible=structuredClone(o.wholeChartEvidence);
  badVisible.otherVisible.find(x=>x.position==='year').tenGod='corrupted';
  assert.throws(()=>merge.select(p,badVisible),/CORE_CHART_SYNTHESIS_VISIBLE_DIVERGED/);
@@ -143,6 +172,8 @@ for(const input of all){
  assert(joined.evidence.interpretiveFocus?.kind);
  assert(joined.reader.text.includes(joined.evidence.interpretiveFocus.premise));
  assert(joined.reader.text.includes(joined.evidence.interpretiveFocus.conditionalReading));
+ assert(joined.reader.text.includes(joined.evidence.exposureEvidence.displayedReaderReason));
+ assert.equal(joined.evidence.exposureEvidence.monthPatternPriority,'not-assessed');
  assert(/(?:태어난 해|해에|해에서는|해와)/.test(joined.reader.text));
  assert(/(?:태어난 달|달의|달과)/.test(joined.reader.text));
  assert(/(?:태어난 시간|시간에|시간에서는|시간에는|시간의)/.test(joined.reader.text));
