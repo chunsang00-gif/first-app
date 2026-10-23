@@ -217,10 +217,14 @@ function inspectTransport(prompt,actual){
        errors.push('qa-natal-depth-evidence-brief-drift');
       // The QA-only editorial hypothesis is NOT a new fact, and cannot
       // alter the exact canonical evidenceFocus required for the writer.
-      const reference=require('./report-core-paid-natal-qa-editorial-bridge')
-       .build(prompt.facts,permitted,actual.source);
-      if(JSON.stringify(topic.qaOfflineEditorialResearch)!==JSON.stringify(reference))
-       errors.push('qa-natal-depth-editorial-reference-drift');
+      if(prompt.qaOfflineEditorialResearchPreview===true){
+       const reference=require('./report-core-paid-natal-qa-editorial-bridge')
+        .build(prompt.facts,permitted,actual.source);
+       if(JSON.stringify(topic.qaOfflineEditorialResearch)!==JSON.stringify(reference))
+        errors.push('qa-natal-depth-editorial-reference-drift');
+      }else if(Object.hasOwn(topic,'qaOfflineEditorialResearch')){
+       errors.push('qa-offline-reference-leaked-into-billable-envelope');
+      }
      }else{
       const contrast=require('./report-chart-contrast');
       const original=contrast.build(prompt.facts);
