@@ -6,6 +6,7 @@ const engine=require('./report-core-knowledge-engine');
 const ledger=require('./report-fact-bindings');
 const policy=require('./report-reader-policy');
 const comparison=require('./report-core-paid-natal-qa-value-delta');
+const completedAdult=require('./report-core-paid-one-adult-complete-first-chapter');
 const POSITION=['year','month','day','hour'];
 const REQUIRED=['natal.year.stem','natal.month.stem','natal.day.stem',
  'natal.hour.stem','facts.stemConnections'];
@@ -50,6 +51,37 @@ function build(packet,permitted,source){
  if(policy.errors([paragraph.label,paragraph.text]).length||
     /[?？]\s*$/.test(paragraph.text))
   throw Error('QA_EDITORIAL_BRIDGE_VISIBLE_LANGUAGE_REJECTED');
+ // This separately edited, complete adult first chapter is NOT the earlier
+ // fullChartRules excerpt. Surface it in the EXACT writer's offline-only
+ // research payload so the model-ready brief cannot silently use old prose.
+ // Never activate it in the approved one-shot QA or ordinary paid writer.
+ const adult=curated?completedAdult.build(packet):null;
+ if(adult){
+  if(adult.status!=='draft-for-human-review'||
+     adult.releaseVerdict!=='not-approved'||adult.readyForSale!==false||
+     adult.editorialAssessment.copiesIntoRealProviderRequest!==false||
+     adult.editorialAssessment.professionalTraditionalInterpretationApproved!==false||
+     adult.editorialAssessment.readerPaidValueEmpiricallyValidated!==false||
+     adult.paragraphs.length!==4||
+     adult.sourceRefs.length!==new Set(adult.sourceRefs).size||
+     adult.paragraphs.map(x=>x.text).join('\n\n')!==adult.text||
+     policy.errors([adult.label,adult.text]).length)
+   throw Error('QA_EDITORIAL_BRIDGE_COMPLETE_MANUSCRIPT_UNREVIEWED_OR_INVALID');
+  for(const id of adult.sourceRefs){
+   if(!permitted.includes(id)||!Object.hasOwn(source,id))
+    throw Error('QA_EDITORIAL_BRIDGE_COMPLETE_MANUSCRIPT_NOT_CITABLE:'+id);
+   if(id.startsWith('natal.')){
+    if(!rows[id]||JSON.stringify(source[id])!==JSON.stringify(rows[id])||
+       rows[id].observedBehavior!==false||
+       rows[id].interpretationScope!=='traditional-symbol-only')
+     throw Error('QA_EDITORIAL_BRIDGE_COMPLETE_MANUSCRIPT_SOURCE_DRIFT:'+id);
+   }else{
+    const original=id.slice(6).split('.').reduce((x,key)=>x?.[key],packet.facts);
+    if(original==null||JSON.stringify(source[id])!==JSON.stringify(original))
+     throw Error('QA_EDITORIAL_BRIDGE_COMPLETE_MANUSCRIPT_FACT_DRIFT:'+id);
+   }
+  }
+ }
  const chart=POSITION.map(pos=>packet.chart[pos]).join('/');
  const out={
   kind:'qa-offline-saju-research-bridge-v1',
@@ -63,6 +95,22 @@ function build(packet,permitted,source){
    'machine-structural-comparison-only',
   // A manually edited, source-restricted example may guide a QA writer;
   // it must NOT be mistaken for professionally approved Saju methodology.
+  fullFirstChapterResearch:adult?{
+   kind:'qa-complete-adult-first-chapter-edit-v1',
+   label:adult.label,text:adult.text,
+   paragraphs:adult.paragraphs.map(x=>({...x})),
+   sourceChart:{...adult.sourceChart},
+   sourceRefs:adult.sourceRefs.slice(),
+   ageAtTargetYear:adult.ageAtTargetYear,
+   sourceClass:'individually-edited-exact-four-pillar-benchmark',
+   separateFromMonthOnlyWriter:true,
+   sourceInApprovedPaidRequest:false,
+   independentTraditionalMethodVerified:false,
+   professionalReaderReviewComplete:false,
+   customerPaidValueProven:false,
+   copyAsCustomerFact:false,
+   releaseVerdict:'not-approved'
+  }:null,
   editorialReference:curated?{
    label:paragraph.label,text:paragraph.text,
    scope:'exact-chart-editorial-hypothesis-only',
