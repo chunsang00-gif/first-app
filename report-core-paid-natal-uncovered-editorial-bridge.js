@@ -107,7 +107,7 @@ function review(packet){
   '태어난 달의 바탕 글자가 해의 겉에도 나타나고, 역할과 규칙을 뜻하는 다른 글자는 달의 겉에 함께 드러납니다. 이 고전의 해당 사례에서는 바탕 글자가 실제로 드러난 조건 때문에 자원의 뜻을 먼저 다루고 책임의 뜻을 이어서 읽습니다.';
  const conditional=single?
   '새로운 관리 업무를 제안받았다고 가정해 보겠습니다. 이 풀이에서 먼저 따질 것은 직책의 이름이나 급여가 아니라 결정할 권한과 지켜야 할 기준이 얼마나 명확한지입니다. 다만 권한만 따지고 일을 수행할 사람과 도구를 놓치면 책임을 해석하는 데 필요한 현실 조건이 빠집니다.':
-  '새 프로젝트를 맡아달라는 제안을 받았다고 가정해 보겠습니다. 이 풀이의 첫 비교 대상은 그 일에 투입할 사람과 예산이며, 그 범위가 확인된 뒤에 어느 부분까지 책임질 수 있는지 연결해 볼 수 있습니다. 반대로 직책이나 맡을 일만 앞세우고 필요한 자원을 확인하지 않으면 이 고전 사례에서 먼저 본 조건을 놓칩니다.';
+  '이 고전의 다음 장에서는 자원에 관한 글자와 책임에 관한 글자가 서로 이어지는 관계로 설명됩니다. 새 프로젝트를 맡아달라는 제안을 받았다고 가정해 보겠습니다. 이 풀이를 생활에 빗대면 필요한 사람·예산과 책임 범위를 함께 비교하는 장면이 됩니다. 다만 고전에 적힌 글자의 관계만으로 실제 업무 능력이나 성과를 판단할 수는 없습니다.';
  // Counterfactuals are source-text applicability boundaries, not proof
  // that an actual person's work, character or future changes with a stem.
  // Both cases share a Xin day and Yin month. Only non-day visible Jia
@@ -146,6 +146,15 @@ function review(packet){
    (single?
     '달 이외의 출생 자리를 모두 종합해도 책임을 먼저 읽는 순서가 유지될지는 아직 결론내리지 않았습니다.':
     '달 이외의 출생 자리를 모두 종합해도 자원을 먼저 읽는 순서가 유지될지는 아직 결론내리지 않았습니다.');
+ const applicability=sourceMethod.evaluate(packet);
+ if(single&&applicability.crossChapterReading!==null)
+  throw Error('QA_CLASSICAL_SINGLE_MUST_NOT_RECEIVE_DUAL_CHAPTER11');
+ if(!single&&(
+    applicability.crossChapterReading?.verifiedElementalDirection!=='left-generates-right'||
+    applicability.crossChapterReading?.traditionalFirstCategory!=='정재'||
+    applicability.crossChapterReading?.traditionalSecondCategory!=='정관'||
+    applicability.crossChapterReading?.chartClassifiedAsFavorable!==false))
+  throw Error('QA_CLASSICAL_DUAL_CHAPTER11_SOURCE_NOT_VERIFIED');
  // Editorial comparison is made against the PRE-EXISTING candidate. It is
  // review evidence, never an automatic assessment of saleable depth.
  const shortSentences=t=>t.split(/[.!?。！？]+/).map(x=>x.trim())
@@ -168,6 +177,11 @@ function review(packet){
   readerReasoning:{monthPremise:explanation,conditionalScenario:conditional,
    sourceConditionCounterfactual:reversalCondition,
    thirdHiddenStemCompetingCase:competingExposure,
+   citedMutualSupportWithinClassicalText:applicability.crossChapterReading?
+    {chapter:applicability.crossChapterReading.chapter,
+     sourceUrl:applicability.crossChapterReading.sourceUrl,
+     observedSymbolRelation:applicability.crossChapterReading.restrictedTextualRelation,
+     personalSuccessInferred:false}:null,
    rootObservation:rootEvidence,branchUncertainty,
    coreReadingIsConditional:true,verifiedPersonalBehavior:false},
   textualApplicabilityCannotBeGeneralized:true,
@@ -186,7 +200,6 @@ function review(packet){
   throw Error('QA_UNCOVERED_CLASSICAL_CASE_DRAFT_INTEGRITY');
  // This adds a useful editor-facing comparison and case-specific explanation
  // while full causal priority, personality and saleable depth remain blocked.
- const applicability=sourceMethod.evaluate(packet);
  const expectedPublishedCase=single?
   'xin-yin-bing-only-month-command-change':
   'xin-yin-jia-and-bing-coexposed-month-main-plus-authority';
