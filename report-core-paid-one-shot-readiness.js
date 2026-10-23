@@ -74,6 +74,29 @@ async function build(){
  yes(interpretation.methodStatus==='unverified-interpretive-bridge'&&
     interpretation.independentMethodApproved===false&&
     interpretation.providerCalls===0,'traditional-meaning-not-certified');
+ // Transport correctness is NOT interpretive feasibility. This was the
+ // root mismatch behind repeatedly demanding a non-null "premium depth"
+ // even when we had not established any traditional rule connecting these
+ // observations to an individual, or a reviewed saleable reader draft.
+ const editorialMethodGate={
+  kind:'pre-billable-interpretive-feasibility-v1',
+  readyForAnotherPaidModelProbe:false,
+  verifiedTransportOnly:true,
+  blockingReasons:[
+   ...(!interpretation.independentMethodApproved?
+    ['independent-traditional-method-not-validated']:[]),
+   ...(!interpretation.monthFirstReview?.validPremiumInterpretationEstablished?
+    ['month-led-chart-inference-not-established']:[]),
+   'sample-specific-premium-reader-manuscript-not-editorially-approved'
+  ],
+  humanSpecialistReviewRequired:true,
+  humanEditorialReviewRequired:true,
+  modelCallToResolveThisGate:false,
+  approvalToSpendTokens:false
+ };
+ yes(editorialMethodGate.readyForAnotherPaidModelProbe===false&&
+  editorialMethodGate.blockingReasons.length>0,
+  'unreviewed-premium-test-must-not-appear-billable');
  const checks=[
   'four-pillar-facts-match-calendar',
   'independent-month-core-preserved',
@@ -100,6 +123,7 @@ async function build(){
   lockedYearTenGod:source['natal.year.stem'].tenGod,
   lockedHourTenGod:source['natal.hour.stem'].tenGod,
   interpretiveMethodReview:interpretation,
+  editorialMethodGate,
   apiResponseQuality:'not-tested',
   modelSelection:'not-authorized',
   maxOutputTokenSettingIfGPT41:outputLimit('gpt-4.1',candidate.prompt),
