@@ -61,3 +61,18 @@
 - 승인 지문 `cf624ba237fe34f95f2740fe7238f9bd8311ad3474f024fa74e5f5e59556e2be`, strict 응답 스키마 지문 `b635bb2987da960b1b004cf06b121303db92f161580e10af12f0d2cac64a410a`로 갱신했다.
 - `run-paid-natal-depth-qa-tests.js`는 **실제 HTTP 요청 자체를 해시**해 위 지문과 일치하는지 검사한다. 성공한 `npm test`와 `npm run smoke`: [GitHub Actions #39750240900](https://github.com/chunsang00-gif/first-app/actions/runs/39750240900). 실제 과금 0회.
 - 사전 지문 일치는 입력 계약의 일관성 검증이다. **AI가 쓴 유료 해석의 품질·출시 승인과는 무관**하다. PR #3 병합 및 유료 API 1회 실행 모두 별도 명시적 승인을 필요로 한다.
+
+## 2026-10-23 과금 전 해석 가능성 검증 — 생성 형식과 해석 품질을 분리
+
+**이번에 발견한 구조적 모순:** 현재 합성 입력의 서버 요청, 출생 근거, JSON 스키마 및 모델 전송 지문이 맞아도 `report-core-paid-natal-interpretive-method-audit.js`는 `independentMethodApproved:false`, `monthFirstReview.validPremiumInterpretationEstablished:false`라고 명시한다. 그런데 QA 작성 지침은 모델에게 `natal_depth`를 **반드시 비어 있지 않은 문단으로 작성**하도록 요구한다. 이는 계산 근거의 검증과 의미 있는 **개인 해석 근거**를 잘못 연결한 것이다. 원고가 `null`로 나오거나 범용 조언으로 채워지던 실패를 기술 통과만으로 해결할 수 없다.
+
+**바로잡은 실행 순서:**
+
+1. `report-core-paid-one-shot-readiness.js`는 전송 지문과 별개인 `editorialMethodGate`를 반환한다. 오늘의 대표 명식은 **전통 해석 방법 미승인 / 월령 기반 개인별 의미 도출 미검증 / 심화 문단 독립 편집 미승인** 세 이유로 `readyForAnotherPaidModelProbe:false`다.
+2. `run-paid-natal-depth-qa.js`는 실제 요청 지문 검증 **후에도**, 이 조건이 충족되지 않으면 `QA_NATAL_DEPTH_UNREVIEWED_METHOD_NO_BILLING` 오류로 호출을 거절한다. 검증 지문이 맞거나 운영자가 승인 문자열을 넣었다는 이유만으로 **소모성 재생성을 허용하지 않는다**. 원격 API 요청, 시도 기록 파일 쓰기 전에 차단한다.
+3. `run-paid-natal-depth-qa-tests.js`는 본 경로에서 차단·무과금·미기록을 직접 확인한다. 기존 요청/단일 응답/암호화 저장/형식 실패/중복 호출 거절의 기술 테스트는 **테스트 안에서만 설정한 가짜 HTTP 응답과 테스트용 모의 승인**으로 계속 검증하며 외부 제공자 호출은 없다.
+4. `report-core-paid-one-shot-readiness-tests.js`는 해석 준비 상태가 기술적 전송 준비와 다르다는 사실을 별도로 검증한다.
+
+**중요한 구분:** 이 변경은 유료 보고서의 해석력을 개선했다고 주장하는 것이 아니다. **그 근거가 아직 없는데 돈을 쓰도록 진행하던 잘못된 경로를 차단한 것**이다. 이미 기록된 해시와 이전 유료 1회 실행 기록은 역사적 감사 자료이며, 이 문서 앞부분의 과거 SHA-256 값들이 2026-10-23 현재 요청의 승인값인 것은 아니다. 기존 V1 승인은 사용 완료 상태다.
+
+**다음 실질 개발 요건:** 실제 입력별로 채택한 명리 규칙, 그 규칙의 조건·반례·겹치는 관계 처리, 계산 사실→전통적 해석까지의 연결 논리, 독자가 새로 얻을 수 있는 짧은 원고를 **과금 없이 독립 검수**해야 한다. 그 뒤 요청 지침과 독자 원고의 품질을 다시 판단할 수 있다. 전문가 검수 및 사용자 신규 승인 없는 자동 호출은 계속 금지한다. 정식 운영 브랜치 `saju-mbti-app`과 고객 보고서 경로는 그대로다.
