@@ -43,12 +43,14 @@ for(const input of all){
  const focused=out.review.chartSynthesis.evidence.interpretiveFocus;
  assert(focused&&focused.kind&&focused.premise.length>=25,
   'judgment must state a meaningful difference, not fill a length quota');
- assert(focused.premise.includes(focused.tenGods.year));
- assert(focused.premise.includes(focused.tenGods.monthHidden));
- assert(focused.premise.includes(focused.tenGods.hour));
+ assert(focused.premise.includes('태어난'),
+  'the new reader must explain the difference in ordinary Korean');
  assert(focused.conditionalReading.length>=50);
- assert(focused.conditionalReading.includes(q[0].question));
- assert(focused.conditionalReading.includes(q[2].question));
+ assert(focused.conditionalReading.includes('예를 들어'));
+ assert(!focused.conditionalReading.includes('확인할 질문은'));
+ assert.deepEqual(require('./report-reader-policy').errors(
+  [focused.premise,focused.conditionalReading]),[],
+  'traditional labels belong in internal evidence rather than reader copy');
  assert.equal(focused.verdict,'review-only');
  assert.equal(focused.observedPersonality,false);
  assert.equal(focused.determinedStrength,false);
@@ -70,11 +72,12 @@ for(const input of all){
  assert.equal(focused.kind,expectedFocus,
   'judgment emphasis must arise from independently checked natal category comparisons');
  focusKinds.add(focused.kind);
- assert(q.every(x=>out.reader.paragraphs.chartSynthesis.text.includes(
-  x.position==='year'?'출생 해의 '+x.tenGod+'에서 확인할 질문은 '+x.question:
-   x.position==='month'?'출생 달의 '+x.tenGod+'에서 확인할 질문은 '+x.question:
-   '출생 시간의 '+x.tenGod+'에서 확인할 질문은 '+x.question)),
-  'reader must contain each grounded question under the matching pillar');
+ assert(!out.reader.paragraphs.chartSynthesis.text.includes('확인할 질문은'),
+  'do not sell a three-question glossary as individual depth');
+ assert.deepEqual(require('./report-reader-policy').errors(
+  [out.reader.paragraphs.chartSynthesis.label,
+   out.reader.paragraphs.chartSynthesis.text]),[],
+  'visible chart synthesis must be free of traditional jargon');
  assert(!out.reader.paragraphs.chartSynthesis.text.includes('전통적 관점'),
   'avoid repeating dictionary-like full ten-god definitions');
  assert(!out.reader.paragraphs.chartSynthesis.text.includes('입니다 출생'),
@@ -140,9 +143,11 @@ for(const input of all){
  assert(joined.evidence.interpretiveFocus?.kind);
  assert(joined.reader.text.includes(joined.evidence.interpretiveFocus.premise));
  assert(joined.reader.text.includes(joined.evidence.interpretiveFocus.conditionalReading));
- assert(joined.reader.text.includes('출생 해의'));
- assert(joined.reader.text.includes('출생 달의'));
- assert(joined.reader.text.includes('출생 시간의'));
+ assert(/(?:태어난 해|해에|해에서는|해와)/.test(joined.reader.text));
+ assert(/(?:태어난 달|달의|달과)/.test(joined.reader.text));
+ assert(/(?:태어난 시간|시간에|시간에서는|시간에는|시간의)/.test(joined.reader.text));
+ assert.deepEqual(require('./report-reader-policy').errors(
+  [joined.reader.label,joined.reader.text]),[]);
  assert(!joined.reader.text.includes('전통적 관점'));
  assert(!joined.reader.text.includes('입니다 출생'));
  const sentences=(joined.reader.text.match(/[^.!?。！？]+[.!?。！？]/g)||[])
