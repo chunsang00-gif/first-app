@@ -10,6 +10,7 @@ const factLock=require('./report-core-paid-natal-depth-fact-lock');
 const writer=require('./report-generation-request');
 const usage=require('./report-core-paid-natal-editorial-depth-usage');
 const crossEditorial=require('./report-core-paid-natal-cross-chart-editorial-audit');
+const consequences=require('./report-core-paid-natal-conditional-role-audit');
 (async()=>{
  const old=global.fetch,selected=[],rolePairs=new Set();
  let network=0;
@@ -156,6 +157,47 @@ const crossEditorial=require('./report-core-paid-natal-cross-chart-editorial-aud
   const corpus=responses.map((response,i)=>({
    response,prompt:selected[i].qa.prompt,payload:selected[i].qa.payload
   }));
+  // Each calculated year/hour category must also occur in a condition
+  // with a consequence, not only as a dictionary gloss at the start.
+  for(const item of corpus){
+   const review=consequences.inspect(item);
+   assert.deepEqual(review.warnings,[],
+    'reader decision claims must be visibly connected to each source category');
+   assert.equal(review.differentSourceCategories,true);
+   assert.equal(review.customerReleaseApproved,false);
+   assert.equal(review.readerPaidValueVerified,false);
+  }
+  // Adversarial case: perfect source labels and citations, but the writer
+  // swaps the actual consequences for advice suitable for ANY chart.
+  const generic=structuredClone(corpus);
+  generic[0].response.chapters.saju_core.paragraphs.natal_depth.text=
+   generic[0].response.chapters.saju_core.paragraphs.natal_depth.text
+    .split(/[.!?。！？]+/).slice(0,3).join('. ')+
+   '. 여러 조건을 살펴보는 경우 도움이 될 수 있습니다. '+
+   '신중히 선택하면 놓칠 위험이 적습니다.';
+  assert.deepEqual(validator.inspect(generic[0].response,generic[0].prompt),[],
+   'generic conclusion must demonstrate the specific gap in the older QA gate');
+  const ungrounded=consequences.inspect(generic[0]);
+  assert(ungrounded.warnings.includes('conditional-consequence-not-linked:year'));
+  assert(ungrounded.warnings.includes('conditional-consequence-not-linked:hour'));
+  assert.equal(ungrounded.methodApproved,false);
+  // Keep year/hour dictionary sentences untouched but transplant the
+  // conditional tradeoff from another calculated role pair.
+  const swapped=structuredClone(corpus);
+  const original=swapped[0].response.chapters.saju_core.paragraphs.natal_depth.text;
+  const intro=original.split(/[.!?。！？]+/).slice(0,3).join('. ');
+  const other=corpus[2].response.chapters.saju_core.paragraphs.natal_depth.text
+   .split(/[.!?。！？]+/).slice(3).join('. ');
+  swapped[0].response.chapters.saju_core.paragraphs.natal_depth.text=
+   intro+'. '+other+'.';
+  const misattributed=consequences.inspect(swapped[0]);
+  assert(misattributed.warnings.some(w=>w==='conditional-consequence-not-linked:hour'),
+   'unrelated chart tradeoff must not count as individual reading for this hour role');
+  assert.equal(misattributed.providerCalls,0);
+  console.log('QA_ROLE_BOUND_DECISION='+JSON.stringify({
+   syntheticChartsChecked:corpus.length,genericAdviceCaught:true,
+   foreignTradeoffCaught:true,methodApproved:false,paidApiCalls:0,
+   releaseVerdict:'not-approved'}));
   const healthyReuse=crossEditorial.inspect(corpus);
   assert.equal(healthyReuse.inspectedCharts,3);
   assert.equal(healthyReuse.pairs,3);
