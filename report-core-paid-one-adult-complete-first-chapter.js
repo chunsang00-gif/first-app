@@ -30,10 +30,12 @@ const PARAGRAPHS=[
 function build(packet){
  if(packet?.status!=='ready'||!packet.chart?.hour)throw Error('QA_ADULT_CORE_VALID_PACKET_REQUIRED');
  const input=packet.calculationInput||{};
- // Exact fixture, not a horoscope classifier. A future year or an adult
+ // Exact fixture (including demographic/MBTI and target year), not a horoscope classifier. A future year or an adult
  // with the same pillar cycle cannot silently receive this personal draft.
  if(input.calendar!=='lunar'||input.birthDate!=='1982-11-24'||
     input.birthTime!=='14:20'||input.leapMonth!==false||
+    input.gender!=='male'||input.mbti!=='ISFP'||
+    packet.targetYear?.year!==2027||
     !Object.entries(CHART).every(([k,v])=>packet.chart[k]===v))
   return null;
  const age=packet.targetYear?.year-1982;

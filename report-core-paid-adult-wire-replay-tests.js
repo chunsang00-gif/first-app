@@ -100,6 +100,12 @@ const changed=facts.build({...input,birthTime:'20:20'},2027);
 assert.equal(replay.build(changed),null,'changed birth hour must withhold authored manuscript');
 const incorrect=facts.build({...input,birthDate:'1982-11-23'},2027);
 assert.equal(replay.build(incorrect),null,'changed birth date must withhold authored manuscript');
+assert.equal(replay.build(facts.build({...input,gender:'female'},2027)),null,
+ 'different gender must not receive the frozen QA response');
+assert.equal(replay.build(facts.build({...input,mbti:'ENTJ'},2027)),null,
+ 'different MBTI must not receive the frozen QA response');
+assert.equal(replay.build(facts.build(input,2028)),null,
+ 'different target year must not reuse the 2027 response fixture');
 console.log('QA_ADULT_ACTUAL_WIRE_REPLAY='+JSON.stringify({
  chart:packet.chart,readerChars:authored.text.length,
  schemaShape:'provider-real-strict-JSON',

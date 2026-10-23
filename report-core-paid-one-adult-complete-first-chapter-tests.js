@@ -109,6 +109,12 @@ assert.equal(changed.eligibleForRelease,false);
 assert.equal(manuscript.build(alt),null);
 assert.equal(manuscript.build(facts.build({...input('14:20'),birthDate:'1982-11-23'},2027)),null);
 assert.equal(manuscript.build(facts.build({...input('14:20'),calendar:'solar'},2027)),null);
+assert.equal(manuscript.build(facts.build({...input('14:20'),gender:'female'},2027)),null,
+ 'QA male manuscript must not be reused for another gender');
+assert.equal(manuscript.build(facts.build({...input('14:20'),mbti:'ENTJ'},2027)),null,
+ 'QA ISFP fixture must not be reused for another MBTI');
+assert.equal(manuscript.build(facts.build(input('14:20'),2028)),null,
+ 'QA 2027 editorial snapshot must not be silently reused in another target year');
 const manipulated=structuredClone(p);
 manipulated.facts.tenGods.hour.stemTenGod='정재';
 assert.throws(()=>manuscript.build(manipulated),
