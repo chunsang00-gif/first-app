@@ -4,6 +4,21 @@
 // pattern, personal traits, life events, or willingness to pay.
 const classical=require('./report-core-paid-natal-classical-method-applicability');
 const month=require('./report-core-paid-natal-month-method-review');
+const {LunarUtil}=require('lunar-javascript');
+const names={'比肩':'비견','劫财':'겁재','食神':'식신','伤官':'상관',
+ '偏财':'편재','正财':'정재','七杀':'편관','正官':'정관',
+ '偏印':'편인','正印':'정인'};
+function checkCalculatedRoles(packet){
+ const day=packet.chart.day?.[0];
+ for(const position of ['year','month','hour']){
+  const stem=packet.chart[position]?.[0];
+  const expected=names[LunarUtil.SHI_SHEN[day+stem]];
+  const actual=packet.facts?.tenGods?.[position];
+  if(!expected||actual?.stem!==stem||actual.stemTenGod!==expected)
+   throw Error('QA_METHOD_HANDOFF_FALSE_CALCULATED_ROLE:'+position);
+ }
+}
+
 const QUESTIONS=[
  ['choose-school','어느 전통 해석 체계를 선택하고 그 근거 문헌은 무엇인가?'],
  ['resolve-month','태어난 달의 기본 글자·겉에 드러난 글자·사령 자료 사이에서 무엇을 우선할 것인가?'],
@@ -14,6 +29,7 @@ const QUESTIONS=[
 function build(packet){
  if(packet?.status!=='ready'||!packet.chart?.hour)
   throw Error('QA_METHOD_HANDOFF_FULL_CHART_REQUIRED');
+ checkCalculatedRoles(packet);
  const x=classical.evaluate(packet),m=month.assess(packet);
  if(x.providerCalls!==0||x.finalPatternSelected!==false||
     x.chosenCommercialTraditionalSchool!==null||
