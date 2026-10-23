@@ -43,7 +43,7 @@ function assess(response,prompt){
   readerPositions[position].cited&&!readerPositions[position].usedInReader);
  const body=depth.text.replace(/\s+/g,' ').trim();
  // Readability cues are advisory, never evidence of commercial quality.
- const situation=/(?:예를\s*들어|가정해\s*보|가정합니다|가정해\s*보겠습니다|상황을\s*가정)/.test(body);
+ const situation=/(?:예를\s*들어|가정해\s*(?:보|봅)|가정합니다|상황을\s*가정)/.test(body);
  const concreteSetting=/(?:업무|작업\s*절차|협력처|행사|매장|공급처|거래처|회의|예약|계약|이사|학교)/.test(body);
  const alternatives=/(?:반면|반대로|하지만|그렇지만|기존\s*방식만|새\s*방법만)/.test(body);
  const conditionalDownside=/(?:경우|때는|때에는|[가-힣]+면)/.test(body)&&
