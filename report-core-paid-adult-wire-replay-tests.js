@@ -94,6 +94,9 @@ assert.equal(dayIsAnchor.customerReleaseApproved,false);
 const topic=built.payload.task.chapters.saju_core.topics.natal_depth;
 assert.equal(topic.qaOfflineEditorialResearch
  .fullFirstChapterResearch.text,authored.text);
+assert.equal(topic.qaOfflineEditorialResearch.methodHandoff.exactTextualDecision,null);
+assert.equal(topic.qaOfflineEditorialResearch.methodHandoff.expertDecisions.length,5);
+assert.equal(topic.qaOfflineEditorialResearch.methodHandoff.readyForPaidModelProbe,false);
 assert(built.payload.task.editorialGoal.includes(
  'qaOfflineEditorialResearch.fullFirstChapterResearch'),
  'the QA research benchmark must be referenced by the actual model-facing editorial brief');

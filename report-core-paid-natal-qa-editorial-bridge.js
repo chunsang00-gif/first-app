@@ -7,6 +7,7 @@ const ledger=require('./report-fact-bindings');
 const policy=require('./report-reader-policy');
 const comparison=require('./report-core-paid-natal-qa-value-delta');
 const completedAdult=require('./report-core-paid-one-adult-complete-first-chapter');
+const methodDecision=require('./report-core-paid-classical-decision-handoff');
 const POSITION=['year','month','day','hour'];
 const REQUIRED=['natal.year.stem','natal.month.stem','natal.day.stem',
  'natal.hour.stem','facts.stemConnections'];
@@ -93,6 +94,8 @@ function build(packet,permitted,source){
   editorialDelta:comparison.assess(packet,draft,selected,curated?'authored':'machine'),
   sourceClass:curated?'authored-specific-four-pillar-candidate':
    'machine-structural-comparison-only',
+  // Source-checked specialist decision record, never customer or paid request.
+  methodHandoff:methodDecision.build(packet),
   // A manually edited, source-restricted example may guide a QA writer;
   // it must NOT be mistaken for professionally approved Saju methodology.
   // Offline-only source-to-reader map, not the paying customer's request.
