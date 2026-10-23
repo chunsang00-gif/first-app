@@ -108,7 +108,7 @@ function inspect(packet){
   status:'candidate-needs-editorial-review',readerPresent:true,reviewType:slot,
   sourceRefs,
   diagnostics:{
-   textChars:text.length,questionMarks:count(text/[?？]/g),
+   textChars:text.length,questionMarks:count(text,/[?？]/g),
    disclaimerCount:disclaimers,
    exactSourceRefs:sourceRefs.length,
    groundedFocusChecked:slot==='chartSynthesis'
