@@ -11,6 +11,7 @@ const graph=require('./report-core-evidence-graph');
 const synthesis=require('./report-core-chart-integration');
 const monthReview=require('./report-core-paid-natal-month-method-review');
 const sourceMethod=require('./report-core-paid-natal-classical-method-applicability');
+const conflictReview=require('./report-core-paid-natal-conflict-abstention');
 function review(packet){
  const verified=counterfactual.snapshot(packet);
  const result=core.compile(packet);
@@ -195,8 +196,14 @@ function review(packet){
     applicability.finalPatternSelected!==false||
     applicability.readyForCustomer!==false)
   throw Error('QA_UNCOVERED_CLASSICAL_CASE_NOT_VERIFIED');
+ const conflicts=conflictReview.inspect(packet);
+ if(conflicts.conclusion!=='abstain-from-full-chart-interpretation'||
+    conflicts.downstreamPaidApproval!==false||
+    conflicts.documentedClassicalFirstRole!==applicability.textualCaseFirstRole)
+  throw Error('QA_UNCOVERED_CONFLICT_PRIORITY_LEAK');
  const contextualReview={
   status:'full-chart-structural-comparison-only',
+  competingMethodEvidence:conflicts,
   sourceBoundClassicalMethod:applicability,
   label:structural.reader.label,text:structural.reader.text,
   sourceRefs:structural.sourceRefs.slice(),
