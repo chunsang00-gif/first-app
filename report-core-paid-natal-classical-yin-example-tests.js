@@ -103,6 +103,27 @@ assert.equal(single.dualExposureTextualPriority.scopeMatched,false);
 assert.equal(single.dualExposureTextualPriority.firstRole,null);
 assert.equal(source.offlineReaderCandidate(onlyBing),null,
  'never reuse the Jia+Bing reader draft in the Bing-only classical case');
+const singleReader=source.offlineSingleReaderCandidate(onlyBing);
+assert.equal(singleReader.kind,'qa-classical-natal-single-reader-candidate-v1');
+assert.equal(singleReader.releaseVerdict,'not-approved');
+assert.equal(singleReader.readyForPaidModelProbe,false);
+assert.equal(singleReader.providerCalls,0);
+assert.equal(singleReader.individualPersonalityOrCareerVerified,false);
+assert.deepEqual(singleReader.sourceRefs,[
+ 'natal.day.stem','natal.year.stem','natal.month.stem',
+ 'natal.hour.stem','natal.month.hidden.甲','natal.month.hidden.丙']);
+assert.deepEqual(require('./report-reader-policy').errors(
+ [singleReader.label,singleReader.text]),[]);
+assert(singleReader.text.includes('해석의 출발점을 바꿉니다'));
+assert(singleReader.text.includes('실제로 책임감이 강하거나 높은 직책을 맡는다는 뜻은 아닙니다'));
+assert(!singleReader.text.includes('자원을 중심에 두고 책임에 관한 뜻을 곁들입니다'));
+assert(singleReader.text.length>200);
+assert.notEqual(singleReader.label,readerCandidate.label);
+assert.notEqual(singleReader.text,readerCandidate.text,
+ 'different classical applicability must not recycle one reader paragraph');
+assert.notDeepEqual(singleReader.sourceRefs,readerCandidate.sourceRefs);
+assert.equal(source.offlineSingleReaderCandidate(paired),null,
+ 'the single-exposure text cannot be reused when Jia is exposed');
 console.log('QA_CLASSICAL_SINGLE_EXPOSURE='+JSON.stringify({
  day:onlyBing.chart.day,month:onlyBing.chart.month,
  primary:single.observed.exposedMainStemPositions,
@@ -121,6 +142,7 @@ assert(otherRows.some(r=>r.id==='natal.month.stem'&&r.tenGod==='정인'));
 assert.equal(source.inspect(differentDay).dualExposureTextualPriority.scopeMatched,false);
 assert.equal(source.offlineReaderCandidate(differentDay),null,
  'no copied reader conclusion for different day master');
+assert.equal(source.offlineSingleReaderCandidate(differentDay),null);
 assert.equal(source.inspect(differentDay).dualExposureTextualPriority.firstRole,null);
 assert.equal(source.inspect(differentDay).dualExposureTextualPriority.textualPriorityBasis,null);
 // Another month also invalidates the classical example.
@@ -129,6 +151,7 @@ const changedMonth=facts.build({calendar:'solar',birthDate:'2024-03-17',
 assert.equal(source.inspect(changedMonth).dualExposureTextualPriority.scopeMatched,false);
 assert.equal(source.offlineReaderCandidate(changedMonth),null,
  'no copied conclusion for out-of-scope month');
+assert.equal(source.offlineSingleReaderCandidate(changedMonth),null);
 console.log('QA_CLASSICAL_DUAL_EXPOSURE='+JSON.stringify({
  date:'2024-02-17',chart:paired.chart,
  main:resultPaired.observed.exposedMainStemPositions,
@@ -142,6 +165,7 @@ const other=facts.build({calendar:'solar',birthDate:'1982-06-15',
 assert.equal(source.inspect(other).candidate,'out-of-example-scope');
 assert.equal(source.offlineReaderCandidate(other),null,
  'unrelated natal samples cannot receive the classical reader passage');
+assert.equal(source.offlineSingleReaderCandidate(other),null);
 const unknown=facts.build({calendar:'solar',birthDate:'1982-02-15',
  unknownBirthTime:true,gender:'male',mbti:'모름'},2027);
 assert.throws(()=>source.inspect(unknown),/QA_CLASSICAL_MONTH_EXAMPLE_INCOMPLETE/);
