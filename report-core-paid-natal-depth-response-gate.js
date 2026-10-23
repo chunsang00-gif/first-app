@@ -110,6 +110,11 @@ function inspect(value,prompt){
  // general fabricated-outcome check because a causal graph claim can
  // masquerade as an otherwise conditional interpretation.
  errors.push(...require('./report-core-paid-natal-root-claim-guard').inspect(text));
+ // The provider now receives the VERIFIED directional element worksheet.
+ // If the reader text explicitly reverses a computed generating/controlling
+ // relation, reject it. No such assertion is required or auto-invented.
+ errors.push(...require('./report-core-paid-natal-direction-claim-gate')
+  .inspect(text,prompt.facts,payload.source));
  if(!CONDITIONAL.test(text))fail('QA_DEPTH_NO_CONDITIONAL_INTERPRETATION');
  if(!COMPARISON.test(text))fail('QA_DEPTH_NO_PILLAR_CONTRAST');
  const positions=new Set(referencedPositions(text));
