@@ -5,7 +5,7 @@
 // This limited recognizer never certifies the artistic quality of a manuscript.
 const relations=require('./report-core-paid-natal-visible-relation-bridge');
 const POS={해:'year',달:'month',시간:'hour'};
-const PAIR=/태어난\s*(해|달|시간)의\s*(?:겉)?글자(?:가|는|은)\s*태어난\s*(해|달|시간)의\s*(?:겉)?글자(?:를|을|와|과)\s*(돕|도와|생하|제약하|극하|같은\s*오행)/g;
+const PAIR=/태어난\s*(해|달|시간)의\s*(?:겉)?글자(?:가|는|은)\s*태어난\s*(해|달|시간)의\s*(?:겉)?글자(?:를|을|와|과)\s*(돕|도와|생하|제약(?:하|합|해)|극(?:하|합|해)|같은\s*오행)/g;
 function inspect(readerText,packet,source){
  const graph=relations.build(packet,source);
  const map=new Map();
@@ -32,7 +32,7 @@ function inspect(readerText,packet,source){
     continue;
    const kind=/^(?:돕|도와|생하)/.test(match[3])?
     'left-generates-right':
-    /^(?:제약하|극하)/.test(match[3])?
+    /^(?:제약(?:하|합|해)|극(?:하|합|해))/.test(match[3])?
      'left-controls-right':'same-element';
    const expected=map.get(left+'|'+right);
    if(expected&&expected!==kind)
