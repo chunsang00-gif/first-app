@@ -42,6 +42,21 @@ function audit(packet){
  const monthYear=contact.filter(x=>x.positions.includes('year'));
  const monthDay=contact.filter(x=>x.positions.includes('day'));
  const monthHour=contact.filter(x=>x.positions.includes('hour'));
+ const monthRelationLabelCounts={
+  year:monthYear.length,day:monthDay.length,hour:monthHour.length
+ };
+ // A pair with multiple traditional TABLE labels is one positional
+ // observation, never two separate contacts or real-world incidents.
+ const monthContacts={
+  year:Number(monthYear.length>0),
+  day:Number(monthDay.length>0),
+  hour:Number(monthHour.length>0)
+ };
+ const uniqueMonthContactPairs=Object.values(monthContacts)
+  .reduce((count,present)=>count+present,0);
+ if(uniqueMonthContactPairs!==new Set(contact.map(x=>
+    x.positions.slice().sort().join('/'))).size)
+  throw Error('QA_RESCUE_BRANCH_DUPLICATE_POSITIONAL_CONTACT_DRIFT');
  const fullSameVisible=packet.chart.year==='辛丑'&&
   packet.chart.month==='乙未'&&packet.chart.hour==='己酉'&&
   ['壬戌','壬申','壬午'].includes(packet.chart.day);
@@ -70,10 +85,37 @@ function audit(packet){
    protectionIds:existing.observed.independentlyProvenProtectionIds.slice(),
    sourceUrl:existing.source.url}:null,
   monthBranchPairs:contact,monthBranchGroups:groups,
-  monthContacts:{year:monthYear.length,day:monthDay.length,
-   hour:monthHour.length},
-  uniqueMonthContactPairs:new Set(contact.map(x=>x.positions.slice().sort().join('/'))).size,
+  monthContacts,monthRelationLabelCounts,uniqueMonthContactPairs,
   overlappingLabelsAreNotSeparateIncidents:true,
+  // The source gives table membership, not active combinations, relative
+  // strength or whether protection prevails over a branch relation.
+  conditionalDecisionPath:{
+   kind:'qa-chapter9-review-order-no-automatic-verdict-v1',
+   checks:[
+    {stage:'monthly-role-and-obstruction',result:existing.match?
+      'literal-condition-present':'literal-condition-not-matched',
+     refs:['natal.month.hidden.己','natal.month.stem','natal.hour.stem',
+      'facts.stemConnections']},
+    {stage:'visible-counteracting-role',
+     result:existing.match?existing.assessment:'not-assessed',
+     refs:existing.match?['natal.year.stem','facts.stemConnections']:[]},
+    {stage:'month-linked-branch-table',
+     result:uniqueMonthContactPairs?
+      'distinct-position-pairs-found-effects-undetermined':
+      'no-pair-found-not-evidence-of-success',
+     uniquePositionalPairs:uniqueMonthContactPairs,
+     relationTableLabels:contact.length,
+     refs:['facts.natalBranchRelations']},
+    {stage:'traditional-priority-and-actual-effect',
+     result:'unverified-requires-independent-method-review',
+     refs:['facts.natalBranchRelations','facts.stemConnections']}
+   ],
+   methodPrioritySelected:false,
+   inferredProtectionSuccess:false,
+   inferredDestinyOrPersonality:false,
+   paidReaderApproval:false,
+   fullChartVerdict:'blocked-pending-method-review'
+  },
   textualMethodScope:'officer-output-seal-example-only',
   branchPairsAreOnlyTableMembership:true,
   branchCombinationRealised:false,
