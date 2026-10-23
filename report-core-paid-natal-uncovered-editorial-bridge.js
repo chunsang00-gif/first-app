@@ -10,6 +10,7 @@ const language=require('./report-reader-policy');
 const graph=require('./report-core-evidence-graph');
 const synthesis=require('./report-core-chart-integration');
 const monthReview=require('./report-core-paid-natal-month-method-review');
+const sourceMethod=require('./report-core-paid-natal-classical-method-applicability');
 function review(packet){
  const verified=counterfactual.snapshot(packet);
  const result=core.compile(packet);
@@ -169,8 +170,19 @@ function review(packet){
   throw Error('QA_UNCOVERED_CLASSICAL_CASE_DRAFT_INTEGRITY');
  // This adds a useful editor-facing comparison and case-specific explanation
  // while full causal priority, personality and saleable depth remain blocked.
+ const applicability=sourceMethod.evaluate(packet);
+ const expectedPublishedCase=single?
+  'xin-yin-bing-only-month-command-change':
+  'xin-yin-jia-and-bing-coexposed-month-main-plus-authority';
+ if(applicability.textuallyMatchedExample!==expectedPublishedCase||
+    applicability.status!=='exact-textual-conditions-only'||
+    applicability.chosenCommercialTraditionalSchool!==null||
+    applicability.finalPatternSelected!==false||
+    applicability.readyForCustomer!==false)
+  throw Error('QA_UNCOVERED_CLASSICAL_CASE_NOT_VERIFIED');
  const contextualReview={
   status:'full-chart-structural-comparison-only',
+  sourceBoundClassicalMethod:applicability,
   label:structural.reader.label,text:structural.reader.text,
   sourceRefs:structural.sourceRefs.slice(),
   monthExposureExplanation:observed.displayedReaderReason,
