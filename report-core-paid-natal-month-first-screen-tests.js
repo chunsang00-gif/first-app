@@ -47,6 +47,31 @@ for(const row of cases){
   dayMasterOnly:row.dayOnly,monthOverlaps:audit.conditions[3].observedCount,
   transition:audit.conditions[2].status,approved:false});
 }
+const xinSample=facts.build({calendar:'solar',birthDate:'2024-02-17',
+ birthTime:'14:20',gender:'male',mbti:'ISFP'},2027);
+const xinScreen=candidate.build(xinSample);
+assert.equal(xinScreen.monthMethodCandidate,'competing-visible-month-candidates');
+assert.equal(xinScreen.classicalTextualExample.dualExposureTextualPriority.scopeMatched,true);
+assert.equal(xinScreen.classicalTextualExample.dualExposureTextualPriority.firstRole,'정재');
+assert.equal(xinScreen.classicalTextualExample.dualExposureTextualPriority.additionalRole,'정관');
+assert.equal(xinScreen.validPremiumInterpretationEstablished,false);
+assert.equal(xinScreen.methodAdopted,false);
+const notXin=facts.build({calendar:'solar',birthDate:'2024-02-15',
+ birthTime:'14:20',gender:'male',mbti:'ISFP'},2027);
+assert.equal(candidate.build(notXin).classicalTextualExample.dualExposureTextualPriority.scopeMatched,false);
+const yinProvider=preview.prepare(xinSample);
+if(yinProvider){
+ const focus=yinProvider.payload.task.chapters.saju_core.topics.natal_depth.evidenceFocus;
+ assert.deepEqual(focus.monthFirstApplicability,xinScreen);
+ assert.deepEqual(transport.inspectTransport(yinProvider.prompt,yinProvider.payload),[]);
+}
+console.log('QA_CLASSICAL_PRIORITY_WRITER_SCOPE='+JSON.stringify({
+ computedChart:xinSample.chart,
+ candidate:xinScreen.monthMethodCandidate,
+ classicalRoleOrder:xinScreen.classicalTextualExample.dualExposureTextualPriority,
+ monthRelationOverlapCount:xinScreen.conditions[3].observedCount,
+ qaWriterEligible:!!yinProvider,paidCalls:0,fullReadingApproved:false
+}));
 assert.equal(diagnostic.length,5);
 assert(new Set(diagnostic.map(x=>x.kind)).size===3,
  'test matrix must contain absent, one, and competing month-exposure candidates');
