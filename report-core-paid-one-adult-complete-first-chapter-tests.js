@@ -27,21 +27,33 @@ assert.equal(result.paragraphs.length,4);
 assert.deepEqual(result.paragraphs.map(x=>x.kind),
  ['interpretation','opposing-evidence','adult-scenario','bounded-action']);
 assert.equal(result.text,result.paragraphs.map(x=>x.text).join('\n\n'));
-assert(result.text.length>=720&&result.text.length<=1300);
+assert(result.text.length>=720&&result.text.length<=900);
 assert.deepEqual(reader.errors([result.label,result.text]),[]);
 assert(!/[甲乙丙丁戊己庚辛壬癸子丑寅卯辰巳午未申酉戌亥]/.test(result.text));
 assert(!/[?？]\s*$/.test(result.text));
+assert(!/반드시|틀림없이|돈을 번다|승진할 운명/.test(result.text));
+assert(result.paragraphs[0].text.includes('태어난 해에는')&&
+ result.paragraphs[0].text.includes('달과 시간의 윗글자에는')&&
+ result.paragraphs[0].text.includes('달의 안쪽 대표 글자는'));
+assert(result.paragraphs[1].text.includes('날과 시간의 안쪽')&&
+ result.paragraphs[1].text.includes('두 자리 쌍에는 서로 마주보는 관계'));
+assert(result.paragraphs[2].text.includes('기존 방식만 따지면')&&
+ result.paragraphs[2].text.includes('새 방법만 살피면')&&
+ result.paragraphs[2].text.includes('실제 작업 규정'));
+assert(result.paragraphs[3].text.includes('확인할 시점을')&&
+ result.paragraphs[3].text.includes('실제 업무 능력이나 행동을 관찰한 결과가 아니며'));
+
 for(const text of [
- '태어난 해에는 이미 확인된 설명',
- '달과 시간의 겉에는 낯선 내용을 자기 방식으로 이해하는 뜻',
- '달의 안쪽 대표 글자는 필요한 사람이나 도구',
- '태어난 날과 시간의 안쪽에 날의 기준과 같은 종류',
- '달과 날, 달과 시간을 나타내는 자리에는 서로 마주보는 관계',
- '관계표에 같은 이름이 여러 번 나온다고 실제 갈등이 반복',
+ '태어난 해에는 이미 알려진 기준',
+ '달과 시간의 윗글자에는 낯선 내용을 자기 방식으로 이해하는 뜻이 반복',
+ '달의 안쪽 대표 글자는 사람·도구·시간처럼',
+ '태어난 날과 시간의 안쪽에는 날의 기준과 같은 종류의 글자가 각각 확인',
+ '달과 날, 달과 시간의 두 자리 쌍에는 서로 마주보는 관계',
+ '관계표상의 마주봄을 실제 다툼이나 실패로 해석할 수도 없습니다',
  '기존 작업 절차를 바꾸자는 제안',
- '새로운 설명에만 집중하면 필요한 자원이나 안전 조건',
- '바꾸지 않을 기준 하나, 시험할 변경점 하나',
- '해석의 우선순위도 아직 전문가 검토가 필요'
+ '새 방법만 살피면 준비할 자원이나 안전 조건',
+ '유지할 기준, 시험할 변경점, 필요한 자원과 결과를 확인할 시점',
+ '어느 사주 요소를 우선할지도 아직 전문적인 검토가 필요합니다'
 ]) assert(result.text.includes(text),'missing source or counterpoint: '+text);
 assert(result.editorialAssessment.concreteHypotheticalExample);
 assert(result.editorialAssessment.counterevidenceIncluded);
@@ -68,6 +80,10 @@ const pick=t=>t.split(/[.!?。！？\n]+/)
 const overlapMonthly=pick(result.text).filter(x=>pick(month).includes(x));
 const overlapOld=pick(result.text).filter(x=>pick(previous).includes(x));
 assert.equal(overlapMonthly.length,0,'new detailed chapter must not copy the month-only chapter');
+assert.equal(overlapOld.length,0,
+ 'edited adult narrative must not merely paste full sentences from the older 677-character manuscript');
+assert.equal(new Set(pick(result.text)).size,pick(result.text).length,
+ 'the four paragraphs may not repeat an identical substantive sentence');
 const newCitationRefs=result.sourceRefs.filter(id=>!draft.scope.sourceIds.includes(id));
 assert(newCitationRefs.includes('natal.year.stem'));
 assert(newCitationRefs.includes('natal.hour.stem'));
@@ -107,6 +123,8 @@ assert(Number.isFinite(score)&&score>=0&&score<=1);
 const findings={
  offlineMonthBaselineLength:month.length,
  adultIntegratedLength:result.text.length,
+ editorialLengthBudget:900,
+ fourDistinctParagraphPurposes:true,
  sourcePositionsOnlyInAdultDraft:newCitationRefs.length,
  identicalLongSentencesVsMonth:overlapMonthly.length,
  identicalLongSentencesVsPriorAdultDraft:exactRepeatsOld,
