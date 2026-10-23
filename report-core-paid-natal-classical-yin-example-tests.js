@@ -68,6 +68,9 @@ assert.deepEqual(resultPaired.observed.exposedSecondaryStemPositions,['month']);
 const differentDay=facts.build({calendar:'solar',birthDate:'2024-02-15',
  birthTime:'14:20',gender:'male',mbti:'ISFP'},2027);
 assert.equal(differentDay.chart.month,paired.chart.month);
+const otherRows=require('./report-fact-bindings').build(differentDay);
+assert(otherRows.some(r=>r.id==='natal.year.stem'&&r.tenGod==='정관'));
+assert(otherRows.some(r=>r.id==='natal.month.stem'&&r.tenGod==='정인'));
 assert.equal(source.inspect(differentDay).dualExposureTextualPriority.scopeMatched,false);
 assert.equal(source.inspect(differentDay).dualExposureTextualPriority.firstRole,null);
 // Another month also invalidates the classical example.
