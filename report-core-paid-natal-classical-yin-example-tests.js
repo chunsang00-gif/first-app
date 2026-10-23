@@ -71,6 +71,8 @@ assert(!readerCandidate.text.includes('생하는 관계라'));
 assert(!readerCandidate.text.includes('실제로 돈을 잘 모읍니다'));
 assert(readerCandidate.text.length>200);
 assert.equal(resultPaired.dualExposureTextualPriority.scopeMatched,true);
+assert.equal(resultPaired.singleExposureTextualChange.scopeMatched,false);
+assert.equal(resultPaired.singleExposureTextualChange.firstRole,null);
 const rows=require('./report-fact-bindings').build(paired);
 assert(rows.some(r=>r.id==='natal.year.stem'&&r.tenGod==='정재'));
 assert(rows.some(r=>r.id==='natal.month.stem'&&r.tenGod==='정관'));
@@ -83,6 +85,31 @@ assert.equal(resultPaired.dualExposureTextualPriority.finalTraditionalPatternEst
 assert.equal(resultPaired.dualExposureTextualPriority.observedBehavior,false);
 assert.deepEqual(resultPaired.observed.exposedMainStemPositions,['year']);
 assert.deepEqual(resultPaired.observed.exposedSecondaryStemPositions,['month']);
+// The original classical chapter contrasts this with the same Xin day in
+// the same Yin month when Bing is exposed WITHOUT Jia. This is a changed
+// textual category, not the 'Jia first, Bing supplementary' case above.
+const onlyBing=facts.build({calendar:'solar',birthDate:'1989-02-10',
+ birthTime:'14:20',gender:'male',mbti:'ISFP'},2027);
+assert.equal(onlyBing.status,'ready');
+assert.equal(onlyBing.chart.day[0],'辛');
+assert.equal(onlyBing.chart.month[1],'寅');
+const single=source.inspect(onlyBing);
+assert.deepEqual(single.observed.exposedMainStemPositions,[]);
+assert(single.observed.exposedSecondaryStemPositions.length>0);
+assert.equal(single.singleExposureTextualChange.scopeMatched,true);
+assert.equal(single.singleExposureTextualChange.firstRole,'정관');
+assert.equal(single.singleExposureTextualChange.finalTraditionalPatternEstablished,false);
+assert.equal(single.dualExposureTextualPriority.scopeMatched,false);
+assert.equal(single.dualExposureTextualPriority.firstRole,null);
+assert.equal(source.offlineReaderCandidate(onlyBing),null,
+ 'never reuse the Jia+Bing reader draft in the Bing-only classical case');
+console.log('QA_CLASSICAL_SINGLE_EXPOSURE='+JSON.stringify({
+ day:onlyBing.chart.day,month:onlyBing.chart.month,
+ primary:single.observed.exposedMainStemPositions,
+ secondary:single.observed.exposedSecondaryStemPositions,
+ textualFirst:single.singleExposureTextualChange.firstRole,
+ fullChartApproved:false,providerCalls:0
+}));
 // Nearby date shares the same month/visible stems but has another day stem:
 // the same literary priority may NEVER be copied just from month+exposures.
 const differentDay=facts.build({calendar:'solar',birthDate:'2024-02-15',
