@@ -72,7 +72,7 @@ assert(!/반드시|틀림없이|확실히 성공|승진할|돈을 번다/.test(t
 assert(!/[?？]\s*$/.test(text));
 assert.notEqual(text,otherText);
 assert(!otherText.includes(domains.action),
- 'a different hour and causal context may not borrow this example's personal suggestion');
+ 'a different hour may not borrow the exact case-specific recommendation');
 const withDifferentMbti=core.compile(facts.build({
  ...input('14:20'),mbti:'INTJ'
 },2028));
