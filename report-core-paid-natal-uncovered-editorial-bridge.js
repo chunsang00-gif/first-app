@@ -107,6 +107,15 @@ function review(packet){
  const conditional=single?
   '새로운 관리 업무를 제안받았다고 가정해 보겠습니다. 이 풀이에서 먼저 따질 것은 직책의 이름이나 급여가 아니라 결정할 권한과 지켜야 할 기준이 얼마나 명확한지입니다. 다만 권한만 따지고 일을 수행할 사람과 도구를 놓치면 책임을 해석하는 데 필요한 현실 조건이 빠집니다.':
   '새 프로젝트를 맡아달라는 제안을 받았다고 가정해 보겠습니다. 이 풀이의 첫 비교 대상은 그 일에 투입할 사람과 예산이며, 그 범위가 확인된 뒤에 어느 부분까지 책임질 수 있는지 연결해 볼 수 있습니다. 반대로 직책이나 맡을 일만 앞세우고 필요한 자원을 확인하지 않으면 이 고전 사례에서 먼저 본 조건을 놓칩니다.';
+ // Counterfactuals are source-text applicability boundaries, not proof
+ // that an actual person's work, character or future changes with a stem.
+ // Both cases share a Xin day and Yin month. Only non-day visible Jia
+ // differs; exposing Wu creates a third competing condition and abstention.
+ const counterfactual=single?
+  '같은 달에 태어나도 바탕 글자가 해나 시간의 겉에 드러나면, 이 고전은 자원의 뜻을 먼저 읽는 다른 사례를 제시합니다. 이때 지금의 설명을 그대로 적용해서는 안 됩니다.':
+  '반대로 달의 바탕 글자가 해·달·시간의 겉에 전혀 드러나지 않는다면, 이 고전에서는 기준과 책임의 뜻을 먼저 보는 다른 사례가 됩니다. 지금의 순서를 그대로 적용해서는 안 됩니다.';
+ const competingExposure='두 경우 모두 달의 또 다른 숨은 글자가 겉에 드러나면 이 비교만으로 우선순위를 정하지 않습니다.';
+
  const rootPositions=[...new Set(structural.evidence.rootRefs.map(id=>
   id.split('.')[1]))];
  const place={year:'태어난 해',month:'태어난 달',day:'태어난 날',
@@ -139,7 +148,7 @@ function review(packet){
  const shortSentences=t=>t.split(/[.!?。！？]+/).map(x=>x.trim())
   .filter(x=>x.length>=18);
  const oldSentences=new Set(shortSentences(found.text));
- const revisedText=explanation+' '+conditional+' '+rootEvidence+' '+branchUncertainty;
+ const revisedText=explanation+' '+conditional+' '+counterfactual+' '+competingExposure+' '+rootEvidence+' '+branchUncertainty;
  const repeatedSentences=shortSentences(revisedText)
   .filter(x=>oldSentences.has(x));
  const interpretiveCaseDraft={
@@ -154,8 +163,12 @@ function review(packet){
   textualOrdering:single?'responsibility-before-resources':
    'resources-before-responsibility',
   readerReasoning:{monthPremise:explanation,conditionalScenario:conditional,
+   sourceConditionCounterfactual:counterfactual,
+   thirdHiddenStemCompetingCase:competingExposure,
    rootObservation:rootEvidence,branchUncertainty,
    coreReadingIsConditional:true,verifiedPersonalBehavior:false},
+  textualApplicabilityCannotBeGeneralized:true,
+  rejectedCounterfactualIsAChartConditionNotPredictedBehavior:true,
   competingFullChartEvidenceStillUnresolved:true,
   independentlyReviewed:false,customerReady:false,
   releaseVerdict:'not-approved'
