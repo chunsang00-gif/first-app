@@ -93,6 +93,44 @@ function review(packet){
  if(cardinality.realizedCombinationOrBreakage!=='not-assessed'||
     cardinality.whichLabelPrevails!=='not-assessed')
   throw Error('QA_UNCOVERED_CLASSICAL_BRANCH_PRIORITY_NOT_VERIFIED');
+ // Textually supported ORDER for one narrowly scoped example, not a
+ // whole-chart ranking. Unlike a glossary, this draft explains what changed,
+ // how a hypothetical decision differs, and what could invalidate the order.
+ const single=category==='bing-only-textual-change';
+ const explanation=single?
+  '태어난 달에서 가장 기본이 되는 자원 관련 글자는 해·달·시간 겉에 드러나지 않고, 역할과 기준을 나타내는 다른 글자만 드러납니다. 그래서 이 고전의 해당 사례에서는 자원보다 맡은 책임을 읽는 쪽으로 해석의 출발점이 바뀝니다.':
+  '태어난 달의 가장 기본이 되는 자원 관련 글자는 태어난 해의 겉에 나타나고, 역할과 기준을 나타내는 글자는 태어난 달의 겉에 함께 드러납니다. 그래서 이 고전의 해당 사례에서는 자원을 다루는 뜻을 중심에 놓고 책임과 기준의 뜻을 함께 비교합니다.';
+ const conditional=single?
+  '예를 들어 새 업무를 맡을지 판단하는 상황에서는 준비한 물건이나 비용보다, 맡아야 할 일과 지켜야 할 기준이 무엇인지부터 비교하는 풀이가 됩니다. 다만 책임만 생각하고 실행에 필요한 자원을 빼놓으면 이 두 상징을 함께 읽는 의미가 사라집니다.':
+  '예를 들어 새로운 업무를 제안받은 상황에서는 먼저 사용할 자원과 감당할 비용을 살피고, 그다음 그 자원으로 맡을 수 있는 책임의 범위를 비교하는 풀이가 됩니다. 반대로 직책이나 규칙만 앞세우고 필요한 자원을 검토하지 않으면 이 사례에서 중심으로 둔 뜻을 놓칩니다.';
+ const branchUncertainty=cardinality.completeGroupEntryCount>0?
+  '한편 태어난 달을 포함하는 여러 자리의 조합도 확인되므로, 이 조합이 위 두 의미의 순서를 바꾸는지는 별도 검토가 필요합니다.':
+  cardinality.independentPairContactCount>1?
+   '태어난 달과 다른 두 개 이상의 자리 사이에도 관계가 표시됩니다. 각각의 관계가 위 순서를 바꾸는지는 확인되지 않았습니다.':
+  cardinality.hasDuplicateLabelsForSameTwoPositions?
+   '태어난 달과 다른 한 자리 사이에 관계표의 이름이 둘 이상 표시됩니다. 이를 서로 다른 두 작용으로 세거나 우선순위를 임의로 정할 수는 없습니다.':
+   '태어난 달 이외의 출생 자리까지 종합했을 때도 이 순서가 유지되는지는 아직 확정하지 않았습니다.';
+ const interpretiveCaseDraft={
+  kind:'qa-classical-case-conditional-manuscript-v1',
+  label:single?'기준을 먼저 살피는 경우':'자원을 먼저 살피는 경우',
+  text:explanation+' '+conditional+' '+branchUncertainty+
+   ' 이 설명은 고전의 정해진 조건을 현실의 선택 상황에 대입한 가정이며, 실제 성격이나 직장 성과를 관찰하거나 예언한 것이 아닙니다.',
+  sourceRefs:[...new Set([...refs,...observed.sourceRefs,
+   ...(cardinality.pairTableEntryCount||cardinality.completeGroupEntryCount?
+    ['facts.natalBranchRelations']:[])])],
+  textualOrdering:single?'responsibility-before-resources':
+   'resources-before-responsibility',
+  competingFullChartEvidenceStillUnresolved:true,
+  independentlyReviewed:false,customerReady:false,
+  releaseVerdict:'not-approved'
+ };
+ if(!interpretiveCaseDraft.sourceRefs.every(id=>
+     structural.sourceRefs.includes(id)||refs.includes(id))||
+    language.errors([interpretiveCaseDraft.label,interpretiveCaseDraft.text]).length||
+    interpretiveCaseDraft.text.length<350||
+    /[甲乙丙丁戊己庚辛壬癸子丑寅卯辰巳午未申酉戌亥]/.test(
+     interpretiveCaseDraft.text))
+  throw Error('QA_UNCOVERED_CLASSICAL_CASE_DRAFT_INTEGRITY');
  // This adds a useful editor-facing comparison and case-specific explanation
  // while full causal priority, personality and saleable depth remain blocked.
  const contextualReview={
@@ -119,7 +157,7 @@ function review(packet){
    sourceRefs:refs.slice(),textualRule:found.textualRule,
    independentlyProfessionallyReviewed:false,
    fullChartCausalBridgeEstablished:false,releaseVerdict:'not-approved'},
-  contextualReview,
+  contextualReview,interpretiveCaseDraft,
   curatedCoreStillMissing:true,
   needs:['professional-textual-interpretive-method-check',
    'full-chart-competing-relationships-review','individual-reader-value-review',
