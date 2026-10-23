@@ -7,6 +7,7 @@ const binding=require('./report-fact-bindings');
 const branch=require('./report-branch-relations');
 const methodReview=require('./report-core-paid-natal-month-method-review');
 const sourceMethod=require('./report-core-paid-natal-classical-method-applicability');
+const conflicts=require('./report-core-paid-natal-conflict-abstention');
 const {LunarUtil}=require('lunar-javascript');
 const GOD={'比肩':'비견','劫财':'겁재','食神':'식신','伤官':'상관',
  '偏财':'편재','正财':'정재','七杀':'편관','正官':'정관',
@@ -197,12 +198,20 @@ function select(packet,graph,coreId){
  if(sourceApplicability.status!=='no-applicable-textual-precedent'||
     sourceApplicability.textuallyMatchedExample!==null)
   throw Error('CORE_FOUR_PILLAR_FOREIGN_CLASSICAL_CASE_APPLIED');
+ const conflict=conflicts.inspect(packet);
+ if(conflict.conclusion!=='abstain-from-full-chart-interpretation'||
+    conflict.finalTraditionalPattern!==null||
+    conflict.adoptedMonthMethod!==null||
+    conflict.downstreamPaidApproval!==false||
+    conflict.calculatedFacts.monthMainSourceId!==review.observed.mainHiddenStemSourceId)
+  throw Error('CORE_FOUR_PILLAR_CONFLICT_UNRESOLVED');
  const methodPriorityReview={
   kind:'qa-unselected-natal-method-priority-v1',
   priorityVerdict:'not-established',
   selectedTraditionalMethod:null,activeQiVerified:false,
   currentMonthMainSourceId:review.observed.mainHiddenStemSourceId,
   specificPublishedClassicalExample:sourceApplicability.status,
+  competingEvidence:conflict,
   classicalMethodsCompared:sourceApplicability.sourceDocuments.map(x=>x.url),
   alternativeCandidateRefs:review.methodCandidates.map(m=>({
    id:m.id,sourceIds:m.rowIds.slice(),status:m.status,
