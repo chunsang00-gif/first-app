@@ -18,6 +18,12 @@ for(const [calendar,birthDate,first,status] of scenarios){
  assert.equal(x.expertDecisions.length,5);
  const expectedConflict=conflict.inspect(p);
  assert.equal(x.unresolvedConditionCount,expectedConflict.distinctObservedTensions);
+ const earth=x.earthThreePunishmentSourceReview;
+ assert.equal(earth.kind,'qa-xu-commentary-three-punishment-candidate-v1');
+ assert.equal(earth.attribution.original.explicitlyNamesThisExactEarthTriad,false);
+ assert.equal(earth.attribution.laterCommentary.explicitlyListsEarthTriad,true);
+ assert.equal(earth.groupStrengthOrActivationVerified,false);
+ assert.equal(earth.providerCalls,0);
  assert.deepEqual(x.unresolvedConditions.map(z=>z.id),
   expectedConflict.findings.map(z=>z.id));
  assert.deepEqual(x.unresolvedConditions.map(z=>z.sourceRefs),
@@ -47,6 +53,18 @@ for(const [calendar,birthDate,first,status] of scenarios){
  assert.equal(x.customerReady,false);
  assert.equal(x.providerCalls,0);
  assert.equal(x.releaseVerdict,'not-approved');
+ if(birthDate==='1982-11-24'){
+  assert.equal(earth.chartHasAllThreeEarthBranches,true);
+  assert.equal(earth.tableRelationLabels,5);
+  assert.equal(earth.independentPairContacts,3);
+  assert(x.expertDecisions.find(q=>q.id==='resolve-other-positions')
+   .commentaryOnlyConditions.some(c=>
+    c.id==='xu-commentary-earth-three-punishment'&&
+    c.originalDoesNotExplicitlyNameTriad===true));
+ }else{
+  assert.equal(earth.chartHasAllThreeEarthBranches,false);
+  assert(x.expertDecisions.every(q=>q.commentaryOnlyConditions.length===0));
+ }
  if(first){
   assert(x.expertDecisions.find(z=>z.id==='review-counterexample')
    .relevantConditions.some(z=>z.id==='source-specific-classical-example-needs-whole-chart-review'));

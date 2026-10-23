@@ -6,6 +6,7 @@ const classical=require('./report-core-paid-natal-classical-method-applicability
 const month=require('./report-core-paid-natal-month-method-review');
 const conflict=require('./report-core-paid-natal-conflict-abstention');
 const boundaries=require('./report-core-paid-natal-interpretation-boundary');
+const earthCommentary=require('./report-core-paid-natal-three-punishment-commentary');
 const {LunarUtil}=require('lunar-javascript');
 const names={'比肩':'비견','劫财':'겁재','食神':'식신','伤官':'상관',
  '偏财':'편재','正财':'정재','七杀':'편관','正官':'정관',
@@ -62,6 +63,7 @@ function build(packet){
  checkCalculatedRoles(packet);
  const x=classical.evaluate(packet),m=month.assess(packet);
  const competing=conflict.inspect(packet);
+ const earth=earthCommentary.inspect(packet);
  if(competing.conclusion!=='abstain-from-full-chart-interpretation'||
     competing.downstreamPaidApproval!==false||competing.providerCalls!==0||
     competing.finalTraditionalPattern!==null||
@@ -142,11 +144,24 @@ function build(packet){
   noDetectedConflictsCannotApproveMethod:true,
   monthBranchContactCount:competing.calculatedFacts.independentMonthContacts,
   monthBranchTableLabelCount:competing.calculatedFacts.monthBranchTableEntries,
+  // An explicitly named Earth-triad category appears in XU's commentary,
+  // not explicitly in Shen's quoted original sentence; do not conflate.
+  earthThreePunishmentSourceReview:earth,
   expertDecisions:QUESTIONS.map(([id,question])=>({
    id,question,status:'pending',decision:null,sourceCitation:null,
    relevantConditions:unresolvedConditions
     .filter(f=>REVIEW_THEMES[id]?.has(f.id))
     .map(f=>({id:f.id,sourceRefs:f.sourceRefs.slice()})),
+   commentaryOnlyConditions:id==='resolve-other-positions'&&
+    earth.chartHasAllThreeEarthBranches?[{
+     id:'xu-commentary-earth-three-punishment',
+     sourceRefs:['facts.natalBranchRelations'],
+     commentator:earth.attribution.laterCommentary.commentator,
+     commentaryUrl:earth.attribution.laterCommentary.url,
+     originalDoesNotExplicitlyNameTriad:true,
+     interpretivePriority:'not-assessed',
+     anyLifeEffectVerified:false
+    }]:[],
    chartSpecificEvidenceSupplied:true
   })),
   nextAction:'human-specialist-choose-method-then-review-reader-manuscript',

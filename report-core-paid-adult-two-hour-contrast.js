@@ -8,6 +8,7 @@ const core=require('./report-core-knowledge-engine');
 const single=require('./report-core-paid-one-adult-complete-first-chapter');
 const contrast=require('./report-core-paid-natal-counterfactual-audit');
 const branch=require('./report-branch-relations');
+const earthCommentary=require('./report-core-paid-natal-three-punishment-commentary');
 const seasonal=require('./report-seasonal-evidence');
 const ledger=require('./report-fact-bindings');
 const paid=require('./report-core-paid-depth-gap-audit');
@@ -66,6 +67,7 @@ function roots(packet){
 // The exact year/month/day triad is already present in BOTH hour scenarios.
 function invariantBranchContext(left,right){
  const sourceUrl='https://m.donglishuzhai.net/chapter/3720.html';
+ const triadLeft=earthCommentary.inspect(left),triadRight=earthCommentary.inspect(right);
  const slots=['year','month','day'];
  const l=slots.map(s=>left.chart[s][1]);
  const r=slots.map(s=>right.chart[s][1]);
@@ -83,7 +85,14 @@ function invariantBranchContext(left,right){
       b.positions.join('/')+b.type));
  };
  const lp=gather(left),rp=gather(right);
- if(!same(lp,rp)||lp.length!==5||
+ if(!triadLeft.chartHasAllThreeEarthBranches||
+    !triadRight.chartHasAllThreeEarthBranches||
+    !same(triadLeft.representativePositions,triadRight.representativePositions)||
+    triadLeft.independentPairContacts!==3||
+    triadLeft.tableRelationLabels!==5||
+    triadRight.independentPairContacts!==3||
+    triadRight.tableRelationLabels!==5||
+    !same(lp,rp)||lp.length!==5||
     !lp.some(x=>x.type==='충'&&
      x.positions.includes('month')&&x.positions.includes('day'))||
     !lp.some(x=>x.type==='형'&&
@@ -105,6 +114,14 @@ function invariantBranchContext(left,right){
   unalteredPositions:slots,
   unalteredBranchCharacters:l,
   unalteredPairRelations:lp,
+  commentarySourceDistinction:{
+   originalExplicitlyNamesEarthTriad:false,
+   actualOriginalSource:triadLeft.attribution.original,
+   xuCommentary:triadLeft.attribution.laterCommentary,
+   threeDistinctPositionsAlreadyInBoth:true,
+   traditionalEffectNotReviewed:true,
+   cannotInterpretAsFiveLifeEvents:true
+  },
   distinctBranchTypesBefore:3,distinctBranchTypesAfter:3,
   newBranchTypeIntroducedByHour:false,
   hourDuplicatesPosition:{before:'day',after:'year'},

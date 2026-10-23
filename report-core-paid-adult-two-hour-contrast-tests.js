@@ -3,6 +3,7 @@ const assert=require('node:assert/strict');
 const comparison=require('./report-core-paid-adult-two-hour-contrast');
 const facts=require('./report-facts-node');
 const branch=require('./report-branch-relations');
+const earthCommentary=require('./report-core-paid-natal-three-punishment-commentary');
 const output=comparison.build();
 assert.deepEqual(output,comparison.build(),'offline result must be deterministic');
 assert.deepEqual(output.charts.before,{year:'壬戌',month:'癸丑',
@@ -27,6 +28,12 @@ assert.equal(stable.kind,'qa-cited-three-branch-same-structure-contrast-v1');
 assert.deepEqual(stable.unalteredPositions,['year','month','day']);
 assert.deepEqual(stable.unalteredBranchCharacters,['戌','丑','未']);
 assert.equal(stable.unalteredPairRelations.length,5);
+assert.equal(stable.commentarySourceDistinction.originalExplicitlyNamesEarthTriad,false);
+assert.equal(stable.commentarySourceDistinction.xuCommentary.commentator,'徐樂吾');
+assert.equal(stable.commentarySourceDistinction.xuCommentary.explicitlyListsEarthTriad,true);
+assert.equal(stable.commentarySourceDistinction.threeDistinctPositionsAlreadyInBoth,true);
+assert.equal(stable.commentarySourceDistinction.traditionalEffectNotReviewed,true);
+assert.equal(stable.commentarySourceDistinction.cannotInterpretAsFiveLifeEvents,true);
 assert(stable.unalteredPairRelations.some(x=>x.type==='파'&&
  x.positions.includes('year')&&x.positions.includes('day')));
 assert.equal(new Set(stable.unalteredPairRelations.map(x=>
@@ -73,6 +80,19 @@ assert.equal(output.providerCalls,0);
 const p=facts.build({calendar:'lunar',birthDate:'1982-11-24',
  leapMonth:false,birthTime:'20:20',gender:'male',mbti:'ISFP'},2027);
 const actual=branch.natal(p.chart);
+const triad=earthCommentary.inspect(p);
+assert.equal(triad.chartHasAllThreeEarthBranches,true);
+assert.deepEqual(triad.representativePositions,[
+ {branch:'丑',position:'month'},
+ {branch:'戌',position:'year'},
+ {branch:'未',position:'day'}]);
+const tampered=structuredClone(p);
+tampered.facts.natalBranchRelations.pairs=[];
+assert.throws(()=>earthCommentary.inspect(tampered),
+ /QA_THREE_PUNISHMENT_BRANCH_LEDGER_DRIFT/);
+const elsewhere=facts.build({calendar:'solar',birthDate:'2024-02-17',
+ birthTime:'14:20',gender:'male',mbti:'ISFP'},2027);
+assert.equal(earthCommentary.inspect(elsewhere).chartHasAllThreeEarthBranches,false);
 assert.deepEqual(output.changed.monthHourTableAfter,
  actual.pairs.filter(x=>x.positions.includes('month')&&
  x.positions.includes('hour')).map(x=>x.type).sort());
