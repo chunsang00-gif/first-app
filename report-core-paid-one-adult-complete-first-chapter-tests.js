@@ -25,8 +25,8 @@ assert.equal(result.text.includes('이 풀이의 중심은 기준을 지키는 �
  'do not invent a rules-first priority from this chart roles');
 assert(result.text.includes('무엇을 우선할지는 이 계산만으로 정할 수 없습니다'));
 assert.equal(result.claimOrigin.kind,'qa-adult-first-chapter-claim-origin-review-v1');
-assert.equal(result.claimOrigin.tracedClaimCount,9);
-assert.equal(result.claimOrigin.concreteComputedRelationCount,2);
+assert.equal(result.claimOrigin.tracedClaimCount,11);
+assert.equal(result.claimOrigin.concreteComputedRelationCount,3);
 assert.equal(result.claimOrigin.traditionalSymbolExplanationCount,3);
 assert.deepEqual(result.claimOrigin.hypotheticalAndGeneralClaims,[
  'workplace-change-only-an-example','practical-steps-not-premium-personality']);
@@ -53,8 +53,9 @@ assert(!/반드시|틀림없이|돈을 번다|승진할 운명/.test(result.text
 assert(result.paragraphs[0].text.includes('태어난 해에는')&&
  result.paragraphs[0].text.includes('달과 시간의 윗글자에는')&&
  result.paragraphs[0].text.includes('달의 안쪽 대표 글자는'));
-assert(result.paragraphs[1].text.includes('날과 시간의 안쪽')&&
- result.paragraphs[1].text.includes('두 자리 쌍에는 서로 마주보는 관계'));
+assert(result.paragraphs[1].text.includes('태어난 날과 시간은 아랫글자가 똑같고')&&
+ result.paragraphs[1].text.includes('같은 달 글자와 같은 날·시간 글자의 조합')&&
+ result.paragraphs[1].text.includes('서로 다른 두 사건의 예고가 아닙니다'));
 assert(result.paragraphs[2].text.includes('기존 방식만 따지면')&&
  result.paragraphs[2].text.includes('새 방법만 살피면')&&
  result.paragraphs[2].text.includes('실제 작업 규정'));
@@ -65,9 +66,10 @@ for(const text of [
  '태어난 해에는 이미 알려진 설명',
  '달과 시간의 윗글자에는 낯선 내용을 자기 방식으로 이해하는 뜻이 반복',
  '달의 안쪽 대표 글자는 사람·도구·시간처럼',
- '태어난 날과 시간의 안쪽에는 날의 기준과 같은 종류의 글자가 각각 확인',
- '달과 날, 달과 시간의 두 자리 쌍에는 서로 마주보는 관계',
- '관계표상의 마주봄을 실제 다툼이나 실패로 해석할 수도 없습니다',
+ '태어난 날과 시간은 아랫글자가 똑같고',
+ '두 자리 안쪽에는 날의 기준과 같은 종류의 글자가 확인됩니다',
+ '달과 날, 달과 시간에는 서로 마주보는 관계가 하나씩 표시되는데',
+ '이 표시는 서로 다른 두 사건의 예고가 아닙니다',
  '기존 작업 절차를 바꾸자는 제안',
  '새 방법만 살피면 준비할 자원이나 안전 조건',
  '유지할 기준, 시험할 변경점, 필요한 자원과 결과를 확인할 시점',
@@ -84,6 +86,13 @@ assert(result.sourceRefs.every(id=>id.startsWith('natal.')?
  ledger[id]?.observedBehavior===false:packetFacts(id)));
 function packetFacts(id){return id.startsWith('facts.')&&Boolean(p.facts[id.slice(6)]);}
 assert.equal(result.evidence.monthDayAndMonthHourClashTablePairs,2);
+assert.deepEqual(result.evidence.repeatedBranchPairObservation,{
+ natalDayAndHourBranchSame:true,distinctMonthOppositionBranchTypes:1,
+ twoPositionEntriesDoNotMeanTwoLifeEvents:true,
+ monthBranch:'丑',dayAndHourBranch:'未'
+});
+assert.equal(result.claimOrigin.claims.find(x=>x.id==='pair-count-is-not-event-count')
+ .licensedAsPersonalConclusion,false);
 assert.equal(result.evidence.clashesAreNotRealWorldEvents,true);
 assert.equal(result.evidence.methodPriority,'not-established');
 const draft=core.compile(p);

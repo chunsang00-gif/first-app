@@ -21,7 +21,7 @@ const PARAGRAPHS=[
  {kind:'interpretation',
   text:'이 사주에서 태어난 해에는 이미 알려진 설명을 참고하는 뜻이 있습니다. 달과 시간의 윗글자에는 낯선 내용을 자기 방식으로 이해하는 뜻이 반복되고, 달의 안쪽 대표 글자는 사람·도구·시간처럼 실제 사용할 자원을 살피는 뜻으로 따로 분류됩니다. 다만 여기서 확인되는 것은 익숙한 설명, 새로운 정보, 필요한 자원이 서로 다른 뜻으로 분류된다는 점까지입니다. 무엇을 우선할지는 이 계산만으로 정할 수 없습니다. 같은 뜻이 두 자리에 있다고 이해력이 더 좋다고 판단하지는 않습니다.'},
  {kind:'opposing-evidence',
-  text:'태어난 날과 시간의 안쪽에는 날의 기준과 같은 종류의 글자가 각각 확인됩니다. 반면 달과 날, 달과 시간의 두 자리 쌍에는 서로 마주보는 관계가 기록됩니다. 새로운 내용을 이해한다는 뜻이 반복되더라도, 이 다른 근거를 무시하고 한쪽 성향이 더 강하다고 결론낼 수는 없습니다. 관계표상의 마주봄을 실제 다툼이나 실패로 해석할 수도 없습니다.'},
+  text:'태어난 날과 시간은 아랫글자가 똑같고, 두 자리 안쪽에는 날의 기준과 같은 종류의 글자가 확인됩니다. 달과 날, 달과 시간에는 서로 마주보는 관계가 하나씩 표시되는데, 양쪽 모두 같은 달 글자와 같은 날·시간 글자의 조합입니다. 이 표시는 서로 다른 두 사건의 예고가 아닙니다. 같은 뜻이 여러 자리에 나타나더라도 실제 갈등이 많거나 특정 성향이 더 강하다고 판단할 수 없습니다.'},
  {kind:'adult-scenario',
   text:'예를 들어 기존 작업 절차를 바꾸자는 제안이 나왔다고 가정해 보겠습니다. 기존 지침에서 유지할 안전 기준은 남기고, 새 설명이 해결하려는 문제와 시험에 필요한 사람·도구를 비교할 수 있습니다. 기존 방식만 따지면 개선 기회를 놓칠 수 있고, 새 방법만 살피면 준비할 자원이나 안전 조건을 빠뜨릴 수 있습니다. 어느 순서로 시험할지는 사주가 아니라 실제 작업 규정과 현장 여건에 따라 정해야 합니다.'},
  {kind:'bounded-action',
@@ -46,14 +46,22 @@ const CLAIMS=[
   paragraph:'interpretation',
   quote:'무엇을 우선할지는 이 계산만으로 정할 수 없습니다',
   refs:[]},
+ {id:'day-and-hour-identical-branch',kind:'verified-computed-relation',
+  paragraph:'opposing-evidence',
+  quote:'태어난 날과 시간은 아랫글자가 똑같고',
+  refs:['facts.natalBranchRelations']},
  {id:'day-hour-hidden-same-stem',kind:'verified-computed-relation',
   paragraph:'opposing-evidence',
-  quote:'태어난 날과 시간의 안쪽에는 날의 기준과 같은 종류의 글자가 각각 확인됩니다',
+  quote:'두 자리 안쪽에는 날의 기준과 같은 종류의 글자가 확인됩니다',
   refs:['natal.day.hidden.乙','natal.hour.hidden.乙','facts.stemConnections']},
  {id:'month-day-and-month-hour-table-pairs',kind:'verified-computed-relation',
   paragraph:'opposing-evidence',
-  quote:'달과 날, 달과 시간의 두 자리 쌍에는 서로 마주보는 관계가 기록됩니다',
+  quote:'달과 날, 달과 시간에는 서로 마주보는 관계가 하나씩 표시되는데',
   refs:['facts.natalBranchRelations']},
+ {id:'pair-count-is-not-event-count',kind:'unresolved-interpretive-method',
+  paragraph:'opposing-evidence',
+  quote:'이 표시는 서로 다른 두 사건의 예고가 아닙니다',
+  refs:[]},
  {id:'workplace-change-only-an-example',kind:'hypothetical-not-chart-inference',
   paragraph:'adult-scenario',
   quote:'예를 들어 기존 작업 절차를 바꾸자는 제안이 나왔다고 가정해 보겠습니다',
@@ -152,6 +160,16 @@ function build(packet){
  if(pairMatches.length!==2||
     new Set(pairMatches.map(x=>x.positions.slice().sort().join('/'))).size!==2)
   throw Error('QA_ADULT_CORE_DAY_HOUR_MONTH_CONTRAST_MISSING');
+ // These are TWO positional entries for the SAME two branch characters,
+ // not two independent predicted life events or independently ranked clashes.
+ const canonicalPair=x=>[...x.branches].sort().join('');
+ const sameBranchRelation=new Set(pairMatches.map(x=>x.type+':'+canonicalPair(x)));
+ if(packet.chart.day[1]!==packet.chart.hour[1]||
+    sameBranchRelation.size!==1||
+    canonicalPair(pairMatches[0])!==canonicalPair(pairMatches[1])||
+    pairMatches.some(x=>canonicalPair(x)!==
+     canonicalPair({branches:packet.chart.month[1]+packet.chart.day[1]})))
+  throw Error('QA_ADULT_CORE_DUPLICATED_BRANCH_PAIR_NOT_VERIFIED');
  const claimOrigin=traceClaims(rows);
  const copy=PARAGRAPHS.map(x=>x.text).join('\n\n');
  if(readerPolicy.errors([TITLE,copy]).length||
@@ -167,6 +185,13 @@ function build(packet){
   evidence:{
    verifiedStemRoles:expected,
    monthDayAndMonthHourClashTablePairs:2,
+   repeatedBranchPairObservation:{
+    natalDayAndHourBranchSame:true,
+    distinctMonthOppositionBranchTypes:1,
+    twoPositionEntriesDoNotMeanTwoLifeEvents:true,
+    monthBranch:packet.chart.month[1],
+    dayAndHourBranch:packet.chart.day[1]
+   },
    clashesAreNotRealWorldEvents:true,
    methodPriority:'not-established',
    actualPaidFirstChapterHasWholeChartRefs:false,

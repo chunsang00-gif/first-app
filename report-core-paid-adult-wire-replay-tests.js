@@ -82,10 +82,10 @@ assert.equal(vague.customerReleaseApproved,false);
 const noDayNarrative=structuredClone(built.response);
 noDayNarrative.chapters.saju_core.paragraphs.natal_depth.text=
  noDayNarrative.chapters.saju_core.paragraphs.natal_depth.text
-  .replace(/태어난 날과 시간의 안쪽에는 날의 기준과 같은 종류의 글자가 각각 확인됩니다\./,
-   '태어난 시간의 안쪽에는 같은 종류로 분류된 글자가 확인됩니다.')
-  .replace(/달과 날, 달과 시간의 두 자리 쌍에는/,
-   '달과 시간의 두 자리 쌍에는');
+  .replace(/태어난 날과 시간은 아랫글자가 똑같고, 두 자리 안쪽에는 날의 기준과 같은 종류의 글자가 확인됩니다\./,
+   '태어난 시간의 안쪽에는 같은 종류의 글자가 확인됩니다.')
+  .replace(/달과 날, 달과 시간에는 서로 마주보는 관계가 하나씩 표시되는데, 양쪽 모두 같은 달 글자와 같은 날·시간 글자의 조합입니다\./,
+   '달과 시간에는 서로 마주보는 관계가 하나씩 표시됩니다.');
 const dayIsAnchor=usage.assess(noDayNarrative,built.prompt);
 assert.deepEqual(dayIsAnchor.missingDepthPositions,[],
  'day reference anchor should not force unsupported personality prose');
