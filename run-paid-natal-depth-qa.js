@@ -16,7 +16,7 @@ const {outputLimit}=require('./report-paid-batch-plan');
 // still required. The former V1 approval was already consumed. Recompute
 // from the REAL prepared QA request before any attempt marker or paid fetch.
 const APPROVED_MODEL='gpt-4.1';
-const APPROVED_ENVELOPE_SHA256='2d3059ee36dcee5dd16ce18998810c52941a09f7daea73256ba904720a09c73d';
+const APPROVED_ENVELOPE_SHA256='c39b80f78c30df221089fac410b048d9ac270750f9e61070c12b7f776457018d';
 const fingerprint=v=>crypto.createHash('sha256').update(JSON.stringify(v)).digest('hex');
 async function assertFrozenRequest(qa){
  const built=await readiness.build();
