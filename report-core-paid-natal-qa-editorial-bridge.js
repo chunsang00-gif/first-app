@@ -5,6 +5,7 @@
 const engine=require('./report-core-knowledge-engine');
 const ledger=require('./report-fact-bindings');
 const policy=require('./report-reader-policy');
+const comparison=require('./report-core-paid-natal-qa-value-delta');
 const POSITION=['year','month','day','hour'];
 const REQUIRED=['natal.year.stem','natal.month.stem','natal.day.stem',
  'natal.hour.stem','facts.stemConnections'];
@@ -57,6 +58,7 @@ function build(packet,permitted,source){
   observedBehavior:false,paidApiCalls:0,
   chartFingerprint:chart,
   sourceRefs:selected.sourceRefs.slice(),
+  editorialDelta:comparison.assess(packet,draft,selected,curated?'authored':'machine'),
   sourceClass:curated?'authored-specific-four-pillar-candidate':
    'machine-structural-comparison-only',
   // A manually edited, source-restricted example may guide a QA writer;
