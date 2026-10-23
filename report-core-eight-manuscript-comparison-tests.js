@@ -86,6 +86,7 @@ for(let i=0;i<all.length;i++)for(let j=i+1;j<all.length;j++){
  const repeats=sentences(all[i].text).filter(s=>sentences(all[j].text).includes(s));
  if(repeats.length)repeatedCrossPairs.push({left:i+1,right:j+1,count:repeats.length});
 }
+console.log('QA_EIGHT_CROSS_SENTENCE_REUSE_DETAILS='+JSON.stringify(repeatedCrossPairs));
 assert.equal(repeatedCrossPairs.length,0,
  'a reader must not receive a long, word-for-word identical sentence from another sample');
 const categories=all.reduce((a,x)=>(a[x.kind]=(a[x.kind]||0)+1,a),{});
