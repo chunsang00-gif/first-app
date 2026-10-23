@@ -4,6 +4,7 @@
 // pattern, personal traits, life events, or willingness to pay.
 const classical=require('./report-core-paid-natal-classical-method-applicability');
 const month=require('./report-core-paid-natal-month-method-review');
+const conflict=require('./report-core-paid-natal-conflict-abstention');
 const {LunarUtil}=require('lunar-javascript');
 const names={'比肩':'비견','劫财':'겁재','食神':'식신','伤官':'상관',
  '偏财':'편재','正财':'정재','七杀':'편관','正官':'정관',
@@ -19,6 +20,34 @@ function checkCalculatedRoles(packet){
  }
 }
 
+// Map WHAT was observed to the relevant unanswered expert METHOD question.
+// Multiple labels on one branch pair are not multiple independent effects.
+// None of these conditions proves that one traditional method should prevail.
+const REVIEW_THEMES=Object.freeze({
+ 'resolve-month':new Set([
+  'month-main-and-other-hidden-both-visible',
+  'other-month-hidden-exposed-without-main',
+  'multiple-competing-non-main-visible-stems',
+  'approximate-governing-day-outside-canonical-hidden-stems',
+  'approximate-governing-day-differs-from-month-main',
+  'day-master-only-match-is-not-non-day-exposure'
+ ]),
+ 'resolve-other-positions':new Set([
+  'multiple-relation-labels-for-one-month-pair',
+  'more-than-one-independent-month-branch-pair',
+  'month-included-in-branch-group',
+  'visible-generating-and-controlling-pairs-coexist',
+  'chapter11-symbol-relation-requires-full-chart-method-review',
+  'chapter9-officer-output-rescue-condition-must-be-considered',
+  'visible-rescue-and-unresolved-month-branch-relations-coexist'
+ ]),
+ 'review-counterexample':new Set([
+  'source-specific-classical-example-needs-whole-chart-review',
+  'multiple-competing-non-main-visible-stems',
+  'month-main-and-other-hidden-both-visible',
+  'other-month-hidden-exposed-without-main'
+ ])
+});
 const QUESTIONS=[
  ['choose-school','어느 전통 해석 체계를 선택하고 그 근거 문헌은 무엇인가?'],
  ['resolve-month','태어난 달의 기본 글자·겉에 드러난 글자·사령 자료 사이에서 무엇을 우선할 것인가?'],
@@ -31,6 +60,18 @@ function build(packet){
   throw Error('QA_METHOD_HANDOFF_FULL_CHART_REQUIRED');
  checkCalculatedRoles(packet);
  const x=classical.evaluate(packet),m=month.assess(packet);
+ const competing=conflict.inspect(packet);
+ if(competing.conclusion!=='abstain-from-full-chart-interpretation'||
+    competing.downstreamPaidApproval!==false||competing.providerCalls!==0||
+    competing.finalTraditionalPattern!==null||
+    competing.adoptedMonthMethod!==null||
+    competing.noDetectedTensionsProvesDominantPattern!==false||
+    competing.calculatedFacts.monthMainSourceId!==
+     m.observed.mainHiddenStemSourceId||
+    JSON.stringify(competing.calculatedFacts.nonDayVisibleMonthHiddenSourceIds)!==
+     JSON.stringify(m.observed.exactExposureScopeComparison.nonDayExposedHiddenStemIds)||
+    competing.documentedClassicalFirstRole!==x.textualCaseFirstRole)
+  throw Error('QA_METHOD_HANDOFF_CONFLICT_EVIDENCE_MISMATCH');
  if(x.providerCalls!==0||x.finalPatternSelected!==false||
     x.chosenCommercialTraditionalSchool!==null||
     x.professionReviewed!==false||m.adoptedMethodId!==null||
@@ -49,6 +90,23 @@ function build(packet){
    (single?src.exposedMainPositionRefs.length!==0:
     src.exposedMainPositionRefs.length===0)))
   throw Error('QA_METHOD_HANDOFF_FALSE_TEXTUAL_MATCH');
+ const referenceIds=new Set([
+  ...require('./report-fact-bindings').build(packet).map(x=>x.id),
+  'facts.stemConnections','facts.seasonalEvidence',
+  'facts.governingDayDiagnostic','facts.natalBranchRelations'
+ ]);
+ const unresolvedConditions=competing.findings.map(f=>{
+  if(f.relativePriority!=='not-assessed'||
+     f.impactOnActualLife!=='not-established'||
+     !Array.isArray(f.sourceRefs)||!f.sourceRefs.length||
+     f.sourceRefs.some(id=>!referenceIds.has(id)))
+   throw Error('QA_METHOD_HANDOFF_UNVERIFIED_CONFLICT:'+f.id);
+  return {id:f.id,sourceRefs:f.sourceRefs.slice(),
+   structuralEvidence:structuredClone(f.observed),
+   priority:'not-assessed',actualLifeEffect:'not-established'};
+ });
+ if(unresolvedConditions.length!==competing.distinctObservedTensions)
+  throw Error('QA_METHOD_HANDOFF_FINDING_COUNT_DRIFT');
  const decision=caseId?{
   caseId,work:x.sourceDocuments[0].work,
   chapter:x.sourceDocuments[0].chapter,url:x.sourceDocuments[0].url,
@@ -75,8 +133,20 @@ function build(packet){
   exactTextualDecision:decision,
   candidates:m.methodCandidates.map(row=>({id:row.id,status:row.status,
    sourceRefs:row.rowIds.slice(),priority:row.interpretivePriority})),
+  // The editor now receives chart-SPECIFIC unresolved observations, not
+  // just identical checkboxes. A table count is not a life-event count.
+  unresolvedConditions,
+  unresolvedConditionCount:unresolvedConditions.length,
+  methodEvidenceProvenance:'deterministic-qa-conflict-review',
+  noDetectedConflictsCannotApproveMethod:true,
+  monthBranchContactCount:competing.calculatedFacts.independentMonthContacts,
+  monthBranchTableLabelCount:competing.calculatedFacts.monthBranchTableEntries,
   expertDecisions:QUESTIONS.map(([id,question])=>({
-   id,question,status:'pending',decision:null,sourceCitation:null
+   id,question,status:'pending',decision:null,sourceCitation:null,
+   relevantConditions:unresolvedConditions
+    .filter(f=>REVIEW_THEMES[id]?.has(f.id))
+    .map(f=>({id:f.id,sourceRefs:f.sourceRefs.slice()})),
+   chartSpecificEvidenceSupplied:true
   })),
   nextAction:'human-specialist-choose-method-then-review-reader-manuscript',
   transferToOtherBirthChartsForbidden:true,
