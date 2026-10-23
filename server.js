@@ -16,7 +16,12 @@ function body(req){return new Promise((ok,fail)=>{let s='';req.on('data',c=>{s+=
 function mime(file){return file.endsWith('.webp')?'image/webp':file.endsWith('.png')?'image/png':file.endsWith('.html')?'text/html; charset=utf-8':file.endsWith('.js')?'text/javascript; charset=utf-8':file.endsWith('.css')?'text/css; charset=utf-8':file.endsWith('.json')?'application/json; charset=utf-8':'application/octet-stream'}
 function staticHeaders(type){return {'content-type':type,'x-content-type-options':'nosniff','referrer-policy':'no-referrer','x-frame-options':'DENY','permissions-policy':'geolocation=(), camera=(), microphone=()'}}
 function responseText(x){if(typeof x?.output_text==='string'&&x.output_text.trim())return x.output_text;const fragments=[];for(const item of x?.output||[])for(const c of item?.content||[])if(c?.type==='output_text'&&typeof c.text==='string')fragments.push(c.text);return fragments.join('')}
-async function callOpenAI(prompt,onProviderResponse=null){const key=process.env.OPENAI_API_KEY;if(!key)throw Error('AI report service is not configured');const model=process.env.REPORT_MODEL;if(!model)throw Error('AI report model is not configured');let schema=JSON.parse(fs.readFileSync(path.join(ROOT,'report-schema.json'),'utf8'));
+async function callOpenAI(prompt,onProviderResponse=null){
+ // Offline editorial research can be compiled and audited, but never sent
+ // through the billable provider boundary, even with a real key configured.
+ if(prompt?.qaOfflineEditorialResearchPreview===true)
+  throw Error('QA_OFFLINE_EDITORIAL_REFERENCE_NEVER_BILLABLE');
+ const key=process.env.OPENAI_API_KEY;if(!key)throw Error('AI report service is not configured');const model=process.env.REPORT_MODEL;if(!model)throw Error('AI report model is not configured');let schema=JSON.parse(fs.readFileSync(path.join(ROOT,'report-schema.json'),'utf8'));
  // OpenAI strict JSON schema supports only a subset: bounds are verified locally.
  function toStrictSchema(value){if(Array.isArray(value))return value.map(toStrictSchema);if(!value||typeof value!=='object')return value;const out={};for(const [k,v] of Object.entries(value)){if(['$schema','minLength','maxLength','minItems','maxItems','minimum','maximum','pattern','format'].includes(k)||(k==='title'&&typeof v==='string'))continue;out[k]=toStrictSchema(v);}return out;}
  schema=toStrictSchema(schema);
