@@ -137,6 +137,16 @@ function select(packet,graph){
   authority:'맡은 책임과 지켜야 할 기준',
   resource:'정보와 도움을 받아 배우는 과정'
  };
+ // Concrete hypothetical comparison items bound to the actual calculated
+ // category at EACH position, rather than fixed 'roles, preparation, result'
+ // labels regardless of the chart. Not observed user conduct.
+ const SYMBOLIC_TASK={
+  peer:'함께 맡을 일과 몫을 구분하는 일',
+  output:'생각을 결과물로 정리하는 일',
+  wealth:'준비할 자원과 비용을 확인하는 일',
+  authority:'맡을 책임과 따라야 할 기준을 정하는 일',
+  resource:'참고할 설명과 자료를 확인하는 일'
+ };
  const mainMeaning=MEANING[CAT[rows[hid]?.tenGod]];
  const otherMeaning=otherExposures.length?
   [...new Set(otherExposures.map(x=>MEANING[CAT[rows[x.hiddenId]?.tenGod]]))].join(' 그리고 '):null;
@@ -222,7 +232,10 @@ function select(packet,graph){
  }else{
   point='태어난 해에서는 '+yearMeaning+', 달의 안쪽에서는 '+hiddenMeaning+
    ', 시간에서는 '+hourMeaning+'이라는 서로 다른 주제가 나타납니다.';
-  comparison='예를 들어 새로운 일을 계획할 때 이 세 뜻을 각각 분담, 준비 조건, 결과를 살피는 관점에 대입할 수 있습니다. 서로 다른 상징을 하나의 단정적인 성격 평가로 합치지 않는 풀이입니다.';
+  comparison='예를 들어 새 일을 계획한다면 해에서는 '+SYMBOLIC_TASK[year.category]+
+   ', 달의 안쪽에서는 '+SYMBOLIC_TASK[insideCategory]+
+   ', 시간에서는 '+SYMBOLIC_TASK[hour.category]+
+   '을 별도의 항목으로 생각할 수 있습니다. 이 가정은 실제 행동을 관찰한 결과가 아니라 계산된 서로 다른 상징을 풀어 쓴 예시입니다.';
  }
  const interpretiveFocus={kind:focusKind,sourceRefs:['natal.year.stem',hid,'natal.hour.stem'],
   categories:{year:year.category,monthHidden:insideCategory,hour:hour.category},
