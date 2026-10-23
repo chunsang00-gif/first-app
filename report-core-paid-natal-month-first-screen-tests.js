@@ -75,6 +75,18 @@ const secondaryQuestion=candidate.writingQuestion(secondaryReview);
 assert(secondaryQuestion.includes('대표 글자 甲이 겉에 없고'));
 assert(!secondaryQuestion.includes('정재를 중심에'),'two distinct Yin examples cannot be conflated');
 
+const singleXin=facts.build({calendar:'solar',birthDate:'1989-02-10',
+ birthTime:'14:20',gender:'male',mbti:'ISFP'},2027);
+const singleScreen=candidate.build(singleXin);
+assert.equal(singleXin.chart.day[0],'辛');
+assert.equal(singleScreen.classicalTextualExample.matched,true);
+assert.equal(singleScreen.classicalTextualExample.singleExposureTextualChange.scopeMatched,true);
+assert.equal(singleScreen.classicalTextualExample.singleExposureTextualChange.firstRole,'정관');
+assert.equal(singleScreen.classicalTextualExample.dualExposureTextualPriority.scopeMatched,false);
+const singleQuestion=candidate.writingQuestion(singleScreen);
+assert(singleQuestion.includes('해석의 출발점이 바뀌는 경우'));
+assert(!singleQuestion.includes('정재를 중심에, 정관을 곁에'));
+assert.equal(singleScreen.validPremiumInterpretationEstablished,false);
 const xinSample=facts.build({calendar:'solar',birthDate:'2024-02-17',
  birthTime:'14:20',gender:'male',mbti:'ISFP'},2027);
 const xinScreen=candidate.build(xinSample);
