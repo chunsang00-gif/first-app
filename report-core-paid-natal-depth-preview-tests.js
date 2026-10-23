@@ -144,6 +144,17 @@ assert.deepEqual(rebuilt.sections[0].bodyTopics,['strength','natal_depth'],
  'the QA-only depth paragraph must survive the ACTUAL provider response decoder');
 assert.equal(rebuilt.sections[0].body.length,2);
 const auditTransport=require('./report-instruction-audit');
+const reconstructed=writer.compile(early.prompt);
+const originalFocus=early.payload.task.chapters.saju_core.topics.natal_depth.evidenceFocus;
+const reconstructedFocus=reconstructed.task.chapters.saju_core.topics.natal_depth.evidenceFocus;
+console.log('QA_ED_REF_DIAGNOSTIC='+JSON.stringify({
+ earlierMatchesRecompiled:JSON.stringify(originalFocus)===JSON.stringify(reconstructedFocus),
+ originalKeys:Object.keys(originalFocus),recompiledKeys:Object.keys(reconstructedFocus),
+ baselineAudit:auditTransport.inspectTransport(early.prompt,early.payload),
+ rebuiltAudit:auditTransport.inspectTransport(early.prompt,reconstructed),
+ researchMatches:JSON.stringify(originalFocus.qaOfflineEditorialResearch)===
+  JSON.stringify(reconstructedFocus.qaOfflineEditorialResearch)
+}));
 const forged=structuredClone(early.payload);
 forged.task.chapters.saju_core.topics.natal_depth.evidenceFocus.sourceRefs=
  ['natal.month.stem'];
