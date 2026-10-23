@@ -22,13 +22,30 @@ assert.deepEqual(output.changed.monthDayTableBefore,output.changed.monthDayTable
 assert(output.changed.monthHourTableBefore.includes('충'));
 assert(!output.changed.monthHourTableAfter.includes('충'));
 assert(output.changed.monthHourTableAfter.includes('형'));
+const stable=output.changed.unchangedThreeBranchContext;
+assert.equal(stable.kind,'qa-cited-three-branch-same-structure-contrast-v1');
+assert.deepEqual(stable.unalteredPositions,['year','month','day']);
+assert.deepEqual(stable.unalteredBranchCharacters,['戌','丑','未']);
+assert.equal(stable.unalteredPairRelations.length,4);
+assert.equal(stable.source.url,'https://m.donglishuzhai.net/chapter/3720.html');
+assert.equal(stable.distinctBranchTypesBefore,3);
+assert.equal(stable.distinctBranchTypesAfter,3);
+assert.equal(stable.newBranchTypeIntroducedByHour,false);
+assert.deepEqual(stable.hourDuplicatesPosition,{before:'day',after:'year'});
+assert.equal(stable.disputedTraditionalEffect,'not-assessed');
+assert.equal(stable.branchTableEffectOnActualLife,'not-established');
+assert.equal(stable.methodProfessionallyReviewed,false);
+assert.equal(stable.releaseVerdict,'not-approved');
+assert(output.editorialAlternative.before.sharedBranchContext.includes('날과 같은 글자'));
+assert(output.editorialAlternative.after.sharedBranchContext.includes('해와 같은 글자'));
 assert(output.changed.calculatedSourceDiff.some(x=>x.key==='hour-stem-and-role'));
 assert(output.changed.calculatedSourceDiff.some(x=>x.key==='hour-branch'));
 assert(!output.changed.calculatedSourceDiff.some(x=>x.key==='month-stem-and-role'));
 const after=output.editorialAlternative.after;
 assert(after.text.includes('달과 시간이 같은 뜻으로 반복되는 구성이 아니라'));
 assert(after.text.includes('새로운 표현이나 결과물로 밖에 내놓는 뜻'));
-assert(after.text.includes('달과 시간에는 같은 관계가 없습니다'));
+assert(after.text.includes('달과 시간에는 이전과 달리 마주보는 관계가 표시되지 않습니다'));
+assert(after.text.includes('출생시간을 바꿔도 이 세 글자는 그대로입니다'));
 assert(after.text.includes('실제 인계 능력을 평가한 결과는 아닙니다'));
 assert.equal(after.paragraphs.length,4);
 assert(after.sourceRefs.includes('natal.hour.stem'));
@@ -59,6 +76,7 @@ console.log('QA_TWO_HOUR_REAL_EDITORIAL_CONTRAST='+JSON.stringify({
  symbolChangedFrom:output.changed.priorHourCategory,
  symbolChangedTo:output.changed.changedHourCategory,
  monthDayRelationUnchanged:true,
+ threeBranchTypesAlreadyPresentInBoth:true,
  monthHourRelationChanged:true,
  freeReadingTextIdentical:true,
  twoDistinctEditorialManuscripts:true,

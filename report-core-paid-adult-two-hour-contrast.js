@@ -24,7 +24,7 @@ const SECOND={
  label:'이해한 내용과 밖으로 표현하는 뜻의 차이',
  paragraphs:[
   {kind:'symbol-contrast',text:'태어난 해에는 이미 알려진 설명을 참고하는 뜻이 있고, 달에는 낯선 정보를 자기 방식으로 이해하는 뜻이 있습니다. 시간에는 그 내용을 새로운 표현이나 결과물로 밖에 내놓는 뜻이 나타납니다. 달과 시간이 같은 뜻으로 반복되는 구성이 아니라 이해와 표현을 서로 다른 분류로 읽는 경우입니다. 그렇다고 실제 설명 능력이 뛰어나거나 기존 기준에 반발한다는 뜻은 아닙니다.'},
-  {kind:'positional-counterevidence',text:'태어난 날과 시간의 아랫글자는 서로 다릅니다. 날의 안쪽에는 날의 기준과 같은 종류의 글자가 있지만 시간의 안쪽에서는 찾지 못했습니다. 달과 날에는 마주보는 관계가 표에 있고, 달과 시간에는 같은 관계가 없습니다. 대신 달과 시간에 다른 관계 이름이 기록됩니다. 관계표의 이름이나 개수가 바뀌었다고 실제 갈등이나 결과가 달라졌다고 해석하지는 않습니다.'},
+  {kind:'positional-counterevidence',text:'태어난 해·달·날에는 서로 다른 세 종류의 아랫글자가 이미 있습니다. 태어난 시간을 바꿔도 이 세 글자는 그대로입니다. 오후 8시 20분의 시간 아랫글자는 해에 있던 글자와 같지만 날의 아랫글자와는 다릅니다. 날의 안쪽에 보이는 같은 종류의 글자가 시간의 안쪽에는 없습니다. 달과 날의 관계표는 그대로이고, 달과 시간에는 이전과 달리 마주보는 관계가 표시되지 않습니다. 그렇다고 같은 종류의 글자 하나가 다른 위치에 더 있다고 운세가 좋아지거나 나빠졌다고 판단할 수는 없습니다.'},
   {kind:'hypothetical-choice',text:'새로운 작업 절차를 동료에게 설명하는 상황을 가정해 보겠습니다. 달의 뜻을 이해 단계, 시간의 뜻을 설명을 결과물로 만드는 단계에 각각 대입할 수 있습니다. 이해한 자료가 많아도 상대에게 전달할 순서가 없다면 설명하기 어렵고, 전달 형식만 갖춰도 바꾼 이유가 빠지면 내용을 확인하기 어렵습니다. 이 둘을 구분한다는 설명은 계산된 분류에서 나온 비유일 뿐 실제 인계 능력을 평가한 결과는 아닙니다.'},
   {kind:'bounded-reading',text:'새로 나타난 시간의 뜻을 무조건 가장 중요한 기준으로 삼을 수는 없습니다. 달에서 계산된 분류와 출생 자리 사이의 관계가 실제로 어떤 우선순위를 갖는지는 검증되지 않았습니다. 출생시간을 바꾸었을 때 글자와 관계표가 달라진다는 사실은 확인되지만 직업, 성격, 장래의 사건까지 달라진다고 단정할 근거는 없습니다.'}
  ]
@@ -61,6 +61,64 @@ function roots(packet){
   throw Error('QA_TWO_HOURS_ROOT_CALCULATION_DRIFT');
  return calc.roots.filter(x=>x.position==='hour').map(x=>x.stem);
 }
+// Chapter 7 of Zi Ping Zhen Quan discusses competing branch contacts and
+// qualified relief: it does NOT license counting pair labels as life events.
+// The exact year/month/day triad is already present in BOTH hour scenarios.
+function invariantBranchContext(left,right){
+ const sourceUrl='https://m.donglishuzhai.net/chapter/3720.html';
+ const slots=['year','month','day'];
+ const l=slots.map(s=>left.chart[s][1]);
+ const r=slots.map(s=>right.chart[s][1]);
+ if(!same(l,r)||new Set(l).size!==3||
+    [...new Set(l)].sort().join('')!==['戌','丑','未'].sort().join(''))
+  throw Error('QA_TWO_HOURS_UNCHANGED_THREE_BRANCH_TYPES_DRIFT');
+ const gather=packet=>{
+  const x=branch.natal(packet.chart);
+  if(!same(x,packet.facts.natalBranchRelations))
+   throw Error('QA_TWO_HOURS_BRANCH_CONTEXT_BAD_SOURCE');
+  return x.pairs.filter(p=>p.positions.every(s=>slots.includes(s)))
+   .map(p=>({type:p.type,positions:p.positions.slice(),
+    branches:p.branches})).sort((a,b)=>
+     (a.positions.join('/')+a.type).localeCompare(
+      b.positions.join('/')+b.type));
+ };
+ const lp=gather(left),rp=gather(right);
+ if(!same(lp,rp)||lp.length!==4||
+    !lp.some(x=>x.type==='충'&&
+     x.positions.includes('month')&&x.positions.includes('day'))||
+    !lp.some(x=>x.type==='형'&&
+     x.positions.includes('year')&&x.positions.includes('month'))||
+    !lp.some(x=>x.type==='형'&&
+     x.positions.includes('year')&&x.positions.includes('day')))
+  throw Error('QA_TWO_HOURS_THREE_POSITION_RELATIONS_DRIFT');
+ const beforeHour=left.chart.hour[1],afterHour=right.chart.hour[1];
+ if(beforeHour!=='未'||afterHour!=='戌'||
+    !l.includes(beforeHour)||!r.includes(afterHour))
+  throw Error('QA_TWO_HOURS_FALSE_NEW_TRIAD');
+ const fixed='태어난 해·달·날에 서로 다른 세 종류의 글자가 이미 있어, 출생시간을 바꾸더라도 그 기본 조합은 새로 만들어지지 않습니다.';
+ return {
+  kind:'qa-cited-three-branch-same-structure-contrast-v1',
+  source:{work:'子平真詮',chapter:'七、論刑沖會合解法',
+   url:sourceUrl,scope:'relative-branch-relations-not-personal-predictions'},
+  unalteredPositions:slots,
+  unalteredBranchCharacters:l,
+  unalteredPairRelations:lp,
+  distinctBranchTypesBefore:3,distinctBranchTypesAfter:3,
+  newBranchTypeIntroducedByHour:false,
+  hourDuplicatesPosition:{before:'day',after:'year'},
+  changeType:'repeated-position-changed-not-new-three-branch-set',
+  readerExplanation:{
+   before:fixed+' 오후 2시 20분의 시간 자리에는 날과 같은 글자가 한 번 더 기록됩니다.',
+   after:fixed+' 오후 8시 20분의 시간 자리에는 해와 같은 글자가 한 번 더 기록됩니다.'
+  },
+  disputedTraditionalEffect:'not-assessed',
+  branchTableEffectOnActualLife:'not-established',
+  chosenTraditionalPattern:null,
+  methodProfessionallyReviewed:false,
+  allowedReaderUse:'descriptive-position-comparison-only',
+  providerCalls:0,releaseVerdict:'not-approved'
+ };
+}
 function build(){
  const left=facts.build({...BASE,birthTime:'14:20'},2027);
  const right=facts.build({...BASE,birthTime:'20:20'},2027);
@@ -91,6 +149,7 @@ function build(){
  const oldHourRoot=roots(left),newHourRoot=roots(right);
  if(!oldHourRoot.includes('乙')||newHourRoot.length!==0)
   throw Error('QA_TWO_HOURS_ROOT_CHANGE_DRIFT');
+ const sharedBranchContext=invariantBranchContext(left,right);
  const beforeMonthDay=contact(left,'day');
  const afterMonthDay=contact(right,'day');
  const beforeMonthHour=contact(left,'hour');
@@ -152,14 +211,17 @@ function build(){
    hourRootsBefore:oldHourRoot,hourRootsAfter:newHourRoot,
    monthDayTableBefore:beforeMonthDay,monthDayTableAfter:afterMonthDay,
    monthHourTableBefore:beforeMonthHour,monthHourTableAfter:afterMonthHour,
+   unchangedThreeBranchContext:sharedBranchContext,
    sourceRefs:['natal.hour.stem','facts.stemConnections',
     'facts.natalBranchRelations','facts.seasonalEvidence']
   },
   editorialAlternative:{
    before:{label:first.label,text:first.text,
     coreRuleId:oldCore.review.fourPillar.ruleId,
-    sourceRefs:first.sourceRefs.slice()},
-   after:{...second,coreRuleId:newCore.review.fourPillar.ruleId}
+    sourceRefs:first.sourceRefs.slice(),
+    sharedBranchContext:sharedBranchContext.readerExplanation.before},
+   after:{...second,coreRuleId:newCore.review.fourPillar.ruleId,
+    sharedBranchContext:sharedBranchContext.readerExplanation.after}
   },
   interpretation:{
    before:'달과 시간에 같은 이해 관련 분류가 반복되어, 같은 상징을 다른 출생 자리에 놓고 설명한다.',
