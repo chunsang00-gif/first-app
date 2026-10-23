@@ -57,7 +57,35 @@ assert.deepEqual(readerUsage.citedButUnexplained,[],
 assert.equal(readerUsage.monthHasIndependentCoreSlot,true);
 assert.equal(readerUsage.semanticClaimVerified,false);
 assert.equal(readerUsage.customerReleaseApproved,false);
+assert.deepEqual(readerUsage.anchorOnlyCitations,[]);
+assert.equal(readerUsage.scenarioReview.concreteChoice,true);
+assert.deepEqual(readerUsage.scenarioReview.editorialWarnings,[]);
 assert.equal(readerUsage.providerCalls,0);
+const withVagueAdvice=structuredClone(built.response);
+withVagueAdvice.chapters.saju_core.paragraphs.natal_depth.text=
+ '태어난 해의 뜻은 기준을 살피는 것으로 읽습니다. '+
+ '태어난 시간의 뜻은 서로 다른 기준을 살피는 것으로 읽습니다. '+
+ '각자의 상황과 조건이 다르므로 언제나 여러 관점을 함께 비교하는 것이 좋습니다.';
+const vague=usage.assess(withVagueAdvice,built.prompt);
+for(const warning of [
+ 'hypothetical-situation-not-explicit',
+ 'concrete-setting-not-obvious',
+ 'contrasting-options-not-visible',
+ 'condition-and-downside-not-visible'
+])assert(vague.scenarioReview.editorialWarnings.includes(warning),warning);
+assert.equal(vague.customerReleaseApproved,false);
+const noDayNarrative=structuredClone(built.response);
+noDayNarrative.chapters.saju_core.paragraphs.natal_depth.text=
+ noDayNarrative.chapters.saju_core.paragraphs.natal_depth.text
+  .replace(/태어난 날과 시간의 안쪽에는 날의 기준과 같은 종류의 글자가 각각 확인됩니다\./,
+   '태어난 시간의 안쪽에는 같은 종류로 분류된 글자가 확인됩니다.')
+  .replace(/달과 날, 달과 시간의 두 자리 쌍에는/,
+   '달과 시간의 두 자리 쌍에는');
+const dayIsAnchor=usage.assess(noDayNarrative,built.prompt);
+assert.deepEqual(dayIsAnchor.missingDepthPositions,[],
+ 'day reference anchor should not force unsupported personality prose');
+assert.deepEqual(dayIsAnchor.anchorOnlyCitations,['day']);
+assert.equal(dayIsAnchor.customerReleaseApproved,false);
 const topic=built.payload.task.chapters.saju_core.topics.natal_depth;
 assert.equal(topic.qaOfflineEditorialResearch
  .fullFirstChapterResearch.text,authored.text);

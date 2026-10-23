@@ -134,13 +134,19 @@ const usage=require('./report-core-paid-natal-editorial-depth-usage');
    assert(decoded.sections[0].body.some(v=>v.includes(draft.prose.slice(0,25))));
    assert.equal(validator.assert(response,row.qa.prompt).releaseVerdict,'not-approved');
    const review=usage.assess(response,row.qa.prompt);
-   assert.deepEqual(review.missingDepthPositions,['day'],
-    'a technical PASS must not conceal an unexplained day-stem citation: '+draft.date);
+   assert.deepEqual(review.missingDepthPositions,[],
+    'calculated year/hour meanings must reach the reader: '+draft.date);
+   assert.deepEqual(review.anchorOnlyCitations,['day'],
+    'day is an interpretation reference, not a separate personality claim');
+   assert.equal(review.scenarioReview.concreteChoice,true);
+   assert.deepEqual(review.scenarioReview.editorialWarnings,[]);
+   assert.equal(review.calculationAnchorIsNotPersonalityEvidence,true);
    assert.equal(review.readerPositions.year.usedInReader,true);
    assert.equal(review.readerPositions.hour.usedInReader,true);
    assert.equal(review.readerPositions.day.cited,true);
    assert.equal(review.readerPositions.day.usedInReader,false);
    assert.equal(review.customerReleaseApproved,false);
+   assert.equal(review.paidReaderValueValidated,false);
    usageFindings.push({syntheticDate:draft.date,
     missingDepthPositions:review.missingDepthPositions,
     status:review.status});
@@ -168,7 +174,8 @@ const usage=require('./report-core-paid-natal-editorial-depth-usage');
   assert.equal(usageFindings.length,3);
   console.log('QA_THREE_CHART_READER_EVIDENCE_USAGE='+JSON.stringify({
    samples:usageFindings,reviewOnly:true,
-   technicallyValidButNotFullDepth:3,paidProviderCalls:0,
+   dayCalculationAnchorNotForcedAsTrait:3,
+   humanQualityStillUnverified:true,paidProviderCalls:0,
    releaseVerdict:'not-approved'}));
   // A citation to facts.stemConnections is not proof that prose used its
   // observed exact-stem exposures / same-element roots. Surface this

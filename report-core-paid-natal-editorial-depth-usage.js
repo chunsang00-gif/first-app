@@ -3,7 +3,10 @@
 // cannot certify classical Saju validity or human value and must NEVER
 // authorize customer release or reject a production report.
 const STEM_REFS=['year','month','day','hour'];
-const DETAIL_REQUIRED=['year','day','hour'];
+// Day stem provides the reference frame for other roles, not a separate
+// observed personality trait that must be forced into customer prose.
+const DETAIL_REQUIRED=['year','hour'];
+const CALCULATION_ANCHORS=['day'];
 const POSITION_MENTIONS={
  year:/(?:태어난\s*해|출생\s*해|해의\s*계산|해에서\s*읽는)/,
  month:/(?:태어난\s*달|출생\s*달|달의\s*(?:안쪽|윗글자|기준)|달과\s*(?:시간|날))/,
@@ -36,12 +39,31 @@ function assess(response,prompt){
   !readerPositions[position].cited||!readerPositions[position].usedInReader);
  const citedButUnexplained=STEM_REFS.filter(position=>
   readerPositions[position].cited&&!readerPositions[position].usedInReader);
+ const anchorOnlyCitations=CALCULATION_ANCHORS.filter(position=>
+  readerPositions[position].cited&&!readerPositions[position].usedInReader);
+ const body=depth.text.replace(/\s+/g,' ').trim();
+ // Readability cues are advisory, never evidence of commercial quality.
+ const situation=/(?:예를\s*들어|가정해\s*보|가정합니다|가정해\s*보겠습니다|상황을\s*가정)/.test(body);
+ const concreteSetting=/(?:업무|작업\s*절차|협력처|행사|매장|공급처|거래처|회의|예약|계약|이사|학교)/.test(body);
+ const alternatives=/(?:반면|반대로|하지만|그렇지만|기존\s*방식만|새\s*방법만)/.test(body);
+ const conditionalDownside=/(?:경우|때는|때에는|[가-힣]+면)/.test(body)&&
+  /(?:놓칠|놓치기|빠뜨릴|흔들릴|어려워질|소홀히|불리|위험|손해)/.test(body);
+ const concreteChoice=situation&&concreteSetting&&alternatives&&conditionalDownside;
+ const editorialWarnings=[
+  ...(!situation?['hypothetical-situation-not-explicit']:[]),
+  ...(!concreteSetting?['concrete-setting-not-obvious']:[]),
+  ...(!alternatives?['contrasting-options-not-visible']:[]),
+  ...(!conditionalDownside?['condition-and-downside-not-visible']:[])
+ ];
  const depthEvidenceUsed=missingDepthPositions.length===0;
  return {
   kind:'qa-natal-depth-visible-source-use-audit-v1',
   status:depthEvidenceUsed?'visible-position-mentions-present-human-review-required':
    'cited-position-not-explained-in-depth-text',
   readerPositions,missingDepthPositions,citedButUnexplained,
+  anchorOnlyCitations,calculationAnchorIsNotPersonalityEvidence:true,
+  scenarioReview:{situation,concreteSetting,alternatives,
+   conditionalDownside,concreteChoice,editorialWarnings},
   monthHasIndependentCoreSlot:typeof topics.strength?.text==='string',
   visiblePositionCoverageOnly:true,semanticClaimVerified:false,
   traditionalMethodApproved:false,paidReaderValueValidated:false,

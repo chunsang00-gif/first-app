@@ -95,6 +95,27 @@ function build(packet,permitted,source){
    'machine-structural-comparison-only',
   // A manually edited, source-restricted example may guide a QA writer;
   // it must NOT be mistaken for professionally approved Saju methodology.
+  // Offline-only source-to-reader map, not the paying customer's request.
+  evidenceToReaderMap:{
+   dayStem:{sourceRef:'natal.day.stem',
+    function:'calculation-anchor-not-independent-personality-evidence',
+    forceReaderTrait:false},
+   positions:['year','hour'].map(position=>{
+    const id='natal.'+position+'.stem',row=source[id];
+    if(!row?.tenGod||!row?.traditionalMeaning)
+     throw Error('QA_EDITORIAL_BRIDGE_MISSING_ROLE:'+position);
+    return {position,sourceRef:id,verifiedRole:row.tenGod,
+     traditionalMeaning:row.traditionalMeaning,
+     observedPersonality:false};
+   }),
+   humanEditorialChecklist:[
+    'exact-calculated-role-for-each-source-specific-claim',
+    'conditional-benefit-and-downside-in-one-concrete-hypothetical',
+    'do-not-invent-day-stem-personality',
+    'do-not-repeat-month-only-core',
+    'human-review-before-release'
+   ]
+  },
   fullFirstChapterResearch:adult?{
    kind:'qa-complete-adult-first-chapter-edit-v1',
    label:adult.label,text:adult.text,
