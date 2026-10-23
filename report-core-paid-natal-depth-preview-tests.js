@@ -65,11 +65,22 @@ for(const user of samples){
   assert(brief.editorialReference?.text?.length>=350);
   assert.equal(brief.editorialReference?.copyAsCustomerFact,false);
   assert.equal(brief.editorialReference.scope,'exact-chart-editorial-hypothesis-only');
+  const method=brief.editorialReference.methodPriorityReview;
+  assert.equal(method.kind,'qa-unselected-natal-method-priority-v1');
+  assert.equal(method.priorityVerdict,'not-established');
+  assert.equal(method.selectedTraditionalMethod,null);
+  assert.equal(method.professionalTraditionalMethodApproved,false);
+  assert.equal(method.branchRelationPriority,'not-assessed');
+  assert.equal(method.scenarioOrderingStatus,
+   'hypothetical-workflow-not-deduced-from-chart');
+  assert.equal(method.alternativeCandidateRefs.length,3);
+  assert(method.alternativeCandidateRefs.every(x=>x.priority==='not-assessed'));
  }else{
   machineOnlyHypotheses++;
   assert.equal(brief.sourceClass,'machine-structural-comparison-only');
   assert.equal(brief.editorialReference,null,
    'machine review prose must not be exported as an approved customer manuscript');
+  assert.equal(brief.methodPriorityReview,undefined);
   assert(brief.computedContrast?.premise);
   assert.equal(brief.computedContrast.status,
    'symbolic-editorial-hypothesis-not-validated');
