@@ -11,6 +11,7 @@ const binding=require('./report-fact-bindings');
 const policy=require('./report-reader-policy');
 const {assess}=require('./report-core-paid-natal-qa-value-delta');
 const synthesis=require('./report-core-four-pillar-synthesis');
+const monthMethod=require('./report-core-paid-natal-month-method-review');
 const cases=[
  {birthDate:'1982-11-24',calendar:'lunar',birthTime:'14:20',
   id:'full-four-pillars-chukmi-day-hour-roots-v1',
@@ -60,6 +61,39 @@ for(const example of cases){
  assert.equal(draft.review.humanReviewRequired,true);
  const author=draft.reader.paragraphs.fourPillar;
  const attribution=draft.review.fourPillar.readerAttribution;
+ const priorities=draft.review.fourPillar.methodPriorityReview;
+ const independent=monthMethod.assess(packet);
+ assert.equal(priorities.kind,'qa-unselected-natal-method-priority-v1');
+ assert.equal(priorities.priorityVerdict,'not-established');
+ assert.equal(priorities.selectedTraditionalMethod,null);
+ assert.equal(priorities.activeQiVerified,false);
+ assert.equal(priorities.professionalTraditionalMethodApproved,false);
+ assert.equal(priorities.possibleReaderBenefitVerified,false);
+ assert.equal(priorities.scenarioOrderingStatus,
+  'hypothetical-workflow-not-deduced-from-chart');
+ assert.equal(priorities.branchRelationPriority,'not-assessed');
+ assert.equal(priorities.releaseVerdict,'not-approved');
+ assert.equal(independent.status,'method-priority-not-selected');
+ assert.equal(independent.adoptedMethodId,null);
+ assert.equal(priorities.currentMonthMainSourceId,
+  independent.observed.mainHiddenStemSourceId);
+ assert.deepEqual(priorities.alternativeCandidateRefs,
+  independent.methodCandidates.map(m=>({
+   id:m.id,sourceIds:m.rowIds.slice(),status:m.status,
+   priority:m.interpretivePriority
+  })));
+ assert.deepEqual(priorities.dayMasterOnlyExposedHiddenStemIds,
+  independent.observed.exactExposureScopeComparison
+   .dayMasterOnlyExposedHiddenStemIds);
+ assert.deepEqual(priorities.nonDayExposedHiddenStemIds,
+  independent.observed.exactExposureScopeComparison
+   .nonDayExposedHiddenStemIds);
+ const relations=independent.observed.natalRelationsTouchingMonth.relationshipCardinality;
+ assert.equal(priorities.independentMonthBranchContacts,
+  relations.independentPairContactCount);
+ assert.equal(priorities.monthBranchTableEntries,relations.pairTableEntryCount);
+ assert.equal(priorities.monthBranchGroupEntries,relations.completeGroupEntryCount);
+ assert(priorities.alternativeCandidateRefs.every(x=>x.priority==='not-assessed'));
  assert.equal(attribution.kind,'qa-reader-attribution-ledger-v1');
  assert.equal(attribution.sourceClaims.length,4);
  assert.equal(attribution.priority,'not-approved-for-full-chart-causal-order');
@@ -162,6 +196,7 @@ console.log('QA_SIX_NATAL_READER_CAUSAL_EDITORIAL_REVIEW='+JSON.stringify({
  sixExactBirthCharts:observations,
  casesWithSpecificScenario:6,casesWithDownsideAndAction:6,
  independentlyReconciledPositionClaims:24,
+ independentMethodPriorityComparisons:6,workplaceOrdersDeducedFromChart:0,
  disallowedRoleTextOrScenarioForgeries:24,
  professionalInterpretationValidated:0,
  releaseReady:0,apiCalls:0}));
