@@ -36,10 +36,37 @@ for(const x of cases){
   .map(v=>v.type),['충','형']);
  assert.deepEqual(q.monthBranchPairs.filter(v=>v.positions.includes('day'))
   .map(v=>v.type),x.other);
- assert.equal(q.monthContacts.day,x.other.length);
+ assert.equal(q.monthContacts.day,Number(x.other.length>0));
+ assert.equal(q.monthContacts.year,1);
+ assert.deepEqual(q.monthRelationLabelCounts,{
+  year:2,day:x.other.length,hour:0
+ });
  assert.equal(q.monthContacts.hour,0);
  assert.equal(q.uniqueMonthContactPairs,x.pairs);
  assert.equal(q.overlappingLabelsAreNotSeparateIncidents,true);
+ const decision=q.conditionalDecisionPath;
+ assert.equal(decision.kind,'qa-chapter9-review-order-no-automatic-verdict-v1');
+ assert.equal(decision.checks.length,4);
+ assert.deepEqual(decision.checks.map(x=>x.stage),[
+  'monthly-role-and-obstruction',
+  'visible-counteracting-role',
+  'month-linked-branch-table',
+  'traditional-priority-and-actual-effect'
+ ]);
+ assert.equal(decision.checks[0].result,'literal-condition-present');
+ assert.equal(decision.checks[1].result,'candidate-rescue-condition-visible');
+ assert.equal(decision.checks[2].uniquePositionalPairs,x.pairs);
+ assert.equal(decision.checks[2].relationTableLabels,x.contacts);
+ assert.equal(decision.checks[2].result,
+  'distinct-position-pairs-found-effects-undetermined');
+ assert.equal(decision.checks[3].result,
+  'unverified-requires-independent-method-review');
+ assert.equal(decision.methodPrioritySelected,false);
+ assert.equal(decision.inferredProtectionSuccess,false);
+ assert.equal(decision.inferredDestinyOrPersonality,false);
+ assert.equal(decision.paidReaderApproval,false);
+ assert.equal(decision.fullChartVerdict,'blocked-pending-method-review');
+ assert(decision.checks.every(x=>Array.isArray(x.refs)&&x.refs.length>0));
  assert.equal(q.monthBranchGroups.length,0);
  assert(q.monthBranchPairs.every(y=>y.tableOnly===true&&
   y.realisedEffect==='not-assessed'&&
@@ -73,6 +100,18 @@ for(const x of cases){
  assert(draft.text.includes('실제')||draft.text.includes('가상'));
  const conflict=conflicts.inspect(p);
  assert.deepEqual(conflict.rescueBranchContext.monthContacts,q.monthContacts);
+ assert.deepEqual(conflict.rescueBranchContext.monthRelationLabelCounts,
+  q.monthRelationLabelCounts);
+ assert.equal(conflict.rescueBranchContext.uniqueMonthContactPairs,x.pairs);
+ assert.deepEqual(conflict.rescueBranchContext.conditionalDecisionPath,
+  q.conditionalDecisionPath);
+ const unresolved=conflict.findings.find(y=>y.id===
+  'visible-rescue-and-unresolved-month-branch-relations-coexist');
+ assert(unresolved);
+ assert.equal(unresolved.observed.observedMonthPairCount,x.pairs);
+ assert.equal(unresolved.observed.observedMonthRelationLabels,x.contacts);
+ assert.equal(unresolved.observed.monthDayContacts,Number(x.other.length>0));
+ assert.equal(unresolved.observed.monthDayTableLabels,x.other.length);
  assert.equal(conflict.rescueBranchContext
   .independentlyEditedExampleAvailable,true);
  assert.equal(conflict.rescueBranchContext.rescueEffectVerified,false);
