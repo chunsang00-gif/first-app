@@ -5,6 +5,7 @@
 const classical=require('./report-core-paid-natal-classical-method-applicability');
 const month=require('./report-core-paid-natal-month-method-review');
 const conflict=require('./report-core-paid-natal-conflict-abstention');
+const boundaries=require('./report-core-paid-natal-interpretation-boundary');
 const {LunarUtil}=require('lunar-javascript');
 const names={'比肩':'비견','劫财':'겁재','食神':'식신','伤官':'상관',
  '偏财':'편재','正财':'정재','七杀':'편관','正官':'정관',
@@ -119,7 +120,7 @@ function build(packet){
    '달의 기본 글자와 다른 숨은 글자가 함께 겉에 드러난 해당 고전 사례에서는 기본 분류를 먼저 검토한다.',
   fullChartConclusionEstablished:false,observedPersonality:false
  }:null;
- return {
+ const result={
   kind:'qa-source-specific-traditional-method-handoff-v1',
   status:single?'single-secondary-exposure-textual-case-only':
    dual?'main-plus-secondary-exposure-textual-case-only':
@@ -154,5 +155,7 @@ function build(packet){
   humanReviewComplete:false,releaseVerdict:'not-approved',
   customerReady:false,readyForPaidModelProbe:false,providerCalls:0
  };
+ result.readerInterpretationBoundary=boundaries.build(result);
+ return result;
 }
 module.exports={build};

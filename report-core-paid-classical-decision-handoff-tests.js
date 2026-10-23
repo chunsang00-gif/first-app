@@ -36,6 +36,13 @@ for(const [calendar,birthDate,first,status] of scenarios){
   d.decision===null&&d.sourceCitation===null));
  assert(x.candidates.every(d=>d.priority==='not-assessed'));
  assert.equal(x.methodApproved,false);
+ assert.equal(x.readerInterpretationBoundary.conditionCount,
+  x.unresolvedConditionCount);
+ assert.equal(x.readerInterpretationBoundary.allowedHighestScope,
+  first?'specific-published-example-only':
+   'calculated-facts-and-symbol-classifications-only');
+ assert.equal(x.readerInterpretationBoundary.authorizedForPaidWriter,false);
+ assert.equal(x.readerInterpretationBoundary.professionalReviewComplete,false);
  assert.equal(x.readyForPaidModelProbe,false);
  assert.equal(x.customerReady,false);
  assert.equal(x.providerCalls,0);
