@@ -129,4 +129,50 @@ function offlineReaderCandidate(packet){
   providerCalls:0
  };
 }
-module.exports={inspect,offlineReaderCandidate};
+// Second constrained OFFLINE editorial comparison. This is a different
+// classical textual condition, never a general-purpose paid interpretation.
+// Absence of Jia must be checked across every non-day visible position.
+// A third exposed hidden-month stem requires separate specialist review.
+function offlineSingleReaderCandidate(packet){
+ const example=inspect(packet),single=example.singleExposureTextualChange;
+ if(single.scopeMatched!==true||
+    example.observed.exposedMainStemPositions.length!==0||
+    !example.observed.exposedSecondaryStemPositions.includes('month')||
+    example.observed.exposedOtherHiddenStemPositions.length!==0)
+  return null;
+ const ledger=Object.fromEntries(require('./report-fact-bindings').build(packet)
+  .map(row=>[row.id,row]));
+ const expected={
+  'natal.day.stem':['辛','일간'],
+  'natal.month.stem':['丙','정관'],
+  'natal.month.hidden.甲':['甲','정재'],
+  'natal.month.hidden.丙':['丙','정관']
+ };
+ for(const [id,[stem,tenGod]] of Object.entries(expected)){
+  const row=ledger[id];
+  if(row?.stem!==stem||row?.tenGod!==tenGod)
+   throw Error('QA_CLASSICAL_SINGLE_READER_FACT_DRIFT:'+id);
+ }
+ for(const position of ['year','hour']){
+  const id='natal.'+position+'.stem',row=ledger[id];
+  if(!row||row.stem!==packet.chart[position][0]||
+     row.stem==='甲'||row.stem==='戊')
+   throw Error('QA_CLASSICAL_SINGLE_READER_VISIBLE_SCOPE_DRIFT:'+id);
+ }
+ const label='먼저 살펴보는 책임의 의미';
+ const text='이 사주를 고전의 한 방식으로 읽으면 자원을 다루는 뜻보다 맡은 역할과 지켜야 할 기준을 먼저 살펴봅니다. 태어난 달에는 자원에 관한 뜻도 들어 있지만, 그 달의 기본 글자는 태어난 해와 달과 시간의 겉글자에 나타나지 않습니다. 대신 책임과 규칙에 해당하는 다른 글자가 태어난 달에 드러납니다. 그래서 이 고전은 기본 글자가 드러난 경우와 구별해 해석의 출발점을 바꿉니다. 새로운 역할을 맡는 상황을 가정한다면, 이는 자원을 얼마나 갖추었는지부터 읽는 방식이 아니라 어떤 책임과 기준이 그 역할에 담겨 있는지를 먼저 살펴보는 방식입니다. 실제로 책임감이 강하거나 높은 직책을 맡는다는 뜻은 아닙니다.';
+ return {
+  kind:'qa-classical-natal-single-reader-candidate-v1',
+  calculatedChart:packet.chart,label,text,
+  sourceRefs:['natal.day.stem','natal.year.stem','natal.month.stem',
+   'natal.hour.stem','natal.month.hidden.甲','natal.month.hidden.丙'],
+  textualRule:'xin-yin-bing-exposed-jia-absent; changed-classical-point-of-departure',
+  cause:'month-main-Jia-not-exposed-while-Bing-exposed',
+  otherBranchEffects:'not-assessed',
+  individualPersonalityOrCareerVerified:false,
+  independentlyProfessionallyReviewed:false,
+  readyForPaidModelProbe:false,
+  releaseVerdict:'not-approved',providerCalls:0
+ };
+}
+module.exports={inspect,offlineReaderCandidate,offlineSingleReaderCandidate};
