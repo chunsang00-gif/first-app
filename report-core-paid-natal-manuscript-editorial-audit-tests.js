@@ -42,13 +42,21 @@ const cases=inputs.map(([calendar,birthDate,birthTime])=>{
   assert(result.findings.some(x=>x.id==='no-chart-specific-manuscript'));
  }
  return {readerPresent:result.readerPresent,reviewType:result.reviewType,
+  supplementalCandidateAvailable:result.supplementalCandidateAvailable===true,
+  supplementalCandidateKind:result.supplementalCandidateKind||null,
   flags:result.findings.map(x=>x.id),
   sourceCount:result.sourceRefs.length};
 });
 const present=cases.filter(x=>x.readerPresent);
 const missing=cases.filter(x=>!x.readerPresent);
 assert.equal(present.length,6,'baseline: six of eight have an offline candidate');
-assert.equal(missing.length,2,'baseline: two of eight lack a curated candidate');
+assert.equal(missing.length,2,'two of eight still lack a full curated core reading');
+assert(missing.every(x=>x.supplementalCandidateAvailable===true),
+ 'both gaps must have constrained QA-only classical review candidates');
+assert.deepEqual(missing.map(x=>x.supplementalCandidateKind),[
+ 'bing-only-textual-change','jia-and-bing-textual-priority']);
+assert(missing.every(x=>x.flags.includes('no-chart-specific-manuscript')),
+ 'a narrow classical citation is not a full paid reading');
 assert(present.every(x=>!x.flags.includes('visible-jargon-needs-editor')),
  'all six real offline manuscripts must now meet reader-language policy');
 const machineDrafts=present.filter(x=>x.reviewType==='chartSynthesis');
@@ -73,6 +81,7 @@ assert.throws(()=>audit.inspect(missingHour),
 console.log('QA_ACTUAL_MANUSCRIPT_READER_VALUE_GAPS='+JSON.stringify({
  samples:cases.length,manuscriptsPresent:present.length,
  missingCoverage:missing.length,
+ narrowQaReviewCandidates:missing.filter(x=>x.supplementalCandidateAvailable).length,
  questionLedManuscripts:present.filter(x=>x.flags.includes(
   'multiple-symbolic-questions-not-personal-conclusion')).length,
  jargonCandidates:present.filter(x=>x.flags.includes(
