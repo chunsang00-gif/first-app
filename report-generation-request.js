@@ -151,6 +151,10 @@ function editorialGoalFor(prompt){
  return original;
 }
 function compile(prompt){
+ if(prompt?.qaOfflineEditorialResearchPreview===true&&
+     (prompt.qaNatalDepthPreview!==true||prompt.stage!=='body'||
+      JSON.stringify(prompt.requestedSections)!=='["saju_core"]'))
+  throw Error('QA_EDITORIAL_OFFLINE_SCOPE_REQUIRED');
  if(!['body','synthesis'].includes(prompt?.stage)||!prompt.facts?.facts)return null;
  const source=sources(prompt);
  const task=prompt.stage==='body'?{
@@ -237,10 +241,11 @@ function compile(prompt){
       readerScope:'distinct-from-month-pair-core',
       writingQuestion:require('./report-core-paid-natal-month-first-screen').writingQuestion(methodScreen),
       requiredCitations:['natal.year.stem','natal.day.stem','natal.hour.stem','facts.stemConnections']};
-      // A separate QA-only reference is audited independently. Do not
-      // contaminate the canonical evidenceFocus/source citations contract.
-      topic.qaOfflineEditorialResearch=require('./report-core-paid-natal-qa-editorial-bridge')
-       .build(prompt.facts,permitted,source);
+      // Explicit offline-only QA preview. The one-call operator-approved
+      // natal_depth payload MUST remain byte-for-byte unchanged.
+      if(prompt.qaOfflineEditorialResearchPreview===true)
+       topic.qaOfflineEditorialResearch=require('./report-core-paid-natal-qa-editorial-bridge')
+        .build(prompt.facts,permitted,source);
     }
     // Only supported, actually citable topics receive the specific
     // submitted MBTI dimension; state-limits never get a free type claim.
