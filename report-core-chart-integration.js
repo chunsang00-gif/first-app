@@ -108,6 +108,16 @@ function select(packet,graph){
  const otherMatches=otherExposures.flatMap(row=>row.visibleMatches.map(v=>({
   hiddenId:row.hiddenId,sourceId:v.sourceId,position:v.position
  })));
+ // Every other exposed month-hidden stem must have an independently
+ // verified ledger role. A generic link graph alone is not its semantic
+ // classification or a sufficient source row for reader explanations.
+ for(const item of otherExposures){
+  const row=rows[item.hiddenId];
+  if(!row||row.stem!==item.hiddenStem||
+     !CAT[row.tenGod]||row.observedBehavior!==false||
+     row.interpretationScope!=='traditional-symbol-only')
+   throw Error('CORE_CHART_SYNTHESIS_SECONDARY_EXPOSURE_SOURCE_DIVERGED:'+item.hiddenId);
+ }
  const exposureStatus=mainPositions.length?
   (otherMatches.length?'main-and-other-exposed':'month-main-exposed-only'):
   (otherMatches.length?'other-month-hidden-exposed-only':'no-nonday-exposure');
@@ -127,6 +137,7 @@ function select(packet,graph){
  const exposureEvidence={
   kind:'month-hidden-to-nonday-visible-observation-v1',
   sourceRefs:['facts.stemConnections',hid,
+   ...otherExposures.map(row=>row.hiddenId),
    'natal.year.stem','natal.month.stem','natal.hour.stem'],
   status:exposureStatus,mainSourceId:hid,mainVisiblePositions:mainPositions,
   otherMatches,displayedReaderReason:exposureReason,
@@ -226,7 +237,8 @@ function select(packet,graph){
  const text=clauses.join(' ');
  const sourceRefs=['natal.day.stem','natal.month.stem',hid,
   'natal.year.stem','natal.hour.stem','facts.seasonalEvidence',
-  'facts.stemConnections',...graphRoots.map(r=>r.id)];
+  'facts.stemConnections',...otherExposures.map(r=>r.hiddenId),
+  ...graphRoots.map(r=>r.id)];
  if(picked.length||natal.groups.length)sourceRefs.push('facts.natalBranchRelations');
  const evidence={chart:{...chart},dayElement:month.dayElement,monthPhase:month.monthPhase,
   seasonToDayRelation:month.seasonToDayRelation,
