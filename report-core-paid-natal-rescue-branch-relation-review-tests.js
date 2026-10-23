@@ -11,11 +11,11 @@ const make=date=>facts.build({calendar:'solar',birthDate:date,
  birthTime:'18:20',gender:'male',mbti:'ISFP'},2027);
 const cases=[
  {date:'2021-07-13',day:'壬戌',other:['형','파'],contacts:4,pairs:2,
-  title:'같은 완화 조건에도 다른 자리의 관계가 겹칠 때'},
+  title:'규칙을 바꿔 보고 싶은 마음과 약속을 함께 살필 때'},
  {date:'2021-07-23',day:'壬申',other:[],contacts:2,pairs:1,
-  title:'완화 글자가 보여도 해와 달의 관계가 남을 때'},
+  title:'새로운 놀이를 떠올릴 때 지켜야 할 약속'},
  {date:'2021-08-02',day:'壬午',other:['육합'],contacts:3,pairs:2,
-  title:'완화 글자와 서로 다른 자리 관계를 함께 볼 때'}
+  title:'함께 정한 규칙을 바꿔 보는 상황'}
 ];
 const snapshots=[];
 for(const x of cases){
@@ -92,6 +92,11 @@ for(const x of cases){
  assert.equal(draft.label,x.title);
  assert(draft.text.length>190&&draft.text.length<600);
  assert.deepEqual(policy.errors([draft.label,draft.text]),[]);
+ assert.equal(draft.audience,'child-and-caregiver');
+ assert.equal(draft.ageAtTargetYear,6);
+ assert.equal(draft.ageAppropriateExampleOnly,true);
+ assert(/아이|보호자|놀이/.test(draft.text));
+ assert(!/회사|직장|업무|직책|급여|인사평가|작업 지침/.test(draft.text));
  assert.equal(draft.professionallyReviewed,false);
  assert.equal(draft.approvedForPaid,false);
  assert.equal(draft.lifeOutcomePredicted,false);
@@ -151,6 +156,14 @@ const changedHour=facts.build({calendar:'solar',birthDate:'2021-07-13',
  birthTime:'10:20',gender:'male',mbti:'ISFP'},2027);
 const alt=branch.audit(changedHour);
 assert.equal(alt.readerDraft,null);
+const spoofedAdult=structuredClone(first.packet);
+spoofedAdult.calculationInput.birthDate='1961-07-13';
+assert.equal(branch.audit(spoofedAdult).readerDraft,null,
+ 'a matching 60-year-cycle chart must not receive a young child example');
+const unsupportedTarget=structuredClone(first.packet);
+unsupportedTarget.targetYear={year:2040,pillar:first.packet.targetYear.pillar};
+assert.equal(branch.audit(unsupportedTarget).readerDraft,null,
+ 'a grown-up at the target year cannot receive a childhood example');
 assert.equal(alt.providerCalls,0);
 const tampered=structuredClone(first.packet);
 tampered.facts.natalBranchRelations.pairs=[];
