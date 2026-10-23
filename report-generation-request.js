@@ -236,9 +236,11 @@ function compile(prompt){
       monthFirstApplicability:methodScreen,
       readerScope:'distinct-from-month-pair-core',
       writingQuestion:require('./report-core-paid-natal-month-first-screen').writingQuestion(methodScreen),
-      requiredCitations:['natal.year.stem','natal.day.stem','natal.hour.stem','facts.stemConnections'],
-      qaOfflineEditorialResearch:require('./report-core-paid-natal-qa-editorial-bridge')
-       .build(prompt.facts,permitted,source)};
+      requiredCitations:['natal.year.stem','natal.day.stem','natal.hour.stem','facts.stemConnections']};
+      // A separate QA-only reference is audited independently. Do not
+      // contaminate the canonical evidenceFocus/source citations contract.
+      topic.qaOfflineEditorialResearch=require('./report-core-paid-natal-qa-editorial-bridge')
+       .build(prompt.facts,permitted,source);
     }
     // Only supported, actually citable topics receive the specific
     // submitted MBTI dimension; state-limits never get a free type claim.
