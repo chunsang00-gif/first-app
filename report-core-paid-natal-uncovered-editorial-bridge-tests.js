@@ -69,6 +69,18 @@ for(const sample of cases){
  assert.equal(draft.readerReasoning.coreReadingIsConditional,true);
  assert.equal(draft.readerReasoning.verifiedPersonalBehavior,false);
  assert(draft.text.includes(draft.readerReasoning.monthPremise));
+ assert.equal(draft.textualApplicabilityCannotBeGeneralized,true);
+ assert.equal(draft.rejectedCounterfactualIsAChartConditionNotPredictedBehavior,true);
+ const reverse=draft.readerReasoning.sourceConditionCounterfactual;
+ const third=draft.readerReasoning.thirdHiddenStemCompetingCase;
+ assert(reverse.length>=55&&third.length>=35);
+ assert(draft.text.includes(reverse)&&draft.text.includes(third));
+ assert(third.includes('우선순위를 정하지 않습니다'));
+ assert(reverse.includes('그대로 적용해서는 안 됩니다'));
+ if(sample.category==='bing-only-textual-change')
+  assert(reverse.includes('바탕 글자가 해나 시간의 겉에 드러나면'));
+ else
+  assert(reverse.includes('바탕 글자가 해·달·시간의 겉에 전혀 드러나지 않는다면'));
  assert(draft.text.includes(draft.readerReasoning.conditionalScenario));
  assert(draft.text.includes(draft.readerReasoning.rootObservation));
  assert(draft.text.includes(draft.readerReasoning.branchUncertainty));
@@ -112,6 +124,10 @@ const conditionalCases=cases.map(x=>bridge.review(
 assert.notEqual(conditionalCases[0].text,conditionalCases[1].text);
 assert.notEqual(conditionalCases[0].textualOrdering,
  conditionalCases[1].textualOrdering);
+assert.notEqual(conditionalCases[0].readerReasoning.sourceConditionCounterfactual,
+ conditionalCases[1].readerReasoning.sourceConditionCounterfactual);
+assert(conditionalCases.every(x=>x.textualApplicabilityCannotBeGeneralized===true));
+assert(conditionalCases.every(x=>x.rejectedCounterfactualIsAChartConditionNotPredictedBehavior===true));
 assert.notEqual(contextualCases[0].monthExposureExplanation,
  contextualCases[1].monthExposureExplanation,
  'single vs dual classical exposure must produce different factual rationale');
@@ -145,6 +161,7 @@ console.log('QA_TWO_UNCOVERED_CLASSICAL_EDITORIAL_CANDIDATES='+JSON.stringify({
  missingFullCuratedCore:2,sourceMatchedTextualPreviewCandidates:2,
  contextualFourPillarEvidenceCompanions:contextualCases.length,
  distinctConditionalReasoningDrafts:conditionalCases.length,
+ explicitlyExplainedReversalConditions:2,thirdHiddenStemAbstentionConditions:2,
  originalToRevisionSentenceReuse:cases.map(row=>bridge.review(
   facts.build(input(row.date),2027)).editorialComparison.exactFullSentenceReuseCount),
  disallowedNearMatches:5,distinctNarrowReaderTexts:2,
