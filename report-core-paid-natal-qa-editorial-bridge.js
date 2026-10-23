@@ -66,7 +66,10 @@ function build(packet,permitted,source){
   editorialReference:curated?{
    label:paragraph.label,text:paragraph.text,
    scope:'exact-chart-editorial-hypothesis-only',
-   copyAsCustomerFact:false
+   copyAsCustomerFact:false,
+   // Distinguish an already checked calculation from the methodological
+   // choice that a commercial full-chart reading would still require.
+   methodPriorityReview:structuredClone(curated.methodPriorityReview)
   }:null,
   // For non-curated charts, transmit the verified contrast, NOT an entire
   // generic/heuristic manuscript as an apparent finished personal reading.
@@ -85,6 +88,12 @@ function build(packet,permitted,source){
   ]
  };
  if(curated){
+  if(curated.methodPriorityReview?.priorityVerdict!=='not-established'||
+     curated.methodPriorityReview?.selectedTraditionalMethod!==null||
+     curated.methodPriorityReview?.scenarioOrderingStatus!==
+      'hypothetical-workflow-not-deduced-from-chart'||
+     curated.methodPriorityReview?.professionalTraditionalMethodApproved!==false)
+   throw Error('QA_EDITORIAL_BRIDGE_UNSELECTED_TRADITIONAL_METHOD_REQUIRED');
   if(!curated.ruleId||curated.readerScope!==
      'verified-four-position-symbolic-comparison-only'||
      draft.review.chartSynthesis!==null)
