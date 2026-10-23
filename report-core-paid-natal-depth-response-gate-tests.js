@@ -82,6 +82,21 @@ function refuse(label,mutate,match){
   label+' must fail before becoming a report section');
  cases++;
 }
+// The QA provider brief includes exact elemental directions: a prose claim
+// which REVERSES one must fail, despite correct-looking source citations.
+const supportedDirection=response();
+supportedDirection.chapters.saju_core.paragraphs.natal_depth.text+=
+ ' 태어난 해의 글자가 태어난 달의 글자를 제약합니다.';
+assert.deepEqual(validator.inspect(supportedDirection,p.prompt),[],
+ 'a correct computed elemental direction may be stated without personal claims');
+refuse('a false generating direction cannot masquerade as depth',v=>
+ v.chapters.saju_core.paragraphs.natal_depth.text+=
+  ' 태어난 해의 글자가 태어난 달의 글자를 돕습니다.',
+ 'QA_DEPTH_FALSE_NATAL_ELEMENT_DIRECTION:year-month');
+refuse('a false same-element claim cannot masquerade as depth',v=>
+ v.chapters.saju_core.paragraphs.natal_depth.text+=
+  ' 태어난 해의 글자가 태어난 달의 글자와 같은 오행입니다.',
+ 'QA_DEPTH_FALSE_NATAL_ELEMENT_DIRECTION:year-month');
 refuse('uncited year stem',v=>v.chapters.saju_core.paragraphs.natal_depth.basis.refs=
  ['natal.day.stem','natal.hour.stem','facts.stemConnections'],
  'QA_DEPTH_MISSING_REQUIRED_POSITION:natal.year.stem');
