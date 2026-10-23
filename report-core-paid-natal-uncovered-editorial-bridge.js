@@ -7,6 +7,9 @@ const classical=require('./report-core-paid-natal-classical-yin-example');
 const counterfactual=require('./report-core-paid-natal-counterfactual-audit');
 const bindings=require('./report-fact-bindings');
 const language=require('./report-reader-policy');
+const graph=require('./report-core-evidence-graph');
+const synthesis=require('./report-core-chart-integration');
+const monthReview=require('./report-core-paid-natal-month-method-review');
 function review(packet){
  const verified=counterfactual.snapshot(packet);
  const result=core.compile(packet);
@@ -66,6 +69,47 @@ function review(packet){
     /[甲乙丙丁戊己庚辛壬癸子丑寅卯辰巳午未申酉戌亥]/.test(found.label+' '+found.text)||
     /[?？]\s*$/.test(found.text))
   throw Error('QA_UNCOVERED_CLASSICAL_VISIBLE_LANGUAGE_INVALID');
+ // Contrast the cited classical month condition against OTHER calculated
+ // positions instead of presenting its narrow priority as a full reading.
+ // Even perfect exact-stem matching does NOT choose a governing tradition.
+ const structural=synthesis.select(packet,graph.build(packet));
+ const observed=structural?.evidence?.exposureEvidence;
+ const expectedExposure=category==='bing-only-textual-change'?
+  'other-month-hidden-exposed-only':'main-and-other-exposed';
+ if(structural.releaseVerdict!=='not-approved'||
+    structural.humanReviewRequired!==true||structural.apiCalls!==0||
+    observed?.status!==expectedExposure||
+    observed?.monthPatternPriority!=='not-assessed'||
+    !structural.sourceRefs.includes('facts.stemConnections')||
+    !structural.sourceRefs.includes(observed.mainSourceId)||
+    observed.sourceRefs.some(id=>!structural.sourceRefs.includes(id))||
+    JSON.stringify(structural.evidence.chart)!==JSON.stringify(packet.chart)||
+    !structural.reader.text.includes(observed.displayedReaderReason))
+  throw Error('QA_UNCOVERED_CLASSICAL_FULL_CHART_CONTRAST_DRIFT');
+ if(language.errors([structural.reader.label,structural.reader.text]).length)
+  throw Error('QA_UNCOVERED_CLASSICAL_FULL_CHART_READER_JARGON');
+ const monthly=monthReview.assess(packet);
+ const cardinality=monthly.observed.natalRelationsTouchingMonth.relationshipCardinality;
+ if(cardinality.realizedCombinationOrBreakage!=='not-assessed'||
+    cardinality.whichLabelPrevails!=='not-assessed')
+  throw Error('QA_UNCOVERED_CLASSICAL_BRANCH_PRIORITY_NOT_VERIFIED');
+ // This adds a useful editor-facing comparison and case-specific explanation
+ // while full causal priority, personality and saleable depth remain blocked.
+ const contextualReview={
+  status:'full-chart-structural-comparison-only',
+  label:structural.reader.label,text:structural.reader.text,
+  sourceRefs:structural.sourceRefs.slice(),
+  monthExposureExplanation:observed.displayedReaderReason,
+  monthExposureStatus:observed.status,
+  mainVisiblePositions:observed.mainVisiblePositions.slice(),
+  otherMatches:observed.otherMatches.map(x=>({...x})),
+  independentMonthBranchContacts:cardinality.independentPairContactCount,
+  multipleLabelsForOneBranchContact:
+   cardinality.hasDuplicateLabelsForSameTwoPositions,
+  monthBranchGroups:cardinality.completeGroupEntryCount,
+  chosenClassicalPriorityForFullChart:false,
+  overallMethodApproved:false,releaseVerdict:'not-approved'
+ };
  // QA-only artifact. NOT a complete natal reading: year/hour branch
  // interactions and editorial worth remain unreviewed. Never report this
  // as core coverage or as a finished personal interpretation.
@@ -75,6 +119,7 @@ function review(packet){
    sourceRefs:refs.slice(),textualRule:found.textualRule,
    independentlyProfessionallyReviewed:false,
    fullChartCausalBridgeEstablished:false,releaseVerdict:'not-approved'},
+  contextualReview,
   curatedCoreStillMissing:true,
   needs:['professional-textual-interpretive-method-check',
    'full-chart-competing-relationships-review','individual-reader-value-review',
