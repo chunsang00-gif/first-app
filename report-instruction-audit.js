@@ -210,13 +210,17 @@ function inspectTransport(prompt,actual){
        monthFirstApplicability:methodScreen,
        readerScope:'distinct-from-month-pair-core',
        writingQuestion:require('./report-core-paid-natal-month-first-screen').writingQuestion(methodScreen),
-       requiredCitations:['natal.year.stem','natal.day.stem','natal.hour.stem','facts.stemConnections'],
-       qaOfflineEditorialResearch:require('./report-core-paid-natal-qa-editorial-bridge')
-        .build(prompt.facts,permitted,actual.source)};
+       requiredCitations:['natal.year.stem','natal.day.stem','natal.hour.stem','facts.stemConnections']};
       if(!correct||independent.some(x=>!x.category)||
          !independent[0].traditionalMeaning||!independent[3].traditionalMeaning||
          JSON.stringify(topic.evidenceFocus)!==JSON.stringify(expected))
        errors.push('qa-natal-depth-evidence-brief-drift');
+      // The QA-only editorial hypothesis is NOT a new fact, and cannot
+      // alter the exact canonical evidenceFocus required for the writer.
+      const reference=require('./report-core-paid-natal-qa-editorial-bridge')
+       .build(prompt.facts,permitted,actual.source);
+      if(JSON.stringify(topic.qaOfflineEditorialResearch)!==JSON.stringify(reference))
+       errors.push('qa-natal-depth-editorial-reference-drift');
      }else{
       const contrast=require('./report-chart-contrast');
       const original=contrast.build(prompt.facts);
