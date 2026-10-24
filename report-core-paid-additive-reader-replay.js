@@ -73,6 +73,14 @@ function attachOfflineOnly(base,extra,context){
   'DEPTH_READER_CONTAINS_TECHNICAL_HANJA');
  ensure(!/(?:반드시 성공|원래 성격|타고난 능력|돈을 많이 벌|미래에 반드시)/.test(extra.text),
   'UNSUPPORTED_REAL_LIFE_PROMISE');
+ // Calculated labels, valid citations, and fluent generic prose are NOT
+ // sufficient for a saleable personal claim. Reject until independently
+ // reviewed method, actual NEW reader decision, and human editorial approval.
+ ensure(context.editorialReview?.eligibleForAdditiveReading===true&&
+  context.editorialReview?.traditionallyReviewed===true&&
+  context.editorialReview?.newCustomerDecisionVerified===true&&
+  context.editorialReview?.approvedByIndependentHumanEditor===true,
+  'EDITORIAL_VALUE_NOT_APPROVED');
  // A projection of how a distinct third topic would appear in the output
  // section. It is NEVER passed into wire.decode() in actual paid generation.
  first.bodyTopics.push('natal_depth');
@@ -116,7 +124,11 @@ async function inspect(input){
    Object.hasOwn(candidate.payload.source,id)),
   'STRICT_OPTIONAL_SOURCE_SCHEMA_MISMATCH');
  const context={allowed,factLock:locked,source:candidate.payload.source,
-  proposed:schema.additivePrototype.schema};
+  proposed:schema.additivePrototype.schema,
+  editorialReview:{
+   eligibleForAdditiveReading:false,traditionallyReviewed:false,
+   newCustomerDecisionVerified:false,approvedByIndependentHumanEditor:false
+  }};
  const empty=attachOfflineOnly(decoded,null,context);
  ensure(same(empty.report,decoded),'NULL_CHANGED_REAL_READER_OUTPUT');
  // No newly invented "high-end" prose. Replay the existing chart-checked
@@ -147,17 +159,63 @@ async function inspect(input){
    !scene.text.includes('실제로 말을 잘')&&
    !reader.errors([scene.text]).length,
   'UNVERIFIED_OR_NON_DISTINCT_EDITORIAL_SCENE');
- const extra=rejectedForRepetition?null:{
+ // The new 20:20 hour classification is CALCULATED, not a life claim.
+ // The drafted takeaway that understanding and explaining are distinct
+ // work steps is a generic true sentence, not a new birth-chart-dependent
+ // decision. Preserve the draft only for internal editorial review.
+ const candidateFixture=isAfter?{
   label:'이해한 내용을 다른 사람에게 전달하는 상황',
   text:scene.text,
   basis:{refs:schema.citations.qaDepth.slice(),
    interpretation:locked.literal,
    condition:'새로운 작업 절차를 동료에게 설명하는 가정 상황',
    limit:'서로 다른 전통 분류의 비유일 뿐 실제 전달 능력과 방법 우선순위는 미판정'}
+ }:null;
+ if(isAfter)ensure(
+  pair.changed.priorHourCategory==='편인'&&
+  pair.changed.changedHourCategory==='상관'&&
+  same(pair.unchangedFreeMonthCore.sourceRefs,
+   ['natal.month.stem','natal.month.hidden.己'])&&
+  scene.text.includes('달의 뜻을 낯선 내용을 이해하는 단계에')&&
+  scene.text.includes('시간의 뜻을 그 내용을 말이나 문서로 풀어내는 단계에')&&
+  scene.text.includes('혼자 변경 이유를 이해하는 것과 다른 사람이 그대로 따라 할 수 있게 순서를 설명하는 것은 서로 다른 일입니다.')&&
+  scene.text.includes('실제 인계 능력을 평가한 결과는 아닙니다.'),
+  'CANDIDATE_NOT_SUPPORTED_BY_RECALCULATED_HOUR_DIFFERENCE');
+ const incrementalValue={
+  kind:'qa-manual-first-chapter-premium-delta-rejection-v1',
+  freeMonthSourceRefs:pair.unchangedFreeMonthCore.sourceRefs.slice(),
+  freeMonthTextIdenticalAcrossTimes:true,
+  independentHourClassification:isAfter?'상관':'편인',
+  candidateComparedAgainstFree:Boolean(candidateFixture),
+  findings:isBefore?[
+   {id:'month-hour-category-repeated',category:'computed-repeat',
+    contributesIndependentCustomerDecision:false}
+  ]:[
+   {id:'month-understanding',category:'already-covered-by-free-month',
+    refs:['natal.month.stem'],contributesIndependentCustomerDecision:false},
+   {id:'hour-expression',category:'new-traditional-symbol-classification',
+    refs:['natal.hour.stem'],contributesIndependentCustomerDecision:false},
+   {id:'understanding-versus-explaining',
+    category:'generic-example-not-chart-specific-conclusion',
+    refs:[],contributesIndependentCustomerDecision:false},
+   {id:'personal-performance-not-inferred',
+    category:'necessary-interpretive-limit',
+    refs:[],contributesIndependentCustomerDecision:false}
+  ],
+  newVerifiedChartClassification:isAfter,
+  genericLifeIllustrationDoesNotProvePersonalDifference:true,
+  independentPersonalDecisionSupported:false,
+  chosenClassicalMethodApproved:false,
+  humanReaderValueApproved:false,
+  eligibleForAdditiveReading:false,
+  status:isBefore?'reject-repeated-month-role-prose':
+   'reject-different-role-but-generic-life-advice',
+  reviewOnly:true,paidApiCalls:0,releaseVerdict:'not-approved'
  };
+ // Neither existing candidate contains approved extra reader value.
+ const extra=null;
  const joined=attachOfflineOnly(decoded,extra,context);
- const expectedTopics=isBefore?['temperament','strength']:
-  ['temperament','strength','natal_depth'];
+ const expectedTopics=['temperament','strength'];
  ensure(same(joined.report.sections[0].bodyTopics,expectedTopics)&&
   joined.report.sections[0].body.length===expectedTopics.length&&
   same(joined.report.sections[0].body.slice(0,2),
@@ -170,24 +228,28 @@ async function inspect(input){
   normalReader:decoded,nullableReader:empty.report,
   additiveReader:joined.report,
   extraFixture:extra,
+  candidateFixture,
+  incrementalValue,
   editorialDecision:{
    kind:'qa-optional-third-paragraph-specificity-review-v1',
    omittedWhenHourRepeatsMonthRole:rejectedForRepetition,
    originalMonthInterpretationUnchanged:true,
    source:'preexisting-chart-verified-manual-manuscript',
    chartHourCategory:isBefore?'편인':'상관',
-   originalManualSceneReused:Boolean(extra),
+   originalManualSceneReused:false,
+   chartVerifiedDraftRetainedForReview:Boolean(candidateFixture),
    premiumBenefitEstablished:false,customerReady:false,
    decision:isBefore?'omit-duplicate-month-hour-meaning':
-    'editorial-scene-only-not-validated-personal-insight'
+    'omit-generic-choice-example-no-additional-personal-judgment'
   },
   projectionContext:context,
   originalFirstBatch:captured.requestedSections.slice(),
   proof:{
    originalTwoReaderParagraphsVerified:true,
    nullThirdSlotPreservesOriginalBytes:true,
-   thirdParagraphUsesIndependentVerifiedNatalRefs:extra!==null,
+   thirdParagraphUsesIndependentVerifiedNatalRefs:false,
    duplicateRoleDoesNotForceThirdParagraph:true,
+   genericHourContrastDoesNotForceThirdParagraph:true,
    strictDepthFactLockUnchanged:true,
    extraDoesNotChangeOriginalTitleJudgmentOrEvidence:true,
    productionSchemaWriterDecoderUnchanged:true,
