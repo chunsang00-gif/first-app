@@ -99,6 +99,7 @@ function inspect(prompt){
     // diagnostic; null would leave the ONLY requested depth unwritten.
     // All ordinary/production optional report topics remain nullable.
     const requiredQaDepth=prompt.qaNatalDepthPreview===true&&
+      prompt.qaAdditiveDepthPreview!==true&&
       id==='saju_core'&&topic==='natal_depth'&&task.mode==='use-primary';
     if(requiredQaDepth){
      if(slot.type!=='object'||slot.anyOf)
