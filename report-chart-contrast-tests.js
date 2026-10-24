@@ -68,6 +68,16 @@ for(const input of cases){
  assert.equal(packet.status,'ready',input.birthDate);
  const contrast=contrasts.build(packet);
  assert(contrast,'real source packet must produce core distinctions');
+ const visible=contrast.monthTenGodContext.monthStemVisibility;
+ const expectedMain=packet.facts.structuralEvidence.monthCommand.mainHiddenStem;
+ const computedMonth=packet.facts.tenGods.month;
+ assert.equal(visible.visibleStemMatchesMainHidden,
+  computedMonth.stem===expectedMain);
+ assert.equal(visible.visibleStemMatchesDifferentMonthHidden,
+  computedMonth.stem!==expectedMain&&
+   computedMonth.hiddenStems.some(row=>row.stem===computedMonth.stem));
+ assert.equal(visible.traditionalPatternPriority,'not-determined');
+ assert.equal(visible.mainHiddenStemIsNotProvenGoverningStem,true);
  assert.equal(contrast.version,'chart-evidence-contrast-v1');
  assert.equal(contrast.chartSignature,[packet.chart.year,packet.chart.month,packet.chart.day,
   packet.chart.hour||'hour-unknown'].join('/'));

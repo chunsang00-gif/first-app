@@ -80,6 +80,36 @@ function build(packet){
   visibleElement,hiddenElement,
   inference:'element-relation-only',governingHiddenStem:'unresolved',
   realizedInteraction:'not-assessed',characterTrait:'not-measured'};
+ // The month pillar's visible stem may match a DIFFERENT hidden month
+ // stem from the month branch's main hidden stem. This is a calculated
+ // question of source priority, NOT permission to reclassify the pattern.
+ // Keep it scoped to the two existing citable month positions; other
+ // pillars and their source IDs remain outside this paid first paragraph.
+ const monthHidden=(monthGod.hiddenStems||[]).map(x=>x.stem);
+ if(!monthHidden.includes(mainStem)||monthHidden.length!==new Set(monthHidden).size)
+  throw Error('CORE_MONTH_HIDDEN_VISIBILITY_CALCULATION_DRIFT');
+ const visibleMatchesMain=monthGod.stem===mainStem;
+ const visibleMatchesOther=monthGod.stem!==mainStem&&
+  monthHidden.includes(monthGod.stem);
+ if(visibleMatchesMain&&visibleMatchesOther)
+  throw Error('CORE_MONTH_HIDDEN_PRIORITY_CONTRADICTION');
+ const monthStemVisibility={
+  kind:'calculated-month-stem-to-month-hidden-comparison-v1',
+  visibleMonthStemSourceId:'natal.month.stem',
+  mainHiddenMonthSourceId:'natal.month.hidden.'+mainStem,
+  visibleStemMatchesMainHidden:visibleMatchesMain,
+  visibleStemMatchesDifferentMonthHidden:visibleMatchesOther,
+  visibleStemNotFoundInMonthHidden:
+   !visibleMatchesMain&&!visibleMatchesOther,
+  onlyTheseTwoMonthPositionsCitable:true,
+  mainHiddenStemIsNotProvenGoverningStem:true,
+  otherPillarsAndActualGoverningDayNotReviewedHere:true,
+  traditionalPatternPriority:'not-determined',
+  permittedReaderScope:'month-symbolic-meaning-only',
+  instruction:visibleMatchesOther?
+   '월간과 월지 본기의 분류가 다르며 겉글자는 달의 다른 숨은 글자와 일치한다. 본기가 실제 사령 또는 무조건 우선하는 격국이라고 단정하지 않는다. 겉글자가 다른 숨은 글자와 일치한다는 이유만으로 그 분류를 최종 우선시키지도 않는다. 해당 우선순위는 미확정이며 본문에 검증되지 않은 새 성격을 넣지 않는다.':
+   '월간과 월지 본기 비교는 상징의 위치별 비교이지 실제 사령, 강약, 격국의 자동 확정이 아니다.'
+ };
  const monthTenGodContext={
   monthStem:{sourceId:'natal.month.stem',stem:monthGod.stem,
    tenGod:monthGod.stemTenGod,meaning:facts.tenGodGlossary[monthGod.stemTenGod]||null},
@@ -87,6 +117,7 @@ function build(packet){
    tenGod:mainHidden.tenGod,meaning:facts.tenGodGlossary[mainHidden.tenGod]||null},
   sameClassification:monthGod.stemTenGod===mainHidden.tenGod,
   elementLink:monthElementLink,
+  monthStemVisibility,
   method:'일간 기준 십성; 월간과 월지 본기는 서로 다른 출처',
   unmeasured:['personality','achievement','wealth','personality-balance','qi-strength']
  };

@@ -36,6 +36,31 @@ const fixtures=[
   assert(real.firstBatchSections.includes('saju_core'));
   assert.equal(real.apiCalls,0);
   assert.equal(real.releaseVerdict,'blocked-unreviewed-paid-depth');
+  const mainFocus=writer.compile(x.prompt).task.chapters.saju_core
+   .topics.strength.evidenceFocus.tenGodFocus;
+  const obs=mainFocus.monthStemVisibility;
+  const chartMonth=x.prompt.facts.facts.tenGods.month;
+  const mainStem=x.prompt.facts.facts.structuralEvidence.monthCommand.mainHiddenStem;
+  assert.equal(obs.kind,'calculated-month-stem-to-month-hidden-comparison-v1');
+  assert.equal(obs.visibleStemMatchesMainHidden,chartMonth.stem===mainStem);
+  assert.equal(obs.visibleStemMatchesDifferentMonthHidden,
+   chartMonth.stem!==mainStem&&
+    chartMonth.hiddenStems.some(row=>row.stem===chartMonth.stem));
+  assert.equal(obs.mainHiddenStemIsNotProvenGoverningStem,true);
+  assert.equal(obs.traditionalPatternPriority,'not-determined');
+  assert.equal(obs.otherPillarsAndActualGoverningDayNotReviewedHere,true);
+  assert.equal(obs.onlyTheseTwoMonthPositionsCitable,true);
+  assert.equal(mainFocus.monthStem.sourceId,'natal.month.stem');
+  assert.equal(mainFocus.monthMainHidden.sourceId,
+   'natal.month.hidden.'+mainStem);
+  const mainRefs=writer.compile(x.prompt).task.chapters.saju_core
+   .topics.strength.citableFacts.map(row=>row.id);
+  assert(!mainRefs.includes('facts.stemConnections'));
+  if(fixture.calendar==='lunar'){
+   assert.equal(obs.visibleStemMatchesMainHidden,false);
+   assert.equal(obs.visibleStemMatchesDifferentMonthHidden,true);
+   assert(obs.instruction.includes('최종 우선시키지도 않는다'));
+  }
   const noTask=structuredClone(x.prompt);
   delete noTask.editorialTask;
   assert.throws(()=>audit.fromCapturedFirstBody(noTask),
