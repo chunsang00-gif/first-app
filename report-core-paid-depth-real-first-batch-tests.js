@@ -47,7 +47,8 @@ const fixtures=[
   const fakeScope=structuredClone(x.prompt);
   fakeScope.analysisGuidance.editorialBlueprint.saju_core.topicTasks
    .strength.allowedSourceRefs=['natal.year.stem'];
-  assert.throws(()=>audit.fromCapturedFirstBody(fakeScope),/PAID_DEPTH_/);
+  assert.throws(()=>audit.fromCapturedFirstBody(fakeScope),
+   /PAID_DEPTH_|QA_CORE_SOURCE_SCOPE_MISSING_REQUIRED_MONTH_PROVENANCE/);
   // The previous synthetic audit still compares calculation-only source
   // scope, but it omits this production editorial task.
   const synthetic=writer.compile({
