@@ -96,7 +96,7 @@ async function inspect(input){
   same(proposedSlots.required,[...BASE_TOPICS,'natal_depth'])&&
   proposedSlots.properties.natal_depth.anyOf[1].type==='null',
   'PROPOSED_OPTIONAL_LAYOUT_NOT_ADDITIVE');
- const method=pattern.prepare(prompt.facts);
+ const method=pattern.build(prompt.facts);
  // Interpretive priority and paid-value proof MUST be independent from
  // transport feasibility; no new customer-facing claim is authorized.
  truth(method.releaseVerdict==='not-approved'&&method.methodApproved===false,
