@@ -18,10 +18,14 @@ const inputs=[
    assert(x.originalFirstBatch.includes('saju_core'));
    assert.equal(x.apiCalls,0);
    assert.equal(x.releaseVerdict,'not-approved');
-   assert(Object.values(x.proof).every(v=>v===true||
-     (v===false&&Object.keys(x.proof).some(k=>
-      ['prototypeIsNotHumanReviewed','customerReady'].includes(k))),
-    'every protective proof must stay explicit');
+   assert.equal(x.proof.originalTwoReaderParagraphsVerified,true);
+   assert.equal(x.proof.nullThirdSlotPreservesOriginalBytes,true);
+   assert.equal(x.proof.thirdParagraphUsesIndependentVerifiedNatalRefs,true);
+   assert.equal(x.proof.strictDepthFactLockUnchanged,true);
+   assert.equal(x.proof.extraDoesNotChangeOriginalTitleJudgmentOrEvidence,true);
+   assert.equal(x.proof.productionSchemaWriterDecoderUnchanged,true);
+   assert.equal(x.proof.prototypeIsNotHumanReviewed,true);
+   assert.equal(x.proof.customerReady,false);
    assert.deepEqual(x.nullableReader,x.normalReader);
    assert.deepEqual(x.normalReader.sections[0].bodyTopics,
     ['temperament','strength']);
