@@ -10,6 +10,8 @@ assert.deepEqual(x,preview.build(packet),'offline output must be deterministic')
 assert.deepEqual(x.chart,{year:'壬戌',month:'癸丑',
  day:'乙未',hour:'癸未'});
 assert.equal(x.exactWinterPassageVerified,true);
+assert.equal(x.sourceScopedQuestionResolved,true);
+assert.equal(x.sourceScopeIsNotFullChartMethodApproval,true);
 assert.equal(x.monthDayHourContacts,2);
 assert.equal(x.doubleContactIsNotTwoPredictedEvents,true);
 assert.equal(x.climateSourceDoesNotMatchFavorableCompound,true);

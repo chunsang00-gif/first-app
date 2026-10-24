@@ -18,6 +18,15 @@ for(const [calendar,birthDate,first,status] of scenarios){
  assert.equal(x.expertDecisions.length,5);
  assert.equal(x.generalMonthRule.methodPriority,'not-selected');
  const cross=x.independentClassicalSourceEligibility;
+ const refChoice=x.sourceScopedEditorialReferenceChoice;
+ assert.equal(refChoice.kind,
+  'qa-source-specificity-by-question-not-fortune-rank-v1');
+ assert.equal(refChoice.globalInterpretationSchoolSelected,false);
+ assert.equal(refChoice.originalHistoricalVerdictIsNotObservedLife,true);
+ assert.equal(refChoice.customerSpecificNewDecisionEstablished,false);
+ assert.equal(refChoice.releasedToPaidWriter,false);
+ assert.equal(refChoice.customerReady,false);
+ assert.equal(refChoice.providerCalls,0);
  assert.equal(x.monthWorkedExampleStatusOnly,true);
  assert.equal(cross.rulesAreAlternativeFrameworksNotOneUnifiedPattern,true);
  assert.equal(cross.readerFacingPromiseAuthorized,false);
@@ -87,6 +96,20 @@ for(const [calendar,birthDate,first,status] of scenarios){
  if(birthDate==='1982-11-24'){
   const g=x.generalMonthRule;
   assert.equal(g.conditionObserved,true);
+  assert.equal(refChoice.historicalCitationChosenForDayHourQuestion,true);
+  assert.deepEqual(refChoice.observedMonthDayAndHourClashPairs,
+   [['month','day'],['month','hour']]);
+  assert.equal(refChoice.questionRoutes.whichClassicalDayHourText
+   .sourceUnit,'exact-day-hour-winter-subcase');
+  assert.equal(refChoice.questionRoutes.whichClassicalDayHourText
+   .originalSeasonalPhrase,'冬安穩');
+  assert.equal(refChoice.questionRoutes.whatSeasonalConditionToConsider
+   .compoundBingVisibleWithoutGuiMatched,false);
+  assert.equal(refChoice.questionRoutes.doesMonthHiddenExposureSelectPattern
+   .exactWorkedExampleMatched,false);
+  assert.equal(x.expertDecisions.find(q=>q.id==='choose-school')
+   .sourceQuestionChoice.whichClassicalDayHourText.sourceUnit,
+   'exact-day-hour-winter-subcase');
   assert(cross.climate);
   assert(cross.exactDayHour);
   assert.equal(cross.alternativeExactDayHour,null);
@@ -152,6 +175,8 @@ for(const [calendar,birthDate,first,status] of scenarios){
     c.id==='xu-commentary-earth-three-punishment'&&
     c.originalDoesNotExplicitlyNameTriad===true));
  }else{
+  assert.equal(refChoice.questionRoutes.whichClassicalDayHourText,null);
+  assert.equal(refChoice.historicalCitationChosenForDayHourQuestion,false);
   assert.equal(cross.exactDayHour,null);
   assert.equal(cross.alternativeExactDayHour,null);
   assert.equal(cross.exactClassicalDayHourForThisChart,null);
@@ -216,6 +241,14 @@ assert.equal(afterClassical.alternativeExactDayHour
 assert.equal(afterClassical.alternativeExactDayHour
  .cannotBorrowGuiWeiWinterClause,true);
 assert.equal(afterClassical.alternativeExactDayHour.approvedPaidInsight,false);
+assert.equal(lateReview.sourceScopedEditorialReferenceChoice.questionRoutes
+ .whichClassicalDayHourText.sourceUnit,
+ 'exact-day-hour-with-unresolved-year-month-qualifier');
+assert.equal(lateReview.sourceScopedEditorialReferenceChoice.questionRoutes
+ .whichClassicalDayHourText
+ .qualifiedHistoricalVerdictMayBeQuotedWithoutLifeConclusion,false);
+assert.deepEqual(lateReview.sourceScopedEditorialReferenceChoice
+ .observedMonthDayAndHourClashPairs,[['month','day']]);
 assert.equal(afterClassical.exactClassicalDayHourForThisChart.type,
  'yi-wei-bing-xu-year-month-qualifier-unresolved');
 assert.equal(afterClassical.paidWriterAuthorized,false);

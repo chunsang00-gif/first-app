@@ -30,6 +30,16 @@ function build(packet){
   !same(packet.chart,EXPECTED)||packet.targetYear?.year!==2027)return null;
  const handoff=method.build(packet),elig=handoff.independentClassicalSourceEligibility;
  const d=elig?.exactDayHour,c=elig?.climate;
+ const chosen=handoff.sourceScopedEditorialReferenceChoice;
+ need(chosen?.questionRoutes?.whichClassicalDayHourText
+    ?.sourceUnit==='exact-day-hour-winter-subcase'&&
+  chosen.questionRoutes.whichClassicalDayHourText
+    .originalSeasonalPhrase==='冬安穩'&&
+  chosen.questionRoutes.whatSeasonalConditionToConsider
+    .compoundBingVisibleWithoutGuiMatched===false&&
+  chosen.globalInterpretationSchoolSelected===false&&
+  chosen.customerSpecificNewDecisionEstablished===false,
+  'EXACT_SOURCE_CITATION_CHOICE_NOT_VALID');
  need(handoff.methodApproved===false&&handoff.releaseVerdict==='not-approved'&&
   d?.winterSourceClauseMatched===true&&d.requiredDayPillar==='乙未'&&
   d.requiredHourPillar==='癸未'&&d.sourceContainsSeasonalHistoricJudgment==='冬安穩'&&
@@ -73,6 +83,8 @@ function build(packet){
   chart:{...packet.chart},paragraphs:structuredClone(paragraphs),
   freeMonthText:free.reader.paragraphs.strength.text,
   exactWinterPassageVerified:true,
+  sourceScopedQuestionResolved:true,
+  sourceScopeIsNotFullChartMethodApproval:true,
   monthDayHourContacts:2,
   doubleContactIsNotTwoPredictedEvents:true,
   climateSourceDoesNotMatchFavorableCompound:true,

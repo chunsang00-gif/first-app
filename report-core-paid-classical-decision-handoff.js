@@ -180,6 +180,80 @@ function reviewOtherClassicalSourceConditions(packet,monthScope){
  };
 }
 
+
+// This is the only order we can justify WITHOUT pretending to select one
+// school's full-chart method: rank citations for a QUESTION by how closely
+// the source conditions match the measured birth facts. Do not rank fate.
+function chooseTextForQuestion(packet,school){
+ const chart=packet.chart,dayHour=school.exactDayHour;
+ const alternative=school.alternativeExactDayHour,climate=school.climate;
+ const exact=dayHour||alternative;
+ const relation=require('./report-branch-relations').natal(chart);
+ if(JSON.stringify(relation)!==
+    JSON.stringify(packet.facts?.natalBranchRelations))
+  throw Error('QA_SOURCE_QUESTION_BRANCH_EVIDENCE_TAMPERED');
+ if(dayHour&&alternative)
+  throw Error('QA_SOURCE_QUESTION_MULTIPLE_EXACT_HOURS');
+ const winterExact=Boolean(dayHour?.winterSourceClauseMatched);
+ const historicSelected=exact?{
+  work:'三命通會',url:exact.url,
+  citedDayPillar:exact.requiredDayPillar,
+  citedHourPillar:exact.requiredHourPillar,
+  sourceUnit:winterExact?'exact-day-hour-winter-subcase':
+   'exact-day-hour-with-unresolved-year-month-qualifier',
+  originalSeasonalPhrase:winterExact?dayHour.sourceContainsSeasonalHistoricJudgment:null,
+  eligibleForHistoricalDescription:true,
+  qualifiedHistoricalVerdictMayBeQuotedWithoutLifeConclusion:winterExact,
+  inferredReaderTrait:false
+ }:null;
+ const twoMonthClashes=relation.pairs.filter(e=>e.type==='충'&&
+  e.positions.includes('month')&&
+  (e.positions.includes('day')||e.positions.includes('hour')));
+ const actualPairs=twoMonthClashes.map(e=>e.positions.slice());
+ if(winterExact&&
+    (actualPairs.length!==2||
+     !actualPairs.some(p=>p.includes('day'))||
+     !actualPairs.some(p=>p.includes('hour'))||
+     twoMonthClashes.some(e=>[...e.branches].sort().join('')!=='丑未'.split('').sort().join(''))))
+  throw Error('QA_SOURCE_QUESTION_WINTER_MONTH_CONTACTS_MISMATCH');
+ const climatePresent=Boolean(climate),ruleMatched=Boolean(
+  climate?.favorableHistoricalCompoundConditionMatched);
+ return {
+  kind:'qa-source-specificity-by-question-not-fortune-rank-v1',
+  chart:{...chart},
+  questionRoutes:{
+   whichClassicalDayHourText:historicSelected,
+   whatSeasonalConditionToConsider:climatePresent?{
+    work:'窮通寶鑑',url:climate.url,
+    dayStem:climate.dayStem,monthBranch:climate.monthBranch,
+    compoundBingVisibleWithoutGuiMatched:ruleMatched,
+    compoundNotMatchedCannotInferMisfortune:!ruleMatched
+   }:null,
+   doesMonthHiddenExposureSelectPattern:{
+    work:'子平真詮',
+    sourceScope:'general-principle-only-no-matching-worked-example',
+    exactWorkedExampleMatched:
+     school.monthPatternTextualWorkedCaseMatched,
+    finalTraditionalMethodSelected:false
+   }
+  },
+  excludedCrossApplications:[
+   'do-not-apply-adjacent-YiChou-day-verse-to-YiWei-day',
+   'do-not-copy-GuiWei-winter-verse-to-BingXu-hour',
+   'do-not-equate-QiongTong-climate-clause-with-month-pattern',
+   'do-not-convert-branch-table-contact-to-independent-events'
+  ],
+  observedMonthDayAndHourClashPairs:actualPairs,
+  independentClashPairsAreNotPredictedLifeEvents:true,
+  historicalCitationChosenForDayHourQuestion:Boolean(historicSelected),
+  globalInterpretationSchoolSelected:false,
+  originalHistoricalVerdictIsNotObservedLife:true,
+  customerSpecificNewDecisionEstablished:false,
+  releasedToPaidWriter:false,customerReady:false,
+  providerCalls:0,releaseVerdict:'not-approved'
+ };
+}
+
 function build(packet){
  if(packet?.status!=='ready'||!packet.chart?.hour)
   throw Error('QA_METHOD_HANDOFF_FULL_CHART_REQUIRED');
@@ -188,6 +262,13 @@ function build(packet){
  const competing=conflict.inspect(packet);
  const general=x.generalMonthRule;
  const independentTexts=reviewOtherClassicalSourceConditions(packet,general);
+ const sourceByQuestion=chooseTextForQuestion(packet,independentTexts);
+ if(sourceByQuestion.customerSpecificNewDecisionEstablished!==false||
+    sourceByQuestion.releasedToPaidWriter!==false||
+    sourceByQuestion.globalInterpretationSchoolSelected!==false||
+    sourceByQuestion.questionRoutes.doesMonthHiddenExposureSelectPattern
+     .finalTraditionalMethodSelected!==false)
+  throw Error('QA_METHOD_HANDOFF_SOURCE_SCOPE_MADE_UNAPPROVED_CLAIM');
  if(independentTexts.readerFacingPromiseAuthorized!==false||
     independentTexts.paidWriterAuthorized!==false||
     independentTexts.rulesAreAlternativeFrameworksNotOneUnifiedPattern!==true)
@@ -367,6 +448,7 @@ function build(packet){
   exactTextualDecision:decision,
   generalMonthRule:structuredClone(general),
   independentClassicalSourceEligibility:independentTexts,
+  sourceScopedEditorialReferenceChoice:sourceByQuestion,
   // Legacy .status concerns ONLY the Xin/Yin month-command worked example.
   monthWorkedExampleStatusOnly:true,
   methodApplicabilityDecision,
@@ -412,6 +494,8 @@ function build(packet){
      interpretivePriority:'not-assessed',
      anyLifeEffectVerified:false
     }]:[],
+   sourceQuestionChoice:id==='choose-school'?
+    structuredClone(sourceByQuestion.questionRoutes):null,
    independentlyMatchedClassicalTexts:id==='choose-school'?[
     ...(independentTexts.climate?[{
      id:'qiong-tong-bao-jian-yi-chou-climate',
