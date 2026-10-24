@@ -97,6 +97,26 @@ async function assemble(input){
 
 async function assembleAdditiveTransportPreview(input){
  const frozen=await assemble(input),prompt=structuredClone(frozen.prompt);
+ // The old depth QA had replaced the seasonal topic PLAN itself with
+ // state-limits. Recover the genuine normal plan, not just its output slot.
+ const live=await capture(input);
+ if(live.status!=='captured-full-paid-composition'||
+    JSON.stringify(live.prompt.facts.chart)!==
+    JSON.stringify(prompt.facts.chart))
+  throw Error('QA_ADDITIVE_REAL_SEASONAL_PLAN_UNAVAILABLE');
+ const normalTopic=live.prompt.analysisGuidance.editorialBlueprint.saju_core
+  .topicTasks.temperament;
+ const plan=prompt.analysisGuidance.editorialBlueprint.saju_core;
+ if(normalTopic?.mode==='state-limits'||!normalTopic||
+    plan.topicTasks.temperament.mode!=='state-limits')
+  throw Error('QA_ADDITIVE_EXPECTED_FROZEN_SEASONAL_REPLACEMENT');
+ plan.topicTasks.temperament=structuredClone(normalTopic);
+ plan.activeTopicKeys=['temperament','strength','natal_depth'];
+ prompt.rules.chapterOwnershipPlan.saju_core.topicTasks.temperament=
+  structuredClone(live.prompt.rules.chapterOwnershipPlan.saju_core
+   .topicTasks.temperament);
+ prompt.rules.topicPlan.saju_core.temperament=
+  structuredClone(live.prompt.rules.topicPlan.saju_core.temperament);
  if(prompt.qaAdditiveDepthPreview!==undefined||
     prompt.qaOfflineEditorialResearchPreview===true||
     prompt.qaNatalDepthPreview!==true||
@@ -129,7 +149,10 @@ async function assembleAdditiveTransportPreview(input){
     original.temperament.type!=='null'||
     !same(payload.task.chapters.saju_core.topics.strength,
      frozen.payload.task.chapters.saju_core.topics.strength)||
-    !same(payload.source,frozen.payload.source))
+    !Object.keys(frozen.payload.source).every(id=>
+     same(payload.source[id],frozen.payload.source[id]))||
+    !payload.task.chapters.saju_core.topics.temperament.citableFacts
+     .some(x=>x.id==='facts.qiEvidence'))
   throw Error('QA_ADDITIVE_REAL_TRANSPORT_NOT_PRESERVING_BASELINE');
  return {kind:'offline-actual-provider-additive-three-slots-v1',
   prompt,payload,schema:strictSchema,originalFrozenQaUnchanged:true,
