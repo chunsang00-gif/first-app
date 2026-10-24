@@ -178,6 +178,11 @@ function build(){
  const otherTextAfter=afterHandoff.independentClassicalSourceEligibility;
  if(!otherTextBefore.exactDayHour?.winterSourceClauseMatched||
     otherTextAfter.exactDayHour!==null||
+    otherTextBefore.alternativeExactDayHour!==null||
+    otherTextAfter.alternativeExactDayHour?.requiredHourPillar!=='丙戌'||
+    otherTextAfter.alternativeExactDayHour?.listedContainsYearBranch!==true||
+    otherTextAfter.alternativeExactDayHour?.listedContainsMonthBranch!==false||
+    otherTextAfter.alternativeExactDayHour?.cannotBorrowGuiWeiWinterClause!==true||
     otherTextBefore.climate?.bingExposed!==false||
     otherTextAfter.climate?.bingExposed!==true||
     !same(otherTextAfter.climate.observedBingVisibleRefs,['natal.hour.stem'])||
@@ -317,6 +322,8 @@ function build(){
     before:structuredClone(otherTextBefore),
     after:structuredClone(otherTextAfter),
     exactWinterDayHourCaseOnlyBefore:true,
+    differentExactBingXuCaseOnlyAfter:true,
+    historicallyUnresolvedYearMonthConditionAfter:true,
     bingVisibleOnlyAfter:true,
     historicalFavorableCompoundNotSatisfiedInEither:true,
     professionalInterpretationStillNotApproved:true,

@@ -38,6 +38,15 @@ assert.equal(arrows.before.changedHourCannotSelectDominantDirection,true);
 assert.equal(arrows.after.changedHourCannotSelectDominantDirection,true);
 const cross=output.changed.crossSchoolHistoricalSourceScreen;
 assert.equal(cross.exactWinterDayHourCaseOnlyBefore,true);
+assert.equal(cross.differentExactBingXuCaseOnlyAfter,true);
+assert.equal(cross.historicallyUnresolvedYearMonthConditionAfter,true);
+assert.equal(cross.before.alternativeExactDayHour,null);
+assert.equal(cross.after.alternativeExactDayHour.requiredHourPillar,'丙戌');
+assert.equal(cross.after.alternativeExactDayHour.listedContainsYearBranch,true);
+assert.equal(cross.after.alternativeExactDayHour.listedContainsMonthBranch,false);
+assert.equal(cross.after.alternativeExactDayHour.cannotBorrowGuiWeiWinterClause,
+ true);
+assert.equal(cross.after.alternativeExactDayHour.approvedPaidInsight,false);
 assert.equal(cross.bingVisibleOnlyAfter,true);
 assert.equal(cross.historicalFavorableCompoundNotSatisfiedInEither,true);
 assert.equal(cross.professionalInterpretationStillNotApproved,true);

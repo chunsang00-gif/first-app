@@ -89,6 +89,12 @@ for(const [calendar,birthDate,first,status] of scenarios){
   assert.equal(g.conditionObserved,true);
   assert(cross.climate);
   assert(cross.exactDayHour);
+  assert.equal(cross.alternativeExactDayHour,null);
+  assert.equal(cross.exactClassicalDayHourForThisChart.type,
+   'yi-wei-gui-wei-winter');
+  assert.equal(cross.exactDayHour.generalYiDayHourVerseSeparateFromExactYiWeiDay,
+   true);
+  assert.equal(cross.exactDayHour.nearbyYiChouDayPassageExcluded,true);
   assert.equal(cross.monthPatternTextualWorkedCaseMatched,false);
   assert.equal(cross.climate.historicalTwelfthMonthMeansSolarTermChouMonth,true);
   assert.deepEqual(cross.climate.observedBingVisibleRefs,[]);
@@ -147,6 +153,8 @@ for(const [calendar,birthDate,first,status] of scenarios){
     c.originalDoesNotExplicitlyNameTriad===true));
  }else{
   assert.equal(cross.exactDayHour,null);
+  assert.equal(cross.alternativeExactDayHour,null);
+  assert.equal(cross.exactClassicalDayHourForThisChart,null);
   assert.equal(cross.climate,null);
   assert.deepEqual(x.expertDecisions.find(q=>q.id==='choose-school')
    .independentlyMatchedClassicalTexts,[]);
@@ -197,10 +205,24 @@ assert.equal(afterClassical.climate.guiExposed,true);
 assert.equal(afterClassical.climate.bingExposedWithoutGui,false);
 assert.equal(afterClassical.climate.favorableHistoricalCompoundConditionMatched,false);
 assert.equal(afterClassical.exactDayHour,null);
+assert.equal(afterClassical.alternativeExactDayHour.requiredDayPillar,'乙未');
+assert.equal(afterClassical.alternativeExactDayHour.requiredHourPillar,'丙戌');
+assert.equal(afterClassical.alternativeExactDayHour.listedContainsYearBranch,true);
+assert.equal(afterClassical.alternativeExactDayHour.listedContainsMonthBranch,false);
+assert.equal(afterClassical.alternativeExactDayHour
+ .yearMonthGrammarAndOtherConditionsNotResolved,true);
+assert.equal(afterClassical.alternativeExactDayHour
+ .doesNotAuthorizeSimpleYearOrMonthRule,true);
+assert.equal(afterClassical.alternativeExactDayHour
+ .cannotBorrowGuiWeiWinterClause,true);
+assert.equal(afterClassical.alternativeExactDayHour.approvedPaidInsight,false);
+assert.equal(afterClassical.exactClassicalDayHourForThisChart.type,
+ 'yi-wei-bing-xu-year-month-qualifier-unresolved');
 assert.equal(afterClassical.paidWriterAuthorized,false);
 assert.deepEqual(lateReview.expertDecisions.find(q=>q.id==='choose-school')
  .independentlyMatchedClassicalTexts.map(x=>x.id),
- ['qiong-tong-bao-jian-yi-chou-climate']);
+ ['qiong-tong-bao-jian-yi-chou-climate',
+  'san-ming-tong-hui-yi-wei-bing-xu']);
 assert.equal(adultReview.exactTextualDecision,null);
 assert.equal(adultReview.noDetectedConflictsCannotApproveMethod,true);
 assert(adultReview.unresolvedConditionCount>0);
@@ -210,6 +232,7 @@ console.log('QA_CLASSICAL_METHOD_HANDOFF='+JSON.stringify({
  reviewedCaseTypes:scenarios.length,
  exactTextualExamples:2,
  eligibleAdultWinterDayHourText:1,
+ eligibleDifferentExactBingXuDayHourText:1,
  independentlyEligibleYiChouClimateRules:2,
  favorableCompoundConditionsMet:0,
  missingGeneralMethodForAdultSample:1,

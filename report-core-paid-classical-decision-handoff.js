@@ -89,6 +89,7 @@ function reviewOtherClassicalSourceConditions(packet,monthScope){
  const v=s=>visible.get(s)||[],h=s=>hidden.get(s)||[];
  const yiChou=chart.day[0]==='乙'&&branch==='丑';
  const dayHourMatch=chart.day==='乙未'&&chart.hour==='癸未';
+ const otherDayHourMatch=chart.day==='乙未'&&chart.hour==='丙戌';
  const winter=['亥','子','丑'].includes(branch);
  if(yiChou&&(monthScope?.monthMainSourceId!=='natal.month.hidden.己'||
    !monthScope.otherExposedHiddenSourceIds.includes('natal.month.hidden.癸')))
@@ -121,6 +122,12 @@ function reviewOtherClassicalSourceConditions(packet,monthScope){
   requiredDayPillar:'乙未',requiredHourPillar:'癸未',
   observedWinterMonth:winter,winterSourceClauseMatched:winter,
   sourceContainsSeasonalHistoricJudgment:'冬安穩',
+  // The section's general '乙日癸未時' verse is NOT the narrower
+  // '乙未日癸未時' winter sentence. A nearby '乙丑日' line is also
+  // inapplicable despite the native chart's month branch being 丑.
+  generalYiDayHourVerseSeparateFromExactYiWeiDay:true,
+  nearbyYiChouDayPassageExcluded:true,
+  exactVerseForThisDayAndHour:true,
   historicalTextNotPrediction:true,
   sourceRefs:['natal.day.stem','natal.day.hidden.乙',
    'natal.hour.stem','natal.hour.hidden.乙',
@@ -128,12 +135,41 @@ function reviewOtherClassicalSourceConditions(packet,monthScope){
   fullYearAndMonthConditionalEffectsNotResolved:true,
   personallyObservedTemperament:false,approvedPaidInsight:false
  }:null;
+ // Previously the 20:20 case was omitted because it did not match Gui/Wei.
+ // But the SAME original volume contains a separate Yi-Wei day/Bing-Xu
+ // hour row. A different verse is not absence of a direct precedent.
+ const alternativeDayHour=otherDayHourMatch?{
+  work:'三命通會',chapter:'卷八·六乙日丙戌時斷',
+  url:'https://zh.wikisource.org/zh-hant/%E4%B8%89%E5%91%BD%E9%80%9A%E6%9C%83/%E5%8D%B7%E5%85%AB',
+  requiredDayPillar:'乙未',requiredHourPillar:'丙戌',
+  section:'六乙日丙戌時斷',exactSubcase:'乙未日丙戌時',
+  historicalPhrase:'旺處凶。卯午未戌年月，貴顯。',
+  listedYearMonthBranches:['卯','午','未','戌'],
+  actualYearBranch:chart.year[1],actualMonthBranch:branch,
+  listedContainsYearBranch:['卯','午','未','戌'].includes(chart.year[1]),
+  listedContainsMonthBranch:['卯','午','未','戌'].includes(branch),
+  doesNotAuthorizeSimpleYearOrMonthRule:true,
+  yearMonthGrammarAndOtherConditionsNotResolved:true,
+  historicalGoodOrBadFortuneNotObserved:true,
+  cannotBorrowGuiWeiWinterClause:true,
+  sourceRefs:['natal.year.stem','natal.month.stem',
+   'natal.day.stem','natal.hour.stem',
+   'facts.seasonalEvidence'],
+  approvedPaidInsight:false
+ }:null;
  return {
   kind:'qa-independent-classical-source-eligibility-v1',
   chart:{...chart},
   monthPatternTextualWorkedCaseMatched:
    Boolean(monthScope.exactWorkedClassicalExampleMatched),
   climate,exactDayHour:dayHour,
+  alternativeExactDayHour:alternativeDayHour,
+  exactClassicalDayHourForThisChart:dayHour?{
+   type:'yi-wei-gui-wei-winter',url:dayHour.url
+  }:alternativeDayHour?{
+   type:'yi-wei-bing-xu-year-month-qualifier-unresolved',
+   url:alternativeDayHour.url
+  }:null,
   rulesAreAlternativeFrameworksNotOneUnifiedPattern:true,
   climatePriorityVsMonthExposure:'not-selected',
   dayHourHistoricalVerdictVsActualLife:'not-established',
@@ -388,6 +424,13 @@ function build(packet){
      id:'san-ming-tong-hui-yi-wei-gui-wei',
      url:independentTexts.exactDayHour.url,
      historicallyMatchedDayAndHour:true,
+     humanLifeResultValidated:false
+    }]:[]),
+    ...(independentTexts.alternativeExactDayHour?[{
+     id:'san-ming-tong-hui-yi-wei-bing-xu',
+     url:independentTexts.alternativeExactDayHour.url,
+     historicallyMatchedDayAndHour:true,
+     historicYearMonthQualifiedVerdictNotApproved:true,
      humanLifeResultValidated:false
     }]:[])
    ]:[],
