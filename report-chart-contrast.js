@@ -462,9 +462,14 @@ function forTopic(contrast,topic,allowedIds){
 // questions; sending these beside the single-scene brief tempted the model
 // to print a glossary and answer two checklists. Strip ONLY those internal
 // questions from the paid provider payload, not from the internal plan.
-function forProvider(contrast,topic,allowedIds){
+function forProvider(contrast,topic,allowedIds,includeMonthStemVisibility=true){
  const focus=forTopic(contrast,topic,allowedIds);
  if(topic!=='strength')return focus;
+ // Preserve the frozen QA request exactly; only normal paid gets this field.
+ if(!includeMonthStemVisibility){
+  const {monthStemVisibility:ignored,...tenGodFocus}=focus.tenGodFocus;
+  focus.tenGodFocus=tenGodFocus;
+ }
  const plan=focus.readerReasoning.readerValuePlan;
  const {question:internalFirstQuestion,...first}=plan.first;
  const {question:internalSecondQuestion,...second}=plan.second;

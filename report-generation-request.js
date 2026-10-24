@@ -8,7 +8,7 @@ const policyParts=[
  '계산 사실과 해석을 구분한다. 글자 개수나 이름만으로 능력·평판·실제 경험을 만들지 않는다. 계산하지 않은 강약·용신·합충·월별 시기를 추정하지 않는다. 충의 존재는 계산되더라도 충의 세기까지 측정한 것은 아니다. 강한 충·심한 충·충이 강하게 작용한다는 표현을 금지한다. 배움·보호의 전통 상징에서 실제 학습 속도·정보를 빨리 받아들이는 능력도 추정하지 않는다. 예시는 가정임을 드러내고 실제 사건이나 미래 결과를 보장하지 않는다.',
  '2027년 관계 장은 실제 계산한 targetYearBranchContext.annualContext.day만 사용한다. directPairs의 충·육합이 있을 때에만 같은 위치의 다른 형·해·파와 경쟁 관계를 설명하며 관계표의 존재, 합화 성립, 실제 연애·결혼·이별은 각각 구분한다. interpretationPriority가 unresolved라면 어떤 관계가 더 강한지 단정하지 않는다. 2027년 금전·직업의 독립 해석은 annualScope.comparisons에 있는 연도·원국의 계산 분류 비교가 있을 때만 작성한다. 반드시 annualId와 natalId를 함께 refs에 기록하며 두 위치의 같은 전통 분류군을 대비한다. 같은 분류는 충이나 합 관계를 새로 계산한 뜻이 아니다. 수입·승진·평판·성과·이직 같은 실제 사건을 결론 내리지 않는다.',
  'saju_core는 독자가 자신의 기본 기질과 해석에 영향을 주는 조건을 이해할 수 있게 풀어 쓰는 장이다. 명리학 용어 설명 교재가 아니다. task.chapters.saju_core.topics[topicId].question, evidenceFocus.readerQuestion, evidenceFocus.points와 evidenceFocus.sourceAudit는 내부 계산 근거 검토 자료다. 독자용 본문을 질문 목록으로 구성하지 않는다. evidenceFocus.readerReasoning.hypotheticalQuestion은 해당 계산에 맞춘 가상 사례로만 사용한다. evidenceFocus.readerReasoning.readerValuePlan은 두 출처가 설명하는 의미와 해석 순서를 확인하는 내부 편집 계획이다. 가상의 장단점이지 실제 고객 성격이나 미래 성과의 증거가 아니다. sourceAudit의 실제 십성 출처 두 곳을 검증하되, 별도 뿌리 개수와 충 관계 쌍은 고객용 첫 장의 본문과 인용 출처에서 제외한다. strength는 고정된 핵심 판단이 한 가지 가상 선택에서 뜻하는 기질을 독자가 이해하게 먼저 풀어 쓴다. 그다음 실제 계산된 월간·월지 본기 두 뜻이 왜 그 선택에 연결되는지 이유만 밝힌다. 두 분류가 다르면 둘을 합쳐 얻는 판단과 한쪽만 따르면 놓치는 조건을 설명하고, 같으면 차이를 억지로 만들지 말고 같은 관점이 적용되는 조건을 설명한다. 독자에게 출처·상징·검증 과정 자체를 강의하지 않는다. 같은 전통 분류라면 거짓 의미 차이나 두 배의 강도·성격의 양면성을 만들어내지 않는다. temperament는 출생 계절·겉글자 관계에서 독립적인 추가 해석이 확인될 때만 짧게 보충한다. 뿌리·충은 기본 성향의 두 번째 문단에서 다루지 않는다. 독자에게 보여줄 제목·문단 라벨·핵심 판단에 뿌리·통근·충·월지·지장간의 존재나 숫자만 나열하지 않는다. 기본 성향의 basis.refs에는 해당 문단에 허용된 계산값만 남기며, 별도 뿌리·충 원본 계산은 검증 packet에 유지한다. 계산이 허용하는 범위에서만 유리한 조건·주의할 조건을 전통적으로 설명하며 구체적인 일상 가정을 붙인다. 실제 성격·능력·성공·내적 갈등·사건을 계산만으로 만들어내지 않는다. 충 관계가 다른 장에서 해석상 필요할 때에는 실제 계산된 두 위치를 혼동하지 않는다. 검증의 한계는 basis.limit에 기록하고 독자용 문단에서 같은 말을 반복하지 않는다.',
- 'saju_core의 strength는 태어난 달의 실제 십성 관계를 기본 근거로 쓴다. evidenceFocus.tenGodFocus.monthStemVisibility에는 실제 월간 글자가 달의 본기와 같은지, 본기가 아닌 다른 숨은 글자와 일치하는지 검증한 결과가 있다. 다른 숨은 글자와 일치하면 달의 본기가 무조건 해석에서 우선하거나 그 다른 글자가 곧 격국이라고 확정해서는 안 된다. 출생 시간과 다른 자리의 관계, 실제 사령, 격국의 최종 우선순위는 이 첫 문단에서 결정하지 않는다. 이 차이는 내부 basis.limit에만 제한으로 기록하고 독자용 본문에 전문용어·면책을 늘어놓지 않는다. basis.refs에는 실제 월간 출처 natal.month.stem과 계산된 월지 본기 출처 natal.month.hidden.[실제 본기 글자]를 모두 기록한다. 한 출처만 인용하여 두 십성을 비교하지 않는다. 필요한 경우 facts.structuralEvidence.monthCommand를 보조 근거로 기록한다. 겉에 드러난 월간과 월지의 중심 숨은 글자는 다른 계산 출처이므로 무조건 같은 성격이나 갈등이라고 쓰지 않는다. 이 문단에는 facts.stemConnections·facts.rootConditions 및 뿌리 개수·충 관계를 추가하지 않는다. 실제 월간과 월지 본기의 십성·오행 관계만 해석한다. 뿌리 두 곳이 실제 행동의 두 중심이나 마음의 균형을 뜻한다는 해석은 금지한다.',
+ 'saju_core의 strength는 태어난 달의 실제 십성 관계를 기본 근거로 쓴다. basis.refs에는 실제 월간 출처 natal.month.stem과 계산된 월지 본기 출처 natal.month.hidden.[실제 본기 글자]를 모두 기록한다. 한 출처만 인용하여 두 십성을 비교하지 않는다. 필요한 경우 facts.structuralEvidence.monthCommand를 보조 근거로 기록한다. 겉에 드러난 월간과 월지의 중심 숨은 글자는 다른 계산 출처이므로 무조건 같은 성격이나 갈등이라고 쓰지 않는다. 이 문단에는 facts.stemConnections·facts.rootConditions 및 뿌리 개수·충 관계를 추가하지 않는다. 실제 월간과 월지 본기의 십성·오행 관계만 해석한다. 뿌리 두 곳이 실제 행동의 두 중심이나 마음의 균형을 뜻한다는 해석은 금지한다.',
  '본문 단계에서는 각 문단의 basis를 먼저 작성한다. refs의 실제 자료가 무엇을 말하는지 interpretation에, 적용 상황을 condition에, 그 자료로 말할 수 없는 점은 내부 검증용 basis.limit에만 적는다. 이후 label과 text에는 고정된 핵심 판단을 먼저 구체적인 조건부 풀이로 설명한다. 가상의 한 선택에서 언제 도움이 되고 어느 조건에서 손해가 생기는지 두 출생 위치의 전통적 의미와 연결해 밝힌다. 해당 사주에만 맞는 설명이 없다면 새로운 장점이나 약점을 꾸며 만들지 않는다. 뜻과 가상 장면을 설명한 뒤에는 검사 절차·같은 면책·결론의 재요약을 붙이지 않는다. 내부 first/second 편집 질문이나 검증용 문답을 고객용 문장으로 복사하지 않는다. 계산 목록·검증 절차·한계 안내만 이어 붙이지 않는다. 관찰하지 않은 성격이나 경험은 꾸며 쓰지 않는다. basis의 전문용어를 독자용 글에 복사하지 않는다.',
  '본문에서 task.chapters[id].analysisFocus를 우선 적용한다. 이는 실제 입력된 MBTI 유무에 맞게 선택된 장별 해석 초점이다. 특히 MBTI가 모름이면 사주 단독 초점만 사용하고 MBTI 특징을 추정하지 않는다. analysisGoal은 근거가 허용하는 깊이를 설명하는 목표이지 없는 자료를 채우라는 명령이 아니다.',
  '각 세부 topic의 citableFacts는 strict JSON 출력 스키마와 동일한 함수에서 계산한 인용 가능한 출처다. 질문과 직접 연결되는 계산 위치·겉글자/숨은 글자·십성·전통적 뜻을 먼저 구분해 읽은 뒤 basis.refs에는 정확한 id를 적는다. citableFacts에 없는 id를 쓰거나 전통 분류의 뜻을 그 사람의 실제 행동·수입·관계 사건으로 확정하지 않는다. 독립된 뜻을 설명할 수 없다면 일반적인 성격 풀이로 문단을 채우지 말고 선택 항목을 null로 둔다.',
@@ -28,6 +28,7 @@ const policy=policyParts.join('\n');
 // Preserve every Saju and universal integrity rule while excluding future
 // fortune, MBTI integration, and end-of-report instructions from core prose.
 const corePolicyPartIndexes=[0,1,2,4,5,6,7,8,9,10,12,16];
+const normalPaidMonthMethodBoundary="달의 겉글자가 기본 숨은 글자가 아닌 달의 다른 숨은 글자와 정확히 같을 때에는, 기본 숨은 글자가 실제 사령이나 해석의 최우선 기준이라고 단정하지 않는다. 반대로 다른 숨은 글자가 일치한다고 그것이 곧 우선한다고 결론내리지 않는다. evidenceFocus.tenGodFocus.monthStemVisibility는 오직 계산상 일치·불일치를 설명하는 자료이며 격국과 성격·능력을 검증한 뜻이 아니다. 유료 첫 장의 basis.limit에는 이 판단 한계를 내부적으로 남기고 독자 본문에서 기술 용어를 반복하지 않는다.";
 function policyFor(prompt){
  if(prompt?.stage==='body'&&
     JSON.stringify(prompt.requestedSections)===JSON.stringify(['saju_core'])){
@@ -38,9 +39,10 @@ function policyFor(prompt){
   if(prompt.qaNatalDepthPreview===true)parts.push(
    '심화 사주 QA 전용: 계절 보충 temperament는 중복 위험으로 반드시 null이다. 필수 strength에는 출생달의 두 계산 위치를 출처에 연결하고, 별도의 natal_depth에는 확인된 태어난 해·날·시간의 위치와 전통적 뜻을 다른 판단 기준으로 연결한다. 고객용 글에는 계산 기호나 전문용어를 쓰지 않는다. 출처나 사실이 없는 해석을 발명해서 채우면 안 되며, 그런 응답은 QA에서 실패한다. 정상 유료 보고서 경로에는 이 지침을 적용하지 않는다.'
   );
-  return parts.join('\n');
+  return parts.join('\n')+(prompt.qaNatalDepthPreview===true?'':'\n'+normalPaidMonthMethodBoundary);
  }
- return policy;
+ return policy+(prompt?.stage==='body'&&prompt?.requestedSections?.includes('saju_core')&&
+  prompt.qaNatalDepthPreview!==true?'\n'+normalPaidMonthMethodBoundary:'');
 }
 // MBTI was present in money/work/relationship depth goals but the strict
 // writer schema did not permit those chapters to cite the actual MBTI input.
@@ -220,7 +222,8 @@ function compile(prompt){
     // The model's actual compact task is now one factual question per
     // comparison pair, rather than a four-part undifferentiated chapter table.
     if(coreContrast&&topicId!=='natal_depth')
-     topic.evidenceFocus=require('./report-chart-contrast').forProvider(coreContrast,topicId,permitted);
+     topic.evidenceFocus=require('./report-chart-contrast').forProvider(
+       coreContrast,topicId,permitted,prompt.qaNatalDepthPreview!==true);
     if(topicId==='natal_depth'){
      if(prompt.qaNatalDepthPreview!==true||chapterId!=='saju_core'||
         topic.mode!=='use-primary'||permitted.length<5||

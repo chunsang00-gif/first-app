@@ -228,7 +228,8 @@ function inspectTransport(prompt,actual){
      }else{
       const contrast=require('./report-chart-contrast');
       const original=contrast.build(prompt.facts);
-      const expected=original&&contrast.forProvider(original,topicId,permitted);
+      const expected=original&&contrast.forProvider(original,topicId,permitted,
+       prompt.qaNatalDepthPreview!==true);
       if(!expected||JSON.stringify(topic.evidenceFocus)!==JSON.stringify(expected))
        errors.push('core-reader-evidence-brief-drift:'+id+'/'+topicId);
      }
