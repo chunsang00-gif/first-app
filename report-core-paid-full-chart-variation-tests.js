@@ -69,9 +69,22 @@ const fixed=require('./report-core-paid-full-prompt-capture').FIXTURE;
    assert(!Object.hasOwn(qa.payload.task.chapters,'mbti_contradiction'));
    assert.equal(qa.payload.task.mbti,null);
    assert(!Object.hasOwn(qa.payload.source,'person.mbti'));
-   assert.deepEqual(qa.payload.task.chapters.saju_core.topics.strength,
-    writer.compile(original.prompt).task.chapters.saju_core.topics.strength,
-    'adding separate depth must not rewrite the paid monthly interpretation task');
+   const coreStrength=writer.compile(original.prompt).task
+    .chapters.saju_core.topics.strength;
+   const qaStrength=qa.payload.task.chapters.saju_core.topics.strength;
+   const visibility=coreStrength.evidenceFocus.tenGodFocus.monthStemVisibility;
+   assert.equal(visibility.kind,
+    'calculated-month-stem-to-month-hidden-comparison-v1');
+   assert.equal(visibility.traditionalPatternPriority,'not-determined');
+   assert.equal(visibility.onlyTheseTwoMonthPositionsCitable,true);
+   assert.equal(Object.hasOwn(qaStrength.evidenceFocus.tenGodFocus,
+    'monthStemVisibility'),false,
+    'operator QA first-chapter task must retain its frozen envelope');
+   const copied=structuredClone(coreStrength);
+   delete copied.evidenceFocus.tenGodFocus.monthStemVisibility;
+   assert.deepEqual(qaStrength,copied,
+    'QA depth must preserve every existing month fact and question; '+
+    'normal paid gets only one bounded month-exposure safety observation');
    const lock=factLock.fromPayload(qa.payload);
    assert(lock.sourceRefs.every(id=>ids.includes(id)));
    assert.equal(qa.schema.properties.chapters.properties.saju_core
