@@ -24,6 +24,18 @@ assert.deepEqual(scope.before.applicable.generalMonthVisibility
  .alternativeMonthSourceIds,['natal.month.hidden.癸']);
 assert.deepEqual(scope.after.applicable.generalMonthVisibility
  .alternativeMonthSourceIds,['natal.month.hidden.癸']);
+const arrows=output.changed.observedVisibleStemRelations;
+assert.deepEqual(arrows.before.pairCounts,
+ {generating:0,restricting:0,sameElement:3});
+assert.deepEqual(arrows.after.pairCounts,
+ {generating:0,restricting:2,sameElement:1});
+assert.equal(arrows.threeSameElementPairsBefore,true);
+assert.equal(arrows.twoWaterControlsFireArrowsAfter,true);
+assert.equal(arrows.yearAndMonthStillDifferentTraditionalCategories,true);
+assert.equal(arrows.cannotConcludeHourIsStrongerOrWeaker,true);
+assert.equal(arrows.lifeEffectNotEstablished,true);
+assert.equal(arrows.before.changedHourCannotSelectDominantDirection,true);
+assert.equal(arrows.after.changedHourCannotSelectDominantDirection,true);
 const principle=output.changed.classicalMonthGeneralPrinciple;
 assert.equal(principle.underlyingMonthHiddenCandidateSame,true);
 assert.deepEqual(principle.beforeExposedAt,

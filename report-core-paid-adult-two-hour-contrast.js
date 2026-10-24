@@ -173,6 +173,26 @@ function build(){
  const sharedBranchContext=invariantBranchContext(left,right);
  const scopeBefore=handoff.build(left).methodApplicabilityDecision;
  const scopeAfter=handoff.build(right).methodApplicabilityDecision;
+ const arrowsBefore=scopeBefore.unresolved.otherPillarVisibleInteractions;
+ const arrowsAfter=scopeAfter.unresolved.otherPillarVisibleInteractions;
+ const beforeYearMonth=arrowsBefore.calculatedPairs.find(e=>
+  e.leftId==='natal.year.stem'&&e.rightId==='natal.month.stem');
+ const afterYearMonth=arrowsAfter.calculatedPairs.find(e=>
+  e.leftId==='natal.year.stem'&&e.rightId==='natal.month.stem');
+ if(JSON.stringify(arrowsBefore.pairCounts)!==
+    JSON.stringify({generating:0,restricting:0,sameElement:3})||
+    JSON.stringify(arrowsAfter.pairCounts)!==
+    JSON.stringify({generating:0,restricting:2,sameElement:1})||
+    beforeYearMonth?.elementalRelation!=='same-element'||
+    afterYearMonth?.elementalRelation!=='same-element'||
+    beforeYearMonth.firstTraditionalCategory!=='정인'||
+    afterYearMonth.secondTraditionalCategory!=='편인'||
+    arrowsAfter.calculatedPairs.filter(e=>
+     e.rightId==='natal.hour.stem'&&
+     e.elementalRelation==='left-controls-right').length!==2||
+    !arrowsBefore.changedHourCannotSelectDominantDirection||
+    !arrowsAfter.changedHourCannotSelectDominantDirection)
+  throw Error('QA_TWO_HOURS_STEM_DIRECTION_COUNTERFACTUAL_INVALID');
  const generalBefore=applicability.evaluate(left).generalMonthRule;
  const generalAfter=applicability.evaluate(right).generalMonthRule;
  const roleBefore=generalBefore.otherCandidateRoles[0];
@@ -267,6 +287,15 @@ function build(){
     bothRejectForeignWorkedExample:true,
     neitherHasCompletedMonthGroup:true,
     changedBirthHourDoesNotApproveMethod:true
+   },
+   observedVisibleStemRelations:{
+    before:structuredClone(arrowsBefore),
+    after:structuredClone(arrowsAfter),
+    threeSameElementPairsBefore:true,
+    twoWaterControlsFireArrowsAfter:true,
+    yearAndMonthStillDifferentTraditionalCategories:true,
+    cannotConcludeHourIsStrongerOrWeaker:true,
+    lifeEffectNotEstablished:true
    },
    classicalMonthGeneralPrinciple:{
     scope:'structural-analogy-only-not-the-actual-worked-example',

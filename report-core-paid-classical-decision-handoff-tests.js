@@ -23,6 +23,17 @@ for(const [calendar,birthDate,first,status] of scenarios){
  assert.equal(screen.customerReady,false);
  assert.equal(screen.commerciallyAdoptedMethod,null);
  assert.equal(screen.unresolved.monthMethodPriority,'not-selected');
+ const arrows=screen.unresolved.otherPillarVisibleInteractions;
+ assert.deepEqual(arrows.sourceRefs,[
+  'natal.year.stem','natal.month.stem','natal.hour.stem',
+  'facts.stemConnections']);
+ assert.equal(arrows.calculatedPairs.length,3);
+ assert.equal(arrows.relativePriority,'not-assessed');
+ assert.equal(arrows.sameElementDoesNotMeanIdenticalHiddenStem,true);
+ assert.equal(arrows.changedHourCannotSelectDominantDirection,true);
+ assert.equal(arrows.noPersonalityOrOccupationDerived,true);
+ assert(arrows.calculatedPairs.every(row=>
+  row.priority==='not-assessed'&&row.realizedEffect==='not-established'));
  assert.equal(screen.unresolved.governingStem,'not-verified');
  assert.equal(screen.unresolved.otherPillarBranchRelations.traditionalPriority,
   'not-assessed');
@@ -91,6 +102,14 @@ for(const [calendar,birthDate,first,status] of scenarios){
   assert.equal(q.generalTextualPrincipleCandidates[0].customerConclusionApproved,false);
 
   assert.equal(earth.chartHasAllThreeEarthBranches,true);
+  assert.deepEqual(arrows.pairCounts,
+   {generating:0,restricting:0,sameElement:3});
+  const ym=arrows.calculatedPairs.find(x=>
+   x.leftId==='natal.year.stem'&&
+   x.rightId==='natal.month.stem');
+  assert.equal(ym.elementalRelation,'same-element');
+  assert.equal(ym.firstTraditionalCategory,'정인');
+  assert.equal(ym.secondTraditionalCategory,'편인');
   assert.equal(earth.tableRelationLabels,5);
   assert.equal(earth.independentPairContacts,3);
   assert(x.expertDecisions.find(q=>q.id==='resolve-other-positions')

@@ -5,6 +5,7 @@
 const classical=require('./report-core-paid-natal-classical-method-applicability');
 const month=require('./report-core-paid-natal-month-method-review');
 const conflict=require('./report-core-paid-natal-conflict-abstention');
+const visibleDirections=require('./report-core-paid-natal-mixed-visible-reconciliation');
 const boundaries=require('./report-core-paid-natal-interpretation-boundary');
 const earthCommentary=require('./report-core-paid-natal-three-punishment-commentary');
 const {LunarUtil}=require('lunar-javascript');
@@ -64,6 +65,24 @@ function build(packet){
  const x=classical.evaluate(packet),m=month.assess(packet);
  const competing=conflict.inspect(packet);
  const general=x.generalMonthRule;
+ // Unlike a literal month-hidden stem exposure, an identical *element*
+ // elsewhere does NOT mean the same hidden character was exposed.
+ // The visible three-stem relation has to be checked separately from
+ // classical month-command applicability. This may change when hour changes.
+ const visibleReview=visibleDirections.review(packet);
+ if(visibleReview.kind!=='qa-three-visible-mixed-elemental-relations-v1'||
+    visibleReview.finalTraditionalPattern!==null||
+    visibleReview.noWinnerChosen!==true||
+    visibleReview.notOffsettingForces!==true||
+    visibleReview.customerReady!==false||
+    visibleReview.strengthOrPracticalEffectInferred!==false||
+    visibleReview.providerCalls!==0||
+    visibleReview.edges.length!==3||
+    visibleReview.edges.some(e=>e.relativePriority!=='not-assessed'||
+     e.realizedInfluence!=='not-assessed')||
+    visibleReview.counts.generating+visibleReview.counts.restricting+
+     visibleReview.counts.sameElement!==3)
+  throw Error('QA_METHOD_HANDOFF_UNVERIFIED_VISIBLE_INTERACTION');
  if(general?.kind!=='qa-general-month-hidden-exposure-structural-analogy-v1'||
     general.methodPriority!=='not-selected'||
     general.authorizedForPaidWriter!==false||
@@ -156,6 +175,24 @@ function build(packet){
    }
   },
   unresolved:{
+   // These three position pairs are five-element TABLE relationships, not
+   // rankings or an approved interpretation of this person's actions.
+   otherPillarVisibleInteractions:{
+    sourceRefs:visibleReview.sourceRefs.slice(),
+    calculatedPairs:visibleReview.edges.map(e=>({
+     leftId:e.from,rightId:e.to,
+     firstTraditionalCategory:e.fromCategory,
+     secondTraditionalCategory:e.toCategory,
+     elementalRelation:e.elementalDirection,
+     relationClass:e.class,
+     priority:'not-assessed',realizedEffect:'not-established'
+    })),
+    pairCounts:{...visibleReview.counts},
+    sameElementDoesNotMeanIdenticalHiddenStem:true,
+    changedHourCannotSelectDominantDirection:true,
+    noPersonalityOrOccupationDerived:true,
+    relativePriority:'not-assessed'
+   },
    governingStem:'not-verified',
    monthMethodPriority:'not-selected',
    otherPillarBranchRelations:{
