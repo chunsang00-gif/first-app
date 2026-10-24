@@ -12,14 +12,14 @@ const INPUT={calendar:'lunar',birthDate:'1982-11-24',birthTime:'14:20',
 const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
 const need=(ok,why)=>{if(!ok)throw Error('QA_EXACT_WINTER_CONTEXT_'+why);};
 const paragraphs=[
- {kind:'historical-eligibility-only',label:'같은 날과 시간의 겨울 조건',
-  text:'태어난 날과 시간의 아랫글자가 같고, 태어난 달도 겨울에 해당합니다. 옛 사주책에는 이 날과 시간의 조합을 겨울에 놓았을 때의 설명이 따로 실려 있습니다. 여기까지는 출생 정보와 문헌이 맞는다는 뜻이지, 실제 생활이 안정적이라는 확인은 아닙니다.',
+ {kind:'historical-eligibility-only',label:'날과 시간에 반복된 자리',
+  text:'태어난 날과 시간은 윗글자가 서로 다르지만 아랫글자는 같습니다. 옛 사주책에는 이 정확한 날과 시간의 조합을 겨울에 태어난 경우와 연결해 따로 설명합니다. 달의 글자만 보던 풀이에서 빠진 것은 바로 이 날과 시간의 조합입니다.',
   sourceRefs:['natal.day.stem','natal.day.hidden.乙',
    'natal.hour.stem','natal.hour.hidden.乙','facts.seasonalEvidence'],
   originalUrl:'https://zh.wikisource.org/zh-hant/%E4%B8%89%E5%91%BD%E9%80%9A%E6%9C%83/%E5%8D%B7%E5%85%AB'},
  {kind:'month-and-branch-counterevidence',
-  label:'함께 고려할 다른 출생 자리',
-  text:'그런데 태어난 달은 날과 시간 양쪽에 같은 종류의 마주 보는 관계를 이룹니다. 같은 글자 조합이 두 자리에 반복됐으므로 불운이 두 번 생긴다는 뜻은 아닙니다. 겨울의 차고 따뜻함을 중요하게 보는 다른 옛 책은 특정 글자가 겉에 나타나는지를 따지는데, 이 사주에는 그 글자가 겉에 없습니다. 서로 다른 기준을 합쳐 안정적이거나 불안정한 사람이라고 결론내릴 수 없습니다.',
+  label:'겨울 풀이에서 함께 봐야 할 관계',
+  text:'태어난 달은 날과 시간의 아랫자리 각각과 서로 마주 보는 관계로 기록됩니다. 두 자리에 같은 관계가 반복됐다고 실제 다툼이 두 번 생기는 것은 아닙니다. 또 다른 옛 책은 겨울의 해석에 특정 글자가 겉에 드러나는 조건을 두지만, 이 사주에는 그 조건이 없습니다. 따라서 안정적이라는 평가나 갈등이 많다는 평가는 둘 다 이 근거만으로 결정할 수 없습니다.',
   sourceRefs:['facts.natalBranchRelations','facts.seasonalEvidence',
    'natal.year.stem','natal.month.stem','natal.hour.stem'],
   originalUrl:'https://luckclub.cn/bazi/004/024/'}
@@ -71,17 +71,49 @@ function build(packet){
  const text=paragraphs.flatMap(p=>[p.label,p.text]);
  need(reader.errors(text).length===0&&
   !/[\u3400-\u4dbf\u4e00-\u9fff]/.test(text.join(''))&&
-  paragraphs[0].text.includes('실제 생활이 안정적이라는 확인은 아닙니다')&&
-  paragraphs[1].text.includes('불운이 두 번 생긴다는 뜻은 아닙니다'),
+  paragraphs[0].text.includes('윗글자가 서로 다르지만 아랫글자는 같습니다')&&
+  paragraphs[1].text.includes('두 자리에 같은 관계가 반복됐다고')&&
+  paragraphs[1].text.includes('둘 다 이 근거만으로 결정할 수 없습니다'),
   'READER_UNSUPPORTED_PREDICTION');
  const free=core.compile(packet);
  need(free.status==='draft-for-human-review'&&
   typeof free.reader?.paragraphs?.strength?.text==='string'&&
-  free.releaseVerdict==='not-approved','FREE_BASELINE');
+  free.releaseVerdict==='not-approved'&&
+  same(free.scope?.sourceIds,['natal.month.stem','natal.month.hidden.己']),
+  'FREE_BASELINE');
+ const addedComparedWithFree=[
+  {id:'same-day-hour-branch',sourceIds:['natal.day.stem','natal.hour.stem'],
+   newlyRelevant:true,observedPersonalBehavior:false},
+  {id:'two-month-branch-oppositions',sourceIds:['facts.natalBranchRelations'],
+   newlyRelevant:true,observedPersonalBehavior:false},
+  {id:'seasonal-exact-day-hour-classical-example',
+   sourceIds:['natal.day.stem','natal.hour.stem','facts.seasonalEvidence'],
+   newlyRelevant:true,observedPersonalBehavior:false},
+  {id:'other-winter-classical-compound-not-met',
+   sourceIds:['natal.month.stem','natal.hour.stem','facts.seasonalEvidence'],
+   newlyRelevant:true,observedPersonalBehavior:false}
+ ];
+ const allText=paragraphs.map(x=>x.text).join(' ');
+ need(addedComparedWithFree.every(x=>x.sourceIds.every(id=>
+   id.startsWith('natal.')?rows[id]?.observedBehavior===false:
+   ['facts.seasonalEvidence','facts.natalBranchRelations'].includes(id)))&&
+  !allText.includes('낯선 내용을 자기 방식으로 이해')&&
+  !allText.includes('사람·도구·시간처럼 실제 사용할 자원')&&
+  !allText.includes('동료에게')&&
+  !allText.includes('상황을 가정')&&
+  addedComparedWithFree.every(x=>x.observedPersonalBehavior===false),
+  'FREE_VS_CLASSICAL_READER_SCOPE');
  return {
   kind:'qa-exact-winter-source-and-counterevidence-reader-v1',
   chart:{...packet.chart},paragraphs:structuredClone(paragraphs),
   freeMonthText:free.reader.paragraphs.strength.text,
+  editorialDifference:{kind:'qa-real-free-month-vs-exact-winter-comparison-v1',
+   comparedMonthRefs:free.scope.sourceIds.slice(),
+   additionalEvidence:addedComparedWithFree,
+   addedSourceSpecificExplanation:true,
+   sourceSpecificityIsNotProvenPersonalInsight:true,
+   readerPaidValueEmpiricallyValidated:false,
+   approvedForCustomer:false},
   exactWinterPassageVerified:true,
   sourceScopedQuestionResolved:true,
   sourceScopeIsNotFullChartMethodApproval:true,

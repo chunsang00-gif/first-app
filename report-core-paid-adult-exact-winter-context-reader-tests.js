@@ -23,7 +23,18 @@ assert.equal(x.releaseVerdict,'not-approved');
 assert.deepEqual(x.paragraphs.map(p=>p.kind),[
  'historical-eligibility-only','month-and-branch-counterevidence']);
 assert(x.paragraphs[0].text.includes('겨울'));
-assert(x.paragraphs[1].text.includes('같은 글자 조합'));
+assert(x.paragraphs[1].text.includes('두 자리에 같은 관계가 반복됐다고'));
+assert(x.paragraphs[0].text.includes('윗글자가 서로 다르지만 아랫글자는 같습니다'));
+assert.equal(x.editorialDifference.additionalEvidence.length,4);
+assert.deepEqual(x.editorialDifference.comparedMonthRefs,
+ ['natal.month.stem','natal.month.hidden.己']);
+assert.equal(x.editorialDifference.addedSourceSpecificExplanation,true);
+assert.equal(x.editorialDifference.sourceSpecificityIsNotProvenPersonalInsight,true);
+assert.equal(x.editorialDifference.readerPaidValueEmpiricallyValidated,false);
+assert.equal(x.editorialDifference.approvedForCustomer,false);
+assert(x.editorialDifference.additionalEvidence.every(x=>
+ x.newlyRelevant===true&&x.observedPersonalBehavior===false));
+assert(x.paragraphs.every(x=>x.text.length>80&&x.text.length<280));
 assert(x.paragraphs.every(p=>p.text!==x.freeMonthText));
 assert(!x.paragraphs.some(p=>/동료|직장에선|가정해 봅/.test(p.text)));
 assert.equal(preview.build(facts.build({...input,birthTime:'20:20'},2027)),null);
@@ -38,6 +49,7 @@ assert.throws(()=>preview.build(forgedMonth),/QA_/);
 console.log('QA_CLASSICAL_WINTER_CONTEXT='+JSON.stringify({
  exactDayHourSourceMatched:1,comparisonToFreeMonthOnly:1,
  seasonalClauseNotACustomerPromise:true,branchPositionContacts:2,
+ additionalSourceSpecificObservations:4,paidInsightApproved:false,
  rejectedMismatchedHour:1,reviewOnlyParagraphs:x.paragraphs.length,
  realLifePredictions:0,paidApiCalls:0,customerReady:false
 }));
