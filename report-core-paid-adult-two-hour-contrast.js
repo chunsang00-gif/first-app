@@ -10,6 +10,7 @@ const contrast=require('./report-core-paid-natal-counterfactual-audit');
 const branch=require('./report-branch-relations');
 const earthCommentary=require('./report-core-paid-natal-three-punishment-commentary');
 const applicability=require('./report-core-paid-natal-classical-method-applicability');
+const handoff=require('./report-core-paid-classical-decision-handoff');
 const seasonal=require('./report-seasonal-evidence');
 const ledger=require('./report-fact-bindings');
 const paid=require('./report-core-paid-depth-gap-audit');
@@ -170,6 +171,8 @@ function build(){
  if(!oldHourRoot.includes('乙')||newHourRoot.length!==0)
   throw Error('QA_TWO_HOURS_ROOT_CHANGE_DRIFT');
  const sharedBranchContext=invariantBranchContext(left,right);
+ const scopeBefore=handoff.build(left).methodApplicabilityDecision;
+ const scopeAfter=handoff.build(right).methodApplicabilityDecision;
  const generalBefore=applicability.evaluate(left).generalMonthRule;
  const generalAfter=applicability.evaluate(right).generalMonthRule;
  const roleBefore=generalBefore.otherCandidateRoles[0];
@@ -184,6 +187,16 @@ function build(){
     roleAfter?.symbolicTenGodCategory!=='편인'||
     !same(roleBefore.exposedAt,['natal.month.stem','natal.hour.stem'])||
     !same(roleAfter.exposedAt,['natal.month.stem'])||
+    scopeBefore.excluded.completedMonthBranchGroup?.status!==
+     'excluded-no-complete-month-three-position-group'||
+    scopeAfter.excluded.completedMonthBranchGroup?.status!==
+     'excluded-no-complete-month-three-position-group'||
+    scopeBefore.excluded.literalXinYinWorkedRule?.status!==
+     'excluded-no-literal-classical-case-match'||
+    scopeAfter.excluded.literalXinYinWorkedRule?.status!==
+     'excluded-no-literal-classical-case-match'||
+    scopeBefore.commerciallyAdoptedMethod!==null||
+    scopeAfter.commerciallyAdoptedMethod!==null||
     generalBefore.methodPriority!=='not-selected'||
     generalAfter.methodPriority!=='not-selected')
   throw Error('QA_TWO_HOURS_FALSE_MONTH_GENERAL_PRINCIPLE_APPLICATION');
@@ -249,6 +262,12 @@ function build(){
    monthDayTableBefore:beforeMonthDay,monthDayTableAfter:afterMonthDay,
    monthHourTableBefore:beforeMonthHour,monthHourTableAfter:afterMonthHour,
    unchangedThreeBranchContext:sharedBranchContext,
+   sourceMethodScope:{
+    before:structuredClone(scopeBefore),after:structuredClone(scopeAfter),
+    bothRejectForeignWorkedExample:true,
+    neitherHasCompletedMonthGroup:true,
+    changedBirthHourDoesNotApproveMethod:true
+   },
    classicalMonthGeneralPrinciple:{
     scope:'structural-analogy-only-not-the-actual-worked-example',
     underlyingMonthHiddenCandidateSame:true,

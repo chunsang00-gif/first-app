@@ -121,6 +121,62 @@ function build(packet){
  });
  if(unresolvedConditions.length!==competing.distinctObservedTensions)
   throw Error('QA_METHOD_HANDOFF_FINDING_COUNT_DRIFT');
+ // This is a source-applicability screen, not an automatic pattern choice.
+ // The classical worked Xin/Yin case cannot determine an Yi/Chou chart.
+ const groupRows=m.observed.natalRelationsTouchingMonth.groups;
+ const branchCounts=m.observed.natalRelationsTouchingMonth.relationshipCardinality;
+ const methodApplicabilityDecision={
+  kind:'qa-natal-method-source-scope-decision-v1',
+  chart:{day:packet.chart.day,month:packet.chart.month,
+   hour:packet.chart.hour},
+  applicable:{
+   generalMonthVisibility:general.conditionObserved?{
+    status:'candidate-only-not-interpretive-conclusion',
+    sourceUrl:general.sourceUrl,
+    monthMainSourceId:general.monthMainSourceId,
+    alternativeMonthSourceIds:general.otherExposedHiddenSourceIds.slice(),
+    alternativeVisiblePositions:general.otherCandidateRoles.map(c=>({
+     sourceId:c.sourceId,role:c.symbolicTenGodCategory,
+     visibleAt:c.exposedAt.slice()})),
+    firstRoleSelected:false
+   }:null
+  },
+  excluded:{
+   literalXinYinWorkedRule:caseId?null:{
+    status:'excluded-no-literal-classical-case-match',
+    requiredDayStem:'辛',requiredMonthBranch:'寅',
+    observedDayStem:packet.chart.day[0],
+    observedMonthBranch:packet.chart.month[1],
+    transferredClassicalConclusionAllowed:false
+   },
+   completedMonthBranchGroup:groupRows.length?null:{
+    status:'excluded-no-complete-month-three-position-group',
+    observableMonthGroupCount:0,
+    relevance:'no-completed-three-branch-group-transformation-to-rank'
+   }
+  },
+  unresolved:{
+   governingStem:'not-verified',
+   monthMethodPriority:'not-selected',
+   otherPillarBranchRelations:{
+    independentMonthContacts:branchCounts.independentPairContactCount,
+    monthPairTableLabels:branchCounts.pairTableEntryCount,
+    completeMonthGroups:groupRows.length,
+    traditionalPriority:'not-assessed'
+   },
+   personalityOrLifeOutcome:'not-established'
+  },
+  singleVisibleStemIsNotProofOfPattern:true,
+  repeatedVisibleStemDoesNotAddPriorityWeight:true,
+  commerciallyAdoptedMethod:null,
+  allowedInPaidWriter:false,customerReady:false,
+  providerCalls:0,releaseVerdict:'not-approved'
+ };
+ if(general.conditionObserved&&
+   (general.otherCandidateRoles.length!==1||
+    methodApplicabilityDecision.applicable.generalMonthVisibility
+     .alternativeMonthSourceIds[0]!==general.otherCandidateRoles[0].sourceId))
+  throw Error('QA_NATAL_METHOD_SOURCE_SCREEN_CANDIDATE_DIVERGED');
  const decision=caseId?{
   caseId,work:x.sourceDocuments[0].work,
   chapter:x.sourceDocuments[0].chapter,url:x.sourceDocuments[0].url,
@@ -146,6 +202,7 @@ function build(packet){
    dayStemIsClassificationAnchor:true},
   exactTextualDecision:decision,
   generalMonthRule:structuredClone(general),
+  methodApplicabilityDecision,
   // The generic principle is relevant to a wider class of charts. Matching
   // its structural QUESTION is not matching either explicit Xin/Yin example.
   principleLevelCandidateStatus:general.scopeStatus,

@@ -14,6 +14,16 @@ assert.equal(output.unchangedFreeMonthCore.actualTextEqual,true);
 assert.deepEqual(output.unchangedFreeMonthCore.sourceRefs,
  ['natal.month.stem','natal.month.hidden.己']);
 assert.equal(output.changed.priorHourCategory,'편인');
+const scope=output.changed.sourceMethodScope;
+assert.equal(scope.bothRejectForeignWorkedExample,true);
+assert.equal(scope.neitherHasCompletedMonthGroup,true);
+assert.equal(scope.changedBirthHourDoesNotApproveMethod,true);
+assert.equal(scope.before.allowedInPaidWriter,false);
+assert.equal(scope.after.allowedInPaidWriter,false);
+assert.deepEqual(scope.before.applicable.generalMonthVisibility
+ .alternativeMonthSourceIds,['natal.month.hidden.癸']);
+assert.deepEqual(scope.after.applicable.generalMonthVisibility
+ .alternativeMonthSourceIds,['natal.month.hidden.癸']);
 const principle=output.changed.classicalMonthGeneralPrinciple;
 assert.equal(principle.underlyingMonthHiddenCandidateSame,true);
 assert.deepEqual(principle.beforeExposedAt,

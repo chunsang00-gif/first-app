@@ -17,6 +17,16 @@ for(const [calendar,birthDate,first,status] of scenarios){
  assert.equal(x.exactTextualDecision?.firstTraditionalCategory||null,first);
  assert.equal(x.expertDecisions.length,5);
  assert.equal(x.generalMonthRule.methodPriority,'not-selected');
+ const screen=x.methodApplicabilityDecision;
+ assert.equal(screen.kind,'qa-natal-method-source-scope-decision-v1');
+ assert.equal(screen.allowedInPaidWriter,false);
+ assert.equal(screen.customerReady,false);
+ assert.equal(screen.commerciallyAdoptedMethod,null);
+ assert.equal(screen.unresolved.monthMethodPriority,'not-selected');
+ assert.equal(screen.unresolved.governingStem,'not-verified');
+ assert.equal(screen.unresolved.otherPillarBranchRelations.traditionalPriority,
+  'not-assessed');
+ assert.equal(screen.repeatedVisibleStemDoesNotAddPriorityWeight,true);
  assert.equal(x.principleLevelCandidateStatus,x.generalMonthRule.scopeStatus);
  assert.equal(x.generalMonthRule.authorizedForPaidWriter,false);
  const expectedConflict=conflict.inspect(p);
@@ -59,6 +69,18 @@ for(const [calendar,birthDate,first,status] of scenarios){
  if(birthDate==='1982-11-24'){
   const g=x.generalMonthRule;
   assert.equal(g.conditionObserved,true);
+  assert.equal(screen.applicable.generalMonthVisibility.status,
+   'candidate-only-not-interpretive-conclusion');
+  assert.equal(screen.applicable.generalMonthVisibility.firstRoleSelected,false);
+  assert.deepEqual(screen.applicable.generalMonthVisibility.alternativeMonthSourceIds,
+   ['natal.month.hidden.癸']);
+  assert.equal(screen.excluded.literalXinYinWorkedRule.status,
+   'excluded-no-literal-classical-case-match');
+  assert.equal(screen.excluded.literalXinYinWorkedRule.observedDayStem,'乙');
+  assert.equal(screen.excluded.literalXinYinWorkedRule.observedMonthBranch,'丑');
+  assert.equal(screen.excluded.completedMonthBranchGroup.status,
+   'excluded-no-complete-month-three-position-group');
+  assert.equal(screen.unresolved.otherPillarBranchRelations.completeMonthGroups,0);
   assert.equal(g.exactWorkedClassicalExampleMatched,false);
   assert.deepEqual(g.otherExposedHiddenSourceIds,['natal.month.hidden.癸']);
   assert.equal(x.exactTextualDecision,null,
@@ -80,6 +102,7 @@ for(const [calendar,birthDate,first,status] of scenarios){
   assert(x.expertDecisions.every(q=>q.commentaryOnlyConditions.length===0));
  }
  if(first){
+  assert.equal(screen.excluded.literalXinYinWorkedRule,null);
   assert(x.expertDecisions.find(z=>z.id==='review-counterexample')
    .relevantConditions.some(z=>z.id==='source-specific-classical-example-needs-whole-chart-review'));
   assert.equal(x.exactTextualDecision.fullChartConclusionEstablished,false);
