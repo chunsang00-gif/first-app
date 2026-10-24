@@ -9,6 +9,7 @@ const single=require('./report-core-paid-one-adult-complete-first-chapter');
 const contrast=require('./report-core-paid-natal-counterfactual-audit');
 const branch=require('./report-branch-relations');
 const earthCommentary=require('./report-core-paid-natal-three-punishment-commentary');
+const applicability=require('./report-core-paid-natal-classical-method-applicability');
 const seasonal=require('./report-seasonal-evidence');
 const ledger=require('./report-fact-bindings');
 const paid=require('./report-core-paid-depth-gap-audit');
@@ -169,6 +170,23 @@ function build(){
  if(!oldHourRoot.includes('乙')||newHourRoot.length!==0)
   throw Error('QA_TWO_HOURS_ROOT_CHANGE_DRIFT');
  const sharedBranchContext=invariantBranchContext(left,right);
+ const generalBefore=applicability.evaluate(left).generalMonthRule;
+ const generalAfter=applicability.evaluate(right).generalMonthRule;
+ const roleBefore=generalBefore.otherCandidateRoles[0];
+ const roleAfter=generalAfter.otherCandidateRoles[0];
+ if(!generalBefore.conditionObserved||!generalAfter.conditionObserved||
+    generalBefore.exactWorkedClassicalExampleMatched||
+    generalAfter.exactWorkedClassicalExampleMatched||
+    !same(generalBefore.otherExposedHiddenSourceIds,
+     generalAfter.otherExposedHiddenSourceIds)||
+    generalBefore.monthMainSourceId!==generalAfter.monthMainSourceId||
+    roleBefore?.symbolicTenGodCategory!=='편인'||
+    roleAfter?.symbolicTenGodCategory!=='편인'||
+    !same(roleBefore.exposedAt,['natal.month.stem','natal.hour.stem'])||
+    !same(roleAfter.exposedAt,['natal.month.stem'])||
+    generalBefore.methodPriority!=='not-selected'||
+    generalAfter.methodPriority!=='not-selected')
+  throw Error('QA_TWO_HOURS_FALSE_MONTH_GENERAL_PRINCIPLE_APPLICATION');
  const beforeMonthDay=contact(left,'day');
  const afterMonthDay=contact(right,'day');
  const beforeMonthHour=contact(left,'hour');
@@ -231,6 +249,15 @@ function build(){
    monthDayTableBefore:beforeMonthDay,monthDayTableAfter:afterMonthDay,
    monthHourTableBefore:beforeMonthHour,monthHourTableAfter:afterMonthHour,
    unchangedThreeBranchContext:sharedBranchContext,
+   classicalMonthGeneralPrinciple:{
+    scope:'structural-analogy-only-not-the-actual-worked-example',
+    underlyingMonthHiddenCandidateSame:true,
+    beforeExposedAt:roleBefore.exposedAt.slice(),
+    afterExposedAt:roleAfter.exposedAt.slice(),
+    category:'편인',methodPriority:'not-selected',
+    sourceUrl:generalBefore.sourceUrl,
+    commercialWriterAllowed:false
+   },
    sourceRefs:['natal.hour.stem','facts.stemConnections',
     'facts.natalBranchRelations','facts.seasonalEvidence']
   },

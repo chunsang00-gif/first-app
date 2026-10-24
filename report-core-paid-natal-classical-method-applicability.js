@@ -6,6 +6,7 @@ const month=require('./report-core-paid-natal-month-method-review');
 const classical=require('./report-core-paid-natal-classical-yin-example');
 const {LunarUtil}=require('lunar-javascript');
 const directions=require('./report-core-paid-natal-visible-relation-bridge');
+const ledger=require('./report-fact-bindings');
 const GOD={'比肩':'비견','劫财':'겁재','食神':'식신','伤官':'상관',
  '偏财':'편재','正财':'정财','七杀':'편관','正官':'정관',
  '偏印':'편인','正印':'정인'};
@@ -75,6 +76,65 @@ function evaluate(packet){
   overallPatternConfirmed:false,
   observedBehavior:false
  }:null;
+ // IMPORTANT: the chapter states a GENERAL structural principle ("month
+ // hidden stems are multiple; other visible ones may change the starting
+ // point"). Its explicitly worked Xin/Yin/Jia/Bing example is MUCH narrower.
+ // A different chart can match the structural question but must not inherit
+ // that example's fixed first role, pattern, day strength or outcome.
+ const hiddenIds=review.observed.hiddenStemSourceIds;
+ const mainId=review.observed.mainHiddenStemSourceId;
+ const visibleIds=exposure.nonDayExposedHiddenStemIds;
+ const nonMainIds=visibleIds.filter(id=>id!==mainId);
+ const onlyNonMain=hiddenIds.length>1&&!visibleIds.includes(mainId)&&
+  nonMainIds.length===1;
+ const recorded=Object.fromEntries(ledger.build(packet).map(x=>[x.id,x]));
+ const candidates=nonMainIds.map(id=>{
+  if(!hiddenIds.includes(id)||!recorded[id]?.tenGod||
+     recorded[id].observedBehavior!==false||
+     recorded[id].interpretationScope!=='traditional-symbol-only')
+   throw Error('QA_CLASSICAL_GENERAL_HIDDEN_SOURCE_INVALID');
+  const row=exposure.rows.find(x=>x.sourceId===id);
+  if(!row||row.nonDayVisibleSourceIds.length===0||
+     row.nonDayVisibleSourceIds.some(x=>!['natal.year.stem',
+      'natal.month.stem','natal.hour.stem'].includes(x)||
+      recorded[x]?.stem!==recorded[id].stem))
+   throw Error('QA_CLASSICAL_GENERAL_VISIBILITY_INVALID');
+  return {sourceId:id,hiddenStem:recorded[id].stem,
+   symbolicTenGodCategory:recorded[id].tenGod,
+   exposedAt:row.nonDayVisibleSourceIds.slice()};
+ });
+ const generalMonthRule={
+  kind:'qa-general-month-hidden-exposure-structural-analogy-v1',
+  sourceWork:'子平真詮',chapter:'十、論用神變化',sourceUrl:ZI_PING,
+  sourceScope:'general-hidden-stem-principle-not-an-exact-worked-chart',
+  // This is the *question* the text permits us to ask, not a conclusion:
+  principle:'달의 숨은 글자가 여럿이면 어떤 글자가 겉에 드러났는지를 따져 해석 출발점의 변화를 검토한다.',
+  scopeStatus:onlyNonMain?'candidate-general-principle-analogy-only':
+   'single-nonmain-no-main-condition-not-met',
+  conditionObserved:onlyNonMain,
+  monthBranch:chart.month[1],
+  monthMainSourceId:mainId,
+  monthMainExposedOutsideDay:visibleIds.includes(mainId),
+  otherExposedHiddenSourceIds:nonMainIds.slice(),
+  otherCandidateRoles:candidates,
+  dayStem:chart.day[0],
+  // The original's explicit Xin/Yin examples cannot be copied to the
+  // user 1982 Yi/Chou example or any unrelated chart.
+  exactWorkedClassicalExampleMatched:Boolean(intended),
+  noOtherVisibleMonthCandidate:nonMainIds.length===1,
+  cannotInferPriorityFromRepeatedPositions:true,
+  methodPriority:'not-selected',
+  monthCommandRoleConfirmed:false,
+  operativeQiOrStrengthConfirmed:false,
+  otherBranchInteractionsResolved:false,
+  personalityAndLifeResultsSupported:false,
+  authorizedForPaidWriter:false,
+  providerCalls:0,releaseVerdict:'not-approved'
+ };
+ if(onlyNonMain&&(candidates.length!==1||
+    !recorded[mainId]||
+    candidates[0].sourceId===mainId))
+  throw Error('QA_CLASSICAL_GENERAL_FALSE_PRIORITY_CANDIDATE');
  const branchCounts=review.observed.natalRelationsTouchingMonth.relationshipCardinality;
  const doc={
   kind:'qa-source-bound-month-method-applicability-v1',
@@ -82,7 +142,7 @@ function evaluate(packet){
   textuallyMatchedExample:intended,
   sourceDocuments:[
    {work:'子平真詮',chapter:'論用神變化',url:ZI_PING,
-    use:'explicit Xin/Yin Jia+Bing month-exposure examples only',
+    use:'general month hidden-stem exposure principle, plus narrow Xin/Yin Jia+Bing examples; not a universal role rank',
     doesNotEstablishFinalPattern:true},
    {work:'滴天髓',chapter:'月令論',url:DI_TIAN,
     use:'alternative governing-day/stem framework; method not chosen',
@@ -102,6 +162,7 @@ function evaluate(packet){
    intended==='xin-yin-bing-only-month-command-change'?'정관':'정재'):null,
   textualCaseSecondaryRole:intended?.includes('coexposed')?'정관':null,
   crossChapterReading,
+  generalMonthRule,
   methodConflict:{
    governingDayStatus:'unresolved',
    approximateDayRuleStatus:review.methodCandidates[1].status,

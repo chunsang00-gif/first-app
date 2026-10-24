@@ -23,6 +23,27 @@ for(const [date,calendar,hour] of draftCases){
  assert(result.review?.fourPillar);
  const method=applicability.evaluate(packet);
  const trace=result.review.fourPillar.methodPriorityReview;
+ if(date==='1982-11-24'){
+  const g=method.generalMonthRule;
+  assert.equal(g.conditionObserved,true);
+  assert.equal(g.scopeStatus,'candidate-general-principle-analogy-only');
+  assert.equal(g.exactWorkedClassicalExampleMatched,false);
+  assert.equal(g.monthBranch,'丑');
+  assert.equal(g.dayStem,'乙');
+  assert.equal(g.monthMainSourceId,'natal.month.hidden.己');
+  assert.equal(g.monthMainExposedOutsideDay,false);
+  assert.deepEqual(g.otherExposedHiddenSourceIds,
+   ['natal.month.hidden.癸']);
+  assert.equal(g.otherCandidateRoles.length,1);
+  assert.equal(g.otherCandidateRoles[0].symbolicTenGodCategory,'편인');
+  assert.deepEqual(g.otherCandidateRoles[0].exposedAt,
+   hour==='14:20'?['natal.month.stem','natal.hour.stem']:
+    ['natal.month.stem']);
+  assert.equal(g.methodPriority,'not-selected');
+  assert.equal(g.monthCommandRoleConfirmed,false);
+  assert.equal(g.authorizedForPaidWriter,false);
+  assert.equal(trace.selectedTraditionalMethod,null);
+ }
  assert.equal(method.status,'no-applicable-textual-precedent');
  assert.equal(method.textuallyMatchedExample,null);
  assert.equal(method.finalPatternSelected,false);
@@ -47,6 +68,7 @@ const checks=[
 ];
 for(const row of checks){
  const packet=get(row.date),x=applicability.evaluate(packet);
+ assert.equal(x.generalMonthRule.exactWorkedClassicalExampleMatched,true);
  assert.equal(core.compile(packet).status,'not-covered');
  assert.equal(x.status,'exact-textual-conditions-only');
  assert.equal(x.textuallyMatchedExample,row.label);
@@ -122,7 +144,8 @@ for(const date of ['1989-02-10','2024-02-17']){
   /QA_MONTH_METHOD_CALCULATION_DIVERGED:season/);
 }
 console.log('QA_CLASSICAL_METHOD_APPLICABILITY='+JSON.stringify({
- sourceBoundNarrowCases:2,unrelatedFourPillarDraftsBlocked:6,
+ sourceBoundNarrowCases:2,generalAnalogyOn1982BothHours:2,
+ unrelatedFourPillarDraftsBlocked:6,
  exactChapter11CooperationCases:1,
  nearMissesRejected:5,monthCalculationTamperingRejected:2,
  standardsCompared:['Zi Ping Zhen Quan: visible month hidden stem cases',

@@ -16,6 +16,9 @@ for(const [calendar,birthDate,first,status] of scenarios){
  assert.equal(x.status,status);
  assert.equal(x.exactTextualDecision?.firstTraditionalCategory||null,first);
  assert.equal(x.expertDecisions.length,5);
+ assert.equal(x.generalMonthRule.methodPriority,'not-selected');
+ assert.equal(x.principleLevelCandidateStatus,x.generalMonthRule.scopeStatus);
+ assert.equal(x.generalMonthRule.authorizedForPaidWriter,false);
  const expectedConflict=conflict.inspect(p);
  assert.equal(x.unresolvedConditionCount,expectedConflict.distinctObservedTensions);
  const earth=x.earthThreePunishmentSourceReview;
@@ -54,6 +57,17 @@ for(const [calendar,birthDate,first,status] of scenarios){
  assert.equal(x.providerCalls,0);
  assert.equal(x.releaseVerdict,'not-approved');
  if(birthDate==='1982-11-24'){
+  const g=x.generalMonthRule;
+  assert.equal(g.conditionObserved,true);
+  assert.equal(g.exactWorkedClassicalExampleMatched,false);
+  assert.deepEqual(g.otherExposedHiddenSourceIds,['natal.month.hidden.癸']);
+  assert.equal(x.exactTextualDecision,null,
+   'general-month principle is NOT the explicit worked classical case');
+  const q=x.expertDecisions.find(r=>r.id==='resolve-month');
+  assert.deepEqual(q.generalTextualPrincipleCandidates.map(k=>k.id),
+   ['general-month-nonmain-exposure']);
+  assert.equal(q.generalTextualPrincipleCandidates[0].customerConclusionApproved,false);
+
   assert.equal(earth.chartHasAllThreeEarthBranches,true);
   assert.equal(earth.tableRelationLabels,5);
   assert.equal(earth.independentPairContacts,3);

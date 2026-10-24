@@ -63,6 +63,17 @@ function build(packet){
  checkCalculatedRoles(packet);
  const x=classical.evaluate(packet),m=month.assess(packet);
  const competing=conflict.inspect(packet);
+ const general=x.generalMonthRule;
+ if(general?.kind!=='qa-general-month-hidden-exposure-structural-analogy-v1'||
+    general.methodPriority!=='not-selected'||
+    general.authorizedForPaidWriter!==false||
+    general.exactWorkedClassicalExampleMatched!==Boolean(x.textuallyMatchedExample)||
+    JSON.stringify(general.otherExposedHiddenSourceIds)!==
+     JSON.stringify(m.observed.exactExposureScopeComparison
+      .nonDayExposedHiddenStemIds.filter(id=>
+       id!==m.observed.mainHiddenStemSourceId))||
+    general.monthMainSourceId!==m.observed.mainHiddenStemSourceId)
+  throw Error('QA_METHOD_HANDOFF_GENERAL_RULE_FACTS_DIVERGED');
  const earth=earthCommentary.inspect(packet);
  if(competing.conclusion!=='abstain-from-full-chart-interpretation'||
     competing.downstreamPaidApproval!==false||competing.providerCalls!==0||
@@ -134,6 +145,10 @@ function build(packet){
    competingThirdVisiblePositions:src.thirdMonthHiddenStemExposedRefs.slice(),
    dayStemIsClassificationAnchor:true},
   exactTextualDecision:decision,
+  generalMonthRule:structuredClone(general),
+  // The generic principle is relevant to a wider class of charts. Matching
+  // its structural QUESTION is not matching either explicit Xin/Yin example.
+  principleLevelCandidateStatus:general.scopeStatus,
   candidates:m.methodCandidates.map(row=>({id:row.id,status:row.status,
    sourceRefs:row.rowIds.slice(),priority:row.interpretivePriority})),
   // The editor now receives chart-SPECIFIC unresolved observations, not
@@ -152,6 +167,17 @@ function build(packet){
    relevantConditions:unresolvedConditions
     .filter(f=>REVIEW_THEMES[id]?.has(f.id))
     .map(f=>({id:f.id,sourceRefs:f.sourceRefs.slice()})),
+   generalTextualPrincipleCandidates:id==='resolve-month'&&
+    general.conditionObserved?[{
+     id:'general-month-nonmain-exposure',
+     sourceUrl:general.sourceUrl,
+     monthMainSourceId:general.monthMainSourceId,
+     competingSourceIds:general.otherExposedHiddenSourceIds.slice(),
+     visibleCandidateRoles:structuredClone(general.otherCandidateRoles),
+     exactClassicalCaseMatched:general.exactWorkedClassicalExampleMatched,
+     traditionalPriority:'not-selected',
+     customerConclusionApproved:false
+    }]:[],
    commentaryOnlyConditions:id==='resolve-other-positions'&&
     earth.chartHasAllThreeEarthBranches?[{
      id:'xu-commentary-earth-three-punishment',

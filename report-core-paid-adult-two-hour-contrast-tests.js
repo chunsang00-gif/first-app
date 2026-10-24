@@ -14,6 +14,14 @@ assert.equal(output.unchangedFreeMonthCore.actualTextEqual,true);
 assert.deepEqual(output.unchangedFreeMonthCore.sourceRefs,
  ['natal.month.stem','natal.month.hidden.己']);
 assert.equal(output.changed.priorHourCategory,'편인');
+const principle=output.changed.classicalMonthGeneralPrinciple;
+assert.equal(principle.underlyingMonthHiddenCandidateSame,true);
+assert.deepEqual(principle.beforeExposedAt,
+ ['natal.month.stem','natal.hour.stem']);
+assert.deepEqual(principle.afterExposedAt,['natal.month.stem']);
+assert.equal(principle.category,'편인');
+assert.equal(principle.methodPriority,'not-selected');
+assert.equal(principle.commercialWriterAllowed,false);
 assert.equal(output.changed.changedHourCategory,'상관');
 assert.equal(output.changed.sameMonthAndHourSymbolBefore,true);
 assert.equal(output.changed.sameMonthAndHourSymbolAfter,false);
