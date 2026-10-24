@@ -118,7 +118,14 @@ async function assembleAdditiveTransportPreview(input){
     !same(slots.temperament.anyOf?.map(x=>x.type),['object','null'])||
     !same(slots.natal_depth.anyOf?.map(x=>x.type),['object','null'])||
     !same(slots.strength,original.strength)||
-    !same(slots.natal_depth.anyOf[0],original.natal_depth)||
+    // The added nullable branch has a different reader instruction ON
+    // PURPOSE. Its mandatory evidence schema and citation locks must not.
+    !same(slots.natal_depth.anyOf[0]?.properties?.basis,
+     original.natal_depth?.properties?.basis)||
+    !same(slots.natal_depth.anyOf[0]?.required,
+     original.natal_depth?.required)||
+    !same(Object.keys(slots.natal_depth.anyOf[0]?.properties||{}),
+     Object.keys(original.natal_depth?.properties||{}))||
     original.temperament.type!=='null'||
     !same(payload.task.chapters.saju_core.topics.strength,
      frozen.payload.task.chapters.saju_core.topics.strength)||
