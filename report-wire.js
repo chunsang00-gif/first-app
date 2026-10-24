@@ -105,7 +105,10 @@ function schemaFor(prompt,reportSchema){
   }
   return [id,object({title,keyJudgment:judgment,evidence:reader.describe(section.evidence,reader.evidenceField),mood:section.mood,
    paragraphs:object(Object.fromEntries(keys.map(topic=>{
-    const readerRole=topic==='natal_depth'?{
+    const readerRole=topic==='natal_depth'&&prompt.qaAdditiveDepthPreview===true?{
+     label:'기존 두 문단과 독립된 내용일 때만 심화 문단 제목을 쓴다.',
+     text:'오프라인 전용 추가 심화 문단이다. 무료·기본 풀이에 없는 해석이 검증되지 않으면 반드시 null로 반환한다. 고전과 계산의 정의만 늘어놓거나 일반적인 생활 조언을 넣어 분량을 채우지 않는다. 실제 행동·건강·수입·미래 사건을 확정하지 않는다.'
+    }:topic==='natal_depth'?{
      label:'기본 월 중심 풀이에 없는 독립적인 출생 해·날·시간 비교 판단을 제목에 담는다.',
      text:'QA 전용 독립 원고다. 실제 계산된 해의 전통 분류와 시간의 전통 분류를 한 가지 가상 선택의 서로 다른 판단 기준으로 연결한다. 달의 설명을 다시 쓰지 않는다. 가상 상황의 구체적인 선택과 유리한 조건, 놓치기 쉬운 조건을 이유와 함께 구별한다. 의미가 없는 계산 명칭 소개·용어 풀이·누구에게나 맞는 체크리스트·반복 면책은 해석이 아니다. 출생 분류만으로 실제 행동이나 성공을 단정하지 않는다. 내용이 근거를 벗어나면 기술 검증에서 거절된다.'
     }:roles?.[topic];
@@ -116,8 +119,13 @@ function schemaFor(prompt,reportSchema){
     // repeated the mandatory month topic and omitted facts.qiEvidence.
     // Do NOT add missing citations automatically or weaken the decoder.
     if(prompt.qaNatalDepthPreview===true&&id==='saju_core'){
-     if(topic==='temperament')return [topic,{type:'null'}];
-     if(topic==='natal_depth')return [topic,item];
+     // The old one-shot QA MUST remain exactly unchanged. The separate
+     // additive offline trial keeps the first two normal reader slots.
+     if(prompt.qaAdditiveDepthPreview!==true){
+      if(topic==='temperament')return [topic,{type:'null'}];
+      if(topic==='natal_depth')return [topic,item];
+     }else if(topic==='natal_depth')
+      return [topic,{anyOf:[item,{type:'null'}]}];
     }
     if(topic===anchor)return [topic,paragraph(plan[topic]?.question||topics[id][topic],false,roles?.[topic])];
     if(plan[topic]?.mode==='state-limits')return [topic,{type:'null'}];

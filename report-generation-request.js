@@ -158,6 +158,12 @@ function editorialGoalFor(prompt){
  return original;
 }
 function compile(prompt){
+ if(prompt?.qaAdditiveDepthPreview===true&&
+    (prompt.qaNatalDepthPreview!==true||
+     prompt.qaOfflineEditorialResearchPreview===true||
+     prompt.stage!=='body'||
+     JSON.stringify(prompt.requestedSections)!=='["saju_core"]'))
+  throw Error('QA_ADDITIVE_PROVIDER_SCOPE_REQUIRED');
  if(prompt?.qaOfflineEditorialResearchPreview===true&&
      (prompt.qaNatalDepthPreview!==true||prompt.stage!=='body'||
       JSON.stringify(prompt.requestedSections)!=='["saju_core"]'))

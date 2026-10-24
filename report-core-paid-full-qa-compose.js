@@ -94,4 +94,42 @@ async function assemble(input){
   providerCalls:0,releaseVerdict:'not-approved',
   reviewKind:candidate.reviewKind};
 }
-module.exports={assemble};
+
+async function assembleAdditiveTransportPreview(input){
+ const frozen=await assemble(input),prompt=structuredClone(frozen.prompt);
+ if(prompt.qaAdditiveDepthPreview!==undefined||
+    prompt.qaOfflineEditorialResearchPreview===true||
+    prompt.qaNatalDepthPreview!==true||
+    JSON.stringify(prompt.requestedSections)!=='["saju_core"]')
+  throw Error('QA_ADDITIVE_PREVIEW_UNSAFE_BASE');
+ prompt.qaAdditiveDepthPreview=true;
+ const payload=generation.compile(prompt);
+ const strictSchema=generation.schema(prompt,
+  wire.schemaFor(prompt,providerStrictBase(schema)));
+ const errors=audit.inspect(prompt),transportErrors=audit.inspectTransport(prompt,payload);
+ const preflightErrors=preflight.inspect(prompt,payload,strictSchema);
+ if(errors.length||transportErrors.length||preflightErrors.length)
+  throw Error('QA_ADDITIVE_REAL_TRANSPORT_PREFLIGHT_FAILED:'+
+   JSON.stringify({errors,transportErrors,preflightErrors}));
+ const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
+ const slots=strictSchema.properties.chapters.properties.saju_core.properties.paragraphs.properties;
+ const original=frozen.schema.properties.chapters.properties.saju_core.properties.paragraphs.properties;
+ if(!same(Object.keys(slots),['temperament','strength','natal_depth'])||
+    !same(slots.temperament.anyOf?.map(x=>x.type),['object','null'])||
+    !same(slots.natal_depth.anyOf?.map(x=>x.type),['object','null'])||
+    !same(slots.strength,original.strength)||
+    !same(slots.natal_depth.anyOf[0],original.natal_depth)||
+    original.temperament.type!=='null'||
+    !same(payload.task.chapters.saju_core.topics.strength,
+     frozen.payload.task.chapters.saju_core.topics.strength)||
+    !same(payload.source,frozen.payload.source))
+  throw Error('QA_ADDITIVE_REAL_TRANSPORT_NOT_PRESERVING_BASELINE');
+ return {kind:'offline-actual-provider-additive-three-slots-v1',
+  prompt,payload,schema:strictSchema,originalFrozenQaUnchanged:true,
+  originalTemperamentPreserved:true,originalStrengthUnchanged:true,
+  independentDepthNullAllowed:true,providerCalls:0,
+  modelResponse:null,readerValueApproved:false,
+  releaseVerdict:'not-approved'};
+}
+
+module.exports={assemble,assembleAdditiveTransportPreview};
