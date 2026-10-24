@@ -58,6 +58,92 @@ const QUESTIONS=[
  ['review-counterexample','기본 글자가 드러나지 않거나 세 번째 숨은 글자가 드러나면 이 결론은 유지되는가?'],
  ['review-reader-value','고전 분류 순서에서 독자의 구체적인 생활 해석으로 넘어가는 추가 근거는 무엇인가?']
 ];
+
+// Independent classical references are NOT a single selected interpretation.
+// Qiong Tong Bao Jian's "twelfth month" means the Chou solar-term month,
+// not the numeric lunar birth month. Historical outcome words are NOT facts
+// about the user's personality, health, career, income or future.
+function reviewOtherClassicalSourceConditions(packet,monthScope){
+ const chart=packet.chart,branch=chart.month[1];
+ const season=require('./report-seasonal-evidence');
+ const rows=Object.fromEntries(require('./report-fact-bindings')
+  .build(packet).map(r=>[r.id,r]));
+ const positions=['year','month','day','hour'];
+ const visible=new Map(),hidden=new Map();
+ for(const p of positions){
+  const pillar=chart[p],stem=pillar[0],id='natal.'+p+'.stem',row=rows[id];
+  if(!row||row.stem!==stem||
+     row.interpretationScope!=='traditional-symbol-only')
+   throw Error('QA_CLASSICAL_DIFFERENT_SCHOOL_VISIBLE_LEDGER_DRIFT:'+p);
+  if(!visible.has(stem))visible.set(stem,[]);
+  visible.get(stem).push(id);
+  for(const character of season.HIDDEN[pillar[1]]||[]){
+   const h='natal.'+p+'.hidden.'+character,src=rows[h];
+   if(!src||src.stem!==character||
+      src.interpretationScope!=='traditional-symbol-only')
+    throw Error('QA_CLASSICAL_DIFFERENT_SCHOOL_HIDDEN_LEDGER_DRIFT:'+h);
+   if(!hidden.has(character))hidden.set(character,[]);
+   hidden.get(character).push(h);
+  }
+ }
+ const v=s=>visible.get(s)||[],h=s=>hidden.get(s)||[];
+ const yiChou=chart.day[0]==='乙'&&branch==='丑';
+ const dayHourMatch=chart.day==='乙未'&&chart.hour==='癸未';
+ const winter=['亥','子','丑'].includes(branch);
+ if(yiChou&&(monthScope?.monthMainSourceId!=='natal.month.hidden.己'||
+   !monthScope.otherExposedHiddenSourceIds.includes('natal.month.hidden.癸')))
+  throw Error('QA_CLASSICAL_YI_CHOU_MONTH_PROVENANCE_INVALID');
+ const climate=yiChou?{
+  work:'窮通寶鑑',chapter:'十二月乙木',
+  url:'https://luckclub.cn/bazi/004/024/',
+  tradition:'climate-adjustment-not-month-pattern-priority',
+  dayStem:'乙',monthBranch:'丑',
+  historicalTwelfthMonthMeansSolarTermChouMonth:true,
+  sourceEmphasizes:'丙',
+  observedBingVisibleRefs:v('丙').slice(),
+  observedBingHiddenRefs:h('丙').slice(),
+  observedGuiVisibleRefs:v('癸').slice(),
+  observedDingHiddenRefs:h('丁').slice(),
+  bingExposed:v('丙').length>0,guiExposed:v('癸').length>0,
+  // The cited favorable clause requires BOTH conditions, not just Bing.
+  bingExposedWithoutGui:v('丙').length>0&&v('癸').length===0,
+  favorableHistoricalCompoundConditionMatched:
+   v('丙').length>0&&v('癸').length===0,
+  dingHiddenMustNotBeCountedAsBing:true,
+  notSameAsMonthCommandHiddenExposure:true,
+  historicalFortuneClaimAllowedForCustomer:false,
+  actualQiStrengthOrUsefulGodEstablished:false,
+  interpretationMethodApproved:false
+ }:null;
+ const dayHour=dayHourMatch?{
+  work:'三命通會',chapter:'卷八·六乙日癸未時斷',
+  url:'https://zh.wikisource.org/zh-hant/%E4%B8%89%E5%91%BD%E9%80%9A%E6%9C%83/%E5%8D%B7%E5%85%AB',
+  requiredDayPillar:'乙未',requiredHourPillar:'癸未',
+  observedWinterMonth:winter,winterSourceClauseMatched:winter,
+  sourceContainsSeasonalHistoricJudgment:'冬安穩',
+  historicalTextNotPrediction:true,
+  sourceRefs:['natal.day.stem','natal.day.hidden.乙',
+   'natal.hour.stem','natal.hour.hidden.乙',
+   'facts.seasonalEvidence'],
+  fullYearAndMonthConditionalEffectsNotResolved:true,
+  personallyObservedTemperament:false,approvedPaidInsight:false
+ }:null;
+ return {
+  kind:'qa-independent-classical-source-eligibility-v1',
+  chart:{...chart},
+  monthPatternTextualWorkedCaseMatched:
+   Boolean(monthScope.exactWorkedClassicalExampleMatched),
+  climate,exactDayHour:dayHour,
+  rulesAreAlternativeFrameworksNotOneUnifiedPattern:true,
+  climatePriorityVsMonthExposure:'not-selected',
+  dayHourHistoricalVerdictVsActualLife:'not-established',
+  dayAndMonthCycleFromSolarTerms:true,
+  readerFacingPromiseAuthorized:false,
+  humanExpertNeedsToReconcileSources:true,
+  paidWriterAuthorized:false,providerCalls:0,releaseVerdict:'not-approved'
+ };
+}
+
 function build(packet){
  if(packet?.status!=='ready'||!packet.chart?.hour)
   throw Error('QA_METHOD_HANDOFF_FULL_CHART_REQUIRED');
@@ -65,6 +151,11 @@ function build(packet){
  const x=classical.evaluate(packet),m=month.assess(packet);
  const competing=conflict.inspect(packet);
  const general=x.generalMonthRule;
+ const independentTexts=reviewOtherClassicalSourceConditions(packet,general);
+ if(independentTexts.readerFacingPromiseAuthorized!==false||
+    independentTexts.paidWriterAuthorized!==false||
+    independentTexts.rulesAreAlternativeFrameworksNotOneUnifiedPattern!==true)
+  throw Error('QA_METHOD_HANDOFF_PREMATURE_CROSS_SCHOOL_CONCLUSION');
  // Unlike a literal month-hidden stem exposure, an identical *element*
  // elsewhere does NOT mean the same hidden character was exposed.
  // The visible three-stem relation has to be checked separately from
@@ -239,6 +330,9 @@ function build(packet){
    dayStemIsClassificationAnchor:true},
   exactTextualDecision:decision,
   generalMonthRule:structuredClone(general),
+  independentClassicalSourceEligibility:independentTexts,
+  // Legacy .status concerns ONLY the Xin/Yin month-command worked example.
+  monthWorkedExampleStatusOnly:true,
   methodApplicabilityDecision,
   // The generic principle is relevant to a wider class of charts. Matching
   // its structural QUESTION is not matching either explicit Xin/Yin example.
@@ -282,6 +376,21 @@ function build(packet){
      interpretivePriority:'not-assessed',
      anyLifeEffectVerified:false
     }]:[],
+   independentlyMatchedClassicalTexts:id==='choose-school'?[
+    ...(independentTexts.climate?[{
+     id:'qiong-tong-bao-jian-yi-chou-climate',
+     url:independentTexts.climate.url,
+     historicalCompoundConditionMatched:
+      independentTexts.climate.favorableHistoricalCompoundConditionMatched,
+     methodApproved:false
+    }]:[]),
+    ...(independentTexts.exactDayHour?[{
+     id:'san-ming-tong-hui-yi-wei-gui-wei',
+     url:independentTexts.exactDayHour.url,
+     historicallyMatchedDayAndHour:true,
+     humanLifeResultValidated:false
+    }]:[])
+   ]:[],
    chartSpecificEvidenceSupplied:true
   })),
   nextAction:'human-specialist-choose-method-then-review-reader-manuscript',

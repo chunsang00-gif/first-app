@@ -36,6 +36,25 @@ assert.equal(arrows.cannotConcludeHourIsStrongerOrWeaker,true);
 assert.equal(arrows.lifeEffectNotEstablished,true);
 assert.equal(arrows.before.changedHourCannotSelectDominantDirection,true);
 assert.equal(arrows.after.changedHourCannotSelectDominantDirection,true);
+const cross=output.changed.crossSchoolHistoricalSourceScreen;
+assert.equal(cross.exactWinterDayHourCaseOnlyBefore,true);
+assert.equal(cross.bingVisibleOnlyAfter,true);
+assert.equal(cross.historicalFavorableCompoundNotSatisfiedInEither,true);
+assert.equal(cross.professionalInterpretationStillNotApproved,true);
+assert.equal(cross.noLifeOutcomeFromHistoricalText,true);
+assert.equal(cross.before.exactDayHour.sourceContainsSeasonalHistoricJudgment,
+ '冬安穩');
+assert.equal(cross.after.exactDayHour,null);
+assert.deepEqual(cross.before.climate.observedBingVisibleRefs,[]);
+assert.deepEqual(cross.after.climate.observedBingVisibleRefs,['natal.hour.stem']);
+assert.deepEqual(cross.before.climate.observedGuiVisibleRefs,
+ ['natal.month.stem','natal.hour.stem']);
+assert.deepEqual(cross.after.climate.observedGuiVisibleRefs,
+ ['natal.month.stem']);
+assert.equal(cross.before.climate.favorableHistoricalCompoundConditionMatched,
+ false);
+assert.equal(cross.after.climate.favorableHistoricalCompoundConditionMatched,
+ false);
 const principle=output.changed.classicalMonthGeneralPrinciple;
 assert.equal(principle.underlyingMonthHiddenCandidateSame,true);
 assert.deepEqual(principle.beforeExposedAt,

@@ -17,6 +17,13 @@ for(const [calendar,birthDate,first,status] of scenarios){
  assert.equal(x.exactTextualDecision?.firstTraditionalCategory||null,first);
  assert.equal(x.expertDecisions.length,5);
  assert.equal(x.generalMonthRule.methodPriority,'not-selected');
+ const cross=x.independentClassicalSourceEligibility;
+ assert.equal(x.monthWorkedExampleStatusOnly,true);
+ assert.equal(cross.rulesAreAlternativeFrameworksNotOneUnifiedPattern,true);
+ assert.equal(cross.readerFacingPromiseAuthorized,false);
+ assert.equal(cross.humanExpertNeedsToReconcileSources,true);
+ assert.equal(cross.paidWriterAuthorized,false);
+ assert.equal(cross.providerCalls,0);
  const screen=x.methodApplicabilityDecision;
  assert.equal(screen.kind,'qa-natal-method-source-scope-decision-v1');
  assert.equal(screen.allowedInPaidWriter,false);
@@ -80,6 +87,28 @@ for(const [calendar,birthDate,first,status] of scenarios){
  if(birthDate==='1982-11-24'){
   const g=x.generalMonthRule;
   assert.equal(g.conditionObserved,true);
+  assert(cross.climate);
+  assert(cross.exactDayHour);
+  assert.equal(cross.monthPatternTextualWorkedCaseMatched,false);
+  assert.equal(cross.climate.historicalTwelfthMonthMeansSolarTermChouMonth,true);
+  assert.deepEqual(cross.climate.observedBingVisibleRefs,[]);
+  assert.deepEqual(cross.climate.observedBingHiddenRefs,[]);
+  assert.deepEqual(cross.climate.observedGuiVisibleRefs,
+   ['natal.month.stem','natal.hour.stem']);
+  assert.equal(cross.climate.favorableHistoricalCompoundConditionMatched,false);
+  assert.equal(cross.climate.dingHiddenMustNotBeCountedAsBing,true);
+  assert.deepEqual(cross.exactDayHour.sourceRefs.slice(0,4),[
+   'natal.day.stem','natal.day.hidden.乙',
+   'natal.hour.stem','natal.hour.hidden.乙']);
+  assert.equal(cross.exactDayHour.observedWinterMonth,true);
+  assert.equal(cross.exactDayHour.winterSourceClauseMatched,true);
+  assert.equal(cross.exactDayHour.sourceContainsSeasonalHistoricJudgment,'冬安穩');
+  assert.equal(cross.exactDayHour.historicalTextNotPrediction,true);
+  assert.equal(cross.exactDayHour.approvedPaidInsight,false);
+  assert.deepEqual(x.expertDecisions.find(q=>q.id==='choose-school')
+   .independentlyMatchedClassicalTexts.map(t=>t.id),[
+    'qiong-tong-bao-jian-yi-chou-climate',
+    'san-ming-tong-hui-yi-wei-gui-wei']);
   assert.equal(screen.applicable.generalMonthVisibility.status,
    'candidate-only-not-interpretive-conclusion');
   assert.equal(screen.applicable.generalMonthVisibility.firstRoleSelected,false);
@@ -117,6 +146,10 @@ for(const [calendar,birthDate,first,status] of scenarios){
     c.id==='xu-commentary-earth-three-punishment'&&
     c.originalDoesNotExplicitlyNameTriad===true));
  }else{
+  assert.equal(cross.exactDayHour,null);
+  assert.equal(cross.climate,null);
+  assert.deepEqual(x.expertDecisions.find(q=>q.id==='choose-school')
+   .independentlyMatchedClassicalTexts,[]);
   assert.equal(earth.chartHasAllThreeEarthBranches,false);
   assert(x.expertDecisions.every(q=>q.commentaryOnlyConditions.length===0));
  }
@@ -150,6 +183,24 @@ assert.throws(()=>method.build(bad),/QA_|CORE_/);
 const adult=facts.build({calendar:'lunar',birthDate:'1982-11-24',
  leapMonth:false,birthTime:'14:20',gender:'male',mbti:'ISFP'},2027);
 const adultReview=method.build(adult);
+const late=facts.build({calendar:'lunar',birthDate:'1982-11-24',
+ leapMonth:false,birthTime:'20:20',gender:'male',mbti:'ISFP'},2027);
+const lateReview=method.build(late);
+const beforeClassical=adultReview.independentClassicalSourceEligibility;
+const afterClassical=lateReview.independentClassicalSourceEligibility;
+assert.equal(beforeClassical.climate.favorableHistoricalCompoundConditionMatched,false);
+assert.equal(beforeClassical.climate.bingExposed,false);
+assert.equal(afterClassical.climate.bingExposed,true);
+assert.deepEqual(afterClassical.climate.observedBingVisibleRefs,['natal.hour.stem']);
+assert.deepEqual(afterClassical.climate.observedGuiVisibleRefs,['natal.month.stem']);
+assert.equal(afterClassical.climate.guiExposed,true);
+assert.equal(afterClassical.climate.bingExposedWithoutGui,false);
+assert.equal(afterClassical.climate.favorableHistoricalCompoundConditionMatched,false);
+assert.equal(afterClassical.exactDayHour,null);
+assert.equal(afterClassical.paidWriterAuthorized,false);
+assert.deepEqual(lateReview.expertDecisions.find(q=>q.id==='choose-school')
+ .independentlyMatchedClassicalTexts.map(x=>x.id),
+ ['qiong-tong-bao-jian-yi-chou-climate']);
 assert.equal(adultReview.exactTextualDecision,null);
 assert.equal(adultReview.noDetectedConflictsCannotApproveMethod,true);
 assert(adultReview.unresolvedConditionCount>0);
@@ -158,6 +209,9 @@ assert(adultReview.expertDecisions.some(q=>q.id==='resolve-other-positions'&&
 console.log('QA_CLASSICAL_METHOD_HANDOFF='+JSON.stringify({
  reviewedCaseTypes:scenarios.length,
  exactTextualExamples:2,
+ eligibleAdultWinterDayHourText:1,
+ independentlyEligibleYiChouClimateRules:2,
+ favorableCompoundConditionsMet:0,
  missingGeneralMethodForAdultSample:1,
  contradictoryHourCasesRejected:2,
  expertDecisionsPending:5,chartSpecificConflictConditions:true,

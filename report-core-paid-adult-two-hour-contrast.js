@@ -171,8 +171,24 @@ function build(){
  if(!oldHourRoot.includes('乙')||newHourRoot.length!==0)
   throw Error('QA_TWO_HOURS_ROOT_CHANGE_DRIFT');
  const sharedBranchContext=invariantBranchContext(left,right);
- const scopeBefore=handoff.build(left).methodApplicabilityDecision;
- const scopeAfter=handoff.build(right).methodApplicabilityDecision;
+ const beforeHandoff=handoff.build(left),afterHandoff=handoff.build(right);
+ const scopeBefore=beforeHandoff.methodApplicabilityDecision;
+ const scopeAfter=afterHandoff.methodApplicabilityDecision;
+ const otherTextBefore=beforeHandoff.independentClassicalSourceEligibility;
+ const otherTextAfter=afterHandoff.independentClassicalSourceEligibility;
+ if(!otherTextBefore.exactDayHour?.winterSourceClauseMatched||
+    otherTextAfter.exactDayHour!==null||
+    otherTextBefore.climate?.bingExposed!==false||
+    otherTextAfter.climate?.bingExposed!==true||
+    !same(otherTextAfter.climate.observedBingVisibleRefs,['natal.hour.stem'])||
+    !same(otherTextBefore.climate.observedGuiVisibleRefs,
+     ['natal.month.stem','natal.hour.stem'])||
+    !same(otherTextAfter.climate.observedGuiVisibleRefs,['natal.month.stem'])||
+    otherTextBefore.climate.favorableHistoricalCompoundConditionMatched||
+    otherTextAfter.climate.favorableHistoricalCompoundConditionMatched||
+    otherTextBefore.readerFacingPromiseAuthorized||
+    otherTextAfter.readerFacingPromiseAuthorized)
+  throw Error('QA_TWO_HOURS_CROSS_SCHOOL_SOURCE_CONDITION_DRIFT');
  const arrowsBefore=scopeBefore.unresolved.otherPillarVisibleInteractions;
  const arrowsAfter=scopeAfter.unresolved.otherPillarVisibleInteractions;
  const beforeYearMonth=arrowsBefore.calculatedPairs.find(e=>
@@ -296,6 +312,15 @@ function build(){
     yearAndMonthStillDifferentTraditionalCategories:true,
     cannotConcludeHourIsStrongerOrWeaker:true,
     lifeEffectNotEstablished:true
+   },
+   crossSchoolHistoricalSourceScreen:{
+    before:structuredClone(otherTextBefore),
+    after:structuredClone(otherTextAfter),
+    exactWinterDayHourCaseOnlyBefore:true,
+    bingVisibleOnlyAfter:true,
+    historicalFavorableCompoundNotSatisfiedInEither:true,
+    professionalInterpretationStillNotApproved:true,
+    noLifeOutcomeFromHistoricalText:true
    },
    classicalMonthGeneralPrinciple:{
     scope:'structural-analogy-only-not-the-actual-worked-example',
