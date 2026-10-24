@@ -20,7 +20,14 @@ const inputs=[
    assert.equal(x.releaseVerdict,'not-approved');
    assert.equal(x.proof.originalTwoReaderParagraphsVerified,true);
    assert.equal(x.proof.nullThirdSlotPreservesOriginalBytes,true);
-   assert.equal(x.proof.thirdParagraphUsesIndependentVerifiedNatalRefs,true);
+   assert.equal(x.proof.thirdParagraphUsesIndependentVerifiedNatalRefs,
+    input.birthTime==='20:20');
+   assert.equal(x.proof.duplicateRoleDoesNotForceThirdParagraph,true);
+   assert.equal(x.editorialDecision.premiumBenefitEstablished,false);
+   assert.equal(x.editorialDecision.omittedWhenHourRepeatsMonthRole,
+    input.birthTime==='14:20');
+   assert.equal(x.editorialDecision.originalManualSceneReused,
+    input.birthTime==='20:20');
    assert.equal(x.proof.strictDepthFactLockUnchanged,true);
    assert.equal(x.proof.extraDoesNotChangeOriginalTitleJudgmentOrEvidence,true);
    assert.equal(x.proof.productionSchemaWriterDecoderUnchanged,true);
@@ -30,7 +37,8 @@ const inputs=[
    assert.deepEqual(x.normalReader.sections[0].bodyTopics,
     ['temperament','strength']);
    assert.deepEqual(x.additiveReader.sections[0].bodyTopics,
-    ['temperament','strength','natal_depth']);
+    input.birthTime==='14:20'?['temperament','strength']:
+     ['temperament','strength','natal_depth']);
    assert.deepEqual(x.additiveReader.sections[0].body.slice(0,2),
     x.normalReader.sections[0].body);
    assert.deepEqual(x.additiveReader.sections[0].bodyLabels.slice(0,2),
@@ -41,6 +49,20 @@ const inputs=[
     x.normalReader.sections[0].title);
    assert.equal(x.additiveReader.sections[0].keyJudgment,
     x.normalReader.sections[0].keyJudgment);
+   if(input.birthTime==='14:20'){
+    assert.equal(x.extraFixture,null);
+    assert.deepEqual(x.additiveReader,x.nullableReader);
+    assert.equal(x.editorialDecision.chartHourCategory,'편인');
+    results.push({time:input.birthTime,hour:x.chart.hour,
+     normalParagraphs:x.normalReader.sections[0].body.length,
+     optionalNullParagraphs:x.nullableReader.sections[0].body.length,
+     offlineProjectedParagraphs:x.additiveReader.sections[0].body.length});
+    continue;
+   }
+   assert(x.extraFixture.text.includes('동료'));
+   assert(x.extraFixture.text.includes('달의 뜻'));
+   assert(x.extraFixture.text.includes('시간의 뜻'));
+   assert.equal(x.editorialDecision.chartHourCategory,'상관');
    const dup=structuredClone(x.extraFixture);
    dup.basis.refs[0]=dup.basis.refs[1];
    assert.throws(()=>attachOfflineOnly(x.normalReader,dup,
@@ -70,7 +92,10 @@ const inputs=[
   assert.notEqual(results[0].hour,results[1].hour);
   console.log('QA_ADDITIVE_READER_BOUNDARY_REPLAY='+JSON.stringify({
    results,originalPaidOutputPreserved:true,optionalNullReversible:true,
-   validOfflineDepthReaderPreviewOnly:true,unverifiedClaimsNeverReleased:true,
+   validOfflineDepthReaderPreviewOnly:true,
+   firstHourRepeatedRoleIsNull:true,
+   secondHourUsesExistingGroundedScene:true,
+   unverifiedClaimsNeverReleased:true,
    httpRequests:attempted,paidCalls:0,releaseVerdict:'not-approved'}));
  }finally{global.fetch=old;}
  assert.equal(attempted,0);

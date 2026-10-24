@@ -10,6 +10,7 @@ const generation=require('./report-generation-request');
 const wire=require('./report-wire');
 const thesis=require('./report-core-thesis');
 const lock=require('./report-core-paid-natal-depth-fact-lock');
+const twoHourManuscript=require('./report-core-paid-adult-two-hour-contrast');
 const reader=require('./report-reader-policy');
 const REQUIRED=['natal.year.stem','natal.month.stem','natal.day.stem',
  'natal.hour.stem','facts.stemConnections'];
@@ -118,18 +119,47 @@ async function inspect(input){
   proposed:schema.additivePrototype.schema};
  const empty=attachOfflineOnly(decoded,null,context);
  ensure(same(empty.report,decoded),'NULL_CHANGED_REAL_READER_OUTPUT');
- const refList=schema.citations.qaDepth.slice();
- const extra={
-  label:'태어난 해와 시간에서 달라지는 해석 단서',
-  text:'새로운 일을 동료에게 설명하는 상황을 가정하면, 태어난 해에서 계산된 분류는 이미 아는 내용을 참고하는 방식에, 시간의 분류는 생각을 표현하는 방식에 각각 비유할 수 있습니다. 두 분류 중 무엇이 실제 행동을 더 잘 설명하는지는 확인되지 않았습니다.',
-  basis:{refs:refList,interpretation:locked.literal,
-   condition:'새 일을 동료에게 설명하는 가상의 상황',
-   limit:'전통적 분류의 관찰된 성격·성과 및 방법 우선순위는 미판정'}
+ // No newly invented "high-end" prose. Replay the existing chart-checked
+ // handwritten candidate, and reject the candidate when the hour repeats
+ // the month role. A different hour category is a REVIEW opportunity, not
+ // an automatic assertion of extra customer value.
+ const pair=twoHourManuscript.build();
+ const isBefore=same(prompt.facts.chart,pair.charts.before);
+ const isAfter=same(prompt.facts.chart,pair.charts.after);
+ ensure(isBefore!==isAfter&&pair.providerCalls===0&&
+  pair.incrementalPremiumValueEstablished===false&&
+  pair.interpretation.methodApproved===false&&
+  pair.unchangedFreeMonthCore.actualTextEqual===true&&
+  pair.changed.sameMonthAndHourSymbolBefore===true&&
+  pair.changed.sameMonthAndHourSymbolAfter===false,
+  'TWO_HOUR_EDITORIAL_SOURCE_NOT_VERIFIED');
+ const rejectedForRepetition=isBefore;
+ const sourceManuscript=isAfter?pair.editorialAlternative.after:null;
+ const scene=sourceManuscript?.paragraphs.find(x=>
+  x.kind==='hypothetical-choice');
+ if(isAfter)ensure(scene?.text&&sourceManuscript
+   .manuscriptProfessionallyValidated===false&&
+   sourceManuscript.readerPaidValueTested===false&&
+   sourceManuscript.releaseVerdict==='not-approved'&&
+   sourceManuscript.sourceRefs.includes('natal.hour.stem')&&
+   scene.text.includes('달의 뜻')&&
+   scene.text.includes('시간의 뜻')&&
+   !scene.text.includes('실제로 말을 잘')&&
+   !reader.errors([scene.text]).length,
+  'UNVERIFIED_OR_NON_DISTINCT_EDITORIAL_SCENE');
+ const extra=rejectedForRepetition?null:{
+  label:'이해한 내용을 다른 사람에게 전달하는 상황',
+  text:scene.text,
+  basis:{refs:schema.citations.qaDepth.slice(),
+   interpretation:locked.literal,
+   condition:'새로운 작업 절차를 동료에게 설명하는 가정 상황',
+   limit:'서로 다른 전통 분류의 비유일 뿐 실제 전달 능력과 방법 우선순위는 미판정'}
  };
  const joined=attachOfflineOnly(decoded,extra,context);
- ensure(same(joined.report.sections[0].bodyTopics,
-  ['temperament','strength','natal_depth'])&&
-  joined.report.sections[0].body.length===3&&
+ const expectedTopics=isBefore?['temperament','strength']:
+  ['temperament','strength','natal_depth'];
+ ensure(same(joined.report.sections[0].bodyTopics,expectedTopics)&&
+  joined.report.sections[0].body.length===expectedTopics.length&&
   same(joined.report.sections[0].body.slice(0,2),
    decoded.sections[0].body)&&
   same(joined.report.sections[0].evidence.slice(0,2),
@@ -140,12 +170,24 @@ async function inspect(input){
   normalReader:decoded,nullableReader:empty.report,
   additiveReader:joined.report,
   extraFixture:extra,
+  editorialDecision:{
+   kind:'qa-optional-third-paragraph-specificity-review-v1',
+   omittedWhenHourRepeatsMonthRole:rejectedForRepetition,
+   originalMonthInterpretationUnchanged:true,
+   source:'preexisting-chart-verified-manual-manuscript',
+   chartHourCategory:isBefore?'편인':'상관',
+   originalManualSceneReused:Boolean(extra),
+   premiumBenefitEstablished:false,customerReady:false,
+   decision:isBefore?'omit-duplicate-month-hour-meaning':
+    'editorial-scene-only-not-validated-personal-insight'
+  },
   projectionContext:context,
   originalFirstBatch:captured.requestedSections.slice(),
   proof:{
    originalTwoReaderParagraphsVerified:true,
    nullThirdSlotPreservesOriginalBytes:true,
-   thirdParagraphUsesIndependentVerifiedNatalRefs:true,
+   thirdParagraphUsesIndependentVerifiedNatalRefs:extra!==null,
+   duplicateRoleDoesNotForceThirdParagraph:true,
    strictDepthFactLockUnchanged:true,
    extraDoesNotChangeOriginalTitleJudgmentOrEvidence:true,
    productionSchemaWriterDecoderUnchanged:true,
