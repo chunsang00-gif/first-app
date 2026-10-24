@@ -102,4 +102,79 @@ function assess(inputs=coverage.representativeInputs()){
   [...byJudgment.values()].reduce((n,group)=>n+Math.max(0,group.size-1),0);
  return summary;
 }
-module.exports={reportOne,assess};
+// The 99-case synthetic core-only audit cannot reproduce production's
+// editorialTask/rules by itself. Cross-check the *intercepted real server*
+// first body request before calling it an actual paid writer gap.
+// This is a second read-only measurement, never a customer request or model call.
+function fromCapturedFirstBody(prompt){
+ if(prompt?.stage!=='body'||
+    !Array.isArray(prompt.requestedSections)||
+    prompt.requestedSections[0]!=='saju_core'||
+    prompt.qaNatalDepthPreview===true||
+    prompt.qaOfflineEditorialResearchPreview===true||
+    prompt.facts?.status!=='ready'||
+    typeof prompt.editorialTask!=='string'||
+    prompt.editorialTask.length<100||
+    !prompt.rules?.sectionGoals?.saju_core||
+    !prompt.rules?.chapterOwnershipPlan?.saju_core||
+    !prompt.analysisGuidance?.editorialBlueprint?.saju_core||
+    !prompt.factBindings?.length)
+  throw Error('PAID_DEPTH_REAL_SERVER_FIRST_BODY_REQUIRED');
+ const output=paid.compile(prompt),coreTask=output?.task?.chapters?.saju_core;
+ if(!coreTask||coreTask.topics.natal_depth||
+    typeof output.task.editorialGoal!=='string'||
+    output.task.editorialGoal.length<100||
+    !output.task.editorialGoal.includes('결제 고객')||
+    !output.task.chapters.saju_core.analysisFocus)
+  throw Error('PAID_DEPTH_REAL_SERVER_EDITORIAL_GOAL_NOT_REPRESENTED');
+ const coreRefs=[...new Set(Object.values(coreTask.topics).flatMap(t=>
+  t.citableFacts.map(c=>c.id)))].sort();
+ if(!coreRefs.length||coreRefs.some(ref=>!Object.hasOwn(output.source,ref)))
+  throw Error('PAID_DEPTH_REAL_SERVER_CITATIONS_INVALID');
+ // Baseline source equality is checked per CORE topic. The server may
+ // share a batch with other chapters whose different refs are irrelevant.
+ const synthetic=reportOne(prompt.facts);
+ if(JSON.stringify(coreRefs)!==JSON.stringify(synthetic.paidCitableRefs))
+  throw Error('PAID_DEPTH_SYNTHETIC_VS_REAL_SOURCE_SCOPE_DRIFT');
+ // Match the server's strict-schema cleanup with a scoped local clone.
+  // cleanup to validate the genuine task via the exact transport schema.
+ const normalize=v=>{
+  if(Array.isArray(v))return v.map(normalize);
+  if(!v||typeof v!=='object')return v;
+  return Object.fromEntries(Object.entries(v)
+   .filter(([key,val])=>!['$schema','minLength','maxLength','minItems',
+    'maxItems','minimum','maximum','pattern','format'].includes(key)&&
+    !(key==='title'&&typeof val==='string'))
+   .map(([key,val])=>[key,normalize(val)]));
+ };
+ const wire=require('./report-wire');
+ const strict=paid.schema(prompt,wire.schemaFor(prompt,
+  normalize(require('./report-schema.json'))));
+ const preflight=require('./report-provider-preflight').inspect(prompt,output,strict);
+ const transport=require('./report-instruction-audit').inspectTransport(prompt,output);
+ if(preflight.length||transport.length)
+  throw Error('PAID_DEPTH_REAL_FIRST_BODY_PREFLIGHT_FAILED:'+JSON.stringify({
+   preflight,transport}));
+ const yearHourRefs=['natal.year.stem','natal.hour.stem',
+  'natal.day.stem','facts.stemConnections','facts.natalBranchRelations'];
+ const allowedExtra=yearHourRefs.filter(id=>coreRefs.includes(id));
+ return {
+  kind:'verified-actual-server-first-body-v1',
+  firstBatchSections:prompt.requestedSections.slice(),
+  hasServerEditorialTask:true,
+  providerHasCoreEditorialGoal:true,
+  serverTaskAndStrictSchemaConsistent:true,
+  coreCitableRefs:coreRefs,
+  realCoreExtraNatalRefs:allowedExtra,
+  matchesSyntheticCoreEvidence:true,
+  sourceScopeIdenticalEvenThoughSyntheticPromptLacksEditorialTask:true,
+  sourceScopeIsNotProseQuality:true,
+  normalPaidCoreIncludesNatalDepth:false,
+  normalPaidCoreWholeChartGrounded:false,
+  // Extra verified citations and human-approved interpretation are distinct.
+  copyingOfflineUnreviewedDraftIntoNormalPaidForbidden:true,
+  apiCalls:0,releaseVerdict:'blocked-unreviewed-paid-depth'
+ };
+}
+
+module.exports={reportOne,assess,fromCapturedFirstBody};
