@@ -38,6 +38,10 @@ function inspect(value,prompt){
  const errors=[];
  if(prompt?.qaNatalDepthPreview!==true)return errors;
  const fail=e=>errors.push(e);
+ // Two intentionally distinct QA contracts share this verifier:
+ // one-shot diagnostic requires depth and suppresses temperament;
+ // additive trial preserves temperament and omits unsupported depth.
+ const additive=prompt.qaAdditiveDepthPreview===true;
  if(prompt.stage!=='body'||JSON.stringify(prompt.requestedSections)!=='["saju_core"]'||
     !prompt.facts?.chart?.hour)
   return ['QA_DEPTH_INVALID_OR_UNKNOWN_NATAL_SCOPE'];
@@ -58,10 +62,16 @@ function inspect(value,prompt){
  // a failed sample, never a technical pass. Preserve the original response
  // in the existing encrypted rejected-archive path; do not retry the model.
  // The ordinary paid schema/decoder is unaffected by this QA-only gate.
- if(depth===null)return [...new Set([...errors,'QA_DEPTH_REQUIRED_READING_MISSING'])];
+ if(depth===null){
+  // A nullable slot is useful only if the complete original two-topic
+  // response can still be decoded. The actual reader/strict evidence
+  // validation follows in report-response-decoder.
+  return additive?[...new Set(errors)]:
+   [...new Set([...errors,'QA_DEPTH_REQUIRED_READING_MISSING'])];
+ }
  if(!depth||typeof depth!=='object'||Array.isArray(depth))
   return [...errors,'QA_DEPTH_WRONG_PARAGRAPH_TYPE'];
- if(parts.temperament!==null)
+ if(!additive&&parts.temperament!==null)
   fail('QA_DEPTH_SEASONAL_SLOT_NOT_NULL');
  const basis=depth.basis;
  if(!basis||!Array.isArray(basis.refs)||

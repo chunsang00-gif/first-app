@@ -3,6 +3,8 @@ const assert=require('node:assert/strict');
 const qa=require('./report-core-paid-full-qa-compose');
 const writer=require('./report-generation-request');
 const wire=require('./report-wire');
+const decoder=require('./report-response-decoder');
+const gate=require('./report-core-paid-natal-depth-response-gate');
 const thesis=require('./report-core-thesis');
 const input=time=>({calendar:'lunar',birthDate:'1982-11-24',
  birthTime:time,leapMonth:false,gender:'male',mbti:'ISFP'});
@@ -85,6 +87,19 @@ const input=time=>({calendar:'lunar',birthDate:'1982-11-24',
    assert.deepEqual(result.sections[0].bodyTopics,['temperament','strength']);
    assert.equal(result.sections[0].body.length,2);
    assert.equal(result.sections[0].evidence.length,2);
+   // Real decoder adds the QA semantic guard, unlike direct wire.decode.
+   // A safe absent third paragraph must be accepted in additive mode.
+   assert.deepEqual(gate.inspect(response,p),[]);
+   const actualReader=decoder.decode(response,p);
+   assert.deepEqual(actualReader.sections[0].bodyTopics,
+    ['temperament','strength']);
+   assert.equal(actualReader.sections[0].body.length,2);
+   const missingAnchor=structuredClone(response);
+   missingAnchor.chapters.saju_core.paragraphs.strength=null;
+   assert(gate.inspect(missingAnchor,p).includes('QA_DEPTH_MISSING_CORE_ANCHOR'));
+   assert.throws(()=>decoder.decode(missingAnchor,p),
+    /QA_NATAL_DEPTH_RESPONSE_REJECTED/,
+    'nullable depth must not weaken the mandatory original month paragraph');
    // A NON-NULL third paragraph travels through the real schema/decoder.
    // This is a manually written transport fixture, not a generated or
    // approved paid reading. Both original paragraphs must stay identical.
@@ -111,6 +126,11 @@ const input=time=>({calendar:'lunar',birthDate:'1982-11-24',
     assert.deepEqual(parsed.sections[0].evidence.slice(0,2),
      result.sections[0].evidence);
     assert.equal(parsed.sections[0].body.length,3);
+    assert(gate.inspect(rich,p).length>0,
+     'citation-valid but generic depth is NOT acceptable as a paid insight');
+    assert.throws(()=>decoder.decode(rich,p),
+     /QA_NATAL_DEPTH_RESPONSE_REJECTED/,
+     'the actual QA response decoder must reject glossary-like extra prose');
     assert.equal(sample.readerValueApproved,false);
    }
    assert.equal(sample.modelResponse,null);
