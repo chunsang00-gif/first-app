@@ -48,6 +48,8 @@ function semanticReview(packet,authored){
  };
 }
 function assess(packet,computed,selected,draftKind,authoredReview=null){
+ if(authoredReview&&draftKind!=='authored')
+  throw Error('QA_VALUE_DELTA_MACHINE_CANNOT_CLAIM_HUMAN_REVIEW');
  if(packet?.status!=='ready'||computed?.status!=='draft-for-human-review'||
     !['authored','machine'].includes(draftKind)||
     !Array.isArray(selected?.sourceRefs)||!selected.sourceRefs.length)
@@ -86,8 +88,6 @@ function assess(packet,computed,selected,draftKind,authoredReview=null){
  const describesTradeoff=/(?:반대로|그러나|하지만|다만|놓치|경계)/.test(deep);
  const hasAction=/(?:정리|구분|점검|확인|선택|비교|따져|살피)/.test(deep);
  const monthOnlyRepeats=shared.length>0||eightGramOverlap>0.55;
- if(authoredReview&&draftKind!=='authored')
-  throw Error('QA_VALUE_DELTA_MACHINE_CANNOT_CLAIM_HUMAN_REVIEW');
  const semantic=semanticReview(packet,authoredReview);
  // Do not confuse textual novelty with new decisions. The current
  // 1982 adult first chapter repeats THREE month-core propositions even
