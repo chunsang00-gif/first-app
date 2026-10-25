@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="theme-color" content="#10223b" />
+  <meta name="description" content="승강기 고유번호 7자리로 건물정보, 운행상태, 검사 유효기간을 조회하는 간편한 승강기 정보 검색 서비스" />
+  <title>승강기 한눈에 | 고유번호 조회</title>
+  <link rel="stylesheet" href="/styles.css" />
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <div class="top-gradient"></div>
+  <header class="site-header wrap">
+    <a class="brand" href="/" aria-label="승강기 한눈에 홈"><span class="brand-icon" aria-hidden="true">↕</span><span>승강기<span class="brand-accent">한눈에</span></span></a>
+    <a class="header-link" href="https://www.elevator.go.kr/opn/MainPage.do" target="_blank" rel="noopener noreferrer">국가승강기정보센터 <span aria-hidden="true">↗</span></a>
+  </header>
+  <main class="wrap">
+    <section class="hero" aria-labelledby="main-title">
+      <div class="eyebrow"><span class="online-dot"></span> 승강기 고유번호 통합 조회</div>
+      <h1 id="main-title">엘리베이터 정보,<br /><em>번호 하나로 간편하게.</em></h1>
+      <p>승강기 번호 7자리로 설치된 건물과 운행 상태, 안전검사 정보를 확인해 보세요.</p>
+      <div class="search-panel">
+        <form id="lookup-form" novalidate>
+          <label for="number">승강기 고유번호 <span>7자리 숫자</span></label>
+          <div class="input-row">
+            <span class="search-icon" aria-hidden="true">⌕</span>
+            <input id="number" name="number" type="text" inputmode="numeric" pattern="[0-9]{7}" maxlength="7" autocomplete="off" enterkeyhint="search" placeholder="예: 8088381" aria-describedby="number-help" required />
+            <button id="search-button" type="submit">조회하기 <span aria-hidden="true">→</span></button>
+          </div>
+          <div class="input-meta"><small id="number-help">숫자 7자리를 입력해 주세요. 예시 번호는 공식 사이트의 입력 예시입니다.</small><small id="char-count">0 / 7</small></div>
+        </form>
+        <div class="panel-footer"><span class="source-icon" aria-hidden="true">✓</span> 정보 출처 : 한국승강기안전공단 · 공공데이터포털</div>
+      </div>
+      <div id="status" class="status hidden" role="status" aria-live="polite"></div>
+    </section>
+
+    <section id="result-section" class="results hidden" aria-live="polite">
+      <div class="section-top"><div><span class="section-eyebrow">SEARCH RESULT</span><h2>조회 결과</h2></div><button type="button" class="soft-button" id="copy-result-number">번호 복사 <span aria-hidden="true">⧉</span></button></div>
+      <div id="result-list"></div>
+      <p class="result-note">안내된 정보는 공공데이터 제공 시점 기준입니다. 안전 관련 최종 확인은 국가승강기정보센터를 이용해 주세요.</p>
+    </section>
+
+    <section class="help-grid" aria-label="도움말">
+      <article class="info-card">
+        <div class="info-icon navy" aria-hidden="true">⌗</div>
+        <h2>고유번호는 어디에 있나요?</h2>
+        <p>엘리베이터 내부 비상벨 근처 또는 출입구 옆의 번호표·QR 안내판에서 확인할 수 있습니다.</p>
+        <a href="https://www.elevator.go.kr/opn/MainPage.do" target="_blank" rel="noopener noreferrer">번호 없이 공식 사이트에서 찾기 <span aria-hidden="true">↗</span></a>
+      </article>
+      <article class="info-card">
+        <div class="info-icon blue" aria-hidden="true">▤</div>
+        <h2>어떤 정보를 볼 수 있나요?</h2>
+        <p>공식 API 연결 후 건물명, 주소, 승강기 종류 및 상태, 설치일과 검사 유효기간 등을 확인할 수 있습니다.</p>
+        <a href="https://www.data.go.kr/data/15150945/openapi.do" target="_blank" rel="noopener noreferrer">공공데이터 설명 보기 <span aria-hidden="true">↗</span></a>
+      </article>
+      <article class="info-card">
+        <div class="info-icon amber" aria-hidden="true">⚑</div>
+        <h2>조회되지 않는다면?</h2>
+        <p>고유번호를 확인하거나 공식 정보센터에서 조회해 보세요. 검사 및 운행 관련 최신 정보는 공식 기록을 기준으로 합니다.</p>
+        <a id="official-direct" href="https://www.elevator.go.kr/opn/info/ComElvtrNumAddrNewL01.do" target="_blank" rel="noopener noreferrer">공식 승강기정보 조회 <span aria-hidden="true">↗</span></a>
+      </article>
+    </section>
+    <section class="notice" aria-label="서비스 안내">
+      <div><strong>안전 관련 안내</strong><p>이 사이트는 한국승강기안전공단의 공식 운영 사이트가 아닌 조회 도구입니다. 장애·갇힘 등 긴급 상황에서는 현장 비상통화 장치 및 119를 이용하세요.</p></div>
+      <span aria-hidden="true">ⓘ</span>
+    </section>
+  </main>
+  <footer class="footer wrap"><span>© 2026 승강기 한눈에</span><span>공공데이터 제공 : 한국승강기안전공단 · 자료 출처 표기</span></footer>
+</body>
+</html>
