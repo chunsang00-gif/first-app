@@ -29,13 +29,17 @@ const policy=policyParts.join('\n');
 // fortune, MBTI integration, and end-of-report instructions from core prose.
 const corePolicyPartIndexes=[0,1,2,4,5,6,7,8,9,10,12,16];
 const normalPaidMonthMethodBoundary="달의 겉글자가 기본 숨은 글자가 아닌 달의 다른 숨은 글자와 정확히 같을 때에는, 기본 숨은 글자가 실제 사령이나 해석의 최우선 기준이라고 단정하지 않는다. 반대로 다른 숨은 글자가 일치한다고 그것이 곧 우선한다고 결론내리지 않는다. evidenceFocus.tenGodFocus.monthStemVisibility는 오직 계산상 일치·불일치를 설명하는 자료이며 격국과 성격·능력을 검증한 뜻이 아니다. 유료 첫 장의 basis.limit에는 이 판단 한계를 내부적으로 남기고 독자 본문에서 기술 용어를 반복하지 않는다.";
+const additivePolicy='선택형 QA: temperament는 일반 유료 첫 장처럼 독립적 근거가 있을 때만 작성하고 strength는 필수로 유지한다. natal_depth는 선택 항목이며 새로운 개인별 판단 근거가 없으면 null로 반환한다. 고전이나 계산 정보의 일치 자체를 실제 성격 또는 미래 결과로 단정하지 않는다.';
 function policyFor(prompt){
  if(prompt?.stage==='body'&&
     JSON.stringify(prompt.requestedSections)===JSON.stringify(['saju_core'])){
   if(policyParts.length!==18)throw Error('QA_CORE_POLICY_PARTITION_NEEDS_REVIEW');
   const parts=corePolicyPartIndexes
-   .filter(i=>prompt.qaNatalDepthPreview!==true||i!==1)
+   .filter(i=>prompt.qaAdditiveDepthPreview===true||
+    prompt.qaNatalDepthPreview!==true||i!==1)
    .map(i=>policyParts[i]);
+  if(prompt.qaAdditiveDepthPreview===true)
+   return parts.join('\n')+'\n'+additivePolicy;
   if(prompt.qaNatalDepthPreview===true)parts.push(
    '심화 사주 QA 전용: 계절 보충 temperament는 중복 위험으로 반드시 null이다. 필수 strength에는 출생달의 두 계산 위치를 출처에 연결하고, 별도의 natal_depth에는 확인된 태어난 해·날·시간의 위치와 전통적 뜻을 다른 판단 기준으로 연결한다. 고객용 글에는 계산 기호나 전문용어를 쓰지 않는다. 출처나 사실이 없는 해석을 발명해서 채우면 안 되며, 그런 응답은 QA에서 실패한다. 정상 유료 보고서 경로에는 이 지침을 적용하지 않는다.'
   );
@@ -147,12 +151,13 @@ function sources(prompt){
 // instruction does not run in the one-call paid QA or customer-facing app.
 const offlineEditorialBenchmarkDirective=' 이 QA 오프라인 검증에서는 task.chapters.saju_core.topics.natal_depth.qaOfflineEditorialResearch.fullFirstChapterResearch를 품질 비교용 초안으로만 참고한다. 각 문단의 계산 위치별 뜻, 상반되는 근거, 가상 상황의 유리한 조건과 놓칠 조건, 자연스러운 독자용 문장이 실제 허용된 출처와 맞는지 검토한다. 원고를 실제 고객의 관찰된 성격처럼 복사하거나 다른 출생 정보에 재사용하지 않는다. 독자용 마지막 문장에서 업무·행사·매장 등의 상황 명사만 교체한 채 누구에게나 같은 조언을 반복하지 않는다. 서로 다른 계산 분류가 허용하는 차이가 없다면 억지 차별화 대신 그 한계를 내부 근거에만 기록한다. 가상 상황에서 도움이 되는 조건과 놓칠 조건은 각각 인용한 계산 분류의 전통적 뜻과 연결되어야 한다. 도입부의 분류 설명만 맞고 결론이 누구나 적용 가능한 조언이면 통과로 간주하지 않는다. 태어난 날의 중심 글자는 다른 위치의 전통 분류를 계산할 때 쓰는 기준이며, 그 기준만으로 별도 성격이나 행동을 만들어 고객용 본문에 억지로 넣지 않는다. 자료가 검수 미완료 상태이므로 품질 승인을 선언하거나 정식 유료 생성에 포함하지 않는다.';
 const coreEditorialGoal='이 응답은 결제 고객이 읽을 첫 번째 사주 기질 장의 최종 본문 원고다. 계산된 태어난 달의 두 전통 분류를 실제 인용 가능한 근거로 사용한다. 먼저 그래서 어떤 기질로 읽는지 독자가 한 번에 이해할 말로 풀고, 하나의 구체적인 가상 선택에서 두 의미를 함께 고려하면 어떤 조건에서 유리하고 한쪽만 따르면 무엇을 놓치는지 연결해 설명한다. 계산 위치와 두 분류의 사전 뜻을 차례로 소개하거나 누구에게나 맞는 확인·준비 조언으로 채우지 않는다. 같은 분류가 두 위치에서 나왔다면 반대 성향이나 기질의 강도 증가를 만들어내지 않는다. 계절 보충 문단은 핵심 풀이와 다른 해석 근거가 실제로 있을 때만 작성하고 중복이라면 null로 둔다. 내부 basis에는 실제 두 출처·해석·적용 조건·한계를 기록하되 독자용 제목과 본문에는 전문용어·출처 ID·검증 순서를 나열하지 않는다. 확인하지 않은 실제 성격·능력·경험·성공이나 사건을 단정하지 않는다. 한국어 조사와 서술어를 자연스럽게 고치고 추상적인 수식·반복되는 한계 안내·마지막 요약으로 분량을 늘리지 않는다.';
+const additiveGoal=' 선택형 QA에서는 temperament의 기존 선택 기준과 strength 필수 판정을 유지한다. natal_depth는 독립적으로 증명 가능한 새 개인별 해석이 없으면 null이다. 계산상 새로운 분류와 고전 사례만으로 실제 능력, 성격, 운세를 새로 만들어 쓰지 않는다. 다른 두 문단의 내용을 복제하거나 일반적인 조언으로 심화를 채우지 않는다.';
 function editorialGoalFor(prompt){
  const original=typeof prompt?.editorialTask==='string'?prompt.editorialTask:null;
  if(original&&prompt.stage==='body'&&
     Array.isArray(prompt.requestedSections)&&
     prompt.requestedSections.length===1&&prompt.requestedSections[0]==='saju_core')
-  return coreEditorialGoal+(prompt.qaNatalDepthPreview===true?
+  return coreEditorialGoal+(prompt.qaAdditiveDepthPreview===true?additiveGoal:prompt.qaNatalDepthPreview===true?
    ' QA 전용 검증 응답이다. temperament는 반드시 null로 둔다. strength는 기존 월 중심 핵심 판단과 두 분류의 의미를 유지한다. 세 번째 natal_depth는 검증된 출생 해·날·시간의 독립된 뜻이 월 중심 풀이에 더하는 새로운 판단을 검토하는 필수 원고다. 새 제안을 선택하는 등 한 가지 현실적인 가상 상황을 잡고, 해와 시간의 전통적 분류가 서로 다른 선택 기준에 연결되는 이유와 어떤 조건에서 유리하고 불리한지 구별한다. 실제로 계산된 분류가 같으면 거짓 반전을 만들지 않는다. 단순 계산 위치 소개·사전적인 뜻 두 문장·누구에게나 통하는 준비 조언·면책 반복으로 원고를 대신하지 않는다. 기준이 되는 출생 근거가 충분하지 않다면 임의로 생성하지 말고 QA 실패로 남긴다. 이 요청은 사전 근거 선별이 끝난 1회 검증 원고이며, natal_depth를 null로 제출하거나 필수 인용 없이 작성하는 것은 실패다. 실제 성격·능력·신강약·충의 결과·합화·미래 사건은 단정하지 않는다. 이 문단은 출시 미승인 후보이므로 사람의 문장 감수가 따로 필요하다.':'')+
    (prompt.qaOfflineEditorialResearchPreview===true?offlineEditorialBenchmarkDirective:'');
  return original;
