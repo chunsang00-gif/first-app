@@ -135,6 +135,31 @@ assert.deepEqual(validateStrict(strict,built.response),[],
 const errors=gate.inspect(built.response,built.prompt);
 assert.deepEqual(errors,[],
  'complete adult manuscript must pass real QA depth semantic/provenance gate');
+// The new exact-winter research is not a license to combine unrelated
+// classical statements into a personal forecast.
+for(const [badSentence,expectedError] of [
+ ['다른 겨울 조건이 없으므로 고전의 편안한 평가는 취소됩니다.',
+  'QA_DEPTH_CLASSICAL_VERSE_FALSELY_CANCELLED'],
+ ['따뜻함을 뜻하는 글자가 겉에 없으므로 이 사람의 운은 나쁩니다.',
+  'QA_DEPTH_CLASSICAL_MISSING_CONDITION_TO_BAD_FORTUNE'],
+ ['겨울 고전이 편안함을 말하니 이 사람은 실제로 평온한 성격입니다.',
+  'QA_DEPTH_CLASSICAL_TEXT_TO_PERSONAL_CERTAINTY']
+]){
+ const invalid=structuredClone(built.response);
+ invalid.chapters.saju_core.paragraphs.natal_depth.text+=' '+badSentence;
+ assert(gate.inspect(invalid,built.prompt).includes(expectedError),
+  'source-scope-specific unsupported claim was not blocked: '+badSentence);
+ assert.throws(()=>responseDecode(invalid,built.prompt),
+  /QA_NATAL_DEPTH_RESPONSE_REJECTED/,
+  'unsupported classical claim must not reach the report decoder');
+}
+const bounded=structuredClone(built.response);
+bounded.chapters.saju_core.paragraphs.natal_depth.text+=
+ ' 고전의 겨울 평가가 취소된다는 뜻은 아닙니다.'+
+ ' 다른 겨울 조건이 충족되지 않아도 실제 불운이 확인된 것은 아닙니다.';
+assert.deepEqual(gate.inspect(bounded,built.prompt),[],
+ 'clearly qualified classical scope should stay permissible');
+
 const rendered=responseDecode(built.response,built.prompt);
 assert.equal(rendered.sections.length,1);
 assert.deepEqual(rendered.sections[0].bodyTopics,['strength','natal_depth']);
