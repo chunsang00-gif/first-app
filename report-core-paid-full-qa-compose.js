@@ -117,6 +117,15 @@ async function assembleAdditiveTransportPreview(input){
    .topicTasks.temperament);
  prompt.rules.topicPlan.saju_core.temperament=
   structuredClone(live.prompt.rules.topicPlan.saju_core.temperament);
+ // A nullable schema alone is not enough: the ITEM-level instructions
+ // are also shipped in task.chapters.saju_core.topics.natal_depth.
+ // The frozen one-shot instruction stays mandatory on its own prompt.
+ const optionalBoundary='선택형 오프라인 심화 검토다. 기존 계절 풀이와 필수 달 중심 풀이를 변경하지 않는다. 실제 계산된 출생 해·날·시간의 출처로부터 기존 풀이에 없던 독립적인 개인별 판단을 뒷받침하지 못하면 natal_depth는 null로 반환한다. 계산 분류나 정확한 고전 사례가 있다는 사실만으로 성격, 직업, 수입, 장래 결과를 꾸며 쓰지 않는다. 가상 사례와 일반적인 조언만 남을 때도 null로 둔다. 검증 가능한 새 결론이 있을 때에만 출처, 조건, 반대 근거 및 해석의 한계를 내부에 기록하고 고객용으로 승인됐다고 주장하지 않는다.';
+ plan.topicTasks.natal_depth.interpretationBoundary=optionalBoundary;
+ prompt.rules.chapterOwnershipPlan.saju_core.topicTasks.natal_depth
+  .interpretationBoundary=optionalBoundary;
+ prompt.rules.topicPlan.saju_core.natal_depth=optionalBoundary;
+
  if(prompt.qaAdditiveDepthPreview!==undefined||
     prompt.qaOfflineEditorialResearchPreview===true||
     prompt.qaNatalDepthPreview!==true||
