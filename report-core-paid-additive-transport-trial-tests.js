@@ -26,6 +26,23 @@ const input=time=>({calendar:'lunar',birthDate:'1982-11-24',
    assert.deepEqual(slots.natal_depth.anyOf.map(s=>s.type),['object','null']);
    assert.equal(slots.strength.type,'object');
    const p=sample.prompt,source=sample.payload.source;
+   const goal=sample.payload.task.editorialGoal;
+   const sys=writer.policyFor(p);
+   const oldGoal=writer.editorialGoalFor(previous.prompt);
+   const oldSys=writer.policyFor(previous.prompt);
+   assert.equal(goal,writer.editorialGoalFor(p));
+   assert(goal.includes('natal_depth는 독립적으로 증명 가능한'));
+   assert(goal.includes('null이다'));
+   assert(sys.includes('선택형 QA'));
+   assert(sys.includes('natal_depth는 선택 항목'));
+   assert(sys.includes('없으면 null로 반환한다'));
+   assert(!goal.includes('temperament는 반드시 null로 둔다'));
+   assert(!goal.includes('natal_depth를 null로 제출하거나'));
+   assert(!sys.includes('계절 보충 temperament는 중복 위험으로 반드시 null이다'));
+   assert(oldGoal.includes('temperament는 반드시 null로 둔다'));
+   assert(oldGoal.includes('natal_depth를 null로 제출하거나'));
+   assert(oldSys.includes('계절 보충 temperament는 중복 위험으로 반드시 null이다'));
+   assert(!oldSys.includes('선택형 QA'));
    const monthMain=source['facts.structuralEvidence.monthCommand'].mainHiddenStem;
    const fixed=thesis.forPrompt(p);
    const paragraph=(label,text,refs)=>({
