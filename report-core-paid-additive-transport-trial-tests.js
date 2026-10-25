@@ -25,6 +25,26 @@ const input=time=>({calendar:'lunar',birthDate:'1982-11-24',
    assert.deepEqual(slots.temperament.anyOf.map(s=>s.type),['object','null']);
    assert.deepEqual(slots.natal_depth.anyOf.map(s=>s.type),['object','null']);
    assert.equal(slots.strength.type,'object');
+   // The item-level brief is sent in the provider JSON separately from
+   // the editorial goal and system prompt. All three must agree with null.
+   const optional=sample.payload.task.chapters.saju_core.topics.natal_depth
+    .interpretationBoundary;
+   const plan=sample.prompt.analysisGuidance.editorialBlueprint.saju_core;
+   assert(optional.includes('natal_depth는 null로 반환한다'));
+   assert(optional.includes('가상 사례와 일반적인 조언만 남을 때도 null'));
+   assert(!optional.includes('사후 QA에서 실패 처리'));
+   assert.equal(optional,plan.topicTasks.natal_depth.interpretationBoundary);
+   assert.equal(optional,sample.prompt.rules.chapterOwnershipPlan.saju_core
+    .topicTasks.natal_depth.interpretationBoundary);
+   assert.equal(optional,sample.prompt.rules.topicPlan.saju_core.natal_depth);
+   const frozen=previous.payload.task.chapters.saju_core.topics.natal_depth
+    .interpretationBoundary;
+   assert(frozen.includes('사후 QA에서 실패 처리'));
+   assert.notEqual(optional,frozen);
+   assert.equal(sample.payload.task.chapters.saju_core.topics.strength
+    .interpretationBoundary,
+    previous.payload.task.chapters.saju_core.topics.strength.interpretationBoundary);
+
    const p=sample.prompt,source=sample.payload.source;
    const goal=sample.payload.task.editorialGoal;
    const sys=writer.policyFor(p);
