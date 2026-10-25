@@ -51,6 +51,33 @@ function build(packet){
   c.favorableHistoricalCompoundConditionMatched===false&&
   c.historicalFortuneClaimAllowedForCustomer===false,
   'DIFFERENT_CLIMATE_CONDITIONS');
+ // Verify that exact day/hour eligibility and general winter-month conditions
+ // come from TWO independent sources. One is not a rebuttal to the other.
+ const exactRoute=chosen.questionRoutes.whichClassicalDayHourText;
+ const seasonalRoute=chosen.questionRoutes.whatSeasonalConditionToConsider;
+ need(exactRoute.url===d.url&&seasonalRoute.url===c.url&&
+  exactRoute.citedDayPillar===packet.chart.day&&
+  exactRoute.citedHourPillar===packet.chart.hour&&
+  seasonalRoute.dayStem===packet.chart.day[0]&&
+  seasonalRoute.monthBranch===packet.chart.month[1]&&
+  chosen.excludedCrossApplications.includes(
+   'do-not-equate-QiongTong-climate-clause-with-month-pattern')&&
+  chosen.releasedToPaidWriter===false,
+  'TWO_CLASSICS_NOT_SAME_SCOPE');
+ const sourceScope={
+  kind:'qa-two-independent-classical-questions-v1',
+  exactDayHour:{url:exactRoute.url,sourceUnit:exactRoute.sourceUnit,
+   eligibleToQuoteHistoricPhrase:true,
+   inferredReaderTrait:false},
+  seasonalMonth:{url:seasonalRoute.url,
+   compoundConditionMatched:seasonalRoute.compoundBingVisibleWithoutGuiMatched,
+   missingConditionDoesNotProveMisfortune:true},
+  historicalClauseDoesNotOverrideSeasonalConditions:true,
+  seasonalConditionsDoNotNegateHistoricalClause:true,
+  whichMethodDominates:'unresolved',
+  automaticLifeOutcome:false,
+  paidWriterAuthorized:false
+ };
  const actual=branch.natal(packet.chart);
  need(same(actual,packet.facts.natalBranchRelations),'BRANCH_CALCULATION_DRIFT');
  const clash=actual.pairs.filter(p=>p.type==='충'&&
@@ -122,6 +149,7 @@ function build(packet){
   exactWinterPassageVerified:true,
   sourceScopedQuestionResolved:true,
   sourceScopeIsNotFullChartMethodApproval:true,
+  sourceScope:structuredClone(sourceScope),
   monthDayHourContacts:2,
   doubleContactIsNotTwoPredictedEvents:true,
   climateSourceDoesNotMatchFavorableCompound:true,

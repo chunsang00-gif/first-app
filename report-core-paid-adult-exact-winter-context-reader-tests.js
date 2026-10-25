@@ -12,6 +12,17 @@ assert.deepEqual(x.chart,{year:'壬戌',month:'癸丑',
 assert.equal(x.exactWinterPassageVerified,true);
 assert.equal(x.sourceScopedQuestionResolved,true);
 assert.equal(x.sourceScopeIsNotFullChartMethodApproval,true);
+assert.equal(x.sourceScope.kind,'qa-two-independent-classical-questions-v1');
+assert.equal(x.sourceScope.exactDayHour.sourceUnit,'exact-day-hour-winter-subcase');
+assert.equal(x.sourceScope.exactDayHour.inferredReaderTrait,false);
+assert.equal(x.sourceScope.seasonalMonth.compoundConditionMatched,false);
+assert.equal(x.sourceScope.seasonalMonth.missingConditionDoesNotProveMisfortune,true);
+assert.equal(x.sourceScope.historicalClauseDoesNotOverrideSeasonalConditions,true);
+assert.equal(x.sourceScope.seasonalConditionsDoNotNegateHistoricalClause,true);
+assert.equal(x.sourceScope.whichMethodDominates,'unresolved');
+assert.equal(x.sourceScope.automaticLifeOutcome,false);
+assert.equal(x.sourceScope.paidWriterAuthorized,false);
+assert.notEqual(x.sourceScope.exactDayHour.url,x.sourceScope.seasonalMonth.url);
 assert.equal(x.monthDayHourContacts,2);
 assert.equal(x.doubleContactIsNotTwoPredictedEvents,true);
 assert.equal(x.climateSourceDoesNotMatchFavorableCompound,true);
