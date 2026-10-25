@@ -13,13 +13,13 @@ const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
 const need=(ok,why)=>{if(!ok)throw Error('QA_EXACT_WINTER_CONTEXT_'+why);};
 const paragraphs=[
  {kind:'historical-eligibility-only',label:'날과 시간에 반복된 자리',
-  text:'태어난 날과 시간은 윗글자가 서로 다르지만 아랫글자는 같습니다. 옛 사주책에는 이 정확한 날과 시간의 조합을 겨울에 태어난 경우와 연결해 따로 설명합니다. 달의 글자만 보던 풀이에서 빠진 것은 바로 이 날과 시간의 조합입니다.',
+  text:'같은 겨울에 태어났다고 모두 같은 풀이를 듣는 것은 아닙니다. 이 사주는 태어난 날과 시간의 윗글자가 서로 다르지만 아랫글자는 같습니다. 옛 사주책은 바로 이 날과 시간의 조합을 겨울에 놓고 편안함에 가까운 평가를 따로 적었습니다. 다만 그 말이 실제 생활이 평온하거나 성격이 차분하다는 증거는 아닙니다.',
   sourceRefs:['natal.day.stem','natal.day.hidden.乙',
    'natal.hour.stem','natal.hour.hidden.乙','facts.seasonalEvidence'],
   originalUrl:'https://zh.wikisource.org/zh-hant/%E4%B8%89%E5%91%BD%E9%80%9A%E6%9C%83/%E5%8D%B7%E5%85%AB'},
  {kind:'month-and-branch-counterevidence',
   label:'겨울 풀이에서 함께 봐야 할 관계',
-  text:'태어난 달은 날과 시간의 아랫자리 각각과 서로 마주 보는 관계로 기록됩니다. 두 자리에 같은 관계가 반복됐다고 실제 다툼이 두 번 생기는 것은 아닙니다. 또 다른 옛 책은 겨울의 해석에 특정 글자가 겉에 드러나는 조건을 두지만, 이 사주에는 그 조건이 없습니다. 따라서 안정적이라는 평가나 갈등이 많다는 평가는 둘 다 이 근거만으로 결정할 수 없습니다.',
+  text:'그 평가를 그대로 적용하기 어려운 이유는 다른 출생 자리의 조건도 있기 때문입니다. 달의 아랫자리는 날과 시간의 아랫자리 각각과 마주 보는 관계로 계산됩니다. 같은 관계가 두 번 표시돼도 다툼이 두 번 생긴다는 예언은 아닙니다. 겨울의 찬 기운을 덜어 준다고 보는 별도 글자는 겉에 없고, 함께 살피는 다른 글자는 달과 시간에 드러나 있습니다. 두 옛 책의 기준 중 무엇을 우선할지 정해지지 않아 안정적이라는 평가와 갈등이 많다는 평가 모두 보류해야 합니다.',
   sourceRefs:['facts.natalBranchRelations','facts.seasonalEvidence',
    'natal.year.stem','natal.month.stem','natal.hour.stem'],
   originalUrl:'https://luckclub.cn/bazi/004/024/'}
@@ -71,9 +71,12 @@ function build(packet){
  const text=paragraphs.flatMap(p=>[p.label,p.text]);
  need(reader.errors(text).length===0&&
   !/[\u3400-\u4dbf\u4e00-\u9fff]/.test(text.join(''))&&
-  paragraphs[0].text.includes('윗글자가 서로 다르지만 아랫글자는 같습니다')&&
-  paragraphs[1].text.includes('두 자리에 같은 관계가 반복됐다고')&&
-  paragraphs[1].text.includes('둘 다 이 근거만으로 결정할 수 없습니다'),
+  paragraphs[0].text.includes('편안함에 가까운 평가를 따로 적었습니다')&&
+  paragraphs[0].text.includes('실제 생활이 평온하거나 성격이 차분하다는 증거는 아닙니다')&&
+  paragraphs[1].text.includes('마주 보는 관계로 계산됩니다')&&
+  paragraphs[1].text.includes('다툼이 두 번 생긴다는 예언은 아닙니다')&&
+  paragraphs[1].text.includes('무엇을 우선할지 정해지지 않아')&&
+  paragraphs[1].text.includes('평가 모두 보류해야 합니다'),
   'READER_UNSUPPORTED_PREDICTION');
  const free=core.compile(packet);
  need(free.status==='draft-for-human-review'&&

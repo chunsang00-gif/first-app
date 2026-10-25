@@ -23,8 +23,12 @@ assert.equal(x.releaseVerdict,'not-approved');
 assert.deepEqual(x.paragraphs.map(p=>p.kind),[
  'historical-eligibility-only','month-and-branch-counterevidence']);
 assert(x.paragraphs[0].text.includes('겨울'));
-assert(x.paragraphs[1].text.includes('두 자리에 같은 관계가 반복됐다고'));
+assert(x.paragraphs[1].text.includes('다툼이 두 번 생긴다는 예언은 아닙니다'));
 assert(x.paragraphs[0].text.includes('윗글자가 서로 다르지만 아랫글자는 같습니다'));
+assert(x.paragraphs[0].text.includes('편안함에 가까운 평가를 따로 적었습니다'));
+assert(x.paragraphs[1].text.includes('함께 살피는 다른 글자는 달과 시간에 드러나 있습니다'));
+assert(x.paragraphs[1].text.includes('두 옛 책의 기준 중 무엇을 우선할지 정해지지 않아'));
+assert(!x.paragraphs.some(p=>/편안한 성격입니다|갈등이 많이 생깁니다|더 유리합니다/.test(p.text)));
 assert.equal(x.editorialDifference.additionalEvidence.length,4);
 assert.deepEqual(x.editorialDifference.comparedMonthRefs,
  ['natal.month.stem','natal.month.hidden.己']);
