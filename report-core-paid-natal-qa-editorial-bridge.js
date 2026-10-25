@@ -8,6 +8,7 @@ const policy=require('./report-reader-policy');
 const comparison=require('./report-core-paid-natal-qa-value-delta');
 const completedAdult=require('./report-core-paid-one-adult-complete-first-chapter');
 const methodDecision=require('./report-core-paid-classical-decision-handoff');
+const exactWinter=require('./report-core-paid-adult-exact-winter-context-reader');
 const POSITION=['year','month','day','hour'];
 const REQUIRED=['natal.year.stem','natal.month.stem','natal.day.stem',
  'natal.hour.stem','facts.stemConnections'];
@@ -83,6 +84,34 @@ function build(packet,permitted,source){
    }
   }
  }
+ // Explicitly transport the later exact-winter QA review alongside the
+ // older full-chapter benchmark. Never treat a matched historical line or
+ // an unmatched seasonal condition as a personal paid interpretation.
+ // A changed birth hour must not inherit the exact 14:20 review.
+ const winter=adult?exactWinter.build(packet):null;
+ if(winter){
+  if(winter.releaseVerdict!=='not-approved'||
+     winter.extraPaidParagraphApproved!==false||
+     winter.actualProviderCalls!==0||
+     winter.editorialDifference.approvedForCustomer!==false||
+     winter.sourceScope?.paidWriterAuthorized!==false||
+     winter.sourceScope?.whichMethodDominates!=='unresolved'||
+     winter.sourceScope?.automaticLifeOutcome!==false||
+     winter.sourceScope?.exactDayHour?.sourceUnit!==
+      'exact-day-hour-winter-subcase'||
+     winter.sourceScope?.seasonalMonth?.compoundConditionMatched!==false)
+   throw Error('QA_EDITORIAL_BRIDGE_EXACT_WINTER_NOT_REVIEW_ONLY');
+  for(const para of winter.paragraphs){
+   if(!para.sourceRefs.every(id=>
+      permitted.includes(id)&&Object.hasOwn(source,id)))
+    throw Error('QA_EDITORIAL_BRIDGE_EXACT_WINTER_UNCITABLE_SOURCE');
+   if(para.originalUrl!==(
+      para.kind==='historical-eligibility-only'?
+       winter.sourceScope.exactDayHour.url:
+       winter.sourceScope.seasonalMonth.url))
+    throw Error('QA_EDITORIAL_BRIDGE_EXACT_WINTER_SOURCE_SCOPE_DRIFT');
+  }
+ }
  const chart=POSITION.map(pos=>packet.chart[pos]).join('/');
  const out={
   kind:'qa-offline-saju-research-bridge-v1',
@@ -144,6 +173,20 @@ function build(packet,permitted,source){
    // Distinguish an already checked calculation from the methodological
    // choice that a commercial full-chart reading would still require.
    methodPriorityReview:structuredClone(curated.methodPriorityReview)
+  }:null,
+  // Only present on the exact 1982 14:20 QA fixture. Never a paid claim.
+  exactWinterClassicalScope:winter?{
+   kind:'qa-exact-winter-source-scope-editorial-only-v1',
+   sourceScope:structuredClone(winter.sourceScope),
+   paragraphs:winter.paragraphs.map(row=>structuredClone(row)),
+   additionalFactsComparedWithMonthOnly:
+    structuredClone(winter.editorialDifference.additionalEvidence),
+   basedOnExactInputOnly:true,
+   historicalClaimIsNotObservedLife:true,
+   noCrossSourceContradictionInferred:true,
+   approvedForCustomer:false,
+   paidWriterAuthorized:false,
+   providerCalls:0,releaseVerdict:'not-approved'
   }:null,
   // For non-curated charts, transmit the verified contrast, NOT an entire
   // generic/heuristic manuscript as an apparent finished personal reading.

@@ -98,6 +98,16 @@ assert.equal(topic.qaOfflineEditorialResearch
  .fullFirstChapterResearch.text,authored.text);
 const origin=topic.qaOfflineEditorialResearch.fullFirstChapterResearch.claimOrigin;
 const decision=topic.qaOfflineEditorialResearch.fullFirstChapterResearch.valueDecision;
+const winter=topic.qaOfflineEditorialResearch.exactWinterClassicalScope;
+assert(winter);
+assert.equal(winter.sourceScope.whichMethodDominates,'unresolved');
+assert.equal(winter.sourceScope.historicalClauseDoesNotOverrideSeasonalConditions,true);
+assert.equal(winter.sourceScope.seasonalConditionsDoNotNegateHistoricalClause,true);
+assert.equal(winter.paragraphs.length,2);
+assert(winter.paragraphs.flatMap(p=>p.sourceRefs).every(id=>
+ Object.hasOwn(built.payload.source,id)));
+assert.equal(winter.approvedForCustomer,false);
+assert.equal(winter.paidWriterAuthorized,false);
 assert.deepEqual(decision,authored.valueDecision);
 assert.equal(decision.verdict,'not-demonstrably-more-valuable-than-free');
 assert.equal(decision.ordinaryPaidWriterReceivesTheseNewFacts,false);
