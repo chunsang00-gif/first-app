@@ -116,7 +116,7 @@ function inspect(value,prompt){
     continue;
    if(/(?:고전|옛 책|겨울 평가|겨울 구절).{0,85}(?:취소됩|무효입|뒤집힙|취소된다|무효가 됩니다)/.test(clause))
     fail('QA_DEPTH_CLASSICAL_VERSE_FALSELY_CANCELLED');
-   if(/(?:겨울|따뜻함|계절|조건|글자).{0,85}(?:없으므로|없기 때문에|맞지 않으므로|충족되지 않아).{0,85}(?:운(?:은|이)?\s*나쁘|불운|실패할|흉한 운)/.test(clause))
+   if(/(?:겨울|따뜻함|계절|조건|글자).{0,85}(?:없으므로|없기 때문에|맞지 않으므로|충족되지 않아).{0,85}(?:운(?:은|이)?\s*(?:나쁘|나쁩|나쁜)|불운|실패할|흉한 운)/.test(clause))
     fail('QA_DEPTH_CLASSICAL_MISSING_CONDITION_TO_BAD_FORTUNE');
    if(/(?:고전|옛 책|겨울 구절|겨울 평가).{0,85}(?:실제(?:로)?\s*(?:평온|편안)|평온한 성격|좋은 운이 확정|인생이 편안)/.test(clause))
     fail('QA_DEPTH_CLASSICAL_TEXT_TO_PERSONAL_CERTAINTY');
