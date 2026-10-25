@@ -10,7 +10,44 @@ const getSentences=text=>String(text||'').split(/[.!?。！？\n]+/)
  .map(x=>x.replace(/\s+/g,' ').trim()).filter(x=>x.length>=22);
 const sourceMeaning=r=>r?{id:r.id,position:r.position||null,
  classification:r.tenGod||null,meaning:r.traditionalMeaning||null}:null;
-function assess(packet,computed,selected,draftKind){
+// This review is an independently edited EXACT chart manuscript, not a
+// numerical similarity score and never the real product's free tier.
+// Verify it against the checked-in canonical source on every use, so an
+// arbitrary caller cannot claim "editorial review" by setting a boolean.
+function semanticReview(packet,authored){
+ if(authored==null)return {
+  status:'not-independently-reviewed',comparedAgainstLiveFreeProduct:false,
+  repeatedConceptIds:[],repeatedConceptCount:0,
+  verifiedNewPersonalConclusion:false
+ };
+ const exact=require('./report-core-paid-one-adult-complete-first-chapter')
+  .build(packet);
+ const decision=authored?.valueDecision;
+ if(!exact||authored.status!=='draft-for-human-review'||
+    authored.readyForSale!==false||
+    authored.text!==exact.text||
+    JSON.stringify(decision)!==JSON.stringify(exact.valueDecision)||
+    decision?.verdict!=='not-demonstrably-more-valuable-than-free'||
+    decision?.comparedAgainstActualCoreText!==true||
+    decision?.ordinaryPaidWriterReceivesTheseNewFacts!==false||
+    decision?.personalizedConclusionBeyondFreeValidated!==false||
+    decision?.userDecisionWouldChangeFromFree!==false||
+    !Array.isArray(decision.repeatedReaderPropositions)||
+    !decision.repeatedReaderPropositions.length||
+    decision.repeatedReaderPropositions.some(x=>
+     !x.id||!x.freeEvidence||!x.qaEvidence||
+     x.strongerPersonalConclusionEstablished!==false))
+  throw Error('QA_VALUE_DELTA_INVALID_OR_FORGED_SEMANTIC_REVIEW');
+ return {
+  status:'reviewed-repeated-meaning-no-independent-personal-judgment',
+  source:'canonical-exact-chart-authored-proposition-audit',
+  comparedAgainstLiveFreeProduct:false,
+  repeatedConceptIds:decision.repeatedReaderPropositions.map(x=>x.id),
+  repeatedConceptCount:decision.repeatedReaderPropositions.length,
+  verifiedNewPersonalConclusion:false
+ };
+}
+function assess(packet,computed,selected,draftKind,authoredReview=null){
  if(packet?.status!=='ready'||computed?.status!=='draft-for-human-review'||
     !['authored','machine'].includes(draftKind)||
     !Array.isArray(selected?.sourceRefs)||!selected.sourceRefs.length)
@@ -49,11 +86,20 @@ function assess(packet,computed,selected,draftKind){
  const describesTradeoff=/(?:반대로|그러나|하지만|다만|놓치|경계)/.test(deep);
  const hasAction=/(?:정리|구분|점검|확인|선택|비교|따져|살피)/.test(deep);
  const monthOnlyRepeats=shared.length>0||eightGramOverlap>0.55;
+ if(authoredReview&&draftKind!=='authored')
+  throw Error('QA_VALUE_DELTA_MACHINE_CANNOT_CLAIM_HUMAN_REVIEW');
+ const semantic=semanticReview(packet,authoredReview);
+ // Do not confuse textual novelty with new decisions. The current
+ // 1982 adult first chapter repeats THREE month-core propositions even
+ // when the string overlap is near zero.
+ const repeatsReaderMeaning=semantic.repeatedConceptCount>0;
  const narratedIndividualDifference=year.tenGod!==hour.tenGod&&
    hasScene&&describesTradeoff&&hasAction&&!monthOnlyRepeats;
  return {
   kind:'qa-first-chapter-substantive-delta-v1',
   baselineKind:'actual-curated-month-pair-manuscript-not-a-paid-model-output',
+  baselineAvailableAsLiveFreeProduct:false,
+  comparisonIsOfflineEditorialBenchmark:true,
   baselineRuleId:computed.ruleId,
   baselineSourceRefs:month.slice(),
   extraSourceRefs:extra.slice(),
@@ -70,10 +116,13 @@ function assess(packet,computed,selected,draftKind){
   hasExplicitTradeoff:describesTradeoff,
   hasActionFraming:hasAction,
   textNearOrCopyingMonthCore:monthOnlyRepeats,
+  independentlyReviewedSemanticOverlap:semantic,
+  repeatsReaderMeaningDespiteDifferentWords:repeatsReaderMeaning,
+  distinctReaderDecisionBeyondBaselineVerified:false,
   // An authored example with differentiated natal refs is worth EDITORIAL
   // review; do not treat formal prose structure as proving paid value.
   reviewPriority:draftKind==='machine'?'requires-individual-authoring':
-   monthOnlyRepeats?'rewrite-overlapping-month-story':
+   (monthOnlyRepeats||repeatsReaderMeaning)?'rewrite-overlapping-month-story':
    narratedIndividualDifference?'check-method-and-reader-benefit':
     'revise-specificity-or-counterargument',
   selectedDraftKind:draftKind,

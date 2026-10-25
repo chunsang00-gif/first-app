@@ -43,6 +43,9 @@ for(const user of inputs){
  assert.equal(delta.traditionalMethodApproved,false);
  assert.equal(delta.personalInsightValidated,false);
  assert.equal(delta.benefitBeyondFreeVerified,false);
+ assert.equal(delta.baselineAvailableAsLiveFreeProduct,false);
+ assert.equal(delta.comparisonIsOfflineEditorialBenchmark,true);
+ assert.equal(delta.distinctReaderDecisionBeyondBaselineVerified,false);
  assert.equal(delta.paidReaderTested,false);
  assert.equal(delta.providerCalls,0);
  assert.equal(delta.releaseVerdict,'not-approved');
@@ -87,6 +90,32 @@ assert.notEqual(da.editorialReference.text,db.editorialReference.text);
 assert.notEqual(da.editorialDelta.independentPositions.hour.classification,
  db.editorialDelta.independentPositions.hour.classification);
 assert.equal(da.editorialDelta.baselineRuleId,db.editorialDelta.baselineRuleId);
+// This exact adult manuscript has three repeated concepts even though
+// its literal 8-character overlap can look negligible.
+assert.equal(da.editorialDelta.independentlyReviewedSemanticOverlap
+ .status,'reviewed-repeated-meaning-no-independent-personal-judgment');
+assert.deepEqual(da.editorialDelta.independentlyReviewedSemanticOverlap
+ .repeatedConceptIds,[
+ 'understanding-unfamiliar-information',
+ 'choosing-resources-for-implementation',
+ 'information-versus-available-means-tradeoff'
+]);
+assert.equal(da.editorialDelta.repeatsReaderMeaningDespiteDifferentWords,true);
+assert.equal(da.editorialDelta.reviewPriority,'rewrite-overlapping-month-story');
+assert.equal(db.editorialDelta.independentlyReviewedSemanticOverlap
+ .status,'not-independently-reviewed');
+assert.equal(db.editorialDelta.repeatsReaderMeaningDespiteDifferentWords,false);
+const forgedAdult=require('./report-core-paid-one-adult-complete-first-chapter')
+ .build(p);
+const badReview=structuredClone(forgedAdult);
+badReview.valueDecision.repeatedReaderPropositions[0]
+ .strongerPersonalConclusionEstablished=true;
+assert.throws(()=>compare.assess(p,engine.compile(p),
+ engine.compile(p).review.fourPillar,'authored',badReview),
+ /QA_VALUE_DELTA_INVALID_OR_FORGED_SEMANTIC_REVIEW/);
+assert.throws(()=>compare.assess(p,engine.compile(p),
+ engine.compile(p).review.fourPillar,'machine',forgedAdult),
+ /QA_VALUE_DELTA_MACHINE_CANNOT_CLAIM_HUMAN_REVIEW/);
 assert(da.editorialDelta.yearOrHourDistinctFromMonth.length>=0);
 const tampered=structuredClone(a);
 tampered.task.chapters.saju_core.topics.natal_depth
@@ -113,6 +142,10 @@ assert.throws(()=>writer.compile({...early.prompt,
   yearHourCategoriesDifferent:independentYearHour,
   curatedHourCounterfactualDifferent:true,
   arbitraryPaidValueScoresAssigned:false,
+  exact1982AdultSemanticOverlaps:da.editorialDelta
+   .independentlyReviewedSemanticOverlap.repeatedConceptCount,
+  exact1982AdultRewriteRequired:true,
+  liveFreeReportCompared:false,
   humanReaderValueApproved:0,paidModelCalls:0,productionUnchanged:true
  }));
  console.log('PASS 99-chart offline delta distinguishes sourced novelty from unapproved paid value and preserves frozen provider request');

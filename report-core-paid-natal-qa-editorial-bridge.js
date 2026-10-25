@@ -120,7 +120,8 @@ function build(packet,permitted,source){
   observedBehavior:false,paidApiCalls:0,
   chartFingerprint:chart,
   sourceRefs:selected.sourceRefs.slice(),
-  editorialDelta:comparison.assess(packet,draft,selected,curated?'authored':'machine'),
+  editorialDelta:comparison.assess(packet,draft,selected,
+   curated?'authored':'machine',adult),
   sourceClass:curated?'authored-specific-four-pillar-candidate':
    'machine-structural-comparison-only',
   // Source-checked specialist decision record, never customer or paid request.
