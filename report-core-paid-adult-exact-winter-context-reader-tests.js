@@ -15,6 +15,11 @@ assert.equal(x.sourceScopeIsNotFullChartMethodApproval,true);
 assert.equal(x.monthDayHourContacts,2);
 assert.equal(x.doubleContactIsNotTwoPredictedEvents,true);
 assert.equal(x.climateSourceDoesNotMatchFavorableCompound,true);
+assert.equal(x.monthClashDoesNotCancelHistoricalWinterVerse,true);
+assert.equal(x.missingFavorableClimateConditionDoesNotProveBadOutcome,true);
+assert.equal(x.noVerifiedContradictionBetweenClassicalFrameworks,true);
+assert.equal(x.firstChapterEditorialVerdict,
+ 'new-historical-facts-not-saleable-personal-insight');
 assert.equal(x.appliedMethodsStillUnranked,true);
 assert.equal(x.commercialReaderBenefitEstablished,false);
 assert.equal(x.extraPaidParagraphApproved,false);
@@ -23,12 +28,16 @@ assert.equal(x.releaseVerdict,'not-approved');
 assert.deepEqual(x.paragraphs.map(p=>p.kind),[
  'historical-eligibility-only','month-and-branch-counterevidence']);
 assert(x.paragraphs[0].text.includes('겨울'));
-assert(x.paragraphs[1].text.includes('다툼이 두 번 생긴다는 예언은 아닙니다'));
+assert(x.paragraphs[1].text.includes('실제 다툼이 두 번 생긴다는 뜻도'));
+assert(x.paragraphs[1].text.includes('겨울 평가가 취소된다는 뜻도 아닙니다'));
 assert(x.paragraphs[0].text.includes('윗글자가 서로 다르지만 아랫글자는 같습니다'));
 assert(x.paragraphs[0].text.includes('편안함에 가까운 평가를 따로 적었습니다'));
-assert(x.paragraphs[1].text.includes('함께 살피는 다른 글자는 달과 시간에 드러나 있습니다'));
-assert(x.paragraphs[1].text.includes('두 옛 책의 기준 중 무엇을 우선할지 정해지지 않아'));
+assert(x.paragraphs[1].text.includes('함께 살피는 다른 글자는 달과 시간에 나옵니다'));
+assert(x.paragraphs[1].text.includes('그 조건에 맞지 않는다고 해서'));
+assert(!x.paragraphs[1].text.includes('그 평가를 그대로 적용하기 어려운 이유'));
+assert(!x.paragraphs[1].text.includes('갈등이 많다는 평가'));
 assert(!x.paragraphs.some(p=>/편안한 성격입니다|갈등이 많이 생깁니다|더 유리합니다/.test(p.text)));
+assert(!x.paragraphs.some(p=>/두 고전이 충돌|실제로 운이 나쁘|겨울 평가를 뒤집/.test(p.text)));
 assert.equal(x.editorialDifference.additionalEvidence.length,4);
 assert.deepEqual(x.editorialDifference.comparedMonthRefs,
  ['natal.month.stem','natal.month.hidden.己']);

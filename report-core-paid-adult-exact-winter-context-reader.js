@@ -19,9 +19,9 @@ const paragraphs=[
   originalUrl:'https://zh.wikisource.org/zh-hant/%E4%B8%89%E5%91%BD%E9%80%9A%E6%9C%83/%E5%8D%B7%E5%85%AB'},
  {kind:'month-and-branch-counterevidence',
   label:'겨울 풀이에서 함께 봐야 할 관계',
-  text:'그 평가를 그대로 적용하기 어려운 이유는 다른 출생 자리의 조건도 있기 때문입니다. 달의 아랫자리는 날과 시간의 아랫자리 각각과 마주 보는 관계로 계산됩니다. 같은 관계가 두 번 표시돼도 다툼이 두 번 생긴다는 예언은 아닙니다. 겨울의 찬 기운을 덜어 준다고 보는 별도 글자는 겉에 없고, 함께 살피는 다른 글자는 달과 시간에 드러나 있습니다. 두 옛 책의 기준 중 무엇을 우선할지 정해지지 않아 안정적이라는 평가와 갈등이 많다는 평가 모두 보류해야 합니다.',
+  text:'태어난 달은 날과 시간의 아랫자리 각각과 마주 보는 관계로 계산됩니다. 관계가 두 쌍이라고 실제 다툼이 두 번 생긴다는 뜻도, 앞서 소개한 고전의 겨울 평가가 취소된다는 뜻도 아닙니다. 다른 옛 책은 겨울에 따뜻함을 뜻하는 글자가 겉에 나오는 조건을 좋게 보는데, 이 사주에서는 그 글자가 드러나지 않고 함께 살피는 다른 글자는 달과 시간에 나옵니다. 그 조건에 맞지 않는다고 해서 곧바로 운이 나쁘다는 결론이 나오는 것도 아닙니다.',
   sourceRefs:['facts.natalBranchRelations','facts.seasonalEvidence',
-   'natal.year.stem','natal.month.stem','natal.hour.stem'],
+   'natal.month.stem','natal.hour.stem'],
   originalUrl:'https://luckclub.cn/bazi/004/024/'}
 ];
 function build(packet){
@@ -74,9 +74,11 @@ function build(packet){
   paragraphs[0].text.includes('편안함에 가까운 평가를 따로 적었습니다')&&
   paragraphs[0].text.includes('실제 생활이 평온하거나 성격이 차분하다는 증거는 아닙니다')&&
   paragraphs[1].text.includes('마주 보는 관계로 계산됩니다')&&
-  paragraphs[1].text.includes('다툼이 두 번 생긴다는 예언은 아닙니다')&&
-  paragraphs[1].text.includes('무엇을 우선할지 정해지지 않아')&&
-  paragraphs[1].text.includes('평가 모두 보류해야 합니다'),
+  paragraphs[1].text.includes('겨울 평가가 취소된다는 뜻도 아닙니다')&&
+  paragraphs[1].text.includes('따뜻함을 뜻하는 글자가 겉에 나오는 조건')&&
+  paragraphs[1].text.includes('운이 나쁘다는 결론이 나오는 것도 아닙니다')&&
+  !paragraphs[1].text.includes('그 평가를 그대로 적용하기 어려운 이유')&&
+  !paragraphs[1].text.includes('갈등이 많다는 평가'),
   'READER_UNSUPPORTED_PREDICTION');
  const free=core.compile(packet);
  need(free.status==='draft-for-human-review'&&
@@ -123,6 +125,11 @@ function build(packet){
   monthDayHourContacts:2,
   doubleContactIsNotTwoPredictedEvents:true,
   climateSourceDoesNotMatchFavorableCompound:true,
+  // These are limits on applying the SOURCES, not positive life outcomes.
+  monthClashDoesNotCancelHistoricalWinterVerse:true,
+  missingFavorableClimateConditionDoesNotProveBadOutcome:true,
+  noVerifiedContradictionBetweenClassicalFrameworks:true,
+  firstChapterEditorialVerdict:'new-historical-facts-not-saleable-personal-insight',
   appliedMethodsStillUnranked:true,
   traditionalVeracityNotScientificallyEstablished:true,
   individualLifeOrAbilityObserved:false,
