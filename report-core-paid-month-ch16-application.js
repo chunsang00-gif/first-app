@@ -34,6 +34,33 @@ function inspect(packet){
  const absent=early?['natal.month.stem']:
   ['natal.month.stem','natal.hour.stem'];
  const rows=Object.fromEntries(bindings.build(packet).map(v=>[v.id,v]));
+ // Monthly source candidate stays the same; branch TABLE relations are
+ // separately position-sensitive and must not be mistaken for life events.
+ const aRelations=m.observed.natalRelationsTouchingMonth.relationshipCardinality;
+ const bRelations=n.observed.natalRelationsTouchingMonth.relationshipCardinality;
+ const at=(rel,pos)=>{
+  const found=rel.uniquePairContacts.filter(row=>row.otherPosition===pos);
+  if(found.length>1)throw Error('QA_MONTH_CH16_DUPLICATE_POSITIONAL_CONTACT');
+  const row=found[0];
+  return row?{otherPosition:pos,branches:row.branches,
+   tableLabels:row.tableLabels.slice()}:null;
+ };
+ const relations={
+  monthYear:at(aRelations,'year'),
+  monthDay:at(aRelations,'day'),
+  monthHour:at(aRelations,'hour'),
+  alternateMonthHour:at(bRelations,'hour')
+ };
+ if(!same(relations.monthYear,at(bRelations,'year'))||
+    !same(relations.monthDay,at(bRelations,'day'))||
+    !relations.monthDay?.tableLabels.includes('충')||
+    !relations.monthHour||!relations.alternateMonthHour||
+    relations.monthHour.tableLabels.includes('충')!==early||
+    relations.alternateMonthHour.tableLabels.includes('충')===early||
+    !relations.monthHour.tableLabels.includes('형')||
+    !relations.alternateMonthHour.tableLabels.includes('형')||
+    same(relations.monthHour,relations.alternateMonthHour))
+  throw Error('QA_MONTH_CH16_HOUR_BRANCH_COUNTERFACTUAL_INVALID');
  const exposures=m.observed.exactExposureScopeComparison;
  const candidate=exposures.rows.find(x=>x.sourceId===id);
  if(m.status!=='method-priority-not-selected'||
@@ -41,9 +68,9 @@ function inspect(packet){
     m.interpretivePriorityVerified!==false||
     m.observed.monthBranch!=='丑'||
     m.observed.mainHiddenStemSourceId!==main||
-    !same(m.observed.hiddenStemSourceIds,
+    !same([...m.observed.hiddenStemSourceIds].sort(),
      ['natal.month.hidden.己','natal.month.hidden.癸',
-      'natal.month.hidden.辛'])&&
+      'natal.month.hidden.辛'].sort())||
     new Set(m.observed.hiddenStemSourceIds).size!==3)
   throw Error('QA_MONTH_RULE_BASELINE_BAD_MONTH');
  if(!m.observed.hiddenStemSourceIds.includes(id)||
@@ -78,7 +105,12 @@ function inspect(packet){
    candidateExposedAt:present.slice(),otherHourExposedAt:absent.slice(),
    completeMonthBranchGroups:m.observed.natalRelationsTouchingMonth.groups.length,
    singleCandidateSurvivesHourChange:true,
-   duplicatePositionDoesNotCreateSecondKind:true},
+   duplicatePositionDoesNotCreateSecondKind:true,
+   branchTable:relations,
+   monthDayAndMonthYearUnchangedByBirthHour:true,
+   monthHourBranchContactChangesByBirthHour:true,
+   twoLabelsOnSamePositionNotTwoIndependentEvents:true,
+   pairTableCannotSetPatternPriority:true},
   boundedConclusion:'달의 안쪽 글자 가운데 겉으로 드러난 후보는 한 종류이고, 출생시간을 바꿔도 그 후보 자체는 그대로입니다.',
   methodInterpretation:'one-month-candidate-for-further-review-not-a-final-pattern',
   schoolChosenForWholeChart:false,governingStemEstablished:false,
