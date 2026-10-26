@@ -23,7 +23,7 @@ const rows=[
    'natal.hour.stem','facts.natalBranchRelations'],
   sourceUrl:CLASSIC},
  {kind:'independent-winter-condition',label:'따뜻함을 뜻하는 글자 하나만으로 결정되지 않습니다',
-  text:'또 다른 겨울 관련 문헌은 태어난 날과 시간의 조합이 아니라 서로 다른 두 조건을 동시에 살핍니다. 오후 8시 20분에는 따뜻함을 나타내는 글자가 시간의 겉에 있지만, 달에는 함께 나오지 않아야 한다고 적힌 다른 글자가 남아 있습니다. 따라서 그 문헌의 두 조건을 모두 충족했다고 볼 수 없습니다. 태어난 달 안쪽에서 나온 글자는 오후 8시 20분에도 달의 겉에 남습니다. 다만 시간에는 같은 글자가 더 이상 반복되지 않습니다. 고전의 해당 규칙으로 보면 달 안쪽에서 겉으로 나온 서로 다른 후보는 하나이며, 그 종류는 오후 2시 20분과 같습니다. 그러므로 달의 해석 출발점 후보는 유지되고 시간과의 연결만 달라집니다. 어느 전통 해석이 더 중요한지 또는 삶의 결과가 달라지는지는 이 계산만으로 판단할 수 없습니다.',
+  text:'또 다른 겨울 관련 문헌은 태어난 날과 시간의 조합이 아니라 서로 다른 두 조건을 동시에 살핍니다. 오후 8시 20분에는 따뜻함을 나타내는 글자가 시간의 겉에 있지만, 달에는 함께 나오지 않아야 한다고 적힌 다른 글자가 남아 있습니다. 따라서 그 문헌의 두 조건을 모두 충족했다고 볼 수 없습니다. 태어난 달 안쪽에서 나온 글자는 오후 8시 20분에도 달의 겉에 남습니다. 다만 시간에는 같은 글자가 더 이상 반복되지 않습니다. 고전의 해당 규칙으로 보면 달 안쪽에서 겉으로 나온 서로 다른 후보는 하나이며, 그 종류는 오후 2시 20분과 같습니다. 달과 날의 관계표는 그대로지만 달과 시간 사이에서 이전에 있던 마주 보는 관계는 사라집니다. 달의 해석 후보가 유지되더라도 전체 관계까지 같다는 뜻은 아닙니다. 어느 관계가 더 중요한지 또는 삶의 결과가 달라지는지는 계산표만으로 판단할 수 없습니다.',
   sourceRefs:['natal.month.stem','natal.hour.stem','facts.seasonalEvidence',
    'facts.stemConnections'],
   sourceUrl:CLIMATE}
@@ -59,6 +59,10 @@ function build(packet){
     climate.favorableHistoricalCompoundConditionMatched!==false)
   throw Error('QA_ALT_HOUR_CLASSICAL_CONDITIONS_NOT_VERIFIED');
  const methodResult=applied.inspect(packet);
+ if(!methodResult?.verified?.monthHourBranchContactChangesByBirthHour||
+    methodResult.verified.branchTable.monthHour.tableLabels.includes('충')||
+    !methodResult.verified.branchTable.alternateMonthHour.tableLabels.includes('충'))
+  throw Error('QA_ALT_SOURCE_BRANCH_INTERPRETATION_NOT_GROUNDED');
  if(!methodResult||methodResult.verified.candidateExposedAt.length!==1||
     methodResult.overallPatternSelected!==false||
     methodResult.source.originalRule!=='一透則一用'||
