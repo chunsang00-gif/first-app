@@ -133,7 +133,7 @@ assert.equal(topic.qaOfflineEditorialResearch.methodHandoff.readyForPaidModelPro
 assert(built.payload.task.editorialGoal.includes(
  'qaOfflineEditorialResearch.fullFirstChapterResearch'),
  'the QA research benchmark must be referenced by the actual model-facing editorial brief');
-assert(built.payload.task.editorialGoal.includes('품질 비교용 초안'));
+assert(built.payload.task.editorialGoal.includes('품질 비교용 구형 초안'));
 assert(built.payload.task.editorialGoal.includes('검수 미완료'));
 assert.equal(built.payload.task.editorialGoal,writer.editorialGoalFor(built.prompt));
 assert.deepEqual(audit.inspectTransport(built.prompt,built.payload),[]);
