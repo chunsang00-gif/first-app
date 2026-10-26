@@ -4,6 +4,7 @@
 // not a validated personal prediction or an approved customer manuscript.
 const reader=require('./report-reader-policy');
 const facts=require('./report-facts-node');
+const method=require('./report-core-paid-natal-classical-method-applicability');
 const EXPECTED={year:'壬戌',month:'癸丑',day:'乙未',hour:'癸未'};
 const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
 const P=[
@@ -17,9 +18,9 @@ const P=[
   sourceRefs:['natal.month.stem','natal.hour.stem','facts.seasonalEvidence'],
   sourceType:'separate-published-winter-month-condition'},
  {kind:'counterfactual-source-boundary',label:'출생시간을 바꾸면 달라지는 적용 범위',
-  text:'태어난 달과 날, 달과 시간에는 같은 종류의 마주 보는 관계가 각각 표시됩니다. 이는 계산표의 두 위치이지 실제 다툼을 두 번 겪는다는 예고가 아닙니다. 출생시간만 오후 8시 20분으로 바꾸어 계산하면 시간의 글자가 달라져, 첫 문헌의 해당 날·시간 조합을 더는 인용할 수 없습니다. 실제로 입력한 오후 2시 20분과 비교한 이유는 고전 문구의 적용 범위를 확인하기 위해서입니다. 이 차이가 삶의 결과를 바꾼다는 해석은 아직 입증되지 않았습니다.',
+  text:'태어난 달과 날, 달과 시간에는 같은 종류의 마주 보는 관계가 각각 표시됩니다. 이는 계산표의 두 위치이지 실제 다툼을 두 번 겪는다는 예고가 아닙니다. 태어난 달 안쪽의 글자가 달과 시간의 겉에 함께 드러나지만, 두 번 나타난다는 이유로 뜻이 더 강해지는 것은 아닙니다. 출생시간만 오후 8시 20분으로 바꾸어 계산하면 시간의 글자가 달라져, 첫 문헌의 해당 날·시간 조합을 더는 인용할 수 없습니다. 실제로 입력한 오후 2시 20분과 비교한 이유는 고전 문구의 적용 범위를 확인하기 위해서입니다. 시간을 바꿔도 달에서 확인되는 해석 출발점 후보는 유지됩니다. 시간에 같은 글자가 또 있는지만 달라집니다. 이것이 삶의 결과를 바꾼다는 해석은 입증되지 않았습니다.',
   sourceRefs:['natal.day.stem','natal.hour.stem',
-   'natal.month.stem','facts.natalBranchRelations'],
+   'natal.month.stem','facts.stemConnections','facts.natalBranchRelations'],
   sourceType:'verified-hour-counterfactual-not-historical-prediction'}
 ];
 function build(packet,winter,previous){
@@ -45,7 +46,21 @@ function build(packet,winter,previous){
     previous?.valueDecision?.verdict!=='not-demonstrably-more-valuable-than-free'||
     previous?.valueDecision?.repeatedReaderPropositions?.length!==3)
   throw Error('QA_REVISED_CLASSICAL_CHAPTER_SOURCE_SCOPE_INVALID');
+ const m=method.evaluate(packet).generalMonthRule;
+ if(m.conditionObserved!==true||m.monthMainSourceId!=='natal.month.hidden.己'||
+    m.monthMainExposedOutsideDay!==false||
+    m.otherCandidateRoles?.[0]?.sourceId!=='natal.month.hidden.癸'||
+    m.otherCandidateRoles[0].symbolicTenGodCategory!=='편인'||
+    JSON.stringify(m.otherCandidateRoles[0].exposedAt)!==
+     JSON.stringify(['natal.month.stem','natal.hour.stem'])||
+    m.methodPriority!=='not-selected'||m.monthCommandRoleConfirmed!==false)
+  throw Error('QA_REVISED_MONTH_METHOD_ORIGIN_INVALID');
  const changed=facts.build({...packet.calculationInput,birthTime:'20:20'},2027);
+ const other=method.evaluate(changed).generalMonthRule;
+ if(JSON.stringify(other.otherCandidateRoles?.[0]?.exposedAt)!==
+    JSON.stringify(['natal.month.stem'])||
+    other.otherCandidateRoles?.[0]?.sourceId!==m.otherCandidateRoles[0].sourceId)
+  throw Error('QA_REVISED_MONTH_METHOD_COUNTERFACTUAL_INVALID');
  if(changed.status!=='ready'||changed.chart.day!==packet.chart.day||
     changed.chart.month!==packet.chart.month||
     changed.chart.year!==packet.chart.year||
