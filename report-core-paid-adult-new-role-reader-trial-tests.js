@@ -12,11 +12,17 @@ assert(result);
 assert.equal(result.paragraphs.length,3);
 assert(result.text.length>=600&&result.text.length<=1200);
 assert.equal(result.paragraphs.map(x=>x.text).join('\n\n'),result.text);
-assert(result.paragraphs[0].text.includes('규칙을 따지는 질문과 실제로 계속 감당할 자원을'));
-assert(result.paragraphs[1].text.includes('승인 절차만 따지고 실제 유지 비용을'));
-assert(result.paragraphs[1].text.includes('반대로 비용만 계산하고'));
-assert(result.paragraphs[2].text.includes('오후 8시 20분'));
-assert(result.paragraphs[2].text.includes('그대로 복사하면 안 됩니다'));
+assert(result.paragraphs[0].text.includes('시간의 겉글자는 달 안쪽에 있는 또 다른 글자'));
+assert(result.paragraphs[1].text.includes('여섯 달 동안 재고 관리 업무'));
+assert(result.paragraphs[1].text.includes('승인권자가 분명해도 매주 확인할 시간이'));
+assert(result.paragraphs[1].text.includes('반대로 작업 시간을 충분히 잡았더라도'));
+assert(result.paragraphs[2].text.includes('한 번의 점검으로 끝나는 짧은 일'));
+assert(result.paragraphs[2].text.includes('무엇을 먼저 살펴야 하는지도'));
+assert(!/오후 8시 20분|QA|API|유료 풀이|검증 상태/.test(result.text));
+assert.equal(result.counterfactualReviewedInternally,true);
+assert.equal(result.counterfactualPrintedInReader,false);
+assert.equal(result.hasConcreteTwoWayTradeoff,true);
+assert.equal(result.counterexampleIncluded,true);
 assert(result.sourceRefs.includes('natal.month.hidden.丁'));
 assert(result.sourceRefs.includes('natal.hour.stem'));
 assert.deepEqual(result.comparison.baselineRefs,
@@ -25,7 +31,7 @@ assert.equal(result.comparison.newVisiblePosition,'natal.hour.stem');
 assert.equal(result.comparison.newSourceContentVerified,true);
 assert.equal(result.comparison.newPersonalJudgmentVerified,false);
 assert.equal(result.readerValueVerdict,
- 'more-specific-questions-not-proven-paid-insight');
+ 'source-specific-conditional-scene-not-a-proven-personal-conclusion');
 assert.equal(result.personalTraitObserved,false);
 assert.equal(result.eligibleForPaidWriter,false);
 assert.equal(result.approvedForCustomer,false);
@@ -47,7 +53,8 @@ console.log('QA_ADULT_NEW_ROLE_READER_TRIAL='+JSON.stringify({
  chart:result.chartFingerprint,chars:result.text.length,
  paragraphCount:result.paragraphs.length,
  independentVisibleHourRole:true,comparedAgainstRealFree:false,
- readerQuestionIsMoreSpecific:true,personalInsightValidated:false,
+ readerQuestionIsMoreSpecific:true,counterexampleInReader:true,
+ hourDifferenceMetadataOnly:true,personalInsightValidated:false,
  paidReady:false,paidCalls:0
 }));
 console.log('PASS one newly evidenced adult candidate reaches a bounded, concrete first-chapter trial, without paid approval');
