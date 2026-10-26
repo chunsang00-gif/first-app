@@ -9,6 +9,12 @@ const second=facts.build({...base,birthTime:'20:20'},2027);
 const a=screen.inspect(first),b=screen.inspect(second);
 assert(a&&b);
 assert.equal(a.source.originalRule,'一透則一用');
+assert.equal(a.verified.sharedMethodScreenStatus,'one-visible-candidate-needs-review');
+assert.equal(b.verified.sharedMethodScreenStatus,'one-visible-candidate-needs-review');
+assert.equal(a.verified.sharedMethodCandidate,'natal.month.hidden.癸');
+assert.equal(b.verified.sharedMethodCandidate,'natal.month.hidden.癸');
+assert.equal(a.verified.generalMethodNotAProvenLifeReading,true);
+assert.equal(b.verified.generalMethodNotAProvenLifeReading,true);
 assert.equal(a.source.originalWorkedExampleIsThisChart,false);
 assert.equal(a.verified.soleDistinctExposedMonthHiddenCandidate,
  b.verified.soleDistinctExposedMonthHiddenCandidate);

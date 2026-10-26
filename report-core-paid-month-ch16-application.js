@@ -6,6 +6,7 @@ const facts=require('./report-facts-node');
 const month=require('./report-core-paid-natal-month-method-review');
 const classical=require('./report-core-paid-natal-classical-method-applicability');
 const bindings=require('./report-fact-bindings');
+const general=require('./report-core-paid-general-month-classical-screen');
 const INPUT={calendar:'lunar',birthDate:'1982-11-24',
  leapMonth:false,gender:'male',mbti:'ISFP'};
 const EXPECTED={year:'壬戌',month:'癸丑',day:'乙未'};
@@ -25,6 +26,20 @@ function inspect(packet){
  if(other.status!=='ready'||!Object.entries(EXPECTED).every(
     ([k,v])=>other.chart[k]===v)||other.chart.hour!==(early?'丙戌':'癸未'))
   throw Error('QA_MONTH_RULE_COUNTERFACTUAL_BAD_CHART');
+ const shared=general.inspect(packet),sharedOther=general.inspect(other);
+ if(!shared?.applicable||!sharedOther?.applicable||
+    shared.status!=='one-visible-candidate-needs-review'||
+    sharedOther.status!=='one-visible-candidate-needs-review'||
+    shared.provisionalMethodCandidate!=='natal.month.hidden.癸'||
+    sharedOther.provisionalMethodCandidate!==shared.provisionalMethodCandidate||
+    shared.candidates.length!==1||sharedOther.candidates.length!==1||
+    shared.candidates[0].exposedAt.length!==(early?2:1)||
+    sharedOther.candidates[0].exposedAt.length!==(early?1:2)||
+    shared.completeSanHeGroupMembership.length!==0||
+    sharedOther.completeSanHeGroupMembership.length!==0||
+    shared.anyFinalPatternChosen!==false||
+    sharedOther.anyFinalPatternChosen!==false)
+  throw Error('QA_MONTH_CH16_GENERAL_METHOD_SCREEN_DIVERGED');
  const m=month.assess(packet),n=month.assess(other);
  const a=classical.evaluate(packet).generalMonthRule;
  const z=classical.evaluate(other).generalMonthRule;
@@ -106,6 +121,9 @@ function inspect(packet){
    completeMonthBranchGroups:m.observed.natalRelationsTouchingMonth.groups.length,
    singleCandidateSurvivesHourChange:true,
    duplicatePositionDoesNotCreateSecondKind:true,
+   sharedMethodScreenStatus:shared.status,
+   sharedMethodCandidate:shared.provisionalMethodCandidate,
+   generalMethodNotAProvenLifeReading:shared.observedLifeOutcome===false,
    branchTable:relations,
    monthDayAndMonthYearUnchangedByBirthHour:true,
    monthHourBranchContactChangesByBirthHour:true,
