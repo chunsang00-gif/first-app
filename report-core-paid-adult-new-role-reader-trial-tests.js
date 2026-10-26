@@ -18,9 +18,21 @@ assert(result.paragraphs[0].text.includes('시간의 겉글자는 달 안쪽에 
 assert(result.paragraphs[1].text.includes('여섯 달 동안 재고 관리 업무'));
 assert(result.paragraphs[1].text.includes('승인권자가 분명해도 매주 확인할 시간이'));
 assert(result.paragraphs[1].text.includes('반대로 작업 시간을 충분히 잡았더라도'));
-assert(result.paragraphs[2].text.includes('한 번의 점검으로 끝나는 짧은 일'));
-assert(result.paragraphs[2].text.includes('무엇을 먼저 살펴야 하는지도'));
+assert(result.paragraphs[2].text.includes('한 번 점검하고 끝나는 짧은 일'));
+assert(result.paragraphs[2].text.includes('태어난 해의 글자는 시간의 자원 관리'));
+assert(result.paragraphs[2].text.includes('태어난 날의 기준 글자는'));
 assert(!/오후 8시 20분|QA|API|유료 풀이|검증 상태/.test(result.text));
+assert.equal(result.competingElementalDirectionsReviewed
+ .unresolved.overallPatternSelected,false);
+assert.equal(result.competingElementalDirectionsReviewed
+ .verified.directRelations[0].direction,'left-controls-right');
+assert.equal(result.competingElementalDirectionsReviewed
+ .verified.hiddenMainAsPossibleIntermediary.length,2);
+assert.equal(result.bothDirectAndMediatedInterpretationsStillUnresolved,true);
+assert(result.paragraphs[2].sourceRefs.includes('natal.year.stem'));
+assert(result.paragraphs[2].sourceRefs.includes('natal.day.stem'));
+assert(result.paragraphs[0].text.includes('시간의 자원 관리 글자는 달의 배움·보호 글자를 제약'));
+assert(result.paragraphs[0].text.includes('완화 효과나 우선순위를 확정할 수 없습니다'));
 assert.equal(result.counterfactualReviewedInternally,true);
 assert.equal(result.counterfactualPrintedInReader,false);
 assert.equal(result.hasConcreteTwoWayTradeoff,true);

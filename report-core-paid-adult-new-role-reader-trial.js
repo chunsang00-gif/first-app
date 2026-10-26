@@ -5,6 +5,7 @@
 const facts=require('./report-facts-node');
 const delta=require('./report-core-paid-general-month-value-delta');
 const screen=require('./report-core-paid-general-month-classical-screen');
+const interactions=require('./report-core-paid-adult-classical-relation-review');
 const ledger=require('./report-fact-bindings');
 const policy=require('./report-reader-policy');
 const INPUT={calendar:'solar',birthDate:'1994-07-15',birthTime:'14:20',
@@ -12,7 +13,7 @@ const INPUT={calendar:'solar',birthDate:'1994-07-15',birthTime:'14:20',
 const CHART={year:'甲戌',month:'辛未',day:'壬寅',hour:'丁未'};
 const PARAGRAPHS=[
  {kind:'distinct-evidence-not-automatic-personality',
-  text:'태어난 달의 바깥 글자는 새로운 내용을 익히고 도움을 받는 문제를, 달 안쪽 대표 글자는 정해진 규칙과 맡은 역할을 살피는 문제를 가리키는 전통 분류입니다. 그런데 태어난 시간의 겉글자는 달 안쪽에 있는 또 다른 글자와 정확히 같고, 그 분류는 돈과 자원을 지속적으로 관리하는 일을 다룹니다. 이 기록을 읽을 때는 무엇을 지켜야 하는지만이 아니라, 그 일을 계속 맡는 데 무엇이 들어가는지도 별도로 살필 수 있습니다. 다만 어느 항목이 더 중요하고 본인에게 잘 맞는지는 확인되지 않았습니다.',
+  text:'태어난 달의 바깥 글자는 새로운 내용을 익히고 도움을 받는 문제를, 달 안쪽 대표 글자는 정해진 규칙과 맡은 역할을 살피는 문제를 가리키는 전통 분류입니다. 그런데 태어난 시간의 겉글자는 달 안쪽에 있는 또 다른 글자와 정확히 같고, 그 분류는 돈과 자원을 지속적으로 관리하는 일을 다룹니다. 이 기록을 읽을 때는 무엇을 지켜야 하는지만이 아니라, 그 일을 계속 맡는 데 무엇이 들어가는지도 별도로 살필 수 있습니다. 다만 두 분류가 늘 서로 도와준다는 뜻은 아닙니다. 시간의 자원 관리 글자는 달의 배움·보호 글자를 제약하는 방향으로 계산됩니다. 달 안쪽의 규칙·역할 글자를 사이에 두면 이어지는 방향도 계산되지만, 그 가운데 글자는 겉에 드러나지 않아 완화 효과나 우선순위를 확정할 수 없습니다.',
   sourceRefs:['natal.month.stem','natal.month.hidden.己',
    'natal.month.hidden.丁','natal.hour.stem','facts.stemConnections']},
  {kind:'one-specific-two-way-conditional-example',
@@ -20,9 +21,9 @@ const PARAGRAPHS=[
   sourceRefs:['natal.month.hidden.己','natal.month.hidden.丁',
    'natal.hour.stem']},
  {kind:'counterexample-and-interpretation-limit',
-  text:'반대로 한 번의 점검으로 끝나는 짧은 일이라면, 매주 반복되는 자원 부담을 판단의 중심에 놓는 예시는 맞지 않습니다. 또 태어난 달의 대표 글자와 시간에 드러난 글자 중 무엇을 먼저 살펴야 하는지도 아직 결정되지 않았습니다. 따라서 이 기록만으로 장기적인 운영 업무가 적성에 맞는다거나 돈을 잘 관리하는 성격이라고 단정할 수는 없습니다.',
+  text:'한 번 점검하고 끝나는 짧은 일이라면 매주 자원을 쓰는 예시는 맞지 않습니다. 게다가 태어난 해의 글자는 시간의 자원 관리 글자를 돕는 방향이고, 태어난 날의 기준 글자는 같은 시간 글자를 제약하는 방향입니다. 서로 다른 계산 관계가 공존하기 때문에 하나만 골라 실제 행동이나 금전 결과의 근거로 삼을 수 없습니다. 따라서 이 기록으로 장기적인 운영 업무가 적성에 맞는다거나 돈을 잘 관리하는 성격이라고 단정할 수는 없습니다.',
   sourceRefs:['natal.month.hidden.己','natal.month.hidden.丁',
-   'natal.hour.stem']}
+   'natal.hour.stem','natal.year.stem','natal.day.stem']}
 ];
 function build(packet){
  if(packet?.status!=='ready'||!Object.entries(INPUT).every(
@@ -30,6 +31,18 @@ function build(packet){
    !Object.entries(CHART).every(([k,v])=>packet.chart?.[k]===v)||
    packet.targetYear?.year!==2027)return null;
  const value=delta.inspect(packet),method=screen.inspect(packet);
+ const directions=interactions.inspect(packet);
+ if(!directions||
+    directions.unresolved.traditionalMethodPriority!=='not-established'||
+    directions.unresolved.overallPatternSelected!==false||
+    directions.verified.directRelations.length!==3||
+    directions.verified.directRelations[0].from!=='natal.hour.stem'||
+    directions.verified.directRelations[0].to!=='natal.month.stem'||
+    directions.verified.directRelations[0].direction!=='left-controls-right'||
+    directions.verified.hiddenMainAsPossibleIntermediary.length!==2||
+    directions.unresolved.hiddenMonthIntermediaryNotProvenActive!==true||
+    directions.authorizesPaidWriter!==false)
+  throw Error('QA_ADULT_NEW_ROLE_FULL_CHART_INTERACTIONS_UNVERIFIED');
  if(value.valueClass!=='new-symbol-category-and-independent-position'||
     JSON.stringify(value.baselineTraditionalRoles)!==
       JSON.stringify(['정인','정관'])||
@@ -80,6 +93,8 @@ function build(packet){
   label:'규칙을 정하는 일과 오래 운영하는 일을 함께 보는 조건',
   paragraphs:PARAGRAPHS.map(p=>({...p,sourceRefs:p.sourceRefs.slice()})),
   text,sourceRefs:all,unrelatedHourBorrowingForbidden:true,
+  competingElementalDirectionsReviewed:structuredClone(directions),
+  bothDirectAndMediatedInterpretationsStillUnresolved:true,
   counterfactualReviewedInternally:true,
   counterfactualPrintedInReader:false,
   hasConcreteTwoWayTradeoff:true,
