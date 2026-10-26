@@ -221,10 +221,32 @@ assert.equal(writer.compile({...contrastHour.prompt,
  qaOfflineEditorialResearchPreview:true}).task.chapters.saju_core.topics.natal_depth
  .qaOfflineEditorialResearch.exactWinterClassicalScope,null,
  'changed hour must never inherit the exact 14:20 classical source review');
-assert.equal(writer.compile({...contrastHour.prompt,
- qaOfflineEditorialResearchPreview:true}).task.chapters.saju_core.topics.natal_depth
- .qaOfflineEditorialResearch.revisedSourceSpecificFirstChapter,null,
- 'changed hour must not receive exact 14:20 rewritten manuscript');
+const altPayload=writer.compile({...contrastHour.prompt,
+ qaOfflineEditorialResearchPreview:true});
+const altChapter=altPayload.task.chapters.saju_core.topics.natal_depth
+ .qaOfflineEditorialResearch.revisedSourceSpecificFirstChapter;
+assert(altChapter,'changed hour needs its OWN source-specific revised manuscript');
+assert.equal(altChapter.kind,'qa-source-specific-adult-other-hour-revision-v1');
+assert.equal(altChapter.paidWriterAuthorized,false);
+assert.equal(altChapter.approvedForCustomer,false);
+assert.equal(altChapter.provenIncrementalCustomerBenefit,false);
+assert.equal(altChapter.providerCalls,0);
+assert.notEqual(altChapter.text,updatedChapter.text);
+assert(altChapter.text.includes('오후 8시 20분'));
+assert(!altChapter.text.includes('안정에 가까운 표현을 쓰지만'));
+assert(altChapter.sourceRefs.every(ref=>altPayload.source[ref]!==undefined));
+assert.equal(altPayload.task.chapters.saju_core.topics.natal_depth
+ .qaOfflineEditorialResearch.exactWinterClassicalScope,null);
+assert.equal(contrastHour.payload.task.chapters.saju_core.topics.natal_depth
+ .qaOfflineEditorialResearch,undefined);
+const forgedAlt=structuredClone(altPayload);
+forgedAlt.task.chapters.saju_core.topics.natal_depth
+ .qaOfflineEditorialResearch.revisedSourceSpecificFirstChapter.paragraphs[0].text=
+ 'UNVERIFIED ALTERNATIVE TEXT';
+assert(require('./report-instruction-audit')
+ .inspectTransport({...contrastHour.prompt,qaOfflineEditorialResearchPreview:true},
+  forgedAlt).includes('qa-natal-depth-editorial-reference-drift'),
+ 'alternate-hour draft must be protected by exact provider transport audit');
 assert.notEqual(handwrittenResearch.editorialReference.text,
  writer.compile({...contrastHour.prompt,qaOfflineEditorialResearchPreview:true})
   .task.chapters.saju_core.topics.natal_depth

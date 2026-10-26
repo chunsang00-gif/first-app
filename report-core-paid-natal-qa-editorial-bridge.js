@@ -10,6 +10,7 @@ const completedAdult=require('./report-core-paid-one-adult-complete-first-chapte
 const methodDecision=require('./report-core-paid-classical-decision-handoff');
 const exactWinter=require('./report-core-paid-adult-exact-winter-context-reader');
 const winterRevision=require('./report-core-paid-exact-winter-revised-chapter');
+const alternativeRevision=require('./report-core-paid-alternative-hour-revised-chapter');
 const POSITION=['year','month','day','hour'];
 const REQUIRED=['natal.year.stem','natal.month.stem','natal.day.stem',
  'natal.hour.stem','facts.stemConnections'];
@@ -113,9 +114,12 @@ function build(packet,permitted,source){
     throw Error('QA_EDITORIAL_BRIDGE_EXACT_WINTER_SOURCE_SCOPE_DRIFT');
   }
  }
- const revision=winter?winterRevision.build(packet,winter,adult):null;
+ const revision=winter?winterRevision.build(packet,winter,adult):
+  alternativeRevision.build(packet);
  if(revision){
-  if(revision.kind!=='qa-source-specific-adult-first-chapter-revision-v1'||
+  if(!['qa-source-specific-adult-first-chapter-revision-v1',
+       'qa-source-specific-adult-other-hour-revision-v1']
+       .includes(revision.kind)||
      revision.releaseVerdict!=='not-approved'||
      revision.paidWriterAuthorized!==false||
      revision.approvedForCustomer!==false||
