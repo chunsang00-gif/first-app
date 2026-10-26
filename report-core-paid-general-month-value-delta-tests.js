@@ -16,6 +16,7 @@ assert.deepEqual(early.newlyMentionedOtherPillarRefs,['natal.hour.stem']);
 assert.deepEqual(late.newlyMentionedOtherPillarRefs,[]);
 assert.equal(early.verifiedNewPersonalizedConclusion,false);
 assert.equal(late.paidValueApproved,false);
+const novelCases=[];
 const totals={tested:0,notApplicable:0,applicable:0,classes:{},
  textBaselineAvailable:0,structuralProvenanceImproved:0,paidReady:0};
 for(const item of coverage.representativeInputs()){
@@ -38,6 +39,11 @@ for(const item of coverage.representativeInputs()){
  if(a.curatedMonthBaselineTextAvailable)totals.textBaselineAvailable++;
  if(a.explanatoryProvenanceImproved)totals.structuralProvenanceImproved++;
  if(a.paidValueApproved)totals.paidReady++;
+ if(a.valueClass==='new-symbol-category-and-independent-position')
+  novelCases.push({input:item,chart:packet.chart,roles:a.novelTraditionalRoleNamesBeyondMonthCore,
+   baseline:a.baselineTraditionalRoles,positions:a.newlyMentionedOtherPillarRefs,
+   refs:a.shownCandidateSourceIds});
+
  assert.equal(a.paidWriterFirstChapterWholeChartGrounded,false);
  assert.equal(a.verifiedNewPersonalizedConclusion,false);
  assert.equal(a.changedReaderDecisionVersusBaseline,false);
@@ -76,5 +82,6 @@ assert.equal(mixed.paidValueApproved,false);
 const tampered=facts.build({...input,birthTime:'14:20'},2027);
 tampered.facts.stemConnections.exposure=[];
 assert.throws(()=>audit.inspect(tampered),/CALCULATION_DIVERGED/);
+console.log('QA_MONTH_NEW_ROLE_FIXTURES='+JSON.stringify(novelCases));
 console.log('QA_MONTH_READER_VALUE_DELTA='+JSON.stringify(totals));
 console.log('PASS reading categories, novel positions, and structural-only changes cannot masquerade as verified paid value');
