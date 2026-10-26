@@ -19,7 +19,7 @@ const P=[
   sourceRefs:['natal.month.stem','natal.hour.stem','facts.seasonalEvidence'],
   sourceType:'separate-published-winter-month-condition'},
  {kind:'counterfactual-source-boundary',label:'출생시간을 바꾸면 달라지는 적용 범위',
-  text:'태어난 달과 날, 달과 시간에는 같은 종류의 마주 보는 관계가 각각 표시됩니다. 이는 계산표의 두 위치이지 실제 다툼을 두 번 겪는다는 예고가 아닙니다. 태어난 달 안쪽의 글자가 달과 시간의 겉에 함께 드러나지만, 두 번 나타난다는 이유로 뜻이 더 강해지는 것은 아닙니다. 출생시간만 오후 8시 20분으로 바꾸어 계산하면 시간의 글자가 달라져, 첫 문헌의 해당 날·시간 조합을 더는 인용할 수 없습니다. 실제로 입력한 오후 2시 20분과 비교한 이유는 고전 문구의 적용 범위를 확인하기 위해서입니다. 달의 안쪽에는 여러 글자가 있어도, 겉으로 나온 서로 다른 후보는 이 사례에서 하나입니다. 고전의 해당 규칙으로 그 후보를 먼저 검토할 수 있습니다. 시간을 바꿔도 달에서 확인되는 해석 출발점 후보는 유지됩니다. 시간에 같은 글자가 또 있는지만 달라집니다. 이것이 삶의 결과를 바꾼다는 해석은 입증되지 않았습니다.',
+  text:'태어난 달과 날, 달과 시간에는 같은 종류의 마주 보는 관계가 각각 표시됩니다. 이는 계산표의 두 위치이지 실제 다툼을 두 번 겪는다는 예고가 아닙니다. 태어난 달 안쪽의 글자가 달과 시간의 겉에 함께 드러나지만, 두 번 나타난다는 이유로 뜻이 더 강해지는 것은 아닙니다. 출생시간만 오후 8시 20분으로 바꾸어 계산하면 시간의 글자가 달라져, 첫 문헌의 해당 날·시간 조합을 더는 인용할 수 없습니다. 실제로 입력한 오후 2시 20분과 비교한 이유는 고전 문구의 적용 범위를 확인하기 위해서입니다. 달의 안쪽에는 여러 글자가 있어도, 겉으로 나온 서로 다른 후보는 이 사례에서 하나입니다. 고전의 해당 규칙으로 그 후보를 먼저 검토할 수 있습니다. 시간을 바꿔도 달에서 확인되는 해석 출발점 후보는 유지됩니다. 달과 날의 관계표는 그대로지만 달과 시간 사이의 마주 보는 관계는 사라집니다. 관계표가 달라진다고 실제 다툼이 줄어들거나 삶이 달라진다는 뜻은 아닙니다.',
   sourceRefs:['natal.day.stem','natal.hour.stem',
    'natal.month.stem','facts.stemConnections','facts.natalBranchRelations'],
   sourceType:'verified-hour-counterfactual-not-historical-prediction'}
@@ -48,6 +48,10 @@ function build(packet,winter,previous){
     previous?.valueDecision?.repeatedReaderPropositions?.length!==3)
   throw Error('QA_REVISED_CLASSICAL_CHAPTER_SOURCE_SCOPE_INVALID');
  const methodResult=applied.inspect(packet);
+ if(!methodResult?.verified?.monthHourBranchContactChangesByBirthHour||
+    !methodResult.verified.branchTable.monthHour.tableLabels.includes('충')||
+    methodResult.verified.branchTable.alternateMonthHour.tableLabels.includes('충'))
+  throw Error('QA_REVISED_SOURCE_BRANCH_INTERPRETATION_NOT_GROUNDED');
  if(!methodResult||methodResult.verified.candidateExposedAt.length!==2||
     methodResult.overallPatternSelected!==false||
     methodResult.source.originalRule!=='一透則一用'||
