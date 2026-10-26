@@ -33,6 +33,15 @@ assert.equal(v.unresolved.hiddenMonthIntermediaryNotProvenActive,true);
 assert.equal(v.unresolved.directOppositionDoesNotProveNegativeLifeOutcome,true);
 assert.equal(v.unresolved.chainDoesNotProveBeneficialLifeOutcome,true);
 assert.equal(v.unresolved.dayMasterStrengthNotCalculated,true);
+assert.equal(v.verified.hourMonthElementDirectionIsNonAdjacent,true);
+assert.equal(v.verified.interveningVisiblePositionBetweenMonthAndHour,'day');
+assert.equal(v.verified.dayHourCombinationCandidate.combination,'丁壬');
+assert.deepEqual(v.verified.dayHourCombinationCandidate.sourceRefs,
+ ['natal.day.stem','natal.hour.stem']);
+assert.equal(v.verified.dayHourCombinationCandidate.adjacent,true);
+assert.equal(v.verified.dayHourCombinationCandidate.transformedToElement,'not-assessed');
+assert.equal(v.unresolved.dayHourCombinationDoesNotRemoveEitherStem,true);
+assert.equal(v.unresolved.pairingDoesNotProveTransformationOrPriority,true);
 assert.equal(v.unresolved.traditionalMethodPriority,'not-established');
 assert.equal(v.unresolved.overallPatternSelected,false);
 assert.equal(v.verified.changedHourLosesExposedWealthCandidate,true);

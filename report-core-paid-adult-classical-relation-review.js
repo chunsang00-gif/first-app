@@ -7,6 +7,7 @@ const method=require('./report-core-paid-general-month-classical-screen');
 const month=require('./report-core-paid-natal-month-method-review');
 const roles=require('./report-fact-bindings');
 const arrows=require('./report-core-paid-natal-visible-relation-bridge');
+const pairScreen=require('./report-core-paid-natal-visible-stem-pair-screen');
 const INPUT={calendar:'solar',birthDate:'1994-07-15',birthTime:'14:20',
  gender:'male',mbti:'ISFP'};
 const EXPECTED={year:'甲戌',month:'辛未',day:'壬寅',hour:'丁未'};
@@ -19,6 +20,15 @@ function inspect(packet){
     Object.entries(EXPECTED).some(([key,value])=>packet.chart?.[key]!==value))
   return null;
  const shown=method.inspect(packet),review=month.assess(packet);
+ const pairAudit=pairScreen.inspect(packet);
+ const dayHourPair=pairAudit.matches.filter(x=>
+  x.combination==='丁壬'&&x.from==='natal.day.stem'&&
+  x.to==='natal.hour.stem');
+ if(dayHourPair.length!==1||dayHourPair[0].adjacent!==true||
+    dayHourPair[0].matchedDayMaster!==true||
+    dayHourPair[0].transformedToElement!=='not-assessed'||
+    pairAudit.elementalTransformationEstablished!==false)
+  throw Error('QA_ADULT_DIRECTION_MISSING_ADJACENT_DING_REN_PAIR');
  const index=Object.fromEntries(roles.build(packet).map(v=>[v.id,v]));
  const ids={
   year:'natal.year.stem',month:'natal.month.stem',
@@ -90,12 +100,20 @@ function inspect(packet){
    exposedAt:[ids.hour],monthMainNotExposed:true,
    yearMonthDayRemainSameUnderChangedHour:true,
    changedHourLosesExposedWealthCandidate:true,
+   // Month and hour are two slots apart. The literal element arrow is not
+   // proof their relation acts as an unblocked, direct natal clash.
+   hourMonthElementDirectionIsNonAdjacent:true,
+   interveningVisiblePositionBetweenMonthAndHour:'day',
+   dayHourCombinationCandidate:{...dayHourPair[0]},
    directRelations:checks,
    hiddenMainAsPossibleIntermediary:hypotheticalChain},
   unresolved:{hiddenMonthIntermediaryNotProvenActive:true,
    directOppositionDoesNotProveNegativeLifeOutcome:true,
    chainDoesNotProveBeneficialLifeOutcome:true,
    branchRelationsDoNotResolvePriority:true,
+   dayHourCombinationDoesNotRemoveEitherStem:true,
+   pairingDoesNotProveTransformationOrPriority:true,
+   betweenMonthAndHourDayStemCannotBeIgnored:true,
    dayMasterStrengthNotCalculated:true,
    traditionalMethodPriority:'not-established',
    overallPatternSelected:false},

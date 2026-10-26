@@ -20,7 +20,8 @@ assert(result.paragraphs[1].text.includes('승인권자가 분명해도 매주 �
 assert(result.paragraphs[1].text.includes('반대로 작업 시간을 충분히 잡았더라도'));
 assert(result.paragraphs[2].text.includes('한 번 점검하고 끝나는 짧은 일'));
 assert(result.paragraphs[2].text.includes('태어난 해의 글자는 시간의 자원 관리'));
-assert(result.paragraphs[2].text.includes('태어난 날의 기준 글자는'));
+assert(result.paragraphs[2].text.includes('태어난 날과 시간의 겉글자는'));
+assert(result.paragraphs[2].text.includes('다른 기운으로 바뀌었다는 판단은 아닙니다'));
 assert(!/오후 8시 20분|QA|API|유료 풀이|검증 상태/.test(result.text));
 assert.equal(result.competingElementalDirectionsReviewed
  .unresolved.overallPatternSelected,false);
@@ -31,7 +32,11 @@ assert.equal(result.competingElementalDirectionsReviewed
 assert.equal(result.bothDirectAndMediatedInterpretationsStillUnresolved,true);
 assert(result.paragraphs[2].sourceRefs.includes('natal.year.stem'));
 assert(result.paragraphs[2].sourceRefs.includes('natal.day.stem'));
-assert(result.paragraphs[0].text.includes('시간의 자원 관리 글자는 달의 배움·보호 글자를 제약'));
+assert(result.paragraphs[0].text.includes('그 사이에 태어난 날의 글자가 있어'));
+assert(!result.text.includes('서로 제약하는 방향으로 계산됩니다'));
+assert(result.competingElementalDirectionsReviewed.verified.dayHourCombinationCandidate.adjacent);
+assert.equal(result.competingElementalDirectionsReviewed.verified.dayHourCombinationCandidate
+ .transformedToElement,'not-assessed');
 assert(result.paragraphs[0].text.includes('완화 효과나 우선순위를 확정할 수 없습니다'));
 assert.equal(result.counterfactualReviewedInternally,true);
 assert.equal(result.counterfactualPrintedInReader,false);
