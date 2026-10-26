@@ -18,6 +18,8 @@ assert.notEqual(a.paragraphs[0].text,b.paragraphs[0].text);
 assert.equal(a.paragraphs[2].sourceUrl,b.paragraphs[1].sourceUrl);
 assert(a.text.includes('오후 8시 20분'));
 assert(a.text.includes('오후 2시 20분'));
+assert(a.paragraphs[2].text.includes('달의 해석 출발점 후보는 유지되고'));
+assert(a.paragraphs[2].sourceRefs.includes('facts.stemConnections'));
 assert(a.text.includes('해의 아랫글자는 그 목록에 들어가지만'));
 assert(a.paragraphs[0].text.includes(
  '강한 기운을 경계하는 문장과 일부 해·달 조건을 좋게 풀이하는 문장'));
