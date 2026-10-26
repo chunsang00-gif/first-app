@@ -30,6 +30,8 @@ assert(!draft.text.includes('당신은 안정적인 사람입니다'));
 assert(!draft.text.includes('앞으로 평온한 삶을 살게 됩니다'));
 assert(draft.paragraphs[1].text.includes('서로 질문 자체가 다른'));
 assert(draft.paragraphs[2].text.includes('오후 8시 20분'));
+assert(draft.paragraphs[2].text.includes('해석 출발점 후보는 유지됩니다'));
+assert(draft.paragraphs[2].sourceRefs.includes('facts.stemConnections'));
 assert(!draft.text.includes('동료에게'));
 assert(!draft.text.includes('기존 작업 절차'));
 assert.notEqual(draft.text,prior.text);
