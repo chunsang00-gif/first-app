@@ -17,6 +17,15 @@ const PLACE=Object.freeze({
  'natal.year.stem':'태어난 해','natal.month.stem':'태어난 달',
  'natal.hour.stem':'태어난 시간'
 });
+// Correct Korean 와/과 agreement across all calculated source positions.
+function koreanPositionList(words){
+ if(!Array.isArray(words)||!words.length)throw Error('QA_READER_EMPTY_POSITION_LIST');
+ const particle=word=>{
+  const cp=word.codePointAt(word.length-1);
+  return cp>=0xac00&&cp<=0xd7a3&&(cp-0xac00)%28?'과 ':'와 ';
+ };
+ return words.slice(0,-1).map(w=>w+particle(w)).join('')+words.at(-1);
+}
 function build(packet){
  const audit=screen.inspect(packet);
  if(audit.releaseVerdict!=='not-approved'||audit.providerCalls!==0||
@@ -42,9 +51,12 @@ function build(packet){
   return {sourceRef:x.sourceId,role:x.traditionalRole,meaning,
    positions:x.exposedAt.slice(),sourceRefs:[x.sourceId,...x.exposedAt]};
  });
+ // A completed three-branch group intentionally blocks a provisional
+ // selection, even when exactly one month-hidden source is visible.
+ // Keep that unresolved combined condition readable instead of throwing.
  if(selected.length!==audit.distinctVisibleCandidateCount||
-    (selected.length===1)!==(audit.provisionalMethodCandidate!==null&&
-       !audit.completeSanHeGroupMembership.length))
+    (selected.length===1&&!audit.completeSanHeGroupMembership.length)!==
+      (audit.provisionalMethodCandidate!==null))
   throw Error('QA_READER_MONTH_METHOD_SELECTION_MISMATCH');
  const observed=selected.map(x=>({
   ...x,positionWords:x.positions.map(p=>PLACE[p])}));
@@ -53,14 +65,14 @@ function build(packet){
   explanation='태어난 달의 안쪽에는 서로 다른 세 글자가 있지만, 해·달·시간의 겉에 그 글자와 정확히 일치하는 것은 없습니다. 이 계산만으로 어느 뜻을 먼저 읽을지 정할 수 없고, 눈에 보이지 않는다는 이유로 해당 뜻이 없다고 판단하지도 않습니다.';
  else if(observed.length===1){
   const x=observed[0];
-  explanation='태어난 달의 안쪽에 있는 여러 글자 중 '+x.positionWords.join('과 ')+
+  explanation='태어난 달의 안쪽에 있는 여러 글자 중 '+koreanPositionList(x.positionWords)+
    '에 나타난 한 종류가 확인됩니다. 전통적으로 이 글자는 '+x.meaning+
    '을 살피는 항목입니다. 같은 글자가 여러 자리에 나오더라도 서로 다른 뜻이 여러 개 생기거나 그 성향이 더 강하다고 계산하지는 않습니다.';
  }else{
-  const labels=observed.map(x=>x.positionWords.join('과 ')+
+  const labels=observed.map(x=>koreanPositionList(x.positionWords)+
    '에서 확인되는 '+x.meaning);
   explanation='태어난 달의 안쪽에 있는 글자 가운데 겉으로 드러난 후보가 '+
-   observed.length+'종류입니다. '+labels.join(', ')+'이 각각 해당합니다. '+
+   observed.length+'종류입니다. 해당하는 전통적 설명은 '+labels.join(', ')+' 등입니다. '+
    '따라서 한 가지 뜻만 골라 이 사람의 기질이나 행동을 확정할 수 없으며, 서로 다른 해석 후보의 우선순위를 추가로 검토해야 합니다.';
  }
  const hasTriad=audit.completeSanHeGroupMembership.length>0;
@@ -97,4 +109,4 @@ function build(packet){
   providerCalls:0,releaseVerdict:'not-approved'
  };
 }
-module.exports={build};
+module.exports={build,koreanPositionList};

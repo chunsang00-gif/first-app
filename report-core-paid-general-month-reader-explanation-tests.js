@@ -19,6 +19,13 @@ assert.equal(second.candidateRoles[0],'편인');
 assert.equal(first.readerValueBeyondBasicMonthNotVerified,true);
 assert.equal(second.readerValueBeyondBasicMonthNotVerified,true);
 assert(!/명식|원국|일간|지장간|십성/.test(first.reader.text+second.reader.text));
+assert.equal(reader.koreanPositionList(['태어난 해','태어난 달']),
+ '태어난 해와 태어난 달');
+assert.equal(reader.koreanPositionList(['태어난 달','태어난 시간']),
+ '태어난 달과 태어난 시간');
+assert.equal(reader.koreanPositionList(['태어난 해','태어난 달','태어난 시간']),
+ '태어난 해와 태어난 달과 태어난 시간');
+assert.throws(()=>reader.koreanPositionList([]),/EMPTY_POSITION_LIST/);
 const report={inputs:0,outOfScope:0,explained:0,byClass:{},differentSignatures:0};
 const signatures=new Map();
 for(const input of collection.representativeInputs()){
@@ -51,6 +58,38 @@ for(const input of collection.representativeInputs()){
  if(signatures.has(key))assert.equal(out.reader.text,signatures.get(key));
  else signatures.set(key,out.reader.text);
 }
+// The 99-case grid contained zero complete three-branch month groups.
+// Verify the uncovered branch using a real calendar-valid chart rather than
+// constructing an inconsistent synthetic packet. In July 2019 the year is
+// 亥 and month 未; search days for 卯 to complete 亥卯未.
+let combined=null;
+for(let day=8;day<=31&&!combined;day++){
+ for(const hour of ['02:20','08:20','14:20','20:20']){
+  const packet=facts.build({calendar:'solar',
+   birthDate:'2019-07-'+String(day).padStart(2,'0'),
+   birthTime:hour,gender:'male',mbti:'ISFP'},2027);
+  if(packet.status!=='ready'||packet.chart.year[1]!=='亥'||
+     packet.chart.month[1]!=='未'||packet.chart.day[1]!=='卯')continue;
+  const candidate=screen.inspect(packet);
+  if(candidate.completeSanHeGroupMembership.length&&
+     candidate.distinctVisibleCandidateCount===1){
+   combined={packet,source:candidate};
+   break;
+  }
+ }
+}
+assert(combined,'expected real 2019-07 month+year+day 三合 with one visible candidate');
+const combinedText=reader.build(combined.packet);
+assert.equal(combined.source.provisionalMethodCandidate,null);
+assert.equal(combined.source.status,'exposure-and-complete-triad-need-joint-review');
+assert.equal(combinedText.disputedPriority,true);
+assert.equal(combinedText.approvedForCustomer,false);
+assert.equal(combinedText.copyToNormalPaidWriter,false);
+assert(combinedText.reader.text.includes('세 자리의 글자 조합도 계산상 확인됩니다'));
+assert(!combinedText.reader.text.includes('태어난 해과'));
+assert(!combinedText.reader.text.includes('태어난 시간이'));
+assert.equal(combinedText.providerCalls,0);
+report.combinedGroupCounterexampleCovered=true;
 report.differentSignatures=signatures.size;
 assert.equal(report.inputs,99);
 assert.equal(report.explained,35);
