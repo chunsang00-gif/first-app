@@ -19,6 +19,11 @@ assert.equal(a.paragraphs[2].sourceUrl,b.paragraphs[1].sourceUrl);
 assert(a.text.includes('오후 8시 20분'));
 assert(a.text.includes('오후 2시 20분'));
 assert(a.text.includes('해의 아랫글자는 그 목록에 들어가지만'));
+assert(a.paragraphs[0].text.includes(
+ '강한 기운을 경계하는 문장과 일부 해·달 조건을 좋게 풀이하는 문장'));
+assert(a.paragraphs[0].text.includes('두 조건을 따로 확인해야 하며'));
+assert(!a.text.includes('안정된 쪽으로 풀이한 조건에 들어갑니다'));
+assert(!a.text.includes('앞으로 불운이 찾아옵니다'));
 assert(a.text.includes('따뜻함을 나타내는 글자가 시간의 겉에 있지만'));
 assert.equal(a.paidWriterAuthorized,false);
 assert.equal(a.approvedForCustomer,false);

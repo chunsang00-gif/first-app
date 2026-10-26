@@ -22,6 +22,12 @@ assert.equal(draft.releaseVerdict,'not-approved');
 assert.equal(draft.paragraphs[0].sourceUrl,w.sourceScope.exactDayHour.url);
 assert.equal(draft.paragraphs[1].sourceUrl,w.sourceScope.seasonalMonth.url);
 assert(draft.paragraphs[0].text.includes('특정 날과 시간까지 일치'));
+assert(draft.paragraphs[0].text.includes(
+ '겨울의 해당 날·시간 조합을 안정된 쪽으로 풀이한 조건에 들어갑니다'));
+assert(draft.paragraphs[0].text.includes(
+ '고전의 제한된 전통적 평가일 뿐'));
+assert(!draft.text.includes('당신은 안정적인 사람입니다'));
+assert(!draft.text.includes('앞으로 평온한 삶을 살게 됩니다'));
 assert(draft.paragraphs[1].text.includes('서로 질문 자체가 다른'));
 assert(draft.paragraphs[2].text.includes('오후 8시 20분'));
 assert(!draft.text.includes('동료에게'));

@@ -8,7 +8,7 @@ const EXPECTED={year:'壬戌',month:'癸丑',day:'乙未',hour:'癸未'};
 const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
 const P=[
  {kind:'exact-day-hour-text',label:'같은 겨울에도 다른 날과 시간의 조건',
-  text:'출생의 네 자리를 함께 보면, 태어난 날과 시간의 아랫글자가 같습니다. 고전에는 바로 이 날과 시간의 조합이 겨울에 놓였을 때를 따로 평가한 문장이 있습니다. 기본 풀이에서 다룬 출생월의 뜻과 달리 특정 날과 시간까지 일치하는 자료입니다. 문헌은 안정에 가까운 표현을 쓰지만, 그 한 줄이 실제 생활이나 성격이 평온하다는 확인은 아닙니다.',
+  text:'출생의 네 자리를 함께 보면, 태어난 날과 시간의 아랫글자가 같습니다. 고전에는 바로 이 날과 시간의 조합이 겨울에 놓였을 때를 따로 평가한 문장이 있습니다. 기본 풀이에서 다룬 출생월의 뜻과 달리 특정 날과 시간까지 일치하는 자료입니다. 따라서 이 출생 기록은 그 문헌이 겨울의 해당 날·시간 조합을 안정된 쪽으로 풀이한 조건에 들어갑니다. 다만 이것은 고전의 제한된 전통적 평가일 뿐, 실제 생활이나 성격이 평온하다는 확인은 아닙니다.',
   sourceRefs:['natal.day.stem','natal.day.hidden.乙',
    'natal.hour.stem','natal.hour.hidden.乙','facts.seasonalEvidence'],
   sourceType:'exact-published-day-hour-winter-clause'},
