@@ -172,6 +172,22 @@ assert.equal(handwritten.payload.task.chapters.saju_core.topics.natal_depth
 assert.equal(handwrittenResearch.sourceClass,'authored-specific-four-pillar-candidate');
 assert(handwrittenResearch.editorialReference.text.includes('기존 작업 지침'));
 assert.equal(handwrittenResearch.chartFingerprint,'壬戌/癸丑/乙未/癸未');
+const updatedChapter=handwrittenResearch.revisedSourceSpecificFirstChapter;
+assert(updatedChapter,'reworked exact source-specific first chapter must reach QA writer task');
+const updatedStandalone=require('./report-core-paid-exact-winter-revised-chapter')
+ .build(facts.build(authoredInput,2027),
+  require('./report-core-paid-adult-exact-winter-context-reader')
+   .build(facts.build(authoredInput,2027)),standalone);
+assert.deepEqual(updatedChapter,updatedStandalone);
+assert.equal(updatedChapter.paragraphs.length,3);
+assert(updatedChapter.text.includes('특정 날과 시간까지 일치'));
+assert.equal(updatedChapter.provenIncrementalCustomerBenefit,false);
+assert.equal(updatedChapter.approvedForCustomer,false);
+assert.equal(updatedChapter.paidWriterAuthorized,false);
+assert(!handwritten.payload.task.chapters.saju_core.topics.natal_depth
+ .qaOfflineEditorialResearch,'new rewritten manuscript may not leak into frozen paid QA');
+assert(handwrittenOfflinePayload.task.editorialGoal.includes(
+ 'qaOfflineEditorialResearch.revisedSourceSpecificFirstChapter'));
 const winter=handwrittenResearch.exactWinterClassicalScope;
 assert(winter,'exact 14:20 winter research should reach QA model-facing task');
 assert.equal(winter.kind,'qa-exact-winter-source-scope-editorial-only-v1');
@@ -205,6 +221,10 @@ assert.equal(writer.compile({...contrastHour.prompt,
  qaOfflineEditorialResearchPreview:true}).task.chapters.saju_core.topics.natal_depth
  .qaOfflineEditorialResearch.exactWinterClassicalScope,null,
  'changed hour must never inherit the exact 14:20 classical source review');
+assert.equal(writer.compile({...contrastHour.prompt,
+ qaOfflineEditorialResearchPreview:true}).task.chapters.saju_core.topics.natal_depth
+ .qaOfflineEditorialResearch.revisedSourceSpecificFirstChapter,null,
+ 'changed hour must not receive exact 14:20 rewritten manuscript');
 assert.notEqual(handwrittenResearch.editorialReference.text,
  writer.compile({...contrastHour.prompt,qaOfflineEditorialResearchPreview:true})
   .task.chapters.saju_core.topics.natal_depth
@@ -247,6 +267,13 @@ forged.task.chapters.saju_core.topics.natal_depth.evidenceFocus.sourceRefs=
 assert(auditTransport.inspectTransport(early.prompt,forged)
  .includes('qa-natal-depth-evidence-brief-drift'),
  'tampering with contextual provenance must fail the paid transport audit');
+const alteredRevised=structuredClone(handwrittenOfflinePayload);
+alteredRevised.task.chapters.saju_core.topics.natal_depth
+ .qaOfflineEditorialResearch.revisedSourceSpecificFirstChapter.paragraphs[0].text=
+ 'FORGED CHAPTER CLAIM';
+assert(auditTransport.inspectTransport(handwrittenOfflinePrompt,alteredRevised)
+ .includes('qa-natal-depth-editorial-reference-drift'),
+ 'model-facing source-scoped revised manuscript must reject text manipulation');
 const alteredComplete=structuredClone(handwrittenOfflinePayload);
 alteredComplete.task.chapters.saju_core.topics.natal_depth
  .qaOfflineEditorialResearch.fullFirstChapterResearch.paragraphs[1].text=

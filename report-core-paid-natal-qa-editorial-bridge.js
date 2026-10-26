@@ -9,6 +9,7 @@ const comparison=require('./report-core-paid-natal-qa-value-delta');
 const completedAdult=require('./report-core-paid-one-adult-complete-first-chapter');
 const methodDecision=require('./report-core-paid-classical-decision-handoff');
 const exactWinter=require('./report-core-paid-adult-exact-winter-context-reader');
+const winterRevision=require('./report-core-paid-exact-winter-revised-chapter');
 const POSITION=['year','month','day','hour'];
 const REQUIRED=['natal.year.stem','natal.month.stem','natal.day.stem',
  'natal.hour.stem','facts.stemConnections'];
@@ -112,6 +113,21 @@ function build(packet,permitted,source){
     throw Error('QA_EDITORIAL_BRIDGE_EXACT_WINTER_SOURCE_SCOPE_DRIFT');
   }
  }
+ const revision=winter?winterRevision.build(packet,winter,adult):null;
+ if(revision){
+  if(revision.kind!=='qa-source-specific-adult-first-chapter-revision-v1'||
+     revision.releaseVerdict!=='not-approved'||
+     revision.paidWriterAuthorized!==false||
+     revision.approvedForCustomer!==false||
+     revision.provenIncrementalCustomerBenefit!==false||
+     revision.professionalMethodApproved!==false||
+     revision.providerCalls!==0||
+     revision.paragraphs.length!==3||
+     revision.paragraphs.map(x=>x.text).join('\n\n')!==revision.text||
+     revision.sourceRefs.some(id=>
+      !permitted.includes(id)||!Object.hasOwn(source,id)))
+   throw Error('QA_EDITORIAL_BRIDGE_REVISED_SOURCE_SCOPE_INVALID');
+ }
  const chart=POSITION.map(pos=>packet.chart[pos]).join('/');
  const out={
   kind:'qa-offline-saju-research-bridge-v1',
@@ -175,6 +191,9 @@ function build(packet,permitted,source){
    // choice that a commercial full-chart reading would still require.
    methodPriorityReview:structuredClone(curated.methodPriorityReview)
   }:null,
+  // Revised source-specific manuscript. Independent of the old general
+  // workplace example. This is a QA editorial reference, not paid output.
+  revisedSourceSpecificFirstChapter:revision?structuredClone(revision):null,
   // Only present on the exact 1982 14:20 QA fixture. Never a paid claim.
   exactWinterClassicalScope:winter?{
    kind:'qa-exact-winter-source-scope-editorial-only-v1',

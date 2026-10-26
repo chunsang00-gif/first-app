@@ -98,6 +98,14 @@ assert.equal(topic.qaOfflineEditorialResearch
  .fullFirstChapterResearch.text,authored.text);
 const origin=topic.qaOfflineEditorialResearch.fullFirstChapterResearch.claimOrigin;
 const decision=topic.qaOfflineEditorialResearch.fullFirstChapterResearch.valueDecision;
+const updated=topic.qaOfflineEditorialResearch.revisedSourceSpecificFirstChapter;
+assert(updated);
+assert.equal(updated.paragraphs.length,3);
+assert(updated.paragraphs.flatMap(x=>x.sourceRefs).every(id=>
+ Object.hasOwn(built.payload.source,id)));
+assert.equal(updated.approvedForCustomer,false);
+assert.equal(updated.paidWriterAuthorized,false);
+assert.equal(updated.provenIncrementalCustomerBenefit,false);
 const winter=topic.qaOfflineEditorialResearch.exactWinterClassicalScope;
 assert(winter);
 assert.equal(winter.sourceScope.whichMethodDominates,'unresolved');
