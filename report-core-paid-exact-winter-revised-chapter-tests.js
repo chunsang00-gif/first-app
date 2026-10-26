@@ -12,6 +12,11 @@ assert(w&&prior);
 const draft=revised.build(packet,w,prior);
 assert(draft);
 assert.equal(draft.paragraphs.length,3);
+assert.equal(draft.monthClassicalMethodApplication.source.originalRule,'一透則一用');
+assert.equal(draft.monthClassicalMethodApplication.verified.candidateExposedAt.length,2);
+assert.equal(draft.monthClassicalMethodApplication.overallPatternSelected,false);
+assert(draft.paragraphs[2].text.includes('겉으로 나온 서로 다른 후보는 이 사례에서 하나'));
+
 assert(draft.text.length>=550&&draft.text.length<=1100);
 assert.equal(draft.approvedForCustomer,false);
 assert.equal(draft.paidWriterAuthorized,false);

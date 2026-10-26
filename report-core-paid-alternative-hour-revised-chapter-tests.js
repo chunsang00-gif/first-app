@@ -11,6 +11,11 @@ const after=facts.build(input,2027),before=facts.build({...input,birthTime:'14:2
 const a=alt.build(after),b=old.build(before,winter.build(before),complete.build(before));
 assert(a&&b);
 assert.equal(a.paragraphs.length,3);
+assert.equal(a.monthClassicalMethodApplication.source.originalRule,'一透則一用');
+assert.equal(a.monthClassicalMethodApplication.verified.candidateExposedAt.length,1);
+assert.equal(a.monthClassicalMethodApplication.overallPatternSelected,false);
+assert(a.paragraphs[2].text.includes('서로 다른 후보는 하나이며'));
+
 assert(a.text.length>600);
 assert.notEqual(a.text,b.text);
 assert.equal(a.paragraphs[0].sourceUrl,b.paragraphs[0].sourceUrl);

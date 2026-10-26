@@ -6,6 +6,7 @@ const handoff=require('./report-core-paid-classical-decision-handoff');
 const core=require('./report-core-knowledge-engine');
 const reader=require('./report-reader-policy');
 const method=require('./report-core-paid-natal-classical-method-applicability');
+const applied=require('./report-core-paid-month-ch16-application');
 const EXPECTED={year:'壬戌',month:'癸丑',day:'乙未',hour:'丙戌'};
 const INPUT={calendar:'lunar',birthDate:'1982-11-24',birthTime:'20:20',
  leapMonth:false,gender:'male',mbti:'ISFP'};
@@ -22,7 +23,7 @@ const rows=[
    'natal.hour.stem','facts.natalBranchRelations'],
   sourceUrl:CLASSIC},
  {kind:'independent-winter-condition',label:'따뜻함을 뜻하는 글자 하나만으로 결정되지 않습니다',
-  text:'또 다른 겨울 관련 문헌은 태어난 날과 시간의 조합이 아니라 서로 다른 두 조건을 동시에 살핍니다. 오후 8시 20분에는 따뜻함을 나타내는 글자가 시간의 겉에 있지만, 달에는 함께 나오지 않아야 한다고 적힌 다른 글자가 남아 있습니다. 따라서 그 문헌의 두 조건을 모두 충족했다고 볼 수 없습니다. 태어난 달 안쪽에서 나온 글자는 오후 8시 20분에도 달의 겉에 남습니다. 다만 시간에는 같은 글자가 더 이상 반복되지 않습니다. 그러므로 달의 해석 출발점 후보는 유지되고 시간과의 연결만 달라집니다. 어느 전통 해석이 더 중요한지 또는 삶의 결과가 달라지는지는 이 계산만으로 판단할 수 없습니다.',
+  text:'또 다른 겨울 관련 문헌은 태어난 날과 시간의 조합이 아니라 서로 다른 두 조건을 동시에 살핍니다. 오후 8시 20분에는 따뜻함을 나타내는 글자가 시간의 겉에 있지만, 달에는 함께 나오지 않아야 한다고 적힌 다른 글자가 남아 있습니다. 따라서 그 문헌의 두 조건을 모두 충족했다고 볼 수 없습니다. 태어난 달 안쪽에서 나온 글자는 오후 8시 20분에도 달의 겉에 남습니다. 다만 시간에는 같은 글자가 더 이상 반복되지 않습니다. 고전의 해당 규칙으로 보면 달 안쪽에서 겉으로 나온 서로 다른 후보는 하나이며, 그 종류는 오후 2시 20분과 같습니다. 그러므로 달의 해석 출발점 후보는 유지되고 시간과의 연결만 달라집니다. 어느 전통 해석이 더 중요한지 또는 삶의 결과가 달라지는지는 이 계산만으로 판단할 수 없습니다.',
   sourceRefs:['natal.month.stem','natal.hour.stem','facts.seasonalEvidence',
    'facts.stemConnections'],
   sourceUrl:CLIMATE}
@@ -57,6 +58,12 @@ function build(packet){
     !same(climate.observedGuiVisibleRefs,['natal.month.stem'])||
     climate.favorableHistoricalCompoundConditionMatched!==false)
   throw Error('QA_ALT_HOUR_CLASSICAL_CONDITIONS_NOT_VERIFIED');
+ const methodResult=applied.inspect(packet);
+ if(!methodResult||methodResult.verified.candidateExposedAt.length!==1||
+    methodResult.overallPatternSelected!==false||
+    methodResult.source.originalRule!=='一透則一用'||
+    methodResult.approvedForCustomer!==false)
+  throw Error('QA_ALT_CH16_CLASSICAL_METHOD_APPLICATION_INVALID');
  const m=method.evaluate(packet).generalMonthRule;
  if(m.conditionObserved!==true||m.monthMainSourceId!=='natal.month.hidden.己'||
     m.monthMainExposedOutsideDay!==false||
@@ -103,6 +110,7 @@ function build(packet){
   yearMatchesListedBranchesMonthDoesNot:true,
   climateBingVisibleButGuiAlsoVisible:true,
   cannotInferPersonalOutcomeFromHistoricalText:true,
+  monthClassicalMethodApplication:structuredClone(methodResult),
   provenIncrementalCustomerBenefit:false,
   professionalMethodApproved:false,
   paidWriterAuthorized:false,approvedForCustomer:false,
