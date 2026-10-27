@@ -70,6 +70,11 @@ function build(packet){
  const selected=qualified.length===1&&uniqueCandidates.length===1?qualified[0]:null;
  const role=selected?rows[selected.hiddenRef].tenGod:null;
  const primary=rows[mainId]?.tenGod;
+ // Classical five-element direction is an observable symbolic relationship
+ // between the *two cited stems*. It is NOT assessed dominance, realised
+ // behaviour or a personality claim. Do not compare with an unrelated pillar.
+ const monthToVisible=selected&&rows[mainId]?.stem?
+  directions.direction(rows[mainId].stem,rows[selected.visibleRef].stem):null;
  const comparison=selected&&ROLE[primary]?{
   kind:'verified-other-month-hidden-visible-role-conditional-reading-v1',
   visiblePosition:selected.visibleRef,
@@ -77,6 +82,9 @@ function build(packet){
   mainMonthId:mainId,
   otherRole:role,
   mainRole:primary,
+  monthMainToExposedElementDirection:monthToVisible,
+  visiblePositionRelationVerified:true,
+  realizedDirectionEffectVerified:false,
   sourceRefs:['natal.month.stem',mainId,selected.hiddenRef,
    selected.visibleRef,'facts.stemConnections'],
   comparisonQuestion:'태어난 달의 대표적인 '+ROLE[primary].focus+

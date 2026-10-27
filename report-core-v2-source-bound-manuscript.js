@@ -26,6 +26,46 @@ const SCENES={
  편인:{title:'자료 해석',scene:'익숙하지 않은 사용 설명서를 읽고 기기를 점검하는 상황',
   focus:'낯선 자료에서 어떤 정보를 먼저 이해할지',risk:'문서의 설명을 실제 기기에 적용하지 못하는 문제'}
 };
+// This changes the READING QUESTION, not only the example. The five-element
+// direction is independently derived from exactly cited month/visible stems.
+// It cannot establish actual behaviour, favorable balance or life outcomes.
+const RELATION={
+ 'left-generates-right':{
+  title:'기초를 마련한 뒤 확장하는 흐름',
+  meaning:(a,b)=>'기존 '+a.title+' 쪽 기운이 새 '+b.title+' 쪽을 돕는 방향으로 계산됩니다.',
+  choice:(a,b)=>'이 가정에서는 '+a.focus+'를 먼저 가정한 뒤 '+b.focus+'로 이어지는지를 살펴볼 수 있습니다.',
+  reverse:(a,b)=>'반대로 '+b.focus+'만 앞세우면 '+a.risk+'를 나중에 발견할 수 있습니다.',
+  pivot:'확장의 앞단에 어떤 기초가 빠졌는지'
+ },
+ 'right-generates-left':{
+  title:'새 조건이 기존 기준을 뒷받침할 때',
+  meaning:(a,b)=>'새 '+b.title+' 쪽 기운이 기존 '+a.title+' 쪽을 돕는 방향으로 계산됩니다.',
+  choice:(a,b)=>'이 가정에서는 '+b.focus+'가 확보되어야 '+a.focus+'도 다시 검토할 수 있습니다.',
+  reverse:(a,b)=>'반대로 '+a.focus+'부터 확정하면 '+b.risk+'를 뒤늦게 만날 수 있습니다.',
+  pivot:'기존 기준을 움직이게 할 지원 조건이 무엇인지'
+ },
+ 'left-controls-right':{
+  title:'새 선택의 범위를 기존 기준으로 제한할 때',
+  meaning:(a,b)=>'기존 '+a.title+' 쪽 기운이 새 '+b.title+' 쪽을 제약하는 방향으로 계산됩니다.',
+  choice:(a,b)=>'이 가정에서는 '+b.focus+'를 넓히기 전에 '+a.focus+'에서 정하는 허용 범위를 확인하는 질문이 중요해집니다.',
+  reverse:(a,b)=>'반대로 새 조건을 계속 넓히면 '+a.risk+'가 결정의 발목을 잡을 수 있습니다.',
+  pivot:'새 선택의 범위를 어디까지 허용할지'
+ },
+ 'right-controls-left':{
+  title:'새 조건 때문에 기존 계획을 조정할 때',
+  meaning:(a,b)=>'새 '+b.title+' 쪽 기운이 기존 '+a.title+' 쪽을 제약하는 방향으로 계산됩니다.',
+  choice:(a,b)=>'이 가정에서는 '+a.focus+'를 고정하기보다 '+b.focus+'가 요구하는 제약에 맞춰 기존 계획을 조정할 여지가 있는지 살펴봅니다.',
+  reverse:(a,b)=>'반대로 원래 계획만 지키려 하면 '+b.risk+'를 놓치기 쉽습니다.',
+  pivot:'기존 계획에서 무엇을 바꿔야 할지'
+ },
+ 'same-element':{
+  title:'같은 방향의 서로 다른 역할',
+  meaning:(a,b)=>'두 글자는 같은 성질의 기운으로 계산되지만 '+a.title+'와 '+b.title+'의 역할은 서로 다릅니다.',
+  choice:(a,b)=>'이 가정에서는 '+a.focus+'와 '+b.focus+'를 대립하는 성격처럼 다루기보다 같은 일의 서로 다른 역할로 구별합니다.',
+  reverse:(a,b)=>'반대로 두 역할을 한 가지로 뭉뚱그리면 '+b.risk+'가 잘 보이지 않을 수 있습니다.',
+  pivot:'비슷한 출발점에서 맡는 역할이 어떻게 갈라지는지'
+ }
+};
 function build(prompt,oldValue){
  if(prompt?.paidCoreDepthV2!==true||
     !require('./report-paid-core-v2-scope').valid(prompt)||
@@ -40,35 +80,42 @@ function build(prompt,oldValue){
  // Multiple candidate or generic outcomes cannot be filled in; source
  // bridge admits exactly one full-identifier match and a distinct category.
  const base=SCENES[c.mainRole],novel=SCENES[c.otherRole];
+ const symbolic=RELATION[c.monthMainToExposedElementDirection];
+ const mainStem=packet.facts.structuralEvidence?.monthCommand?.mainHiddenStem;
+ const sourceStem=c.extraHiddenId.slice('natal.month.hidden.'.length);
+ const direction=require('./report-core-paid-natal-visible-relation-bridge').direction(
+  mainStem,sourceStem);
+ if(!symbolic||!mainStem||c.monthMainToExposedElementDirection!==direction||
+    c.visiblePositionRelationVerified!==true||
+    c.realizedDirectionEffectVerified!==false)return null;
  const visible=c.visiblePosition==='natal.year.stem'?'태어난 해':'태어난 시간';
  // The reader does not need a roll-call of year/day/hour when only one
  // confirmed source position explains this particular contrast.
  const sourceIds=[...new Set([...c.sourceRefs,
   'facts.seasonalEvidence','facts.qiEvidence'])];
  const text=[
-  '이 사주에서 태어난 달의 대표 글자는 '+base.focus+'라는 질문에 가깝습니다. '+
-  '그런데 '+visible+' 자리에서는 같은 달에 있는 다른 속글자가 겉으로 드러나는 계산 관계가 확인됩니다. '+
-  '그래서 '+novel.focus+'라는 질문을 추가로 나눠 볼 수 있습니다. '+
-  '달의 대표 글자만 보았다면 놓쳤을 비교지만, 실제 생활에서 어느 쪽을 더 중시하는 성격인지는 알 수 없습니다.',
-  '예를 들어 '+novel.scene+'을 가정해 보겠습니다. '+
-  base.focus+'부터 정해도 '+novel.focus+'를 따로 살피지 않으면 '+
-  novel.risk+'를 놓치기 쉽습니다. '+
-  '반대로 '+novel.focus+'를 충분히 준비했어도 '+base.risk+'를 살피지 않으면 '+
-  '같은 상황에서 다른 문제가 남습니다. '+
-  '한 가지 기준만 갖고 결정할 때와 두 기준을 함께 볼 때의 차이는 여기 있습니다.',
+  '이 사주에서 태어난 달의 대표 글자는 '+base.focus+'라는 질문과 연결됩니다. 그런데 '+visible+
+  '의 겉글자는 달의 다른 속글자와 정확히 일치합니다. 그래서 '+novel.focus+
+  '를 별도의 기준으로 살펴볼 근거가 생깁니다. '+symbolic.meaning(base,novel)+
+  ' 이는 계산된 기운 사이의 전통적 관계일 뿐, 실제 성격이나 삶에서 일어난 일은 확인하지 못합니다.',
+  '예를 들어 '+novel.scene+'을 가정해 보겠습니다. '+symbolic.choice(base,novel)+' '+
+  symbolic.reverse(base,novel)+' '+
+  '같은 두 조건을 읽더라도 이번 관계에서 핵심 질문은 '+symbolic.pivot+'입니다. '+
+  '한 가지 분류만 읽었을 때와 비교가 달라지는 이유는 서로 다른 출처뿐 아니라 그 사이의 계산 방향도 확인했기 때문입니다.',
   (visible==='태어난 시간'
-   ?'특히 이 추가 분류는 태어난 시간의 겉글자와 달 속글자가 정확히 일치해서 선택한 것입니다. 출생시간을 바꾸면 같은 문장을 그대로 쓸 수 없습니다. '
-   :'특히 이 추가 분류는 태어난 해의 겉글자와 달 속글자가 정확히 일치해서 선택한 것입니다. 출생시간의 관계가 다르더라도 여기서 확인한 해의 위치를 임의로 시간 자리의 특징이라고 바꿔 말하지 않습니다. ')+
-  '어느 기준이 실제로 더 강하게 작동하는지, 성과가 어떻게 나타나는지는 이 일치만으로 정할 수 없습니다.'
+   ?'이 추가 비교는 태어난 시간의 겉글자와 달 속글자가 정확히 일치하는 경우에만 해당합니다. 시간이 달라져 그 일치가 사라지면 이 결론을 재사용할 수 없습니다. '
+   :'이 추가 비교는 태어난 해의 겉글자와 달 속글자가 정확히 일치하는 경우에만 해당합니다. 해의 위치를 출생시간의 특징으로 바꿔 설명할 수는 없습니다. ')+
+  '어떤 기준이 실제 생활에서 더 강하게 작용하는지와 그 선택의 결과는 이 계산만으로 정할 수 없습니다.'
  ].join('\n\n');
  const proposal={
-  label:base.title+' · '+novel.title+': 서로 다른 판단 조건',
+  label:base.title+' · '+novel.title+': '+symbolic.title,
   text,
   basis:{
    refs:sourceIds,
    interpretation:'출생월 대표 분류와 태어난 '+(visible==='태어난 해'?'해':'시간')+
-    '에 계산상 정확히 나타난 별도 달 속글자 분류를 전통적 질문으로 구별합니다.',
-   condition:'가상의 '+novel.scene+'에서 '+base.focus+'와 '+novel.focus+'를 구분합니다.',
+    '에서 정확히 대응하는 달 속글자 분류를 '+c.monthMainToExposedElementDirection+
+    ' 방향의 전통적 관계로만 비교합니다.',
+   condition:'가상의 '+novel.scene+'에서 '+symbolic.pivot+'를 질문합니다.',
    limit:'실제 성격·행동·재물 성과·명리적 우선순위는 입증되지 않았습니다.'
   }
  };
@@ -84,7 +131,8 @@ function build(prompt,oldValue){
   origin:'deterministic-editorial-template-not-model-output',
   context:{otherRole:c.otherRole,mainRole:c.mainRole,
    sourcePosition:c.visiblePosition,exactHiddenSource:c.extraHiddenId,
-   chartSpecific:true},
+   symbolicDirection:c.monthMainToExposedElementDirection,
+   decisionQuestion:symbolic.pivot,chartSpecific:true},
   proposal,humanReviewPending:true,approvedForSale:false
  };
 }

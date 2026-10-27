@@ -7,6 +7,7 @@ const facts=require('./report-facts-node');
 const bridge=require('./report-paid-core-depth-v2');
 const writer=require('./report-generation-request');
 const manuscript=require('./report-core-v2-source-bound-manuscript');
+const direction=require('./report-core-paid-natal-visible-relation-bridge').direction;
 const {capture}=require('./report-core-paid-full-prompt-capture');
 const cases=[];
 for(const year of [1982,1994,2006,2018]){
@@ -22,7 +23,8 @@ async function run(){
  let qualified=0,unqualified=0,hour=0,year=0;
  const readerHeadings=new Set(),readerScenes=new Set(),
   readerContexts=new Set(),readerSamples=[];
- const examples=new Set(),hourDrift=new Map();
+ const examples=new Set(),hourDrift=new Map(),
+  directionalHeadings=new Set(),directions=new Set(),decisionQuestions=new Set();
  for(const fixture of cases){
   const packet=facts.build(fixture,2027);
   assert.equal(packet.status,'ready');
@@ -54,6 +56,12 @@ async function run(){
   assert.equal(packet.chart[c.visiblePosition.split('.')[1]][0],stem);
   assert(c.comparisonQuestion.includes('태어난 달'));
   assert(c.conditionIfMissingMain!==c.conditionIfMissingNew);
+  const monthMain=packet.facts.structuralEvidence.monthCommand.mainHiddenStem;
+  const exposed=c.extraHiddenId.slice('natal.month.hidden.'.length);
+  const independentlyComputed=direction(monthMain,exposed);
+  assert.equal(c.monthMainToExposedElementDirection,independentlyComputed);
+  assert.equal(c.visiblePositionRelationVerified,true);
+  assert.equal(c.realizedDirectionEffectVerified,false);
   const scopedPrompt={paidCoreDepthV2:true,stage:'body',
    requestedSections:['saju_core'],facts:packet};
   const unchangedSource={chapters:{saju_core:{paragraphs:{
@@ -75,6 +83,16 @@ async function run(){
   assert(!prose.proposal.basis.refs.includes(unrelated),
    'unrelated extra pillar must not be cited to pad prose');
   assert.equal(prose.context.chartSpecific,true);
+  assert.equal(prose.context.symbolicDirection,independentlyComputed);
+  assert(prose.context.decisionQuestion.length>14);
+  assert(prose.proposal.text.includes(prose.context.decisionQuestion),
+   'the computed direction must change the READER conclusion, not metadata');
+  assert(prose.proposal.text.includes('방향으로 계산')||
+   prose.proposal.text.includes('같은 성질의 기운'));
+  assert(!prose.proposal.text.includes('당신은 반드시'));
+  directionalHeadings.add(independentlyComputed+'|'+prose.proposal.label);
+  decisionQuestions.add(prose.context.decisionQuestion);
+  directions.add(independentlyComputed);
   readerHeadings.add(prose.proposal.label);
   readerScenes.add(c.otherRole);
   readerContexts.add(c.mainRole+'|'+c.otherRole+'|'+c.visiblePosition);
@@ -89,6 +107,9 @@ async function run(){
  assert(readerScenes.size>=2,'different confirmed roles need different grounded scenes');
  assert(readerContexts.size>=2,'two distinct chart roles must not collapse');
  assert(readerSamples.length===2);
+ assert(directions.size>=2,'more than one independent elemental reading must be exercised');
+ assert(decisionQuestions.size>=2,'symbolic relationship must change the decision question');
+ assert(directionalHeadings.size>=2);
  assert.equal(qualified+unqualified,cases.length);
  // Verify independently compiled real first-chapter provider task, not a
  // mock-only helper or merely a source enumeration.
@@ -126,6 +147,8 @@ async function run(){
   charts:cases.length,eligibleWithDistinctExactSource:qualified,
   sourceBoundDraftsConstructed:qualified,distinctReaderHeadings:readerHeadings.size,
   distinctOtherRoleScenes:readerScenes.size,distinctRoleAndPositionContexts:readerContexts.size,
+  distinctElementDirections:directions.size,distinctCausalQuestions:decisionQuestions.size,
+  directionsObserved:[...directions].sort(),
   sampleIntroductions:readerSamples,
   unqualifiedNotInvented:unqualified,yearExposures:year,hourExposures:hour,
   actualWriterGroundingVerified:true,
