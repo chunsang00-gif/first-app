@@ -24,7 +24,7 @@ function build(extra,source,permitted){
     permitted.includes(id)&&Object.hasOwn(source,id))||
     selected.approvedForSale!==false)
   throw Error('CORE_V2_WRITING_DECISION_UNCITABLE_OR_UNAPPROVED');
- let scope,question,instruction;
+ let scope,question,instruction,readerFactAnchor=null;
  if(classical){
   if(classical.kind!=='qa-exact-yi-guiwei-hour-citation-in-optional-core-v2'||
      classical.hourHiddenExpressionRef!=='natal.hour.hidden.丁'||
@@ -43,6 +43,28 @@ function build(extra,source,permitted){
      !plan.distinctInterpretationRule)
    throw Error('CORE_V2_WRITING_DECISION_MISSING_TWO_WAY_PLAN');
   scope=contrast?'verified-month-hidden-exposure':'verified-separate-visible-role';
+  if(contrast){
+   const exact=extra.exposures?.filter(row=>
+    row.hiddenRef===contrast.extraHiddenId&&
+    row.visibleRef===contrast.visiblePosition&&row.exactMatchOnly===true);
+   const month=source[contrast.mainMonthId];
+   const other=source[contrast.extraHiddenId];
+   const visible=source[contrast.visiblePosition];
+   if(exact?.length!==1||
+      !['natal.hour.stem','natal.year.stem'].includes(contrast.visiblePosition)||
+      !month?.stem||!other?.stem||!visible?.stem||
+      other.stem!==visible.stem||month.stem===other.stem||
+      month.tenGod===other.tenGod||
+      !ids.includes(contrast.mainMonthId)||
+      !ids.includes(contrast.extraHiddenId)||
+      !ids.includes(contrast.visiblePosition)||
+      !ids.includes('facts.stemConnections'))
+    throw Error('CORE_V2_WRITER_EXACT_EXPOSURE_RELATION_UNVERIFIED');
+   const position=contrast.visiblePosition==='natal.hour.stem'?'시간':'해';
+   readerFactAnchor='태어난 '+position+
+    '의 겉글자는 태어난 달의 다른 속글자와 정확히 일치합니다. '+
+    '이 분류는 달의 대표 속글자와 다르며, 두 조건을 서로 다른 질문으로 구별합니다.';
+  }
   question=plan.decisionQuestion;
   instruction='검증된 출생월 분류만 읽은 경우와 실제 해·시간 출처를 함께 읽은 경우의 질문 차이를 설명한다. '+
    '먼저 '+plan.situationSequence+'. 첫 조건만 있을 때: '+plan.onlyOriginalCondition+
@@ -56,8 +78,10 @@ function build(extra,source,permitted){
   selectedScope:scope,question,
   sourceRefs:ids.slice(),
   requiredCitationIds:ids.slice(),
+  readerFactAnchor,
   readerInstruction:'새 독립 근거가 존재한다. 실제 삶에서 확인된 개인 특징이 없어도 전통 분류에 따른 조건부 가상 상황을 설명할 수 있다. '+
     '이번에는 이 조건부 풀이를 우선 시도한다. 다만 계산 근거에서 실제로 도출되지 않는 문장, 기본 strength 문단의 재진술, 또는 범용 조언만 가능하면 temperament는 null로 둔다. '+
+    (readerFactAnchor?'이미 계산으로 검증된 관계를 독자용 본문에 반드시 한 문장으로 먼저 설명하되, 없는 관계를 만들지 않는다: '+readerFactAnchor+' ':'')+
     instruction+' 이 문단을 작성한다면 내부 basis.refs에는 다음 계산 출처 ID를 모두 정확히 포함한다: '+ids.join(', ')+'. 일부 출처를 빼거나 다른 출처로 바꾸지 않는다. 출생월의 필수 계절·기운 근거도 유지한다. 근거를 모두 정당하게 설명할 수 없다면 temperament는 null로 둔다.',
   eligibleForRealLifeJudgment:false,
   guaranteedRealWorldInsight:false,
