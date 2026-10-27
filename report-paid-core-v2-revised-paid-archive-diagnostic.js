@@ -61,6 +61,26 @@ async function inspect(dir){
  citationOnlyClone.basis.refs=[...new Set([...cited,...missing])];
  const hypotheticalGuard=review.inspect(
   citationOnlyClone,anchor.text,topic.paidCoreDepthV2);
+ // Fail-closed replay of the NEW development-only provenance binder:
+ // this historically charged model text did not explain the exact
+ // chart position. Merely filling its missing IDs must not make it pass.
+ const before={node:process.env.NODE_ENV,flag:process.env.PAID_CORE_DEPTH_V2,
+  render:process.env.RENDER};
+ let originalBind;
+ try{
+  process.env.NODE_ENV='test';
+  process.env.PAID_CORE_DEPTH_V2='offline-preview';
+  delete process.env.RENDER;
+  originalBind=require('./report-paid-core-v2-source-provenance')
+   .bind(response,out.prompt);
+ }finally{
+  for(const [k,v] of [['NODE_ENV',before.node],
+   ['PAID_CORE_DEPTH_V2',before.flag],['RENDER',before.render]])
+   if(v===undefined)delete process.env[k];else process.env[k]=v;
+ }
+ if(originalBind.changed||originalBind.value!==response)
+  throw Error('PRIVATE_QA_OLD_UNSUPPORTED_PROSE_WAS_AUTO_APPROVED');
+
  const nonCitationDefects=hypotheticalGuard.filter(x=>
   !['PAID_CORE_V2_READER_MISSING_EXACT_CONTRAST_BASIS'].includes(x));
  const ngramOverlap=require('./report-core-paid-natal-depth-response-gate')
@@ -86,6 +106,8 @@ async function inspect(dir){
   hypotheticalCitationOnlyRemainingGuardCodes:nonCitationDefects,
   hypotheticalCitationOnlyTechnicalGuardPass:nonCitationDefects.length===0,
   extraBaseTextOverlap:Number(ngramOverlap.toFixed(3)),
+  automaticProvenanceOnOldUnjustifiedParagraph:false,
+  automatedBindingRefusalReason:originalBind.reason,
   archiveMutation:false,
   requiredPositionsOnly:required.every(x=>topic.citableFacts.some(y=>y.id===x)),
   modelAttemptedDepth:true,
