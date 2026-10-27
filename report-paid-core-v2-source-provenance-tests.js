@@ -42,7 +42,7 @@ async function run(){
   assert.throws(()=>writer.restoreEvidence(data,prompt),
    /PAID_CORE_DEPTH_V2_MISSING_EXPLICIT_ADDITIONAL_CITATIONS/);
   const candidate=provenance.bind(data,prompt);
-  assert.equal(candidate.changed,true);
+  assert.equal(candidate.changed,true,candidate.reason);
   assert.equal(candidate.serverBoundRefCount,3);
   assert.equal(candidate.approvedForSale,false);
   const expected=['natal.month.stem','natal.month.hidden.己',
