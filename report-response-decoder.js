@@ -20,7 +20,22 @@ function decode(value,prompt){
  // This semantic gate is explicitly limited to operator QA: the live
  // first-chapter decoder and every other paid chapter remain unchanged.
  // First verify strict basis and source IDs, then check what the reader sees.
- const restored=generation.restoreEvidence(value,prompt);
+ // A separately opted-in, OFFLINE development preview may demonstrate
+ // the actual reader result when a previous paid response left the optional
+ // V2 paragraph null. Never change the archived/model value in place.
+ // Never run this in production or in the original paid one-shot workflow.
+ let readerValue=value;
+ if(prompt?.paidCoreDepthV2===true&&
+    process.env.PAID_CORE_V2_SOURCE_BOUND_READER==='offline-preview'&&
+    process.env.NODE_ENV==='test'&&process.env.RENDER!=='true'){
+  const candidate=require('./report-core-v2-source-bound-manuscript')
+   .build(prompt,value);
+  if(candidate){
+   readerValue=structuredClone(value);
+   readerValue.chapters.saju_core.paragraphs.temperament=candidate.proposal;
+  }
+ }
+ const restored=generation.restoreEvidence(readerValue,prompt);
  if(prompt?.qaNatalDepthPreview===true)
   require('./report-core-paid-natal-depth-response-gate').assert(value,prompt);
  return reader.normalizeVisible(wire.decode(restored,prompt));
