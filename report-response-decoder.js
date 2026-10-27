@@ -35,6 +35,13 @@ function decode(value,prompt){
    readerValue.chapters.saju_core.paragraphs.temperament=candidate.proposal;
   }
  }
+ // The model's basis.refs is not treated as authoritative provenance.
+ // In guarded offline V2 only, calculated source IDs may be attached to
+ // a CLONE after the concrete chart claim and reader checks both pass.
+ // Production and historical raw provider response stay unchanged.
+ const checked=require('./report-paid-core-v2-source-provenance')
+  .bind(readerValue,prompt);
+ readerValue=checked.value;
  const restored=generation.restoreEvidence(readerValue,prompt);
  if(prompt?.qaNatalDepthPreview===true)
   require('./report-core-paid-natal-depth-response-gate').assert(value,prompt);
