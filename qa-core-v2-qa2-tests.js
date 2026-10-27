@@ -32,8 +32,8 @@ async function main(){
  assert.notEqual(runner.REQUEST_HASH,previous.REQUEST_HASH);
  assert.equal(runner.REQUEST_HASH,MODEL_HASH);
  const fresh=await readiness.prepare();
- assert.equal(fresh.requestHash,MODEL_HASH,
- 'the EXACT offline first-chapter provider request must be frozen at QA2 prep');
+ assert.notEqual(fresh.requestHash,MODEL_HASH,
+ 'the old QA2 approval has been consumed and MUST NOT approve the redesigned outgoing prompt');
  assert.equal(fresh.providerCalls,0);
  assert.equal(fresh.customerReady,false);
  assert.equal(fresh.approvalToCharge,false);
