@@ -35,6 +35,19 @@ async function run(){
    assert(chapter.coreV2ConditionalReadingBrief.includes(choice.readerInstruction));
    assert(choice.sourceRefs.every(id=>Object.hasOwn(out.source,id)&&
     target.citableFacts.some(x=>x.id===id)));
+   assert.deepEqual(choice.requiredCitationIds,choice.sourceRefs);
+   assert(choice.requiredCitationIds.every(id=>
+    choice.readerInstruction.includes(id)));
+   const responseSchema=writer.schema(captured.prompt,
+    require('./report-wire').schemaFor(captured.prompt,
+     require('./report-schema.json')));
+   const refs=responseSchema.properties.chapters.properties.saju_core
+    .properties.paragraphs.properties.temperament.anyOf
+    .find(x=>x.type==='object').properties.basis.properties.refs;
+   assert(choice.requiredCitationIds.every(id=>
+    refs.description.includes(id)&&refs.items.enum.includes(id)));
+   assert(!refs.description.includes('추가 출처를 임의로 지어낸다'));
+
    assert(!chapter.topics.strength.sourceQualifiedWritingDecision);
    const ordinary=writer.compile({...captured.prompt,paidCoreDepthV2:false});
    assert(!ordinary.task.chapters.saju_core.topics.temperament.sourceQualifiedWritingDecision);
