@@ -170,7 +170,7 @@ async function run(){
   };
   const winterTemperature={label:historical.label,
    text:historical.text+' 다만 고전의 이러한 분류는 가상의 설명이며 실제 삶에서 나타난 특징이라는 뜻은 아닙니다.',
-   basis:{refs:classical.sourceRefs.slice(),
+   basis:{refs:['facts.qiEvidence','natal.month.stem',...classical.sourceRefs],
     interpretation:'시간의 겉글자와 숨은 글자의 전통 분류를 별도로 대비합니다.',
     condition:'배운 내용을 설명서로 만드는 가상 상황입니다.',
     limit:'실제 표현력과 업무 성취를 관찰하거나 예측하지 않았습니다.'}};
