@@ -27,7 +27,8 @@ async function run(){
     condition:'배우고 맡은 역할을 확인하는 가정입니다.',
     limit:'개인의 행동과 성과는 관찰한 사실이 아닙니다.'}};
   const supported={label:t.label,text:t.text,
-   basis:{refs:['natal.month.stem','natal.year.stem',
+   basis:{refs:['facts.seasonalEvidence','facts.qiEvidence',
+      'natal.month.stem','natal.year.stem',
       'natal.day.stem','natal.hour.stem'],
     interpretation:'출생달과 실제 출생시간의 관계를 비교합니다.',
     condition:'여섯 달 재고 관리 상황을 가정합니다.',
