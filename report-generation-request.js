@@ -232,6 +232,25 @@ function compile(prompt){
     if(prompt.paidCoreDepthV2===true&&chapterId==='saju_core'&&topicId==='temperament')
      topic.paidCoreDepthV2=require('./report-paid-core-depth-v2').build(prompt.facts);
     const permitted=[...allowedRefs(payload,topic,chapterId,topicId)];
+    // Research-only citation enlargement for the exact 1982 chart. The
+    // normally approved one-shot QA and real paid response are unchanged.
+    if(prompt.qaOfflineEditorialResearchPreview===true&&
+       prompt.qaNatalDepthPreview===true&&
+       chapterId==='saju_core'&&topicId==='natal_depth'&&
+       prompt.facts?.calculationInput?.calendar==='lunar'&&
+       prompt.facts?.calculationInput?.birthDate==='1982-11-24'&&
+       prompt.facts?.calculationInput?.birthTime==='14:20'&&
+       ['year','month','day','hour'].map(pos=>prompt.facts?.chart?.[pos])
+        .join('/')==='壬戌/癸丑/乙未/癸未'){
+      const id='natal.hour.hidden.丁',row=source[id],visible=source['natal.hour.stem'];
+      if(row?.stem!=='丁'||row.tenGod!=='식신'||
+         row.interpretationScope!=='traditional-symbol-only'||
+         row.observedBehavior!==false||visible?.stem!=='癸'||
+         visible.tenGod!=='편인')
+       throw Error('QA_OFFLINE_HOUR_HIDDEN_SOURCE_UNVERIFIED');
+      if(!permitted.includes(id))permitted.push(id);
+      topic.allowedSourceRefs=permitted.slice();
+    }
     topic.citableFacts=permitted.map(id=>{
      const fact=source[id]||{};
      return {id,
