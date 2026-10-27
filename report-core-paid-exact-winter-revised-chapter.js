@@ -10,16 +10,17 @@ const EXPECTED={year:'壬戌',month:'癸丑',day:'乙未',hour:'癸未'};
 const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
 const P=[
  {kind:'exact-day-hour-text',label:'같은 겨울에도 다른 날과 시간의 조건',
-  text:'출생의 네 자리를 함께 보면, 태어난 날과 시간의 아랫글자가 같습니다. 고전에는 바로 이 날과 시간의 조합이 겨울에 놓였을 때를 따로 평가한 문장이 있습니다. 기본 풀이에서 다룬 출생월의 뜻과 달리 특정 날과 시간까지 일치하는 자료입니다. 따라서 이 출생 기록은 그 문헌이 겨울의 해당 날·시간 조합을 안정된 쪽으로 풀이한 조건에 들어갑니다. 다만 이것은 고전의 제한된 전통적 평가일 뿐, 실제 생활이나 성격이 평온하다는 확인은 아닙니다.',
+  text:'이 사주에는 태어난 달에서 말하는 새 정보의 이해와 별도로, 결과를 만들고 표현하는 뜻도 들어 있습니다. 태어난 시간의 겉글자는 배움·해석에 관한 분류이고, 같은 시간 안쪽에는 생산·표현에 관한 다른 분류가 있습니다. 『삼명통회』는 이 겉글자가 안쪽의 표현을 누르는 관계로 설명합니다. 이 방식으로 풀이하면 준비하고 이해하는 일과 그것을 밖으로 내놓는 일을 같은 강점으로 묶을 수 없습니다. 다만 실제로 표현이 서툴거나 일을 늦게 끝낸다는 뜻은 아닙니다. 또한 특정 날과 시간까지 일치하는 겨울 구절이 따로 있습니다. 이 명식은 고전이 겨울의 해당 날·시간 조합을 안정된 쪽으로 풀이한 조건에 들어갑니다. 이것은 고전의 제한된 전통적 평가일 뿐, 현실의 삶이 안정적이라는 확인은 아닙니다.',
   sourceRefs:['natal.day.stem','natal.day.hidden.乙',
-   'natal.hour.stem','natal.hour.hidden.乙','facts.seasonalEvidence'],
-  sourceType:'exact-published-day-hour-winter-clause'},
+   'natal.hour.stem','natal.hour.hidden.乙','natal.hour.hidden.丁',
+   'facts.seasonalEvidence'],
+  sourceType:'verified-general-hour-role-contrast-and-exact-winter-day-hour-clause'},
  {kind:'different-winter-condition',label:'겨울의 또 다른 판단 조건',
-  text:'그러나 다른 고전은 같은 겨울이라도 별도의 조건을 살핍니다. 따뜻함을 뜻하는 글자가 겉에 나타나는지, 다른 글자가 함께 나오지 않는지를 기준으로 설명합니다. 이 출생 기록에는 그 따뜻함의 글자가 겉에 없고 함께 검토해야 할 다른 글자가 달과 시간에 있습니다. 따라서 첫 문헌에 적힌 표현을 그대로 확대하거나, 두 번째 문헌의 조건이 맞지 않는다는 이유로 첫 문헌을 취소할 수는 없습니다. 서로 질문 자체가 다른 자료입니다.',
+  text:'다른 고전은 겨울에 따뜻함을 뜻하는 글자가 겉으로 드러나고 특정 다른 글자가 나오지 않는 조건을 살핍니다. 이 사주에는 따뜻함의 글자가 겉에 없고, 함께 나오지 않아야 할 글자가 달과 시간에 있습니다. 따라서 그 문헌의 유리한 조건은 충족되지 않습니다. 그렇다고 첫 고전의 겨울 평가가 취소되거나 반대로 불운이 정해지는 것은 아닙니다. 서로 질문 자체가 다른 자료입니다.',
   sourceRefs:['natal.month.stem','natal.hour.stem','facts.seasonalEvidence'],
   sourceType:'separate-published-winter-month-condition'},
  {kind:'counterfactual-source-boundary',label:'출생시간을 바꾸면 달라지는 적용 범위',
-  text:'태어난 달과 날, 달과 시간에는 마주 보는 관계가 각각 표시됩니다. 두 쌍이 계산된다고 실제 다툼이 두 번 생긴다는 뜻은 아닙니다. 달의 숨은 한 글자가 달과 시간 겉에 함께 나타나지만, 두 번 드러났다고 뜻이 더 강해지는 것도 아닙니다. 출생시간을 오후 8시 20분으로 바꾸면 시간의 글자가 달라져 첫 문헌의 해당 날·시간 조합을 더는 인용할 수 없습니다. 대신 같은 고전의 다른 일·시 조합에 해당하지만, 해·달의 추가 조건과 길흉은 아직 판단하지 않았습니다. 다른 겨울 문헌에서도 조건이 달라집니다. 새 시간에는 따뜻함을 뜻하는 글자가 겉에 나오지만, 함께 나오지 않아야 할 글자가 달에 남아 있어 그 문헌의 유리한 복합 조건 역시 충족하지 못합니다. 달의 안쪽에는 여러 글자가 있어도, 겉으로 나온 서로 다른 후보는 이 사례에서 하나입니다. 시간을 바꿔도 달에서 확인되는 해석 출발점 후보는 유지됩니다. 달과 날의 관계표는 그대로지만 달과 시간 사이의 마주 보는 관계는 사라집니다. 이 차이는 계산과 원문 적용 범위에 관한 것이지 실제 성격이나 사건을 정해 주지 않습니다.',
+  text:'출생시간을 오후 8시 20분으로 바꾸면 첫 고전의 해당 겨울 구절을 더는 적용할 수 없습니다. 다른 일·시 조합에 해당하지만, 해·달의 추가 조건과 결과는 아직 판정하지 않습니다. 다른 겨울 문헌에서는 따뜻함을 뜻하는 글자가 겉에 나오지만, 함께 나오지 않아야 할 글자가 달에 남아 있어 유리한 복합 조건 역시 충족하지 못합니다. 달의 숨은 글자 중 겉으로 나온 서로 다른 후보는 이 사례에서 하나이며, 해석 출발점 후보는 유지됩니다. 달과 날의 관계표는 그대로지만 달과 시간 사이의 마주 보는 관계는 사라집니다. 출생시간이 바뀌면서 사라진 것은 시간 겉글자와 안쪽 표현 글자에 관한 앞 문단의 직접적인 관계입니다. 이것을 다른 시간에 똑같이 적용할 수 없습니다.',
   sourceRefs:['natal.day.stem','natal.hour.stem',
    'natal.month.stem','facts.stemConnections','facts.natalBranchRelations'],
   sourceType:'verified-hour-counterfactual-not-historical-prediction'}
@@ -95,6 +96,19 @@ function build(packet,winter,previous){
     otherClimate?.favorableHistoricalCompoundConditionMatched!==false||
     otherClimate?.historicalFortuneClaimAllowedForCustomer!==false)
   throw Error('QA_REVISED_ALTERNATE_CLASSICAL_CONDITIONS_NOT_VERIFIED');
+ // The same cited passage distinguishes the general Yi/Gui-Wei hour
+ // relation from the narrower Yi-Wei/Gui-Wei winter clause. Keep these
+ // as traditional categories, not proof of slow delivery or weak expression.
+ const categoryRows=Object.fromEntries(require('./report-fact-bindings')
+  .build(packet).map(row=>[row.id,row]));
+ const outside=categoryRows['natal.hour.stem'];
+ const inside=categoryRows['natal.hour.hidden.丁'];
+ if(outside?.stem!=='癸'||outside?.tenGod!=='편인'||
+    inside?.stem!=='丁'||inside?.tenGod!=='식신'||
+    outside.interpretationScope!=='traditional-symbol-only'||
+    inside.interpretationScope!=='traditional-symbol-only'||
+    outside.observedBehavior!==false||inside.observedBehavior!==false)
+  throw Error('QA_REVISED_CLASSICAL_HOUR_READING_FACT_DRIFT');
  const knownWinterRefs=new Set(winter.paragraphs.flatMap(row=>row.sourceRefs));
  const rows=P.map((p,i)=>({
   ...p,
@@ -102,7 +116,8 @@ function build(packet,winter,previous){
   sourceUrl:i===0?winter.sourceScope.exactDayHour.url:
    i===1?winter.sourceScope.seasonalMonth.url:null
  }));
- const allowed=new Set([...knownWinterRefs,...previous.sourceRefs]);
+ const allowed=new Set([...knownWinterRefs,...previous.sourceRefs,
+  'natal.hour.hidden.丁']);
  if(rows.some(x=>x.sourceRefs.some(id=>!allowed.has(id)))||
     rows[0].sourceUrl!==winter.paragraphs[0].originalUrl||
     rows[1].sourceUrl!==winter.paragraphs[1].originalUrl)
