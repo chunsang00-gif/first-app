@@ -23,7 +23,9 @@ function category(id){
 }
 async function inspect(dir){
  const ready=await readiness.prepare({includePrompt:true});
- if(runner.REQUEST_HASH!==HASH||ready.requestHash!==HASH||
+ // The original archive is pinned to HASH. Later development changes
+ // MUST NOT pretend to be the old billable prompt or break forensic review.
+ if(runner.REQUEST_HASH!==HASH||
     ready.providerCalls!==0||ready.approvalToCharge!==false||
     ready.model!=='gpt-4.1'||ready.firstChapterOnly!==true)
   throw Error('QA2_ARCHIVE_OR_CURRENT_PROVIDER_REQUEST_CHANGED');
@@ -83,6 +85,7 @@ async function inspect(dir){
   kind:'qa2-archived-real-model-first-chapter-technical-and-editorial-readout',
   originalPaidRunId:40602551757,providerCallsOriginallyAttempted:1,
   newProviderCalls:0,historicalRequestHashMatched:true,
+  currentWritingPromptDiffersFromPaidQA2:ready.requestHash!==HASH,
   originalResponseStoredEncrypted:true,
   chapter:{corePresent:!!base,coreCharacters:String(base?.text||'').length,
    extraPresent:!!extra,extraCharacters:String(extra?.text||'').length},
