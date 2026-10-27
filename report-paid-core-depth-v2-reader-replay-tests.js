@@ -168,7 +168,8 @@ async function run(){
     condition:'새로운 일을 준비하는 가상 상황입니다.',
     limit:'관찰된 행동이 아니며 사주 전체의 우선순위가 아닙니다.'}
   };
-  const winterTemperature={label:historical.label,text:historical.text,
+  const winterTemperature={label:historical.label,
+   text:historical.text+' 다만 고전의 이러한 분류는 가상의 설명이며 실제 삶에서 나타난 특징이라는 뜻은 아닙니다.',
    basis:{refs:classical.sourceRefs.slice(),
     interpretation:'시간의 겉글자와 숨은 글자의 전통 분류를 별도로 대비합니다.',
     condition:'배운 내용을 설명서로 만드는 가상 상황입니다.',
@@ -181,7 +182,7 @@ async function run(){
   assert.deepEqual(review.inspect(winterTemperature,winterStrength.text,scoped),[]);
   const winterRestored=writer.restoreEvidence(winterMock,winterCapture.prompt);
   const winterDecoded=wire.decode(winterRestored,winterCapture.prompt);
-  assert.equal(winterDecoded.sections[0].body[0],historical.text);
+  assert.equal(winterDecoded.sections[0].body[0],winterTemperature.text);
   assert.deepEqual(winterDecoded.sections[0].bodyTopics,['temperament','strength']);
   const badHour=structuredClone(winterMock);
   const late=await capture({...winterInput,birthTime:'20:20'});
