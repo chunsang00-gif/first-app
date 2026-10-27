@@ -5,6 +5,25 @@
 // proof of a real person's behavior. Historical model responses untouched.
 const writer=require('./report-generation-request');
 const reader=require('./report-paid-core-depth-v2-reader-review');
+// Terms from unrelated sentences do not constitute one claimed exact
+// month-hidden to visible-stem match. Explicit negations cannot validate it.
+function hasLocalExactMatch(text,position){
+ const place=position==='시간'?/(?:태어난\\s*시간|출생\\s*시간|시간의\\s*겉글자)/:
+  position==='해'?/(?:태어난\\s*해|출생\\s*연도|해의\\s*겉글자)/:null;
+ if(!place)return false;
+ return String(text||'').split(/[.!?。！？\\n]+/).some(sentence=>{
+  if(sentence.length<24||sentence.length>320||
+     !place.test(sentence)||
+     !/(?:태어난\\s*달|출생월|달의|달\\s*안쪽|달\\s*속)/.test(sentence)||
+     !/(?:속글자|숨은\\s*글자|안쪽에\\s*있는\\s*(?:또\\s*)?다른\\s*글자)/.test(sentence)||
+     !/(?:정확히\\s*일치|정확히\\s*대응|정확히\\s*같|똑같)/.test(sentence)||
+     !/(?:다른|별도|대표)/.test(sentence))
+   return false;
+  if(/(?:정확히\\s*(?:일치|대응|같)|똑같)(?:[^,]{0,35})(?:않|아니|없|못|불확실|미확인|확인되지|단정할\\s*수\\s*없|알\\s*수\\s*없)/.test(sentence))
+   return false;
+  return true;
+ });
+}
 function bind(value,prompt){
  if(prompt?.paidCoreDepthV2!==true||prompt?.stage!=='body'||
     JSON.stringify(prompt.requestedSections)!=='["saju_core"]'||
@@ -41,11 +60,7 @@ function bind(value,prompt){
  const position=target?.visiblePosition==='natal.hour.stem'?'시간':
    target?.visiblePosition==='natal.year.stem'?'해':null;
  if(!position||!target||target.approvedForSale!==false||
-    !text.includes('태어난 '+position)||
-    !/(?:태어난 달|출생월|달의)/.test(text)||
-    !/(?:속글자|숨은 글자|달 안쪽|달의 안쪽)/.test(text)||
-    !/(?:정확히 일치|정확히 대응|정확히 같)/.test(text)||
-    !/(?:다른|별도|대표)/.test(text))
+    !hasLocalExactMatch(text,position))
   return {value,changed:false,reason:'chart-fact-absent-from-prose'};
  // Use a CLONE only for the QA-only check. The model's original response
  // is already saved by the caller's provider callback and must remain raw.
@@ -61,4 +76,4 @@ function bind(value,prompt){
   serverBoundRefCount:missing.length,
   approvedForSale:false};
 }
-module.exports={bind};
+module.exports={bind,hasLocalExactMatch};
