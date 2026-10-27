@@ -36,6 +36,12 @@ async function run(){
    assert(choice.sourceRefs.every(id=>Object.hasOwn(out.source,id)&&
     target.citableFacts.some(x=>x.id===id)));
    assert.deepEqual(choice.requiredCitationIds,choice.sourceRefs);
+   if(expected==='verified-month-hidden-exposure'){
+    assert(choice.readerFactAnchor.includes('태어난 시간'));
+    assert(choice.readerFactAnchor.includes('태어난 달의 다른 속글자와 정확히 일치'));
+    assert(choice.readerInstruction.includes(choice.readerFactAnchor));
+   }else assert.equal(choice.readerFactAnchor,null);
+
    assert(choice.requiredCitationIds.every(id=>
     choice.readerInstruction.includes(id)));
    const responseSchema=writer.schema(captured.prompt,
@@ -46,6 +52,13 @@ async function run(){
     .find(x=>x.type==='object').properties.basis.properties.refs;
    assert(choice.requiredCitationIds.every(id=>
     refs.description.includes(id)&&refs.items.enum.includes(id)));
+   const textSpec=responseSchema.properties.chapters.properties.saju_core
+    .properties.paragraphs.properties.temperament.anyOf
+    .find(x=>x.type==='object').properties.text.description;
+   if(choice.readerFactAnchor)
+    assert(textSpec.includes(choice.readerFactAnchor),
+     'exact fact anchor must survive the actual strict model output schema');
+   else assert(!textSpec.includes('태어난 달의 다른 속글자와 정확히 일치합니다'));
    assert(!refs.description.includes('추가 출처를 임의로 지어낸다'));
 
    assert(!chapter.topics.strength.sourceQualifiedWritingDecision);
@@ -69,6 +82,13 @@ async function run(){
   bogus.readerContrast.sourceRefs.push('natal.fake.unverified');
   assert.throws(()=>chooser.build(bogus,direct.source,allowed),
    /CORE_V2_WRITING_DECISION_UNCITABLE_OR_UNAPPROVED/);
+  const forged=structuredClone(topic.paidCoreDepthV2);
+  forged.exposures=forged.exposures.filter(x=>x.hiddenRef!==
+   forged.readerContrast.extraHiddenId||x.visibleRef!==
+   forged.readerContrast.visiblePosition);
+  assert.throws(()=>chooser.build(forged,direct.source,allowed),
+   /CORE_V2_WRITER_EXACT_EXPOSURE_RELATION_UNVERIFIED/,
+   'never hand an invented month/hour equality to the model');
   const badPlan=structuredClone(topic.paidCoreDepthV2);
   badPlan.readerContrast.readerWritingPlan=null;
   assert.throws(()=>chooser.build(badPlan,direct.source,allowed),
