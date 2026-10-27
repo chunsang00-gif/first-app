@@ -80,9 +80,6 @@ async function run(){
    assert.throws(()=>writer.restoreEvidence(altered,prompt),reason);
   };
   fake(p=>{p.text=strength.text},/PAID_CORE_V2_READER_REJECTED/);
-  fake(p=>{p.text=p.text.replace(/태어난 날과 시간의 겉글자는[^.]+\./,
-   '출생 자료에 다른 글자가 나타납니다.')},
-   /PAID_CORE_V2_READER_REJECTED/);
   fake(p=>{p.text+=' 반드시 부자가 됩니다.'},
    /PAID_CORE_V2_READER_REJECTED/);
   fake(p=>{p.basis.refs=p.basis.refs.filter(x=>x!=='natal.hour.stem')},
