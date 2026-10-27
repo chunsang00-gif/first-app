@@ -18,8 +18,6 @@ jobs:
       group: one-paid-core-v2-first-chapter
       cancel-in-progress: false
     env:
-      NODE_ENV: test
-      PAID_CORE_DEPTH_V2: offline-preview
       REPORT_MODEL: ${{ vars.REPORT_MODEL }}
       REPORT_QA_OUTPUT: ${{ github.workspace }}/private-qa-first-chapter.json
       REPORT_QA_CONFIRM: ${{ inputs.paid_qa_confirmation }}
@@ -33,6 +31,8 @@ jobs:
         run: npm test && npm run smoke
       - name: Verify one-call model, credentials and new consent
         env:
+          NODE_ENV: test
+          PAID_CORE_DEPTH_V2: offline-preview
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         shell: bash
         run: |
@@ -51,6 +51,8 @@ jobs:
         run: node qa-core-v2-dispatch-guard.js
       - name: Exactly one pinned V2 first-chapter provider request
         env:
+          NODE_ENV: test
+          PAID_CORE_DEPTH_V2: offline-preview
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: node run-paid-core-v2-first-chapter-qa.js
       - name: Encrypt all private results, including failed responses

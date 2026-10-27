@@ -7,6 +7,25 @@ assert(paidWorkflow.includes('test "$REPORT_QA_CONFIRM" = "RUN_ONE_CORE_V2_APPRO
 assert(paidWorkflow.includes('run: node qa-core-v2-dispatch-guard.js'),'paid V2 must reject reruns and previously used V2 approval');
 assert(paidWorkflow.includes('run: node run-paid-core-v2-first-chapter-qa.js'),'paid test must target the guarded V2 first chapter, not the old V1 runner');
 assert(paidWorkflow.includes('run: npm test && npm run smoke'),'manual paid QA must complete all free checks before model calls');
+
+// The first V2 manual dispatch failed BEFORE billing because putting the
+// opt-in environment on the entire job contaminated ordinary npm test.
+// Keep special flags only on explicit preflight / paid-call steps.
+const jobHeader=paidWorkflow.slice(0,paidWorkflow.indexOf('    steps:'));
+const freeTestStep=paidWorkflow.slice(
+ paidWorkflow.indexOf('      - name: Run every offline and smoke test before potential billing'),
+ paidWorkflow.indexOf('      - name: Verify one-call model, credentials and new consent'));
+const v2PaidStep=paidWorkflow.slice(
+ paidWorkflow.indexOf('      - name: Exactly one pinned V2 first-chapter provider request'),
+ paidWorkflow.indexOf('      - name: Encrypt all private results'));
+assert(!jobHeader.includes('NODE_ENV: test')&&
+ !jobHeader.includes('PAID_CORE_DEPTH_V2: offline-preview')&&
+ !freeTestStep.includes('PAID_CORE_DEPTH_V2: offline-preview'),
+ 'free tests must not inherit paid V2 interpretation mode');
+assert(v2PaidStep.includes('NODE_ENV: test')&&
+ v2PaidStep.includes('PAID_CORE_DEPTH_V2: offline-preview'),
+ 'paid-only V2 activation must be confined to its single call step');
+
 // The repository is public: UNIX mode 0600 does NOT make GitHub Actions
 // artifacts private. Never archive raw paid model outputs in the clear.
 assert(paidWorkflow.includes('on:\n  workflow_dispatch:')&&
