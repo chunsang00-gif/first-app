@@ -18,11 +18,11 @@ function inspect(paragraph,monthText,extra){
  // A reader must understand what the EXTRA birth position adds to the
  // baseline, not just see a glossary or a list of allowed citation IDs.
  const location=contrast?.visiblePosition==='natal.hour.stem'?
-  /(?:태어난\s*시간|출생\s*시간|시간의\s*겉글자)/:
+  /(?:태어난\s*시간|출생\s*시간|시간의\s*겉글자|시간\s*자리)/:
   contrast?.visiblePosition==='natal.year.stem'?
    /(?:태어난\s*해|태어난\s*연도)/:null;
  const specific=location&&sentences.some(x=>
-  location.test(x)&&/(?:태어난\s*달|출생월|달의|달\s*안쪽)/.test(x)&&
+  location.test(x)&&/(?:태어난\s*달|출생월|달의|달\s*안쪽|달\s*속에)/.test(x)&&
   /(?:정확히\s*(?:일치|같|대응)|숨은\s*글자|속글자)/.test(x));
  if(!specific)add('new-birth-position-not-explained-together-with-month');
  const scene=/(?:예를\s*들어|상황을\s*가정|상황을\s*생각|선택을\s*생각)/.test(text);
