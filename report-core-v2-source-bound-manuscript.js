@@ -29,8 +29,8 @@ const SCENES={
   main:'어떤 자료를 근거로 방법을 선택할지',failure:'자료를 이해했어도 적용 범위를 시험하지 않았다면'}
 };
 function build(prompt,oldValue){
- if(prompt?.paidCoreDepthV2!==true||prompt.stage!=='body'||
-    JSON.stringify(prompt.requestedSections)!=='["saju_core"]'||
+ if(prompt?.paidCoreDepthV2!==true||
+    !require('./report-paid-core-v2-scope').valid(prompt)||
     oldValue?.chapters?.saju_core?.paragraphs?.temperament!==null)
   return null;
  const packet=prompt.facts;

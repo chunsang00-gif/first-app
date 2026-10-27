@@ -166,9 +166,7 @@ function editorialGoalFor(prompt){
 }
 function compile(prompt){
  if(prompt?.paidCoreDepthV2===true&&
-    (prompt.stage!=='body'||prompt.qaNatalDepthPreview===true||
-     JSON.stringify(prompt.requestedSections)!=='["saju_core"]'||
-     !prompt.facts?.chart?.hour))
+    !require('./report-paid-core-v2-scope').valid(prompt))
   throw Error('PAID_CORE_DEPTH_V2_INVALID_FIRST_BATCH_SCOPE');
  if(prompt?.qaAdditiveDepthPreview===true&&
     (prompt.qaNatalDepthPreview!==true||
@@ -189,6 +187,12 @@ function compile(prompt){
     // Preserve one authoritative scoped goal in the compact provider payload.
     // The original rules are NOT sent to the provider.
     analysisGoal:prompt.rules?.sectionGoals?.[id]||null,
+    // In a combined first body batch, target ONLY the Saju chapter.
+    // Keep the MBTI task, sources and original overall editorial brief.
+    ...(id==='saju_core'&&prompt.paidCoreDepthV2===true?{
+     coreV2ConditionalReadingBrief:
+      '사주 첫 장 전용 개발용 지침: temperament의 paidCoreDepthV2.readerContrast가 존재하면 실제 계산된 다른 출생 위치와 달의 별도 속글자 일치를 기반으로, strength에서 볼 수 없는 두 조건의 차이를 하나의 구체적 가정으로 풀어 쓴다. 추상적인 일반 조언 대신 어떤 조건이 빠졌을 때 판단이 달라지는지 설명한다. 독립 근거가 없거나 이전 문단과 동일한 뜻이면 null이다. 확인되지 않은 실제 성격·성취·미래를 만들지 않는다. MBTI 비교 장에는 이 해석을 복사하거나 인용하지 않는다.'
+    }:{}),
     // Chapter-specific focus is selected for the real MBTI input; in a
     // Saju-only request this replaces a combined-framework focus, not facts.
     analysisFocus:prompt.analysisGuidance.chapterTasks?.[id]?.focus||null,

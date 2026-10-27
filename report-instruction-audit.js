@@ -168,6 +168,15 @@ function inspectTransport(prompt,actual){
    if(!chapter){errors.push('provider-chapter-missing:'+id);continue}
    if(chapter.analysisGoal!==(prompt.rules?.sectionGoals?.[id]||null))
     errors.push('chapter-depth-goal-dropped:'+id);
+   // The first-chapter V2 instruction must survive actual writer transport.
+   // A mixed first batch must NEVER lend it to MBTI.
+   if(id==='saju_core'&&prompt.paidCoreDepthV2===true){
+    if(!chapter.coreV2ConditionalReadingBrief?.includes('readerContrast')||
+       !chapter.coreV2ConditionalReadingBrief.includes('MBTI 비교 장에는'))
+     errors.push('paid-core-v2-writing-brief-not-transported');
+   }else if(Object.hasOwn(chapter,'coreV2ConditionalReadingBrief')){
+    errors.push('paid-core-v2-brief-leaked-to-unrelated-chapter:'+id);
+   }
    if(chapter.analysisFocus!==(upstream.focus||null))
     errors.push('chapter-focus-dropped:'+id);
    if(chapter.safety?.avoid!==(upstream.avoid||''))
