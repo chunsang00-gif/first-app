@@ -427,6 +427,19 @@ function schema(prompt,transport){
         JSON.stringify(required)!==JSON.stringify(chosen.sourceRefs)||
         !required.every(id=>permitted.includes(id)))
       throw Error('CORE_V2_EXACT_CITATION_CONTRACT_DRIFT');
+     // Make the *verified* chart-specific distinction visible to the
+     // reader-writing slot itself, not just the compact task metadata.
+     // Do not insert it into customer prose automatically: the response
+     // must still satisfy the independent source and reader checks.
+     if(chosen.readerFactAnchor){
+      if(chosen.selectedScope!=='verified-month-hidden-exposure'||
+         !chosen.readerFactAnchor.includes('정확히 일치')||
+         !chosen.readerFactAnchor.includes('달의 다른 속글자'))
+       throw Error('CORE_V2_READER_ANCHOR_UNVERIFIED');
+      p.properties.text.description+=' 본문에서 빠뜨리면 안 되는 실제 계산 관계: '+
+       chosen.readerFactAnchor+
+       ' 이 관계가 기존 출생월 풀이에서 추가되는 이유를 한 상황의 서로 다른 선택 조건으로 설명한다. 출생정보에서 확인된 관계이지 관찰한 성격이나 미래 결과는 아니다.';
+     }
      // Field-level source instruction reaches the real strict output
      // schema. Explicit source checking at decode stays untouched.
      basis.properties.refs.description=
