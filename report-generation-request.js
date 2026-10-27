@@ -250,7 +250,16 @@ function compile(prompt){
       const choice=require('./report-paid-core-v2-writing-decision')
        .build(topic.paidCoreDepthV2,source,permitted);
       topic.sourceQualifiedWritingDecision=choice;
-      chapter.coreV2ConditionalReadingBrief+=' '+choice.readerInstruction;
+      // The server selects a verified evidence/condition contract BEFORE
+      // the model writes. The exact-scene model is only the prose renderer.
+      const contract=require('./report-paid-core-v2-server-contract')
+       .build(source,topic);
+      if(contract){
+       topic.serverOwnedWritingContract=contract;
+       chapter.coreV2ConditionalReadingBrief=
+        contract.textContract+' '+JSON.stringify(contract.outline)+
+        ' 근거 ID는 서버가 확정하므로 다른 출처를 만들거나 선택하지 않는다.';
+      }else chapter.coreV2ConditionalReadingBrief+=' '+choice.readerInstruction;
      }
     // The model's actual compact task is now one factual question per
     // comparison pair, rather than a four-part undifferentiated chapter table.
@@ -427,11 +436,28 @@ function schema(prompt,transport){
         JSON.stringify(required)!==JSON.stringify(chosen.sourceRefs)||
         !required.every(id=>permitted.includes(id)))
       throw Error('CORE_V2_EXACT_CITATION_CONTRACT_DRIFT');
+     const serverContract=task.serverOwnedWritingContract;
+     if(serverContract){
+      if(serverContract.kind!=='server-owned-first-chapter-evidence-and-claim-contract-v1'||
+         !serverContract.evidenceRefs.every(id=>permitted.includes(id))||
+         JSON.stringify(serverContract.verifiedSourceIds)!==
+          JSON.stringify(required))
+       throw Error('CORE_V2_SERVER_OWNED_SCHEMA_DRIFT');
+      // One direct assignment, no repeated paragraphs of writing advice.
+      p.properties.text.description=
+       '독자에게 읽히는 한국어 해석 문장만 작성한다. '+
+       serverContract.textContract+' '+JSON.stringify(serverContract.outline)+
+       ' 계산된 분류가 실제 사건이나 성격으로 입증됐다고 단정하지 않는다.';
+      basis.properties.refs.description=
+       '근거는 서버에서 이미 계산했다. 다음 ID들을 누락이나 교체 없이 기록한다: '+
+       serverContract.evidenceRefs.join(', ')+
+       '. 본문에서 계산 관계를 정확히 설명할 수 없으면 문단 전체를 null로 둔다.';
+     }
      // Make the *verified* chart-specific distinction visible to the
      // reader-writing slot itself, not just the compact task metadata.
      // Do not insert it into customer prose automatically: the response
      // must still satisfy the independent source and reader checks.
-     if(chosen.readerFactAnchor){
+     if(!serverContract&&chosen.readerFactAnchor){
       if(chosen.selectedScope!=='verified-month-hidden-exposure'||
          !chosen.readerFactAnchor.includes('정확히 일치')||
          !chosen.readerFactAnchor.includes('달의 다른 속글자'))
@@ -440,7 +466,7 @@ function schema(prompt,transport){
        chosen.readerFactAnchor+
        ' 이 관계가 기존 출생월 풀이에서 추가되는 이유를 한 상황의 서로 다른 선택 조건으로 설명한다. 출생정보에서 확인된 관계이지 관찰한 성격이나 미래 결과는 아니다.';
      }
-     if(chosen.readerScene){
+     if(!serverContract&&chosen.readerScene){
       const scene=chosen.readerScene;
       if(scene.kind!=='v2-verified-classifications-conditional-editorial-scene-v1'||
          scene.approvedForSale!==false||
@@ -456,7 +482,7 @@ function schema(prompt,transport){
      }
      // Field-level source instruction reaches the real strict output
      // schema. Explicit source checking at decode stays untouched.
-     basis.properties.refs.description=
+     if(!serverContract)basis.properties.refs.description=
       'temperament를 작성할 때 다음 계산 출처를 하나도 빼지 말고 모두 인용한다: '+
       required.join(', ')+
       '. 필요한 계절·기운 출처도 유지한다. 근거가 실제 문단 주장과 일치하지 않으면 문단은 null로 반환한다.';
