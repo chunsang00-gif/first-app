@@ -80,14 +80,21 @@ function bind(value,prompt){
   return {value,changed:false,reason:'reader-meaning-or-grounding-rejected'};
  const semantic=require('./report-paid-core-v2-editorial-triage')
   .inspect(extra,base,topic.paidCoreDepthV2);
- if(semantic.findings.length)
+ // Reader-value warnings that do not alter the underlying calculation
+ // remain available to human editors but must not be mistaken for a
+ // missing/false source relation. Concrete factual/conditional blockers
+ // still fail closed and the result is NEVER customer-approved.
+ const advisory=new Set(['repeated-disclaimers-replace-reader-value']);
+ const blockers=semantic.findings.filter(code=>!advisory.has(code));
+ if(blockers.length)
   return {value,changed:false,reason:'two-way-meaning-or-scene-rejected',
-   issueCodes:semantic.findings.slice()};
+   issueCodes:blockers};
+ const editorialWarnings=semantic.findings.filter(code=>advisory.has(code));
  // The authoritative validator still runs in the decoder after binding.
  // No conditional paragraph can skip restoreEvidence or its source checks.
  return {value:clone,changed:true,reason:'deterministic-verified-exposure-provenance',
   serverBoundRefCount:missing.length,
   evidenceOwner:'server-contract',bodyTextUnchanged:true,
-  approvedForSale:false};
+  editorialWarnings,approvedForSale:false};
 }
 module.exports={bind,hasLocalExactMatch};
