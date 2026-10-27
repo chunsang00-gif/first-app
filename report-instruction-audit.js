@@ -171,8 +171,18 @@ function inspectTransport(prompt,actual){
    // The first-chapter V2 instruction must survive actual writer transport.
    // A mixed first batch must NEVER lend it to MBTI.
    if(id==='saju_core'&&prompt.paidCoreDepthV2===true){
-    if(!chapter.coreV2ConditionalReadingBrief?.includes('readerContrast')||
-       !chapter.coreV2ConditionalReadingBrief.includes('MBTI 비교 장에는'))
+    const contract=chapter.topics?.temperament?.serverOwnedWritingContract;
+    if(contract){
+     if(contract.kind!=='server-owned-first-chapter-evidence-and-claim-contract-v1'||
+        contract.humanEditorialApproval!==false||
+        contract.modelRole!=='Korean-prose-rendering-only'||
+        !chapter.coreV2ConditionalReadingBrief?.includes(contract.textContract)||
+        !chapter.coreV2ConditionalReadingBrief.includes(contract.outline.originalOnly)||
+        !chapter.coreV2ConditionalReadingBrief.includes(contract.outline.additionalOnly)||
+        !contract.evidenceRefs.every(ref=>Object.hasOwn(actual.source,ref)))
+      errors.push('paid-core-v2-server-owned-brief-not-transported');
+    }else if(!chapter.coreV2ConditionalReadingBrief?.includes('readerContrast')||
+         !chapter.coreV2ConditionalReadingBrief.includes('MBTI 비교 장에는'))
      errors.push('paid-core-v2-writing-brief-not-transported');
    }else if(Object.hasOwn(chapter,'coreV2ConditionalReadingBrief')){
     errors.push('paid-core-v2-brief-leaked-to-unrelated-chapter:'+id);
