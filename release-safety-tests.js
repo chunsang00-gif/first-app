@@ -3,7 +3,9 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const paidWorkflow=fs.readFileSync(require('node:path').join(__dirname,'.github/workflows/paid-report-qa.yml'),'utf8');
 assert(paidWorkflow.includes('paid_qa_confirmation:')&&paidWorkflow.includes('REPORT_QA_CONFIRM: ${{ inputs.paid_qa_confirmation }}'),'paid QA must require explicitly supplied workflow approval');
-assert(paidWorkflow.includes('test "$REPORT_QA_CONFIRM" = "RUN_ONE_PAID_SAMPLE"'),'paid API calls must fail closed without correct approval');
+assert(paidWorkflow.includes('test "$REPORT_QA_CONFIRM" = "RUN_ONE_CORE_V2_APPROVED_ONCE"'),'paid V2 API calls must fail closed without a NEW one-shot approval');
+assert(paidWorkflow.includes('run: node qa-core-v2-dispatch-guard.js'),'paid V2 must reject reruns and previously used V2 approval');
+assert(paidWorkflow.includes('run: node run-paid-core-v2-first-chapter-qa.js'),'paid test must target the guarded V2 first chapter, not the old V1 runner');
 assert(paidWorkflow.includes('run: npm test && npm run smoke'),'manual paid QA must complete all free checks before model calls');
 // The repository is public: UNIX mode 0600 does NOT make GitHub Actions
 // artifacts private. Never archive raw paid model outputs in the clear.

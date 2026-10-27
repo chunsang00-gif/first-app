@@ -58,7 +58,7 @@ jobs:
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: node report-qa-secure-archive.js encrypt
-      - name: Upload encrypted evidence only, never the original plaintext
+      - name: Upload encrypted first-chapter evidence only
         if: always()
         uses: actions/upload-artifact@v4
         with:
