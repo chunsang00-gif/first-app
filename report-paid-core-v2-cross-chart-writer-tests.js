@@ -254,7 +254,7 @@ async function run(){
   assert(readerGuard.inspect(altTrial.proposal,'',unsupported)
    .includes('PAID_CORE_V2_READER_HAS_NO_INDEPENDENT_SOURCE'));
   assert(writer.policyFor(alternativeCapture.prompt)
-   .includes('readerContrast와 readerAlternative 모두 없거나'));
+   .includes('readerContrast와 readerAlternative, readerClassicalScope 모두 없거나'));
     assert.equal(a.providerCalls,0);assert.equal(shifted.providerCalls,0);
  }finally{
   for(const [k,v] of [['PAID_CORE_DEPTH_V2',saved.flag],
