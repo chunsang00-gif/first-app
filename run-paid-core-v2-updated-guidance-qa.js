@@ -6,10 +6,10 @@
 const fs=require('node:fs'),path=require('node:path');
 const readiness=require('./report-paid-core-v2-billable-readiness');
 const {callOpenAI}=require('./server');
-const APPROVAL='RUN_ONE_UPDATED_UPDATED_CORE_V2_APPROVED_ONCE';
+const APPROVAL='RUN_ONE_UPDATED_CORE_V2_APPROVED_ONCE';
 const REQUEST_HASH='0c5a7add6a4802b1cccf9e43f376a57f9248ba91b1a2b9c04b291e962813c920';
 const BRANCH='fix-paid-qa-fact-bindings-20261014';
-const WORKFLOW='.github/workflows/paid-core-v2-guidance-qa.yml';
+const WORKFLOW='.github/workflows/paid-report-qa.yml';
 const OUTPUT='private-qa-first-chapter.json';
 function savePrivate(file,value){
  const fd=fs.openSync(file,'wx',0o600);
