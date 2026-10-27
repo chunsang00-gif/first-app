@@ -15,9 +15,10 @@ const env={
  REPORT_QA_CONFIRM:guard.APPROVAL
 };
 const current={
- id:90001,path:guard.WORKFLOW,head_branch:guard.BRANCH,
+ id:90001,path:guard.WORKFLOW,created_at:'2026-10-27T11:00:00Z',head_branch:guard.BRANCH,
  event:'workflow_dispatch',run_attempt:1};
-const old={id:40454885372,path:prev.WORKFLOW,head_branch:guard.BRANCH,
+const old={id:40454885372,path:prev.WORKFLOW,
+ created_at:'2026-10-27T05:21:46Z',head_branch:guard.BRANCH,
  event:'workflow_dispatch',run_attempt:1};
 const other={...current,id:90000};
 const fake=runs=>async()=>({ok:true,json:async()=>({
@@ -25,7 +26,9 @@ const fake=runs=>async()=>({ok:true,json:async()=>({
 async function run(){
  assert.equal(runner.APPROVAL,guard.APPROVAL);
  assert.notEqual(runner.APPROVAL,prev.APPROVAL);
- assert.notEqual(runner.WORKFLOW,prev.WORKFLOW);
+ assert.equal(runner.WORKFLOW,prev.WORKFLOW);
+ // Existing registered workflow has a new approval branch with historical
+ // runs before the new slot activation; it still cannot reuse old consent.
  assert.equal(runner.WORKFLOW,guard.WORKFLOW);
  assert.equal(runner.REQUEST_HASH,sha);
  assert.notEqual(runner.REQUEST_HASH,prev.REQUEST_HASH);
