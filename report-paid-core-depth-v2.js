@@ -109,7 +109,7 @@ function build(packet){
   .build(packet,comparison);
  return {kind:'first-chapter-optional-full-chart-source-v1',
   sourceRefs:[...REFS,...(comparison?[mainId,selected.hiddenRef]:
-   alternative?[mainId]:[])],
+   alternative?['natal.month.stem',mainId]:[])],
   positions,exposures,visiblePairCandidates,
   readerContrast:comparison,readerAlternative:alternative,
   visibleElementDirections,
