@@ -1,0 +1,39 @@
+name: Audit already-paid V2 first-chapter output (no new API)
+on:
+  push:
+    branches: [fix-paid-qa-fact-bindings-20261014]
+    paths: [.github/workflows/qa-review-archived-core-v2.yml]
+permissions:
+  contents: read
+  actions: read
+jobs:
+  inspect-existing-v2-artifact:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-audit --no-fund
+      - name: Download existing successful V2 report, no API generation
+        uses: actions/download-artifact@v4
+        with:
+          name: premium-first-chapter-qa-v2-encrypted
+          repository: chunsang00-gif/first-app
+          run-id: 40454885372
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/v2-encrypted
+      - name: Decrypt privately and report only anonymous quality metrics
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          mkdir -p "$RUNNER_TEMP/v2-private"
+          trap 'rm -rf "$RUNNER_TEMP/v2-private" "$RUNNER_TEMP/v2-encrypted"' EXIT
+          node report-qa-secure-archive.js decrypt \
+            "$RUNNER_TEMP/v2-encrypted/premium-first-chapter-qa.enc" \
+            "$RUNNER_TEMP/v2-private"
+          node report-core-v2-archived-reader-diagnostic.js "$RUNNER_TEMP/v2-private"
