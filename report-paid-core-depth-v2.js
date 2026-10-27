@@ -107,11 +107,38 @@ function build(packet){
    .forContrast(comparison);
  const alternative=require('./report-core-v2-visible-alternative')
   .build(packet,comparison);
+ // An EXACT hour-clause can answer a narrow question even when a
+ // generic separate-visible-role comparison is also available.
+ // This is a source preference for one question, NOT whole-chart method
+ // precedence. The server only enables this envelope in test-mode preview.
+ const historical=require('./report-core-paid-yi-guiwei-output-reading')
+  .build(packet);
+ const classicalDecision=historical?
+  require('./report-core-paid-1982-question-scoped-method-decision')
+   .inspect(packet):null;
+ const classical=historical&&classicalDecision?.generalHourSymbolicRelation&&
+  classicalDecision?.referencePreferenceScope===
+   'more-specific-source-for-the-same-question-only'&&
+  classicalDecision.independentMethodPrioritySelected===false&&
+  classicalDecision.approvedForSale===false?{
+   kind:'qa-exact-yi-guiwei-hour-citation-in-optional-core-v2',
+   sourceRefs:historical.basis.refs.slice(),
+   visiblePosition:'natal.hour.stem',
+   hourHiddenExpressionRef:'natal.hour.hidden.丁',
+   citationQuestion:'how-learning-symbol-and-expression-symbol-relate-in-this-exact-hour',
+   methodPriority:'not-selected',
+   provenPersonality:false,approvedForSale:false,
+   sourceUrl:historical.basis.sourceUrl
+  }:null;
+ if(historical&&!classical)
+  throw Error('PAID_CORE_DEPTH_V2_CLASSICAL_SCOPE_NOT_VERIFIED');
  return {kind:'first-chapter-optional-full-chart-source-v1',
-  sourceRefs:[...REFS,...(comparison?[mainId,selected.hiddenRef]:
-   alternative?['natal.month.stem',mainId]:[])],
+  sourceRefs:[...new Set([...REFS,...(comparison?[mainId,selected.hiddenRef]:
+   alternative?['natal.month.stem',mainId]:[]),
+   ...(classical?classical.sourceRefs:[])])],
   positions,exposures,visiblePairCandidates,
   readerContrast:comparison,readerAlternative:alternative,
+  readerClassicalScope:classical,
   visibleElementDirections,
   comparisonScope:comparison?'computed-position-and-exact-exposure-only':
    alternative?'computed-distinct-visible-ten-god-no-exposure':
