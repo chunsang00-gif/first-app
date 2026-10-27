@@ -32,6 +32,24 @@ async function run(){
    assert.equal(choice.approvedForSale,false);
    assert(choice.readerInstruction.includes('이번에는 이 조건부 풀이를 우선 시도한다'));
    assert(choice.readerInstruction.includes('temperament는 null로 둔다'));
+   if(expected==='verified-month-hidden-exposure'){
+    const scene=choice.readerScene;
+    assert.equal(scene.kind,
+     'v2-verified-classifications-conditional-editorial-scene-v1');
+    assert.equal(scene.approvedForSale,false);
+    assert.equal(scene.realPersonObservation,false);
+    assert.equal(scene.traditionOnly,true);
+    assert.deepEqual(scene.rolePair,['정관','정재']);
+    assert.deepEqual(scene.sourceRefs,choice.sourceRefs);
+    assert(scene.openingQuestion.includes('부품비')||
+     scene.openingQuestion.includes('정기 점검'));
+    assert(scene.whenOnlyOriginal.includes('점검 시간'));
+    assert(scene.whenOnlyAdditional.includes('승인 권한'));
+    assert(choice.readerInstruction.includes(scene.writerInstruction));
+   }else{
+    assert.equal(choice.readerScene,null);
+   }
+
    assert(chapter.coreV2ConditionalReadingBrief.includes(choice.readerInstruction));
    assert(choice.sourceRefs.every(id=>Object.hasOwn(out.source,id)&&
     target.citableFacts.some(x=>x.id===id)));
@@ -59,6 +77,11 @@ async function run(){
     assert(textSpec.includes(choice.readerFactAnchor),
      'exact fact anchor must survive the actual strict model output schema');
    else assert(!textSpec.includes('태어난 달의 다른 속글자와 정확히 일치합니다'));
+   if(choice.readerScene){
+    assert(textSpec.includes(choice.readerScene.writerInstruction),
+     'two-sided scene must reach actual strict provider text field');
+    assert(textSpec.includes('부품비')&&textSpec.includes('승인'));
+   }else assert(!textSpec.includes('공용 장비 한 대'));
    assert(!refs.description.includes('추가 출처를 임의로 지어낸다'));
 
    assert(!chapter.topics.strength.sourceQualifiedWritingDecision);
@@ -89,6 +112,16 @@ async function run(){
   assert.throws(()=>chooser.build(forged,direct.source,allowed),
    /CORE_V2_WRITER_EXACT_EXPOSURE_RELATION_UNVERIFIED/,
    'never hand an invented month/hour equality to the model');
+  const badScene=structuredClone(topic.paidCoreDepthV2);
+  badScene.readerContrast.mainRole='식신';
+  assert.throws(()=>chooser.build(badScene,direct.source,allowed),
+   /CORE_V2_EDITORIAL_SCENE_SOURCE_MISMATCH/,
+   'a fabricated role cannot receive the real-month/real-hour scene');
+  const noSpecificScene=require('./report-paid-core-v2-grounded-scene')
+   .forContrast({...topic.paidCoreDepthV2.readerContrast,
+    monthMainToExposedElementDirection:'same-element'},direct.source);
+  assert.equal(noSpecificScene,null,
+   'symbolic direction drift must not reuse the equipment scenario');
   const badPlan=structuredClone(topic.paidCoreDepthV2);
   badPlan.readerContrast.readerWritingPlan=null;
   assert.throws(()=>chooser.build(badPlan,direct.source,allowed),
