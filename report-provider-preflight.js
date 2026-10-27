@@ -102,6 +102,13 @@ function inspect(prompt,payload,schema){
      const guide=c.readerWritingPlan;
      const description=String(leaf.properties?.text?.description||'');
      const alternative=!!directive.paidCoreDepthV2?.readerAlternative;
+     const sourceKey=alternative?'readerAlternative':'readerContrast';
+     const forbiddenKey=alternative?'readerContrast':'readerAlternative';
+     if(!description.includes(sourceKey+'.sourceRefs')||
+        !description.includes(sourceKey+'.monthMainToExposedElementDirection')||
+        description.includes(forbiddenKey+'.sourceRefs')||
+        description.includes(forbiddenKey+'.monthMainToExposedElementDirection'))
+      note('core-v2-source-key-mismatch');
      if(alternative&&!description.includes('달 속글자의 정확한 겉글자 노출이 없으며'))
       note('core-v2-false-exact-exposure-schema');
      if(!expectedGuide||
