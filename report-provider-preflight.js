@@ -104,22 +104,43 @@ function inspect(prompt,payload,schema){
      const alternative=!!directive.paidCoreDepthV2?.readerAlternative;
      const sourceKey=alternative?'readerAlternative':'readerContrast';
      const forbiddenKey=alternative?'readerContrast':'readerAlternative';
-     if(!description.includes(sourceKey+'.sourceRefs')||
-        !description.includes(sourceKey+'.monthMainToExposedElementDirection')||
-        description.includes(forbiddenKey+'.sourceRefs')||
-        description.includes(forbiddenKey+'.monthMainToExposedElementDirection'))
-      note('core-v2-source-key-mismatch');
-     if(alternative&&!description.includes('달 속글자의 정확한 겉글자 노출이 없으며'))
-      note('core-v2-false-exact-exposure-schema');
-     if(!expectedGuide||
-        JSON.stringify(guide)!==JSON.stringify(expectedGuide)||
-        guide?.sourceRefs?.some(x=>!refs.has(x))||
-        ![
-         guide?.decisionQuestion,guide?.onlyOriginalCondition,
-         guide?.onlyAdditionalCondition,guide?.situationSequence,
-         guide?.distinctInterpretationRule
-        ].every(t=>typeof t==='string'&&t.length>=10&&description.includes(t)))
-      note('core-v2-directional-writing-plan-not-on-provider-wire');
+     const owned=directive.serverOwnedWritingContract;
+     if(owned){
+      let rebuilt=null;
+      try{
+       rebuilt=require('./report-paid-core-v2-server-contract')
+        .build(payload.source,directive);
+      }catch(e){note('core-v2-server-contract-recalculation-failed')}
+      if(!rebuilt||JSON.stringify(rebuilt)!==JSON.stringify(owned)||
+         owned.humanEditorialApproval!==false||
+         owned.modelRole!=='Korean-prose-rendering-only'||
+         owned.evidenceRefs.some(id=>!refs.has(id))||
+         !description.includes(owned.textContract)||
+         !Object.values(owned.outline).every(value=>
+          typeof value==='string'&&description.includes(value))||
+         !owned.evidenceRefs.every(id=>
+          String(leaf.properties?.basis?.properties?.refs?.description||'')
+           .includes(id))||
+         !expectedGuide||JSON.stringify(guide)!==JSON.stringify(expectedGuide))
+       note('core-v2-server-contract-not-on-provider-wire');
+     }else{
+      if(!description.includes(sourceKey+'.sourceRefs')||
+         !description.includes(sourceKey+'.monthMainToExposedElementDirection')||
+         description.includes(forbiddenKey+'.sourceRefs')||
+         description.includes(forbiddenKey+'.monthMainToExposedElementDirection'))
+       note('core-v2-source-key-mismatch');
+      if(alternative&&!description.includes('달 속글자의 정확한 겉글자 노출이 없으며'))
+       note('core-v2-false-exact-exposure-schema');
+      if(!expectedGuide||
+         JSON.stringify(guide)!==JSON.stringify(expectedGuide)||
+         guide?.sourceRefs?.some(x=>!refs.has(x))||
+         ![
+          guide?.decisionQuestion,guide?.onlyOriginalCondition,
+          guide?.onlyAdditionalCondition,guide?.situationSequence,
+          guide?.distinctInterpretationRule
+         ].every(t=>typeof t==='string'&&t.length>=10&&description.includes(t)))
+       note('core-v2-directional-writing-plan-not-on-provider-wire');
+     }
     }else if(directive.paidCoreDepthV2?.readerWritingPlan){
      note('core-v2-unqualified-chart-invents-directional-plan');
     }
