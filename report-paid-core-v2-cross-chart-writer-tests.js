@@ -23,6 +23,7 @@ for(const year of [1982,1994,2006,2018]){
 async function run(){
  let qualified=0,unqualified=0,hour=0,year=0;
  let alternative=0,stillUnqualified=0,alternativeYear=0,alternativeHour=0;
+ let firstAlternativeInput=null;
  const distinctAlternativeDirections=new Set();
  const alternativeSamples=[];
  const readerHeadings=new Set(),readerScenes=new Set(),
@@ -47,6 +48,7 @@ async function run(){
    const alt=x.readerAlternative;
    if(!alt){stillUnqualified++;continue}
    alternative++;
+   if(!firstAlternativeInput)firstAlternativeInput={...fixture};
    assert.equal(alt.kind,'verified-distinct-visible-category-conditional-comparison-v1');
    assert.equal(alt.linkageKind,'different-visible-role-not-exact-month-hidden-exposure');
    assert.equal(alt.approvedForSale,false);
@@ -191,6 +193,39 @@ async function run(){
   const next=writer.compile(shifted.prompt);
   const changed=next.task.chapters.saju_core.topics.temperament.paidCoreDepthV2;
   assert(!changed.readerContrast||changed.readerContrast.extraHiddenId!=='natal.month.hidden.丁');
+  // Exercise the REAL outgoing alternate model schema, not just an offline
+  // draft. Never mistake a distinct visible ten-god for month-hidden exposure.
+  const alternativeCapture=await capture(firstAlternativeInput);
+  assert.equal(alternativeCapture.providerCalls,0);
+  const alternatePayload=writer.compile(alternativeCapture.prompt);
+  const alternateTopic=alternatePayload.task.chapters.saju_core.topics.temperament;
+  assert(!alternateTopic.paidCoreDepthV2.readerContrast);
+  assert(alternateTopic.paidCoreDepthV2.readerAlternative);
+  const altSchema=writer.schema(alternativeCapture.prompt,
+   require('./report-wire').schemaFor(alternativeCapture.prompt,
+    require('./report-schema.json')));
+  const altSlot=altSchema.properties.chapters.properties.saju_core.properties
+   .paragraphs.properties.temperament;
+  const altLeaf=altSlot.anyOf?.find(v=>v.type==='object')||altSlot;
+  const altInstructions=altLeaf.properties.text.description;
+  assert(altInstructions.includes('readerAlternative.sourceRefs에 기록된 실제 근거 위치만'));
+  assert(altInstructions.includes('readerAlternative.monthMainToExposedElementDirection은'));
+  assert(altInstructions.includes('달 속글자의 정확한 겉글자 노출이 없으며'));
+  assert(!altInstructions.includes('readerContrast.sourceRefs'));
+  assert(!altInstructions.includes('readerContrast.monthMainToExposedElementDirection'));
+  assert(!altInstructions.includes('추가로 드러난 글자'));
+  const preflight=require('./report-provider-preflight');
+  assert.deepEqual(preflight.inspect(alternativeCapture.prompt,alternatePayload,altSchema),[]);
+  const wrongSchema=structuredClone(altSchema);
+  const wrongSlot=wrongSchema.properties.chapters.properties.saju_core.properties
+   .paragraphs.properties.temperament;
+  const wrongLeaf=wrongSlot.anyOf?.find(v=>v.type==='object')||wrongSlot;
+  wrongLeaf.properties.text.description=wrongLeaf.properties.text.description
+   .replaceAll('readerAlternative.sourceRefs','readerContrast.sourceRefs')
+   .replaceAll('readerAlternative.monthMainToExposedElementDirection',
+    'readerContrast.monthMainToExposedElementDirection');
+  assert(preflight.inspect(alternativeCapture.prompt,alternatePayload,wrongSchema)
+   .includes('core-v2-source-key-mismatch'));
   assert.equal(a.providerCalls,0);assert.equal(shifted.providerCalls,0);
  }finally{
   for(const [k,v] of [['PAID_CORE_DEPTH_V2',saved.flag],
