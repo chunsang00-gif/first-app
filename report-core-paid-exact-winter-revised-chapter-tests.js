@@ -35,6 +35,34 @@ assert(!draft.text.includes('당신은 안정적인 사람입니다'));
 assert(!draft.text.includes('앞으로 평온한 삶을 살게 됩니다'));
 assert(draft.paragraphs[1].text.includes('서로 질문 자체가 다른'));
 assert(draft.paragraphs[2].text.includes('오후 8시 20분'));
+// An exact changed-hour text exists too. It is not the winter Gui/Wei
+// quotation, and the Qiong Tong compound criterion is unmet for a
+// DIFFERENT reason after the hour changes.
+const alternatePacket=facts.build({...input,birthTime:'20:20'},2027);
+const alternative=require('./report-core-paid-alternative-hour-revised-chapter')
+ .build(alternatePacket);
+const oldConditions=require('./report-core-paid-classical-decision-handoff')
+ .build(packet).independentClassicalSourceEligibility;
+const newConditions=require('./report-core-paid-classical-decision-handoff')
+ .build(alternatePacket).independentClassicalSourceEligibility;
+assert(alternative&&alternative.approvedForCustomer===false);
+assert.equal(oldConditions.climate.bingExposed,false);
+assert.equal(oldConditions.climate.guiExposed,true);
+assert.equal(newConditions.climate.bingExposed,true);
+assert.equal(newConditions.climate.guiExposed,true);
+assert.equal(oldConditions.climate.favorableHistoricalCompoundConditionMatched,false);
+assert.equal(newConditions.climate.favorableHistoricalCompoundConditionMatched,false);
+assert.equal(oldConditions.exactDayHour.requiredHourPillar,'癸未');
+assert.equal(oldConditions.alternativeExactDayHour,null);
+assert.equal(newConditions.exactDayHour,null);
+assert.equal(newConditions.alternativeExactDayHour.requiredHourPillar,'丙戌');
+assert.equal(newConditions.alternativeExactDayHour.yearMonthGrammarAndOtherConditionsNotResolved,true);
+assert(draft.paragraphs[2].text.includes('따뜻함을 뜻하는 글자가 겉에 나오지만'));
+assert(draft.paragraphs[2].text.includes('유리한 복합 조건 역시 충족하지 못합니다'));
+assert(draft.paragraphs[2].text.includes('다른 일·시 조합에 해당하지만'));
+assert(alternative.paragraphs[2].text.includes('따뜻함을 나타내는 글자가 시간의 겉에 있지만'));
+assert(!draft.paragraphs[2].text.includes('운이 좋아집니다'));
+assert(!alternative.text.includes('실제 승진이 보장됩니다'));
 assert(draft.paragraphs[2].text.includes('해석 출발점 후보는 유지됩니다'));
 assert(draft.paragraphs[2].text.includes('달과 날의 관계표는 그대로지만'));
 assert(draft.paragraphs[2].text.includes('달과 시간 사이의 마주 보는 관계는 사라집니다'));
