@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
     inputs:
       paid_qa_confirmation:
-        description: 'One new billable V2 first-chapter API request. Type RUN_ONE_CORE_V2_APPROVED_ONCE only after approving its cost.'
+        description: 'Short approval QA2 = NEW billable GPT-4.1 first-chapter call (1 maximum); previous approvals are consumed.'
         required: true
         type: string
 permissions:
@@ -123,6 +123,65 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: premium-first-chapter-qa-v2-revised-guidance-encrypted
+          path: premium-first-chapter-qa.enc
+          if-no-files-found: ignore
+          retention-days: 30
+
+  qa2-first-chapter:
+    if: ${{ github.ref_name == 'fix-paid-qa-fact-bindings-20261014' && inputs.paid_qa_confirmation == 'QA2' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    concurrency:
+      group: v2-core-qa2-billable-at-most-once
+      cancel-in-progress: false
+    env:
+      REPORT_MODEL: ${{ vars.REPORT_MODEL }}
+      REPORT_QA_CONFIRM: ${{ inputs.paid_qa_confirmation }}
+      REPORT_QA_OUTPUT: ${{ github.workspace }}/private-qa-first-chapter.json
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-audit --no-fund
+      - name: Full free test suite before any billing
+        run: npm test && npm run smoke
+      - name: Check fresh QA2 approval, pinned model and existing credentials
+        env:
+          NODE_ENV: test
+          PAID_CORE_DEPTH_V2: offline-preview
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = "fix-paid-qa-fact-bindings-20261014"
+          test "$GITHUB_RUN_ATTEMPT" = "1"
+          test "$REPORT_QA_CONFIRM" = "QA2"
+          test "$REPORT_MODEL" = "gpt-4.1"
+          test "$NODE_ENV" = "test"
+          test "$PAID_CORE_DEPTH_V2" = "offline-preview"
+          test -n "$OPENAI_API_KEY"
+          test "${#OPENAI_API_KEY}" -ge 32
+      - name: Fail closed if QA2-era dispatch already exists
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node qa-core-v2-qa2-dispatch-guard.js
+      - name: Exactly one frozen QA2 real model response, no retry
+        env:
+          NODE_ENV: test
+          PAID_CORE_DEPTH_V2: offline-preview
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: node run-paid-core-v2-qa2.js
+      - name: Encrypt all private model responses including failures
+        if: always()
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: node report-qa-secure-archive.js encrypt
+      - name: Preserve original response encrypted only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: premium-first-chapter-v2-qa2-encrypted
           path: premium-first-chapter-qa.enc
           if-no-files-found: ignore
           retention-days: 30
