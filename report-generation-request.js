@@ -191,7 +191,7 @@ function compile(prompt){
     // Keep the MBTI task, sources and original overall editorial brief.
     ...(id==='saju_core'&&prompt.paidCoreDepthV2===true?{
      coreV2ConditionalReadingBrief:
-      '사주 첫 장 전용 개발용 지침: temperament의 paidCoreDepthV2.readerContrast가 있으면 달 속글자가 다른 위치에 정확히 나타난 근거를 쓰고, readerAlternative만 있으면 별도 겉글자 분류를 비교할 뿐 정확한 일치를 지어내지 않는다. 어느 쪽이든 strength에서 볼 수 없는 두 조건의 차이를 하나의 구체적 가정으로 풀어 쓴다. 선택된 readerContrast 또는 readerAlternative의 readerWritingPlan에 기재된 실제 질문, 두 개의 상반된 조건 및 판단 순서를 빠짐없이 구별하여 풀이한다. 이 계획이 없거나 독립 근거가 없다면 다른 사주의 설명을 복사하지 않는다. 선택된 readerContrast 또는 readerAlternative의 monthMainToExposedElementDirection은 계산된 기운의 방향만 뜻한다. 기존 기준이 새 기준을 돕는지, 반대로 새 기준이 기존 기준을 뒷받침하는지, 한쪽이 다른 쪽을 제약하는지, 같은 성질인지에 따라 사례의 질문과 서로 다른 결론을 작성한다. 무조건 둘 다 고려하자는 일반 조언으로 결론을 대신하지 않는다. 이 방향에서 실제 영향력이나 우선순위가 확정됐다고 주장하지 않는다. 독립 근거가 없거나 이전 문단과 동일한 뜻이면 null이다. 확인되지 않은 실제 성격·성취·미래를 만들지 않는다. MBTI 비교 장에는 이 해석을 복사하거나 인용하지 않는다.'
+      '사주 첫 장 전용 개발용 지침: temperament의 paidCoreDepthV2.readerContrast가 있으면 달 속글자가 다른 위치에 정확히 나타난 근거를 쓰고, readerAlternative만 있으면 별도 겉글자 분류를 비교할 뿐 정확한 일치를 지어내지 않는다. 어느 쪽이든 strength에서 볼 수 없는 두 조건의 차이를 하나의 구체적 가정으로 풀어 쓴다. 선택된 readerContrast 또는 readerAlternative의 readerWritingPlan에 기재된 실제 질문, 두 개의 상반된 조건 및 판단 순서를 빠짐없이 구별하여 풀이한다. readerClassicalScope가 확인된 경우에는 일반 readerWritingPlan 대신 해당 고전의 출생시간 겉글자·숨은 글자 관계를 좁은 범위에서 사용한다. 선택된 세 자료 중 독립 근거가 없다면 다른 사주의 설명을 복사하지 않는다. 선택된 readerContrast 또는 readerAlternative의 monthMainToExposedElementDirection은 계산된 기운의 방향만 뜻한다. 기존 기준이 새 기준을 돕는지, 반대로 새 기준이 기존 기준을 뒷받침하는지, 한쪽이 다른 쪽을 제약하는지, 같은 성질인지에 따라 사례의 질문과 서로 다른 결론을 작성한다. 무조건 둘 다 고려하자는 일반 조언으로 결론을 대신하지 않는다. 이 방향에서 실제 영향력이나 우선순위가 확정됐다고 주장하지 않는다. 독립 근거가 없거나 이전 문단과 동일한 뜻이면 null이다. 확인되지 않은 실제 성격·성취·미래를 만들지 않는다. MBTI 비교 장에는 이 해석을 복사하거나 인용하지 않는다.'
     }:{}),
     // Chapter-specific focus is selected for the real MBTI input; in a
     // Saju-only request this replaces a combined-framework focus, not facts.
@@ -243,6 +243,15 @@ function compile(prompt){
       ...(id==='person.mbti'?{inputType:fact.type,interpretationScope:'self-reported-preference-only'}:{})
      };
     });
+     if(prompt.paidCoreDepthV2===true&&chapterId==='saju_core'&&
+        topicId==='temperament'){
+      // This choice goes into the REAL provider topic, not a discarded
+      // top-level prompt. No real-world personality is inferred.
+      const choice=require('./report-paid-core-v2-writing-decision')
+       .build(topic.paidCoreDepthV2,source,permitted);
+      topic.sourceQualifiedWritingDecision=choice;
+      chapter.coreV2ConditionalReadingBrief+=' '+choice.readerInstruction;
+     }
     // The model's actual compact task is now one factual question per
     // comparison pair, rather than a four-part undifferentiated chapter table.
     if(coreContrast&&topicId!=='natal_depth')
