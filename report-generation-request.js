@@ -28,6 +28,7 @@ const policy=policyParts.join('\n');
 // Preserve every Saju and universal integrity rule while excluding future
 // fortune, MBTI integration, and end-of-report instructions from core prose.
 const corePolicyPartIndexes=[0,1,2,4,5,6,7,8,9,10,12,16];
+const coreDepthExperimentalPolicy='개발용 선택 문단에 전달된 출생 해·날·시간의 추가 근거는 각각의 실제 글자와 전통적 의미에 한정한다. 기존 출생월 두 분류만 설명하는 strength를 반복하지 않는다. 새 근거로 사람의 실제 성격·적성·수입·미래를 단정하거나 합화·강약·격국 우선순위를 발명하지 않는다. 차별화된 조건부 풀이가 확인되지 않으면 temperament는 null로 둔다.';
 const normalPaidMonthMethodBoundary="달의 겉글자가 기본 숨은 글자가 아닌 달의 다른 숨은 글자와 정확히 같을 때에는, 기본 숨은 글자가 실제 사령이나 해석의 최우선 기준이라고 단정하지 않는다. 반대로 다른 숨은 글자가 일치한다고 그것이 곧 우선한다고 결론내리지 않는다. evidenceFocus.tenGodFocus.monthStemVisibility는 오직 계산상 일치·불일치를 설명하는 자료이며 격국과 성격·능력을 검증한 뜻이 아니다. 유료 첫 장의 basis.limit에는 이 판단 한계를 내부적으로 남기고 독자 본문에서 기술 용어를 반복하지 않는다.";
 const additivePolicy='선택형 QA: temperament는 일반 유료 첫 장처럼 독립적 근거가 있을 때만 작성하고 strength는 필수로 유지한다. natal_depth는 선택 항목이며 새로운 개인별 판단 근거가 없으면 null로 반환한다. 고전이나 계산 정보의 일치 자체를 실제 성격 또는 미래 결과로 단정하지 않는다.';
 function policyFor(prompt){
@@ -43,7 +44,7 @@ function policyFor(prompt){
   if(prompt.qaNatalDepthPreview===true)parts.push(
    '심화 사주 QA 전용: 계절 보충 temperament는 중복 위험으로 반드시 null이다. 필수 strength에는 출생달의 두 계산 위치를 출처에 연결하고, 별도의 natal_depth에는 확인된 태어난 해·날·시간의 위치와 전통적 뜻을 다른 판단 기준으로 연결한다. 고객용 글에는 계산 기호나 전문용어를 쓰지 않는다. 출처나 사실이 없는 해석을 발명해서 채우면 안 되며, 그런 응답은 QA에서 실패한다. 정상 유료 보고서 경로에는 이 지침을 적용하지 않는다.'
   );
-  return parts.join('\n')+(prompt.qaNatalDepthPreview===true?'':'\n'+normalPaidMonthMethodBoundary);
+  return parts.join('\n')+(prompt.qaNatalDepthPreview===true?'':'\n'+normalPaidMonthMethodBoundary)+(prompt.paidCoreDepthV2===true?'\n'+coreDepthExperimentalPolicy:'');
  }
  return policy+(prompt?.stage==='body'&&prompt?.requestedSections?.includes('saju_core')&&
   prompt.qaNatalDepthPreview!==true?'\n'+normalPaidMonthMethodBoundary:'');
@@ -159,10 +160,16 @@ function editorialGoalFor(prompt){
     prompt.requestedSections.length===1&&prompt.requestedSections[0]==='saju_core')
   return coreEditorialGoal+(prompt.qaAdditiveDepthPreview===true?additiveGoal:prompt.qaNatalDepthPreview===true?
    ' QA 전용 검증 응답이다. temperament는 반드시 null로 둔다. strength는 기존 월 중심 핵심 판단과 두 분류의 의미를 유지한다. 세 번째 natal_depth는 검증된 출생 해·날·시간의 독립된 뜻이 월 중심 풀이에 더하는 새로운 판단을 검토하는 필수 원고다. 새 제안을 선택하는 등 한 가지 현실적인 가상 상황을 잡고, 해와 시간의 전통적 분류가 서로 다른 선택 기준에 연결되는 이유와 어떤 조건에서 유리하고 불리한지 구별한다. 실제로 계산된 분류가 같으면 거짓 반전을 만들지 않는다. 단순 계산 위치 소개·사전적인 뜻 두 문장·누구에게나 통하는 준비 조언·면책 반복으로 원고를 대신하지 않는다. 기준이 되는 출생 근거가 충분하지 않다면 임의로 생성하지 말고 QA 실패로 남긴다. 이 요청은 사전 근거 선별이 끝난 1회 검증 원고이며, natal_depth를 null로 제출하거나 필수 인용 없이 작성하는 것은 실패다. 실제 성격·능력·신강약·충의 결과·합화·미래 사건은 단정하지 않는다. 이 문단은 출시 미승인 후보이므로 사람의 문장 감수가 따로 필요하다.':'')+
-   (prompt.qaOfflineEditorialResearchPreview===true?offlineEditorialBenchmarkDirective:'');
+   (prompt.qaOfflineEditorialResearchPreview===true?offlineEditorialBenchmarkDirective:'')+
+   (prompt.paidCoreDepthV2===true?' 개발용 첫 장의 temperament에는 출생 해·날·시간의 별도 계산 출처가 검증된 경우에만 추가된다. 출생월 중심의 strength와 의미가 겹치거나 실제 판단 우선순위가 미확정이라면 temperament는 null이다. 계산 사실 소개나 일반 업무 조언을 새로운 개인별 통찰로 포장하지 않는다.':'');
  return original;
 }
 function compile(prompt){
+ if(prompt?.paidCoreDepthV2===true&&
+    (prompt.stage!=='body'||prompt.qaNatalDepthPreview===true||
+     JSON.stringify(prompt.requestedSections)!=='["saju_core"]'||
+     !prompt.facts?.chart?.hour))
+  throw Error('PAID_CORE_DEPTH_V2_INVALID_FIRST_BATCH_SCOPE');
  if(prompt?.qaAdditiveDepthPreview===true&&
     (prompt.qaNatalDepthPreview!==true||
      prompt.qaOfflineEditorialResearchPreview===true||
@@ -218,6 +225,8 @@ function compile(prompt){
   for(const [chapterId,chapter] of Object.entries(task.chapters)){
    const coreContrast=chapterId==='saju_core'?require('./report-chart-contrast').build(prompt.facts):null;
    for(const [topicId,topic] of Object.entries(chapter.topics)){
+    if(prompt.paidCoreDepthV2===true&&chapterId==='saju_core'&&topicId==='temperament')
+     topic.paidCoreDepthV2=require('./report-paid-core-depth-v2').build(prompt.facts);
     const permitted=[...allowedRefs(payload,topic,chapterId,topicId)];
     topic.citableFacts=permitted.map(id=>{
      const fact=source[id]||{};
@@ -361,6 +370,17 @@ function allowedRefs(payload,task,chapterId,topic){
  // Returning early here used to make the paid domain-MBTI bridge impossible.
  const paths=explicit?[]:task?.mode==='use-primary'?[task.sourcePath]:task?.mode==='use-verified-fallback'?task.fallbackPaths||[]:[];
  const ids=new Set(explicit?task.allowedSourceRefs.filter(id=>Object.hasOwn(payload.source,id)):[]);
+ if(chapterId==='saju_core'&&topic==='temperament'&&task?.paidCoreDepthV2){
+  const extra=task.paidCoreDepthV2;
+  if(extra.kind!=='first-chapter-optional-full-chart-source-v1'||
+     extra.approvedAsPremiumValue!==false||extra.selectedTraditionalPriority!==false)
+   throw Error('PAID_CORE_DEPTH_V2_INVALID_NATAL_SCOPE');
+  for(const id of extra.sourceRefs){
+   if(!Object.hasOwn(payload.source,id))
+    throw Error('PAID_CORE_DEPTH_V2_SOURCE_NOT_FOUND:'+id);
+   ids.add(id);
+  }
+ }
  for(const path of paths){
   if(!path)continue;
   if(Object.hasOwn(payload.source,path))ids.add(path);
@@ -513,6 +533,11 @@ function restoreEvidence(value,prompt){
       throw Error('AI report service domain MBTI comparison missing natal basis: '+id+':'+topic);
     }
     if(!allowed.size||b.refs.some(ref=>!allowed.has(ref)))throw Error('AI report service unrelated paragraph basis: '+id+':'+topic);
+    if(id==='saju_core'&&topic==='temperament'&&prompt.paidCoreDepthV2===true){
+     const expected=require('./report-paid-core-depth-v2').REFS;
+     if(!expected.every(ref=>allowed.has(ref)&&b.refs.includes(ref)))
+      throw Error('PAID_CORE_DEPTH_V2_MISSING_EXPLICIT_ADDITIONAL_CITATIONS');
+    }
     if(id==='saju_core'&&topic==='strength'){
      // Month-position traditional ten-god meanings are now the required
      // interpretation, roots and clash claims are no longer compulsory.

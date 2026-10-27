@@ -181,6 +181,14 @@ function inspectTransport(prompt,actual){
    // IDs, or a future compiler edit can silently discard the chart meaning.
    const writer=require('./report-generation-request');
    for(const [topicId,topic] of Object.entries(chapter.topics||{})){
+    if(id==='saju_core'&&topicId==='temperament'){
+     const expected=prompt.paidCoreDepthV2===true?
+      require('./report-paid-core-depth-v2').build(prompt.facts):null;
+     if(expected?
+        JSON.stringify(topic.paidCoreDepthV2)!==JSON.stringify(expected):
+        Object.hasOwn(topic,'paidCoreDepthV2'))
+      errors.push('paid-core-depth-v2-source-context-drift');
+    }
     const permitted=[...writer.allowedRefs(actual,topic,id,topicId)];
     const candidates=topic.citableFacts;
     if(!Array.isArray(candidates)||
