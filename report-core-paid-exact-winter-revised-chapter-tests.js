@@ -10,6 +10,25 @@ const input={calendar:'lunar',birthDate:'1982-11-24',birthTime:'14:20',
 const packet=facts.build(input,2027),w=winter.build(packet),prior=old.build(packet);
 assert(w&&prior);
 const draft=revised.build(packet,w,prior);
+const isolated=require('./report-core-paid-yi-guiwei-output-reading');
+const hypothesis=isolated.build(packet);
+assert(hypothesis&&hypothesis.standaloneEditorialOnly===true);
+assert.equal(hypothesis.sourceInActualProviderRequest,false);
+assert.equal(hypothesis.uncitableInFrozenApprovedWriter,true);
+assert.equal(hypothesis.approvedForCustomer,false);
+assert.equal(hypothesis.releaseVerdict,'not-approved');
+assert.equal(hypothesis.paidApiCalls,0);
+assert.deepEqual(hypothesis.basis.refs,[
+ 'natal.day.stem','natal.hour.stem','natal.hour.hidden.丁','facts.seasonalEvidence'
+]);
+assert(hypothesis.text.includes('내용을 이해하는 과정과 결과를 밖으로 보여 주는 과정'));
+assert(hypothesis.text.includes('실제로 표현력이 부족하거나 일을 늦게 끝내는 사람이라는 뜻은 아닙니다'));
+assert(!hypothesis.text.includes('반드시 성공'));
+assert.equal(isolated.build(facts.build({...input,birthTime:'20:20'},2027)),null,
+ 'different hour must not inherit the exact hour internal relationship');
+assert.equal(isolated.build(facts.build({...input,birthDate:'1982-11-25'},2027)),null,
+ 'different day must not inherit the historical verse');
+
 assert(draft);
 assert.equal(draft.paragraphs.length,3);
 assert.equal(draft.monthClassicalMethodApplication.source.originalRule,'一透則一用');
