@@ -72,9 +72,14 @@ async function run(){
  const other=eligible[0];
  const z=await capture(other.input);
  assert.equal(z.providerCalls,0);
- const second=response(z.prompt);
- const s2=decoder.decode(second,z.prompt);
- const proposed=planner.build(z.prompt,second);
+ assert.equal(z.prompt.requestedSections[0],'saju_core');
+ // Some REAL server batches also include MBTI: isolate the exact core
+ // subset for this zero-provider first-chapter replay, rather than
+ // claiming our core-only stub is a full mixed-batch response.
+ const corePrompt={...z.prompt,requestedSections:['saju_core']};
+ const second=response(corePrompt);
+ const s2=decoder.decode(second,corePrompt);
+ const proposed=planner.build(corePrompt,second);
  assert(proposed);
  assert.equal(s2.sections[0].bodyTopics[0],'temperament');
  assert.notEqual(s2.sections[0].body[0],after.sections[0].body[0]);
