@@ -37,6 +37,18 @@ function requireApproval(env=process.env){
   throw Error('CORE_V2_PRIVATE_OUTPUT_LOCATION_INVALID');
  return outfile;
 }
+// A valid JSON response is not automatically a valid *paid depth* QA result.
+// The optional depth slot may legally be null for the customer writer,
+// but this one-shot diagnostic was paid specifically to test that extra
+// value. Preserve private artifacts and fail the QA after archiving.
+function assertDepthForPaidQa(section){
+ if(!Array.isArray(section?.bodyTopics)||
+    !section.bodyTopics.includes('strength'))
+  throw Error('CORE_V2_MISSING_FIRST_CHAPTER_ANCHOR');
+ if(!section.bodyTopics.includes('temperament'))
+  throw Error('CORE_V2_PAID_DEPTH_NOT_GENERATED_QUALITY_HOLD_NO_RETRY');
+ return true;
+}
 async function run(){
  const output=requireApproval(),parent=path.dirname(output),stem=path.basename(output,'.json');
  const attempt=path.join(parent,stem+'-attempt.json');
@@ -88,10 +100,14 @@ async function run(){
   providerCalls:1,requestHash:ready.requestHash,
   extraReaderParagraph:hasDepth,humanEditorialReviewRequired:true,
   releaseVerdict:'not-approved'});
- console.log('CORE_V2_ONE_SHOT_FINISHED: 1 charged API call maximum; private report archived; review required');
+ // Only validate the billable purpose AFTER writing the original model
+ // response and the decoded checkpoint; an unsuccessful trial is evidence
+ // and must not result in a second model request.
+ assertDepthForPaidQa(section);
+ console.log('CORE_V2_ONE_SHOT_FINISHED: 1 charged API call maximum; private report archived; editorial approval still required');
 }
 if(require.main===module)run().catch(e=>{
  console.error('CORE_V2_ONE_SHOT_ERROR:'+String(e.message||e));
  process.exitCode=1;
 });
-module.exports={run,requireApproval,APPROVAL,REQUEST_HASH,BRANCH,WORKFLOW};
+module.exports={run,requireApproval,assertDepthForPaidQa,APPROVAL,REQUEST_HASH,BRANCH,WORKFLOW};
