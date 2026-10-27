@@ -27,7 +27,7 @@ function inspect(p,monthText,extra){
  const alternative=!extra.readerContrast&&!!extra.readerAlternative;
  // For a chart with neither verified independent source, even a fluent
  // optional paragraph is unsupported. Never sell filler as "deep reading".
- if(!c)return ['PAID_CORE_V2_READER_HAS_NO_INDEPENDENT_SOURCE'];
+ if(!c)errors.push('PAID_CORE_V2_READER_HAS_NO_INDEPENDENT_SOURCE');
  if(c){
   if(!Array.isArray(c.sourceRefs)||!Array.isArray(p.basis?.refs)||
      !c.sourceRefs.every(x=>p.basis.refs.includes(x)))
