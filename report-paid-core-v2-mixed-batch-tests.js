@@ -9,6 +9,7 @@ const writer=require('./report-generation-request');
 const wire=require('./report-wire');
 const outline=require('./report-schema.json');
 const audit=require('./report-instruction-audit');
+const preflight=require('./report-provider-preflight');
 const decoder=require('./report-response-decoder');
 const planner=require('./report-core-v2-source-bound-manuscript');
 const {enabled}=require('./report-paid-core-v2-scope');
@@ -81,6 +82,31 @@ function mock(prompt){
   assert.equal(payload.task.chapters.mbti_contradiction.topics.agreement?.paidCoreDepthV2,undefined);
   const schema=writer.schema(prompt,wire.schemaFor(prompt,outline));
   assert.deepEqual(audit.inspectTransport(prompt,payload),[]);
+  assert.deepEqual(preflight.inspect(prompt,payload,schema),[]);
+  const guide=c.readerWritingPlan;
+  assert(guide&&guide.relation===c.monthMainToExposedElementDirection);
+  const option=schema.properties.chapters.properties.saju_core.properties
+   .paragraphs.properties.temperament;
+  const leaf=option.anyOf?.find(x=>x.type==='object')||option;
+  const instructions=leaf.properties.text.description;
+  for(const phrase of [guide.decisionQuestion,guide.onlyOriginalCondition,
+    guide.onlyAdditionalCondition,guide.situationSequence,
+    guide.distinctInterpretationRule])
+   assert(instructions.includes(phrase),
+    'the ACTUAL outgoing model schema must guide the one chart question');
+  const strippedSchema=structuredClone(schema);
+  const stripped=strippedSchema.properties.chapters.properties.saju_core
+   .properties.paragraphs.properties.temperament;
+  const only=stripped.anyOf?.find(x=>x.type==='object')||stripped;
+  only.properties.text.description='generic, both sources are important';
+  assert(preflight.inspect(prompt,payload,strippedSchema)
+   .includes('core-v2-directional-writing-plan-not-on-provider-wire'));
+  const corruptedPlan=structuredClone(payload);
+  corruptedPlan.task.chapters.saju_core.topics.temperament
+   .paidCoreDepthV2.readerContrast.readerWritingPlan.decisionQuestion=
+    'generic, both conditions matter';
+  assert(preflight.inspect(prompt,corruptedPlan,schema)
+   .includes('core-v2-directional-writing-plan-not-on-provider-wire'));
   const chapters=schema.properties.chapters.properties;
   assert.deepEqual(Object.keys(chapters),prompt.requestedSections);
   assert(!Object.hasOwn(chapters.mbti_contradiction.properties.paragraphs.properties,'temperament'));
@@ -113,6 +139,8 @@ function mock(prompt){
   console.log('V2_REAL_MIXED_FIRST_BATCH='+JSON.stringify({
    fromActualServerRequest:true,bundle:['saju_core','mbti_contradiction'],
    mixedTransportSourcesVerified:true,strictSchemaValid:true,
+   groundedDirectionalWritingPlanOnProviderSchema:true,
+   missingDirectionalBriefRejectedBeforeNetwork:true,
    firstChapterDepthAddedInOfflineReader:true,unchangedMbtiReaderSection:true,
    originalModelResponseUnchanged:true,productionDisabled:true,
    noAddedModelCalls:true,apiCalls:0,humanQualityApproved:false,

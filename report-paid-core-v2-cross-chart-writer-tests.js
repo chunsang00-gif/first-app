@@ -7,6 +7,7 @@ const facts=require('./report-facts-node');
 const bridge=require('./report-paid-core-depth-v2');
 const writer=require('./report-generation-request');
 const manuscript=require('./report-core-v2-source-bound-manuscript');
+const guideFactory=require('./report-core-v2-directional-writing-plan');
 const direction=require('./report-core-paid-natal-visible-relation-bridge').direction;
 const {capture}=require('./report-core-paid-full-prompt-capture');
 const cases=[];
@@ -62,6 +63,12 @@ async function run(){
   assert.equal(c.monthMainToExposedElementDirection,independentlyComputed);
   assert.equal(c.visiblePositionRelationVerified,true);
   assert.equal(c.realizedDirectionEffectVerified,false);
+  const writingPlan=c.readerWritingPlan;
+  assert.deepEqual(writingPlan,guideFactory.forContrast(c));
+  assert.equal(writingPlan.relation,independentlyComputed);
+  assert.equal(writingPlan.requiresActualLifeProof,false);
+  assert.equal(writingPlan.approvedForSale,false);
+  assert(writingPlan.sourceRefs.every(ref=>c.sourceRefs.includes(ref)));
   const scopedPrompt={paidCoreDepthV2:true,stage:'body',
    requestedSections:['saju_core'],facts:packet};
   const unchangedSource={chapters:{saju_core:{paragraphs:{
@@ -84,6 +91,8 @@ async function run(){
    'unrelated extra pillar must not be cited to pad prose');
   assert.equal(prose.context.chartSpecific,true);
   assert.equal(prose.context.symbolicDirection,independentlyComputed);
+  assert.equal(prose.context.decisionQuestion,writingPlan.decisionQuestion,
+   'paid writer plan and offline reader question must agree on conclusion');
   assert(prose.context.decisionQuestion.length>14);
   assert(prose.proposal.text.includes(prose.context.decisionQuestion),
    'the computed direction must change the READER conclusion, not metadata');
@@ -126,6 +135,8 @@ async function run(){
   const appendix=old.task.chapters.saju_core.topics.temperament.paidCoreDepthV2;
   assert(appendix.readerContrast);
   assert.equal(appendix.readerContrast.otherRole,'정재');
+  assert.deepEqual(appendix.readerContrast.readerWritingPlan,
+   guideFactory.forContrast(appendix.readerContrast));
   const exact=appendix.readerContrast.sourceRefs;
   assert(exact.includes('natal.month.hidden.丁'));
   assert(exact.every(x=>old.task.chapters.saju_core.topics.temperament

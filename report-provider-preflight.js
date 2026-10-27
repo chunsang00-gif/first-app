@@ -90,6 +90,29 @@ function inspect(prompt,payload,schema){
       payload.source?.['person.mbti']&&(!refs.has('person.mbti')||
       ![...refs].some(x=>x.startsWith('natal.'))))
     note('no-possible-two-framework-sources:'+id+'/'+topic);
+   if(id==='saju_core'&&topic==='temperament'&&prompt.paidCoreDepthV2===true){
+    const c=directive.paidCoreDepthV2?.readerContrast;
+    if(c){
+     let expectedGuide=null;
+     try{
+      expectedGuide=require('./report-core-v2-directional-writing-plan')
+       .forContrast(c);
+     }catch(e){note('core-v2-unsupported-directional-plan')}
+     const guide=c.readerWritingPlan;
+     const description=String(leaf.properties?.text?.description||'');
+     if(!expectedGuide||
+        JSON.stringify(guide)!==JSON.stringify(expectedGuide)||
+        guide?.sourceRefs?.some(x=>!refs.has(x))||
+        ![
+         guide?.decisionQuestion,guide?.onlyOriginalCondition,
+         guide?.onlyAdditionalCondition,guide?.situationSequence,
+         guide?.distinctInterpretationRule
+        ].every(t=>typeof t==='string'&&t.length>=10&&description.includes(t)))
+      note('core-v2-directional-writing-plan-not-on-provider-wire');
+    }else if(directive.paidCoreDepthV2?.readerWritingPlan){
+     note('core-v2-unqualified-chart-invents-directional-plan');
+    }
+   }
    if(id==='saju_core'&&topic==='strength'){
      const focus=directive.evidenceFocus?.tenGodFocus;
      if(!focus?.monthStem?.sourceId||!refs.has(focus.monthStem.sourceId)||

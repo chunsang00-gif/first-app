@@ -191,7 +191,7 @@ function compile(prompt){
     // Keep the MBTI task, sources and original overall editorial brief.
     ...(id==='saju_core'&&prompt.paidCoreDepthV2===true?{
      coreV2ConditionalReadingBrief:
-      '사주 첫 장 전용 개발용 지침: temperament의 paidCoreDepthV2.readerContrast가 존재하면 실제 계산된 다른 출생 위치와 달의 별도 속글자 일치를 기반으로, strength에서 볼 수 없는 두 조건의 차이를 하나의 구체적 가정으로 풀어 쓴다. readerContrast.monthMainToExposedElementDirection은 계산된 기운의 방향만 뜻한다. 기존 기준이 새 기준을 돕는지, 반대로 새 기준이 기존 기준을 뒷받침하는지, 한쪽이 다른 쪽을 제약하는지, 같은 성질인지에 따라 사례의 질문과 서로 다른 결론을 작성한다. 무조건 둘 다 고려하자는 일반 조언으로 결론을 대신하지 않는다. 이 방향에서 실제 영향력이나 우선순위가 확정됐다고 주장하지 않는다. 독립 근거가 없거나 이전 문단과 동일한 뜻이면 null이다. 확인되지 않은 실제 성격·성취·미래를 만들지 않는다. MBTI 비교 장에는 이 해석을 복사하거나 인용하지 않는다.'
+      '사주 첫 장 전용 개발용 지침: temperament의 paidCoreDepthV2.readerContrast가 존재하면 실제 계산된 다른 출생 위치와 달의 별도 속글자 일치를 기반으로, strength에서 볼 수 없는 두 조건의 차이를 하나의 구체적 가정으로 풀어 쓴다. readerContrast.readerWritingPlan에 기재된 실제 질문, 두 개의 상반된 조건 및 판단 순서를 빠짐없이 구별하여 풀이한다. 이 계획이 없거나 독립 근거가 없다면 다른 사주의 설명을 복사하지 않는다. readerContrast.monthMainToExposedElementDirection은 계산된 기운의 방향만 뜻한다. 기존 기준이 새 기준을 돕는지, 반대로 새 기준이 기존 기준을 뒷받침하는지, 한쪽이 다른 쪽을 제약하는지, 같은 성질인지에 따라 사례의 질문과 서로 다른 결론을 작성한다. 무조건 둘 다 고려하자는 일반 조언으로 결론을 대신하지 않는다. 이 방향에서 실제 영향력이나 우선순위가 확정됐다고 주장하지 않는다. 독립 근거가 없거나 이전 문단과 동일한 뜻이면 null이다. 확인되지 않은 실제 성격·성취·미래를 만들지 않는다. MBTI 비교 장에는 이 해석을 복사하거나 인용하지 않는다.'
     }:{}),
     // Chapter-specific focus is selected for the real MBTI input; in a
     // Saju-only request this replaces a combined-framework focus, not facts.
@@ -365,7 +365,19 @@ function schema(prompt,transport){
       prompt.paidCoreDepthV2===true&&task.paidCoreDepthV2?.readerContrast){
     // The model sees this exact scoped instruction in its strict JSON
     // output slot, not only in a distant editorial metadata field.
-    p.properties.text.description+=' 이 사주의 독립 근거: '+
+    const specific=task.paidCoreDepthV2.readerContrast.readerWritingPlan;
+    if(!specific||specific.approvedForSale!==false||
+       specific.requiresActualLifeProof!==false||
+       !specific.decisionQuestion||!specific.onlyOriginalCondition||
+       !specific.onlyAdditionalCondition)
+     throw Error('CORE_V2_NO_CONCRETE_DIRECTIONAL_WRITING_PLAN');
+    p.properties.text.description+=' 이 사주에서 계산된 관계에 한정한 작성 방향: '+
+     specific.situationSequence+' / 핵심 질문: '+specific.decisionQuestion+
+     ' / 기존 기준만 볼 때: '+specific.onlyOriginalCondition+
+     ' / 새 기준만 볼 때: '+specific.onlyAdditionalCondition+
+     ' / 유의할 오독: '+specific.distinctInterpretationRule+
+     '. 반드시 어느 쪽만 따를 때 무엇이 달라지는지를 한 장면에서 비교하되, 두 상징이 삶에 나타났다고 단정하지 않는다. '+
+     '이 사주의 독립 근거: '+
      task.paidCoreDepthV2.readerContrast.comparisonQuestion+
      ' readerContrast.sourceRefs로 계산된 정확한 위치를 인용하되, 다른 출생 해·날·시간의 설명을 억지로 늘리지 않는다. '+
      'readerContrast.monthMainToExposedElementDirection에는 기존 달 속글자와 추가로 드러난 글자의 전통적인 기운 관계가 계산돼 있다. 이 값이 돕는 관계인지, 제약하는 관계인지, 같은 성질인지에 따라 두 조건을 비교하는 질문과 한 가지 가상 상황의 판단 초점을 바꾼다. 그냥 둘 다 중요하다는 결론을 반복하지 않는다. '+

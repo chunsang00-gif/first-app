@@ -100,6 +100,11 @@ function build(packet){
   noObservedOutcome:true,realizedInfluenceVerified:false,
   prioritizationVerified:false,approvedForSale:false
  }:null;
+ // Keep the actual chapter's writing question tied to the verified
+ // relation and its original, exact stem-source identifiers.
+ if(comparison)
+  comparison.readerWritingPlan=require('./report-core-v2-directional-writing-plan')
+   .forContrast(comparison);
  return {kind:'first-chapter-optional-full-chart-source-v1',
   sourceRefs:[...REFS,...(comparison?[mainId,selected.hiddenRef]:[])],
   positions,exposures,visiblePairCandidates,
