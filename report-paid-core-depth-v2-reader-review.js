@@ -23,8 +23,9 @@ function inspect(p,monthText,extra){
  // not justify forcing a recital of all four pillars into reader prose.
  // Only the genuinely new position is required in that case. Preserve
  // the original strict check when no exact contrast is available.
- const c=extra.readerContrast||extra.readerAlternative;
- const alternative=!extra.readerContrast&&!!extra.readerAlternative;
+ const classical=!!extra.readerClassicalScope;
+ const c=extra.readerClassicalScope||extra.readerContrast||extra.readerAlternative;
+ const alternative=!classical&&!extra.readerContrast&&!!extra.readerAlternative;
  // For a chart with neither verified independent source, even a fluent
  // optional paragraph is unsupported. Never sell filler as "deep reading".
  if(!c)errors.push('PAID_CORE_V2_READER_HAS_NO_INDEPENDENT_SOURCE');
@@ -32,11 +33,24 @@ function inspect(p,monthText,extra){
   if(!Array.isArray(c.sourceRefs)||!Array.isArray(p.basis?.refs)||
      !c.sourceRefs.every(x=>p.basis.refs.includes(x)))
    errors.push('PAID_CORE_V2_READER_MISSING_EXACT_CONTRAST_BASIS');
-  const location=c.visiblePosition==='natal.hour.stem'?/(?:태어난\s*시간|출생\s*시간)/:
-   c.visiblePosition==='natal.year.stem'?/(?:태어난\s*해|태어난\s*연도)/:null;
-  if(!location||!location.test(text)||!/태어난\s*달|출생월/.test(text))
+  const location=c.visiblePosition==='natal.hour.stem'?
+    /(?:태어난\s*시간|출생\s*시간|시간의\s*겉글자)/:
+    c.visiblePosition==='natal.year.stem'?/(?:태어난\s*해|태어난\s*연도)/:null;
+  if(!location||!location.test(text)||(!classical&&
+      !/태어난\s*달|출생월/.test(text)))
    errors.push('PAID_CORE_V2_READER_MISSING_ACTUAL_EXPOSED_POSITION');
-  if(alternative){
+  if(classical){
+   // One source-specific classical question, not a natal hierarchy.
+   if(c.kind!=='qa-exact-yi-guiwei-hour-citation-in-optional-core-v2'||
+      c.hourHiddenExpressionRef!=='natal.hour.hidden.丁'||
+      c.methodPriority!=='not-selected'||c.approvedForSale!==false||
+      c.provenPersonality!==false||
+      c.citationQuestion!=='how-learning-symbol-and-expression-symbol-relate-in-this-exact-hour'||
+      !/(?:시간\s*안|시간에\s*숨은)/.test(text)||
+      !/(?:표현|결과)/.test(text)||
+      /(?:표현력이\s*부족한\s*사람입니다|일을\s*늦게\s*끝냅니다)/.test(text))
+    errors.push('PAID_CORE_V2_READER_CLASSICAL_SCOPE_INVALID');
+  }else if(alternative){
    if(c.linkageKind!=='different-visible-role-not-exact-month-hidden-exposure'||
       !/(?:달의\s*대표|달의\s*숨은|대표\s*속글자)/.test(text)||
       !/(?:서로\s*다른\s*분류|별도\s*분류|별개의\s*분류)/.test(text)||
