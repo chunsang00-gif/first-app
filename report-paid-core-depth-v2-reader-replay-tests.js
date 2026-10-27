@@ -99,9 +99,25 @@ async function run(){
   alteredForOther.chapters.saju_core.paragraphs.temperament.basis.refs=
    alteredForOther.chapters.saju_core.paragraphs.temperament.basis.refs
     .filter(ref=>otherAllowed.has(ref));
+  const otherExtra=other.task.chapters.saju_core.topics.temperament.paidCoreDepthV2;
+  const noIndependentSource=!otherExtra.readerContrast&&!otherExtra.readerAlternative;
+  // With no second verified source, reject the entire optional paragraph
+  // before reaching the narrower false-pair check.
   assert.throws(()=>writer.restoreEvidence(alteredForOther,otherCapture.prompt),
-   /PAID_CORE_V2_READER_REJECTED:.*FALSE_DAY_HOUR_PAIR/,
-   'even with permitted citations, copied claims about a disappeared pair fail');
+   noIndependentSource
+    ?/PAID_CORE_V2_READER_REJECTED:.*HAS_NO_INDEPENDENT_SOURCE/
+    :/PAID_CORE_V2_READER_REJECTED:.*FALSE_DAY_HOUR_PAIR/,
+   'a changed hour cannot reuse a sourced paragraph, even after citation filtering');
+  // Keep explicit coverage of the pair-claim guard when a separate
+  // independent source remains valid but the claimed pair is not.
+  const withoutPair=structuredClone(appendix);
+  withoutPair.visiblePairCandidates=withoutPair.visiblePairCandidates.filter(x=>
+   !(x.adjacent&&(x.from==='natal.day.stem'&&x.to==='natal.hour.stem')));
+  const falsePairClaim=structuredClone(temperament);
+  falsePairClaim.text+=' 태어난 날과 시간의 겉글자는 한 쌍으로 함께 묶입니다.';
+  assert(review.inspect(falsePairClaim,strength.text,withoutPair)
+   .includes('PAID_CORE_V2_READER_FALSE_DAY_HOUR_PAIR'),
+   'a fabricated adjacent day-hour pair must fail with valid independent source');
   const noForcedPair=structuredClone(mock);
   noForcedPair.chapters.saju_core.paragraphs.temperament.text=
    noForcedPair.chapters.saju_core.paragraphs.temperament.text.replace(
