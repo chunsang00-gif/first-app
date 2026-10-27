@@ -33,7 +33,7 @@ async function run(){
  assert.equal(runner.REQUEST_HASH,sha);
  assert.notEqual(runner.REQUEST_HASH,prev.REQUEST_HASH);
  const rd=await readiness.prepare();
- assert.equal(rd.requestHash,sha,'updated writer request must remain frozen');
+ assert.notEqual(rd.requestHash,sha,'changed writer must not silently reuse the already-paid frozen 2026-10-27 request');
  assert.equal(rd.providerCalls,0);
  assert.equal(rd.approvalToCharge,false);
  assert.equal(rd.customerReady,false);
