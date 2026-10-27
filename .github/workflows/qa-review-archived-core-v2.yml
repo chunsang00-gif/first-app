@@ -2,7 +2,7 @@ name: Audit already-paid V2 first-chapter output (no new API)
 on:
   push:
     branches: [fix-paid-qa-fact-bindings-20261014]
-    paths: [.github/workflows/qa-review-archived-core-v2.yml, report-core-v2-authored-first-chapter.js, report-core-v2-archived-reader-diagnostic.js, report-paid-core-v2-revised-paid-archive-diagnostic.js]
+    paths: [.github/workflows/qa-review-archived-core-v2.yml, report-core-v2-authored-first-chapter.js, report-core-v2-archived-reader-diagnostic.js, report-paid-core-v2-revised-paid-archive-diagnostic.js, report-paid-core-v2-qa2-archived-diagnostic.js]
 permissions:
   contents: read
   actions: read
@@ -75,3 +75,35 @@ jobs:
             "$RUNNER_TEMP/revised-private"
           node report-paid-core-v2-revised-paid-archive-diagnostic.js \
             "$RUNNER_TEMP/revised-private"
+
+  diagnose-already-paid-qa2:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-audit --no-fund
+      - name: Download ONLY existing QA2 encrypted response; do not call provider
+        uses: actions/download-artifact@v4
+        with:
+          name: premium-first-chapter-v2-qa2-encrypted
+          repository: chunsang00-gif/first-app
+          run-id: 40602551757
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/qa2-locked-encrypted
+      - name: Decrypt QA2 privately and print redacted aggregate diagnosis only
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          mkdir -p "$RUNNER_TEMP/qa2-private"
+          trap 'rm -rf "$RUNNER_TEMP/qa2-private" "$RUNNER_TEMP/qa2-locked-encrypted"' EXIT
+          node report-qa-secure-archive.js decrypt \
+            "$RUNNER_TEMP/qa2-locked-encrypted/premium-first-chapter-qa.enc" \
+            "$RUNNER_TEMP/qa2-private"
+          node report-paid-core-v2-qa2-archived-diagnostic.js \
+            "$RUNNER_TEMP/qa2-private"
