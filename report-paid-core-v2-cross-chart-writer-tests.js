@@ -76,6 +76,9 @@ async function run(){
    assert(trial.proposal.text.includes('밖에 나타난 것은 아닙니다'));
    assert(alt.sourceRefs.every(id=>trial.proposal.basis.refs.includes(id)));
    assert(trial.proposal.text.includes(trial.context.decisionQuestion));
+   assert(trial.proposal.text.includes('이 장면에서는 '));
+   assert(trial.proposal.text.includes('를 먼저 결정해야 합니다.'));
+   assert(!trial.proposal.text.includes('한 가지 분류만 읽었을 때와 비교가 달라지는 이유'));
    if(alt.visiblePosition==='natal.year.stem')alternativeYear++;
    else alternativeHour++;
    distinctAlternativeDirections.add(alt.monthMainToExposedElementDirection);
@@ -123,6 +126,9 @@ async function run(){
   assert.equal(prose.approvedForSale,false);
   assert(prose.proposal.text.length>=350);
   assert(prose.proposal.text.includes('예를 들어'));
+  assert(prose.proposal.text.includes('이 장면에서는 '));
+  assert(prose.proposal.text.includes('를 먼저 결정해야 합니다.'));
+  assert(!prose.proposal.text.includes('한 가지 분류만 읽었을 때와 비교가 달라지는 이유'));
   assert(prose.proposal.text.includes('반대로'));
   assert(!prose.proposal.text.includes('태어난 해·날·시간은 각각 다른 계산 위치'));
   assert(c.sourceRefs.every(ref=>prose.proposal.basis.refs.includes(ref)));
