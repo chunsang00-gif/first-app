@@ -16,8 +16,13 @@ function family(id){
 }
 async function inspect(dir){
  const out=await readiness.prepare({includePrompt:true});
- if(out.requestHash!==HASH||out.providerCalls!==0||
-    out.approvalToCharge!==false)throw Error('PRIVATE_QA_FROZEN_REQUEST_MISMATCH');
+ // The historical provider request MUST remain the known original hash,
+ // while the CURRENT writing prompt may differ after the paid trial.
+ // Never reinterpret new instructions as the original billed request.
+ if(out.providerCalls!==0||out.approvalToCharge!==false||
+    out.chart!=='甲戌/辛未/壬寅/丁未')
+  throw Error('PRIVATE_QA_CHART_OR_OFFLINE_PREFLIGHT_DRIFT');
+ const currentWriterDiffersFromPaidOriginal=out.requestHash!==HASH;
  const record=get(dir,'private-qa-first-chapter-provider-calls.json');
  const attempt=get(dir,'private-qa-first-chapter-attempt.json');
  if(record.requestHash!==HASH||record.providerCalls!==1||
@@ -42,8 +47,24 @@ async function inspect(dir){
  const decision=topic.paidCoreDepthV2.readerContrast||
    topic.paidCoreDepthV2.readerAlternative||
    topic.paidCoreDepthV2.readerClassicalScope;
- if(JSON.stringify(decision.sourceRefs)!==JSON.stringify(required))
+ if(JSON.stringify(decision.sourceRefs)!==JSON.stringify(required)||
+    JSON.stringify(required)!==JSON.stringify([
+     'natal.month.stem','natal.month.hidden.己',
+     'natal.month.hidden.丁','natal.hour.stem','facts.stemConnections']))
   throw Error('PRIVATE_QA_SOURCE_CHOICE_MISMATCH');
+ // Inspect the already-paid prose twice: as actually cited, then on an
+ // IN-MEMORY DIAGNOSTIC CLONE with only the recorded citation omissions
+ // synthetically corrected. Never save, render or approve the clone.
+ const review=require('./report-paid-core-depth-v2-reader-review');
+ const currentGuard=review.inspect(extra,anchor.text,topic.paidCoreDepthV2);
+ const citationOnlyClone=structuredClone(extra);
+ citationOnlyClone.basis.refs=[...new Set([...cited,...missing])];
+ const hypotheticalGuard=review.inspect(
+  citationOnlyClone,anchor.text,topic.paidCoreDepthV2);
+ const nonCitationDefects=hypotheticalGuard.filter(x=>
+  !['PAID_CORE_V2_READER_MISSING_EXACT_CONTRAST_BASIS'].includes(x));
+ const ngramOverlap=require('./report-core-paid-natal-depth-response-gate')
+  .overlap(extra.text,anchor.text);
  const report={
   kind:'previously-charged-revised-v2-archived-omission-only',
   previousPaidRun:40493356373,
@@ -57,6 +78,15 @@ async function inspect(dir){
   missingCitationCount:missing.length,
   missingCitationFamilies:missing.map(family),
   unexpectedCitationCount:unexpected.length,
+  historicalProviderRequestHashValidated:true,
+  currentPromptDiffersFromBilledPrompt:currentWriterDiffersFromPaidOriginal,
+  // The following is ONLY a dry-run to reveal defects *after* citation
+  // omissions; it is NOT a replacement of the original model response.
+  originalReaderGuardCodes:currentGuard,
+  hypotheticalCitationOnlyRemainingGuardCodes:nonCitationDefects,
+  hypotheticalCitationOnlyTechnicalGuardPass:nonCitationDefects.length===0,
+  extraBaseTextOverlap:Number(ngramOverlap.toFixed(3)),
+  archiveMutation:false,
   requiredPositionsOnly:required.every(x=>topic.citableFacts.some(y=>y.id===x)),
   modelAttemptedDepth:true,
   depthValidated:false,
