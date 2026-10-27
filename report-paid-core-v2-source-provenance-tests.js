@@ -57,6 +57,26 @@ async function run(){
   assert.deepEqual(result.sections[0].bodyTopics,['temperament','strength']);
   assert.equal(result.sections[0].body[0],t.text);
   assert.deepEqual(data,raw,'decoder must not mutate original response');
+  // The original QA2 failed because the model omitted citation IDs.
+  // A genuinely grounded paragraph can still be decoded when the model
+  // submits NO IDs. The source IDs come from the validated server plan,
+  // not a list chosen or guessed by the model.
+  const zeroCitations=structuredClone(data);
+  zeroCitations.chapters.saju_core.paragraphs.temperament.basis.refs=[];
+  const emptyOriginal=structuredClone(zeroCitations);
+  const serverBinding=provenance.bind(zeroCitations,prompt);
+  assert.equal(serverBinding.changed,true,serverBinding.reason);
+  assert.equal(serverBinding.evidenceOwner,'server-contract');
+  assert.deepEqual(serverBinding.value.chapters.saju_core.paragraphs
+   .temperament.basis.refs,
+   writer.compile(prompt).task.chapters.saju_core.topics.temperament
+    .serverOwnedWritingContract.evidenceRefs);
+  assert.equal(serverBinding.value.chapters.saju_core.paragraphs
+   .temperament.text,t.text);
+  const clear=decoder.decode(zeroCitations,prompt);
+  assert.equal(clear.sections[0].body[0],t.text);
+  assert.deepEqual(zeroCitations,emptyOriginal);
+
   // Core regression: matching words spread across unrelated sentences
   // cannot justify attaching references missing from the model response.
   const local=provenance.hasLocalExactMatch;
