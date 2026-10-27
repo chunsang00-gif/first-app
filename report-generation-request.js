@@ -28,7 +28,7 @@ const policy=policyParts.join('\n');
 // Preserve every Saju and universal integrity rule while excluding future
 // fortune, MBTI integration, and end-of-report instructions from core prose.
 const corePolicyPartIndexes=[0,1,2,4,5,6,7,8,9,10,12,16];
-const coreDepthExperimentalPolicy='개발용 선택 문단에 전달된 출생 해·날·시간의 추가 근거는 각각의 실제 글자와 전통적 의미에 한정한다. 기존 출생월 두 분류만 설명하는 strength를 반복하지 않는다. 새 근거로 사람의 실제 성격·적성·수입·미래를 단정하거나 합화·강약·격국 우선순위를 발명하지 않는다. 짝 관계는 paidCoreDepthV2.visiblePairCandidates의 원문 계산 표 대응만 확인한 것이며 실제 합쳐짐·좋고 나쁨·효과를 뜻하지 않는다. 출생 날과 시간에 짝 관계가 계산되어도 그 짝 자체를 무조건 본문에 넣지 않는다. 실제로 다른 해석의 질문을 뒷받침할 때에만 계산표의 후보라고 설명한다. 출생시간이 바뀌어 짝이나 달 속글자와 일치가 사라졌으면 관련 문장을 절대 재사용하지 않는다. paidCoreDepthV2.readerContrast가 있으면 월의 대표 속글자와 별도로 출생 해 또는 시간의 겉글자에서 확인된 또 다른 속글자에 대해, readerContrast.comparisonQuestion과 conditionIfMissingMain·conditionIfMissingNew를 이용해 서로 다른 조건을 구체적인 상황으로 설명한다. 단순한 위치 나열이나 직업·생활 일반 조언으로 분량을 채우지 않는다. 이는 실제 성격·경험의 확인이 아니라 전통 분류에 따른 가정 사례이므로 실제 결과를 단정하지 않는다. readerContrast와 readerAlternative 모두 없거나 서로 다른 조건을 의미 있게 설명할 수 없다면 temperament는 null로 둔다. readerAlternative만 있다면 달 속글자가 다른 위치에 정확히 드러났다는 내용을 절대 만들지 않는다.';
+const coreDepthExperimentalPolicy='개발용 선택 문단에 전달된 출생 해·날·시간의 추가 근거는 각각의 실제 글자와 전통적 의미에 한정한다. 기존 출생월 두 분류만 설명하는 strength를 반복하지 않는다. 새 근거로 사람의 실제 성격·적성·수입·미래를 단정하거나 합화·강약·격국 우선순위를 발명하지 않는다. 짝 관계는 paidCoreDepthV2.visiblePairCandidates의 원문 계산 표 대응만 확인한 것이며 실제 합쳐짐·좋고 나쁨·효과를 뜻하지 않는다. 출생 날과 시간에 짝 관계가 계산되어도 그 짝 자체를 무조건 본문에 넣지 않는다. 실제로 다른 해석의 질문을 뒷받침할 때에만 계산표의 후보라고 설명한다. 출생시간이 바뀌어 짝이나 달 속글자와 일치가 사라졌으면 관련 문장을 절대 재사용하지 않는다. paidCoreDepthV2.readerContrast가 있으면 월의 대표 속글자와 별도로 출생 해 또는 시간의 겉글자에서 확인된 또 다른 속글자에 대해, readerContrast.comparisonQuestion과 conditionIfMissingMain·conditionIfMissingNew를 이용해 서로 다른 조건을 구체적인 상황으로 설명한다. 단순한 위치 나열이나 직업·생활 일반 조언으로 분량을 채우지 않는다. 이는 실제 성격·경험의 확인이 아니라 전통 분류에 따른 가정 사례이므로 실제 결과를 단정하지 않는다. readerContrast와 readerAlternative, readerClassicalScope 모두 없거나 서로 다른 조건을 의미 있게 설명할 수 없다면 temperament는 null로 둔다. readerAlternative만 있다면 달 속글자가 다른 위치에 정확히 드러났다는 내용을 절대 만들지 않는다. readerClassicalScope가 있으면 정확한 출생일·시간 고전 상징 관계에 대한 제한적 보충으로만 사용하고, 실제 성격·성과·최종 격국의 증거로 사용하지 않는다.';
 const normalPaidMonthMethodBoundary="달의 겉글자가 기본 숨은 글자가 아닌 달의 다른 숨은 글자와 정확히 같을 때에는, 기본 숨은 글자가 실제 사령이나 해석의 최우선 기준이라고 단정하지 않는다. 반대로 다른 숨은 글자가 일치한다고 그것이 곧 우선한다고 결론내리지 않는다. evidenceFocus.tenGodFocus.monthStemVisibility는 오직 계산상 일치·불일치를 설명하는 자료이며 격국과 성격·능력을 검증한 뜻이 아니다. 유료 첫 장의 basis.limit에는 이 판단 한계를 내부적으로 남기고 독자 본문에서 기술 용어를 반복하지 않는다.";
 const additivePolicy='선택형 QA: temperament는 일반 유료 첫 장처럼 독립적 근거가 있을 때만 작성하고 strength는 필수로 유지한다. natal_depth는 선택 항목이며 새로운 개인별 판단 근거가 없으면 null로 반환한다. 고전이나 계산 정보의 일치 자체를 실제 성격 또는 미래 결과로 단정하지 않는다.';
 function policyFor(prompt){
@@ -161,7 +161,7 @@ function editorialGoalFor(prompt){
   return coreEditorialGoal+(prompt.qaAdditiveDepthPreview===true?additiveGoal:prompt.qaNatalDepthPreview===true?
    ' QA 전용 검증 응답이다. temperament는 반드시 null로 둔다. strength는 기존 월 중심 핵심 판단과 두 분류의 의미를 유지한다. 세 번째 natal_depth는 검증된 출생 해·날·시간의 독립된 뜻이 월 중심 풀이에 더하는 새로운 판단을 검토하는 필수 원고다. 새 제안을 선택하는 등 한 가지 현실적인 가상 상황을 잡고, 해와 시간의 전통적 분류가 서로 다른 선택 기준에 연결되는 이유와 어떤 조건에서 유리하고 불리한지 구별한다. 실제로 계산된 분류가 같으면 거짓 반전을 만들지 않는다. 단순 계산 위치 소개·사전적인 뜻 두 문장·누구에게나 통하는 준비 조언·면책 반복으로 원고를 대신하지 않는다. 기준이 되는 출생 근거가 충분하지 않다면 임의로 생성하지 말고 QA 실패로 남긴다. 이 요청은 사전 근거 선별이 끝난 1회 검증 원고이며, natal_depth를 null로 제출하거나 필수 인용 없이 작성하는 것은 실패다. 실제 성격·능력·신강약·충의 결과·합화·미래 사건은 단정하지 않는다. 이 문단은 출시 미승인 후보이므로 사람의 문장 감수가 따로 필요하다.':'')+
    (prompt.qaOfflineEditorialResearchPreview===true?offlineEditorialBenchmarkDirective:'')+
-   (prompt.paidCoreDepthV2===true?' 개발용 첫 장의 temperament에는 출생 해·날·시간의 별도 계산 출처가 검증된 경우에만 추가된다. 출생월 중심 strength에서 알 수 없는 관계가 실제로 확인될 때, 그 관계로 무엇이 달라지는지 먼저 설명한다. 근거마다 배움·재물·규칙 같은 상징을 나열하거나 직업·생활 일반 조언으로 분량을 채우지 않는다. 일부 계산 사실만으로 해석 우선순위나 인생의 결과를 확정하지 않는다. readerContrast가 있을 때에는 해당 독립 출처에서 비롯된 두 상황 조건이 어떻게 달라지는지, 왜 기본 출생월 풀이만으로 알 수 없는지를 한 장면으로 설명한다. 사주를 개인의 실제 성격이나 미래로 확정하지 않고 전통적인 해석의 가정 조건을 비교한다. 출생 해·날·시간의 관계가 서로 맞물리는 경우에도 글자만 나열하지 말고 한 조건이 빠진 상황을 비교한다. readerContrast와 readerAlternative 모두 없거나 별도 근거를 이해하기 쉬운 조건부 풀이로 연결할 수 없다면 temperament는 null이다. readerAlternative에서는 출생 해 또는 시간의 다른 겉글자 분류만 비교하고 정확한 속글자 일치를 주장하지 않는다.':'');
+   (prompt.paidCoreDepthV2===true?' 개발용 첫 장의 temperament에는 출생 해·날·시간의 별도 계산 출처가 검증된 경우에만 추가된다. 출생월 중심 strength에서 알 수 없는 관계가 실제로 확인될 때, 그 관계로 무엇이 달라지는지 먼저 설명한다. 근거마다 배움·재물·규칙 같은 상징을 나열하거나 직업·생활 일반 조언으로 분량을 채우지 않는다. 일부 계산 사실만으로 해석 우선순위나 인생의 결과를 확정하지 않는다. readerContrast가 있을 때에는 해당 독립 출처에서 비롯된 두 상황 조건이 어떻게 달라지는지, 왜 기본 출생월 풀이만으로 알 수 없는지를 한 장면으로 설명한다. 사주를 개인의 실제 성격이나 미래로 확정하지 않고 전통적인 해석의 가정 조건을 비교한다. 출생 해·날·시간의 관계가 서로 맞물리는 경우에도 글자만 나열하지 말고 한 조건이 빠진 상황을 비교한다. readerContrast와 readerAlternative, readerClassicalScope 모두 없거나 별도 근거를 이해하기 쉬운 조건부 풀이로 연결할 수 없다면 temperament는 null이다. readerAlternative에서는 출생 해 또는 시간의 다른 겉글자 분류만 비교하고 정확한 속글자 일치를 주장하지 않는다.':'');
  return original;
 }
 function compile(prompt){
@@ -363,10 +363,21 @@ function schema(prompt,transport){
    }
    if(chapterId==='saju_core'&&topic==='temperament'&&
       prompt.paidCoreDepthV2===true&&
-      (task.paidCoreDepthV2?.readerContrast||
+      (task.paidCoreDepthV2?.readerClassicalScope||
+       task.paidCoreDepthV2?.readerContrast||
        task.paidCoreDepthV2?.readerAlternative)){
     // The model sees this exact scoped instruction in its strict JSON
     // output slot, not only in a distant editorial metadata field.
+    const classical=task.paidCoreDepthV2.readerClassicalScope;
+    if(classical){
+     if(classical.kind!=='qa-exact-yi-guiwei-hour-citation-in-optional-core-v2'||
+        classical.methodPriority!=='not-selected'||
+        classical.approvedForSale!==false||classical.provenPersonality!==false||
+        classical.hourHiddenExpressionRef!=='natal.hour.hidden.丁'||
+        !classical.sourceRefs?.includes(classical.hourHiddenExpressionRef))
+      throw Error('CORE_V2_CLASSICAL_HOUR_UNVERIFIED');
+     p.properties.text.description+=' 개발용 고전 시간 풀이: 태어난 시간 겉의 배움·해석 상징과 시간 안쪽의 생산·표현 상징을 분리하고 두 상징의 고전적 제약 관계를 한 가상 상황에서 설명한다. 일반 시간 조항과 좁은 겨울 사례를 구별한다. 실제 능력·성격·성과를 예측하지 않고 이 한 구절만으로 사주 전체의 우선순위를 정하지 않는다. readerClassicalScope.sourceRefs에 있는 근거만 인용하며, 별도 해석이 없다면 null이다.';
+    }else{
     const contrast=task.paidCoreDepthV2.readerContrast||
      task.paidCoreDepthV2.readerAlternative;
     const contrastKey=task.paidCoreDepthV2.readerContrast?
@@ -394,6 +405,7 @@ function schema(prompt,transport){
       '태어난 달의 대표 속글자와 다른 위치에서 정확히 대응하는 달 속글자')+
      ' 사이의 전통적인 기운 관계만 계산한다. 이 값이 돕는 관계인지, 제약하는 관계인지, 같은 성질인지에 따라 두 조건을 비교하는 질문과 한 가지 가상 상황의 판단 초점을 바꾼다. 그냥 둘 다 중요하다는 결론을 반복하지 않는다. '+
      '방향은 실제 인생의 효과나 어느 분류가 우선한다는 근거가 아니므로 단정하지 않는다. 본문은 일반 조언 대신 누락되는 두 조건을 구별하는 가상 사례로 쓴다. 실제 행동이나 미래의 성패를 단정하지 않는다.';
+    }
    }
    p.properties={basis,...p.properties};p.required=['basis',...p.required];
   }
@@ -572,7 +584,8 @@ function restoreEvidence(value,prompt){
     }
     if(!allowed.size||b.refs.some(ref=>!allowed.has(ref)))throw Error('AI report service unrelated paragraph basis: '+id+':'+topic);
     if(id==='saju_core'&&topic==='temperament'&&prompt.paidCoreDepthV2===true){
-     const contrast=task.paidCoreDepthV2.readerContrast||
+     const contrast=task.paidCoreDepthV2.readerClassicalScope||
+      task.paidCoreDepthV2.readerContrast||
       task.paidCoreDepthV2.readerAlternative;
      // Cite only the actual verified source. An unrelated natal position
      // cannot be injected to pad a missing interpretation.
