@@ -55,8 +55,8 @@ const input={calendar:'solar',birthDate:'1994-07-15',birthTime:'14:20',
   const corrupted=structuredClone(paid);
   corrupted.task.chapters.saju_core.topics.temperament.paidCoreDepthV2
    .selectedTraditionalPriority=true;
-  assert(audit.inspectTransport(prompt,corrupted).includes(
-   'paid-core-depth-v2-source-context-drift'));
+  assert.throws(()=>audit.inspectTransport(prompt,corrupted),
+   /PAID_CORE_DEPTH_V2_INVALID_NATAL_SCOPE/);
   assert.throws(()=>writer.compile({...prompt,qaNatalDepthPreview:true}),
    /PAID_CORE_DEPTH_V2_INVALID_FIRST_BATCH_SCOPE/);
   process.env.NODE_ENV='production';
