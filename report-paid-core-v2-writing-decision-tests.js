@@ -50,7 +50,23 @@ async function run(){
     assert.equal(choice.readerScene,null);
    }
 
-   assert(chapter.coreV2ConditionalReadingBrief.includes(choice.readerInstruction));
+   const contract=target.serverOwnedWritingContract||null;
+   if(expected==='verified-month-hidden-exposure'){
+    assert.equal(contract?.kind,
+     'server-owned-first-chapter-evidence-and-claim-contract-v1');
+    assert.equal(contract.modelRole,'Korean-prose-rendering-only');
+    assert.equal(contract.humanEditorialApproval,false);
+    assert.equal(contract.releaseVerdict,'not-approved');
+    assert.deepEqual(contract.verifiedSourceIds,choice.requiredCitationIds);
+    assert(contract.evidenceRefs.includes('facts.seasonalEvidence'));
+    assert(contract.evidenceRefs.includes('facts.qiEvidence'));
+    assert(chapter.coreV2ConditionalReadingBrief.includes(contract.textContract));
+    assert(!chapter.coreV2ConditionalReadingBrief.includes(choice.readerInstruction),
+     'do not send duplicative prose instructions when facts are server-owned');
+   }else{
+    assert.equal(contract,null);
+    assert(chapter.coreV2ConditionalReadingBrief.includes(choice.readerInstruction));
+   }
    assert(choice.sourceRefs.every(id=>Object.hasOwn(out.source,id)&&
     target.citableFacts.some(x=>x.id===id)));
    assert.deepEqual(choice.requiredCitationIds,choice.sourceRefs);
@@ -73,13 +89,18 @@ async function run(){
    const textSpec=responseSchema.properties.chapters.properties.saju_core
     .properties.paragraphs.properties.temperament.anyOf
     .find(x=>x.type==='object').properties.text.description;
-   if(choice.readerFactAnchor)
-    assert(textSpec.includes(choice.readerFactAnchor),
-     'exact fact anchor must survive the actual strict model output schema');
+   if(contract){
+    assert(textSpec.includes(contract.textContract));
+    assert(textSpec.includes(contract.outline.originalOnly));
+    assert(textSpec.includes(contract.outline.additionalOnly));
+    assert(!textSpec.includes(choice.readerFactAnchor),
+     'no repeated word-for-word old instructions in schema');
+   }else if(choice.readerFactAnchor)
+    assert(textSpec.includes(choice.readerFactAnchor));
    else assert(!textSpec.includes('태어난 달의 다른 속글자와 정확히 일치합니다'));
    if(choice.readerScene){
-    assert(textSpec.includes(choice.readerScene.writerInstruction),
-     'two-sided scene must reach actual strict provider text field');
+    assert(textSpec.includes(contract.outline.example),
+     'verified two-sided example must be in real model output field');
     assert(textSpec.includes('부품비')&&textSpec.includes('승인'));
    }else assert(!textSpec.includes('공용 장비 한 대'));
    assert(!refs.description.includes('추가 출처를 임의로 지어낸다'));
