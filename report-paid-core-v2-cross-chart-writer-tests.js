@@ -6,6 +6,7 @@ const assert=require('node:assert/strict');
 const facts=require('./report-facts-node');
 const bridge=require('./report-paid-core-depth-v2');
 const writer=require('./report-generation-request');
+const readerGuard=require('./report-paid-core-depth-v2-reader-review');
 const manuscript=require('./report-core-v2-source-bound-manuscript');
 const guideFactory=require('./report-core-v2-directional-writing-plan');
 const direction=require('./report-core-paid-natal-visible-relation-bridge').direction;
@@ -23,6 +24,7 @@ for(const year of [1982,1994,2006,2018]){
 async function run(){
  let qualified=0,unqualified=0,hour=0,year=0;
  let alternative=0,stillUnqualified=0,alternativeYear=0,alternativeHour=0;
+ let firstUnqualifiedPacket=null;
  let firstAlternativeInput=null;
  const distinctAlternativeDirections=new Set();
  const alternativeSamples=[];
@@ -46,7 +48,7 @@ async function run(){
   if(!c){
    unqualified++;
    const alt=x.readerAlternative;
-   if(!alt){stillUnqualified++;continue}
+   if(!alt){stillUnqualified++;firstUnqualifiedPacket ||= packet;continue}
    alternative++;
    if(!firstAlternativeInput)firstAlternativeInput={...fixture};
    assert.equal(alt.kind,'verified-distinct-visible-category-conditional-comparison-v1');
@@ -226,7 +228,28 @@ async function run(){
     'readerContrast.monthMainToExposedElementDirection');
   assert(preflight.inspect(alternativeCapture.prompt,alternatePayload,wrongSchema)
    .includes('core-v2-source-key-mismatch'));
-  assert.equal(a.providerCalls,0);assert.equal(shifted.providerCalls,0);
+  // A fluently worded assertion of an exact exposure is still invented
+  // for this chart. And a chart with no independent source stays empty.
+  const alternatePacket=alternativeCapture.prompt.facts;
+  const altTrial=manuscript.build(alternativeCapture.prompt,
+   {chapters:{saju_core:{paragraphs:{temperament:null,
+    strength:{text:'태어난 달의 기본 기준을 정리합니다.'}}}}});
+  assert(altTrial&&!altTrial.approvedForSale);
+  const falseClaim=structuredClone(altTrial.proposal);
+  falseClaim.text+=' 태어난 '+
+   (alternateTopic.paidCoreDepthV2.readerAlternative.visiblePosition===
+      'natal.year.stem'?'해':'시간')+
+   '의 겉글자는 달의 다른 속글자와 정확히 일치합니다.';
+  assert(readerGuard.inspect(falseClaim,'',alternateTopic.paidCoreDepthV2)
+   .includes('PAID_CORE_V2_READER_FALSE_VISIBLE_EXPOSURE'));
+  assert(firstUnqualifiedPacket);
+  const unsupported=bridge.build(firstUnqualifiedPacket);
+  assert(!unsupported.readerContrast&&!unsupported.readerAlternative);
+  assert(readerGuard.inspect(altTrial.proposal,'',unsupported)
+   .includes('PAID_CORE_V2_READER_HAS_NO_INDEPENDENT_SOURCE'));
+  assert(writer.policyFor(alternativeCapture.prompt)
+   .includes('readerContrast와 readerAlternative 모두 없거나'));
+    assert.equal(a.providerCalls,0);assert.equal(shifted.providerCalls,0);
  }finally{
   for(const [k,v] of [['PAID_CORE_DEPTH_V2',saved.flag],
    ['NODE_ENV',saved.node],['RENDER',saved.render]]){
@@ -246,6 +269,8 @@ async function run(){
   sampleIntroductions:readerSamples,
   unqualifiedNotInvented:unqualified,yearExposures:year,hourExposures:hour,
   actualWriterGroundingVerified:true,
+  alternativeOnlyPolicyConsistent:true,
+  unsupportedParagraphBlocked:true,fabricatedExactExposureBlocked:true,
   oldPaidRunnerApprovalReused:false,providerCalls:0,
   customerQualityApproved:false,releaseVerdict:'not-approved'
  }));

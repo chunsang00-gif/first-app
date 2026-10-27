@@ -25,6 +25,9 @@ function inspect(p,monthText,extra){
  // the original strict check when no exact contrast is available.
  const c=extra.readerContrast||extra.readerAlternative;
  const alternative=!extra.readerContrast&&!!extra.readerAlternative;
+ // For a chart with neither verified independent source, even a fluent
+ // optional paragraph is unsupported. Never sell filler as "deep reading".
+ if(!c)return ['PAID_CORE_V2_READER_HAS_NO_INDEPENDENT_SOURCE'];
  if(c){
   if(!Array.isArray(c.sourceRefs)||!Array.isArray(p.basis?.refs)||
      !c.sourceRefs.every(x=>p.basis.refs.includes(x)))
@@ -37,7 +40,9 @@ function inspect(p,monthText,extra){
    if(c.linkageKind!=='different-visible-role-not-exact-month-hidden-exposure'||
       !/(?:달의\s*대표|달의\s*숨은|대표\s*속글자)/.test(text)||
       !/(?:서로\s*다른\s*분류|별도\s*분류|별개의\s*분류)/.test(text)||
-      /달의\s*다른\s*속글자와\s*정확히\s*일치/.test(text))
+      /달의\s*다른\s*속글자와\s*정확히\s*일치/.test(text)||
+      /(?:태어난\s*(?:해|시간)|출생\s*시간).{0,45}(?:달의\s*(?:다른\s*)?(?:속글자|숨은\s*글자)|달\s*속글자).{0,45}(?:정확히\s*일치|정확히\s*같|같습니다|드러납니다)/.test(text)||
+      /달의\s*(?:다른\s*)?(?:속글자|숨은\s*글자).{0,45}(?:태어난\s*(?:해|시간)|출생\s*시간).{0,40}(?:정확히\s*일치|정확히\s*같|같습니다)/.test(text))
     errors.push('PAID_CORE_V2_READER_FALSE_VISIBLE_EXPOSURE');
   }else if(!/(?:달의\s*대표|달\s*속글자|달에\s*있는\s*다른|달\s*안쪽|달\s*속에\s*숨은)/.test(text)||
      !/(?:정확히\s*일치|정확히\s*대응|정확히\s*같|겉으로\s*드러)/.test(text))

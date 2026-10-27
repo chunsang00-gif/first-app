@@ -113,7 +113,9 @@ function build(packet){
   positions,exposures,visiblePairCandidates,
   readerContrast:comparison,readerAlternative:alternative,
   visibleElementDirections,
-  comparisonScope:'computed-position-and-exact-exposure-only',
+  comparisonScope:comparison?'computed-position-and-exact-exposure-only':
+   alternative?'computed-distinct-visible-ten-god-no-exposure':
+   'unqualified-no-independent-first-chapter-comparison',
   observedPersonality:false,selectedTraditionalPriority:false,
   strengthAndTransformationUnassessed:true,
   allPairingsAreCandidatesOnly:true,
