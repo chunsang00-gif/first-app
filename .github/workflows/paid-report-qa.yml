@@ -1,19 +1,25 @@
-name: One-time paid report QA
+name: One-time paid report QA — V2 first chapter (explicit new opt-in)
 on:
   workflow_dispatch:
     inputs:
       paid_qa_confirmation:
-        description: 'ONE new first-chapter model call. Type RUN_ONE_PAID_SAMPLE to authorize this run.'
+        description: 'One new billable V2 first-chapter API request. Type RUN_ONE_CORE_V2_APPROVED_ONCE only after approving its cost.'
         required: true
         type: string
 permissions:
   contents: read
+  actions: read
 jobs:
   report-qa:
-    if: ${{ github.ref_name == 'fix-paid-qa-fact-bindings-20261014' && inputs.paid_qa_confirmation == 'RUN_ONE_PAID_SAMPLE' }}
+    if: ${{ github.ref_name == 'fix-paid-qa-fact-bindings-20261014' && inputs.paid_qa_confirmation == 'RUN_ONE_CORE_V2_APPROVED_ONCE' }}
     runs-on: ubuntu-latest
     timeout-minutes: 25
+    concurrency:
+      group: one-paid-core-v2-first-chapter
+      cancel-in-progress: false
     env:
+      NODE_ENV: test
+      PAID_CORE_DEPTH_V2: offline-preview
       REPORT_MODEL: ${{ vars.REPORT_MODEL }}
       REPORT_QA_OUTPUT: ${{ github.workspace }}/private-qa-first-chapter.json
       REPORT_QA_CONFIRM: ${{ inputs.paid_qa_confirmation }}
@@ -23,33 +29,40 @@ jobs:
         with:
           node-version: '22'
       - run: npm install --no-audit --no-fund
-      - name: Verify complete offline suite BEFORE paid QA
+      - name: Run every offline and smoke test before potential billing
         run: npm test && npm run smoke
-      - name: Enforce one-call manual approval without exposing secrets
+      - name: Verify one-call model, credentials and new consent
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         shell: bash
         run: |
           set -euo pipefail
-          test "$REPORT_QA_CONFIRM" = "RUN_ONE_PAID_SAMPLE" || { echo "No explicit one-call approval"; exit 1; }
-          test "$GITHUB_REF_NAME" = "fix-paid-qa-fact-bindings-20261014" || { echo "Wrong branch"; exit 1; }
-          test -n "$OPENAI_API_KEY" || { echo "Missing OPENAI_API_KEY secret"; exit 1; }
-          test -n "$REPORT_MODEL" || { echo "Missing REPORT_MODEL variable"; exit 1; }
-          test "${#OPENAI_API_KEY}" -ge 32 || { echo "Configured OpenAI key is invalid for QA archive encryption"; exit 1; }
-      - name: Generate revised first chapter ONLY (maximum 1 new model call)
+          test "$GITHUB_REF_NAME" = "fix-paid-qa-fact-bindings-20261014"
+          test "$GITHUB_RUN_ATTEMPT" = "1"
+          test "$REPORT_QA_CONFIRM" = "RUN_ONE_CORE_V2_APPROVED_ONCE"
+          test "$PAID_CORE_DEPTH_V2" = "offline-preview"
+          test "$NODE_ENV" = "test"
+          test "$REPORT_MODEL" = "gpt-4.1"
+          test -n "$OPENAI_API_KEY"
+          test "${#OPENAI_API_KEY}" -ge 32
+      - name: Reject repeat V2 approval or another V2 dispatch
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node qa-core-v2-dispatch-guard.js
+      - name: Exactly one pinned V2 first-chapter provider request
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-        run: node run-paid-first-chapter-qa.js
-      - name: Encrypt QA evidence before ANY artifact upload
+        run: node run-paid-core-v2-first-chapter-qa.js
+      - name: Encrypt all private results, including failed responses
         if: always()
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: node report-qa-secure-archive.js encrypt
-      - name: Upload encrypted first-chapter evidence for human review
+      - name: Upload encrypted evidence only, never the original plaintext
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: premium-first-chapter-qa-encrypted
+          name: premium-first-chapter-qa-v2-encrypted
           path: premium-first-chapter-qa.enc
           if-no-files-found: ignore
           retention-days: 30

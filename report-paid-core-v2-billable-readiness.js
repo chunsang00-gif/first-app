@@ -24,7 +24,7 @@ const clean=value=>{
 };
 const sha=value=>crypto.createHash('sha256')
  .update(JSON.stringify(value)).digest('hex');
-async function prepare(){
+async function prepare(options={}){
  const old={flag:process.env.PAID_CORE_DEPTH_V2,node:process.env.NODE_ENV,
   render:process.env.RENDER};
  try{
@@ -74,7 +74,7 @@ async function prepare(){
    text:{format:{type:'json_schema',
     name:'saju_mbti_premium_report',strict:true,schema:providerSchema}}};
   if(envelope.max_output_tokens!==18000)throw Error('PAID_CORE_V2_BILLING_PREFLIGHT_TOKEN_LIMIT_DRIFT');
-  return {kind:'offline-actual-provider-first-chapter-v2-envelope-v1',
+  const result={kind:'offline-actual-provider-first-chapter-v2-envelope-v1',
    chart:Object.values(prompt.facts.chart).join('/'),
    model:MODEL,firstChapterOnly:true,allowedSourceRefs:required.slice(),
    requestHash:sha(envelope),taskHash:sha(payload),
@@ -84,6 +84,7 @@ async function prepare(){
    editorialMethodApproved:false,
    providerCalls:0,approvalToCharge:false,
    customerReady:false,releaseVerdict:'not-approved'};
+  return options.includePrompt===true?{...result,prompt}:result;
  }finally{
   for(const [k,v] of [['PAID_CORE_DEPTH_V2',old.flag],
    ['NODE_ENV',old.node],['RENDER',old.render]])
