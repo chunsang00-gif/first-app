@@ -70,6 +70,14 @@ const fake=(runs,jobs=verifiedJobs)=>async(url)=>{
   fake([current])),/unauthorized-workflow-or-repeat/);
  await assert.rejects(guard.check({...env,REPORT_QA_CONFIRM:'RUN_ONE_PAID_SAMPLE'},
   fake([current])),/unauthorized-workflow-or-repeat/);
+ // Archive-and-fail semantics: the 2026-10-27 billable V2 response
+ // contained strength only. It must NOT look like a successful depth QA.
+ assert.throws(()=>runner.assertDepthForPaidQa({bodyTopics:['strength']}),
+  /CORE_V2_PAID_DEPTH_NOT_GENERATED_QUALITY_HOLD_NO_RETRY/);
+ assert.throws(()=>runner.assertDepthForPaidQa({bodyTopics:[]}),
+  /CORE_V2_MISSING_FIRST_CHAPTER_ANCHOR/);
+ assert.equal(runner.assertDepthForPaidQa({
+  bodyTopics:['temperament','strength']}),true);
  assert.throws(()=>runner.requireApproval({}),
   /CORE_V2_NEW_EXPLICIT_BILLABLE_APPROVAL_REQUIRED/);
  assert.throws(()=>runner.requireApproval({...env,OPENAI_API_KEY:'fake'}),
