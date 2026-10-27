@@ -11,7 +11,13 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
+      # Decrypt the historical 2026-10-27 paid artifact with the tested
+      # writer contract from its original offline editorial replay.
+      # Current working-branch writer instructions now differ; never
+      # reinterpret the already-paid original under a changed request hash.
       - uses: actions/checkout@v4
+        with:
+          ref: 17a811c09aa2c100051747bbf07138d8f9b486a3
       - uses: actions/setup-node@v4
         with:
           node-version: '22'

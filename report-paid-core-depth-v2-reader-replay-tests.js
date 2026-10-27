@@ -91,7 +91,17 @@ async function run(){
   // The 14:20 text cannot be reused verbatim for 20:20, even though
   // its mandatory source IDs and the month-only evidence are still present.
   assert.throws(()=>writer.restoreEvidence(mock,otherCapture.prompt),
-   /PAID_CORE_V2_READER_REJECTED:.*FALSE_DAY_HOUR_PAIR/);
+   /AI report service missing verified paragraph basis/,
+   'exact old-hour hidden sources must not be cited for a different hour');
+  const otherAllowed=new Set(other.task.chapters.saju_core.topics
+   .temperament.citableFacts.map(x=>x.id));
+  const alteredForOther=structuredClone(mock);
+  alteredForOther.chapters.saju_core.paragraphs.temperament.basis.refs=
+   alteredForOther.chapters.saju_core.paragraphs.temperament.basis.refs
+    .filter(ref=>otherAllowed.has(ref));
+  assert.throws(()=>writer.restoreEvidence(alteredForOther,otherCapture.prompt),
+   /PAID_CORE_V2_READER_REJECTED:.*FALSE_DAY_HOUR_PAIR/,
+   'even with permitted citations, copied claims about a disappeared pair fail');
   const noForcedPair=structuredClone(mock);
   noForcedPair.chapters.saju_core.paragraphs.temperament.text=
    noForcedPair.chapters.saju_core.paragraphs.temperament.text.replace(
