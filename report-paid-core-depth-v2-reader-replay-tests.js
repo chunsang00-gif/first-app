@@ -131,6 +131,76 @@ async function run(){
    .paidCoreDepthV2.visiblePairCandidates;
   assert(!otherPairs.some(x=>x.combination==='丁壬'&&x.adjacent&&
    x.from==='natal.day.stem'&&x.to==='natal.hour.stem'));
+  // Same-chart 1982: use the REAL intercepted paid first batch, not a
+  // disconnected text preview. The deployed path keeps this feature OFF.
+  const winterInput={calendar:'lunar',birthDate:'1982-11-24',
+   leapMonth:false,birthTime:'14:20',gender:'male',mbti:'ISFP'};
+  const winterCapture=await capture(winterInput);
+  assert.equal(winterCapture.providerCalls,0);
+  assert.equal(winterCapture.prompt.paidCoreDepthV2,true);
+  const winterPayload=writer.compile(winterCapture.prompt);
+  const coreWinter=winterPayload.task.chapters.saju_core;
+  const scoped=coreWinter.topics.temperament.paidCoreDepthV2;
+  const classical=scoped.readerClassicalScope;
+  assert(classical);
+  assert.equal(classical.approvedForSale,false);
+  assert.equal(classical.methodPriority,'not-selected');
+  assert(classical.sourceRefs.includes('natal.hour.hidden.丁'));
+  assert(coreWinter.topics.temperament.citableFacts.some(
+   x=>x.id==='natal.hour.hidden.丁'));
+  assert(!coreWinter.topics.strength.citableFacts.some(
+   x=>x.id==='natal.hour.hidden.丁'));
+  const normalWinter=writer.compile({...winterCapture.prompt,paidCoreDepthV2:false});
+  assert(!Object.hasOwn(normalWinter.source,'natal.hour.hidden.丁'));
+  assert.equal(normalWinter.task.chapters.saju_core.topics.temperament
+   .paidCoreDepthV2,undefined);
+  const oldSource=coreWinter.topics.strength.citableFacts;
+  assert.deepEqual(normalWinter.task.chapters.saju_core.topics.strength.citableFacts,
+   oldSource);
+  const historical=require('./report-core-paid-yi-guiwei-output-reading')
+   .build(winterCapture.prompt.facts);
+  assert(historical&&historical.approvedForCustomer===false);
+  const winterStrength={
+   label:'정보를 이해하는 방식과 필요한 자원',
+   text:'태어난 달의 겉글자는 낯선 자료를 자기 방식으로 이해한다는 전통적 뜻을 담고 있습니다. 달의 중심 숨은 글자는 필요한 자원을 여러 경로에서 찾아 다루는 뜻입니다. 새로운 일을 준비하는 가상 상황이라면 이해해야 할 내용과 실제로 마련할 자원을 따로 점검하는 관점으로 풀이할 수 있습니다. 그러나 실제 능력이나 경험을 확인한 결과는 아닙니다.',
+   basis:{refs:['natal.month.stem','natal.month.hidden.己'],
+    interpretation:'월의 두 전통 분류를 서로 다른 위치에서 확인합니다.',
+    condition:'새로운 일을 준비하는 가상 상황입니다.',
+    limit:'관찰된 행동이 아니며 사주 전체의 우선순위가 아닙니다.'}
+  };
+  const winterTemperature={label:historical.label,text:historical.text,
+   basis:{refs:classical.sourceRefs.slice(),
+    interpretation:'시간의 겉글자와 숨은 글자의 전통 분류를 별도로 대비합니다.',
+    condition:'배운 내용을 설명서로 만드는 가상 상황입니다.',
+    limit:'실제 표현력과 업무 성취를 관찰하거나 예측하지 않았습니다.'}};
+  const winterMock={chapters:{saju_core:{
+   title:thesis.forPrompt(winterCapture.prompt).title,
+   keyJudgment:thesis.forPrompt(winterCapture.prompt).keyJudgment,
+   mood:'reflective',paragraphs:{temperament:winterTemperature,strength:winterStrength}
+  }},cover:null,finalJudgment:null};
+  assert.deepEqual(review.inspect(winterTemperature,winterStrength.text,scoped),[]);
+  const winterRestored=writer.restoreEvidence(winterMock,winterCapture.prompt);
+  const winterDecoded=wire.decode(winterRestored,winterCapture.prompt);
+  assert.equal(winterDecoded.sections[0].body[0],historical.text);
+  assert.deepEqual(winterDecoded.sections[0].bodyTopics,['temperament','strength']);
+  const badHour=structuredClone(winterMock);
+  const late=await capture({...winterInput,birthTime:'20:20'});
+  assert.equal(late.providerCalls,0);
+  assert.equal(writer.compile(late.prompt).task.chapters.saju_core.topics
+   .temperament.paidCoreDepthV2.readerClassicalScope,null);
+  assert.throws(()=>writer.restoreEvidence(badHour,late.prompt),
+   /AI report service missing verified paragraph basis/,
+   'other birth hour cannot reuse the exact 1982 classical verse');
+  assert.throws(()=>writer.restoreEvidence(winterMock,
+   {...winterCapture.prompt,paidCoreDepthV2:false}),
+   /AI report service missing verified paragraph basis/,
+   'ordinary paid output must never accept dev-only citations');
+  const falsified=structuredClone(winterMock);
+  falsified.chapters.saju_core.paragraphs.temperament.basis.refs=
+   falsified.chapters.saju_core.paragraphs.temperament.basis.refs
+    .filter(x=>x!=='natal.hour.hidden.丁');
+  assert.throws(()=>writer.restoreEvidence(falsified,winterCapture.prompt),
+   /MISSING_EXPLICIT_ADDITIONAL_CITATIONS/);
   process.env.NODE_ENV='production';
   const production=await capture(input);
   assert.equal(production.prompt.paidCoreDepthV2,false);
