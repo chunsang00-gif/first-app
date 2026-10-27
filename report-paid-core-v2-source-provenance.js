@@ -32,7 +32,7 @@ function bind(value,prompt){
     process.env.RENDER==='true')
   return {value,changed:false,reason:'out-of-scope'};
  const para=value?.chapters?.saju_core?.paragraphs?.temperament;
- if(!para||!Array.isArray(para.basis?.refs)||!para.basis.refs.length)
+ if(!para||!Array.isArray(para.basis?.refs))
   return {value,changed:false,reason:'empty-or-invalid-paragraph'};
  const payload=writer.compile(prompt);
  const topic=payload.task.chapters.saju_core.topics.temperament;
@@ -43,16 +43,24 @@ function bind(value,prompt){
     decision.decision!=='attempt-one-distinct-conditional-symbolic-reading'||
     !decision.readerFactAnchor||decision.approvedForSale!==false)
   return {value,changed:false,reason:'method-out-of-scope'};
- const required=decision.requiredCitationIds;
+ const contract=topic.serverOwnedWritingContract;
+ const required=contract?.evidenceRefs;
  const allowed=new Set(topic.citableFacts.map(x=>x.id));
- if(!Array.isArray(required)||required.length!==5||
-    JSON.stringify(required)!==JSON.stringify(decision.sourceRefs)||
+ if(contract?.kind!=='server-owned-first-chapter-evidence-and-claim-contract-v1'||
+    contract.humanEditorialApproval!==false||
+    contract.releaseVerdict!=='not-approved'||
+    JSON.stringify(contract.verifiedSourceIds)!==
+      JSON.stringify(decision.requiredCitationIds)||
+    !Array.isArray(required)||required.length<5||
     !required.every(x=>allowed.has(x)&&Object.hasOwn(payload.source,x))||
     para.basis.refs.some(x=>!allowed.has(x)||!Object.hasOwn(payload.source,x))||
     new Set(para.basis.refs).size!==para.basis.refs.length)
   return {value,changed:false,reason:'untrusted-or-unknown-citations'};
+ // The model's array is never the source of truth. The server's verified
+ // contract is the complete source list. Unsupported text still fails.
  const missing=required.filter(x=>!para.basis.refs.includes(x));
- if(!missing.length)return {value,changed:false,reason:'no-omission'};
+ if(!missing.length&&para.basis.refs.length===required.length)
+  return {value,changed:false,reason:'server-sources-already-match'};
  // Never turn vague advice into a sourced chart claim. Only the one
  // verifiable exact month-hidden/visible relationship may be bound.
  const text=String(para.text||'');
@@ -66,14 +74,19 @@ function bind(value,prompt){
  // is already saved by the caller's provider callback and must remain raw.
  const clone=structuredClone(value);
  const extra=clone.chapters.saju_core.paragraphs.temperament;
- extra.basis.refs=[...new Set([...extra.basis.refs,...missing])];
+ extra.basis.refs=required.slice(); // exact server-owned canonical refs
  const base=clone.chapters.saju_core.paragraphs.strength?.text;
  if(reader.inspect(extra,base,topic.paidCoreDepthV2).length)
   return {value,changed:false,reason:'reader-meaning-or-grounding-rejected'};
+ const semantic=require('./report-paid-core-v2-editorial-triage')
+  .inspect(extra,base,topic.paidCoreDepthV2);
+ if(semantic.findings.length)
+  return {value,changed:false,reason:'two-way-meaning-or-scene-rejected'};
  // The authoritative validator still runs in the decoder after binding.
  // No conditional paragraph can skip restoreEvidence or its source checks.
  return {value:clone,changed:true,reason:'deterministic-verified-exposure-provenance',
   serverBoundRefCount:missing.length,
+  evidenceOwner:'server-contract',bodyTextUnchanged:true,
   approvedForSale:false};
 }
 module.exports={bind,hasLocalExactMatch};
