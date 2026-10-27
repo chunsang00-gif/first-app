@@ -440,6 +440,20 @@ function schema(prompt,transport){
        chosen.readerFactAnchor+
        ' 이 관계가 기존 출생월 풀이에서 추가되는 이유를 한 상황의 서로 다른 선택 조건으로 설명한다. 출생정보에서 확인된 관계이지 관찰한 성격이나 미래 결과는 아니다.';
      }
+     if(chosen.readerScene){
+      const scene=chosen.readerScene;
+      if(scene.kind!=='v2-verified-classifications-conditional-editorial-scene-v1'||
+         scene.approvedForSale!==false||
+         scene.realPersonObservation!==false||
+         JSON.stringify(scene.sourceRefs)!==JSON.stringify(required)||
+         !scene.writerInstruction.includes('부품비')||
+         !scene.writerInstruction.includes('승인'))
+       throw Error('CORE_V2_GROUNDED_SCENE_VERIFICATION_DRIFT');
+      // Text slot, not only task metadata: the model is prompted to
+      // explain the two distinct risks as reader prose.
+      p.properties.text.description+=' 심화 문단에 필요한 구체적 양쪽 조건: '+
+       scene.writerInstruction;
+     }
      // Field-level source instruction reaches the real strict output
      // schema. Explicit source checking at decode stays untouched.
      basis.properties.refs.description=
