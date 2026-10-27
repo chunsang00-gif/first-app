@@ -416,6 +416,25 @@ function schema(prompt,transport){
      '방향은 실제 인생의 효과나 어느 분류가 우선한다는 근거가 아니므로 단정하지 않는다. 본문은 일반 조언 대신 누락되는 두 조건을 구별하는 가상 사례로 쓴다. 실제 행동이나 미래의 성패를 단정하지 않는다.';
     }
    }
+   if(chapterId==='saju_core'&&topic==='temperament'&&
+      prompt.paidCoreDepthV2===true){
+    const chosen=task.sourceQualifiedWritingDecision;
+    if(!chosen||chosen.kind!=='source-scoped-core-v2-editorial-decision-v1')
+     throw Error('CORE_V2_MISSING_PROVIDER_CITATION_DECISION');
+    if(chosen.decision==='attempt-one-distinct-conditional-symbolic-reading'){
+     const required=chosen.requiredCitationIds;
+     if(!Array.isArray(required)||!required.length||
+        JSON.stringify(required)!==JSON.stringify(chosen.sourceRefs)||
+        !required.every(id=>permitted.includes(id)))
+      throw Error('CORE_V2_EXACT_CITATION_CONTRACT_DRIFT');
+     // Field-level source instruction reaches the real strict output
+     // schema. Explicit source checking at decode stays untouched.
+     basis.properties.refs.description=
+      'temperament를 작성할 때 다음 계산 출처를 하나도 빼지 말고 모두 인용한다: '+
+      required.join(', ')+
+      '. 필요한 계절·기운 출처도 유지한다. 근거가 실제 문단 주장과 일치하지 않으면 문단은 null로 반환한다.';
+    }
+   }
    p.properties={basis,...p.properties};p.required=['basis',...p.required];
   }
  }
