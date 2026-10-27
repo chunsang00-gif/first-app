@@ -11,7 +11,7 @@ function build(packet){
  const rows=Object.fromEntries(bindings.build(packet).map(x=>[x.id,x]));
  const positions=REFS.filter(id=>id.startsWith('natal.')).map(id=>{
   const row=rows[id],place=id.split('.')[1];
-  if(row?.stem!==packet.chart[place][0]||!row.traditionalMeaning||
+  if(row?.stem!==packet.chart[place][0]||(!row.traditionalMeaning&&place!=='day')||
      row.observedBehavior!==false||row.interpretationScope!=='traditional-symbol-only')
    throw Error('PAID_CORE_DEPTH_V2_POSITION_DRIFT:'+id);
   return {id,stem:row.stem,role:row.tenGod,
