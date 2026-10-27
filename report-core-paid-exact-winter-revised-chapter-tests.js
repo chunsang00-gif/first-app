@@ -25,6 +25,21 @@ assert.equal(draft.professionalMethodApproved,false);
 assert.equal(draft.providerCalls,0);
 assert.equal(draft.releaseVerdict,'not-approved');
 assert.equal(draft.paragraphs[0].sourceUrl,w.sourceScope.exactDayHour.url);
+// The wider Yi/Gui-Wei hour rule supplies a genuinely different
+// traditional proposition from the month-only information/resource pair.
+const roleRows=Object.fromEntries(require('./report-fact-bindings')
+ .build(packet).map(x=>[x.id,x]));
+assert.equal(roleRows['natal.hour.stem'].stem,'癸');
+assert.equal(roleRows['natal.hour.stem'].tenGod,'편인');
+assert.equal(roleRows['natal.hour.hidden.丁'].stem,'丁');
+assert.equal(roleRows['natal.hour.hidden.丁'].tenGod,'식신');
+assert(draft.paragraphs[0].sourceRefs.includes('natal.hour.hidden.丁'));
+assert(draft.sourceRefs.includes('natal.hour.hidden.丁'));
+assert(draft.paragraphs[0].text.includes('준비하고 이해하는 일과 그것을 밖으로 내놓는 일'));
+assert(draft.paragraphs[0].text.includes('실제로 표현이 서툴거나 일을 늦게 끝낸다는 뜻은 아닙니다'));
+assert(!draft.text.includes('실제로 표현이 서툽니다'));
+assert(!draft.text.includes('언제나 결과를 내지 못합니다'));
+
 assert.equal(draft.paragraphs[1].sourceUrl,w.sourceScope.seasonalMonth.url);
 assert(draft.paragraphs[0].text.includes('특정 날과 시간까지 일치'));
 assert(draft.paragraphs[0].text.includes(
@@ -57,6 +72,13 @@ assert.equal(oldConditions.alternativeExactDayHour,null);
 assert.equal(newConditions.exactDayHour,null);
 assert.equal(newConditions.alternativeExactDayHour.requiredHourPillar,'丙戌');
 assert.equal(newConditions.alternativeExactDayHour.yearMonthGrammarAndOtherConditionsNotResolved,true);
+const alternativeRows=Object.fromEntries(require('./report-fact-bindings')
+ .build(alternatePacket).map(x=>[x.id,x]));
+assert.equal(alternativeRows['natal.hour.stem'].stem,'丙');
+assert.notEqual(alternativeRows['natal.hour.stem'].tenGod,'편인');
+assert.equal(revised.build(alternatePacket,null,null),null);
+assert(!alternative.text.includes('같은 시간 안쪽에는 생산·표현에 관한 다른 분류가 있습니다'));
+
 assert(draft.paragraphs[2].text.includes('따뜻함을 뜻하는 글자가 겉에 나오지만'));
 assert(draft.paragraphs[2].text.includes('유리한 복합 조건 역시 충족하지 못합니다'));
 assert(draft.paragraphs[2].text.includes('다른 일·시 조합에 해당하지만'));
@@ -66,6 +88,9 @@ assert(!alternative.text.includes('실제 승진이 보장됩니다'));
 assert(draft.paragraphs[2].text.includes('해석 출발점 후보는 유지됩니다'));
 assert(draft.paragraphs[2].text.includes('달과 날의 관계표는 그대로지만'));
 assert(draft.paragraphs[2].text.includes('달과 시간 사이의 마주 보는 관계는 사라집니다'));
+assert(draft.paragraphs[2].text.includes('앞 문단의 직접적인 관계'));
+assert(!draft.paragraphs[2].text.includes('이 명식은 실제로 일을 늦게 끝냅니다'));
+
 assert(draft.paragraphs[2].sourceRefs.includes('facts.stemConnections'));
 assert(!draft.text.includes('동료에게'));
 assert(!draft.text.includes('기존 작업 절차'));
