@@ -1,0 +1,70 @@
+name: New approved single V2 first-chapter QA — revised instructions
+on:
+  workflow_dispatch:
+    inputs:
+      updated_qa_confirmation:
+        description: 'NEW cost approval, NOT covered by past consent. Type RUN_ONE_UPDATED_CORE_V2_APPROVED_ONCE to request ONE GPT-4.1 report sample.'
+        required: true
+        type: string
+permissions:
+  contents: read
+  actions: read
+jobs:
+  report-qa:
+    if: ${{ github.ref_name == 'fix-paid-qa-fact-bindings-20261014' && inputs.updated_qa_confirmation == 'RUN_ONE_UPDATED_CORE_V2_APPROVED_ONCE' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    concurrency:
+      group: one-new-paid-core-v2-guidance
+      cancel-in-progress: false
+    env:
+      REPORT_MODEL: ${{ vars.REPORT_MODEL }}
+      REPORT_QA_OUTPUT: ${{ github.workspace }}/private-qa-first-chapter.json
+      REPORT_QA_CONFIRM: ${{ inputs.updated_qa_confirmation }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-audit --no-fund
+      - name: Run full offline and smoke suites before possible billing
+        run: npm test && npm run smoke
+      - name: Verify entirely NEW approval, credentials and pinned GPT-4.1 configuration
+        env:
+          NODE_ENV: test
+          PAID_CORE_DEPTH_V2: offline-preview
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = "fix-paid-qa-fact-bindings-20261014"
+          test "$GITHUB_RUN_ATTEMPT" = "1"
+          test "$REPORT_QA_CONFIRM" = "RUN_ONE_UPDATED_CORE_V2_APPROVED_ONCE"
+          test "$PAID_CORE_DEPTH_V2" = "offline-preview"
+          test "$NODE_ENV" = "test"
+          test "$REPORT_MODEL" = "gpt-4.1"
+          test -n "$OPENAI_API_KEY"
+          test "${#OPENAI_API_KEY}" -ge 32
+      - name: Reject any prior or concurrent NEW V2 paid dispatch
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node qa-core-v2-updated-dispatch-guard.js
+      - name: ONE model request for updated V2 first chapter, no retries
+        env:
+          NODE_ENV: test
+          PAID_CORE_DEPTH_V2: offline-preview
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: node run-paid-core-v2-updated-guidance-qa.js
+      - name: Encrypt all private QA evidence, including rejected model responses
+        if: always()
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: node report-qa-secure-archive.js encrypt
+      - name: Upload only encrypted revised-V2 output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: premium-first-chapter-qa-v2-revised-guidance-encrypted
+          path: premium-first-chapter-qa.enc
+          if-no-files-found: ignore
+          retention-days: 30
