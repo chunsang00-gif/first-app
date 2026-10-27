@@ -49,6 +49,7 @@ function make(packet){
   basis:{
    refs:['facts.seasonalEvidence','facts.qiEvidence','natal.month.stem',
     'natal.year.stem','natal.day.stem','natal.hour.stem',
+    'natal.month.hidden.己','natal.month.hidden.丁',
     'facts.stemConnections'],
    interpretation:'출생 해의 결과물 관련 분류와 시간의 자원 관리 분류, 그리고 출생 날·시간의 이중 계산 관계를 서로 구분합니다. 출생월의 배움·역할 풀이와 독립적인 전통적 조건 비교에 한정합니다.',
    condition:'새 장비를 여섯 달 운영하는 가상의 선택을 예로 들며, 짧은 납품과 계속 운영을 구별합니다.',

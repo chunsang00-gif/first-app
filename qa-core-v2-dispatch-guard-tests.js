@@ -40,7 +40,9 @@ const fake=(runs,jobs=verifiedJobs)=>async(url)=>{
 (async()=>{
  assert.equal(runner.APPROVAL,guard.APPROVAL);
  assert.equal(runner.REQUEST_HASH,'32d17dbc7377d751f91adfe2de2a85d502d450e32897e9728b43a3b1e0ce442e');
- assert.equal((await readiness.prepare()).requestHash,runner.REQUEST_HASH);
+ // The previous V2 call already happened; its approval and hash cannot be
+ // re-used after changing the writer's production input.
+ assert.notEqual((await readiness.prepare()).requestHash,runner.REQUEST_HASH);
  assert.equal((await guard.check(env,fake([current,old,other]))).allowed,true);
  assert.equal((await guard.check(env,
   fake([current,failedWithoutBilling,old,other]))).allowed,true);

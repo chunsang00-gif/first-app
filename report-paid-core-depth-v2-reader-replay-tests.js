@@ -49,6 +49,7 @@ async function run(){
    basis:{refs:[
     'facts.seasonalEvidence','facts.qiEvidence','natal.month.stem',
     'natal.year.stem','natal.day.stem','natal.hour.stem',
+    'natal.month.hidden.己','natal.month.hidden.丁',
     'facts.stemConnections'],
     interpretation:'계산상 출생연도·날짜·시간의 독립 분류 및 날과 시간의 짝 관계 후보를 구분하며 실제 결과는 확정하지 않습니다.',
     condition:'여섯 달 동안 재고 관리 업무를 맡는 가상의 상황을 비교합니다.',
