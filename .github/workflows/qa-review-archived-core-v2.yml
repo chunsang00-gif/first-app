@@ -2,7 +2,7 @@ name: Audit already-paid V2 first-chapter output (no new API)
 on:
   push:
     branches: [fix-paid-qa-fact-bindings-20261014]
-    paths: [.github/workflows/qa-review-archived-core-v2.yml]
+    paths: [.github/workflows/qa-review-archived-core-v2.yml, report-core-v2-authored-first-chapter.js, report-core-v2-archived-reader-diagnostic.js]
 permissions:
   contents: read
   actions: read

@@ -7,6 +7,8 @@ const readiness=require('./report-paid-core-v2-billable-readiness');
 const writer=require('./report-generation-request');
 const reader=require('./report-reader-policy');
 const review=require('./report-paid-core-depth-v2-reader-review');
+const authored=require('./report-core-v2-authored-first-chapter');
+const decoder=require('./report-response-decoder');
 const grounding=require('./report-grounding-review');
 const {overlap}=require('./report-core-paid-natal-depth-response-gate');
 const HASH='32d17dbc7377d751f91adfe2de2a85d502d450e32897e9728b43a3b1e0ce442e';
@@ -68,10 +70,49 @@ async function inspect(dir){
    if(extraSentences[i].length>=26&&
       extraSentences[j].length>=26&&
       overlap(extraSentences[i],extraSentences[j])>=0.8)duplicates++;
+ // NEW: build an actual two-body reader preview by inserting an
+ // independently authored exact-chart passage into a PRIVATE CLONE of
+ // the already-paid model's one-body response. Do not relabel that
+ // draft as AI-generated, and NEVER mutate the historical provider JSON.
+ const manuscript=authored.make(prompt.facts);
+ if(!manuscript||manuscript.origin!=='human-authored-not-model-output'||
+    extra!==null||!strength?.text)
+  throw Error('ARCHIVED_V2_MANUSCRIPT_INSERTION_UNSAFE');
+ const alternative=structuredClone(original);
+ alternative.chapters.saju_core.paragraphs.temperament=
+  structuredClone(manuscript.proposal);
+ const rendered=decoder.decode(alternative,prompt);
+ const chapter=rendered?.sections?.[0];
+ if(rendered.sections.length!==1||chapter?.id!=='saju_core'||
+    JSON.stringify(chapter.bodyTopics)!=='["temperament","strength"]'||
+    chapter.body[0]!==manuscript.proposal.text||
+    chapter.body[1]!==body.body[0]||
+    manuscript.origin!=='human-authored-not-model-output')
+  throw Error('ARCHIVED_V2_REAL_READER_CHAPTER_ASSEMBLY_FAILED');
+ const authorGuard=review.inspect(
+  manuscript.proposal,strength.text,extraScope);
+ if(authorGuard.length)throw Error('ARCHIVED_V2_AUTHORIAL_PARAGRAPH_REJECTED:'+authorGuard.join('|'));
+ const extraDiff=Number(overlap(manuscript.proposal.text,strength.text).toFixed(3));
+ const readerProse=chapter.body.join('\\n\\n');
+ const preview={
+  draftedByHumanNotModel:true,
+  realPaidBasePreservedVerbatim:true,
+  bodyTopics:chapter.bodyTopics,
+  baseChars:strength.text.length,
+  newlyWrittenChars:manuscript.proposal.text.length,
+  completeFirstChapterBodyChars:readerProse.length,
+  fullReaderDecoderSucceeded:true,
+  exactChartOnly:true,
+  secondBirthHourForbidden:true,
+  overlapBetweenOldAndNew:extraDiff,
+  readerGuardProblems:authorGuard.length,
+  addedApiCalls:0,readyToSell:false
+ };
  const result={
   kind:'already-paid-v2-first-chapter-offline-text-quality-diagnostic',
   originalRun:40454885372,providerCallsInOriginalRun:1,
   newProviderCalls:0,storedFirstChapter:true,
+  authoredFirstChapterPreview:preview,
   requiredParagraphCount:strength?1:0,
   optionalDepthPresent:extraShown,
   visibleParagraphCount:expectedTitles.length,
