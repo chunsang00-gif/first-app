@@ -10,7 +10,9 @@ function inspect(p,monthText,extra){
  if(!extra||extra.kind!=='first-chapter-optional-full-chart-source-v1'||
     extra.selectedTraditionalPriority!==false||
     extra.approvedAsPremiumValue!==false||
-    extra.allPairingsAreCandidatesOnly!==true)
+    extra.allPairingsAreCandidatesOnly!==true||
+    !Array.isArray(extra.visiblePairCandidates)||
+    !Array.isArray(extra.visibleElementDirections))
   return ['PAID_CORE_V2_READER_UNTRUSTED_EXTRA'];
  const text=String(p.text||''),label=String(p.label||'');
  if(text.length<220||!label.trim())errors.push('PAID_CORE_V2_READER_TRIVIAL');
@@ -29,13 +31,30 @@ function inspect(p,monthText,extra){
  if(String(monthText||'').trim()&&
     overlap(text,monthText)>0.55)
   errors.push('PAID_CORE_V2_READER_REPEATS_MONTH');
- const dayHour=extra.visiblePairCandidates?.some(x=>
-  x.tableMatchOnly===true&&
-  x.adjacent===true&&
+ // A combination table lists POSSIBLE pairs, never a realized change.
+ // Merely having a pair must not force the AI to invent a personality
+ // judgement. But a reader assertion of a specific pair MUST be true
+ // for this chart, including after a birth-hour change.
+ const pairClaim=/(?:태어난\s*날|태어난\s*날짜|출생\s*날).{0,45}(?:시간|출생\s*시간).{0,125}(?:짝을\s*이루|한\s*쌍|함께\s*묶)/.test(text);
+ const dayHour=extra.visiblePairCandidates.some(x=>
+  x.tableMatchOnly===true&&x.adjacent===true&&
   ((x.from==='natal.day.stem'&&x.to==='natal.hour.stem')||
    (x.to==='natal.day.stem'&&x.from==='natal.hour.stem')));
- if(dayHour&&!/(?:태어난\s*날|태어난\s*날짜).{0,42}(?:시간|출생\s*시간).{0,80}(?:짝|함께\s*묶)/.test(text))
-  errors.push('PAID_CORE_V2_READER_OMITS_VERIFIED_DAY_HOUR_PAIR');
+ if(pairClaim&&!dayHour)
+  errors.push('PAID_CORE_V2_READER_FALSE_DAY_HOUR_PAIR');
+ const claimedMonthHourExposure=/(?:태어난\s*시간|출생\s*시간).{0,35}(?:달\s*안쪽|태어난\s*달의\s*안쪽).{0,45}(?:정확히\s*같|똑같)/.test(text);
+ if(claimedMonthHourExposure&&!extra.exposures?.some(x=>
+   x.visibleRef==='natal.hour.stem'&&x.exactMatchOnly===true))
+  errors.push('PAID_CORE_V2_READER_FALSE_MONTH_HOUR_EXPOSURE');
+ const arrows=extra.visibleElementDirections;
+ const relation=(from,to)=>arrows.find(x=>x.from===from&&x.to===to&&
+  x.literalElementRelationOnly===true&&x.realizedEffectVerified===false)?.direction;
+ if(/태어난\s*해의\s*글자는.{0,60}(?:시간의|출생\s*시간의).{0,60}돕는\s*방향/.test(text)&&
+    relation('natal.year.stem','natal.hour.stem')!=='left-generates-right')
+  errors.push('PAID_CORE_V2_READER_FALSE_YEAR_HOUR_SUPPORT');
+ if(/태어난\s*날의\s*기준\s*글자는.{0,60}(?:시간의|출생\s*시간의).{0,60}제약하는\s*방향/.test(text)&&
+    relation('natal.day.stem','natal.hour.stem')!=='left-controls-right')
+  errors.push('PAID_CORE_V2_READER_FALSE_DAY_HOUR_CONTROL');
  // A source may describe only an observed symbol or table pairing.
  // A matching word in a response is NOT proof of a correct reading.
  return errors;

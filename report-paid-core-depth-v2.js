@@ -4,6 +4,7 @@
 const bindings=require('./report-fact-bindings');
 const graph=require('./report-stem-connections');
 const pairing=require('./report-core-paid-natal-visible-stem-pair-screen');
+const directions=require('./report-core-paid-natal-visible-relation-bridge');
 const REFS=['natal.year.stem','natal.day.stem','natal.hour.stem','facts.stemConnections'];
 function build(packet){
  if(packet?.status!=='ready'||!packet.chart?.hour)throw Error('PAID_CORE_DEPTH_V2_HOUR_REQUIRED');
@@ -29,11 +30,19 @@ function build(packet){
   transformationVerified:false,
   usableForLifePrediction:false
  }));
+ const visibleElementDirections=[
+  ['year','hour'],['day','hour'],['hour','month']
+ ].map(([from,to])=>({
+  from:'natal.'+from+'.stem',to:'natal.'+to+'.stem',
+  direction:directions.direction(packet.chart[from][0],packet.chart[to][0]),
+  literalElementRelationOnly:true,realizedEffectVerified:false
+ }));
  const exposures=packet.facts.stemConnections.exposure.filter(x=>x.position==='month')
   .flatMap(x=>x.exactVisibleMatches.filter(v=>v.position==='year'||v.position==='hour')
    .map(v=>({hiddenRef:x.hiddenId,visibleRef:v.id,exactMatchOnly:true})));
  return {kind:'first-chapter-optional-full-chart-source-v1',
   sourceRefs:REFS.slice(),positions,exposures,visiblePairCandidates,
+  visibleElementDirections,
   comparisonScope:'computed-position-and-exact-exposure-only',
   observedPersonality:false,selectedTraditionalPriority:false,
   strengthAndTransformationUnassessed:true,

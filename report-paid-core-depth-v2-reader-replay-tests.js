@@ -90,6 +90,19 @@ async function run(){
   const otherCapture=await capture({...input,birthTime:'20:20'});
   assert.equal(otherCapture.providerCalls,0);
   const other=writer.compile(otherCapture.prompt);
+  // The 14:20 text cannot be reused verbatim for 20:20, even though
+  // its mandatory source IDs and the month-only evidence are still present.
+  assert.throws(()=>writer.restoreEvidence(mock,otherCapture.prompt),
+   /PAID_CORE_V2_READER_REJECTED:.*FALSE_DAY_HOUR_PAIR/);
+  const noForcedPair=structuredClone(mock);
+  noForcedPair.chapters.saju_core.paragraphs.temperament.text=
+   noForcedPair.chapters.saju_core.paragraphs.temperament.text.replace(
+    /태어난 날과 시간의 겉글자는[^.]+\./,
+    '태어난 날은 계산의 기준이며 이 사실만으로 성격을 확정할 수 없습니다.');
+  assert(!noForcedPair.chapters.saju_core.paragraphs.temperament.text
+   .includes('짝을 이루는 전통 규칙'));
+  assert.doesNotThrow(()=>writer.restoreEvidence(noForcedPair,prompt),
+   'optional chart relationship should not be forced into customer prose');
   const otherPairs=other.task.chapters.saju_core.topics.temperament
    .paidCoreDepthV2.visiblePairCandidates;
   assert(!otherPairs.some(x=>x.combination==='丁壬'&&x.adjacent&&
@@ -102,7 +115,9 @@ async function run(){
    readerParagraphs:decoded.sections[0].body.length,
    guardedAdditionalTextCharacters:trial.text.length,
    exactHourMismatchNotReused:true,
-   invalidResponsesRejected:4,
+   invalidResponsesRejected:5,
+   crossHourFullManuscriptReuseRejected:true,
+   verifiedPairMentionOptional:true,
    nullableFallbackKept:true,
    productionDisabled:true,providerCalls:0,
    fullCustomerProseQualityCertified:false,
