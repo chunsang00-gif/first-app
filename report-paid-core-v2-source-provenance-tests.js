@@ -57,6 +57,24 @@ async function run(){
   assert.deepEqual(result.sections[0].bodyTopics,['temperament','strength']);
   assert.equal(result.sections[0].body[0],t.text);
   assert.deepEqual(data,raw,'decoder must not mutate original response');
+  // Core regression: matching words spread across unrelated sentences
+  // cannot justify attaching references missing from the model response.
+  const local=provenance.hasLocalExactMatch;
+  assert.equal(local(
+   '태어난 시간의 글자는 별도로 볼 수 있습니다. 태어난 달의 숨은 글자는 다른 분류입니다. 두 기록이 정확히 같습니다.',
+   '시간'),false);
+  assert.equal(local(
+   '태어난 시간의 겉글자는 태어난 달의 다른 속글자와 정확히 일치하지 않습니다.',
+   '시간'),false);
+  assert.equal(local(
+   '태어난 시간의 겉글자는 태어난 달의 다른 속글자와 정확히 일치합니다. 실제 성격을 관찰한 것은 아닙니다.',
+   '시간'),true);
+  const scattered=structuredClone(data);
+  scattered.chapters.saju_core.paragraphs.temperament.text=
+   t.text.replace(/태어난 시간의 겉글자는 달 안쪽에 있는 또 다른 글자와 정확히 같고/,
+    '태어난 시간의 겉글자는 별도로 계산합니다. 달 안쪽에 있는 또 다른 글자는 정확히 같다고 설명됩니다');
+  assert.equal(provenance.bind(scattered,prompt).changed,false,
+   'do not attach citations based on unrelated model sentences');
   const invalids=[
    ['only generic advice',p=>{p.text=
       '태어난 달과 시간을 함께 고려하는 상황에서는 둘 다 살펴보면 좋습니다. '+
