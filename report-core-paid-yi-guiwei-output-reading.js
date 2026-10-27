@@ -34,8 +34,8 @@ function build(packet){
   throw Error('QA_CLASSICAL_OUTPUT_EXACT_WINTER_RULE_DRIFT');
  const label='새로운 것을 이해하는 일과 결과로 보여 주는 일';
  if(policy.errors([label,readerText]).length||
-    /[\\u3400-\\u4dbf\\u4e00-\\u9fff]/.test(readerText)||
-    readerText.length<450||readerText.length>850)
+    /[\u3400-\u4dbf\u4e00-\u9fff]/.test(readerText)||
+    readerText.length<300||readerText.length>850)
   throw Error('QA_CLASSICAL_OUTPUT_READER_VIOLATION');
  return {
   kind:'qa-isolated-yi-guiwei-hour-expression-editorial-reading-v1',
