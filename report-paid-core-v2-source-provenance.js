@@ -43,7 +43,7 @@ function bind(value,prompt){
  if(!position||!target||target.approvedForSale!==false||
     !text.includes('태어난 '+position)||
     !/(?:태어난 달|출생월|달의)/.test(text)||
-    !/(?:속글자|숨은 글자)/.test(text)||
+    !/(?:속글자|숨은 글자|달 안쪽|달의 안쪽)/.test(text)||
     !/(?:정확히 일치|정확히 대응|정확히 같)/.test(text)||
     !/(?:다른|별도|대표)/.test(text))
   return {value,changed:false,reason:'chart-fact-absent-from-prose'};
