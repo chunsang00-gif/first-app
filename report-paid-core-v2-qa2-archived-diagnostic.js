@@ -10,7 +10,7 @@ const writer=require('./report-generation-request');
 const review=require('./report-paid-core-depth-v2-reader-review');
 const editorial=require('./report-paid-core-v2-editorial-triage');
 const provenance=require('./report-paid-core-v2-source-provenance');
-const HASH='5101200ae2e45fe3c9a331d2528c2f0b6d79287b2cb6351d5a47fae07f2f1b302';
+const HASH='5101200ae2e45fe3c9a331d2528c2f0b6d79287b2cb635d5a47fae07f2f1b302';
 const get=(dir,name)=>JSON.parse(fs.readFileSync(path.join(dir,name),'utf8'));
 const filename='private-qa-first-chapter';
 function category(id){
