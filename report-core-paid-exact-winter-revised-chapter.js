@@ -77,6 +77,24 @@ function build(packet,winter,previous){
     changed.chart.year!==packet.chart.year||
     changed.chart.hour!=='丙戌')
   throw Error('QA_REVISED_CLASSICAL_CHAPTER_TIME_COUNTERFACTUAL_INVALID');
+ const alternateClassical=require('./report-core-paid-classical-decision-handoff')
+  .build(changed).independentClassicalSourceEligibility;
+ const otherHour=alternateClassical?.alternativeExactDayHour;
+ const otherClimate=alternateClassical?.climate;
+ if(alternateClassical?.exactDayHour!==null||
+    otherHour?.requiredDayPillar!=='乙未'||
+    otherHour?.requiredHourPillar!=='丙戌'||
+    otherHour?.yearMonthGrammarAndOtherConditionsNotResolved!==true||
+    otherHour?.cannotBorrowGuiWeiWinterClause!==true||
+    otherHour?.approvedPaidInsight!==false||
+    otherClimate?.bingExposed!==true||otherClimate?.guiExposed!==true||
+    JSON.stringify(otherClimate?.observedBingVisibleRefs)!==
+      JSON.stringify(['natal.hour.stem'])||
+    JSON.stringify(otherClimate?.observedGuiVisibleRefs)!==
+      JSON.stringify(['natal.month.stem'])||
+    otherClimate?.favorableHistoricalCompoundConditionMatched!==false||
+    otherClimate?.historicalFortuneClaimAllowedForCustomer!==false)
+  throw Error('QA_REVISED_ALTERNATE_CLASSICAL_CONDITIONS_NOT_VERIFIED');
  const knownWinterRefs=new Set(winter.paragraphs.flatMap(row=>row.sourceRefs));
  const rows=P.map((p,i)=>({
   ...p,
