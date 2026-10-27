@@ -2,9 +2,12 @@
 // Separate one-shot authorization for NEW V2 guidance. Never borrow the
 // previous 2026-10-27 paid V2 workflow approval. Fail closed on incomplete
 // GitHub history; any prior dispatch of THIS workflow consumes its slot.
-const WORKFLOW='.github/workflows/paid-core-v2-guidance-qa.yml';
+const WORKFLOW='.github/workflows/paid-report-qa.yml';
 const BRANCH='fix-paid-qa-fact-bindings-20261014';
 const APPROVAL='RUN_ONE_UPDATED_CORE_V2_APPROVED_ONCE';
+// Existing registered workflow previously ran paid V2 on 2026-10-27 05:21 UTC.
+// This new independent opt-in starts afterwards; never reuses old consent.
+const ACTIVATED='2026-10-27T05:23:00Z';
 async function check(env=process.env,request=global.fetch){
  const reject=x=>{throw Error('UPDATED_CORE_V2_PAID_DISPATCH_REJECTED:'+x)};
  if(env.GITHUB_ACTIONS!=='true'||!env.GITHUB_TOKEN||
@@ -39,6 +42,8 @@ async function check(env=process.env,request=global.fetch){
   total=d.total_count;
   for(const item of d.workflow_runs){
    if(item.path!==WORKFLOW)continue;
+   if(!Number.isFinite(Date.parse(item.created_at)))reject('invalid-run-date');
+   if(Date.parse(item.created_at)<Date.parse(ACTIVATED))continue;
    if(item.id!==currentId)reject('previous-or-concurrent-dispatch-exists');
    if(item.head_branch!==BRANCH||item.event!=='workflow_dispatch'||
       item.run_attempt!==1)
