@@ -65,6 +65,31 @@ const oldConditions=require('./report-core-paid-classical-decision-handoff')
 const newConditions=require('./report-core-paid-classical-decision-handoff')
  .build(alternatePacket).independentClassicalSourceEligibility;
 assert(alternative&&alternative.approvedForCustomer===false);
+
+const scopedMethod=require('./report-core-paid-1982-question-scoped-method-decision');
+const scopedEarly=scopedMethod.inspect(packet);
+const scopedLate=scopedMethod.inspect(alternatePacket);
+assert(scopedEarly&&scopedLate);
+assert.equal(scopedEarly.releaseVerdict,'not-approved');
+assert.equal(scopedEarly.eligibleForPaidWriter,false);
+assert.equal(scopedLate.eligibleForPaidWriter,false);
+assert.equal(scopedEarly.independentMethodPrioritySelected,false);
+assert.equal(scopedLate.traditionalFullChartPatternSelected,false);
+assert.equal(scopedEarly.appliedQuestionOrder[0].selectedCitationScope,'乙未日癸未時+冬');
+assert.equal(scopedLate.appliedQuestionOrder[0].selectedCitationScope,
+ '乙未日丙戌時+unresolved-year-month-qualification');
+assert.equal(scopedEarly.generalHourSymbolicRelation.traditionalRelation,'癸-overcomes-丁');
+assert.equal(scopedLate.generalHourSymbolicRelation,null);
+assert.deepEqual(scopedEarly.candidateExposurePositions,['natal.month.stem','natal.hour.stem']);
+assert.deepEqual(scopedLate.candidateExposurePositions,['natal.month.stem']);
+assert.equal(scopedEarly.natalMonthMethodCandidate,scopedLate.natalMonthMethodCandidate);
+assert.equal(scopedEarly.appliedQuestionOrder[2].permittedClaim,'not-met-for-this-hour');
+assert.equal(scopedLate.appliedQuestionOrder[2].permittedClaim,'not-met-for-this-hour');
+assert.equal(scopedMethod.inspect(facts.build({...input,birthTime:'09:20'},2027)),null);
+const forgedScoped=structuredClone(packet);
+forgedScoped.chart.hour='丙戌';
+assert.equal(scopedMethod.inspect(forgedScoped),null);
+
 assert.equal(oldConditions.climate.bingExposed,false);
 assert.equal(oldConditions.climate.guiExposed,true);
 assert.equal(newConditions.climate.bingExposed,true);
