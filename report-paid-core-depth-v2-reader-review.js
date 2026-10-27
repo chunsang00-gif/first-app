@@ -19,7 +19,23 @@ function inspect(p,monthText,extra){
  if(policy.errors([label,text]).length||
     /[\u3400-\u4dbf\u4e00-\u9fff]/.test(label+text))
   errors.push('PAID_CORE_V2_READER_FORBIDDEN_JARGON');
- if(!/(?:태어난\s*해|태어난\s*연도)/.test(text)||
+ // A sourced, additional month-hidden/visible position contrast does
+ // not justify forcing a recital of all four pillars into reader prose.
+ // Only the genuinely new position is required in that case. Preserve
+ // the original strict check when no exact contrast is available.
+ const c=extra.readerContrast;
+ if(c){
+  if(!Array.isArray(c.sourceRefs)||!Array.isArray(p.basis?.refs)||
+     !c.sourceRefs.every(x=>p.basis.refs.includes(x)))
+   errors.push('PAID_CORE_V2_READER_MISSING_EXACT_CONTRAST_BASIS');
+  const location=c.visiblePosition==='natal.hour.stem'?/(?:태어난\s*시간|출생\s*시간)/:
+   c.visiblePosition==='natal.year.stem'?/(?:태어난\s*해|태어난\s*연도)/:null;
+  if(!location||!location.test(text)||!/태어난\s*달|출생월/.test(text))
+   errors.push('PAID_CORE_V2_READER_MISSING_ACTUAL_EXPOSED_POSITION');
+  if(!/(?:달의\s*대표|달\s*속글자|달에\s*있는\s*다른|달\s*안쪽|달\s*속에\s*숨은)/.test(text)||
+     !/(?:정확히\s*일치|정확히\s*대응|정확히\s*같|겉으로\s*드러)/.test(text))
+   errors.push('PAID_CORE_V2_READER_MISSING_EXACT_EXPOSURE_EXPLANATION');
+ }else if(!/(?:태어난\s*해|태어난\s*연도)/.test(text)||
     !/(?:태어난\s*날|태어난\s*날짜)/.test(text)||
     !/(?:태어난\s*시간|출생\s*시간)/.test(text))
   errors.push('PAID_CORE_V2_READER_LACKS_INDEPENDENT_POSITIONS');

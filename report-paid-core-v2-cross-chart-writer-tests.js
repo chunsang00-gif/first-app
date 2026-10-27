@@ -6,6 +6,7 @@ const assert=require('node:assert/strict');
 const facts=require('./report-facts-node');
 const bridge=require('./report-paid-core-depth-v2');
 const writer=require('./report-generation-request');
+const manuscript=require('./report-core-v2-source-bound-manuscript');
 const {capture}=require('./report-core-paid-full-prompt-capture');
 const cases=[];
 for(const year of [1982,1994,2006,2018]){
@@ -19,6 +20,8 @@ for(const year of [1982,1994,2006,2018]){
 }
 async function run(){
  let qualified=0,unqualified=0,hour=0,year=0;
+ const readerHeadings=new Set(),readerScenes=new Set(),
+  readerContexts=new Set(),readerSamples=[];
  const examples=new Set(),hourDrift=new Map();
  for(const fixture of cases){
   const packet=facts.build(fixture,2027);
@@ -51,9 +54,41 @@ async function run(){
   assert.equal(packet.chart[c.visiblePosition.split('.')[1]][0],stem);
   assert(c.comparisonQuestion.includes('태어난 달'));
   assert(c.conditionIfMissingMain!==c.conditionIfMissingNew);
+  const scopedPrompt={paidCoreDepthV2:true,stage:'body',
+   requestedSections:['saju_core'],facts:packet};
+  const unchangedSource={chapters:{saju_core:{paragraphs:{
+   temperament:null,strength:{text:'태어난 달의 중심 기준과 확인할 역할을 살펴봅니다.'}
+  }}}};
+  const prose=manuscript.build(scopedPrompt,unchangedSource);
+  assert(prose&&prose.origin==='deterministic-editorial-template-not-model-output');
+  assert.equal(prose.approvedForSale,false);
+  assert(prose.proposal.text.length>=350);
+  assert(prose.proposal.text.includes('예를 들어'));
+  assert(prose.proposal.text.includes('반대로'));
+  assert(!prose.proposal.text.includes('태어난 해·날·시간은 각각 다른 계산 위치'));
+  assert(c.sourceRefs.every(ref=>prose.proposal.basis.refs.includes(ref)));
+  assert(prose.proposal.basis.refs.includes('facts.seasonalEvidence'));
+  assert(prose.proposal.basis.refs.includes('facts.qiEvidence'));
+  assert(!prose.proposal.basis.refs.includes('natal.day.stem'));
+  const unrelated=c.visiblePosition==='natal.hour.stem'?
+   'natal.year.stem':'natal.hour.stem';
+  assert(!prose.proposal.basis.refs.includes(unrelated),
+   'unrelated extra pillar must not be cited to pad prose');
+  assert.equal(prose.context.chartSpecific,true);
+  readerHeadings.add(prose.proposal.label);
+  readerScenes.add(c.otherRole);
+  readerContexts.add(c.mainRole+'|'+c.otherRole+'|'+c.visiblePosition);
+  if(readerSamples.length<2&&!readerSamples.some(x=>x.role===c.otherRole))
+   readerSamples.push({role:c.otherRole,visible:c.visiblePosition,
+    title:prose.proposal.label,example:prose.proposal.text.slice(0,145)});
+
  }
  assert(qualified>2,'Source-general bridge should not be a one-chart template');
  assert(unqualified>2,'Unqualified cases must remain optional, not fabricated');
+ assert(readerHeadings.size>=2,'new first-chapter headings must differ by source roles');
+ assert(readerScenes.size>=2,'different confirmed roles need different grounded scenes');
+ assert(readerContexts.size>=2,'two distinct chart roles must not collapse');
+ assert(readerSamples.length===2);
  assert.equal(qualified+unqualified,cases.length);
  // Verify independently compiled real first-chapter provider task, not a
  // mock-only helper or merely a source enumeration.
@@ -89,6 +124,9 @@ async function run(){
  }
  console.log('CROSS_CHART_ACTUAL_FIRST_CHAPTER_CONTRAST='+JSON.stringify({
   charts:cases.length,eligibleWithDistinctExactSource:qualified,
+  sourceBoundDraftsConstructed:qualified,distinctReaderHeadings:readerHeadings.size,
+  distinctOtherRoleScenes:readerScenes.size,distinctRoleAndPositionContexts:readerContexts.size,
+  sampleIntroductions:readerSamples,
   unqualifiedNotInvented:unqualified,yearExposures:year,hourExposures:hour,
   actualWriterGroundingVerified:true,
   oldPaidRunnerApprovalReused:false,providerCalls:0,

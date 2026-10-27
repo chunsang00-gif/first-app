@@ -361,6 +361,15 @@ function schema(prompt,transport){
     basis.properties.interpretation.description=
      'QA용 출생 해·달·날·시간의 계산 근거는 이 문자열 그대로 적습니다. 독자용 본문에는 전문 명칭을 옮기지 않습니다.';
    }
+   if(chapterId==='saju_core'&&topic==='temperament'&&
+      prompt.paidCoreDepthV2===true&&task.paidCoreDepthV2?.readerContrast){
+    // The model sees this exact scoped instruction in its strict JSON
+    // output slot, not only in a distant editorial metadata field.
+    p.properties.text.description+=' 이 사주의 독립 근거: '+
+     task.paidCoreDepthV2.readerContrast.comparisonQuestion+
+     ' readerContrast.sourceRefs로 계산된 정확한 위치를 인용하되, 다른 출생 해·날·시간의 설명을 억지로 늘리지 않는다. '+
+     '본문은 일반 조언 대신 누락되는 두 조건을 구별하는 가상 사례로 쓴다. 실제 행동이나 미래의 성패를 단정하지 않는다.';
+   }
    p.properties={basis,...p.properties};p.required=['basis',...p.required];
   }
  }
@@ -538,12 +547,14 @@ function restoreEvidence(value,prompt){
     }
     if(!allowed.size||b.refs.some(ref=>!allowed.has(ref)))throw Error('AI report service unrelated paragraph basis: '+id+':'+topic);
     if(id==='saju_core'&&topic==='temperament'&&prompt.paidCoreDepthV2===true){
-     const expected=require('./report-paid-core-depth-v2').REFS;
+     const contrast=task.paidCoreDepthV2.readerContrast;
+     // Cite what the reader is actually told: a verified visible position
+     // matching a different month-hidden position. Do not force the
+     // unrelated year/day/hour rows into the new paragraph as filler.
+     const expected=contrast?.sourceRefs||
+      require('./report-paid-core-depth-v2').REFS;
      if(!expected.every(ref=>allowed.has(ref)&&b.refs.includes(ref)))
       throw Error('PAID_CORE_DEPTH_V2_MISSING_EXPLICIT_ADDITIONAL_CITATIONS');
-     const contrast=task.paidCoreDepthV2.readerContrast;
-     if(contrast&&(!contrast.sourceRefs.every(ref=>allowed.has(ref)&&b.refs.includes(ref))))
-      throw Error('PAID_CORE_V2_CONTRAST_MISSING_EXACT_HIDDEN_AND_VISIBLE_BASIS');
      const problems=require('./report-paid-core-depth-v2-reader-review')
       .inspect(p,chapter.paragraphs.strength?.text,task.paidCoreDepthV2);
      if(problems.length)
