@@ -81,7 +81,8 @@ function bind(value,prompt){
  const semantic=require('./report-paid-core-v2-editorial-triage')
   .inspect(extra,base,topic.paidCoreDepthV2);
  if(semantic.findings.length)
-  return {value,changed:false,reason:'two-way-meaning-or-scene-rejected'};
+  return {value,changed:false,reason:'two-way-meaning-or-scene-rejected',
+   issueCodes:semantic.findings.slice()};
  // The authoritative validator still runs in the decoder after binding.
  // No conditional paragraph can skip restoreEvidence or its source checks.
  return {value:clone,changed:true,reason:'deterministic-verified-exposure-provenance',
