@@ -28,7 +28,7 @@ const policy=policyParts.join('\n');
 // Preserve every Saju and universal integrity rule while excluding future
 // fortune, MBTI integration, and end-of-report instructions from core prose.
 const corePolicyPartIndexes=[0,1,2,4,5,6,7,8,9,10,12,16];
-const coreDepthExperimentalPolicy='개발용 선택 문단에 전달된 출생 해·날·시간의 추가 근거는 각각의 실제 글자와 전통적 의미에 한정한다. 기존 출생월 두 분류만 설명하는 strength를 반복하지 않는다. 새 근거로 사람의 실제 성격·적성·수입·미래를 단정하거나 합화·강약·격국 우선순위를 발명하지 않는다. 차별화된 조건부 풀이가 확인되지 않으면 temperament는 null로 둔다.';
+const coreDepthExperimentalPolicy='개발용 선택 문단에 전달된 출생 해·날·시간의 추가 근거는 각각의 실제 글자와 전통적 의미에 한정한다. 기존 출생월 두 분류만 설명하는 strength를 반복하지 않는다. 새 근거로 사람의 실제 성격·적성·수입·미래를 단정하거나 합화·강약·격국 우선순위를 발명하지 않는다. 짝 관계는 paidCoreDepthV2.visiblePairCandidates의 원문 계산 표 대응만 확인한 것이며 실제 합쳐짐·좋고 나쁨·효과를 뜻하지 않는다. 특히 태어난 날과 시간의 두 겉글자가 짝인 경우 그 사실과 서로 다른 기운의 방향은 분리해 설명하고, 그런 짝이 없는 다른 출생시간에 같은 문장을 복사하지 않는다. 차별화된 조건부 풀이가 확인되지 않으면 temperament는 null로 둔다.';
 const normalPaidMonthMethodBoundary="달의 겉글자가 기본 숨은 글자가 아닌 달의 다른 숨은 글자와 정확히 같을 때에는, 기본 숨은 글자가 실제 사령이나 해석의 최우선 기준이라고 단정하지 않는다. 반대로 다른 숨은 글자가 일치한다고 그것이 곧 우선한다고 결론내리지 않는다. evidenceFocus.tenGodFocus.monthStemVisibility는 오직 계산상 일치·불일치를 설명하는 자료이며 격국과 성격·능력을 검증한 뜻이 아니다. 유료 첫 장의 basis.limit에는 이 판단 한계를 내부적으로 남기고 독자 본문에서 기술 용어를 반복하지 않는다.";
 const additivePolicy='선택형 QA: temperament는 일반 유료 첫 장처럼 독립적 근거가 있을 때만 작성하고 strength는 필수로 유지한다. natal_depth는 선택 항목이며 새로운 개인별 판단 근거가 없으면 null로 반환한다. 고전이나 계산 정보의 일치 자체를 실제 성격 또는 미래 결과로 단정하지 않는다.';
 function policyFor(prompt){
@@ -537,6 +537,10 @@ function restoreEvidence(value,prompt){
      const expected=require('./report-paid-core-depth-v2').REFS;
      if(!expected.every(ref=>allowed.has(ref)&&b.refs.includes(ref)))
       throw Error('PAID_CORE_DEPTH_V2_MISSING_EXPLICIT_ADDITIONAL_CITATIONS');
+     const problems=require('./report-paid-core-depth-v2-reader-review')
+      .inspect(p,chapter.paragraphs.strength?.text,task.paidCoreDepthV2);
+     if(problems.length)
+      throw Error('PAID_CORE_V2_READER_REJECTED:'+problems.join('|'));
     }
     if(id==='saju_core'&&topic==='strength'){
      // Month-position traditional ten-god meanings are now the required
