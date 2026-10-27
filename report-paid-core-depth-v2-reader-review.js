@@ -23,7 +23,8 @@ function inspect(p,monthText,extra){
  // not justify forcing a recital of all four pillars into reader prose.
  // Only the genuinely new position is required in that case. Preserve
  // the original strict check when no exact contrast is available.
- const c=extra.readerContrast;
+ const c=extra.readerContrast||extra.readerAlternative;
+ const alternative=!extra.readerContrast&&!!extra.readerAlternative;
  if(c){
   if(!Array.isArray(c.sourceRefs)||!Array.isArray(p.basis?.refs)||
      !c.sourceRefs.every(x=>p.basis.refs.includes(x)))
@@ -32,7 +33,13 @@ function inspect(p,monthText,extra){
    c.visiblePosition==='natal.year.stem'?/(?:태어난\s*해|태어난\s*연도)/:null;
   if(!location||!location.test(text)||!/태어난\s*달|출생월/.test(text))
    errors.push('PAID_CORE_V2_READER_MISSING_ACTUAL_EXPOSED_POSITION');
-  if(!/(?:달의\s*대표|달\s*속글자|달에\s*있는\s*다른|달\s*안쪽|달\s*속에\s*숨은)/.test(text)||
+  if(alternative){
+   if(c.linkageKind!=='different-visible-role-not-exact-month-hidden-exposure'||
+      !/(?:달의\s*대표|달의\s*숨은|대표\s*속글자)/.test(text)||
+      !/(?:서로\s*다른\s*분류|별도\s*분류|별개의\s*분류)/.test(text)||
+      /달의\s*다른\s*속글자와\s*정확히\s*일치/.test(text))
+    errors.push('PAID_CORE_V2_READER_FALSE_VISIBLE_EXPOSURE');
+  }else if(!/(?:달의\s*대표|달\s*속글자|달에\s*있는\s*다른|달\s*안쪽|달\s*속에\s*숨은)/.test(text)||
      !/(?:정확히\s*일치|정확히\s*대응|정확히\s*같|겉으로\s*드러)/.test(text))
    errors.push('PAID_CORE_V2_READER_MISSING_EXACT_EXPOSURE_EXPLANATION');
  }else if(!/(?:태어난\s*해|태어난\s*연도)/.test(text)||

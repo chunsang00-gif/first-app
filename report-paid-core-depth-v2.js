@@ -105,10 +105,13 @@ function build(packet){
  if(comparison)
   comparison.readerWritingPlan=require('./report-core-v2-directional-writing-plan')
    .forContrast(comparison);
+ const alternative=require('./report-core-v2-visible-alternative')
+  .build(packet,comparison);
  return {kind:'first-chapter-optional-full-chart-source-v1',
-  sourceRefs:[...REFS,...(comparison?[mainId,selected.hiddenRef]:[])],
+  sourceRefs:[...REFS,...(comparison?[mainId,selected.hiddenRef]:
+   alternative?[mainId]:[])],
   positions,exposures,visiblePairCandidates,
-  readerContrast:comparison,
+  readerContrast:comparison,readerAlternative:alternative,
   visibleElementDirections,
   comparisonScope:'computed-position-and-exact-exposure-only',
   observedPersonality:false,selectedTraditionalPriority:false,

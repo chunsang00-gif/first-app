@@ -22,6 +22,9 @@ for(const year of [1982,1994,2006,2018]){
 }
 async function run(){
  let qualified=0,unqualified=0,hour=0,year=0;
+ let alternative=0,stillUnqualified=0,alternativeYear=0,alternativeHour=0;
+ const distinctAlternativeDirections=new Set();
+ const alternativeSamples=[];
  const readerHeadings=new Set(),readerScenes=new Set(),
   readerContexts=new Set(),readerSamples=[];
  const examples=new Set(),hourDrift=new Map(),
@@ -39,7 +42,44 @@ async function run(){
   if(!hourDrift.has(id))hourDrift.set(id,[]);
   hourDrift.get(id).push({hour:fixture.birthTime,
    contrast:c?JSON.stringify([c.extraHiddenId,c.visiblePosition]):null});
-  if(!c){unqualified++;continue}
+  if(!c){
+   unqualified++;
+   const alt=x.readerAlternative;
+   if(!alt){stillUnqualified++;continue}
+   alternative++;
+   assert.equal(alt.kind,'verified-distinct-visible-category-conditional-comparison-v1');
+   assert.equal(alt.linkageKind,'different-visible-role-not-exact-month-hidden-exposure');
+   assert.equal(alt.approvedForSale,false);
+   assert.equal(alt.realizedDirectionEffectVerified,false);
+   assert(['natal.year.stem','natal.hour.stem'].includes(alt.visiblePosition));
+   assert(x.sourceRefs.includes(alt.mainMonthId));
+   assert(alt.sourceRefs.every(id=>x.sourceRefs.includes(id)));
+   assert(alt.mainRole!==alt.otherRole);
+   assert(!packet.facts.stemConnections.exposure.some(row=>
+    row.position==='month'&&row.hiddenStem===
+     packet.chart[alt.visiblePosition.split('.')[1]][0]));
+   const anchor=packet.facts.structuralEvidence.monthCommand.mainHiddenStem;
+   const visibleStem=packet.chart[alt.visiblePosition.split('.')[1]][0];
+   assert.equal(alt.monthMainToExposedElementDirection,direction(anchor,visibleStem));
+   const trial=manuscript.build(
+    {paidCoreDepthV2:true,stage:'body',requestedSections:['saju_core'],facts:packet},
+    {chapters:{saju_core:{paragraphs:{temperament:null,
+      strength:{text:'태어난 달의 중심 기준을 읽습니다.'}}}}});
+   assert(trial&&trial.context.linkageKind==='distinct-visible-role');
+   assert.equal(trial.approvedForSale,false);
+   assert.equal(trial.context.exactHiddenSource,null);
+   assert(!trial.proposal.text.includes('달의 다른 속글자와 정확히 일치'));
+   assert(trial.proposal.text.includes('밖에 나타난 것은 아닙니다'));
+   assert(alt.sourceRefs.every(id=>trial.proposal.basis.refs.includes(id)));
+   assert(trial.proposal.text.includes(trial.context.decisionQuestion));
+   if(alt.visiblePosition==='natal.year.stem')alternativeYear++;
+   else alternativeHour++;
+   distinctAlternativeDirections.add(alt.monthMainToExposedElementDirection);
+   if(alternativeSamples.length<2&&!alternativeSamples.some(a=>a.role===alt.otherRole))
+    alternativeSamples.push({role:alt.otherRole,
+     position:alt.visiblePosition,judgment:trial.context.decisionQuestion});
+   continue;
+  }
   qualified++;examples.add(id+' '+fixture.birthTime);
   assert.equal(c.kind,'verified-other-month-hidden-visible-role-conditional-reading-v1');
   assert.equal(c.prioritizationVerified,false);
@@ -112,6 +152,10 @@ async function run(){
  }
  assert(qualified>2,'Source-general bridge should not be a one-chart template');
  assert(unqualified>2,'Unqualified cases must remain optional, not fabricated');
+ assert(alternative>0,'A genuinely independent secondary calculated route must exist');
+ assert(stillUnqualified>0,'Charts with ambiguous alternative sources must stay empty');
+ assert.equal(qualified+alternative+stillUnqualified,cases.length);
+ assert.equal(unqualified,alternative+stillUnqualified);
  assert(readerHeadings.size>=2,'new first-chapter headings must differ by source roles');
  assert(readerScenes.size>=2,'different confirmed roles need different grounded scenes');
  assert(readerContexts.size>=2,'two distinct chart roles must not collapse');
@@ -156,6 +200,10 @@ async function run(){
  }
  console.log('CROSS_CHART_ACTUAL_FIRST_CHAPTER_CONTRAST='+JSON.stringify({
   charts:cases.length,eligibleWithDistinctExactSource:qualified,
+  newlyQualifiedDistinctVisibleOnly:alternative,
+  stillUnqualified:stillUnqualified,alternativeYear,alternativeHour,
+  alternativeDirections:[...distinctAlternativeDirections].sort(),
+  examplesOfActualDifferentQuestions:alternativeSamples,
   sourceBoundDraftsConstructed:qualified,distinctReaderHeadings:readerHeadings.size,
   distinctOtherRoleScenes:readerScenes.size,distinctRoleAndPositionContexts:readerContexts.size,
   distinctElementDirections:directions.size,distinctCausalQuestions:decisionQuestions.size,

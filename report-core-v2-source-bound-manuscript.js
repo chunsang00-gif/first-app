@@ -73,7 +73,8 @@ function build(prompt,oldValue){
   return null;
  const packet=prompt.facts;
  if(packet?.status!=='ready'||!packet.chart?.hour)return null;
- const extra=bridge.build(packet),c=extra.readerContrast;
+ const extra=bridge.build(packet),c=extra.readerContrast||extra.readerAlternative;
+ const alternative=!!extra.readerAlternative&&!extra.readerContrast;
  if(!c||c.approvedForSale!==false||!c.visiblePosition||
     c.visiblePosition=== 'natal.day.stem'||!SCENES[c.mainRole]||
     !SCENES[c.otherRole]||c.mainRole===c.otherRole)return null;
@@ -82,7 +83,8 @@ function build(prompt,oldValue){
  const base=SCENES[c.mainRole],novel=SCENES[c.otherRole];
  const symbolic=RELATION[c.monthMainToExposedElementDirection];
  const mainStem=packet.facts.structuralEvidence?.monthCommand?.mainHiddenStem;
- const sourceStem=c.extraHiddenId.slice('natal.month.hidden.'.length);
+ const sourceStem=alternative?packet.chart[c.visiblePosition.split('.')[1]][0]:
+  c.extraHiddenId.slice('natal.month.hidden.'.length);
  const direction=require('./report-core-paid-natal-visible-relation-bridge').direction(
   mainStem,sourceStem);
  if(!symbolic||!mainStem||c.monthMainToExposedElementDirection!==direction||
@@ -94,15 +96,19 @@ function build(prompt,oldValue){
  const sourceIds=[...new Set([...c.sourceRefs,
   'facts.seasonalEvidence','facts.qiEvidence'])];
  const text=[
-  '이 사주에서 태어난 달의 대표 글자는 '+base.focus+'라는 질문과 연결됩니다. 그런데 '+visible+
-  '의 겉글자는 달의 다른 속글자와 정확히 일치합니다. 그래서 '+novel.focus+
-  '를 별도의 기준으로 살펴볼 근거가 생깁니다. '+symbolic.meaning(base,novel)+
+  '이 사주에서 태어난 달의 대표 글자는 '+base.focus+'라는 질문과 연결됩니다. '+
+  (alternative?'여기에 '+visible+'의 겉글자에서 '+novel.focus+
+    '라는 서로 다른 분류가 확인됩니다. 이 겉글자는 달의 숨은 글자가 밖에 나타난 것은 아닙니다. ':
+   '그런데 '+visible+'의 겉글자는 달의 다른 속글자와 정확히 일치합니다. 그래서 '+novel.focus+
+   '를 별도의 기준으로 살펴볼 근거가 생깁니다. ')+symbolic.meaning(base,novel)+
   ' 이는 계산된 기운 사이의 전통적 관계일 뿐, 실제 성격이나 삶에서 일어난 일은 확인하지 못합니다.',
   '예를 들어 '+novel.scene+'을 가정해 보겠습니다. '+symbolic.choice(base,novel)+' '+
   symbolic.reverse(base,novel)+' '+
   '같은 두 조건을 읽더라도 이번 관계에서 핵심 질문은 '+symbolic.pivot+'입니다. '+
   '한 가지 분류만 읽었을 때와 비교가 달라지는 이유는 서로 다른 출처뿐 아니라 그 사이의 계산 방향도 확인했기 때문입니다.',
-  (visible==='태어난 시간'
+  (alternative?
+   '이 비교는 '+visible+'의 별도 분류와 태어난 달의 대표 속글자 사이에 계산된 상징적 관계만 사용합니다. 달의 다른 숨은 글자가 밖으로 드러났다고 주장하지 않습니다. 출생정보를 바꾸어 해당 분류가 달라지면 이 질문도 다시 확인해야 합니다. ':
+   visible==='태어난 시간'
    ?'이 추가 비교는 태어난 시간의 겉글자와 달 속글자가 정확히 일치하는 경우에만 해당합니다. 시간이 달라져 그 일치가 사라지면 이 결론을 재사용할 수 없습니다. '
    :'이 추가 비교는 태어난 해의 겉글자와 달 속글자가 정확히 일치하는 경우에만 해당합니다. 해의 위치를 출생시간의 특징으로 바꿔 설명할 수는 없습니다. ')+
   '어떤 기준이 실제 생활에서 더 강하게 작용하는지와 그 선택의 결과는 이 계산만으로 정할 수 없습니다.'
@@ -113,8 +119,8 @@ function build(prompt,oldValue){
   basis:{
    refs:sourceIds,
    interpretation:'출생월 대표 분류와 태어난 '+(visible==='태어난 해'?'해':'시간')+
-    '에서 정확히 대응하는 달 속글자 분류를 '+c.monthMainToExposedElementDirection+
-    ' 방향의 전통적 관계로만 비교합니다.',
+    (alternative?'에서 구별되는 겉글자 분류를 ':'에서 정확히 대응하는 달 속글자 분류를 ')+
+    c.monthMainToExposedElementDirection+' 방향의 전통적 관계로만 비교합니다.',
    condition:'가상의 '+novel.scene+'에서 '+symbolic.pivot+'를 질문합니다.',
    limit:'실제 성격·행동·재물 성과·명리적 우선순위는 입증되지 않았습니다.'
   }
@@ -130,7 +136,8 @@ function build(prompt,oldValue){
   kind:'source-bound-offline-editorial-proposal-v1',
   origin:'deterministic-editorial-template-not-model-output',
   context:{otherRole:c.otherRole,mainRole:c.mainRole,
-   sourcePosition:c.visiblePosition,exactHiddenSource:c.extraHiddenId,
+   sourcePosition:c.visiblePosition,exactHiddenSource:c.extraHiddenId||null,
+   linkageKind:alternative?'distinct-visible-role':'month-hidden-exact',
    symbolicDirection:c.monthMainToExposedElementDirection,
    decisionQuestion:symbolic.pivot,chartSpecific:true},
   proposal,humanReviewPending:true,approvedForSale:false

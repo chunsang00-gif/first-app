@@ -91,7 +91,8 @@ function inspect(prompt,payload,schema){
       ![...refs].some(x=>x.startsWith('natal.'))))
     note('no-possible-two-framework-sources:'+id+'/'+topic);
    if(id==='saju_core'&&topic==='temperament'&&prompt.paidCoreDepthV2===true){
-    const c=directive.paidCoreDepthV2?.readerContrast;
+    const c=directive.paidCoreDepthV2?.readerContrast||
+     directive.paidCoreDepthV2?.readerAlternative;
     if(c){
      let expectedGuide=null;
      try{
@@ -100,6 +101,9 @@ function inspect(prompt,payload,schema){
      }catch(e){note('core-v2-unsupported-directional-plan')}
      const guide=c.readerWritingPlan;
      const description=String(leaf.properties?.text?.description||'');
+     const alternative=!!directive.paidCoreDepthV2?.readerAlternative;
+     if(alternative&&!description.includes('달 속글자의 정확한 겉글자 노출이 없으며'))
+      note('core-v2-false-exact-exposure-schema');
      if(!expectedGuide||
         JSON.stringify(guide)!==JSON.stringify(expectedGuide)||
         guide?.sourceRefs?.some(x=>!refs.has(x))||
