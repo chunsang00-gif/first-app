@@ -76,7 +76,13 @@ async function run(){
  // Some REAL server batches also include MBTI: isolate the exact core
  // subset for this zero-provider first-chapter replay, rather than
  // claiming our core-only stub is a full mixed-batch response.
- const corePrompt={...z.prompt,requestedSections:['saju_core']};
+ // This source chart is sometimes bundled with MBTI in the normal
+ // six-call plan; the V2 switch is intentionally OFF for such mixed batches.
+ // Explicitly reproduce a standalone offline core request here. This is
+ // a writer/reader compatibility replay, NOT proof that all paid batch
+ // schedules currently activate V2 for all charts.
+ const corePrompt={...z.prompt,requestedSections:['saju_core'],
+  paidCoreDepthV2:true};
  const second=response(corePrompt);
  const s2=decoder.decode(second,corePrompt);
  const proposed=planner.build(corePrompt,second);
