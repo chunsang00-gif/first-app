@@ -83,6 +83,8 @@ async function inspect(dir){
 
  const nonCitationDefects=hypotheticalGuard.filter(x=>
   !['PAID_CORE_V2_READER_MISSING_EXACT_CONTRAST_BASIS'].includes(x));
+ const editorialTriage=require('./report-paid-core-v2-editorial-triage')
+  .inspect(extra,anchor.text,topic.paidCoreDepthV2);
  const ngramOverlap=require('./report-core-paid-natal-depth-response-gate')
   .overlap(extra.text,anchor.text);
  const report={
@@ -105,6 +107,12 @@ async function inspect(dir){
   originalReaderGuardCodes:currentGuard,
   hypotheticalCitationOnlyRemainingGuardCodes:nonCitationDefects,
   hypotheticalCitationOnlyTechnicalGuardPass:nonCitationDefects.length===0,
+  editorialQualityCodes:editorialTriage.findings,
+  editorialScenePresent:editorialTriage.observed.hasScene,
+  editorialTwoSidedDownsideSentences:
+   editorialTriage.observed.conditionalDownsideSentences,
+  editorialIndependentMethodReviewed:editorialTriage.independentMethodReviewed,
+  editorialReadyToSell:editorialTriage.canSell,
   extraBaseTextOverlap:Number(ngramOverlap.toFixed(3)),
   automaticProvenanceOnOldUnjustifiedParagraph:false,
   automatedBindingRefusalReason:originalBind.reason,
