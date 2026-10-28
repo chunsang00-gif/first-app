@@ -17,14 +17,15 @@ function verify(text,contract){
  const positionContrast=sentences.some(x=>
   position.test(x)&&/(?:태어난\s*달|달의|출생월)/.test(x)&&
   /(?:서로\s*다른|별도|별개|다른\s*분류)/.test(x));
- const noExposure=/(?:드러난\s*것은\s*아니|드러났다는\s*뜻은\s*아니|정확히\s*일치(?:하는\s*것)?이?\s*아니|정확히\s*같(?:은\s*것)?은\s*아니)/.test(s);
+ const noExposure=/(?:드러난\s*것은\s*(?:아니|아닙|아닌)|드러났다는\s*뜻은\s*(?:아니|아닙|아닌)|정확히\s*일치(?:하는\s*것)?이?\s*(?:아니|아닙|아닌)|정확히\s*같(?:은\s*것)?은\s*(?:아니|아닙|아닌))/.test(s);
  const opposite=/(?:반대로|반면|한편|다른\s*경우)/.test(s);
  const failures=sentences.filter(x=>
   /(?:없으면|없다면|부족하면|빠지면|않으면|못하면|미리\s*정하지\s*않)/.test(x));
  const hypothetical=/(?:예를\s*들어|가정|상황을\s*생각)/.test(s);
  const keywords=anchorWords[contract.sceneId]||[];
  const distinctScene=keywords.length>=2&&keywords.every(w=>s.includes(w));
- const fabricated=/(?:태어난\s*(?:해|연도|시간)|출생\s*시간).{0,65}(?:달의\s*(?:다른\s*)?(?:속글자|숨은\s*글자)|달\s*속글자).{0,65}(?:정확히\s*(?:일치|같|대응)|겉으로\s*드러)/.test(s)&&!noExposure;
+ const fabricated=sentences.some(sentence=>/(?:태어난\s*(?:해|연도|시간)|출생\s*시간).{0,65}(?:달의\s*(?:다른\s*)?(?:속글자|숨은\s*글자)|달\s*속글자).{0,65}(?:정확히\s*(?:일치|같|대응)|겉으로\s*드러)/.test(sentence)&&
+  !/(?:아니|아닙|아닌|않|없|미확인)/.test(sentence));
  const impossible=/(?:반드시\s*부자가|무조건\s*성공|운명입니다|실제로\s*이\s*일을\s*했)/.test(s);
  return {pass:positionContrast&&noExposure&&opposite&&failures.length>=2&&
   hypothetical&&distinctScene&&!fabricated&&!impossible,
