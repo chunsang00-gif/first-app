@@ -14,7 +14,7 @@ jobs:
     # HARD DISABLED. 2026-10-28 QA4 40704124862 failed before the
     # provider step, but its dispatch is consumed. Do not enable from
     # conversational "next"; new explicit consent is required.
-    # Unlike QA4, QA5 is deliberately NOT registered on main yet.
+    # main has a registry-only no-bill stub; this research job remains OFF.
     if: ${{ false }}
     runs-on: ubuntu-latest
     timeout-minutes: 25
