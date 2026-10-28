@@ -11,10 +11,10 @@ permissions:
   actions: read
 jobs:
   qa4-first-chapter:
-    # HARD DISABLED by design. New user consent, reviewed model/scheme,
-    # and a subsequent explicit code change are REQUIRED before billing.
-    # Do not change this based on "next", test success, or old approvals.
-    if: ${{ false }}
+    # NEW QA4 consent: only exact new input on the exact research branch.
+    # The default-branch placeholder is forever disabled. This job does
+    # NOT run on push and cannot reuse historical QA1/QA2/QA3 approvals.
+    if: ${{ github.ref_name == 'fix-paid-qa-fact-bindings-20261014' && inputs.paid_qa_confirmation == 'QA4_CLAIM_LINKED_ONE_NEW_REQUEST_ONLY' }}
     runs-on: ubuntu-latest
     timeout-minutes: 25
     concurrency:
