@@ -55,7 +55,7 @@ async function exercise(behavior){
     {chapters:{saju_core:{paragraphs:{
      strength:{text:'달을 먼저 읽습니다.'},temperament:null
     }}}};
-   await afterResponse(raw);
+   if(behavior!=='missing-raw-callback')await afterResponse(raw);
    if(behavior==='incomplete')throw Error('fake-provider-incomplete');
    if(behavior==='missing-decoded')return null;
    return {sections:[{id:behavior==='wrong-chapter'?
@@ -63,26 +63,31 @@ async function exercise(behavior){
     body:['달을 먼저 읽습니다.']}]};
   };
   const malformed=behavior==='wrong-chapter'||behavior==='missing-decoded';
+  const missingArchive=behavior==='missing-raw-callback';
   await assert.rejects(()=>qa3.run(),
    behavior==='incomplete'?
     /QA3_ONE_ATTEMPT_FAILED_NO_RETRY/:
     malformed?/QA3_WRONG_OUTPUT_CHAPTER_AFTER_ARCHIVING_NO_RETRY/:
+    missingArchive?/QA3_ORIGINAL_MODEL_RESPONSE_NOT_ARCHIVED/:
     /QA3_QUALITY_HOLD_NO_RETRY/);
   assert.equal(providerCalls,1,'there can be NO retry after a paid failure');
   assert.equal(historyChecks,1);
   const names=archive.NAMES.filter(n=>fs.existsSync(path.join(temp,n)));
   assert(names.includes(qa3.OUTPUT));
   assert(names.includes('private-qa-first-chapter-attempt.json'));
-  assert(names.includes('private-qa-first-chapter-provider-calls.json'));
+  assert.equal(names.includes('private-qa-first-chapter-provider-calls.json'),
+   !missingArchive,'no archival callback means no original response to preserve');
   const attempted=JSON.parse(fs.readFileSync(
    path.join(temp,'private-qa-first-chapter-attempt.json'),'utf8'));
-  const raw=JSON.parse(fs.readFileSync(
+  const raw=missingArchive?null:JSON.parse(fs.readFileSync(
    path.join(temp,'private-qa-first-chapter-provider-calls.json'),'utf8'));
   const result=JSON.parse(fs.readFileSync(
    path.join(temp,qa3.OUTPUT),'utf8'));
   assert.equal(attempted.providerCallsMaximum,1);
-  assert.equal(raw.providerCalls,1);
-  assert.equal(raw.requestHash,guard.REQUEST_HASH);
+  if(!missingArchive){
+   assert.equal(raw.providerCalls,1);
+   assert.equal(raw.requestHash,guard.REQUEST_HASH);
+  }
   assert.equal(result.providerCalls,1);
   assert.equal(result.releaseVerdict,'not-approved');
   assert.equal(result.requestHash,guard.REQUEST_HASH);
@@ -90,14 +95,20 @@ async function exercise(behavior){
    result.status==='failed-after-possible-charge-no-retry':
    malformed?
     result.status==='invalid-decoded-first-chapter-no-retry':
-    result.status==='quality-hold-no-retry');
+    missingArchive?
+     result.status==='missing-original-response-no-retry':
+     result.status==='quality-hold-no-retry');
   assert.equal(result.releaseVerdict,'not-approved');
   if(malformed){
    assert.equal(result.errorCode,
     'QA3_WRONG_OUTPUT_CHAPTER_AFTER_ARCHIVING_NO_RETRY');
    assert.equal(result.originalResponseArchived,true);
   }
-  if(behavior==='incomplete')assert.equal(raw.response.status,'incomplete');
+  if(missingArchive){
+   assert.equal(result.errorCode,'QA3_ORIGINAL_MODEL_RESPONSE_NOT_ARCHIVED');
+   assert.equal(result.originalResponseArchived,false);
+   assert(!names.includes('private-qa-first-chapter-validated-first-chapter.json'));
+  }else if(behavior==='incomplete')assert.equal(raw.response.status,'incomplete');
   else if(malformed){
    assert(!names.includes('private-qa-first-chapter-validated-first-chapter.json'),
     'bad decoded chapter must not create a success-looking editorial review');
@@ -112,11 +123,13 @@ async function exercise(behavior){
   const out=path.join(temp,'readback');
   const restored=archive.decrypt(enc,out);
   assert.deepEqual(new Set(restored),new Set(names));
-  assert.deepEqual(JSON.parse(fs.readFileSync(
-   path.join(out,'private-qa-first-chapter-provider-calls.json'),'utf8')),raw);
+  if(!missingArchive)
+   assert.deepEqual(JSON.parse(fs.readFileSync(
+    path.join(out,'private-qa-first-chapter-provider-calls.json'),'utf8')),raw);
   console.log('QA3_MOCK_ONE_ATTEMPT='+JSON.stringify({
    behavior,providerCalls,historyChecks,rawArchived:true,
-   encryptedRoundTrip:true,manualQualityApproval:false,
+   encryptedRoundTrip:true,originalResponseArchived:!missingArchive,
+   manualQualityApproval:false,
    autoRetry:false,realProviderCalls:0
   }));
  }finally{
@@ -133,4 +146,5 @@ async function exercise(behavior){
  await exercise('incomplete');
  await exercise('wrong-chapter');
  await exercise('missing-decoded');
+ await exercise('missing-raw-callback');
 })().catch(e=>{console.error(e);process.exitCode=1});
