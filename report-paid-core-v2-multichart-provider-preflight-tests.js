@@ -112,6 +112,13 @@ async function run(){
      'separate-visible':'exact-month-hidden',
     sourceRefs:owned.evidenceRefs.length,
     modelRequestBytes:Buffer.byteLength(JSON.stringify(body)),
+    taskBytes:Buffer.byteLength(JSON.stringify(payload.task)),
+    sourceBytes:Buffer.byteLength(JSON.stringify(payload.source)),
+    schemaBytes:Buffer.byteLength(JSON.stringify(strict)),
+    systemBytes:Buffer.byteLength(body.input[0].content),
+    chosenReaderInstructionBytes:Buffer.byteLength(String(
+      task.sourceQualifiedWritingDecision?.readerInstruction||'')),
+    paidCoreSourceEnvelopeBytes:Buffer.byteLength(JSON.stringify(task.paidCoreDepthV2)),
     taskHashPrefix:hash(payload).slice(0,12),
     schemaHashPrefix:hash(strict).slice(0,12),
     scenario:owned.sceneId||task.sourceQualifiedWritingDecision.readerScene?.sceneId,
