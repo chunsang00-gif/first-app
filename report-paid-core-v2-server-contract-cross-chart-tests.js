@@ -14,6 +14,7 @@ async function run(){
  const env={n:process.env.NODE_ENV,f:process.env.PAID_CORE_DEPTH_V2,r:process.env.RENDER};
  let cases=0,exact=0,other=0,none=0,scoped=0,unscoped=0,missingRef=0;
  const roles={},positions={},supported=[],contrasting=[];
+ const ownedPositions=new Set(),ownedScenes=new Set();
  try{
   process.env.NODE_ENV='test';
   process.env.PAID_CORE_DEPTH_V2='offline-preview';
@@ -44,9 +45,20 @@ async function run(){
       scoped++;
       assert.equal(owned.releaseVerdict,'not-approved');
       assert.equal(owned.humanEditorialApproval,false);
-      assert.equal(selected.readerScene?.sceneId,'maintained-equipment-two-missing-conditions');
+      assert(contract.SCENES[selected.readerScene?.sceneId],
+       'only explicit role+position+direction scenes may be server-owned');
       assert.deepEqual(contract.build(request.source,topic),owned);
-      assert.equal(owned.sourcePosition,'natal.hour.stem');
+      assert.equal(owned.sourcePosition,selected.readerScene.sceneId===
+       'maintained-equipment-two-missing-conditions'?'natal.hour.stem':'natal.year.stem');
+      ownedPositions.add(owned.sourcePosition);
+      ownedScenes.add(selected.readerScene.sceneId);
+      // A forged source position or scene pairing must NEVER let a
+      // different chart reuse this exact set of authoritatively bound refs.
+      const forged=structuredClone(topic);
+      forged.paidCoreDepthV2.readerContrast.visiblePosition=
+       owned.sourcePosition==='natal.year.stem'?'natal.hour.stem':'natal.year.stem';
+      assert.throws(()=>contract.build(request.source,forged),
+       /CORE_V2_SERVER_CONTRACT_UNVERIFIED_SCENE/);
       assert(owned.evidenceRefs.every(id=>Object.hasOwn(request.source,id)));
       const strict=writer.schema(captured.prompt,wire.schemaFor(captured.prompt,schema));
       const leaf=strict.properties.chapters.properties.saju_core.properties.paragraphs
@@ -70,12 +82,17 @@ async function run(){
   assert.equal(cases,96);
   assert.equal(cases,exact+other+none);
   assert.equal(scoped+unscoped,cases);
-  assert(scoped>0);
+  assert(scoped>=3,'both calendar-hour cases and the original verified chart must be covered');
   assert(unscoped>0);
+  assert.equal(ownedScenes.size,2,
+   'server ownership must cover two distinct verified role-pair scenarios');
+  assert.deepEqual([...ownedPositions].sort(),
+   ['natal.hour.stem','natal.year.stem']);
   console.log('CORE_V2_SERVER_OWNED_96_CHARTS='+JSON.stringify({
    tested:cases,exactExposure:exact,alternativeOnly:other,noIndependentReading:none,
    serverOwnedCount:scoped,legacyFallbackCount:unscoped,
    scopeConstrained:true,noProviderRequests:true,commercialReleaseApproved:false,
+   distinctVerifiedScenes:[...ownedScenes].sort(),serverOwnedPositions:[...ownedPositions].sort(),
    exactPositionCounts:positions,eligibleRoleTuples:roles,
    sourceVerifiedExamples:supported,notYetGeneralized:contrasting
   }));
