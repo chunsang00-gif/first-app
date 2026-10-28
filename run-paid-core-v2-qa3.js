@@ -139,12 +139,29 @@ async function run(){
   });
   throw Error('QA3_WRONG_OUTPUT_CHAPTER_AFTER_ARCHIVING_NO_RETRY');
  }
- const para=raw?.chapters?.saju_core?.paragraphs?.temperament;
- const month=raw?.chapters?.saju_core?.paragraphs?.strength?.text;
- const scope=require('./report-generation-request').compile(ready.prompt)
-  .task.chapters.saju_core.topics.temperament.paidCoreDepthV2;
- const triage=require('./report-paid-core-v2-editorial-triage')
-  .inspect(para,month,scope);
+ // Post-provider editorial checks can also fail. That failure must leave
+ // an encrypted-archive-eligible checkpoint and must never trigger a retry.
+ let triage;
+ try{
+  const para=raw?.chapters?.saju_core?.paragraphs?.temperament;
+  const month=raw?.chapters?.saju_core?.paragraphs?.strength?.text;
+  const scope=require('./report-generation-request').compile(ready.prompt)
+   .task.chapters.saju_core.topics.temperament.paidCoreDepthV2;
+  triage=require('./report-paid-core-v2-editorial-triage')
+   .inspect(para,month,scope);
+  if(!triage||!Array.isArray(triage.findings))
+   throw Error('QA3_INVALID_EDITORIAL_TRIAGE_RESULT');
+ }catch{
+  savePrivate(resultFile,{
+   kind:'qa3-first-chapter-one-attempt-result',
+   status:'editorial-inspection-failed-no-retry',
+   errorCode:'QA3_POST_PROVIDER_EDITORIAL_INSPECTION_FAILED',
+   originalResponseArchived:stored,providerCalls:calls,
+   requestHash:REQUEST_HASH,humanEditorialReviewRequired:true,
+   releaseVerdict:'not-approved'
+  });
+  throw Error('QA3_POST_PROVIDER_EDITORIAL_INSPECTION_FAILED_NO_RETRY');
+ }
  const hasCore=section.bodyTopics.includes('strength');
  const hasExtra=section.bodyTopics.includes('temperament');
  const pass=hasCore&&hasExtra&&triage.findings.length===0;
