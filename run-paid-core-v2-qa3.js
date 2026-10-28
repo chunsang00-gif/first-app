@@ -108,9 +108,23 @@ async function run(){
   throw Error('QA3_ONE_ATTEMPT_FAILED_NO_RETRY');
  }
  const section=decoded?.sections?.[0]||null;
- if(decoded.sections.length!==1||section?.id!=='saju_core'||
-    !Array.isArray(section?.bodyTopics))
+ if(!Array.isArray(decoded?.sections)||decoded.sections.length!==1||
+    section?.id!=='saju_core'||!Array.isArray(section?.bodyTopics)){
+  // A provider request MAY ALREADY HAVE BEEN CHARGED. A successful HTTP
+  // call with an unusable decoded chapter must leave an explicit private
+  // one-attempt result, never just a thrown exception with no checkpoint.
+  // The raw response has already been stored by onProviderResponse and
+  // the workflow's always() encrypted archive still runs on this failure.
+  savePrivate(resultFile,{
+   kind:'qa3-first-chapter-one-attempt-result',
+   status:'invalid-decoded-first-chapter-no-retry',
+   errorCode:'QA3_WRONG_OUTPUT_CHAPTER_AFTER_ARCHIVING_NO_RETRY',
+   originalResponseArchived:stored,providerCalls:calls,
+   requestHash:REQUEST_HASH,humanEditorialReviewRequired:true,
+   releaseVerdict:'not-approved'
+  });
   throw Error('QA3_WRONG_OUTPUT_CHAPTER_AFTER_ARCHIVING_NO_RETRY');
+ }
  const para=raw?.chapters?.saju_core?.paragraphs?.temperament;
  const month=raw?.chapters?.saju_core?.paragraphs?.strength?.text;
  const scope=require('./report-generation-request').compile(ready.prompt)
