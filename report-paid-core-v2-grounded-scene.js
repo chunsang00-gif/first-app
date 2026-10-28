@@ -19,6 +19,36 @@ function forContrast(contrast,source){
     main?.tenGod!==contrast.mainRole||
     hidden?.tenGod!==contrast.otherRole)
   throw Error('CORE_V2_EDITORIAL_SCENE_SOURCE_MISMATCH');
+ // A second independently verified relationship: month-main 비견
+ // symbol (responsibility boundaries) and a separately exposed 식신 symbol
+ // (completion of tangible output), visible at the YEAR stem. Neither
+ // a real-life characteristic nor a deterministic financial consequence.
+ if(contrast.mainRole==='비견'&&contrast.otherRole==='식신'&&
+    contrast.monthMainToExposedElementDirection==='left-generates-right'&&
+    visiblePosition==='natal.year.stem'){
+  return {
+   kind:'v2-verified-classifications-conditional-editorial-scene-v1',
+   sceneId:'community-notice-materials-two-missing-conditions',
+   rolePair:['비견','식신'],
+   traditionOnly:true,realPersonObservation:false,
+   priorityDetermined:false,approvedForSale:false,
+   sourceRefs:sourceRefs.slice(),
+   scene:'동네 행사 안내자료 30부를 준비해 주민에게 배포하는 가상 상황',
+   openingQuestion:'누가 내용을 결정하고 수정 책임을 맡으며, 누가 실제 자료를 완성해 배포 일정을 맞출까?',
+   originalCondition:'안내자료의 담당 범위와 최종 수정 책임이 정해진 상태',
+   additionalCondition:'자료 제작 작업량·검수 시간·배포 일정이 마련된 상태',
+   whenOnlyOriginal:'담당 책임을 정해도 자료를 만드는 작업량과 검수 시간을 배정하지 않으면 약속한 때에 안내자료를 배포하지 못할 수 있다',
+   whenOnlyAdditional:'안내자료 제작을 시작해도 누가 내용을 최종 승인할지 정해지지 않으면 수정 결정을 내리지 못해 배포가 늦어질 수 있다',
+   directionLimit:'기본 분류가 추가 분류를 생하는 전통 오행 방향일 뿐 실제 업무 성과나 책임감은 입증되지 않는다',
+   readerSequence:[
+    '태어난 해의 겉글자가 달의 다른 숨은 글자와 정확히 같다는 출생 위치 근거를 밝힘',
+    '행사 안내자료 제작이라는 가상 상황에서 책임 범위와 완성 과정의 차이를 보임',
+    '책임만 정한 경우와 제작만 시작한 경우의 서로 다른 누락 조건을 비교',
+    '기운 방향은 상징 분류에만 적용하고 개인의 실제 행동·업무 성과는 확정하지 않음'
+   ],
+   writerInstruction:'이것은 실제 사용자 경험이 아닌 가상의 행사 준비 장면이다. 안내자료 30부를 주민에게 배포하기 위해 누가 수정과 승인 책임을 지는지, 실제 자료 제작·검수와 배포 일정은 누가 확보하는지를 비교한다. 책임 범위만 정했지만 자료 제작 시간을 확보하지 못한 조건과, 자료는 제작하면서도 승인 담당이 없어 수정 결정을 못 내리는 조건을 서로 다른 문장으로 풀어 쓴다. 반드시 태어난 해의 겉글자가 달의 다른 속글자와 정확히 같다는 실제 계산 사실을 먼저 밝힌다. 달의 대표 분류가 추가 분류를 생하는 오행 방향이라는 것은 전통적인 상징일 뿐 이 사람이 안내자료를 만든 적이 있거나 일을 잘한다는 주장이 아니다.'
+  };
+ }
  // 정관 (roles and authorization) / 정재 (recurrent inputs).
  // Verified direction: the additional fire symbol generates earth.
  // A causal *real-world* effect does not follow from the element relation.
