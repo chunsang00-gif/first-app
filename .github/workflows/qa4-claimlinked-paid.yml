@@ -11,10 +11,11 @@ permissions:
   actions: read
 jobs:
   qa4-first-chapter:
-    # NEW QA4 consent: only exact new input on the exact research branch.
-    # The default-branch placeholder is forever disabled. This job does
-    # NOT run on push and cannot reuse historical QA1/QA2/QA3 approvals.
-    if: ${{ github.ref_name == 'fix-paid-qa-fact-bindings-20261014' && inputs.paid_qa_confirmation == 'QA4_CLAIM_LINKED_ONE_NEW_REQUEST_ONLY' }}
+    # RETIRED: QA4 workflow_dispatch 40704124862 was consumed on
+    # 2026-10-28, even though it failed BEFORE the provider request.
+    # Neither retries nor old confirmation may start QA4 again.
+    # QA5 has a separate ID and is independently hard-disabled.
+    if: ${{ false }}
     runs-on: ubuntu-latest
     timeout-minutes: 25
     concurrency:
