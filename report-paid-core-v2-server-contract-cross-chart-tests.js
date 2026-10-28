@@ -13,6 +13,7 @@ const audit=require('./report-provider-preflight');
 async function run(){
  const env={n:process.env.NODE_ENV,f:process.env.PAID_CORE_DEPTH_V2,r:process.env.RENDER};
  let cases=0,exact=0,other=0,none=0,scoped=0,unscoped=0,missingRef=0;
+ const expectedOwnedIds=new Set(Object.keys(contract.SCENES));
  const roles={},positions={},supported=[],contrasting=[];
  const ownedPositions=new Set(),ownedScenes=new Set();
  try{
@@ -48,8 +49,12 @@ async function run(){
       assert(contract.SCENES[selected.readerScene?.sceneId],
        'only explicit role+position+direction scenes may be server-owned');
       assert.deepEqual(contract.build(request.source,topic),owned);
-      assert.equal(owned.sourcePosition,selected.readerScene.sceneId===
-       'maintained-equipment-two-missing-conditions'?'natal.hour.stem':'natal.year.stem');
+      assert.equal(owned.sourcePosition,
+       contract.SCENES[selected.readerScene.sceneId].position);
+      assert(owned.outline.originalOnly!==owned.outline.additionalOnly);
+      assert.equal(owned.verifiedSourceIds.length,5);
+      assert(owned.evidenceRefs.includes('facts.stemConnections'));
+      assert.equal(owned.humanEditorialApproval,false);
       ownedPositions.add(owned.sourcePosition);
       ownedScenes.add(selected.readerScene.sceneId);
       // A forged source position or scene pairing must NEVER let a
@@ -59,6 +64,17 @@ async function run(){
        owned.sourcePosition==='natal.year.stem'?'natal.hour.stem':'natal.year.stem';
       assert.throws(()=>contract.build(request.source,forged),
        /CORE_V2_SERVER_CONTRACT_UNVERIFIED_SCENE/);
+      const forgedProse=structuredClone(topic);
+      forgedProse.sourceQualifiedWritingDecision.readerScene
+       .whenOnlyOriginal='누구나 어울리는 일반적인 조언';
+      assert.throws(()=>contract.build(request.source,forgedProse),
+       /CORE_V2_SERVER_CONTRACT_SCENE_DRIFT/,
+       'never accept a substituted scene just because refs are valid');
+      const forgedRole=structuredClone(topic);
+      forgedRole.paidCoreDepthV2.readerContrast.otherRole='상관';
+      assert.throws(()=>contract.build(request.source,forgedRole),
+       /CORE_V2_SERVER_CONTRACT_UNVERIFIED_SCENE/,
+       'one pair must not borrow a different symbolic category');
       assert(owned.evidenceRefs.every(id=>Object.hasOwn(request.source,id)));
       const strict=writer.schema(captured.prompt,wire.schemaFor(captured.prompt,schema));
       const leaf=strict.properties.chapters.properties.saju_core.properties.paragraphs
@@ -82,10 +98,11 @@ async function run(){
   assert.equal(cases,96);
   assert.equal(cases,exact+other+none);
   assert.equal(scoped+unscoped,cases);
-  assert(scoped>=3,'both calendar-hour cases and the original verified chart must be covered');
+  assert(scoped>=7,'all five evidence-verified role pair categories must be covered');
   assert(unscoped>0);
-  assert.equal(ownedScenes.size,2,
-   'server ownership must cover two distinct verified role-pair scenarios');
+  assert.equal(ownedScenes.size,5,
+   'server ownership must cover five distinct verified role-pair scenarios');
+  assert.deepEqual([...ownedScenes].sort(),[...expectedOwnedIds].sort());
   assert.deepEqual([...ownedPositions].sort(),
    ['natal.hour.stem','natal.year.stem']);
   console.log('CORE_V2_SERVER_OWNED_96_CHARTS='+JSON.stringify({
