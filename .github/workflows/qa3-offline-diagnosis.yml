@@ -167,6 +167,29 @@ jobs:
               newProviderCalls:0,
               humanQualityApproval:false
             }));
+            // Research route can be used only for the exact reviewed
+            // chart-specific manuscript; the real previously paid model
+            // response must NEVER acquire approval by changing rubric.
+            const route=require('./report-paid-core-v2-editorial-method-router');
+            const classical=route.inspect({
+              route:route.ROUTES.CLASSICAL,
+              prompt:ready.prompt,
+              paragraph:para,
+              monthText:strength?.text||''
+            });
+            if(classical.mechanicallySupported||
+                !classical.findings.includes(
+                  'CLASSICAL_QA_UNREVIEWED_MANUSCRIPT_OR_CLAIM')||
+                JSON.stringify(response)!==before)
+              throw Error('QA3_ARCHIVED_CLASSICAL_ROUTE_FALSE_APPROVAL');
+            console.log('QA3_ARCHIVED_CLASSICAL_EDITORIAL_ROUTE='+JSON.stringify({
+              archivedProviderResponseStillRejected:true,
+              reasonCodes:classical.findings,
+              noRawPersonalProseLogged:true,
+              originalResponseImmutable:true,
+              modelCalls:0,
+              releaseApproved:false
+            }));
           })().catch(e=>{const s=String(e?.message||''); const kind=/Cannot find module/.test(s)?'MISSING_LOCAL_MODULE':/PRECHECK|PREFLIGHT|SOURCE_CONTRACT|BILLING/.test(s)?'LOCAL_PREFLIGHT_FAILED':'UNCLASSIFIED_LOCAL_REPLAY_ERROR';console.error('QA3_OFFLINE_REPLAY_FAILED_NO_MODEL_CALL:'+kind);process.exitCode=1});
           NODE
       - name: Remove temporary private archive files
