@@ -37,6 +37,7 @@ const flags=['NODE_ENV','RENDER','PAID_CORE_DEPTH_V2',
   assert(!slot(standardSchema).properties.basis.properties.claimLinks);
   assert.deepEqual(preflight.inspect(prompt,payload,standardSchema),[]);
   process.env.PAID_CORE_V2_CLASSICAL_WRITER='offline-preview';
+  const classicalBaselineHash=(await prepare()).requestHash;
   process.env.PAID_CORE_V2_CLAIM_LINKS='offline-preview';
   assert.equal(links.enabled(prompt),true);
   const brief=bridge.inspect(prompt,payload);
@@ -128,8 +129,12 @@ const flags=['NODE_ENV','RENDER','PAID_CORE_DEPTH_V2',
   assert.equal(links.enabled(prompt),false);
   assert.deepEqual(writer.schema(prompt,wire.schemaFor(prompt,schemaBase)),
    writer.schema(prompt,wire.schemaFor(prompt,schemaBase)));
+  assert.equal((await prepare()).requestHash,classicalBaselineHash,
+   'classical writing request fingerprint must remain unchanged when link flag is off');
+  delete process.env.PAID_CORE_V2_CLASSICAL_WRITER;
   assert.equal((await prepare()).requestHash,standardHash,
    'original QA3 provider fingerprint must remain unchanged');
+  process.env.PAID_CORE_V2_CLASSICAL_WRITER='offline-preview';
   process.env.PAID_CORE_V2_CLAIM_LINKS='offline-preview';
   process.env.NODE_ENV='production';
   assert.equal(links.enabled(prompt),false);
