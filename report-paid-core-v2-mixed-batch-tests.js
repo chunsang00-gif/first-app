@@ -73,7 +73,14 @@ function mock(prompt){
   assert(enabled(prompt.requestedSections,prompt.stage,prompt.facts));
   const payload=writer.compile(prompt);
   assert.deepEqual(Object.keys(payload.task.chapters),prompt.requestedSections);
-  assert(payload.task.chapters.saju_core.coreV2ConditionalReadingBrief.includes('readerContrast'));
+  const owned=payload.task.chapters.saju_core.topics.temperament
+   .serverOwnedWritingContract||null;
+  if(owned)
+   assert(payload.task.chapters.saju_core.coreV2ConditionalReadingBrief
+    .includes(owned.textContract),
+    'verified model prose assignment must carry server-owned chart facts');
+  else assert(payload.task.chapters.saju_core.coreV2ConditionalReadingBrief
+   .includes('readerContrast'));
   assert(!Object.hasOwn(payload.task.chapters.mbti_contradiction,'coreV2ConditionalReadingBrief'));
   assert(payload.task.chapters.saju_core.topics.temperament.paidCoreDepthV2.readerContrast);
   const c=payload.task.chapters.saju_core.topics.temperament.paidCoreDepthV2.readerContrast;
@@ -89,24 +96,30 @@ function mock(prompt){
    .paragraphs.properties.temperament;
   const leaf=option.anyOf?.find(x=>x.type==='object')||option;
   const instructions=leaf.properties.text.description;
-  for(const phrase of [guide.decisionQuestion,guide.onlyOriginalCondition,
+  const requiredPhrases=owned?
+   [owned.textContract,owned.outline.proof,owned.outline.originalOnly,
+    owned.outline.additionalOnly]:
+   [guide.decisionQuestion,guide.onlyOriginalCondition,
     guide.onlyAdditionalCondition,guide.situationSequence,
-    guide.distinctInterpretationRule])
+    guide.distinctInterpretationRule];
+  for(const phrase of requiredPhrases)
    assert(instructions.includes(phrase),
-    'the ACTUAL outgoing model schema must guide the one chart question');
+    'the ACTUAL outgoing model schema must contain the chart-specific scene');
   const strippedSchema=structuredClone(schema);
   const stripped=strippedSchema.properties.chapters.properties.saju_core
    .properties.paragraphs.properties.temperament;
   const only=stripped.anyOf?.find(x=>x.type==='object')||stripped;
   only.properties.text.description='generic, both sources are important';
   assert(preflight.inspect(prompt,payload,strippedSchema)
-   .includes('core-v2-directional-writing-plan-not-on-provider-wire'));
+   .includes(owned?'core-v2-server-contract-not-on-provider-wire':
+     'core-v2-directional-writing-plan-not-on-provider-wire'));
   const corruptedPlan=structuredClone(payload);
   corruptedPlan.task.chapters.saju_core.topics.temperament
    .paidCoreDepthV2.readerContrast.readerWritingPlan.decisionQuestion=
     'generic, both conditions matter';
   assert(preflight.inspect(prompt,corruptedPlan,schema)
-   .includes('core-v2-directional-writing-plan-not-on-provider-wire'));
+   .includes(owned?'core-v2-server-contract-not-on-provider-wire':
+     'core-v2-directional-writing-plan-not-on-provider-wire'));
   const chapters=schema.properties.chapters.properties;
   assert.deepEqual(Object.keys(chapters),prompt.requestedSections);
   assert(!Object.hasOwn(chapters.mbti_contradiction.properties.paragraphs.properties,'temperament'));
