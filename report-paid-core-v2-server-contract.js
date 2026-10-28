@@ -50,7 +50,11 @@ function build(source,topic){
     contrast?.mainRole!==spec.mainRole||
     contrast?.otherRole!==spec.otherRole||
     contrast?.monthMainToExposedElementDirection!==spec.direction||
-    choice.approvedForSale!==false||!choice.readerFactAnchor)
+    choice.approvedForSale!==false||!choice.readerFactAnchor||
+    !Array.isArray(contrast.sourceRefs)||
+    !contrast.sourceRefs.includes(contrast.visiblePosition)||
+    !scene.sourceRefs.includes(contrast.visiblePosition)||
+    source[contrast.extraHiddenId]?.stem!==source[contrast.visiblePosition]?.stem)
   throw Error('CORE_V2_SERVER_CONTRACT_UNVERIFIED_SCENE');
  // Compare entire text/conditions with the source-derived canonical scene,
  // not only the role labels. A forged story would be invalid even with
