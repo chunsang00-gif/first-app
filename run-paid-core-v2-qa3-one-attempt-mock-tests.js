@@ -57,12 +57,16 @@ async function exercise(behavior){
     }}}};
    await afterResponse(raw);
    if(behavior==='incomplete')throw Error('fake-provider-incomplete');
-   return {sections:[{id:'saju_core',bodyTopics:['strength'],
+   if(behavior==='missing-decoded')return null;
+   return {sections:[{id:behavior==='wrong-chapter'?
+     'mbti_contradiction':'saju_core',bodyTopics:['strength'],
     body:['달을 먼저 읽습니다.']}]};
   };
+  const malformed=behavior==='wrong-chapter'||behavior==='missing-decoded';
   await assert.rejects(()=>qa3.run(),
    behavior==='incomplete'?
     /QA3_ONE_ATTEMPT_FAILED_NO_RETRY/:
+    malformed?/QA3_WRONG_OUTPUT_CHAPTER_AFTER_ARCHIVING_NO_RETRY/:
     /QA3_QUALITY_HOLD_NO_RETRY/);
   assert.equal(providerCalls,1,'there can be NO retry after a paid failure');
   assert.equal(historyChecks,1);
@@ -84,9 +88,21 @@ async function exercise(behavior){
   assert.equal(result.requestHash,guard.REQUEST_HASH);
   assert(behavior==='incomplete'?
    result.status==='failed-after-possible-charge-no-retry':
-   result.status==='quality-hold-no-retry');
+   malformed?
+    result.status==='invalid-decoded-first-chapter-no-retry':
+    result.status==='quality-hold-no-retry');
+  assert.equal(result.releaseVerdict,'not-approved');
+  if(malformed){
+   assert.equal(result.errorCode,
+    'QA3_WRONG_OUTPUT_CHAPTER_AFTER_ARCHIVING_NO_RETRY');
+   assert.equal(result.originalResponseArchived,true);
+  }
   if(behavior==='incomplete')assert.equal(raw.response.status,'incomplete');
-  else{
+  else if(malformed){
+   assert(!names.includes('private-qa-first-chapter-validated-first-chapter.json'),
+    'bad decoded chapter must not create a success-looking editorial review');
+   assert.equal(raw.response.chapters.saju_core.paragraphs.temperament,null);
+  }else{
    assert(names.includes('private-qa-first-chapter-validated-first-chapter.json'));
    assert.equal(raw.response.chapters.saju_core.paragraphs.temperament,null);
   }
@@ -115,4 +131,6 @@ async function exercise(behavior){
 (async()=>{
  await exercise('quality-hold');
  await exercise('incomplete');
+ await exercise('wrong-chapter');
+ await exercise('missing-decoded');
 })().catch(e=>{console.error(e);process.exitCode=1});
