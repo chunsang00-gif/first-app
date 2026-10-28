@@ -88,6 +88,10 @@ function project(prompt,payload){
      JSON.stringify(copy.task.chapters.mbti_contradiction)!==
       JSON.stringify(payload.task.chapters.mbti_contradiction)))
   throw Error('CORE_V2_PROVIDER_PROJECTION_PROTECTED_CONTENT_DRIFT');
- return copy;
+ // QA-only: after canonical validation and normal projection, replace the
+ // generic workplace scene ONLY in the outgoing model-facing payload.
+ // The source-owned server task and all live branches are untouched.
+ return require('./report-paid-core-v2-classical-provider-bridge')
+  .previewTransport(prompt,payload,copy);
 }
 module.exports={project};
