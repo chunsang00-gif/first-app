@@ -1,0 +1,66 @@
+name: QA4 claim-linked first chapter (disabled until NEW explicit approval)
+on:
+  workflow_dispatch:
+    inputs:
+      paid_qa_confirmation:
+        description: 'NEW exact QA4 model request; older QA1–QA3 authorizations NOT accepted'
+        required: true
+        type: string
+permissions:
+  contents: read
+  actions: read
+jobs:
+  qa4-first-chapter:
+    # HARD DISABLED by design. New user consent, reviewed model/scheme,
+    # and a subsequent explicit code change are REQUIRED before billing.
+    # Do not change this based on "next", test success, or old approvals.
+    if: ${{ false }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    concurrency:
+      group: qa4-claimlinked-one-attempt-no-retry
+      cancel-in-progress: false
+    env:
+      REPORT_MODEL: gpt-4.1
+      REPORT_QA_CONFIRM: ${{ inputs.paid_qa_confirmation }}
+      REPORT_QA_REQUEST_SHA256: '9e5c729912c3ff8de023c170a8513c06485466e6e6ae7bba82aed56920e49808'
+      REPORT_QA_OUTPUT: ${{ github.workspace }}/private-qa-first-chapter.json
+      NODE_ENV: test
+      PAID_CORE_DEPTH_V2: offline-preview
+      PAID_CORE_V2_CLASSICAL_WRITER: offline-preview
+      PAID_CORE_V2_CLAIM_LINKS: offline-preview
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-audit --no-fund
+      - name: Test existing code and new claim-linked request without API calls
+        run: npm test && npm run smoke
+      - name: Verify fresh one-time consent and frozen request before API
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          set -euo pipefail
+          node -e "require('./run-paid-core-v2-qa4-claimlinked').requireApproval()"
+          node -e "require('./run-paid-core-v2-qa4-claimlinked').preflight().then(()=>console.log('QA4_LOCAL_PREFLIGHT_ONLY_PASS')).catch(e=>{console.error(e.message);process.exitCode=1})"
+          node -e "require('./qa-core-v2-claimlinked-dispatch-guard').check().then(()=>console.log('QA4_UNIQUE_RUN_CHECK_PASS')).catch(e=>{console.error(e.message);process.exitCode=1})"
+      - name: One new user-authorized claim-linked response, NEVER RETRY
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: node run-paid-core-v2-qa4-claimlinked.js
+      - name: Encrypt private raw response and all failed attempt checkpoints
+        if: always()
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: node report-qa-secure-archive.js encrypt
+      - name: Upload only encrypted synthetic QA4 evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa4-claimlinked-first-chapter-encrypted
+          path: premium-first-chapter-qa.enc
+          if-no-files-found: ignore
+          retention-days: 30
