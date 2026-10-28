@@ -16,6 +16,7 @@ async function run(){
  const expectedOwnedIds=new Set(Object.keys(contract.SCENES));
  const roles={},positions={},supported=[],contrasting=[];
  const ownedPositions=new Set(),ownedScenes=new Set();
+ const alternateGroups={},alternateExamples={};
  try{
   process.env.NODE_ENV='test';
   process.env.PAID_CORE_DEPTH_V2='offline-preview';
@@ -33,7 +34,14 @@ async function run(){
       const r=c.mainRole+'/'+c.otherRole+'/'+c.monthMainToExposedElementDirection;
       roles[r]=(roles[r]||0)+1;
       positions[c.visiblePosition]=(positions[c.visiblePosition]||0)+1;
-     }else if(relation.readerAlternative)other++;else none++;
+     }else if(relation.readerAlternative){
+      other++;
+      const alt=relation.readerAlternative;
+      const key=[alt.visiblePosition,alt.mainRole,alt.otherRole,
+       alt.monthMainToExposedElementDirection].join('/');
+      alternateGroups[key]=(alternateGroups[key]||0)+1;
+      alternateExamples[key]||={date:input.birthDate,time:input.birthTime};
+     }else none++;
      // Traverse the ACTUAL first-chapter request, not a synthetic fake
      // source map. This has no network or provider access.
      const captured=await capture(input);
@@ -115,6 +123,7 @@ async function run(){
    scopeConstrained:true,noProviderRequests:true,commercialReleaseApproved:false,
    distinctVerifiedScenes:[...ownedScenes].sort(),serverOwnedPositions:[...ownedPositions].sort(),
    exactPositionCounts:positions,eligibleRoleTuples:roles,
+   alternativeRoleGroups:alternateGroups,alternativeExamples:alternateExamples,
    sourceVerifiedExamples:supported,notYetGeneralized:contrasting
   }));
  }finally{
