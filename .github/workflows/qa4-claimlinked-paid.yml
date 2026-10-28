@@ -25,10 +25,8 @@ jobs:
       REPORT_QA_CONFIRM: ${{ inputs.paid_qa_confirmation }}
       REPORT_QA_REQUEST_SHA256: '9e5c729912c3ff8de023c170a8513c06485466e6e6ae7bba82aed56920e49808'
       REPORT_QA_OUTPUT: ${{ github.workspace }}/private-qa-first-chapter.json
-      NODE_ENV: test
-      PAID_CORE_DEPTH_V2: offline-preview
-      PAID_CORE_V2_CLASSICAL_WRITER: offline-preview
-      PAID_CORE_V2_CLAIM_LINKS: offline-preview
+      # Do not set experimental QA4 flags at job scope: npm test runs
+      # baseline ordinary prompts and deliberately tests non-QA4 chapters.
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -39,6 +37,10 @@ jobs:
         run: npm test && npm run smoke
       - name: Verify fresh one-time consent and frozen request before API
         env:
+          NODE_ENV: test
+          PAID_CORE_DEPTH_V2: offline-preview
+          PAID_CORE_V2_CLASSICAL_WRITER: offline-preview
+          PAID_CORE_V2_CLAIM_LINKS: offline-preview
           GITHUB_TOKEN: ${{ github.token }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
@@ -48,6 +50,10 @@ jobs:
           node -e "require('./qa-core-v2-claimlinked-dispatch-guard').check().then(()=>console.log('QA4_UNIQUE_RUN_CHECK_PASS')).catch(e=>{console.error(e.message);process.exitCode=1})"
       - name: One new user-authorized claim-linked response, NEVER RETRY
         env:
+          NODE_ENV: test
+          PAID_CORE_DEPTH_V2: offline-preview
+          PAID_CORE_V2_CLASSICAL_WRITER: offline-preview
+          PAID_CORE_V2_CLAIM_LINKS: offline-preview
           GITHUB_TOKEN: ${{ github.token }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: node run-paid-core-v2-qa4-claimlinked.js
