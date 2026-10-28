@@ -67,7 +67,7 @@ async function main(){
   assert(workflow.includes('  qa3-first-chapter:'));
   const retired=workflow.slice(workflow.indexOf('  qa3-first-chapter:'));
   assert(retired.includes('# RETIRED: real QA3 workflow_dispatch 40633333735'));
-  assert(/^    if: \$\\{\\{ false \\}\\}/m.test(retired),
+  assert(retired.split('\n').some(line=>line.trim()==='if: ${{ false }}'),
    'consumed QA3 job must remain completely unreachable');
   assert(!retired.includes("inputs.paid_qa_confirmation == '"+guard.APPROVAL+"'"),
    'no previous approval may dispatch the already spent QA3 job');
