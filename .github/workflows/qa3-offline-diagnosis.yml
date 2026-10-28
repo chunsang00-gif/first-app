@@ -16,6 +16,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Install local decoder dependencies only (no API calls)
+        run: npm install --no-audit --no-fund
       - name: Download the already-created encrypted QA3 artifact
         uses: actions/download-artifact@v4
         with:
@@ -117,7 +119,7 @@ jobs:
               noOpenAIApiCalls:true,
               releaseApproved:false
             }));
-          })().catch(()=>{console.error('QA3_OFFLINE_REPLAY_FAILED_NO_MODEL_CALL');process.exitCode=1});
+          })().catch(e=>{const s=String(e?.message||''); const kind=/Cannot find module/.test(s)?'MISSING_LOCAL_MODULE':/PRECHECK|PREFLIGHT|SOURCE_CONTRACT|BILLING/.test(s)?'LOCAL_PREFLIGHT_FAILED':'UNCLASSIFIED_LOCAL_REPLAY_ERROR';console.error('QA3_OFFLINE_REPLAY_FAILED_NO_MODEL_CALL:'+kind);process.exitCode=1});
           NODE
       - name: Remove temporary private archive files
         if: always()
