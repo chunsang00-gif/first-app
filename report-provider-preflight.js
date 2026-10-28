@@ -113,17 +113,34 @@ function inspect(prompt,payload,schema){
         require('./report-paid-core-v2-server-contract'))
          .build(payload.source,directive);
       }catch(e){note('core-v2-server-contract-recalculation-failed')}
-      if(!rebuilt||JSON.stringify(rebuilt)!==JSON.stringify(owned)||
-         owned.humanEditorialApproval!==false||
-         owned.modelRole!=='Korean-prose-rendering-only'||
-         owned.evidenceRefs.some(id=>!refs.has(id))||
-         !description.includes(owned.textContract)||
-         !Object.values(owned.outline).every(value=>
-          typeof value==='string'&&description.includes(value))||
-         !owned.evidenceRefs.every(id=>
-          String(leaf.properties?.basis?.properties?.refs?.description||'')
-           .includes(id))||
-         !expectedGuide||JSON.stringify(guide)!==JSON.stringify(expectedGuide))
+      // Never skip canonical source checking. Only the exact offline
+      // classical manuscript uses an alternative model-facing WRITING plan.
+      const classicalBridge=require('./report-paid-core-v2-classical-provider-bridge');
+      const isResearch=classicalBridge.enabled(prompt);
+      const canonicalValid=!!rebuilt&&JSON.stringify(rebuilt)===JSON.stringify(owned)&&
+        owned.humanEditorialApproval===false&&
+        owned.modelRole==='Korean-prose-rendering-only'&&
+        owned.evidenceRefs.every(id=>refs.has(id))&&
+        !!expectedGuide&&JSON.stringify(guide)===JSON.stringify(expectedGuide);
+      let outgoingMatches=false;
+      if(isResearch){
+       try{
+        const research=classicalBridge.inspect(prompt,payload);
+        outgoingMatches=!!research&&
+         description.includes(classicalBridge.schemaText(prompt,payload))&&
+         research.requiredEvidenceRefs.every(id=>refs.has(id)&&
+          directive.citableFacts.some(x=>x.id===id)&&
+          description.includes(id));
+       }catch(e){outgoingMatches=false}
+      }else{
+       outgoingMatches=description.includes(owned.textContract)&&
+        Object.values(owned.outline).every(value=>
+         typeof value==='string'&&description.includes(value))&&
+        owned.evidenceRefs.every(id=>
+         String(leaf.properties?.basis?.properties?.refs?.description||'')
+          .includes(id));
+      }
+      if(!canonicalValid||!outgoingMatches)
        note('core-v2-server-contract-not-on-provider-wire');
      }else{
       if(!description.includes(sourceKey+'.sourceRefs')||
