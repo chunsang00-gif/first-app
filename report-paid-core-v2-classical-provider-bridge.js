@@ -144,7 +144,9 @@ function schemaText(prompt,payload){
  if(!brief)return null;
  return 'QA 연구용 고전 해석: '+brief.textInstruction+' '+
   brief.permittedClaims.map(x=>x.statement).join(' ')+
-  ' 검토한 고전 자료: '+brief.reviewedClassicalSources.map(x=>x.title+'('+x.sourceUnit+')').join(', ')+
+  ' 검토한 고전 자료: '+brief.reviewedClassicalSources.map(x=>
+   (x.title==='三命通會'?'삼명통회':x.title==='子平真詮'?'자평진전':x.title)+
+   '('+x.sourceUnit+')').join(', ')+
   ' 금지: '+brief.prohibited.join(' ')+
   ' 내부 근거는 반드시 다음 IDs에 연결: '+
   brief.requiredEvidenceRefs.join(', ')+
