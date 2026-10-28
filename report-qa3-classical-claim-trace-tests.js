@@ -25,6 +25,10 @@ const writer=require('./report-generation-request');
   assert.equal(trace.kind,'qa3-classical-per-claim-review-ledger-v1');
   assert.equal(trace.claimRows.length,5);
   assert.equal(trace.sentenceRows.length,standard.totalSentences);
+  assert(trace.metadataSentenceRows.length>=4);
+  assert.equal(trace.metadataHazards.length,0);
+  assert(trace.metadataSentenceRows.every(x=>x.needsHumanReview===true&&
+   x.claimMeaningVerified===false));
   assert.equal(trace.mechanicallyReadyForHumanAdjudication,true,
    JSON.stringify(trace.missingNonContradictoryClaimCues));
   assert.equal(trace.paragraphLevelOnlyCitations,true);
@@ -63,6 +67,27 @@ const writer=require('./report-generation-request');
   assert(lacking.findings.includes('QA3_OPEN_PROSE_CLAIM_SOURCE_INCOMPLETE'));
   assert(lacking.claimTrace.claimRows.some(x=>
    x.missingParagraphCitationIds.includes('natal.hour.stem')));
+  const basisForgery=structuredClone(original);
+  basisForgery.basis.interpretation=
+   '두 글자는 이미 木으로 합화되었습니다. 다만 실제 재물운은 알 수 없습니다.';
+  const hiddenFault=screen.screen(c.prompt,basisForgery);
+  assert(hiddenFault.findings.includes(
+   'QA3_OPEN_PROSE_METADATA_HAZARD:basis.interpretation:QA3_UNPROVEN_ACTUAL_TRANSFORMATION'));
+  assert.equal(hiddenFault.mechanicallyEligible,false);
+  assert(hiddenFault.claimTrace.metadataHazards.some(x=>
+   x.field==='basis.interpretation'));
+  const titleForgery=structuredClone(original);
+  titleForgery.label='부자가 됩니다';
+  const falseTitle=screen.screen(c.prompt,titleForgery);
+  assert(falseTitle.findings.includes(
+   'QA3_OPEN_PROSE_METADATA_HAZARD:label:QA3_UNGROUNDED_PERSONAL_OUTCOME'));
+  assert.equal(falseTitle.mechanicallyEligible,false);
+  const sourceLimitForgery=structuredClone(original);
+  sourceLimitForgery.basis.limit='건강 위험이 높아집니다.';
+  const falseLimit=screen.screen(c.prompt,sourceLimitForgery);
+  assert(falseLimit.findings.includes(
+   'QA3_OPEN_PROSE_METADATA_HAZARD:basis.limit:QA3_UNSUPPORTED_HEALTH_PROGNOSIS'));
+  assert.equal(falseLimit.mechanicallyEligible,false);
   const unknown=structuredClone(original);
   unknown.text+=' 이 사람은 매운 음식을 좋아할 가능성이 높습니다.';
   const pending=screen.screen(c.prompt,unknown);
@@ -103,6 +128,7 @@ const writer=require('./report-generation-request');
    missingParagraphSourceDetected:true,
    missingServerSourceDetected:true,
    unrelatedNovelSentencePendingHumanReview:true,
+   unsupportedClaimInTitleAndEvidenceMetadataBlocked:true,
    originalManuscriptUnchanged:true,providerCalls:0,
    productionDisabled:true,releaseVerdict:'not-approved'
   }));
