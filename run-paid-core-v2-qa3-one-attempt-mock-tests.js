@@ -10,6 +10,7 @@ const qa3=require('./run-paid-core-v2-qa3');
 const guard=require('./qa-core-v2-qa3-dispatch-guard');
 const archive=require('./report-qa-secure-archive');
 const server=require('./server');
+const editorial=require('./report-paid-core-v2-editorial-triage');
 async function exercise(behavior){
  const temp=fs.mkdtempSync(path.join(os.tmpdir(),'qa3-offline-mocked-'));
  const former=Object.fromEntries(
@@ -21,6 +22,7 @@ async function exercise(behavior){
    .map(key=>[key,process.env[key]]));
  const originalCall=server.callOpenAI;
  const originalGuard=guard.check;
+ const originalInspect=editorial.inspect;
  let providerCalls=0,historyChecks=0;
  try{
   Object.assign(process.env,{
@@ -45,6 +47,8 @@ async function exercise(behavior){
    historyChecks++;
    return {approved:true,providerCalls:0};
   };
+  if(behavior==='editorial-exception')
+   editorial.inspect=()=>{throw Error('offline-injected-editorial-inspection-failure')};
   server.callOpenAI=async(prompt,afterResponse)=>{
    providerCalls++;
    assert.equal(prompt.paidCoreDepthV2,true);
@@ -64,11 +68,13 @@ async function exercise(behavior){
   };
   const malformed=behavior==='wrong-chapter'||behavior==='missing-decoded';
   const missingArchive=behavior==='missing-raw-callback';
+  const editorialException=behavior==='editorial-exception';
   await assert.rejects(()=>qa3.run(),
    behavior==='incomplete'?
     /QA3_ONE_ATTEMPT_FAILED_NO_RETRY/:
     malformed?/QA3_WRONG_OUTPUT_CHAPTER_AFTER_ARCHIVING_NO_RETRY/:
     missingArchive?/QA3_ORIGINAL_MODEL_RESPONSE_NOT_ARCHIVED/:
+    editorialException?/QA3_POST_PROVIDER_EDITORIAL_INSPECTION_FAILED_NO_RETRY/:
     /QA3_QUALITY_HOLD_NO_RETRY/);
   assert.equal(providerCalls,1,'there can be NO retry after a paid failure');
   assert.equal(historyChecks,1);
@@ -97,12 +103,19 @@ async function exercise(behavior){
     result.status==='invalid-decoded-first-chapter-no-retry':
     missingArchive?
      result.status==='missing-original-response-no-retry':
-     result.status==='quality-hold-no-retry');
+     editorialException?
+      result.status==='editorial-inspection-failed-no-retry':
+      result.status==='quality-hold-no-retry');
   assert.equal(result.releaseVerdict,'not-approved');
   if(malformed){
    assert.equal(result.errorCode,
     'QA3_WRONG_OUTPUT_CHAPTER_AFTER_ARCHIVING_NO_RETRY');
    assert.equal(result.originalResponseArchived,true);
+  }
+  if(editorialException){
+   assert.equal(result.errorCode,'QA3_POST_PROVIDER_EDITORIAL_INSPECTION_FAILED');
+   assert.equal(result.originalResponseArchived,true);
+   assert(!names.includes('private-qa-first-chapter-validated-first-chapter.json'));
   }
   if(missingArchive){
    assert.equal(result.errorCode,'QA3_ORIGINAL_MODEL_RESPONSE_NOT_ARCHIVED');
@@ -135,6 +148,7 @@ async function exercise(behavior){
  }finally{
   guard.check=originalGuard;
   server.callOpenAI=originalCall;
+  editorial.inspect=originalInspect;
   for(const [key,value] of Object.entries(former))
    if(value===undefined)delete process.env[key];
    else process.env[key]=value;
@@ -147,4 +161,5 @@ async function exercise(behavior){
  await exercise('wrong-chapter');
  await exercise('missing-decoded');
  await exercise('missing-raw-callback');
+ await exercise('editorial-exception');
 })().catch(e=>{console.error(e);process.exitCode=1});
