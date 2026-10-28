@@ -16,4 +16,5 @@ jobs:
     if: ${{ false }}
     runs-on: ubuntu-latest
     steps:
-      - run: echo 'No model call: QA5 requires separate explicit approval and code review'
+      - run: |
+          echo 'No model call: QA5 requires separate explicit approval and code review'
