@@ -1,0 +1,73 @@
+name: QA5 claim-linked first chapter (DISABLED, new consent required)
+on:
+  workflow_dispatch:
+    inputs:
+      paid_qa_confirmation:
+        description: 'NEW exact QA5 model request; older QA1–QA3 authorizations NOT accepted'
+        required: true
+        type: string
+permissions:
+  contents: read
+  actions: read
+jobs:
+  qa5-first-chapter:
+    # HARD DISABLED. 2026-10-28 QA4 40704124862 failed before the
+    # provider step, but its dispatch is consumed. Do not enable from
+    # conversational "next"; new explicit consent is required.
+    # Unlike QA4, QA5 is deliberately NOT registered on main yet.
+    if: ${{ false }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    concurrency:
+      group: qa5-claimlinked-new-authorization-one-attempt
+      cancel-in-progress: false
+    env:
+      REPORT_MODEL: gpt-4.1
+      REPORT_QA_CONFIRM: ${{ inputs.paid_qa_confirmation }}
+      REPORT_QA_REQUEST_SHA256: '9e5c729912c3ff8de023c170a8513c06485466e6e6ae7bba82aed56920e49808'
+      REPORT_QA_OUTPUT: ${{ github.workspace }}/private-qa-first-chapter.json
+      # Do not set experimental QA5 flags at job scope: npm test runs
+      # baseline ordinary prompts and deliberately tests non-QA5 chapters.
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-audit --no-fund
+      - name: Test existing code and new claim-linked request without API calls
+        run: npm test && npm run smoke
+      - name: Verify NEW QA5 consent and unchanged provider hash before API
+        env:
+          NODE_ENV: test
+          PAID_CORE_DEPTH_V2: offline-preview
+          PAID_CORE_V2_CLASSICAL_WRITER: offline-preview
+          PAID_CORE_V2_CLAIM_LINKS: offline-preview
+          GITHUB_TOKEN: ${{ github.token }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          set -euo pipefail
+          node -e "require('./run-paid-core-v2-qa5-claimlinked').requireApproval()"
+          node -e "require('./run-paid-core-v2-qa5-claimlinked').preflight().then(()=>console.log('QA5_LOCAL_PREFLIGHT_ONLY_PASS')).catch(e=>{console.error(e.message);process.exitCode=1})"
+          node -e "require('./qa5-claimlinked-dispatch-guard').check().then(()=>console.log('QA5_UNIQUE_RUN_CHECK_PASS')).catch(e=>{console.error(e.message);process.exitCode=1})"
+      - name: ONE QA5 model attempt ONLY if separately approved, NEVER RETRY
+        env:
+          NODE_ENV: test
+          PAID_CORE_DEPTH_V2: offline-preview
+          PAID_CORE_V2_CLASSICAL_WRITER: offline-preview
+          PAID_CORE_V2_CLAIM_LINKS: offline-preview
+          GITHUB_TOKEN: ${{ github.token }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: node run-paid-core-v2-qa5-claimlinked.js
+      - name: Encrypt private raw response and all failed attempt checkpoints
+        if: always()
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: node report-qa-secure-archive.js encrypt
+      - name: Upload only encrypted synthetic QA5 evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa5-claimlinked-first-chapter-encrypted
+          path: premium-first-chapter-qa.enc
+          if-no-files-found: ignore
+          retention-days: 30
