@@ -13,8 +13,10 @@ const requiredFlags=['NODE_ENV','PAID_CORE_DEPTH_V2',
  'PAID_CORE_V2_CLASSICAL_WRITER','PAID_CORE_V2_CLAIM_LINKS'];
 const job=workflow.split('    steps:')[0];
 const globalEnv=job.split('    env:')[1]||'';
-assert(workflow.includes('    if: ${{ false }}'),
- 'QA5 must not become billable until NEW independent consent is collected');
+assert(workflow.includes("    if: ${{ github.event_name == 'workflow_dispatch' && github.ref_name == 'fix-paid-qa-fact-bindings-20261014' && inputs.paid_qa_confirmation == 'QA5_ONE_NEW_USER_CONSENT_REQUIRED' && github.run_attempt == 1 }}"),
+ 'new approved QA5 must require manual dispatch, exact branch, exact input and first attempt');
+assert(!workflow.includes('    if: ${{ false }}'),
+ 'exact owner approval must reach the ONE feature-branch QA5 job');
 assert(workflow.includes(guard.REQUEST_HASH));
 assert(workflow.includes('run: node run-paid-core-v2-qa5-claimlinked.js'));
 assert(workflow.includes('node report-qa-secure-archive.js encrypt'));
@@ -110,7 +112,7 @@ const response=runs=>async()=>({ok:true,json:async()=>({
   console.log('QA5_PRECHARGE_FAILURE_RECOVERY='+JSON.stringify({
    priorQA4Dispatch:40704124862,
    priorProviderStepWasSkipped:true,
-   freshQA5WorkflowExistsButHardDisabled:true,
+   freshQA5WorkflowRequiresExactOwnerDispatch:true,
    exactOriginalProviderRequestHashPreserved:true,
    freshDispatchGuardIndependent:true,
    oldApprovalAndRerunsRejected:true,

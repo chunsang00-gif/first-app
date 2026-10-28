@@ -1,7 +1,7 @@
 'use strict';
 // New dispatch identity only. The exact GPT-4.1 model request SHA remains unchanged.
-// The NEW QA5 job remains hard-disabled; fresh explicit authorization and
-// an independently reviewed activation are required before any billing.
+// The new QA5 manual workflow is activated after explicit user request.
+// Fresh exact GitHub input and an unused new dispatch remain mandatory.
 // This guard independently enforces one dispatch, never a retry.
 const REPO='chunsang00-gif/first-app';
 const BRANCH='fix-paid-qa-fact-bindings-20261014';

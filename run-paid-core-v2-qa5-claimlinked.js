@@ -2,7 +2,7 @@
 // Dedicated QA5 attempt identity after QA4 run 40704124862 failed BEFORE
 // the provider stage. Reuse the tested exact QA4 model request and its
 // archive/decoder boundaries; DO NOT silently alter the request hash.
-// The new workflow is HARD DISABLED until separately approved.
+// Workflow may run only after new user consent via owner-initiated exact branch/approval.
 const oldRunner=require('./run-paid-core-v2-qa4-claimlinked');
 const guard=require('./qa5-claimlinked-dispatch-guard');
 const run=()=>oldRunner.run(guard);
