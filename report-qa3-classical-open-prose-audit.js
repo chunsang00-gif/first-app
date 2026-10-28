@@ -98,7 +98,9 @@ function screen(prompt,paragraph,{monthText=''}={}){
   add('QA3_OPEN_PROSE_READER:'+err);
  const classified=lines.map((sentence,index)=>{
   const matches=ids.filter(id=>rules[id](sentence));
-  const hazards=dangerous(sentence);
+  const hazards=uniq([...dangerous(sentence),
+   ...require('./report-qa3-classical-contradiction-screen')
+    .contradiction(sentence)]);
   hazards.forEach(add);
   return {index,matches,flags:hazards,needsHumanReview:matches.length===0,
    sentence};
@@ -117,6 +119,10 @@ function screen(prompt,paragraph,{monthText=''}={}){
   sourceRowsChecked:required.slice(),
   totalSentences:lines.length,
   unclassifiedSentences:unknown.map(x=>({index:x.index,text:x.sentence})),
+  // Even a sentence with known cue words may add an invented conclusion.
+  // Every sentence still requires independent interpretation review.
+  allSentencesRequireHumanReview:classified.map(x=>({
+   index:x.index,claimCues:x.matches,text:x.sentence})),
   criticalSentences:classified.filter(x=>x.flags.length).map(x=>({
    index:x.index,text:x.sentence,flags:x.flags})),
   mechanicallyEligible:findings.length===0,
