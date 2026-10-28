@@ -48,8 +48,8 @@ function build(prompt){
  const text=[
   evidenceSentence+contrast+'두 전통 분류가 왜 서로 다른 질문인지 '+clean(o.comparedRoles)+'을 기준으로 살핍니다.',
   '예를 들어 '+clean(o.example)+'을 가정해 보겠습니다. '+
-    '첫 조건만 준비한 경우 '+clean(o.originalOnly)+'. '+
-    '반대로 두 번째 조건만 준비한 경우 '+clean(o.additionalOnly)+'.',
+    '첫 조건만 준비하고 추가 조건이 빠지면 '+clean(o.originalOnly)+'. '+
+    '반대로 추가 조건만 준비하고 첫 조건이 빠지면 '+clean(o.additionalOnly)+'.',
   '두 관계가 가리키는 전통적인 방향은 '+clean(o.direction)+
     '입니다. 이는 계산된 상징의 비교이며, '+clean(o.limitation)+
     '. 특정 개인의 실제 습관이나 결과를 예측하지 않습니다.'
