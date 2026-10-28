@@ -21,6 +21,9 @@ function forContrast(contrast,source){
   throw Error('CORE_V2_EDITORIAL_SCENE_SOURCE_MISMATCH');
  // Distinct reviewed, source-qualified role pairs use their OWN
  // position-specific example. Preserve both earlier proven scenarios.
+ const expanded=require('./report-paid-core-v2-expanded-scene-catalog')
+  .forContrast(contrast);
+ if(expanded)return expanded;
  const additional=require('./report-paid-core-v2-reviewed-scene-catalog')
   .forContrast(contrast);
  if(additional)return additional;
