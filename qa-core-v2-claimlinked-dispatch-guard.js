@@ -1,7 +1,8 @@
 'use strict';
 // New research request only. Historic QA3 consent is irrevocably consumed.
-// The dedicated workflow is HARD DISABLED pending new user authorization.
-// This guard is a second fail-closed defense if later deliberately enabled.
+// The new feature-branch job now requires owner workflow_dispatch with an
+// exact new approval. The default-branch registration stub cannot bill.
+// This guard independently enforces one dispatch, never a retry.
 const REPO='chunsang00-gif/first-app';
 const BRANCH='fix-paid-qa-fact-bindings-20261014';
 const WORKFLOW='.github/workflows/qa4-claimlinked-paid.yml';
