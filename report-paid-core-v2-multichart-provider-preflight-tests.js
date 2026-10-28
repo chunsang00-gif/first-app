@@ -95,11 +95,34 @@ async function run(){
    assert(preflight.inspect(prompt,payload,tamperedRefs)
     .some(code=>code.startsWith('topic-allowed-citations-drift:saju_core/temperament')),
     'a forged source enum must be rejected by the topic-specific preflight');
+   const projected=require('./report-paid-core-v2-provider-projection')
+    .project(prompt,payload);
+   assert.notEqual(projected,payload);
+   assert.deepEqual(projected.source,payload.source);
+   assert.deepEqual(projected.task.chapters.saju_core.topics.temperament
+    .serverOwnedWritingContract,owned);
+   assert.deepEqual(projected.task.chapters.saju_core.topics.temperament
+    .citableFacts,task.citableFacts);
+   assert.deepEqual(projected.task.chapters.saju_core.topics.strength,
+    payload.task.chapters.saju_core.topics.strength);
+   if(payload.task.chapters.mbti_contradiction)assert.deepEqual(
+    projected.task.chapters.mbti_contradiction,
+    payload.task.chapters.mbti_contradiction);
+   assert(!projected.task.chapters.saju_core.topics.temperament
+    .sourceQualifiedWritingDecision.readerScene);
+   assert(!projected.task.chapters.saju_core.topics.temperament
+    .paidCoreDepthV2.visiblePairCandidates);
+   assert.equal(projected.task.chapters.saju_core.topics.temperament
+    .paidCoreDepthV2.approvedAsPremiumValue,false);
+   assert.deepEqual(audit.inspectTransport(prompt,payload),[]);
+   // The full unprojected object remains the exclusive source of server
+   // assertions and decoder verification. Projected JSON is for prose only.
+   assert.equal(JSON.stringify(payload.source),JSON.stringify(projected.source));
    const body={model:'gpt-4.1',store:false,
     max_output_tokens:plan.outputLimit('gpt-4.1',prompt),
     input:[{role:'system',content:'Return only the requested premium report JSON. '+
        writer.policyFor(prompt)+' '+wire.instruction},
-     {role:'user',content:JSON.stringify(payload)}],
+     {role:'user',content:JSON.stringify(projected)}],
     text:{format:{type:'json_schema',name:'saju_mbti_premium_report',
      strict:true,schema:strict}}};
    assert.equal(body.max_output_tokens,18000);
@@ -119,6 +142,11 @@ async function run(){
      'separate-visible':'exact-month-hidden',
     sourceRefs:owned.evidenceRefs.length,
     modelRequestBytes:Buffer.byteLength(JSON.stringify(body)),
+    originalModelRequestBytes:Buffer.byteLength(JSON.stringify({
+     ...body,input:[body.input[0],{role:'user',content:JSON.stringify(payload)}]
+    })),
+    savedRequestBytes:Buffer.byteLength(JSON.stringify(payload))-
+     Buffer.byteLength(JSON.stringify(projected)),
     taskBytes:Buffer.byteLength(JSON.stringify(payload.task)),
     sourceBytes:Buffer.byteLength(JSON.stringify(payload.source)),
     schemaBytes:Buffer.byteLength(JSON.stringify(strict)),
