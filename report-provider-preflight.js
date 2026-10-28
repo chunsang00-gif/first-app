@@ -108,8 +108,10 @@ function inspect(prompt,payload,schema){
      if(owned){
       let rebuilt=null;
       try{
-       rebuilt=require('./report-paid-core-v2-server-contract')
-        .build(payload.source,directive);
+       rebuilt=(owned.kind==='server-owned-first-chapter-separate-visible-contract-v1'?
+        require('./report-paid-core-v2-separate-visible-contract'):
+        require('./report-paid-core-v2-server-contract'))
+         .build(payload.source,directive);
       }catch(e){note('core-v2-server-contract-recalculation-failed')}
       if(!rebuilt||JSON.stringify(rebuilt)!==JSON.stringify(owned)||
          owned.humanEditorialApproval!==false||
