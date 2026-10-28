@@ -23,7 +23,7 @@ function render(contract){
  const exact=contract.kind==='server-owned-first-chapter-evidence-and-claim-contract-v1';
  const place=contract.sourcePosition==='natal.year.stem'?'태어난 해':'태어난 시간';
  const premise=exact?
-  '이 명식에서 '+o.comparedRoles+'을 구별하는 이유는 '+place+
+  '이 출생 기록에서 '+o.comparedRoles+'을 구별하는 이유는 '+place+
   '의 겉글자가 태어난 달의 다른 속글자와 정확히 일치하기 때문입니다. ':
   '이번 출생 정보에서 '+o.comparedRoles+'은 서로 다른 위치에 있습니다. '+
   '태어난 달의 대표 속글자와 '+place+
