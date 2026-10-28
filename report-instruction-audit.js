@@ -177,9 +177,14 @@ function inspectTransport(prompt,actual){
          'server-owned-first-chapter-separate-visible-contract-v1'].includes(contract.kind)||
         contract.humanEditorialApproval!==false||
         contract.modelRole!=='Korean-prose-rendering-only'||
-        !chapter.coreV2ConditionalReadingBrief?.includes(contract.textContract)||
-        !chapter.coreV2ConditionalReadingBrief.includes(contract.outline.originalOnly)||
-        !chapter.coreV2ConditionalReadingBrief.includes(contract.outline.additionalOnly)||
+        !chapter.coreV2ConditionalReadingBrief?.includes(
+         'temperament.serverOwnedWritingContract')||
+        !chapter.coreV2ConditionalReadingBrief.includes('출력 스키마')||
+        chapter.coreV2ConditionalReadingBrief.includes(contract.outline.originalOnly)||
+        !chapter.topics.temperament.sourceQualifiedWritingDecision.readerInstruction
+         .includes('temperament.serverOwnedWritingContract')||
+        chapter.topics.temperament.sourceQualifiedWritingDecision.readerInstruction
+         .length>300||
         !contract.evidenceRefs.every(ref=>Object.hasOwn(actual.source,ref)))
       errors.push('paid-core-v2-server-owned-brief-not-transported');
     }else if(!chapter.coreV2ConditionalReadingBrief?.includes('readerContrast')||
