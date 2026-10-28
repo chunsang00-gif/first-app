@@ -43,8 +43,10 @@ async function fakeReport(){
    sentenceQuote:sentences[index],refs:item.refs.slice()};
  });
  const text='태어난 달에는 배우는 문제와 역할을 맡는 문제가 함께 드러납니다. 이 분류를 실제 행동이나 결과로 단정할 수는 없습니다.';
+ const allowed=writer.allowedRefs(plan,
+  plan.task.chapters.saju_core.topics.strength,'saju_core','strength');
  const refs=['natal.month.stem','natal.month.hidden.己',
-  'facts.seasonalEvidence','facts.qiEvidence'];
+  'facts.seasonalEvidence','facts.qiEvidence'].filter(id=>allowed.has(id));
  const t=thesis.forPrompt(prompt);
  return {chapters:{saju_core:{title:t.title,keyJudgment:t.keyJudgment,
   mood:'reflective',paragraphs:{
