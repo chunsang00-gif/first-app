@@ -1,6 +1,6 @@
 'use strict';
-// QA4 CLAIM-LINKED one-attempt runner. NOT DISPATCHABLE: its dedicated job
-// remains 'if: false' unless a NEW exact-hash approval is explicitly given.
+// QA4 CLAIM-LINKED one-attempt runner. Only an owner-initiated
+// workflow_dispatch with the NEW exact request approval may run this job.
 // Never retry a provider failure; archive raw before any validation/decoding.
 const fs=require('node:fs'),path=require('node:path');
 const guard=require('./qa-core-v2-claimlinked-dispatch-guard');
