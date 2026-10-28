@@ -31,6 +31,7 @@ function props(schema){
   let accepted=0,excluded=0;
   const fingerprints=new Set();
   for(const [birthDate,birthTime] of cases){
+   delete process.env.PAID_CORE_V2_CLOSED_CLAIMS;
    const captured=await capture({calendar:'solar',birthDate,birthTime,
     gender:'male',mbti:'ISFP'});
    assert.equal(captured.providerCalls,0);
@@ -53,6 +54,8 @@ function props(schema){
    assert.deepEqual(leaf.basis.properties.refs.enum,[proposal.basis.refs]);
    assert.strictEqual(leaf.text.type,'string');
    assert(proposal.text.length>350);
+   assert(!proposal.text.includes('가정을 가정해'),
+    'reader prose must not repeat the same hypothetical noun');
    assert(!fingerprints.has(proposal.text),
     'another chart must not inherit entire manuscript');
    fingerprints.add(proposal.text);
@@ -107,7 +110,6 @@ function props(schema){
    assert.equal(writer.schema(prompt,wire.schemaFor(prompt,sourceSchema))
     .properties.chapters.properties.saju_core.properties.paragraphs.properties
     .temperament.anyOf.find(x=>x.type==='object').properties.text.enum,undefined);
-   process.env.PAID_CORE_V2_CLOSED_CLAIMS='offline-preview';
    accepted++;
   }
   process.env.NODE_ENV='production';
