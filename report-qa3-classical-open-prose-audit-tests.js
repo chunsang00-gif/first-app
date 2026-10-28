@@ -54,6 +54,15 @@ const audit=require('./report-qa3-classical-open-prose-audit');
   assert.equal(newText.status,'requires-human-review');
   assert.equal(newText.semanticEntailmentVerified,false);
   assert.equal(newText.canSell,false);
+  const router=require('./report-paid-core-v2-editorial-method-router');
+  const routed=router.inspect({route:router.ROUTES.CLASSICAL_CANDIDATE,
+   prompt,paragraph:variation});
+  assert.equal(routed.route,router.ROUTES.CLASSICAL_CANDIDATE);
+  assert.equal(routed.status,'requires-human-review');
+  assert.equal(routed.machineClaimCuesAreNotSemanticEvidence,true);
+  assert.equal(routed.mechanicallyEligible,true);
+  assert.equal(routed.canSell,false);
+  assert.equal(routed.releaseVerdict,'not-approved');
   const unavailable=structuredClone(variation);
   unavailable.basis.refs=unavailable.basis.refs.slice(2);
   assert(audit.screen(prompt,unavailable).findings.includes(
@@ -89,6 +98,7 @@ const audit=require('./report-qa3-classical-open-prose-audit');
   console.log('QA3_OPEN_PROSE_CLAIM_SCREEN='+JSON.stringify({
    actualFirstChapterPrompt:true,
    originalAndFiveRewordedClaimCuesDetected:true,
+   actualOfflineEditorialRouterLinked:true,
    originalTextNotReusedAsEqualityGate:true,
    canonicalSourceRows:9,
    missingCitationsAndClaimsBlocked:true,
