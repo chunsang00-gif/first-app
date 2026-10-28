@@ -127,7 +127,7 @@ async function exercise(behavior){
    assert.deepEqual(JSON.parse(fs.readFileSync(
     path.join(out,'private-qa-first-chapter-provider-calls.json'),'utf8')),raw);
   console.log('QA3_MOCK_ONE_ATTEMPT='+JSON.stringify({
-   behavior,providerCalls,historyChecks,rawArchived:true,
+   behavior,providerCalls,historyChecks,rawArchived:!missingArchive,
    encryptedRoundTrip:true,originalResponseArchived:!missingArchive,
    manualQualityApproval:false,
    autoRetry:false,realProviderCalls:0
