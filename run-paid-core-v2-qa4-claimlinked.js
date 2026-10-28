@@ -19,6 +19,9 @@ function requireApproval(env=process.env){
    !/^[1-9][0-9]*$/.test(env.GITHUB_RUN_ID||'')||
    !env.GITHUB_TOKEN||env.GITHUB_TOKEN.length<8)
   throw Error('QA4_PROTECTED_NEW_WORKFLOW_ONLY');
+ // Publicly announced GPT-4.1 retirement is an independent stop gate.
+ // It never claims that the current organization can access the model.
+ require('./qa4-model-lifecycle-gate').assertBeforeShutdown(model);
  if(env.NODE_ENV!=='test'||env.RENDER==='true'||
    env.PAID_CORE_DEPTH_V2!==FLAG||
    env.PAID_CORE_V2_CLASSICAL_WRITER!==FLAG||
@@ -54,6 +57,12 @@ async function preflight(){
   throw Error('QA4_FROZEN_WRITER_OR_SCHEMA_DRIFT');
  const audit=await require('./report-qa3-offline-provider-readiness-audit')
   .inspectOne();
+ const lifecycle=require('./qa4-model-lifecycle-gate')
+  .assertBeforeShutdown(model);
+ if(audit.schemaStatistics.maxDepth>10||
+    audit.outputTokenCap>lifecycle.maxOutputTokens||
+    audit.inputTokenConservativeBound>lifecycle.contextTokens)
+  throw Error('QA4_GPT41_PUBLISHED_CAPACITY_OR_SCHEMA_LIMIT_EXCEEDED');
  if(audit.envelopeSha256!==guard.REQUEST_HASH||
     audit.strictSchemaStructuralCheck!=='passed-local-only'||
     audit.providerCalls!==0||audit.estimatedCostUSDAtOutputCapAndInputBound>=1)
