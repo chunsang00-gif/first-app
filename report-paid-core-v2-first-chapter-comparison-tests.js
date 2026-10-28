@@ -17,20 +17,25 @@ const cases=[
  ['2006-08-15','14:20'],
  ['2018-07-15','14:20']
 ];
+const readerFriendly=s=>String(s).replaceAll('오행','기운').replaceAll('실제 성격·직업 능력·성과','현실의 성격과 능력 또는 결과');
 function render(contract){
  const o=contract.outline;
  const exact=contract.kind==='server-owned-first-chapter-evidence-and-claim-contract-v1';
  const place=contract.sourcePosition==='natal.year.stem'?'태어난 해':'태어난 시간';
  const premise=exact?
-  place+'의 겉글자는 태어난 달의 다른 속글자와 정확히 일치합니다. 그래서 달에서 먼저 읽는 분류와 이 자리에 나타난 다른 분류를 따로 구별해야 합니다. ':
-  '태어난 달의 대표 속글자와 '+place+'의 겉글자에는 서로 다른 분류가 계산됩니다. 달의 다른 숨은 글자가 '+place+'에 정확히 드러났다는 뜻은 아닙니다. ';
- const intro=premise+'실제로 확인한 개인의 일이나 능력 이야기가 아니라, 전통 분류의 차이입니다. '+o.comparedRoles+'.';
+  '이 명식에서 '+o.comparedRoles+'을 구별하는 이유는 '+place+
+  '의 겉글자가 태어난 달의 다른 속글자와 정확히 일치하기 때문입니다. ':
+  '이번 출생 정보에서 '+o.comparedRoles+'은 서로 다른 위치에 있습니다. '+
+  '태어난 달의 대표 속글자와 '+place+
+  '의 겉글자는 별도 분류이며 달의 다른 숨은 글자가 '+place+
+  '에 정확히 드러났다는 뜻은 아닙니다. ';
+ const intro=premise;
  const body='예를 들어 '+o.example+'을 생각해 보겠습니다. '+
   '먼저 한쪽 조건만 준비한 경우에는 '+o.originalOnly+'. '+
   '반대로 다른 조건만 준비한 경우에는 '+o.additionalOnly+'. '+
-  '같은 장면이라도 빠진 준비가 다르므로 무엇을 먼저 결정할지가 달라집니다.';
- const conclusion='이 비교에서 계산된 관계는 '+o.direction+
-  '입니다. 다만 '+o.limitation+'.';
+  '이처럼 서로 다른 준비의 공백을 나누어 검토하는 가정입니다.';
+ const conclusion='두 글자의 기운 관계를 계산하면 '+readerFriendly(o.direction)+
+  '입니다. 다만 '+readerFriendly(o.limitation)+'.';
  return [intro,body,conclusion].join('\n\n');
 }
 const sentences=x=>String(x).split(/[.!?。！？\n]+/).map(s=>s.trim())
@@ -64,12 +69,12 @@ async function run(){
    assert(text.includes(contract.outline.example));
    assert(text.includes(contract.outline.originalOnly));
    assert(text.includes(contract.outline.additionalOnly));
-   assert(text.includes(contract.outline.direction));
+   assert(text.includes(readerFriendly(contract.outline.direction)));
    assert(/예를 들어/.test(text)&&/반대로/.test(text));
    assert(contract.outline.originalOnly!==contract.outline.additionalOnly);
    const exact=contract.kind==='server-owned-first-chapter-evidence-and-claim-contract-v1';
    if(exact){
-    assert(text.includes('정확히 일치합니다'));
+    assert(text.includes('정확히 일치'));
     assert.equal(contract.verifiedSourceIds.length,5);
    }else{
     assert(text.includes('드러났다는 뜻은 아닙니다'));
