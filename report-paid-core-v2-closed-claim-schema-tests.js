@@ -118,6 +118,7 @@ function props(schema){
   const isolated={...x.prompt,paidCoreDepthV2:true,
    requestedSections:['saju_core']};
   assert.equal(closed.enabled(isolated),false);
+  process.env.PAID_CORE_V2_CLOSED_CLAIMS='offline-preview';
   assert.throws(()=>closed.apply(isolated,{serverOwnedWritingContract:{}},{},{}),
    /QA3_CLOSED_CLAIMS_DISABLED_CONTEXT/);
   excluded++;
