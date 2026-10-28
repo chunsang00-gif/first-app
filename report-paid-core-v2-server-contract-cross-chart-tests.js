@@ -49,8 +49,10 @@ async function run(){
       assert(contract.SCENES[selected.readerScene?.sceneId],
        'only explicit role+position+direction scenes may be server-owned');
       assert.deepEqual(contract.build(request.source,topic),owned);
-      assert.equal(owned.sourcePosition,
-       contract.SCENES[selected.readerScene.sceneId].position);
+      const spec=contract.SCENES[selected.readerScene.sceneId];
+      assert(spec.position===owned.sourcePosition||
+       spec.positions?.includes(owned.sourcePosition),
+       'only the chart-verified year/hour location may own citations');
       assert(owned.outline.originalOnly!==owned.outline.additionalOnly);
       assert.equal(owned.verifiedSourceIds.length,5);
       assert(owned.evidenceRefs.includes('facts.stemConnections'));
@@ -98,10 +100,11 @@ async function run(){
   assert.equal(cases,96);
   assert.equal(cases,exact+other+none);
   assert.equal(scoped+unscoped,cases);
-  assert(scoped>=7,'all five evidence-verified role pair categories must be covered');
-  assert(unscoped>0);
-  assert.equal(ownedScenes.size,5,
-   'server ownership must cover five distinct verified role-pair scenarios');
+  assert.equal(scoped,exact,
+   'every independently verified exact hidden-to-visible case in census must have one server-owned contract');
+  assert.equal(unscoped,other+none);
+  assert.equal(ownedScenes.size,13,
+   'all thirteen distinct, evidence-verified role-pair scenarios must be covered');
   assert.deepEqual([...ownedScenes].sort(),[...expectedOwnedIds].sort());
   assert.deepEqual([...ownedPositions].sort(),
    ['natal.hour.stem','natal.year.stem']);
