@@ -12,7 +12,7 @@ function contradiction(s){
  // that 木 actually formed. Negative existence is no proof of truth either.
  for(const clause of split(s)){
   const context=clause.replace(/\s+/g,' ');
-  const negatesTransformation=/(?:木|목).{0,35}(?:변한|합화된|바뀐)\s*것은?\s*(?:아니|아닙|않)|(?:실제|합화|변화).{0,22}(?:성립하지|확정되지|확인되지|않았|없었|아닙니다)|(?:木|목).{0,35}(?:변하지|바뀌지|합화하지)/.test(context);
+  const negatesTransformation=/(?:木|목).{0,35}(?:변한|합화된|바뀐)\s*것은?\s*(?:아니|아닙|않)|(?:실제|합화|변화).{0,22}(?:성립하지|확정되지|확인되지|않았|없었|아닙니다)|(?:木|목).{0,35}(?:변하지|바뀌지|합화하지)|(?:변했는지|바뀌었는지|합화되었는지|변했다거나|바뀌었다거나).{0,45}(?:알 수 없|판단할 수 없|확인할 수 없|단정할 수 없|확정할 수 없|판단할 수는 없)/.test(context);
   const actualTransformation=/(?:이미|실제로|분명히|확실히|반드시|완전히).{0,45}(?:木|목)(?:으로)?.{0,17}(?:변했|바뀌었|합화됐|합화되었|합화되어|변합니다|바뀝니다|합화됩니다|변하였)/.test(context)||
    /(?:木|목)(?:으로)?.{0,15}(?:변했습니다|바뀌었습니다|합화되었습니다|합화됐습니다|합화됩니다|확정되었습니다)/.test(context)||
    /(?:합화목|木으로 합화).{0,20}(?:확정|성립|완성|확실)/.test(context);
