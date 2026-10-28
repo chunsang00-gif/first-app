@@ -11,7 +11,7 @@
 - `qa5-claimlinked-dispatch-guard.js`: 별도 작업명/승인값/새 이력에 묶인 **독립적인 QA5 dispatch guard**. 다른 브랜치, 이전 QA4 승인값, 재실행, 이미 실행된 QA5가 있으면 거부한다. 과거 QA4 수동 실행 ID `40704124862`를 이력 경계로 사용.
 - `run-paid-core-v2-qa5-claimlinked.js`: 기존 QA4 검증·1회 호출·원본 보관·후검증 코드에 QA5용 guard만 전달. 이전 연구용 계산 엔진/원고/디코더는 **변경하지 않았다**.
 - `run-paid-core-v2-qa4-claimlinked.js`: 선택적인 새 guard를 받도록만 변경; **기본값은 원래 QA4 guard를 유지**. 기존 QA4의 6가지 모의 호출 시나리오가 모두 계속 통과한다.
-- `.github/workflows/qa5-claimlinked-paid.yml`: 새 워크플로를 **`if: ${{ false }}`로 강제 비활성화**. GitHub 기본 브랜치에도 등록하지 않았다. `npm test`에는 실험 전용 환경변수가 상속되지 않고, 잠재 과금 사전점검/1회 호출 두 단계에만 별도로 전달된다.
+- `.github/workflows/qa5-claimlinked-paid.yml`: 새 워크플로를 **`if: ${{ false }}`로 강제 비활성화**. GitHub 기본 브랜치에는 실행 불가능한 등록용 스텁만 있고(2026-10-29에 YAML 명령의 콜론 문제 수정, main 커밋 `84ea4a6f`), 작업 브랜치의 QA5 유료 작업도 `if: ${{ false }}`로 잠겨 있다. `npm test`에는 실험 전용 환경변수가 상속되지 않고, 잠재 과금 사전점검/1회 호출 두 단계에만 별도로 전달된다.
 - `qa5-new-consent-offline-tests.js`: 새 승인과 워크플로가 일치해야 함, 과거 QA4 승인 거절, 두 번째 dispatch/다른 경로 거절, 원래 요청 해시 일치, 시험용 환경변수 오염 없음, 기존 1회 생성기 위임, 무료 first-chapter preflight 통과를 검증. **실제 OpenAI 호출 0회**.
 
 ### 정확히 유지된 요청
