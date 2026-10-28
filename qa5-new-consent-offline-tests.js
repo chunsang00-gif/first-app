@@ -66,7 +66,7 @@ const prior={id:40704124862,path:old.WORKFLOW,
 const response=runs=>async()=>({ok:true,json:async()=>({
  total_count:runs.length,workflow_runs:runs})});
 (async()=>{
- const previous=Object.fromEntries(requiredFlags.map(k=>[k,process.env[k]]));
+ const previous=Object.fromEntries([...requiredFlags,'RENDER'].map(k=>[k,process.env[k]]));
  const original=qa4.run;
  try{
   const checked=qa5.requireApproval(env);
