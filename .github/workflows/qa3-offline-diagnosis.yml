@@ -119,6 +119,10 @@ jobs:
               noOpenAIApiCalls:true,
               releaseApproved:false
             }));
+            const reconstruction=require('./report-qa3-archived-first-chapter-reconstruction')
+              .inspect(ready.prompt,response,{requestHash:ready.requestHash});
+            console.log('QA3_ARCHIVED_SOURCE_OWNED_RECONSTRUCTION='+
+              JSON.stringify(reconstruction));
           })().catch(e=>{const s=String(e?.message||''); const kind=/Cannot find module/.test(s)?'MISSING_LOCAL_MODULE':/PRECHECK|PREFLIGHT|SOURCE_CONTRACT|BILLING/.test(s)?'LOCAL_PREFLIGHT_FAILED':'UNCLASSIFIED_LOCAL_REPLAY_ERROR';console.error('QA3_OFFLINE_REPLAY_FAILED_NO_MODEL_CALL:'+kind);process.exitCode=1});
           NODE
       - name: Remove temporary private archive files
