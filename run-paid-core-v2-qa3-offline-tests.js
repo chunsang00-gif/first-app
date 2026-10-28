@@ -65,7 +65,12 @@ async function main(){
   assert.equal(ready.releaseVerdict,'not-approved');
   const workflow=fs.readFileSync('.github/workflows/paid-report-qa.yml','utf8');
   assert(workflow.includes('  qa3-first-chapter:'));
-  assert(workflow.includes("inputs.paid_qa_confirmation == '"+guard.APPROVAL+"'"));
+  const retired=workflow.slice(workflow.indexOf('  qa3-first-chapter:'));
+  assert(retired.includes('# RETIRED: real QA3 workflow_dispatch 40633333735'));
+  assert(/^    if: \$\\{\\{ false \\}\\}/m.test(retired),
+   'consumed QA3 job must remain completely unreachable');
+  assert(!retired.includes("inputs.paid_qa_confirmation == '"+guard.APPROVAL+"'"),
+   'no previous approval may dispatch the already spent QA3 job');
   assert(workflow.includes('REPORT_QA_REQUEST_SHA256: '+
    "'"+guard.REQUEST_HASH+"'"));
   assert(workflow.includes('node qa-core-v2-qa3-dispatch-guard.js'));
