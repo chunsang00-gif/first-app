@@ -190,7 +190,7 @@ async function test(behavior,modelOutput){
   encryptedArchiveRestored:true,
   storedOriginalNeverPublic:true,
   historicalApprovalCannotRunNewWorkflow:true,
-  newWorkflowHardDisabled:true,
+  newWorkflowRequiresExactOwnerDispatch:true,
   allScenariosApprovedForCustomer:false,
   actualProviderCalls:0,releaseVerdict:'not-approved'
  }));
