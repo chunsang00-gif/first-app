@@ -59,7 +59,7 @@ function props(schema){
    const mock=structuredClone(proposal);
    assert.equal(closed.assertClosed(prompt,task.topics.temperament,mock),true);
    const tampered=structuredClone(mock);
-   tampered.text+=' 이 사람은 반드시 성공합니다.';
+   tampered.text+=' 이 사례의 적용 방법을 다시 한번 설명합니다.';
    assert.throws(()=>closed.assertClosed(prompt,task.topics.temperament,tampered),
     /QA3_CLOSED_CLAIMS_TEXT_DRIFT/);
    const label=structuredClone(mock);label.label='누구나 같은 길';
@@ -97,6 +97,11 @@ function props(schema){
    bad.chapters.saju_core.paragraphs.temperament=structuredClone(tampered);
    assert.throws(()=>decoder.decode(bad,prompt),
     /QA3_CLOSED_CLAIMS_TEXT_DRIFT/);
+   const certainty=structuredClone(raw);
+   certainty.chapters.saju_core.paragraphs.temperament.text+=
+    ' 이 사람은 반드시 성공합니다.';
+   assert.throws(()=>decoder.decode(certainty,prompt),
+    /PAID_CORE_V2_READER_PERSONAL_CERTAINTY/);
    delete process.env.PAID_CORE_V2_CLOSED_CLAIMS;
    assert.equal(closed.enabled(prompt),false);
    assert.equal(writer.schema(prompt,wire.schemaFor(prompt,sourceSchema))
