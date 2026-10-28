@@ -258,9 +258,19 @@ function compile(prompt){
         .build(source,topic);
       if(contract){
        topic.serverOwnedWritingContract=contract;
+       // The full verified evidence and both counterconditions remain in
+       // the contract and the actual temperament text-field schema. The
+       // original 1-3 KB general writer instruction just duplicated these
+       // and diluted the model's single, chart-specific writing assignment.
+       choice.readerInstruction=
+        'temperament.serverOwnedWritingContract만 해석 근거로 사용한다. '+
+        'AI는 정해진 두 누락 조건을 쉬운 한국어로 풀고 다른 출처를 고르지 않는다. '+
+        '정확히 설명할 수 없다면 temperament는 null로 둔다.';
        chapter.coreV2ConditionalReadingBrief=
-        contract.textContract+' '+JSON.stringify(contract.outline)+
-        ' 근거 ID는 서버가 확정하므로 다른 출처를 만들거나 선택하지 않는다.';
+        'temperament.serverOwnedWritingContract가 첫 장의 유일한 추가 작성 계약이다. '+
+        '계산 근거와 양쪽 조건은 해당 계약과 출력 스키마에 이미 명시되어 있다. '+
+        '다른 명식 사례를 복사하거나 근거를 다시 선정하지 않는다. '+
+        'MBTI 비교 장에는 이 설명을 옮기지 않는다.';
       }else chapter.coreV2ConditionalReadingBrief+=' '+choice.readerInstruction;
      }
     // The model's actual compact task is now one factual question per
