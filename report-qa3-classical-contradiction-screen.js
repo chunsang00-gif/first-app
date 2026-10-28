@@ -20,9 +20,9 @@ function contradiction(s){
    add(errors,'QA3_UNPROVEN_ACTUAL_TRANSFORMATION');
   // For each specific classically verified relation, an explicitly
   // opposite claim is forbidden, regardless of correct citations nearby.
-  if(/(?:태어난 달|출생월|달의).{0,55}(?:숨은|속|안에).{0,60}(?:시간|시주).{0,35}(?:다른 글자|일치하지 않|같지 않|서로 다르)|(?:시간|시주).{0,60}(?:달|출생월).{0,55}(?:숨은|속).{0,35}(?:서로 다르|일치하지 않)/.test(context))
+  if(/(?:태어난 달|출생월|달의).{0,55}(?:숨은|속|안에).{0,60}(?:시간|시주).{0,35}(?:다른 글자|일치하지 않|같지 않|서로 다르|서로 다릅)|(?:시간|시주).{0,60}(?:달|출생월).{0,55}(?:숨은|속).{0,35}(?:서로 다르|서로 다릅|일치하지 않)/.test(context))
    add(errors,'QA3_FALSE_MONTH_HOUR_EXPOSURE');
-  if(/(?:태어난 날|출생일|일간|날의).{0,55}(?:시간|시주).{0,55}(?:짝이 아니|한 쌍이 아니|합 후보가 아니|인접하지 않|짝이 없)/.test(context))
+  if(/(?:태어난 날|출생일|일간|날의).{0,55}(?:시간|시주).{0,55}(?:짝이 아니|짝이 아닙|한 쌍이 아니|한 쌍이 아닙|합 후보가 아니|인접하지 않|짝이 없)/.test(context))
    add(errors,'QA3_FALSE_DAY_HOUR_PAIR');
   if(/(?:삼명통회|三命通會|未월|미월|출생월).{0,85}(?:未월|미월|출생월|달|월).{0,40}(?:조건에서 제외|조건에 해당하지 않|목록에 없|달의 범위에 들어가지 않)/.test(context))
    add(errors,'QA3_FALSE_LISTED_MONTH_ELIGIBILITY');
