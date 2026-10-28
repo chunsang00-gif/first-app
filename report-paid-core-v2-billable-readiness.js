@@ -64,12 +64,14 @@ async function prepare(options={}){
    ...audit.inspectTransport(prompt,payload),
    ...preflight.inspect(prompt,payload,providerSchema)];
   if(invalid.length)throw Error('PAID_CORE_V2_BILLING_PREFLIGHT_TRANSPORT_INVALID:'+invalid.join('|'));
+  const providerPayload=require('./report-paid-core-v2-provider-projection')
+   .project(prompt,payload);
   const envelope={model:MODEL,store:false,
    max_output_tokens:plan.outputLimit(MODEL,prompt),
    input:[
     {role:'system',content:'Return only the requested premium report JSON. '+
       writer.policyFor(prompt)+' '+wire.instruction},
-    {role:'user',content:JSON.stringify(payload)}
+    {role:'user',content:JSON.stringify(providerPayload)}
    ],
    text:{format:{type:'json_schema',
     name:'saju_mbti_premium_report',strict:true,schema:providerSchema}}};
