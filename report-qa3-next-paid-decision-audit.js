@@ -39,7 +39,7 @@ async function assess(){
   const qa4=require('./qa-core-v2-claimlinked-dispatch-guard');
   const nextText=fs.readFileSync(path.join(__dirname,qa4.WORKFLOW),'utf8');
   if(qa4.REQUEST_HASH!==draft.envelopeSha256||
-     !nextText.includes("    if: ${{ github.ref_name == 'fix-paid-qa-fact-bindings-20261014' && inputs.paid_qa_confirmation == 'QA4_CLAIM_LINKED_ONE_NEW_REQUEST_ONLY' }}")||
+     !nextText.includes('    if: ${{ false }}')||
      !nextText.includes(qa4.REQUEST_HASH)||
      !nextText.includes('node run-paid-core-v2-qa4-claimlinked.js'))
    throw Error('QA4_NEW_REQUEST_MUST_REMAIN_UNDISPATCHABLE');
@@ -70,8 +70,9 @@ async function assess(){
    localStrictSchemaInspection:'passed',
    remoteStructuredOutputAccepted:'unknown-no-network-call',
    currentTrialDispatchImplemented:true,
-   newTrialWorkflowHardDisabled:false,
-   newTrialAwaitingExactManualDispatch:true,
+   newTrialWorkflowHardDisabled:true,
+   oldQA4DispatchRetired:true,
+   newTrialAwaitingExactManualDispatch:false,
    newTrialNeverTriggeredByPush:true,
    newTrialOneAttemptRunnerPrepared:true,
    consentForNewHashObtained:false,
@@ -80,7 +81,7 @@ async function assess(){
    providerCalls:0,actualNewPaidGeneration:false,
    editorialQualityApproved:false,customerRelease:false,
    releaseVerdict:'not-approved',
-   nextAction:'owner-must-manually-dispatch-the-exact-qa4-workflow-on-the-tested-feature-branch'
+   nextAction:'qa5-remains-disabled-and-requires-fresh-user-consent-for-one-paid-attempt'
   };
  }finally{
   for(const [k,v] of Object.entries(original))
