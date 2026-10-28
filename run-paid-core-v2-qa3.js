@@ -107,6 +107,20 @@ async function run(){
    requestHash:REQUEST_HASH,releaseVerdict:'not-approved'});
   throw Error('QA3_ONE_ATTEMPT_FAILED_NO_RETRY');
  }
+ // A decoded chapter is not sufficient proof that the ORIGINAL provider
+ // response was captured. A missing callback must never look reviewable,
+ // including when the decoded section itself appears well-formed.
+ if(!stored){
+  savePrivate(resultFile,{
+   kind:'qa3-first-chapter-one-attempt-result',
+   status:'missing-original-response-no-retry',
+   errorCode:'QA3_ORIGINAL_MODEL_RESPONSE_NOT_ARCHIVED',
+   originalResponseArchived:false,providerCalls:calls,
+   requestHash:REQUEST_HASH,humanEditorialReviewRequired:true,
+   releaseVerdict:'not-approved'
+  });
+  throw Error('QA3_ORIGINAL_MODEL_RESPONSE_NOT_ARCHIVED');
+ }
  const section=decoded?.sections?.[0]||null;
  if(!Array.isArray(decoded?.sections)||decoded.sections.length!==1||
     section?.id!=='saju_core'||!Array.isArray(section?.bodyTopics)){
