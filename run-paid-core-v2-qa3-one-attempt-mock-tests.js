@@ -126,6 +126,10 @@ async function exercise(behavior){
    assert(!names.includes('private-qa-first-chapter-validated-first-chapter.json'),
     'bad decoded chapter must not create a success-looking editorial review');
    assert.equal(raw.response.chapters.saju_core.paragraphs.temperament,null);
+  }else if(editorialException){
+   assert(!names.includes('private-qa-first-chapter-validated-first-chapter.json'),
+    'editorial exception must not create a success-looking review');
+   assert.equal(raw.response.chapters.saju_core.paragraphs.temperament,null);
   }else{
    assert(names.includes('private-qa-first-chapter-validated-first-chapter.json'));
    assert.equal(raw.response.chapters.saju_core.paragraphs.temperament,null);
