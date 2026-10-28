@@ -1,0 +1,81 @@
+name: QA3 existing encrypted failure - offline diagnosis only
+on:
+  push:
+    branches: [fix-paid-qa-fact-bindings-20261014]
+    paths: [.github/workflows/qa3-offline-diagnosis.yml]
+permissions:
+  contents: read
+  actions: read
+jobs:
+  inspect-prior-archive:
+    if: ${{ github.ref == 'refs/heads/fix-paid-qa-fact-bindings-20261014' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Download the already-created encrypted QA3 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: premium-first-chapter-v2-qa3-encrypted
+          run-id: 40633333735
+          github-token: ${{ github.token }}
+          path: qa3-ciphertext
+      - name: Diagnose existing evidence offline (NO provider call and NO raw text logging)
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          NODE_ENV: test
+          PAID_CORE_DEPTH_V2: offline-preview
+        run: |
+          set -euo pipefail
+          node report-qa-secure-archive.js decrypt qa3-ciphertext/premium-first-chapter-qa.enc qa3-private >/dev/null
+          node - <<'NODE'
+          'use strict';
+          const fs=require('node:fs');
+          const path=require('node:path');
+          const root='qa3-private';
+          const get=(name)=>{
+            const f=path.join(root,name);
+            return fs.existsSync(f)?JSON.parse(fs.readFileSync(f,'utf8')):null;
+          };
+          const result=get('private-qa-first-chapter.json');
+          const attempt=get('private-qa-first-chapter-attempt.json');
+          const provider=get('private-qa-first-chapter-provider-calls.json');
+          const review=get('private-qa-first-chapter-validated-first-chapter.json');
+          const response=provider?.response||null;
+          const para=response?.chapters?.saju_core?.paragraphs?.temperament;
+          const strength=response?.chapters?.saju_core?.paragraphs?.strength;
+          const rawStatus=response?.status;
+          const detail={
+            archivedRun:40633333735,
+            noApiRequestInDiagnostic:true,
+            resultStatus:result?.status||'missing-result',
+            resultErrorCode:result?.errorCode||'not-recorded',
+            resultOriginalArchived:result?.originalResponseArchived??null,
+            attemptRecorded:!!attempt,
+            originalProviderCallbackRecorded:!!provider,
+            rawProviderStatus:['incomplete','empty_output','invalid_json'].includes(rawStatus)?
+              rawStatus:response?'parsed-provider-json':'no-captured-provider-callback',
+            incompleteReason:['max_output_tokens','content_filter'].includes(response?.incomplete_details?.reason)?
+              response.incomplete_details.reason:'none-or-unavailable',
+            providerReportedOutputTokens:Number.isInteger(response?.usage?.output_tokens)?
+              response.usage.output_tokens:null,
+            rawFirstChapterPresent:!!response?.chapters?.saju_core,
+            rawTemperamentPresent:!!para,
+            rawTemperamentCitationCount:Array.isArray(para?.basis?.refs)?para.basis.refs.length:null,
+            rawStrengthPresent:!!strength,
+            decodedReviewRecorded:!!review,
+            rootCategory:provider?
+              (rawStatus==='incomplete'?'provider-incomplete':
+               rawStatus==='empty_output'?'provider-empty-output':
+               rawStatus==='invalid_json'?'provider-invalid-json':
+               'provider-json-captured-but-decode-or-validation-failed'):
+              'no-provider-callback-captured-cannot-distinguish-http-error-or-timeout'
+          };
+          console.log('QA3_ARCHIVED_OFFLINE_DIAGNOSIS='+JSON.stringify(detail));
+          NODE
+      - name: Remove temporary private archive files
+        if: always()
+        run: rm -rf qa3-private qa3-ciphertext
