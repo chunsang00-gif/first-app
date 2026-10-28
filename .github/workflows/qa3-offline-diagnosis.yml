@@ -75,6 +75,49 @@ jobs:
               'no-provider-callback-captured-cannot-distinguish-http-error-or-timeout'
           };
           console.log('QA3_ARCHIVED_OFFLINE_DIAGNOSIS='+JSON.stringify(detail));
+          (async()=>{
+            if(!response||!response.chapters?.saju_core)return;
+            const ready=await require('./report-paid-core-v2-billable-readiness')
+              .prepare({includePrompt:true});
+            const writer=require('./report-generation-request');
+            const task=writer.compile(ready.prompt)
+              .task.chapters.saju_core.topics.temperament;
+            const required=task.serverOwnedWritingContract?.evidenceRefs||[];
+            const present=Array.isArray(para?.basis?.refs)?para.basis.refs:[];
+            let replay='accepted', errorCode='none';
+            try{require('./report-response-decoder').decode(response,ready.prompt)}
+            catch(e){
+              replay='rejected';
+              const message=String(e.message||'');
+              const match=message.match(/\\b(?:PAID_CORE|REPORT|CORE_V2|QA3|AI_REPORT)[A-Z0-9_]{8,}\\b/);
+              errorCode=match?match[0]:'unclassified-decoder-rejection';
+            }
+            let binding='not-run',issues=[];
+            try{
+              const p=require('./report-paid-core-v2-source-provenance')
+                .bind(response,ready.prompt);
+              binding=p.reason||'unknown';
+              issues=Array.isArray(p.issueCodes)?p.issueCodes:[];
+            }catch{binding='binding-threw'}
+            let triageFindings=[];
+            try{
+              const scope=task.paidCoreDepthV2;
+              triageFindings=require('./report-paid-core-v2-editorial-triage')
+                .inspect(para,strength?.text,scope).findings;
+            }catch{triageFindings=['editorial-inspection-threw']}
+            console.log('QA3_ARCHIVED_DECODER_REPLAY='+JSON.stringify({
+              frozenRequestStillMatches:ready.requestHash===
+                '03f2b0c195706e5366466a6ea7781d1742b5f2651f201de8a0a1faf6148ad7f2',
+              replay,errorCode,
+              requiredCitationCount:required.length,
+              citedCount:present.length,
+              missingCitationIds:required.filter(id=>!present.includes(id)),
+              binding,issues,triageFindings,
+              rawProviderUnchanged:true,
+              noOpenAIApiCalls:true,
+              releaseApproved:false
+            }));
+          })().catch(()=>{console.error('QA3_OFFLINE_REPLAY_FAILED_NO_MODEL_CALL');process.exitCode=1});
           NODE
       - name: Remove temporary private archive files
         if: always()
