@@ -77,8 +77,8 @@ function mock(prompt){
    .serverOwnedWritingContract||null;
   if(owned)
    assert(payload.task.chapters.saju_core.coreV2ConditionalReadingBrief
-    .includes(owned.textContract),
-    'verified model prose assignment must carry server-owned chart facts');
+    .includes('temperament.serverOwnedWritingContract'),
+    'one source-owned chart-specific instruction must replace duplicate prose briefs');
   else assert(payload.task.chapters.saju_core.coreV2ConditionalReadingBrief
    .includes('readerContrast'));
   assert(!Object.hasOwn(payload.task.chapters.mbti_contradiction,'coreV2ConditionalReadingBrief'));
