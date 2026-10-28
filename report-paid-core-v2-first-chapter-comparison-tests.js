@@ -113,6 +113,8 @@ async function run(){
   // sentences need to be distinct across independent role categories.
   assert.deepEqual(reusedSpecific,[],
    'source-specific explanation was copied verbatim between unrelated natal scenes');
+  assert.equal(genericSentenceFrequency.size,0,
+   'reader-facing boilerplate cannot recur as a complete long sentence across unrelated natal scenes');
   const stamp={
    kind:'offline-first-chapter-human-readable-editorial-comparison-v1',
    charts:observed.length,uniqueScenes:scenes.size,contractKinds:[...kinds].sort(),
