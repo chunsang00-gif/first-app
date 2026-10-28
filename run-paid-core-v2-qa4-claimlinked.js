@@ -8,14 +8,14 @@ const readiness=require('./report-paid-core-v2-billable-readiness');
 const archive=require('./report-qa-secure-archive');
 const model='gpt-4.1',outputName='private-qa-first-chapter.json';
 const FLAG='offline-preview';
-function requireApproval(env=process.env){
- if(env.REPORT_QA_CONFIRM!==guard.APPROVAL||
-   env.REPORT_QA_REQUEST_SHA256!==guard.REQUEST_HASH)
+function requireApproval(env=process.env,dispatchGuard=guard){
+ if(env.REPORT_QA_CONFIRM!==dispatchGuard.APPROVAL||
+   env.REPORT_QA_REQUEST_SHA256!==dispatchGuard.REQUEST_HASH)
   throw Error('QA4_FRESH_EXACT_HASH_CONSENT_REQUIRED');
- if(env.GITHUB_ACTIONS!=='true'||env.GITHUB_REPOSITORY!==guard.REPO||
-   env.GITHUB_REF_NAME!==guard.BRANCH||env.GITHUB_RUN_ATTEMPT!=='1'||
+ if(env.GITHUB_ACTIONS!=='true'||env.GITHUB_REPOSITORY!==dispatchGuard.REPO||
+   env.GITHUB_REF_NAME!==dispatchGuard.BRANCH||env.GITHUB_RUN_ATTEMPT!=='1'||
    env.GITHUB_WORKFLOW_REF!==
-    guard.REPO+'/'+guard.WORKFLOW+'@refs/heads/'+guard.BRANCH||
+    dispatchGuard.REPO+'/'+dispatchGuard.WORKFLOW+'@refs/heads/'+dispatchGuard.BRANCH||
    !/^[1-9][0-9]*$/.test(env.GITHUB_RUN_ID||'')||
    !env.GITHUB_TOKEN||env.GITHUB_TOKEN.length<8)
   throw Error('QA4_PROTECTED_NEW_WORKFLOW_ONLY');
@@ -45,9 +45,9 @@ function privateSave(file,object){
  try{fs.writeFileSync(fd,JSON.stringify(object,null,2));fs.fsyncSync(fd)}
  finally{fs.closeSync(fd)}
 }
-async function preflight(){
+async function preflight(dispatchGuard=guard){
  const result=await readiness.prepare({includePrompt:true});
- if(result.requestHash!==guard.REQUEST_HASH||result.model!==model||
+ if(result.requestHash!==dispatchGuard.REQUEST_HASH||result.model!==model||
     result.prompt?.stage!=='body'||
     JSON.stringify(result.prompt.requestedSections)!=='["saju_core"]'||
     result.prompt.paidCoreDepthV2!==true||
@@ -63,17 +63,17 @@ async function preflight(){
     audit.outputTokenCap>lifecycle.maxOutputTokens||
     audit.inputTokenConservativeBound>lifecycle.contextTokens)
   throw Error('QA4_GPT41_PUBLISHED_CAPACITY_OR_SCHEMA_LIMIT_EXCEEDED');
- if(audit.envelopeSha256!==guard.REQUEST_HASH||
+ if(audit.envelopeSha256!==dispatchGuard.REQUEST_HASH||
     audit.strictSchemaStructuralCheck!=='passed-local-only'||
     audit.providerCalls!==0||audit.estimatedCostUSDAtOutputCapAndInputBound>=1)
   throw Error('QA4_STRICT_SCHEMA_OR_BUDGET_PREFLIGHT_FAILED');
  return result;
 }
-async function run(){
- const output=requireApproval();
+async function run(dispatchGuard=guard){
+ const output=requireApproval(process.env,dispatchGuard);
  // The old QA3 paid job already ran: a new EXACT dispatch must be unique.
- await guard.check();
- const ready=await preflight();
+ await dispatchGuard.check();
+ const ready=await preflight(dispatchGuard);
  const dir=path.dirname(output),stem=path.basename(output,'.json');
  const attemptFile=path.join(dir,stem+'-attempt.json');
  const providerFile=path.join(dir,stem+'-provider-calls.json');
@@ -82,8 +82,8 @@ async function run(){
  if(files.some(f=>fs.existsSync(f)))
   throw Error('QA4_EXISTING_ATTEMPT_ARCHIVE_NO_RETRY');
  privateSave(attemptFile,{kind:'qa4-claim-linked-one-attempt',
-  status:'one-potential-charge-at-most',model,requestHash:guard.REQUEST_HASH,
-  originalAlreadyConsumedQA3:guard.PREVIOUS_CONSUMED_RUN,
+  status:'one-potential-charge-at-most',model,requestHash:dispatchGuard.REQUEST_HASH,
+  originalAlreadyConsumedQA3:dispatchGuard.PREVIOUS_CONSUMED_RUN,
   providerCallMaximum:1,approvalForSale:false,
   releaseVerdict:'not-approved'});
  let calls=0,raw=null,stored=false,providerError=null,duplicateCallback=false;
@@ -92,7 +92,7 @@ async function run(){
    kind:'qa4-claim-linked-one-attempt-result',status:'quality-hold-no-retry',
    errorCode:code,providerCalls:calls,
    originalResponseArchived:stored,
-   requestHash:guard.REQUEST_HASH,
+   requestHash:dispatchGuard.REQUEST_HASH,
    ...(detail?{manualReason:detail}:{}),
    humanEditorialReviewRequired:true,
    releaseVerdict:'not-approved'
@@ -112,7 +112,7 @@ async function run(){
    }
    privateSave(providerFile,{
     kind:'qa4-original-provider-response',response,model,
-    providerCalls:1,requestHash:guard.REQUEST_HASH,
+    providerCalls:1,requestHash:dispatchGuard.REQUEST_HASH,
     releaseVerdict:'not-approved'});
    raw=response;stored=true;
   });
@@ -165,7 +165,7 @@ async function run(){
  privateSave(output,{
   kind:'qa4-claim-linked-one-attempt-result',
   status:'machine-structure-clear-human-review-pending-no-retry',
-  providerCalls:1,requestHash:guard.REQUEST_HASH,
+  providerCalls:1,requestHash:dispatchGuard.REQUEST_HASH,
   originalResponseArchived:true,
   providerPostCallbackErrorOccurred:providerError!==null,
   humanEditorialReviewRequired:true,canSell:false,
