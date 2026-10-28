@@ -466,6 +466,9 @@ function schema(prompt,transport){
        '근거는 서버에서 이미 계산했다. 다음 ID들을 누락이나 교체 없이 기록한다: '+
        serverContract.evidenceRefs.join(', ')+
        '. 본문에서 계산 관계를 정확히 설명할 수 없으면 문단 전체를 null로 둔다.';
+      // QA-only opt-in: the server fixes the whole evidence array before writing.
+      require('./report-paid-core-v2-locked-reference-schema')
+       .lock(prompt,task,permitted,basis);
      }
      // Make the *verified* chart-specific distinction visible to the
      // reader-writing slot itself, not just the compact task metadata.
@@ -692,6 +695,10 @@ function restoreEvidence(value,prompt){
       .inspect(p,chapter.paragraphs.strength?.text,task.paidCoreDepthV2);
      if(problems.length)
       throw Error('PAID_CORE_V2_READER_REJECTED:'+problems.join('|'));
+     // Server-owned references do NOT make unsupported or vague prose valid.
+     require('./report-paid-core-v2-locked-reference-schema')
+      .rejectEmptyClaims(prompt,p,chapter.paragraphs.strength?.text,
+       task.paidCoreDepthV2);
     }
     if(id==='saju_core'&&topic==='strength'){
      // Month-position traditional ten-god meanings are now the required
