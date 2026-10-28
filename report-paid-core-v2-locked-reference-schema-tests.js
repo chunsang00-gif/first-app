@@ -57,8 +57,8 @@ const outputRefs=s=>s.properties.chapters.properties.saju_core.properties
    assert(owned.evidenceRefs.every(id=>refs.items.enum.includes(id)));
    // Any subset, superfluous value or permuted source array violates the
    // exact array enum before decoding (local JSON-Schema semantics).
-   const matches=ids=>JSON.stringify(refs.enum).includes('__NEVER__')||
-    refs.enum.some(expected=>JSON.stringify(expected)===JSON.stringify(ids));
+   const matches=ids=>refs.enum.some(expected=>
+    JSON.stringify(expected)===JSON.stringify(ids));
    assert.equal(matches(owned.evidenceRefs),true);
    assert.equal(matches(owned.evidenceRefs.slice(0,-1)),false);
    assert.equal(matches([...owned.evidenceRefs,'natal.fake']),false);
