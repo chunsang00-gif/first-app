@@ -44,7 +44,13 @@ function policyFor(prompt){
   if(prompt.qaNatalDepthPreview===true)parts.push(
    '심화 사주 QA 전용: 계절 보충 temperament는 중복 위험으로 반드시 null이다. 필수 strength에는 출생달의 두 계산 위치를 출처에 연결하고, 별도의 natal_depth에는 확인된 태어난 해·날·시간의 위치와 전통적 뜻을 다른 판단 기준으로 연결한다. 고객용 글에는 계산 기호나 전문용어를 쓰지 않는다. 출처나 사실이 없는 해석을 발명해서 채우면 안 되며, 그런 응답은 QA에서 실패한다. 정상 유료 보고서 경로에는 이 지침을 적용하지 않는다.'
   );
-  return parts.join('\n')+(prompt.qaNatalDepthPreview===true?'':'\n'+normalPaidMonthMethodBoundary)+(prompt.paidCoreDepthV2===true?'\n'+coreDepthExperimentalPolicy:'');
+  const baseline=parts.join('\n')+
+   (prompt.qaNatalDepthPreview===true?'':'\n'+normalPaidMonthMethodBoundary)+
+   (prompt.paidCoreDepthV2===true?'\n'+coreDepthExperimentalPolicy:'');
+  return baseline+(require('./report-paid-core-v2-classical-provider-bridge')
+   .enabled(prompt)?'\n고전 연구용 작성에서는 temperament.qaClassicalWritingBrief를 이 선택 문단의 유일한 추가 작성 계약으로 사용한다. ' +
+    '가상의 업무 장면이나 두 누락 조건을 보태지 않는다. ' +
+    '실제 합화·방법 우선순위·개인 성격·재물 결과를 단정하지 않으며, 검증 근거를 모두 설명할 수 없으면 null로 둔다.':'');
  }
  return policy+(prompt?.stage==='body'&&prompt?.requestedSections?.includes('saju_core')&&
   prompt.qaNatalDepthPreview!==true?'\n'+normalPaidMonthMethodBoundary:'');
@@ -473,6 +479,15 @@ function schema(prompt,transport){
       // become one chart-verified candidate, not new free-form claims.
       require('./report-paid-core-v2-closed-claim-schema')
        .apply(prompt,task,p,basis);
+      // One verified classical model-facing brief in exact QA scope only.
+      const qaClassical=require('./report-paid-core-v2-classical-provider-bridge')
+       .schemaText(prompt,payload);
+      if(qaClassical){
+       p.properties.text.description=qaClassical;
+       basis.properties.refs.description=
+        'qaClassicalWritingBrief.requiredEvidenceRefs의 실제 출처를 모두 인용한다. ' +
+        '근거를 문장으로 설명할 수 없으면 문단 전체를 null로 둔다.';
+      }
      }
      // Make the *verified* chart-specific distinction visible to the
      // reader-writing slot itself, not just the compact task metadata.
