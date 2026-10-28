@@ -26,7 +26,7 @@ function verify(text,contract){
  const distinctScene=keywords.length>=2&&keywords.every(w=>s.includes(w));
  const fabricated=sentences.some(sentence=>/(?:태어난\s*(?:해|연도|시간)|출생\s*시간).{0,65}(?:달의\s*(?:다른\s*)?(?:속글자|숨은\s*글자)|달\s*속글자).{0,65}(?:정확히\s*(?:일치|같|대응)|겉으로\s*드러)/.test(sentence)&&
   !/(?:아니|아닙|아닌|않|없|미확인)/.test(sentence));
- const impossible=/(?:반드시\s*부자가|무조건\s*성공|운명입니다|실제로\s*이\s*일을\s*했)/.test(s);
+ const impossible=/(?:반드시\s*부자가|무조건\s*성공|운명입니다|실제로\s*이\s*일을\s*했습니다)/.test(s);
  return {pass:positionContrast&&noExposure&&opposite&&failures.length>=2&&
   hypothetical&&distinctScene&&!fabricated&&!impossible,
   flags:[
