@@ -86,7 +86,8 @@ async function run(){
     .properties.temperament.anyOf.find(x=>x.type==='object')
     .properties.basis.properties.refs.items.enum=['natal.fake.source'];
    assert(preflight.inspect(prompt,payload,tamperedRefs)
-    .includes('topic-allowed-citations-drift'));
+    .some(code=>code.startsWith('topic-allowed-citations-drift:saju_core/temperament')),
+    'a forged source enum must be rejected by the topic-specific preflight');
    const body={model:'gpt-4.1',store:false,
     max_output_tokens:plan.outputLimit('gpt-4.1',prompt),
     input:[{role:'system',content:'Return only the requested premium report JSON. '+
