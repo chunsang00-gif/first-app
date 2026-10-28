@@ -33,7 +33,9 @@ function render(contract){
   '먼저 한쪽 조건만 준비한 경우에는 '+o.originalOnly+'. '+
   '반대로 다른 조건만 준비한 경우에는 '+o.additionalOnly+'.';
  const conclusion='두 글자의 기운 관계를 계산하면 '+readerFriendly(o.direction)+
-  '입니다. 다만 '+readerFriendly(o.limitation)+'.';
+  '입니다. '+(exact?
+   o.example+'은 계산된 역할 차이를 설명하기 위한 가정일 뿐, 이 사람이 그런 일을 실제로 했거나 잘한다는 뜻은 아닙니다.':
+   o.example+'은 달의 숨은 글자가 다른 자리에 나온 사례가 아니라 서로 다른 겉글자 분류를 구분하는 가정입니다. 실제 경험이나 결과를 뜻하지 않습니다.');
  return [intro,body,conclusion].join('\n\n');
 }
 const sentences=x=>String(x).split(/[.!?。！？\n]+/).map(s=>s.trim())
