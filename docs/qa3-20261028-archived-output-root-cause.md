@@ -33,3 +33,10 @@
 6. `saju-mbti-app` 운영 브랜치·기존 실제 결제 기능·원래 데이터 계산·보고서 스키마는 이 조사 중 변경하지 않았다.
 
 **판정: MODEL PROSE + CITATION COMPLIANCE FAILURE / REPLAY REPRODUCED / PAID QUALITY HOLD / NO ADDITIONAL BILLING.**
+
+
+## QA3 오프라인 재구성 결과 (2026-10-28)
+
+실제 QA3 보관본의 실패 응답을 기준으로 개발용 1994년 명식 전용 원고를 별도 복제본에 적용하여 비교했다. 원고의 1,037자 추가 문단은 서버 근거 7개를 포함한다. 실제 디코더 통과, 문장 품질 자동 검사 지적 0개. 확인 실행은 GitHub Actions 40634872015. 기존 원문, 운영 앱은 변경하지 않았고 추가 유료 모델 호출은 없었다.
+
+관련 코드: report-qa3-archived-first-chapter-reconstruction.js, report-qa3-archived-first-chapter-reconstruction-tests.js. 다른 명식으로 확대하거나 판매하기 전에는 명식별 검증과 전문적인 독해 검토가 남아 있다. 다음 작업은 예시 문장 무단 재사용 없이 서버 근거를 활용하는 방식의 일반화다.
