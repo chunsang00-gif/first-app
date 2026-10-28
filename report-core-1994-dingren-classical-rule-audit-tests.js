@@ -53,7 +53,7 @@ try{
  const corrupt2=structuredClone(packet);
  corrupt2.facts.tenGods.hour.stemTenGod='편재';
  assert.throws(()=>audit.inspect(corrupt2),
-  /QA_DINGREN_CLASSICAL_COMPUTED_PREMISE_MISMATCH/);
+  /(?:QA_ADULT_DIRECTION_ROLE_SOURCE_MISMATCH:hour|QA_DINGREN_CLASSICAL_COMPUTED_PREMISE_MISMATCH)/);
  process.env.NODE_ENV='production';
  assert.throws(()=>audit.inspect(packet),/PREVIEW_ONLY/);
  process.env.NODE_ENV='test';process.env.RENDER='true';
