@@ -13,6 +13,8 @@ const audit=require('./report-provider-preflight');
 async function run(){
  const env={n:process.env.NODE_ENV,f:process.env.PAID_CORE_DEPTH_V2,r:process.env.RENDER};
  let cases=0,exact=0,other=0,none=0,scoped=0,unscoped=0,missingRef=0;
+ let altOwned=0;
+ const alternativeSceneIds=new Set();
  const expectedOwnedIds=new Set(Object.keys(contract.SCENES));
  const roles={},positions={},supported=[],contrasting=[];
  const ownedPositions=new Set(),ownedScenes=new Set();
@@ -54,6 +56,17 @@ async function run(){
       scoped++;
       assert.equal(owned.releaseVerdict,'not-approved');
       assert.equal(owned.humanEditorialApproval,false);
+      if(owned.kind==='server-owned-first-chapter-separate-visible-contract-v1'){
+       altOwned++;
+       assert.equal(relation.readerContrast,null);
+       assert(relation.readerAlternative);
+       assert.deepEqual(require('./report-paid-core-v2-separate-visible-contract')
+        .build(request.source,topic),owned);
+       assert.equal(owned.verifiedSourceIds.length,4);
+       assert(owned.outline.proof.includes('드러났다는 뜻은 아니다'));
+       alternativeSceneIds.add(owned.sceneId);
+       ownedPositions.add(owned.sourcePosition);
+      }else{
       assert(contract.SCENES[selected.readerScene?.sceneId],
        'only explicit role+position+direction scenes may be server-owned');
       assert.deepEqual(contract.build(request.source,topic),owned);
@@ -86,6 +99,7 @@ async function run(){
       assert.throws(()=>contract.build(request.source,forgedRole),
        /CORE_V2_SERVER_CONTRACT_UNVERIFIED_SCENE/,
        'one pair must not borrow a different symbolic category');
+      }
       assert(owned.evidenceRefs.every(id=>Object.hasOwn(request.source,id)));
       const strict=writer.schema(captured.prompt,wire.schemaFor(captured.prompt,schema));
       const leaf=strict.properties.chapters.properties.saju_core.properties.paragraphs
@@ -93,7 +107,10 @@ async function run(){
       assert(leaf.properties.text.description.includes(owned.outline.originalOnly));
       assert(leaf.properties.text.description.includes(owned.outline.additionalOnly));
       assert.deepEqual(audit.inspect(captured.prompt,request,strict),[]);
-      if(supported.length<4)supported.push({date:input.birthDate,time,role:selected.readerScene.rolePair.join('/'),position:owned.sourcePosition});
+      if(supported.length<4)supported.push({date:input.birthDate,time,
+       role:selected.readerScene?.rolePair?.join('/')||
+        relation.readerAlternative.mainRole+'/'+relation.readerAlternative.otherRole,
+       position:owned.sourcePosition});
      }else{
       unscoped++;
       assert.equal(contract.build(request.source,topic),null);
@@ -109,9 +126,9 @@ async function run(){
   assert.equal(cases,96);
   assert.equal(cases,exact+other+none);
   assert.equal(scoped+unscoped,cases);
-  assert.equal(scoped,exact,
-   'every independently verified exact hidden-to-visible case in census must have one server-owned contract');
-  assert.equal(unscoped,other+none);
+  assert.equal(scoped-altOwned,exact,'every exact month-hidden exposure must retain source ownership');
+  assert.equal(unscoped,other+none-altOwned);
+  assert.equal(alternativeSceneIds.size,3,'three separate-visible contracts must be tested');
   assert.equal(ownedScenes.size,13,
    'all thirteen distinct, evidence-verified role-pair scenarios must be covered');
   assert.deepEqual([...ownedScenes].sort(),[...expectedOwnedIds].sort());
@@ -119,7 +136,8 @@ async function run(){
    ['natal.hour.stem','natal.year.stem']);
   console.log('CORE_V2_SERVER_OWNED_96_CHARTS='+JSON.stringify({
    tested:cases,exactExposure:exact,alternativeOnly:other,noIndependentReading:none,
-   serverOwnedCount:scoped,legacyFallbackCount:unscoped,
+   serverOwnedCount:scoped,exactOwned:scoped-altOwned,alternativeOwned:altOwned,
+   alternativeSceneIds:[...alternativeSceneIds].sort(),legacyFallbackCount:unscoped,
    scopeConstrained:true,noProviderRequests:true,commercialReleaseApproved:false,
    distinctVerifiedScenes:[...ownedScenes].sort(),serverOwnedPositions:[...ownedPositions].sort(),
    exactPositionCounts:positions,eligibleRoleTuples:roles,
