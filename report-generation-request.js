@@ -469,6 +469,10 @@ function schema(prompt,transport){
       // QA-only opt-in: the server fixes the whole evidence array before writing.
       require('./report-paid-core-v2-locked-reference-schema')
        .lock(prompt,task,permitted,basis);
+      // Separate QA-only boundary: even natural language text and metadata
+      // become one chart-verified candidate, not new free-form claims.
+      require('./report-paid-core-v2-closed-claim-schema')
+       .apply(prompt,task,p,basis);
      }
      // Make the *verified* chart-specific distinction visible to the
      // reader-writing slot itself, not just the compact task metadata.
@@ -699,6 +703,8 @@ function restoreEvidence(value,prompt){
      require('./report-paid-core-v2-locked-reference-schema')
       .rejectEmptyClaims(prompt,p,chapter.paragraphs.strength?.text,
        task.paidCoreDepthV2);
+     require('./report-paid-core-v2-closed-claim-schema')
+      .assertClosed(prompt,task,p);
     }
     if(id==='saju_core'&&topic==='strength'){
      // Month-position traditional ten-god meanings are now the required
