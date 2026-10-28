@@ -42,7 +42,7 @@ async function fakeReport(){
   return {claimId:item.id,sentenceIndex:index,
    sentenceQuote:sentences[index],refs:item.refs.slice()};
  });
- const text='태어난 달에는 배우는 문제와 책임 역할이 함께 나타납니다. 이 분류는 실제 성격이나 능력을 증명하지 않습니다.';
+ const text='태어난 달에는 배우는 문제와 역할을 맡는 문제가 함께 드러납니다. 이 분류를 실제 행동이나 결과로 단정할 수는 없습니다.';
  const refs=['natal.month.stem','natal.month.hidden.己',
   'facts.seasonalEvidence','facts.qiEvidence'];
  const t=thesis.forPrompt(prompt);
