@@ -11,7 +11,8 @@ const revision=require('./report-core-1994-dingren-reader-revision');
 
 const ROUTES=Object.freeze({
  SCENE:'conditional-workplace-scene',
- CLASSICAL:'exact-day-hour-classical-applicability-research'
+ CLASSICAL:'exact-day-hour-classical-applicability-research',
+ CLASSICAL_CANDIDATE:'exact-day-hour-classical-open-prose-review'
 });
 function inspect({route=ROUTES.SCENE,prompt,paragraph,monthText='' }={}){
  if(!prompt?.facts||prompt.stage!=='body'||
@@ -24,6 +25,18 @@ function inspect({route=ROUTES.SCENE,prompt,paragraph,monthText='' }={}){
  if(route===ROUTES.SCENE)return {...genericResult,route,
   editorialMethod:'hypothetical-two-sided-conditional',
   actualDecoderSemanticsUnchanged:true};
+ // Distinct from the frozen research-manuscript equality gate: this QA
+ // entry accepts free-form proposals for cautious screening only. It can
+ // NEVER confer semantic certainty or approval for sale.
+ if(route===ROUTES.CLASSICAL_CANDIDATE){
+  const result=require('./report-qa3-classical-open-prose-audit')
+   .screen(prompt,paragraph,{monthText});
+  return {...result,route,
+   originalSceneEditorialFindings:genericResult.findings.slice(),
+   machineClaimCuesAreNotSemanticEvidence:true,
+   methodProfessionallyApproved:false,
+   canSell:false,releaseVerdict:'not-approved'};
+ }
  if(route!==ROUTES.CLASSICAL)
   throw Error('QA_EDITORIAL_ROUTER_UNKNOWN_METHOD');
  // Classically grounded reader proposals have a distinct question:
