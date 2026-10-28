@@ -1,0 +1,19 @@
+name: QA4 claim-linked first chapter (one newly approved request)
+on:
+  workflow_dispatch:
+    inputs:
+      paid_qa_confirmation:
+        description: 'QA4 only: select fix-paid-qa-fact-bindings-20261014; exact NEW approval required'
+        required: true
+        type: string
+permissions:
+  contents: read
+jobs:
+  main-branch-never-bill:
+    # Default-branch placeholder makes GitHub Actions discover this
+    # workflow. NEVER requests any API key or performs any provider call.
+    # Only the separately tested feature-branch file can contain QA4 runner.
+    if: ${{ false }}
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo 'Default branch cannot run paid QA4'
