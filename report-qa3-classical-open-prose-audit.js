@@ -105,9 +105,22 @@ function screen(prompt,paragraph,{monthText=''}={}){
   return {index,matches,flags:hazards,needsHumanReview:matches.length===0,
    sentence};
  });
+ const ledger=require('./report-qa3-classical-claim-trace').trace({
+  paragraph,brief,payload:task,rules,splitSentences:sentences,
+  detectHazards:sentence=>uniq([
+   ...dangerous(sentence),
+   ...require('./report-qa3-classical-contradiction-screen')
+    .contradiction(sentence)
+  ])
+ });
  const matched=uniq(classified.flatMap(x=>x.matches));
  for(const id of ids)if(!matched.includes(id))
   add('QA3_OPEN_PROSE_REQUIRED_CLAIM_UNPROVEN:'+id);
+ // A cue in a false or dangerous sentence must NOT satisfy the claim.
+ for(const id of ledger.missingNonContradictoryClaimCues)
+  add('QA3_OPEN_PROSE_NO_NONCONTRADICTORY_CLAIM_CUE:'+id);
+ if(ledger.incompleteSourceRefIds.length)
+  add('QA3_OPEN_PROSE_CLAIM_SOURCE_INCOMPLETE');
  // A textual cue only narrows human work. It NEVER establishes
  // that a novel free-form sentence is entailed by an ancient text.
  const unknown=classified.filter(x=>x.needsHumanReview);
@@ -117,6 +130,7 @@ function screen(prompt,paragraph,{monthText=''}={}){
   findings,coveredClaimCues:matched,
   requiredClaimCues:ids.slice(),
   sourceRowsChecked:required.slice(),
+  claimTrace:ledger,
   totalSentences:lines.length,
   unclassifiedSentences:unknown.map(x=>({index:x.index,text:x.sentence})),
   // Even a sentence with known cue words may add an invented conclusion.
