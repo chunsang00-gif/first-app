@@ -78,6 +78,20 @@ function trace({paragraph,brief,payload,rules,splitSentences,detectHazards}={}){
    humanDecision:'pending'
   };
  });
+ // The provider may also invent a conclusion inside title or JSON basis
+ // explanations, even when the public body is cautious. These fields are
+ // not a second source of authority and must be reviewed independently.
+ const metadataSentenceRows=[
+  ['label',paragraph?.label],
+  ['basis.interpretation',paragraph?.basis?.interpretation],
+  ['basis.condition',paragraph?.basis?.condition],
+  ['basis.limit',paragraph?.basis?.limit]
+ ].flatMap(([field,text])=>splitSentences(text).map((sentence,index)=>({
+  field,index,text:sentence,
+  claimCues:claimIds.filter(id=>rules[id](sentence)),
+  hazardCodes:unique(detectHazards(sentence)),
+  claimMeaningVerified:false,needsHumanReview:true
+ })));
  const missingCues=claimRows.filter(c=>
   c.candidateNonContradictoryCueIndices.length===0)
   .map(c=>c.claimId);
@@ -87,12 +101,15 @@ function trace({paragraph,brief,payload,rules,splitSentences,detectHazards}={}){
  return {
   kind:'qa3-classical-per-claim-review-ledger-v1',
   chartScope:brief.exactChart,
-  claimRows,sentenceRows,
+  claimRows,sentenceRows,metadataSentenceRows,
+  metadataHazards:metadataSentenceRows.filter(x=>x.hazardCodes.length)
+   .map(x=>({field:x.field,index:x.index,text:x.text,flags:x.hazardCodes})),
   missingNonContradictoryClaimCues:missingCues,
   incompleteSourceRefIds:missingRefs,
   hazardSentenceIndices:contradictions.map(s=>s.index),
   mechanicallyReadyForHumanAdjudication:
-   !missingCues.length&&!missingRefs.length&&!contradictions.length,
+   !missingCues.length&&!missingRefs.length&&!contradictions.length&&
+   !metadataSentenceRows.some(x=>x.hazardCodes.length),
   paragraphLevelOnlyCitations:true,
   individualSentenceCitationsVerified:false,
   sentenceMeaningVerified:false,
