@@ -31,8 +31,11 @@ for(const stepName of [
   assert(new RegExp('^\\s*'+name+':','m').test(block),
    'exact QA4 flags must exist only in protected provider path: '+name);
 }
-assert(yaml.includes("inputs.paid_qa_confirmation == '"+
- guard.APPROVAL+"'"));
+assert(yaml.includes('    if: ${{ false }}'),
+ 'consumed QA4 cannot be reactivated by any approval string');
+assert(!yaml.includes("inputs.paid_qa_confirmation == '"+
+ guard.APPROVAL+"'"),
+ 'spent QA4 approval must be removed from executable workflow condition');
 assert(yaml.includes(guard.REQUEST_HASH));
 assert(yaml.includes('run: node run-paid-core-v2-qa4-claimlinked.js'));
 assert(yaml.includes('node report-qa-secure-archive.js encrypt'));
