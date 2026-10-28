@@ -77,7 +77,7 @@ async function run(){
   originalAlreadyConsumedQA3:guard.PREVIOUS_CONSUMED_RUN,
   providerCallMaximum:1,approvalForSale:false,
   releaseVerdict:'not-approved'});
- let calls=0,raw=null,stored=false,providerError=null;
+ let calls=0,raw=null,stored=false,providerError=null,duplicateCallback=false;
  const fail=(code,detail)=>{
   privateSave(output,{
    kind:'qa4-claim-linked-one-attempt-result',status:'quality-hold-no-retry',
@@ -97,7 +97,10 @@ async function run(){
   // output. Its existing decoder may reject after this callback. Capture
   // it FIRST, then independently validate and strip on a new copy.
   await require('./server').callOpenAI(ready.prompt,async response=>{
-   if(stored)throw Error('QA4_DUPLICATE_MODEL_RESPONSE_FORBIDDEN');
+   if(stored){
+    duplicateCallback=true;
+    throw Error('QA4_DUPLICATE_MODEL_RESPONSE_FORBIDDEN');
+   }
    privateSave(providerFile,{
     kind:'qa4-original-provider-response',response,model,
     providerCalls:1,requestHash:guard.REQUEST_HASH,
@@ -105,6 +108,7 @@ async function run(){
    raw=response;stored=true;
   });
  }catch(e){providerError=String(e?.message||'provider-error').slice(0,200)}
+ if(duplicateCallback)fail('QA4_DUPLICATE_PROVIDER_CALLBACK_NO_RETRY');
  if(!stored)fail('QA4_NO_ORIGINAL_MODEL_CALLBACK_NO_RETRY',
   'Provider may have been billed; no raw report captured');
  if(!raw?.chapters?.saju_core?.paragraphs?.temperament?.basis?.claimLinks)
