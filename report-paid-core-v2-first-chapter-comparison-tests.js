@@ -25,9 +25,8 @@ function render(contract){
  const premise=exact?
   '이 출생 기록에서 '+o.comparedRoles+'을 구별하는 이유는 '+place+
   '의 겉글자가 태어난 달의 다른 속글자와 정확히 일치하기 때문입니다. ':
-  '이번 출생 정보에서 '+o.comparedRoles+'은 서로 다른 위치에 있습니다. '+
-  '태어난 달의 대표 속글자와 '+place+
-  '의 겉글자는 별도 분류이며 달의 다른 숨은 글자가 '+place+
+  '이번 출생 정보에서 '+o.comparedRoles+'은 서로 다른 위치에 있으며, '+
+  '태어난 달의 다른 숨은 글자가 '+place+
   '에 정확히 드러났다는 뜻은 아닙니다. ';
  const intro=premise;
  const body='예를 들어 '+o.example+'을 생각해 보겠습니다. '+
