@@ -19,6 +19,11 @@ function forContrast(contrast,source){
     main?.tenGod!==contrast.mainRole||
     hidden?.tenGod!==contrast.otherRole)
   throw Error('CORE_V2_EDITORIAL_SCENE_SOURCE_MISMATCH');
+ // Distinct reviewed, source-qualified role pairs use their OWN
+ // position-specific example. Preserve both earlier proven scenarios.
+ const additional=require('./report-paid-core-v2-reviewed-scene-catalog')
+  .forContrast(contrast);
+ if(additional)return additional;
  // A second independently verified relationship: month-main 비견
  // symbol (responsibility boundaries) and a separately exposed 식신 symbol
  // (completion of tangible output), visible at the YEAR stem. Neither
