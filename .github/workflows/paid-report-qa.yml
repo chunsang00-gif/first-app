@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
     inputs:
       paid_qa_confirmation:
-        description: 'Short approval QA2 = NEW billable GPT-4.1 first-chapter call (1 maximum); previous approvals are consumed.'
+        description: 'Previous QA1/QA2 are consumed. New QA3 requires separately confirmed exact pinned GPT-4.1 request; one attempt only.'
         required: true
         type: string
 permissions:
@@ -182,6 +182,63 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: premium-first-chapter-v2-qa2-encrypted
+          path: premium-first-chapter-qa.enc
+          if-no-files-found: ignore
+          retention-days: 30
+
+  qa3-first-chapter:
+    # DORMANT: Never runs from a branch push, the normal test workflow,
+    # an old confirmation, or a conversational "next".
+    if: ${{ github.ref_name == 'fix-paid-qa-fact-bindings-20261014' && inputs.paid_qa_confirmation == 'QA3_20261028_ONE_CHARGE_CONFIRMED' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    concurrency:
+      group: qa3-first-chapter-new-consent-at-most-once
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      actions: read
+    env:
+      REPORT_MODEL: ${{ vars.REPORT_MODEL }}
+      REPORT_QA_OUTPUT: ${{ github.workspace }}/private-qa-first-chapter.json
+      REPORT_QA_CONFIRM: ${{ inputs.paid_qa_confirmation }}
+      REPORT_QA_REQUEST_SHA256: '03f2b0c195706e5366466a6ea7781d1742b5f2651f201de8a0a1faf6148ad7f2'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-audit --no-fund
+      - name: Run every free test and app smoke test before paid API
+        run: npm test && npm run smoke
+      - name: Fail closed on old consent, duplicate dispatch, bad model, changed request
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          NODE_ENV: test
+          PAID_CORE_DEPTH_V2: offline-preview
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          set -euo pipefail
+          node qa-core-v2-qa3-dispatch-guard.js
+          node -e "require('./run-paid-core-v2-qa3').requireApproval()"
+          node -e "require('./run-paid-core-v2-qa3').preflight().then(()=>console.log('QA3_PINNED_NO_BILLING_PREFLIGHT_PASS')).catch(e=>{console.error(e.message);process.exitCode=1})"
+      - name: ONE user-authorized GPT-4.1 first chapter only; no retry
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          NODE_ENV: test
+          PAID_CORE_DEPTH_V2: offline-preview
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: node run-paid-core-v2-qa3.js
+      - name: Encrypt original model result or failed attempt privately
+        if: always()
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: node report-qa-secure-archive.js encrypt
+      - name: Upload encrypted QA3 evidence ONLY
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: premium-first-chapter-v2-qa3-encrypted
           path: premium-first-chapter-qa.enc
           if-no-files-found: ignore
           retention-days: 30
