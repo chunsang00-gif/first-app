@@ -123,6 +123,50 @@ jobs:
               .inspect(ready.prompt,response,{requestHash:ready.requestHash});
             console.log('QA3_ARCHIVED_SOURCE_OWNED_RECONSTRUCTION='+
               JSON.stringify(reconstruction));
+            // Replay the ACTUAL archived weak model prose with the new server
+            // ref list. An exact ref list must not turn generic text into
+            // a fake premium approval. Nothing here contacts OpenAI.
+            const before=JSON.stringify(response);
+            process.env.PAID_CORE_V2_LOCK_REFS='offline-preview';
+            const closed=require('./report-generation-request').schema(
+              ready.prompt,
+              require('./report-wire').schemaFor(
+                ready.prompt,require('./report-schema.json')));
+            const leaf=closed.properties.chapters.properties.saju_core
+              .properties.paragraphs.properties.temperament.anyOf
+              .find(x=>x.type==='object');
+            const fixed=leaf.properties.basis.properties.refs.enum?.[0];
+            if(!Array.isArray(fixed)||fixed.length!==required.length||
+                !required.every((id,i)=>id===fixed[i]))
+              throw Error('QA3_LOCKED_REFS_MISMATCH_OFFLINE');
+            const patched=structuredClone(response);
+            patched.chapters.saju_core.paragraphs.temperament.basis.refs=
+              fixed.slice();
+            let updatedRejected=false,category='unknown';
+            try{
+              require('./report-response-decoder').decode(patched,ready.prompt);
+            }catch(e){
+              updatedRejected=true;
+              const reason=String(e.message||'');
+              category=reason.includes('PAID_CORE_V2_READER_REJECTED')?
+                'reader-meaning-invalid':
+                reason.includes('QA3_LOCKED_REF_PROSE_REJECTED')?
+                'editorial-meaning-invalid':
+                reason.includes('PAID_CORE_DEPTH_V2_MISSING_EXPLICIT')?
+                'citation-incomplete':'other-decoder-guard';
+            }
+            if(!updatedRejected||JSON.stringify(response)!==before)
+              throw Error('QA3_ARCHIVED_GENERIC_PROSE_WAS_WRONGLY_ACCEPTED');
+            delete process.env.PAID_CORE_V2_LOCK_REFS;
+            console.log('QA3_ARCHIVED_REF_LOCK_PROOF='+JSON.stringify({
+              originalMissingRefs:required.length-present.length,
+              schemaFixedIds:fixed.length,
+              originalRawUntouched:true,
+              genericProseStillRejected:true,
+              rejectedBy:category,
+              newProviderCalls:0,
+              humanQualityApproval:false
+            }));
           })().catch(e=>{const s=String(e?.message||''); const kind=/Cannot find module/.test(s)?'MISSING_LOCAL_MODULE':/PRECHECK|PREFLIGHT|SOURCE_CONTRACT|BILLING/.test(s)?'LOCAL_PREFLIGHT_FAILED':'UNCLASSIFIED_LOCAL_REPLAY_ERROR';console.error('QA3_OFFLINE_REPLAY_FAILED_NO_MODEL_CALL:'+kind);process.exitCode=1});
           NODE
       - name: Remove temporary private archive files
