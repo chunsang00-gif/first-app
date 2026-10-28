@@ -80,7 +80,8 @@ const audit=require('./report-qa3-classical-open-prose-audit');
   const newFact=structuredClone(variation);
   newFact.text+=' 여름에는 혈압이 올라가므로 건강 위험이 높아집니다.';
   const review=audit.screen(prompt,newFact);
-  assert.equal(review.status,'requires-human-review');
+  assert.equal(review.status,'blocked');
+  assert(review.findings.includes('QA3_UNSUPPORTED_HEALTH_PROGNOSIS'));
   assert(review.unclassifiedSentences.some(x=>x.text.includes('혈압')));
   assert.equal(review.semanticEntailmentVerified,false);
   assert.equal(review.canSell,false);
@@ -103,7 +104,7 @@ const audit=require('./report-qa3-classical-open-prose-audit');
    canonicalSourceRows:9,
    missingCitationsAndClaimsBlocked:true,
    ungroundedMoneyAndActualTransformationBlocked:true,
-   unfamiliarMedicalClaimQuarantinedForHumanReview:true,
+   unsupportedMedicalForecastBlockedAndStillHumanReviewRequired:true,
    alteredBirthHourBlocked:true,
    machineEntailmentVerified:false,
    humanReaderAndClassicalMethodReviewRequired:true,
