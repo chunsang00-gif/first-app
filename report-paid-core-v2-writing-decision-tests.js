@@ -30,7 +30,10 @@ async function run(){
    assert.equal(choice.eligibleForRealLifeJudgment,false);
    assert.equal(choice.humanEditorialReviewRequired,true);
    assert.equal(choice.approvedForSale,false);
-   assert(choice.readerInstruction.includes('이번에는 이 조건부 풀이를 우선 시도한다'));
+   if(expected==='verified-month-hidden-exposure'){
+    assert(choice.readerInstruction.includes('temperament.serverOwnedWritingContract'));
+    assert(choice.readerInstruction.length<300);
+   }else assert(choice.readerInstruction.includes('이번에는 이 조건부 풀이를 우선 시도한다'));
    assert(choice.readerInstruction.includes('temperament는 null로 둔다'));
    if(expected==='verified-month-hidden-exposure'){
     const scene=choice.readerScene;
@@ -45,7 +48,8 @@ async function run(){
      scene.openingQuestion.includes('정기 점검'));
     assert(scene.whenOnlyOriginal.includes('점검 시간'));
     assert(scene.whenOnlyAdditional.includes('승인 권한'));
-    assert(choice.readerInstruction.includes(scene.writerInstruction));
+    assert(!choice.readerInstruction.includes(scene.writerInstruction),
+     'the verified full scene remains in the authoritative contract and text schema');
    }else{
     assert.equal(choice.readerScene,null);
    }
@@ -60,9 +64,12 @@ async function run(){
     assert.deepEqual(contract.verifiedSourceIds,choice.requiredCitationIds);
     assert(contract.evidenceRefs.includes('facts.seasonalEvidence'));
     assert(contract.evidenceRefs.includes('facts.qiEvidence'));
-    assert(chapter.coreV2ConditionalReadingBrief.includes(contract.textContract));
+    assert(chapter.coreV2ConditionalReadingBrief.includes(
+     'temperament.serverOwnedWritingContract'));
+    assert(!chapter.coreV2ConditionalReadingBrief.includes(contract.textContract));
+    assert(!chapter.coreV2ConditionalReadingBrief.includes(contract.outline.originalOnly));
     assert(!chapter.coreV2ConditionalReadingBrief.includes(choice.readerInstruction),
-     'do not send duplicative prose instructions when facts are server-owned');
+     'avoid duplicated reading rules when facts are server-owned');
    }else{
     assert.equal(contract,null);
     assert(chapter.coreV2ConditionalReadingBrief.includes(choice.readerInstruction));
@@ -73,10 +80,17 @@ async function run(){
    if(expected==='verified-month-hidden-exposure'){
     assert(choice.readerFactAnchor.includes('태어난 시간'));
     assert(choice.readerFactAnchor.includes('태어난 달의 다른 속글자와 정확히 일치'));
-    assert(choice.readerInstruction.includes(choice.readerFactAnchor));
+    assert(!choice.readerInstruction.includes(choice.readerFactAnchor));
+    assert(chooser.build(target.paidCoreDepthV2,out.source,
+      target.citableFacts.map(x=>x.id))
+      .readerInstruction.includes(choice.readerFactAnchor),
+     'source decision was fully computed and verified before its provider-only compression');
    }else assert.equal(choice.readerFactAnchor,null);
 
-   assert(choice.requiredCitationIds.every(id=>
+   if(contract){
+    assert(choice.requiredCitationIds.every(id=>contract.evidenceRefs.includes(id)));
+    assert(!choice.requiredCitationIds.some(id=>choice.readerInstruction.includes(id)));
+   }else assert(choice.requiredCitationIds.every(id=>
     choice.readerInstruction.includes(id)));
    const responseSchema=writer.schema(captured.prompt,
     require('./report-wire').schemaFor(captured.prompt,
