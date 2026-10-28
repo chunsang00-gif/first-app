@@ -5,6 +5,7 @@ const authored=require('./report-core-v2-authored-first-chapter');
 const thesis=require('./report-core-thesis');
 const repair=require('./report-qa3-archived-first-chapter-reconstruction');
 const decoder=require('./report-response-decoder');
+const writer=require('./report-generation-request');
 (async()=>{
  const names=['NODE_ENV','PAID_CORE_DEPTH_V2','RENDER'];
  const old=Object.fromEntries(names.map(k=>[k,process.env[k]]));
@@ -15,6 +16,13 @@ const decoder=require('./report-response-decoder');
   const cap=await capture(authored.INPUT);
   assert.equal(cap.providerCalls,0);
   const prompt=cap.prompt,t=thesis.forPrompt(prompt);
+  const plan=writer.compile(prompt);
+  const allowed=writer.allowedRefs(plan,
+   plan.task.chapters.saju_core.topics.strength,'saju_core','strength');
+  const monthRefs=['natal.month.stem','natal.month.hidden.己',
+   'facts.seasonalEvidence','facts.qiEvidence'].filter(id=>allowed.has(id));
+  assert(monthRefs.includes('natal.month.stem'));
+  assert(monthRefs.includes('natal.month.hidden.己'));
   const raw={
    chapters:{saju_core:{title:t.title,keyJudgment:t.keyJudgment,
     mood:'reflective',paragraphs:{
@@ -30,8 +38,7 @@ const decoder=require('./report-response-decoder');
       label:'태어난 달의 두 기준',
       text:'태어난 달에는 배우는 문제와 역할을 맡는 문제가 함께 드러납니다. 이 분류를 실제 행동이나 결과로 단정할 수는 없습니다.',
       basis:{
-       refs:['natal.month.stem','natal.month.hidden.己',
-        'facts.seasonalEvidence','facts.qiEvidence'],
+       refs:monthRefs,
        interpretation:'달 겉글자와 달의 대표 속글자는 서로 다릅니다.',
        condition:'배움과 규칙을 비교하는 가정입니다.',
        limit:'실제 기질과 능력은 증명되지 않았습니다.'
@@ -45,6 +52,9 @@ const decoder=require('./report-response-decoder');
   assert.equal(verdict.originalPreserved,true);
   assert.equal(verdict.originalMonthPreserved,true);
   assert.equal(verdict.candidateCitationCoverage,true);
+  assert.equal(verdict.actualDecoderAccepted,true,
+   'synthetic proof must pass actual decoder, not just isolated manuscript triage');
+  assert.deepEqual(verdict.qualityFindings,[]);
   assert.equal(verdict.originalProviderCallsAdded,0);
   assert.equal(verdict.humanReviewRequired,true);
   assert.equal(verdict.approvedForSale,false);
