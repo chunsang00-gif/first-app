@@ -47,6 +47,12 @@ function build(packet,existingExact){
   visiblePositionRelationVerified:true,
   realizedDirectionEffectVerified:false,
   sourceRefs,
+  // Explicitly distinguish a DIFFERENT visible role from exact exposure.
+  // This candidate may support a bounded comparison, but it cannot
+  // inherit the exact-exposure server story or its fifth source citation.
+  exactMonthHiddenExposure:false,
+  serverOwnedExactExposureEligible:false,
+  independentMethodPriorityVerified:false,
   comparisonQuestion:'태어난 달의 대표 속글자와 '+(selected==='natal.year.stem'?'해':'시간')+
    ' 겉글자의 서로 다른 전통 분류 및 기운 관계를 비교할 때 한 가지 가상 선택에서 어떤 질문이 달라지는가?',
   sourceNovelty:'다른 달 속글자가 드러난 것이 아니라 출생 해 또는 시간에 실제로 있는 별도의 겉글자 분류',
