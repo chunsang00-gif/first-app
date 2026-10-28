@@ -1,7 +1,7 @@
 'use strict';
 // The server, not the model, owns evidence IDs and the facts/conditions
 // the optional first-chapter prose is permitted to express.
-// Two individually verified role+position+direction categories only.
+// Five individually verified role+position+direction categories only.
 // All other charts take existing V2 path. No generalized personality inference.
 // TEST/PREVIEW ONLY; no customer release or paid-model approval.
 const SCENES=Object.freeze({
@@ -16,7 +16,14 @@ const SCENES=Object.freeze({
   direction:'left-generates-right',
   comparedRoles:'달의 대표 속글자(맡을 책임과 역할 범위)와 해에 나타난 다른 속글자(실제 결과물 제작·완성 과정)',
   traditionalDirection:'책임 범위에 해당하는 기본 분류가 결과물 완성에 해당하는 추가 분류를 생하는 전통적 오행 방향'
- })
+ }),
+ ...Object.fromEntries(Object.values(
+  require('./report-paid-core-v2-reviewed-scene-catalog').CATALOG
+ ).map(e=>[e.sceneId,Object.freeze({
+  position:e.position,mainRole:e.mainRole,otherRole:e.otherRole,
+  direction:e.direction,comparedRoles:e.comparedRoles,
+  traditionalDirection:e.traditionalDirection
+ })]))
 });
 function build(source,topic){
  const choice=topic?.sourceQualifiedWritingDecision,scene=choice?.readerScene;
@@ -37,6 +44,13 @@ function build(source,topic){
     contrast?.monthMainToExposedElementDirection!==spec.direction||
     choice.approvedForSale!==false||!choice.readerFactAnchor)
   throw Error('CORE_V2_SERVER_CONTRACT_UNVERIFIED_SCENE');
+ // Compare entire text/conditions with the source-derived canonical scene,
+ // not only the role labels. A forged story would be invalid even with
+ // otherwise correct IDs and symbolic direction.
+ const originalScene=require('./report-paid-core-v2-grounded-scene')
+  .forContrast(contrast,source);
+ if(!originalScene||JSON.stringify(originalScene)!==JSON.stringify(scene))
+  throw Error('CORE_V2_SERVER_CONTRACT_SCENE_DRIFT');
  const ids=choice.requiredCitationIds;
  const expected=contrast.sourceRefs;
  const main=source[contrast.mainMonthId],hidden=source[contrast.extraHiddenId],
