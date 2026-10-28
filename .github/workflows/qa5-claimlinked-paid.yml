@@ -1,9 +1,9 @@
-name: QA5 claim-linked first chapter (DISABLED until new explicit consent)
+name: QA5 claim-linked first chapter (select research branch)
 on:
   workflow_dispatch:
     inputs:
       paid_qa_confirmation:
-        description: 'QA5 is not enabled; a new user authorization and reviewed feature branch activation are required'
+        description: 'Select fix-paid-qa-fact-bindings-20261014 and enter NEW QA5 confirmation; main never bills'
         required: true
         type: string
 permissions:
