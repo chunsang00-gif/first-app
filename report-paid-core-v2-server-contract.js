@@ -1,20 +1,40 @@
 'use strict';
 // The server, not the model, owns evidence IDs and the facts/conditions
 // the optional first-chapter prose is permitted to express.
-// One VERIFIABLE chart category only. Other charts take existing V2 path.
+// Two individually verified role+position+direction categories only.
+// All other charts take existing V2 path. No generalized personality inference.
 // TEST/PREVIEW ONLY; no customer release or paid-model approval.
+const SCENES=Object.freeze({
+ 'maintained-equipment-two-missing-conditions':Object.freeze({
+  position:'natal.hour.stem',mainRole:'정관',otherRole:'정재',
+  direction:'right-generates-left',
+  comparedRoles:'달의 대표 속글자(승인 기준·책임)와 시간에 나타난 다른 속글자(운영 비용·담당 시간)',
+  traditionalDirection:'운영 자원에 해당하는 분류가 역할·승인 기준에 해당하는 분류를 돕는 전통적 오행 방향'
+ }),
+ 'community-notice-materials-two-missing-conditions':Object.freeze({
+  position:'natal.year.stem',mainRole:'비견',otherRole:'식신',
+  direction:'left-generates-right',
+  comparedRoles:'달의 대표 속글자(맡을 책임과 역할 범위)와 해에 나타난 다른 속글자(실제 결과물 제작·완성 과정)',
+  traditionalDirection:'책임 범위에 해당하는 기본 분류가 결과물 완성에 해당하는 추가 분류를 생하는 전통적 오행 방향'
+ })
+});
 function build(source,topic){
  const choice=topic?.sourceQualifiedWritingDecision,scene=choice?.readerScene;
  const contrast=topic?.paidCoreDepthV2?.readerContrast;
  if(choice?.selectedScope!=='verified-month-hidden-exposure'||!scene)
   return null;
- if(scene.kind!=='v2-verified-classifications-conditional-editorial-scene-v1'||
+ const spec=SCENES[scene.sceneId];
+ if(!spec||
+    scene.kind!=='v2-verified-classifications-conditional-editorial-scene-v1'||
     scene.approvedForSale!==false||scene.realPersonObservation!==false||
     scene.traditionOnly!==true||contrast?.approvedForSale!==false||
     contrast?.visiblePositionRelationVerified!==true||
     contrast?.realizedDirectionEffectVerified!==false||
-    contrast?.visiblePosition!=='natal.hour.stem'||
-    contrast.monthMainToExposedElementDirection!=='right-generates-left'||
+    contrast?.prioritizationVerified!==false||
+    contrast?.visiblePosition!==spec.position||
+    contrast?.mainRole!==spec.mainRole||
+    contrast?.otherRole!==spec.otherRole||
+    contrast?.monthMainToExposedElementDirection!==spec.direction||
     choice.approvedForSale!==false||!choice.readerFactAnchor)
   throw Error('CORE_V2_SERVER_CONTRACT_UNVERIFIED_SCENE');
  const ids=choice.requiredCitationIds;
@@ -23,9 +43,10 @@ function build(source,topic){
   exposed=source[contrast.visiblePosition];
  if(!Array.isArray(ids)||JSON.stringify(ids)!==JSON.stringify(expected)||
     JSON.stringify(ids)!==JSON.stringify(scene.sourceRefs)||
-    ids.length!==5||main?.tenGod!=='정관'||hidden?.tenGod!=='정재'||
-    exposed?.tenGod!=='정재'||hidden.stem!==exposed.stem||
-    main.stem===hidden.stem||scene.rolePair?.join('/')!=='정관/정재'||
+    ids.length!==5||main?.tenGod!==spec.mainRole||
+    hidden?.tenGod!==spec.otherRole||exposed?.tenGod!==spec.otherRole||
+    hidden.stem!==exposed.stem||main.stem===hidden.stem||
+    scene.rolePair?.join('/')!==[spec.mainRole,spec.otherRole].join('/')||
     !ids.every(id=>Object.hasOwn(source,id)&&
       topic.citableFacts.some(f=>f.id===id)))
   throw Error('CORE_V2_SERVER_CONTRACT_FACT_OR_REFERENCE_DRIFT');
@@ -37,18 +58,19 @@ function build(source,topic){
  if(!serverRefs.every(id=>Object.hasOwn(source,id)&&
     topic.citableFacts.some(f=>f.id===id)))
   throw Error('CORE_V2_SERVER_CONTRACT_REQUIRED_SOURCE_UNAVAILABLE');
+ const location=spec.position==='natal.year.stem'?'해':'시간';
  const outline=Object.freeze({
-  proof:'태어난 시간의 겉글자는 태어난 달의 다른 속글자와 정확히 일치한다',
-  comparedRoles:'달의 대표 속글자(승인 기준·책임)와 시간에 나타난 다른 속글자(운영 비용·담당 시간)',
+  proof:'태어난 '+location+'의 겉글자는 태어난 달의 다른 속글자와 정확히 일치한다',
+  comparedRoles:spec.comparedRoles,
   example:scene.scene,
   originalOnly:scene.whenOnlyOriginal,
   additionalOnly:scene.whenOnlyAdditional,
-  direction:'운영 자원에 해당하는 분류가 역할·승인 기준에 해당하는 분류를 돕는 전통적 오행 방향',
+  direction:spec.traditionalDirection,
   limitation:'어느 조건이 현실에서 우선할지, 실제 성격·직업 능력·성과는 계산만으로 결정되지 않는다'
  });
  return {
   kind:'server-owned-first-chapter-evidence-and-claim-contract-v1',
-  scope:'verified-hour-visible-from-month-hidden',
+  scope:'verified-'+location+'-visible-from-month-hidden',
   onlyFor:'saju_core/temperament',modelRole:'Korean-prose-rendering-only',
   evidenceRefs:serverRefs,
   sourcePosition:contrast.visiblePosition,
@@ -58,4 +80,4 @@ function build(source,topic){
   humanEditorialApproval:false,releaseVerdict:'not-approved'
  };
 }
-module.exports={build};
+module.exports={build,SCENES};
