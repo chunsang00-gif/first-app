@@ -42,7 +42,7 @@ async function test(){
   ['old approval',{REPORT_QA_CONFIRM:'QA2'}],
   ['missing approval',{REPORT_QA_CONFIRM:''}],
   ['wrong branch',{GITHUB_REF_NAME:'saju-mbti-app'}],
-  ['wrong workflow',{GITHUB_WORKFLOW_REF:valid.GITHUB_WORKFLOW_REF.replace('qa3','qa2')}],
+  ['wrong workflow',{GITHUB_WORKFLOW_REF:valid.GITHUB_WORKFLOW_REF.replace(g.WORKFLOW,'.github/workflows/not-the-paid-qa.yml')}],
   ['rerun',{GITHUB_RUN_ATTEMPT:'2'}],
   ['changed repo',{GITHUB_REPOSITORY:'other/repo'}],
   ['missing token',{GITHUB_TOKEN:''}],
