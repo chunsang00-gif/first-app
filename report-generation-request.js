@@ -487,6 +487,10 @@ function schema(prompt,transport){
        basis.properties.refs.description=
         'qaClassicalWritingBrief.requiredEvidenceRefs의 실제 출처를 모두 인용한다. ' +
         '근거를 문장으로 설명할 수 없으면 문단 전체를 null로 둔다.';
+       // Extra response field exists only in exact synthetic offline QA.
+       // Production and original billable schema remain untouched.
+       require('./report-qa3-classical-claim-linked-schema')
+        .apply(prompt,payload,p,basis);
       }
      }
      // Make the *verified* chart-specific distinction visible to the
