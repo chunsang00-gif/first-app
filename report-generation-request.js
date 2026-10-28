@@ -253,7 +253,9 @@ function compile(prompt){
       // The server selects a verified evidence/condition contract BEFORE
       // the model writes. The exact-scene model is only the prose renderer.
       const contract=require('./report-paid-core-v2-server-contract')
-       .build(source,topic);
+       .build(source,topic)||
+       require('./report-paid-core-v2-separate-visible-contract')
+        .build(source,topic);
       if(contract){
        topic.serverOwnedWritingContract=contract;
        chapter.coreV2ConditionalReadingBrief=
@@ -438,7 +440,9 @@ function schema(prompt,transport){
       throw Error('CORE_V2_EXACT_CITATION_CONTRACT_DRIFT');
      const serverContract=task.serverOwnedWritingContract;
      if(serverContract){
-      if(serverContract.kind!=='server-owned-first-chapter-evidence-and-claim-contract-v1'||
+      if(!['server-owned-first-chapter-evidence-and-claim-contract-v1',
+           'server-owned-first-chapter-separate-visible-contract-v1']
+          .includes(serverContract.kind)||
          !serverContract.evidenceRefs.every(id=>permitted.includes(id))||
          JSON.stringify(serverContract.verifiedSourceIds)!==
           JSON.stringify(required))
