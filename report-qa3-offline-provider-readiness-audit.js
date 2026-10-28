@@ -91,7 +91,9 @@ function checkStrictSchema(schema){
   if(node.anyOf){
    if(!Array.isArray(node.anyOf)||node.anyOf.length<2)
     record('anyOf-not-valid:'+path);
-   else node.anyOf.forEach((sub,i)=>inspect(sub,path+'/anyOf/'+i,depth+1));
+   // anyOf is a union wrapper for one output position, not an added
+   // object/array nesting level. Count the branch at the same depth.
+   else node.anyOf.forEach((sub,i)=>inspect(sub,path+'/anyOf/'+i,depth));
   }
   for(const key of ['$defs','definitions']){
    const defs=node[key];
