@@ -1,0 +1,19 @@
+name: QA5 claim-linked first chapter (DISABLED until new explicit consent)
+on:
+  workflow_dispatch:
+    inputs:
+      paid_qa_confirmation:
+        description: 'QA5 is not enabled; a new user authorization and reviewed feature branch activation are required'
+        required: true
+        type: string
+permissions:
+  contents: read
+jobs:
+  main-branch-never-bill:
+    # Registration-only entry in default branch for GitHub Actions discovery.
+    # Even with matching inputs this main-branch job always skips.
+    # QA5 feature-branch job is separately HARD DISABLED too.
+    if: ${{ false }}
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo 'No model call: QA5 requires separate explicit approval and code review'
