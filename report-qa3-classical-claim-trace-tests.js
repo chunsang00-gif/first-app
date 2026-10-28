@@ -43,7 +43,7 @@ const writer=require('./report-generation-request');
   const changed=structuredClone(original);
   const base='태어난 시간의 윗글자는 태어난 달 속에 숨은 자원 관리 관련 글자와 정확히 같습니다.';
   assert(changed.text.includes(base));
-  const inverted='태어난 달 속에 숨은 글자와 태어난 시간의 글자는 서로 다릅니다.';
+  const inverted='태어난 달 속에 숨은 글자와 태어난 시간의 글자는 일치하지 않습니다.';
   changed.text=changed.text.replace(base,inverted);
   const wrong=screen.screen(c.prompt,changed);
   assert(wrong.coveredClaimCues.includes('hidden-and-visible'),
