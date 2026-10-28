@@ -32,8 +32,7 @@ function render(contract){
  const intro=premise;
  const body='예를 들어 '+o.example+'을 생각해 보겠습니다. '+
   '먼저 한쪽 조건만 준비한 경우에는 '+o.originalOnly+'. '+
-  '반대로 다른 조건만 준비한 경우에는 '+o.additionalOnly+'. '+
-  '이처럼 서로 다른 준비의 공백을 나누어 검토하는 가정입니다.';
+  '반대로 다른 조건만 준비한 경우에는 '+o.additionalOnly+'.';
  const conclusion='두 글자의 기운 관계를 계산하면 '+readerFriendly(o.direction)+
   '입니다. 다만 '+readerFriendly(o.limitation)+'.';
  return [intro,body,conclusion].join('\n\n');
