@@ -42,6 +42,11 @@ function decode(value,prompt){
  const checked=require('./report-paid-core-v2-source-provenance')
   .bind(readerValue,prompt);
  readerValue=checked.value;
+ // Other, NON-exposure source contracts use their own source and text
+ // guard. Never allow them to inherit month-hidden matching claims.
+ const separate=require('./report-paid-core-v2-separate-visible-provenance')
+  .bind(readerValue,prompt);
+ readerValue=separate.value;
  const restored=generation.restoreEvidence(readerValue,prompt);
  if(prompt?.qaNatalDepthPreview===true)
   require('./report-core-paid-natal-depth-response-gate').assert(value,prompt);
