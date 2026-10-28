@@ -5,18 +5,18 @@ const assert=require('node:assert/strict');
 const g=require('./qa-core-v2-qa3-dispatch-guard');
 const oldHash=require('./run-paid-core-v2-qa2').REQUEST_HASH;
 const valid={GITHUB_ACTIONS:'true',GITHUB_REPOSITORY:g.REPO,
- GITHUB_REF_NAME:g.BRANCH,GITHUB_RUN_ATTEMPT:'1',GITHUB_RUN_ID:'90001001',
+ GITHUB_REF_NAME:g.BRANCH,GITHUB_RUN_ATTEMPT:'1',GITHUB_RUN_ID:'90001001001',
  GITHUB_WORKFLOW_REF:g.REPO+'/'+g.WORKFLOW+'@refs/heads/'+g.BRANCH,
  GITHUB_TOKEN:'mockgithubtoken',REPORT_QA_CONFIRM:g.APPROVAL};
 const previous={id:g.LAST_PREVIOUS_DISPATCH_ID,path:g.WORKFLOW,
  event:'workflow_dispatch',head_branch:g.BRANCH,run_attempt:1,
  created_at:'2026-10-27T23:30:10Z'};
-const unrelated={id:90001000,path:'.github/workflows/some-other-tool.yml',
+const unrelated={id:90001001000,path:'.github/workflows/some-other-tool.yml',
  event:'workflow_dispatch',head_branch:g.BRANCH,run_attempt:1,
  created_at:'2026-10-28T10:00:00Z'};
-const first={id:90001001,path:g.WORKFLOW,event:'workflow_dispatch',
+const first={id:90001001001,path:g.WORKFLOW,event:'workflow_dispatch',
  head_branch:g.BRANCH,run_attempt:1,created_at:'2026-10-28T10:00:00Z'};
-const second={...first,id:90001002,created_at:'2026-10-28T10:00:30Z'};
+const second={...first,id:90001001002,created_at:'2026-10-28T10:00:30Z'};
 function response(items,total=items.length){
  return async(url,options)=>{
   assert(url.includes('/actions/runs?event=workflow_dispatch'));
@@ -53,7 +53,7 @@ async function test(){
    /QA3_BILLABLE_DISPATCH_REJECTED/,label);
  }
  for(const [label,runs,total,opts] of [
-  ['prior dispatched first',[first,second,previous],3,{...valid,GITHUB_RUN_ID:'90001002'}],
+  ['prior dispatched first',[first,second,previous],3,{...valid,GITHUB_RUN_ID:'90001001002'}],
   ['someone else ran it',[second,previous],2,valid],
   ['restarted job',[{...first,run_attempt:2},previous],2,valid],
   ['wrong branch in history',[{...first,head_branch:'main'},previous],2,valid],
