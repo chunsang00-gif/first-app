@@ -46,7 +46,7 @@ async function check(env=process.env,request=global.fetch){
    if(!Number.isSafeInteger(run.id)||
       !Number.isFinite(Date.parse(run.created_at)))
     refuse('bad-qa5-history');
-   // A failed or canceled QA4 dispatch consumes the attempt as well.
+   // Any failed or canceled QA5 dispatch consumes this NEW attempt too.
    if(run.id!==current||run.event!=='workflow_dispatch'||
       run.head_branch!==BRANCH||run.run_attempt!==1)
     refuse('previous-or-concurrent-qa5-attempt');
