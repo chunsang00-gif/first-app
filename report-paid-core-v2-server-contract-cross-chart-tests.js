@@ -73,7 +73,8 @@ async function run(){
        /CORE_V2_SERVER_CONTRACT_SCENE_DRIFT/,
        'never accept a substituted scene just because refs are valid');
       const forgedRole=structuredClone(topic);
-      forgedRole.paidCoreDepthV2.readerContrast.otherRole='상관';
+      forgedRole.paidCoreDepthV2.readerContrast.otherRole=
+       topic.paidCoreDepthV2.readerContrast.otherRole==='상관'?'식신':'상관';
       assert.throws(()=>contract.build(request.source,forgedRole),
        /CORE_V2_SERVER_CONTRACT_UNVERIFIED_SCENE/,
        'one pair must not borrow a different symbolic category');
