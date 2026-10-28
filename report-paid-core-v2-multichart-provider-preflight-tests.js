@@ -45,6 +45,13 @@ async function run(){
    const owned=task.serverOwnedWritingContract;
    assert(owned,'no chart without a verified server contract may enter this sample');
    assert.equal(owned.modelRole,'Korean-prose-rendering-only');
+   const focus=task.sourceQualifiedWritingDecision.readerInstruction;
+   const chapterBrief=payload.task.chapters.saju_core.coreV2ConditionalReadingBrief;
+   assert(focus.includes('temperament.serverOwnedWritingContract'));
+   assert(Buffer.byteLength(focus)<300);
+   assert(chapterBrief.includes('temperament.serverOwnedWritingContract'));
+   assert(Buffer.byteLength(chapterBrief)<360);
+   assert(!chapterBrief.includes(owned.outline.originalOnly));
    assert.equal(owned.humanEditorialApproval,false);
    assert.equal(owned.releaseVerdict,'not-approved');
    assert.deepEqual(owned.verifiedSourceIds,
