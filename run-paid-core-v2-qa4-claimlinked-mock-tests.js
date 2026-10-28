@@ -153,8 +153,8 @@ async function test(behavior,modelOutput){
   /QA4_FRESH_EXACT_HASH_CONSENT_REQUIRED/);
  const src=fs.readFileSync(
   path.join(__dirname,'.github/workflows/qa4-claimlinked-paid.yml'),'utf8');
- assert(src.includes('    if: ${{ false }}'),
-  'QA4 dedicated workflow is disabled until a separate approval');
+ assert(src.includes("    if: ${{ github.ref_name == 'fix-paid-qa-fact-bindings-20261014' && inputs.paid_qa_confirmation == 'QA4_CLAIM_LINKED_ONE_NEW_REQUEST_ONLY' }}"),
+  'QA4 workflow MUST require the new exact consent and branch');
  assert(src.includes(guard.REQUEST_HASH));
  assert(src.includes('node run-paid-core-v2-qa4-claimlinked.js'));
  assert(src.includes('node report-qa-secure-archive.js encrypt'));
