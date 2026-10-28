@@ -113,10 +113,11 @@ async function run(){
   'Provider may have been billed; no raw report captured');
  if(!raw?.chapters?.saju_core?.paragraphs?.temperament?.basis?.claimLinks)
   fail('QA4_MISSING_REQUIRED_RESEARCH_OUTPUT');
- let review,decoded,method;
+ let review,decoded,method,verificationStage='claim-links';
  try{
   const verified=require('./report-qa3-classical-claim-linked-schema')
    .validateAndStrip(ready.prompt,raw);
+  verificationStage='existing-app-decoder';
   decoded=require('./report-response-decoder')
    .decode(verified.value,ready.prompt);
   const section=decoded?.sections?.[0];
@@ -124,6 +125,7 @@ async function run(){
      !section.bodyTopics.includes('temperament')||
      !section.bodyTopics.includes('strength'))
    throw Error('QA4_WRONG_FIRST_CHAPTER');
+  verificationStage='human-review-method-router';
   const route=require('./report-paid-core-v2-editorial-method-router');
   method=route.inspect({
    route:route.ROUTES.CLASSICAL_CANDIDATE,prompt:ready.prompt,
@@ -135,7 +137,13 @@ async function run(){
    throw Error('QA4_EDITORIAL_REVIEW_REQUIRED_OR_QUALITY_HOLD');
   review=verified.review;
  }catch{
-  fail('QA4_RESEARCH_OR_DECODER_REJECTED_AFTER_ORIGINAL_ARCHIVE');
+  // Never expose model prose, personal fields or internal prompt content.
+  const stage={
+   'claim-links':'QA4_CLAIM_LINK_VALIDATION_REJECTED',
+   'existing-app-decoder':'QA4_EXISTING_APP_DECODER_REJECTED',
+   'human-review-method-router':'QA4_EDITORIAL_METHOD_REJECTED'
+  }[verificationStage]||'QA4_UNCLASSIFIED_VALIDATION_REJECTED';
+  fail(stage);
  }
  privateSave(reviewFile,{
   kind:'qa4-claimlinked-human-editorial-review',
