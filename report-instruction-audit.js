@@ -173,7 +173,8 @@ function inspectTransport(prompt,actual){
    if(id==='saju_core'&&prompt.paidCoreDepthV2===true){
     const contract=chapter.topics?.temperament?.serverOwnedWritingContract;
     if(contract){
-     if(contract.kind!=='server-owned-first-chapter-evidence-and-claim-contract-v1'||
+     if(!['server-owned-first-chapter-evidence-and-claim-contract-v1',
+         'server-owned-first-chapter-separate-visible-contract-v1'].includes(contract.kind)||
         contract.humanEditorialApproval!==false||
         contract.modelRole!=='Korean-prose-rendering-only'||
         !chapter.coreV2ConditionalReadingBrief?.includes(contract.textContract)||
