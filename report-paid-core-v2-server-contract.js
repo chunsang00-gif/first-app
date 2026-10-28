@@ -1,7 +1,7 @@
 'use strict';
 // The server, not the model, owns evidence IDs and the facts/conditions
 // the optional first-chapter prose is permitted to express.
-// Five individually verified role+position+direction categories only.
+// Thirteen explicitly enumerated source-qualified role and direction categories.
 // All other charts take existing V2 path. No generalized personality inference.
 // TEST/PREVIEW ONLY; no customer release or paid-model approval.
 const SCENES=Object.freeze({
@@ -23,6 +23,13 @@ const SCENES=Object.freeze({
   position:e.position,mainRole:e.mainRole,otherRole:e.otherRole,
   direction:e.direction,comparedRoles:e.comparedRoles,
   traditionalDirection:e.traditionalDirection
+ })])),
+ ...Object.fromEntries(Object.values(
+  require('./report-paid-core-v2-expanded-scene-catalog').CATALOG
+ ).map(e=>[e.sceneId,Object.freeze({
+  positions:e.positions,mainRole:e.mainRole,otherRole:e.otherRole,
+  direction:e.direction,comparedRoles:e.comparedRoles,
+  traditionalDirection:e.traditionalDirection
  })]))
 });
 function build(source,topic){
@@ -38,7 +45,8 @@ function build(source,topic){
     contrast?.visiblePositionRelationVerified!==true||
     contrast?.realizedDirectionEffectVerified!==false||
     contrast?.prioritizationVerified!==false||
-    contrast?.visiblePosition!==spec.position||
+    !(spec.position===contrast?.visiblePosition||
+      spec.positions?.includes(contrast?.visiblePosition))||
     contrast?.mainRole!==spec.mainRole||
     contrast?.otherRole!==spec.otherRole||
     contrast?.monthMainToExposedElementDirection!==spec.direction||
@@ -72,7 +80,7 @@ function build(source,topic){
  if(!serverRefs.every(id=>Object.hasOwn(source,id)&&
     topic.citableFacts.some(f=>f.id===id)))
   throw Error('CORE_V2_SERVER_CONTRACT_REQUIRED_SOURCE_UNAVAILABLE');
- const location=spec.position==='natal.year.stem'?'해':'시간';
+ const location=contrast.visiblePosition==='natal.year.stem'?'해':'시간';
  const outline=Object.freeze({
   proof:'태어난 '+location+'의 겉글자는 태어난 달의 다른 속글자와 정확히 일치한다',
   comparedRoles:spec.comparedRoles,
