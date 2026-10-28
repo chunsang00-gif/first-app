@@ -187,9 +187,11 @@ jobs:
           retention-days: 30
 
   qa3-first-chapter:
-    # DORMANT: Never runs from a branch push, the normal test workflow,
-    # an old confirmation, or a conversational "next".
-    if: ${{ github.ref_name == 'fix-paid-qa-fact-bindings-20261014' && inputs.paid_qa_confirmation == 'QA3_20261028_ONE_CHARGE_CONFIRMED' }}
+    # RETIRED: real QA3 workflow_dispatch 40633333735 (2026-10-28) already
+    # attempted the paid provider step. Old exact approval is consumed even
+    # though the result failed. A NEW reviewed hash/workflow/new consent is
+    # required for any future billable trial; never revive this path.
+    if: ${{ false }}
     runs-on: ubuntu-latest
     timeout-minutes: 25
     concurrency:
