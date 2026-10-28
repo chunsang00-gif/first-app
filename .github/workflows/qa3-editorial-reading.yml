@@ -1,0 +1,54 @@
+name: QA3 eight synthetic manuscripts - free editorial reading
+on:
+  push:
+    branches: [fix-paid-qa-fact-bindings-20261014]
+    paths: [.github/workflows/qa3-editorial-reading.yml]
+permissions:
+  contents: read
+jobs:
+  read-synthetic-only:
+    if: ${{ github.ref == 'refs/heads/fix-paid-qa-fact-bindings-20261014' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-audit --no-fund
+      - name: Read all eight synthetic QA manuscript texts without calling AI
+        env:
+          NODE_ENV: test
+          PAID_CORE_DEPTH_V2: offline-preview
+        run: |
+          node - <<'NODE'
+          'use strict';
+          const {capture}=require('./report-core-paid-full-prompt-capture');
+          const {build}=require('./report-qa3-multichart-source-owned-editorial');
+          const cases=[
+            ['1982-08-15','14:20'],['1994-01-15','14:20'],
+            ['1994-04-15','14:20'],['1994-05-15','20:20'],
+            ['1994-07-15','14:20'],['1994-06-15','14:20'],
+            ['2006-08-15','14:20'],['2018-07-15','14:20']
+          ];
+          (async()=>{
+            for(const [birthDate,birthTime] of cases){
+              const input={calendar:'solar',birthDate,birthTime,gender:'male',mbti:'ISFP'};
+              const r=await capture(input);
+              if(r.providerCalls!==0)throw Error('QA3_READER_EXTRACTION_PROVIDER_CALL');
+              const prompt={...r.prompt,paidCoreDepthV2:true,
+                requestedSections:['saju_core']};
+              const v=build(prompt);
+              if(!v||v.releaseVerdict!=='not-approved')
+                throw Error('QA3_READER_EXTRACTION_UNVERIFIED');
+              console.log('QA3_SYNTHETIC_MANUSCRIPT='+JSON.stringify({
+                case:birthDate+'_'+birthTime,
+                scene:v.sceneId,
+                title:v.candidate.label,
+                text:v.candidate.text,
+                sourceCount:v.candidate.basis.refs.length,
+                neverSaleApproved:true
+              }));
+            }
+          })().catch(e=>{console.error(e);process.exitCode=1});
+          NODE
