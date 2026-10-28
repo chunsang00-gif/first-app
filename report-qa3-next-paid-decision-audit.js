@@ -36,6 +36,14 @@ async function assess(){
   const retired=/# RETIRED: real QA3 workflow_dispatch 40633333735/.test(text)&&
    /\n  qa3-first-chapter:\n(?:[^\n]*\n){1,10}?    if: \$\{\{ false \}\}/.test(text);
   if(!retired)throw Error('QA3_CONSUMED_WORKFLOW_NOT_HARD_DISABLED');
+  const qa4=require('./qa-core-v2-claimlinked-dispatch-guard');
+  const nextText=fs.readFileSync(path.join(__dirname,qa4.WORKFLOW),'utf8');
+  if(qa4.REQUEST_HASH!==draft.envelopeSha256||
+     !nextText.includes('    if: ${{ false }}')||
+     !nextText.includes(qa4.REQUEST_HASH)||
+     !nextText.includes('node run-paid-core-v2-qa4-claimlinked.js'))
+   throw Error('QA4_NEW_REQUEST_MUST_REMAIN_UNDISPATCHABLE');
+
   if(HISTORICAL.workflowRunId<=prior.LAST_PREVIOUS_DISPATCH_ID||
      prior.REQUEST_HASH===draft.envelopeSha256||
      !/^[a-f0-9]{64}$/.test(draft.envelopeSha256)||
@@ -61,14 +69,16 @@ async function assess(){
     draft.estimatedCostUSDAtOutputCapAndInputBound,
    localStrictSchemaInspection:'passed',
    remoteStructuredOutputAccepted:'unknown-no-network-call',
-   currentTrialDispatchImplemented:false,
+   currentTrialDispatchImplemented:true,
+   newTrialWorkflowHardDisabled:true,
+   newTrialOneAttemptRunnerPrepared:true,
    consentForNewHashObtained:false,
    legalToReuseOldQA3Approval:false,
    automaticRetryAllowed:false,
    providerCalls:0,actualNewPaidGeneration:false,
    editorialQualityApproved:false,customerRelease:false,
    releaseVerdict:'not-approved',
-   nextAction:'new-request-specific-user-consent-plus-dedicated-one-time-runner'
+   nextAction:'independent-user-consent-and-reviewed-enablement-of-disabled-qa4-workflow'
   };
  }finally{
   for(const [k,v] of Object.entries(original))
