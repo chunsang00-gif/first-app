@@ -131,6 +131,23 @@ function inspect(prompt,payload,schema){
          research.requiredEvidenceRefs.every(id=>refs.has(id)&&
           directive.citableFacts.some(x=>x.id===id)&&
           description.includes(id));
+        // When the exact offline annotation experiment is active, the
+        // response schema must really require one auditable quote+source
+        // link per claim. A prompt instruction alone is not enough.
+        const linksQA=require('./report-qa3-classical-claim-linked-schema');
+        const item=leaf.properties?.basis?.properties?.claimLinks?.items;
+        const requiredClaimIds=research.permittedClaims.map(c=>c.id);
+        if(linksQA.enabled(prompt)){
+         outgoingMatches=outgoingMatches&&
+          leaf.properties.basis.required.includes('claimLinks')&&
+          item?.additionalProperties===false&&
+          JSON.stringify(item?.required)===
+           JSON.stringify(['claimId','sentenceIndex','sentenceQuote','refs'])&&
+          JSON.stringify(item?.properties?.claimId?.enum)===
+           JSON.stringify(requiredClaimIds)&&
+          JSON.stringify(item?.properties?.refs?.items?.enum)===
+           JSON.stringify(research.requiredEvidenceRefs);
+        }else if(item)outgoingMatches=false;
        }catch(e){outgoingMatches=false}
       }else{
        outgoingMatches=description.includes(owned.textContract)&&
