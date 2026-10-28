@@ -45,13 +45,21 @@ function build(prompt){
   '달에 없는 정확한 연결 관계를 지어내지 않고 별도 분류만 비교합니다. ';
  const clean=s=>String(s).replaceAll('오행','기운')
   .replaceAll('실제 성격·직업 능력·성과','실제 성격이나 능력 또는 결과');
+ const example=clean(o.example);
+ const noDuplicateExample=example.endsWith('가정')?
+  '을 생각해 보겠습니다. ':'을 가정해 보겠습니다. ';
+ const limitation=clean(o.limitation)
+  .replace(/되지 않는다(?=[.!?]|$)/g,'되지 않습니다')
+  .replace(/않는다(?=[.!?]|$)/g,'않습니다')
+  .replace(/아니다(?=[.!?]|$)/g,'아닙니다')
+  .replace(/[.]+$/,'');
  const text=[
   evidenceSentence+contrast+'두 전통 분류가 왜 서로 다른 질문인지 '+clean(o.comparedRoles)+'을 기준으로 살핍니다.',
-  '예를 들어 '+clean(o.example)+'을 가정해 보겠습니다. '+
+  '예를 들어 '+example+noDuplicateExample+
     '첫 조건만 준비하고 추가 조건이 빠지면 '+clean(o.originalOnly)+'. '+
     '반대로 추가 조건만 준비하고 첫 조건이 빠지면 '+clean(o.additionalOnly)+'.',
   '두 관계가 가리키는 전통적인 방향은 '+clean(o.direction)+
-    '입니다. 이는 계산된 상징의 비교이며, '+clean(o.limitation)+
+    '입니다. 이는 계산된 상징의 비교이며, '+limitation+
     '. 특정 개인의 실제 습관이나 결과를 예측하지 않습니다.'
  ].join('\n\n');
  const candidate={
