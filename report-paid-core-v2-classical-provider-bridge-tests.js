@@ -59,6 +59,11 @@ const keys=['NODE_ENV','RENDER','PAID_CORE_DEPTH_V2',
   assert(!dest.serverOwnedWritingContract,
    'model must not receive a contradictory generic workplace scene');
   assert.deepEqual(dest.qaClassicalWritingBrief,plan);
+  assert.deepEqual(dest.sourceQualifiedWritingDecision.requiredCitationIds,
+   plan.requiredEvidenceRefs);
+  assert.equal(dest.paidCoreDepthV2.readerContrast,null);
+  assert.equal(dest.paidCoreDepthV2.readerAlternative,null);
+  assert.equal(dest.serverOwnedWritingContract,undefined);
   assert.deepEqual(target.source,payload.source);
   assert.deepEqual(core.topics.strength,
    payload.task.chapters.saju_core.topics.strength);
@@ -125,6 +130,7 @@ const keys=['NODE_ENV','RENDER','PAID_CORE_DEPTH_V2',
    requiredSourceRefs:plan.requiredEvidenceRefs.length,
    explicitOriginalMethodAndCounterexample:true,
    sceneContractNotSentToModelInPreview:true,
+   conflictingFiveRefDecisionNotSent:true,
    actualOutputSchemaFieldChangedInPreview:true,
    oldStrictSourceEnumsAndStrengthUnaffected:true,
    realHttpEnvelopeBuiltOffline:true,
