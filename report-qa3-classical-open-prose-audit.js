@@ -121,6 +121,9 @@ function screen(prompt,paragraph,{monthText=''}={}){
   add('QA3_OPEN_PROSE_NO_NONCONTRADICTORY_CLAIM_CUE:'+id);
  if(ledger.incompleteSourceRefIds.length)
   add('QA3_OPEN_PROSE_CLAIM_SOURCE_INCOMPLETE');
+ for(const item of ledger.metadataHazards)
+  for(const code of item.flags)
+   add('QA3_OPEN_PROSE_METADATA_HAZARD:'+item.field+':'+code);
  // A textual cue only narrows human work. It NEVER establishes
  // that a novel free-form sentence is entailed by an ancient text.
  const unknown=classified.filter(x=>x.needsHumanReview);
@@ -131,6 +134,7 @@ function screen(prompt,paragraph,{monthText=''}={}){
   requiredClaimCues:ids.slice(),
   sourceRowsChecked:required.slice(),
   claimTrace:ledger,
+  metadataClaimReviewRequired:true,
   totalSentences:lines.length,
   unclassifiedSentences:unknown.map(x=>({index:x.index,text:x.sentence})),
   // Even a sentence with known cue words may add an invented conclusion.
