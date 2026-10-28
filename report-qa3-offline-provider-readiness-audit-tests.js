@@ -49,6 +49,12 @@ const flags=['NODE_ENV','RENDER','PAID_CORE_DEPTH_V2',
   banned.properties.claims.items.properties.id.not={type:'null'};
   assert(audit.checkStrictSchema(banned).findings.some(x=>
    x.startsWith('unsupported-keyword')));
+  // A real eleven-level chain of nested objects must still be rejected.
+  let tooDeep={type:'string'};
+  for(let i=0;i<11;i++)tooDeep={type:'object',additionalProperties:false,
+   required:['child'],properties:{child:tooDeep}};
+  assert(audit.checkStrictSchema(tooDeep).findings.some(x=>
+   x.startsWith('schema-nesting-exceeds-ten')));
   const badRoot={anyOf:[testSchema,testSchema]};
   assert(audit.checkStrictSchema(badRoot).findings.some(x=>
    x==='root-must-be-object-not-anyOf'));
@@ -70,6 +76,7 @@ const flags=['NODE_ENV','RENDER','PAID_CORE_DEPTH_V2',
    costUSDAtConservativeBound:ready.estimatedCostUSDAtOutputCapAndInputBound,
    strictSchemaSubsetCheckedLocally:true,
    unsupportedRequiredAdditionalPropertiesAndRootAnyOfRejected:true,
+   actualElevenLevelObjectNestingStillRejected:true,
    actualRemoteAcceptability:'not-tested',
    actualInputTokens:'not-metered',
    actualPriceAndModelAvailabilityAtCall:'not-verified',
