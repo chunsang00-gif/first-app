@@ -23,8 +23,11 @@ const cases=[
   let exact=0,alternative=0;
   for(const [birthDate,birthTime] of cases){
    const input={calendar:'solar',birthDate,birthTime,gender:'male',mbti:'ISFP'};
-   const {prompt,providerCalls}=await capture(input);
-   assert.equal(providerCalls,0);
+   const observed=await capture(input);
+   assert.equal(observed.providerCalls,0);
+   // Explicit isolated core-only free QA, not a claim about real paid scheduling.
+   const prompt={...observed.prompt,requestedSections:['saju_core'],
+    paidCoreDepthV2:true};
    const plan=writer.compile(prompt);
    const core=plan.task.chapters.saju_core;
    const c=specimen.build(prompt);
@@ -40,14 +43,19 @@ const cases=[
    const thumb=thesis.forPrompt(prompt);
    const monthStem=prompt.facts.facts.structuralEvidence.monthCommand.mainHiddenStem;
    const mainId='natal.month.hidden.'+monthStem;
+   const allowedStrength=writer.allowedRefs(plan,core.topics.strength,
+    'saju_core','strength');
+   const monthRefs=['natal.month.stem',mainId,
+    'facts.seasonalEvidence','facts.qiEvidence']
+    .filter(ref=>allowedStrength.has(ref));
+   assert(monthRefs.includes('natal.month.stem')&&monthRefs.includes(mainId));
    const report={chapters:{saju_core:{
     title:thumb.title,keyJudgment:thumb.keyJudgment,mood:'reflective',
     paragraphs:{
      strength:{label:'태어난 달의 두 전통 분류',
       text:'태어난 달의 겉글자와 대표 속글자는 서로 다른 의미를 가집니다. '+
        '그 뜻만으로 한 사람의 실제 능력이나 앞으로 벌어질 사건을 판단하지 않습니다.',
-      basis:{refs:['natal.month.stem',mainId,
-       'facts.seasonalEvidence','facts.qiEvidence'],
+      basis:{refs:monthRefs,
        interpretation:'달의 두 계산 위치와 계절의 상징을 분리합니다.',
        condition:'기본 출생월의 뜻만 비교합니다.',
        limit:'개인의 실제 행동을 관찰하지 않았습니다.'}},
@@ -79,7 +87,9 @@ const cases=[
   for(let month=1;month<=12&&!noSource;month++){
    const input={calendar:'solar',birthDate:'1982-'+String(month).padStart(2,'0')+'-15',
     birthTime:'20:20',gender:'male',mbti:'ISFP'};
-   const {prompt}=await capture(input);
+   const observed=await capture(input);
+   const prompt={...observed.prompt,requestedSections:['saju_core'],
+    paidCoreDepthV2:true};
    if(!writer.compile(prompt).task.chapters.saju_core.topics.temperament
       .serverOwnedWritingContract)noSource=prompt;
   }
