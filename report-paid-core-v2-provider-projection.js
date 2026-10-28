@@ -22,7 +22,9 @@ function project(prompt,payload){
  const choice=topic.sourceQualifiedWritingDecision;
  const context=topic.paidCoreDepthV2;
  const selected=context?.readerContrast||context?.readerAlternative;
- const expected=engine.build(payload.source,topic);
+ let expected=null;
+ try{expected=engine.build(payload.source,topic)}
+ catch(e){throw Error('CORE_V2_PROVIDER_PROJECTION_UNVERIFIED_FACTS')}
  if(!expected||JSON.stringify(expected)!==JSON.stringify(contract)||
     contract.humanEditorialApproval!==false||
     contract.releaseVerdict!=='not-approved'||
