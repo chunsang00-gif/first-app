@@ -110,6 +110,21 @@ function previewTransport(prompt,payload,projected){
  // payload, but not sent as a competing command to the model in this preview.
  delete topic.serverOwnedWritingContract;
  topic.qaClassicalWritingBrief=brief;
+ // The ordinary contrast reference list contains five IDs and describes a
+ // workplace scene. Do not send that as a competing source decision beside
+ // this nine-reference published-rule research assignment.
+ topic.sourceQualifiedWritingDecision={
+  kind:'qa3-classical-source-scoped-writing-decision-v1',
+  decision:'render-verified-classical-claims-only',
+  requiredCitationIds:brief.requiredEvidenceRefs.slice(),
+  approvedForSale:false
+ };
+ topic.paidCoreDepthV2={
+  kind:'first-chapter-optional-full-chart-source-v1',
+  comparisonScope:'verified-exact-day-hour-classical-research-only',
+  readerContrast:null,readerAlternative:null,readerClassicalScope:null,
+  approvedAsPremiumValue:false,customerQualityValidated:false
+ };
  target.coreV2ConditionalReadingBrief=
   '이 QA에서 temperament의 유일한 작성 자료는 qaClassicalWritingBrief이다. '+
   '기존 가상 업무/두 누락 조건 템플릿은 이 명식의 고전 적용 범위 설명에 해당하지 않는다. '+
