@@ -325,8 +325,10 @@ function compile(prompt){
      topicMbtiLens(chapterId,topicId,source['person.mbti']):null;
     // Send an exact-source per-domain reader question to the actual provider.
     // No new model calls, unverified source facts, or user history.
-    const scopedReaderBrief=require('./report-domain-topic-reader-brief').build({
-     chapterId,topicId,topic,priorSections:prompt.priorSections||[]
+    const readerBriefs=require('./report-domain-topic-reader-brief');
+    const scopedReaderBrief=readerBriefs.build({
+     chapterId,topicId,topic,priorSections:prompt.priorSections||[],
+     readerAgeBand:readerBriefs.readerAgeBand(prompt.facts)
     });
     // A frozen first-chapter/natal-depth paid QA request is byte-pinned:
     // NEVER add even a null field to its provider envelope.
