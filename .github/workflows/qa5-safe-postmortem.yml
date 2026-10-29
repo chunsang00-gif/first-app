@@ -1,5 +1,11 @@
 name: QA5 archived response safe diagnosis (NO paid API)
 on:
+  # One metadata-only postmortem run on this workflow's own update.
+  # No model request is possible in this job; archive is read-only.
+  push:
+    branches: [fix-paid-qa-fact-bindings-20261014]
+    paths:
+      - '.github/workflows/qa5-safe-postmortem.yml'
   workflow_dispatch:
 permissions:
   contents: read
@@ -8,7 +14,7 @@ jobs:
   qa5-offline-forensics:
     # This job decrypts only the already-stored QA5 evidence, NEVER
     # imports server.js and NEVER issues an OpenAI provider request.
-    if: ${{ github.event_name == 'workflow_dispatch' && github.ref_name == 'fix-paid-qa-fact-bindings-20261014' }}
+    if: ${{ (github.event_name == 'workflow_dispatch' || github.event_name == 'push') && github.ref_name == 'fix-paid-qa-fact-bindings-20261014' && github.repository == 'chunsang00-gif/first-app' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
