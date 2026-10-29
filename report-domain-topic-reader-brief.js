@@ -75,8 +75,58 @@ const CATEGORY_SCENES=Object.freeze({
   })
  })
 });
-function groundedScene(chapterId,topicId,groups){
- const available=CATEGORY_SCENES[chapterId]?.[topicId]||{};
+// Age is only a writing-context boundary, NEVER an observed trait,
+// a gender/MBTI inference or a change to the natal chart. Conservative at
+// the 18th-birthday calendar boundary (lunar dates may cross civil years).
+function readerAgeBand(packet){
+ const birth=packet?.calculationInput?.birthDate;
+ const year=packet?.targetYear?.year;
+ if(!/^\\d{4}-\\d{2}-\\d{2}$/.test(birth||'')||
+    !Number.isInteger(year))return 'unknown';
+ const diff=year-Number(birth.slice(0,4));
+ if(diff<0||diff>125)return 'unknown';
+ return diff<=18||(diff===19&&packet.calculationInput.calendar==='lunar')?
+  'minor':'adult';
+}
+const MINOR_QUESTIONS=Object.freeze({
+ money:{earning:'정해진 재료와 시간 안에서 무엇을 만들어 나눌지 판단할 때 어떤 상징이 근거가 되는가. 미래 소득을 예언하지 않는다',
+  spending:'용돈이나 준비물처럼 한정된 자원을 남겨 둘지 사용할지 구별하는 질문이다. 실제 소비 습관을 단정하지 않는다'},
+ career:{workstyle:'가상의 학습이나 만들기 활동에서 익히는 단계와 표현하는 단계는 어떻게 다른가. 실제 직업 적성이나 채용 결과는 예언하지 않는다',
+  teamwork:'친구들과 하는 가상 공동 활동에서 역할을 나누는 일과 규칙을 지키는 일을 어떻게 구별하는가',
+  growth:'새로운 학습 방법을 이해하고 연습하는 상황에서 계산된 전통 분류의 뜻은 무엇인가. 성적이나 재능을 단정하지 않는다'},
+ relationship:{closeness:'가족이나 친구와 가까워지는 상황에서 함께할 몫과 약속을 구별하는 질문이다. 연애나 결혼을 예언하지 않는다',
+  expression:'친구에게 마음을 표현하거나 상대의 말을 이해하는 두 가상 대화의 질문을 구별한다'},
+ stress:{trigger:'가상의 과제나 모임에서 시간과 약속이 달라졌을 때 규칙의 뜻을 설명한다. 실제 건강이나 불안을 예언하지 않는다',
+  response:'어려운 학습 내용을 다시 설명받는 가상의 상황에서 도움과 배움을 구별한다. 회복력이나 건강을 판단하지 않는다'}
+});
+const MINOR_SCENES=Object.freeze({
+ money:{
+  earning:{재성:['가상의 학급 나눔 행사에 쓸 재료의 수와 쓰임을 정한다','그 활동에서 남은 재료를 다른 날에 쓸지 살펴본다'],
+   식상:['가상의 만들기 시간에 완성할 작품과 준비 시간을 구분한다','그 활동에서 완성한 것을 다른 사람에게 설명하는 순서를 정한다']},
+  spending:{재성:['가상의 준비물 목록에서 필요한 것과 이미 있는 것을 구별한다','같은 목록에서 지금 쓸 준비물과 나중에 남길 것을 구별한다']}
+ },
+ career:{
+  workstyle:{식상:['가상의 만들기 수업에서 완성한 것을 설명하는 단계를 살핀다','같은 수업에서 다른 설명 방법을 비교한다'],
+   인성:['가상의 새 놀이 규칙을 배운 뒤 적용하는 상황을 살핀다','같은 놀이에서 규칙을 다시 물어보는 조건을 비교한다']},
+  teamwork:{비겁:['가상의 모둠 활동에서 친구들과 각자의 역할을 나눈다','같은 모둠에서 역할이 겹칠 때 다시 합의하는 상황을 본다'],
+   관성:['가상의 모둠 활동에서 정해진 규칙을 읽는다','같은 활동에서 약속이 바뀌었을 때 함께 확인하는 상황을 본다']},
+  growth:{인성:['가상의 공부 시간에 처음 배운 내용을 다시 설명한다','같은 공부에서 새로운 문제에 적용할 때 도움을 받는 상황을 비교한다']}
+ },
+ relationship:{
+  closeness:{비겁:['가상의 친구 놀이에서 각자의 역할을 말한다','같은 놀이에서 친구가 하고 싶은 역할을 다시 묻는다'],
+   식상:['가상의 친구 대화에서 자기 마음을 표현한다','같은 대화에서 친구의 대답을 다시 확인한다'],
+   재성:['가상의 가족 활동에서 함께 쓸 물건을 나눈다','같은 활동에서 서로 필요한 물건을 묻는다'],
+   관성:['가상의 친구 약속에서 정한 시간을 확인한다','같은 약속이 바뀌었을 때 서로 동의하는지 묻는다'],
+   인성:['가상의 가족 대화에서 도움을 요청한다','같은 대화에서 어떤 도움이 필요한지 다시 설명한다']},
+  expression:{식상:['가상의 친구 대화에서 기쁜 마음을 말한다','같은 대화에서 친구가 이해했는지 다시 묻는다']}
+ },
+ stress:{
+  trigger:{관성:['가상의 모둠 과제에서 정해진 약속을 확인한다','같은 과제의 시간이 바뀌면 무엇을 다시 정해야 하는지 살핀다']},
+  response:{인성:['가상의 어려운 수업에서 설명을 다시 듣는다','같은 수업에서 도움받은 뒤 자신이 이해한 것을 확인한다']}
+ }
+});
+function groundedScene(chapterId,topicId,groups,ageBand='unknown'){
+ const available=(ageBand==='minor'?MINOR_SCENES:CATEGORY_SCENES)[chapterId]?.[topicId]||{};
  const supported=groups.filter(g=>available[g]);
  if(!supported.length)return {
   text:'해당 출처만으로 질문에 맞는 범주별 가상 상황을 만들 근거가 부족하다. 실제 개인 행동을 꾸며 보충하지 않는다.',
@@ -152,7 +202,7 @@ function exactRoleLens(rows,illustratedGroups){
   independentLifeProof:false,priorityAssessed:false,
   internalWritingContrast:text});
 }
-function build({chapterId,topicId,topic,priorSections}={}){
+function build({chapterId,topicId,topic,priorSections,readerAgeBand:ageBand='unknown'}={}){
  const spec=EDITORIAL[chapterId]?.[topicId];
  if(!spec||!topic||topic.mode==='state-limits')return null;
  const rows=topic.citableFacts||[];
@@ -167,11 +217,12 @@ function build({chapterId,topicId,topic,priorSections}={}){
  const groups=[...new Set(rows.map(x=>GROUPS[x.tenGod]).filter(Boolean))];
  const distinctPositions=[...new Set(rows.map(x=>x.position).filter(Boolean))];
  const separateSymbolGroups=groups.length>=2;
- const scene=groundedScene(chapterId,topicId,groups);
+ const scene=groundedScene(chapterId,topicId,groups,ageBand);
  const roleLens=exactRoleLens(rows,scene.included);
  return Object.freeze({
   kind:'per-topic-source-grounded-reader-question-v1',
-  readerQuestion:spec[0],hypotheticalContrast:scene.text,
+  readerQuestion:(ageBand==='minor'?MINOR_QUESTIONS[chapterId]?.[topicId]:null)||spec[0],
+  readerAgeWritingBand:ageBand,hypotheticalContrast:scene.text,
   exactRoleLens:roleLens,
   sourceCategoryBoundScene:scene.categorySupported,
   illustratedSourceGroups:scene.included,
@@ -191,4 +242,4 @@ function build({chapterId,topicId,topic,priorSections}={}){
   citationScopeIndependentOfChapterHeading:true
  });
 }
-module.exports={build,EDITORIAL};
+module.exports={build,EDITORIAL,readerAgeBand};
