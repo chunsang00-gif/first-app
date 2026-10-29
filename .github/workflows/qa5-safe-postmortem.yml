@@ -1,0 +1,40 @@
+name: QA5 archived response safe diagnosis (NO paid API)
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  qa5-offline-forensics:
+    # This job decrypts only the already-stored QA5 evidence, NEVER
+    # imports server.js and NEVER issues an OpenAI provider request.
+    if: ${{ github.event_name == 'workflow_dispatch' && github.ref_name == 'fix-paid-qa-fact-bindings-20261014' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Download prior QA5 encrypted artifact (not a new model request)
+        uses: actions/download-artifact@v4
+        with:
+          run-id: 40791214095
+          repository: chunsang00-gif/first-app
+          github-token: ${{ github.token }}
+          name: qa5-claimlinked-first-chapter-encrypted
+          path: qa5-encrypted
+      - name: Decrypt internally and print metadata only (never AI prose)
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          trap 'rm -rf qa5-private' EXIT
+          node report-qa-secure-archive.js decrypt qa5-encrypted/premium-first-chapter-qa.enc qa5-private
+          node qa5-safe-archive-diagnosis.js qa5-private
+      - name: Delete all temporary QA5 evidence
+        if: always()
+        shell: bash
+        run: rm -rf qa5-private qa5-encrypted
