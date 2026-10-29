@@ -109,3 +109,10 @@
 - GitHub Actions **40851977117**: `npm test`와 `npm run smoke` 모두 **SUCCESS**. 코드 커밋 `a0ba68ea2d5e678ba4a3b3ff0b4eb4eb212f1599`. 세부 인수인계 `qa/qa15-prepurchase-report-coverage-20261029.md`.
 - 기존 원국 계산, 유료 생성/검증, QA5 소비 승인, 품질 게이트, 운영/main 브랜치 모두 불변. 판매·배포 승인 없음.
 - **다음 과제**: 12장·35항목 고정 판매 규격과 코드의 실질적 22개 상한을 독립 근거/원고 품질 기준으로 해결하거나 가변형 상품으로 재정의하고 고지; 실제 생성 본문의 인간 전문가 심사 및 결제 권한 보안 설계 별도 진행. 단순 QA 번호 추가보다 실제 사용자 상품 UX를 개선할 것.
+
+## 최종 보고서 제공량 검증·실제 완료 차단 — 2026-10-29
+- QA15의 결제 전 **가능 상한**과 실제 생성 완료 보고서의 **남은 문단 수**가 같은 근거 계약에 속하는지 서버에서 다시 확인한다. 새 파일 `report-delivery-scope.js`는 출생 근거별 예정 장, 활성 가능한 세부항목, 기준 문단, 실제 남은 문단/제목을 비교한다. 존재하지 않는 주제를 넣거나 금전 위험 등 6개 비활성 항목을 반환하면 오류.
+- `report-release-gate.js`의 기술 검증 기록뿐 아니라 `report-server-contract.generate`의 **최종 `status:'ready'` 반환을 차단**하도록 연결했다. `report-renderer.js`는 **실제로 작성된 N장/M항목**만 표시하고 구 보고서에 ID가 없으면 빈 숫자 0을 표시하지 않는다.
+- 모의 제공자에서 비활성 항목을 반환해도 통과하던 `smoke-test.js`의 허위 데이터를 수정하여 실제 `editorialBlueprint`에 맞게 응답하도록 했다. `report-delivery-scope-tests.js`, `result-dashboard-tests.js` 확대.
+- **GitHub Actions 40859749031**: 전체 `npm test`+ `npm run smoke` **SUCCESS** (변경 코드 커밋 `68bf689b9c9e1dff72e9e39fa413128bb5ea707f`), 실제 유료 API 0회. 상세 `qa/product-final-delivery-reconciliation-20261029.md`.
+- **상품 핵심 문제는 여전히 미해결**: 35개 정의 목표와 기존 28개/현재 정책상 22개 최대 활성의 격차, 실제 유료 문장 품질/인간 전문가 심사/결제 권한. 새 35개를 만들어냈다고 말하지 않는다. 다음 실제 작업은 기존 유료 원본의 재사용 가능한 품질 근거와 상품 규격의 현실적 일치, 불필요한 동일 QA 반복 중단.
