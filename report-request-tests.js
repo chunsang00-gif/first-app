@@ -119,6 +119,24 @@ const {createQueue,retryDelay,rateLimitKind}=require('./report-request-control')
   {id:'career',keyJudgment:'새 작업을 배우는 순서를 정한다'},
   {id:'relationship',keyJudgment:'서운한 마음을 말로 전한다'}
  ]).length,0,'distinct domain judgments must not be penalized');
+ const nounSwap=[
+  {id:'money',keyJudgment:'금전에서는 실제 계산 근거를 확인한 다음 판단합니다.'},
+  {id:'career',keyJudgment:'직업에서는 실제 계산 근거를 확인한 다음 판단합니다.'}
+ ];
+ assert(contract.findRecycledThemes(nounSwap).some(x=>
+  x.includes('same paid thesis with domain noun substituted')),
+  'two chapters with only the domain noun changed must not be resold');
+ assert(contract.findRecycledThemes([
+  {id:'money',keyJudgment:'금전에서는 예상 지출을 항목별로 비교하고 결정합니다.'},
+  {id:'career',keyJudgment:'직업에서는 동료가 맡을 업무와 내 업무를 먼저 구분합니다.'}
+ ]).every(x=>!x.includes('same paid thesis')),
+ 'different concrete actions must remain independent even with domain words');
+ assert(contract.findRecycledThemes([
+  {id:'year_2027_money',keyJudgment:'금전 결과는 이 자료로 확인할 수 없습니다.'},
+  {id:'year_2027_career',keyJudgment:'직업 결과는 이 자료로 확인할 수 없습니다.'}
+ ]).every(x=>!x.includes('same paid thesis')),
+ 'legitimate shared limits are not proof of duplicate paid predictions');
+
  assert(contract.findReusedEvidenceConclusions([
   {id:'money',keyJudgment:'가격을 비교하고 지출을 결정합니다.',evidence:['월간에 계산된 같은 명리 관계의 설명입니다.']},
   {id:'career',keyJudgment:'가격을 비교하고 지출을 결정합니다.',evidence:['월간에 계산된 같은 명리 관계의 설명입니다.']}
