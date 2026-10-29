@@ -68,3 +68,10 @@
 - 실제 출처 계약 연결: `report-qa9-second-chart-manuscript.js`; 무료 본문·디코더·복사 방지: `report-qa9-second-chart-manuscript-tests.js`. 다른 명식에 원고를 그대로 적용하면 차단.
 - GitHub Actions **40817081782**의 `npm test`와 `npm run smoke` **전체 SUCCESS**. 검증 코드 SHA `d3f038ae909c3fae923e775cd84054d3dbe00d4f`. 기존 `main`, `saju-mbti-app` 불변. 실제 provider 호출·유료 보고서 생성 0회.
 - **핵심 한계**: 다른 첫 장 원고를 새로 작성한 것은 맞지만 기계적 검사 통과가 전문 명리 해석 타당성이나 독자 가치 승인과 같지는 않다. QA5/QA6 유료 재호출 금지, 운영 병합·판매 금지.
+
+## QA10 독자 가치 분리 검증 — 2026-10-29
+- QA7·QA9 두 원고를 동일 기준으로 비교해 **기계 계산에서 새로 증명된 관계**와 **삶을 비유한 가상 예시**를 구별했다. 독자의 실제 삶, 성격, 수입, 업무 적합성 또는 개인별 명리 결론의 의미적 타당성은 입증되지 않음.
+- `report-qa10-two-manuscript-evidence-delta.js`, `report-qa10-two-manuscript-evidence-delta-tests.js` 등록. 다른 명식 고전 문구 섞기, 두 개의 상반된 조건 중 한쪽 누락, 단순 예시 교체로 해석이 같아지는 문제를 거절. 테스트 자체가 '둘 중 하나만 있으면 통과'하던 결함도 수정.
+- 코드 커밋 `3963cf591f72991cb834b79458361d5afc8727b6`, GitHub Actions **40823087756** 전체 `npm test`와 `npm run smoke` 성공, 유료 API 0회.
+- 전문 명리 심사·실제 모델 생성·12장/35항목 유료 상품 품질 및 판매는 **아직 미승인**. QA10 상세는 `qa/qa10-two-manuscripts-reader-value-verdict-20261029.md` 참조.
+- **다음 우선순위: 기존 유료 보고서 전체 생성 흐름 및 12장/35항목 계약과 남은 핵심 병목을 조사**. 같은 두 첫 장의 자동 검사를 계속 늘리지 말고 실제 출시 격차를 줄일 것. 사용자 신규 승인 없이 유료 API 재호출·운영 병합 금지.
