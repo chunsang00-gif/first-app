@@ -96,6 +96,42 @@ function groundedScene(chapterId,topicId,groups){
   categorySupported:true
  };
 }
+// The two roles within ONE traditional group can answer different reader
+// questions. Use only original source rows with their canonical glossary.
+// Do not mistake the existence of a hidden stem for its strength/priority.
+function exactRoleLens(rows){
+ const eligible=rows.filter(row=>row?.id?.startsWith('natal.')&&
+  GROUPS[row.tenGod]&&row.position&&row.layer&&row.stem&&
+  typeof row.traditionalMeaning==='string'&&row.traditionalMeaning.trim());
+ const chosen=[];
+ for(const row of eligible){
+  if(chosen.some(x=>x.tenGod===row.tenGod))continue;
+  chosen.push(Object.freeze({
+   sourceId:row.id,sourcePosition:row.position,
+   sourceLayer:row.layer,observedStem:row.stem,tenGod:row.tenGod,
+   group:GROUPS[row.tenGod],traditionalMeaning:row.traditionalMeaning,
+   observedLifeExperience:false,traditionalPrioritySelected:false
+  }));
+  if(chosen.length===2)break;
+ }
+ const two=chosen.length===2;
+ const sameGroup=two&&chosen[0].group===chosen[1].group;
+ const text=!chosen.length?
+  '정확한 출생 글자의 전통적 뜻을 확인할 수 없어 구체적인 인물 해석을 보충하지 않는다.':
+  chosen.map((x,i)=>'출처 '+(i+1)+' '+x.sourceId+
+   ' ('+x.sourcePosition+' '+x.sourceLayer+' '+x.observedStem+
+   '): '+x.traditionalMeaning).join(' / ')+
+   (two?
+    sameGroup?' 같은 분류군 안에서도 계산된 두 세부 관계의 뜻이 다르므로, 각 관계가 다루는 가상 질문을 분리한다.':
+    ' 두 분류군의 각각 다른 전통적 뜻을 한 상황에서 비교하되 우선순위와 실제 작용을 확정하지 않는다.':
+    ' 이 출처 하나만으로 존재하지 않는 다른 세부 관계를 만든 것처럼 풀이하지 않는다.')+
+   ' 이 자료는 출생 위치의 상징 구분이며 실제 성격·수입·직업·관계 이력이나 강약을 관찰한 증거가 아니다.';
+ return Object.freeze({kind:'exact-natal-ten-god-source-lens-v1',
+  sourceRoles:chosen,hasTwoDifferentRoles:two,
+  sameTraditionalGroupDifferentRoles:sameGroup,
+  independentLifeProof:false,priorityAssessed:false,
+  internalWritingContrast:text});
+}
 function build({chapterId,topicId,topic,priorSections}={}){
  const spec=EDITORIAL[chapterId]?.[topicId];
  if(!spec||!topic||topic.mode==='state-limits')return null;
@@ -112,9 +148,11 @@ function build({chapterId,topicId,topic,priorSections}={}){
  const distinctPositions=[...new Set(rows.map(x=>x.position).filter(Boolean))];
  const separateSymbolGroups=groups.length>=2;
  const scene=groundedScene(chapterId,topicId,groups);
+ const roleLens=exactRoleLens(rows);
  return Object.freeze({
   kind:'per-topic-source-grounded-reader-question-v1',
   readerQuestion:spec[0],hypotheticalContrast:scene.text,
+  exactRoleLens:roleLens,
   sourceCategoryBoundScene:scene.categorySupported,
   illustratedSourceGroups:scene.included,
   unillustratedSourceGroups:scene.unavailable,
