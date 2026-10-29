@@ -52,7 +52,8 @@ assert.equal(createTiming().snapshot().sampleCount,0);
    querySelectorAll:()=>[],getElementById:()=>null,addEventListener(){}}};
  vm.runInNewContext(fs.readFileSync(require.resolve('./live-report-ui'),'utf8'),ui);
  const pending=ui.window.LIVE_REPORT_UI.run();
- await Promise.resolve();await Promise.resolve();await Promise.resolve();
+ for(let tick=0;tick<24&&typeof resolveCoverage!=='function';tick++)
+  await Promise.resolve();
  assert(body.innerHTML.includes('analysis-average'));
  assert(body.innerHTML.includes('평균 약 2분'));
  assert(body.innerHTML.includes('1건 기준'));
