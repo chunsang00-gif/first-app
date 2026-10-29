@@ -406,13 +406,22 @@ function schema(prompt,transport){
        brief.observedCustomerBehavior!==false||
        brief.realWorldOutcomeEstablished!==false)
      throw Error('PAID_TOPIC_READER_BRIEF_SOURCE_DRIFT:'+chapterId+':'+topic);
-    // Precise output slot, not generic chapter instructions that blur topics.
+    const roles=brief.exactRoleLens;
+    if(!roles||roles.independentLifeProof!==false||
+       roles.priorityAssessed!==false||roles.sourceRoles.some(x=>
+        !permitted.includes(x.sourceId)||
+        payload.source[x.sourceId]?.tenGod!==x.tenGod||
+        payload.source[x.sourceId]?.traditionalMeaning!==x.traditionalMeaning))
+     throw Error('PAID_TOPIC_EXACT_ROLE_LENS_DRIFT:'+chapterId+':'+topic);
+    // Exact cited source differences are part of the actual JSON text slot,
+    // rather than a distant generic request to "write more deeply".
     p.properties.text.description+=' 이 항목의 고유 질문: '+
      brief.readerQuestion+'. 서로 다른 가상 선택: '+
-     brief.hypotheticalContrast+'. 다른 항목과의 차이: '+
+     brief.hypotheticalContrast+'. 출생 근거별 뜻의 차이: '+
+     roles.internalWritingContrast+'. 다른 항목과의 차이: '+
      brief.differentFromOtherTopics+'. '+brief.sourceComparison+' '+
      brief.previousSourceConstraint+
-     ' 실제 개인의 행동 증거가 아니며 독립적인 뜻이 없다면 선택 문단은 null로 둔다.';
+     ' 명리 전문용어와 출처 번호를 고객 문단에 나열하지 말고 전통적 뜻의 차이를 쉬운 말로 푼다. 실제 개인의 행동 증거가 아니며 독립적인 뜻이 없다면 선택 문단은 null로 둔다.';
    }
    if(chapterId==='saju_core'&&topic==='natal_depth'&&
       prompt.qaNatalDepthPreview===true){
