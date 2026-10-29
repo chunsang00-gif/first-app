@@ -35,8 +35,9 @@ for(const [calendar,birthDate,birthTime] of cases){
   }
   if(Object.keys(spec).length>1){
    const second=Object.keys(spec).find(x=>x!==anchor);
-   const wrong={id,bodyTopics:[second,anchor]};
-   assert.equal(gate.check([wrong],plan).pass,false);
+   const canonicalPair=Object.keys(spec).filter(x=>x===anchor||x===second);
+   const wrong={id,bodyTopics:canonicalPair.reverse()};
+   assert(gate.check([wrong],plan).problems.includes('TOPIC_ORDER_OR_ID:'+id));
   }
  }
 }
