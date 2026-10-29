@@ -443,6 +443,13 @@ async function generate(input,callModel,onProgress=()=>{},onValidatedBatch=()=>{
 
  // A machine-clean draft still requires independent interpretation/prose
  // review. Never let status:'ready' imply that premium release was approved.
+ // An actual final draft must never reach 'ready' when its retained
+ // paragraphs disagree with the pre-billing source-eligible scope.
+ const delivered=require('./report-delivery-scope').inspect({report,packet,coverage});
+ if(delivered.status!=='verified-structural-counts'){
+  qa={...qa,pass:false,
+   errors:[...(qa.errors||[]),'Final report paragraph scope differs from verified preflight plan']};
+ }
  qa.releaseGate=require('./report-release-gate').assess({report,qa,packet,coverage});
  return qa.pass?{status:'ready',report,qa,headingRepairs,coverage}:{status:'rejected',report,qa,headingRepairs,coverage};
 }
