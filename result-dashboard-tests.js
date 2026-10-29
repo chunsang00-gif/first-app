@@ -40,3 +40,23 @@ assert(editedHTML.includes('id="shareFullReport"'));assert(editedHTML.includes('
 const curated=structuredClone(edited);curated.cover.highlights=[{sectionId:'relationship',title:'관계에서 선별한 핵심',description:'본문 관계 해석에서 뽑은 설명'},{sectionId:'money',title:'재물에서 선별한 핵심',description:'본문 재물 해석에서 뽑은 설명'},{sectionId:'career',title:'직업에서 선별한 핵심',description:'본문 직업 해석에서 뽑은 설명'}];const curatedHtml=render(curated);for(const item of curated.cover.highlights){assert(curatedHtml.includes(item.title));assert(curatedHtml.includes(item.description));assert(curatedHtml.includes('data-target="detail-'+item.sectionId+'"'))}console.log('PASS cover uses whole-report curated highlights with matching navigation');
 
 
+
+
+// The report cover counts only actual, present topic paragraphs, not a
+// 12-chapter/35-topic marketing target or nullable provider fields.
+const receipt=structuredClone(edited);
+for(const sec of receipt.sections){
+ sec.bodyTopics=[Object.keys(require('./report-outline').topics[sec.id])[0]];
+ sec.body=['완성된 첫 번째 문단'];
+ sec.bodyLabels=['첫 번째 소제목'];
+}
+const exact=render(receipt);
+assert(exact.includes('실제로 작성된 분석: 12개 장 · 12개 세부 풀이'));
+const fewer=structuredClone(receipt);
+fewer.sections.splice(9,3);
+const fewerHtml=render(fewer);
+assert(fewerHtml.includes('실제로 작성된 분석: 9개 장 · 9개 세부 풀이'));
+assert(!fewerHtml.includes('35개 세부 풀이'));
+assert(!render(edited).includes('report-delivered-scope'),
+ 'legacy records without source-owned topic IDs must not display a misleading zero');
+console.log('PASS reader sees actual completed chapter/topic count, not undefined/target volume');
