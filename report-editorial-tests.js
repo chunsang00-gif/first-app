@@ -670,6 +670,10 @@ assert.deepEqual(singleComparison.sections[0].bodyTopics,['agreement']);
 const forcedComparison={stage:'body',rules:{hanjaPolicy:reader.instruction,topicPlan:{integrated_judgment:{insight:'같은 선택에서 서로 다른 결론을 제시하는 조건'}}}};
 assert(require('./report-instruction-audit').inspect(forcedComparison).includes('forced contrast in writing plan'));
 for(const a of ['I','E'])for(const b of ['S','N'])for(const c of ['T','F'])for(const d of ['J','P']){const type=a+b+c+d; const ref=guidance.forRequest(['decision'],type).mbtiReference; assert.equal(ref.preferences.map(x=>x.code).join(''),type);assert.equal(ref.preferences.length,4);}
+// Mock output has to follow calculated source eligibility; returning
+// state-limits paragraphs is a real paid-batch failure, not valid filler.
+const eligibleTopics=(prompt,id)=>Object.keys(outline.topics[id]).filter(k=>
+ prompt.analysisGuidance?.editorialBlueprint?.[id]?.topicTasks?.[k]?.mode!=='state-limits');
 (async()=>{
  let calls=0;const seen=[];
  const dryRun=await sandbox.module.exports.generate({mbti:'ISFP'},async p=>{
@@ -720,7 +724,7 @@ for(const a of ['I','E'])for(const b of ['S','N'])for(const c of ['T','F'])for(c
   assert.deepEqual(Object.keys(p.analysisGuidance.chapterTasks),Array.from(p.requestedSections));
   assert.equal(p.analysisGuidance.mbtiReference.type,'ISFP');
   assert.equal(p.analysisGuidance.mbtiReference.preferences.map(x=>x.code).join(''),'ISFP');
-  return {sections:p.requestedSections.map(id=>({id,title:'제목',keyJudgment:'핵심',evidence:['계산한 사주 항목의 설명입니다.'],bodyTopics:Object.keys(outline.topics[id]),bodyLabels:Object.keys(outline.topics[id]).map((_,i)=>'검증 항목 '+i),body:Object.keys(outline.topics[id]).map((topic,i)=>'첫 번째 결론 '+i+'. 이어지는 설명입니다.'+(id==='saju_core'&&topic==='strength'?' '+require('./qa/core-meaning-mock').body(p):''))}))};
+  return {sections:p.requestedSections.map(id=>({id,title:'제목',keyJudgment:'핵심',evidence:['계산한 사주 항목의 설명입니다.'],bodyTopics:eligibleTopics(p,id),bodyLabels:eligibleTopics(p,id).map((_,i)=>'검증 항목 '+i),body:eligibleTopics(p,id).map((topic,i)=>'첫 번째 결론 '+i+'. 이어지는 설명입니다.'+(id==='saju_core'&&topic==='strength'?' '+require('./qa/core-meaning-mock').body(p):''))}))};
  });
  // The mock intentionally contains placeholder evidence and no cover.
  // Never mistake completed provider calls for a publishable report.
@@ -743,9 +747,9 @@ for(const a of ['I','E'])for(const b of ['S','N'])for(const c of ['T','F'])for(c
    earlyCalls++;
    return {sections:p.requestedSections.map(id=>({
     id,title:'제목',keyJudgment:'직접 실행으로 연결합니다.',
-    evidence:['계산한 사주 항목의 설명입니다.'],bodyTopics:Object.keys(outline.topics[id]),
-    bodyLabels:Object.keys(outline.topics[id]).map((_,i)=>'검증 항목 '+i),
-    body:Object.keys(outline.topics[id]).map(topic=>'문장입니다.'+(id==='saju_core'&&topic==='strength'?' '+require('./qa/core-meaning-mock').body(p):''))
+    evidence:['계산한 사주 항목의 설명입니다.'],bodyTopics:eligibleTopics(p,id),
+    bodyLabels:eligibleTopics(p,id).map((_,i)=>'검증 항목 '+i),
+    body:eligibleTopics(p,id).map(topic=>'문장입니다.'+(id==='saju_core'&&topic==='strength'?' '+require('./qa/core-meaning-mock').body(p):''))
    }))};
   }),
   /reader-facing editorial defects/
@@ -758,9 +762,9 @@ for(const a of ['I','E'])for(const b of ['S','N'])for(const c of ['T','F'])for(c
   if(p.stage==='synthesis')throw Error('Synthesis must be skipped for repetitive draft');
   return {sections:p.requestedSections.map(id=>({
    id,title:'서로 다른 제목 '+id,keyJudgment:'논리적인 근거를 확인하고 설명을 납득해야 결정합니다.',
-   evidence:['원국의 일간 계산 근거 '+id],bodyTopics:Object.keys(outline.topics[id]),
-   bodyLabels:Object.keys(outline.topics[id]).map((_,i)=>'검증 항목 '+i),
-   body:Object.keys(outline.topics[id]).map((topic,i)=>'서로 다른 주제 '+id+i+'에서 논리와 근거를 확인하고 설명에 납득해야 합니다.'+(id==='saju_core'&&topic==='strength'?' '+require('./qa/core-meaning-mock').body(p):''))
+   evidence:['원국의 일간 계산 근거 '+id],bodyTopics:eligibleTopics(p,id),
+   bodyLabels:eligibleTopics(p,id).map((_,i)=>'검증 항목 '+i),
+   body:eligibleTopics(p,id).map((topic,i)=>'서로 다른 주제 '+id+i+'에서 논리와 근거를 확인하고 설명에 납득해야 합니다.'+(id==='saju_core'&&topic==='strength'?' '+require('./qa/core-meaning-mock').body(p):''))
   }))};
  }),/cross-chapter recycled thesis/);
  assert.equal(preflightCalls,4,'recycled thesis must still fail before synthesis with isolated first paid core chapter');
