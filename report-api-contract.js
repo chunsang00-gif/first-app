@@ -15,5 +15,14 @@ async function generate({endpoint='/api/report',analysisInput}){timing=null;if(!
  if(!res.ok){const detail=await errorDetail(res);return {status:'error',errors:[detail||`report api ${res.status}`]}}
  const start=await res.json();if(start.status!=='processing'||!start.jobId)return {status:'error',errors:['report job was not started']};acceptTiming(start.timing);sessionStorage.setItem('reportJobId',start.jobId);sessionStorage.removeItem('reportPendingRequest');return poll(start.jobId)
  }catch(e){return {status:'error',errors:[e?.message||'network error']}}}
-return {generate,resume,timingText,elapsedSeconds};})();window.REPORT_API=REPORT_API;
+async function coverage(input){try{
+ const res=await fetch('/api/report-coverage',{method:'POST',
+  headers:{'content-type':'application/json'},
+  body:JSON.stringify(input)});
+ if(!res.ok)return {status:'blocked',
+  errors:[await errorDetail(res)||'제공 가능 범위를 확인하지 못했습니다.']};
+ return await res.json();
+ }catch(e){return {status:'blocked',errors:[e?.message||'network error']}}
+}
+return {generate,resume,coverage,timingText,elapsedSeconds};})();window.REPORT_API=REPORT_API;
 
