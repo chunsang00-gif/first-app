@@ -17,6 +17,7 @@ const keys=['NODE_ENV','RENDER','PAID_CORE_DEPTH_V2',
   process.env.NODE_ENV='test';delete process.env.RENDER;
   for(const key of keys.slice(2))delete process.env[key];
   const results=[];
+  let lastLivePrompt=null;
   for(const input of [first,second]){
    const packet=facts.build(input,2027);
    assert.equal(packet.status,'ready');
@@ -24,6 +25,7 @@ const keys=['NODE_ENV','RENDER','PAID_CORE_DEPTH_V2',
    assert.equal(observed.status,'captured-full-paid-composition');
    assert.equal(observed.providerCalls,0);
    const before=JSON.stringify(observed.prompt);
+   lastLivePrompt=observed.prompt;
    const audit=scope.scope(packet,observed.prompt);
    assert.equal(JSON.stringify(observed.prompt),before);
    assert.equal(audit.canonicalChapterCount,12);
@@ -53,7 +55,7 @@ const keys=['NODE_ENV','RENDER','PAID_CORE_DEPTH_V2',
   assert.equal(Object.values(outline.topics).reduce((n,v)=>n+
    Object.keys(v).length,0),28);
   process.env.NODE_ENV='production';
-  assert.throws(()=>scope.scope(facts.build(first,2027),(await capture(first)).prompt),
+  assert.throws(()=>scope.scope(facts.build(second,2027),lastLivePrompt),
    /QA11_LIVE_CONTRACT_INSPECTION_OFFLINE_ONLY/);
   process.env.NODE_ENV='test';process.env.RENDER='true';
   assert.throws(()=>scope.scope(facts.build(first,2027),{stage:'body'}),
