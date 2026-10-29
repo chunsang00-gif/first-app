@@ -37,9 +37,34 @@ assert.equal(createTiming().snapshot().sampleCount,0);
  assert(api.window.REPORT_API.timingText().includes('아직 완료된 분석 기록이 없습니다'));
  await api.window.REPORT_API.generate({analysisInput:{status:'ready'}});
  assert(api.window.REPORT_API.timingText().includes('평균 약 2분'));assert(api.window.REPORT_API.timingText().includes('1건 기준'));assert.equal(requests,3);assert(api.window.REPORT_API.elapsedSeconds()>=30);
- const body={innerHTML:'',querySelector(){return null}};const ui={window:{REPORT_API:api.window.REPORT_API,CHARACTER_ASSETS:{state:()=>''},REPORT_RENDERER:{render(){}}},REPORT_API:{generate:async()=>({status:'ready',report:{}})},sessionStorage:{getItem:()=>null},setInterval:()=>1,clearInterval(){},fetch:async()=>({ok:true,json:async()=>({status:'ready'})}),document:{querySelector:s=>s==='#reportBody'?body:null,querySelectorAll:()=>[],getElementById:()=>null,addEventListener(){}}};
+ // The public reader flow now shows the FREE scope before any paid model
+ // generation; loading still displays timing while calculation is pending.
+ let resolveCoverage,charged=0;
+ const body={innerHTML:'',querySelector(){return null}};
+ const ui={window:{REPORT_API:{...api.window.REPORT_API,
+  coverage:()=>new Promise(resolve=>{resolveCoverage=resolve;})},
+  CHARACTER_ASSETS:{state:()=>''},REPORT_RENDERER:{render(){}}},
+  REPORT_API:{generate:async()=>{charged++;throw Error('Paid report must not be invoked');}},
+  sessionStorage:{getItem:()=>null},setInterval:()=>1,clearInterval(){},
+  fetch:async()=>({ok:true,json:async()=>({status:'ready',
+   calculationInput:{calendar:'solar',birthDate:'1990-06-15'}})}),
+  document:{querySelector:s=>s==='#reportBody'?body:null,
+   querySelectorAll:()=>[],getElementById:()=>null,addEventListener(){}}};
  vm.runInNewContext(fs.readFileSync(require.resolve('./live-report-ui'),'utf8'),ui);
- await ui.window.LIVE_REPORT_UI.run();assert(body.innerHTML.includes('analysis-average'));assert(body.innerHTML.includes('평균 약 2분'));assert(body.innerHTML.includes('1건 기준'));
+ const pending=ui.window.LIVE_REPORT_UI.run();
+ await Promise.resolve();await Promise.resolve();await Promise.resolve();
+ assert(body.innerHTML.includes('analysis-average'));
+ assert(body.innerHTML.includes('평균 약 2분'));
+ assert(body.innerHTML.includes('1건 기준'));
+ assert.equal(typeof resolveCoverage,'function');
+ resolveCoverage({status:'ready',estimate:{plannedChapters:9,
+  evidenceEligibleTopicUpperBound:19,chapters:[
+   {name:'사주 기본',includedInPlan:true,eligibleTopicUpperBound:2},
+   {name:'2027년 금전',includedInPlan:false,omittedReason:'근거 없음'}]}});
+ await pending;
+ assert(body.innerHTML.includes('최대 19개 항목'));
+ assert(body.innerHTML.includes('현재 유료 구매와 정식 보고서 생성은 준비 중입니다'));
+ assert.equal(charged,0);
  const resumed=await api.window.REPORT_API.resume();assert.equal(resumed.status,'ready');assert.equal(requests,3,'completed reload must not issue another request');
  console.log('PASS real-duration mean, bounded/expired samples, restart reset, failed/rejected exclusions, status timing, existing polling only, average loading text; no paid API');
 })().catch(e=>{console.error(e);process.exitCode=1});
