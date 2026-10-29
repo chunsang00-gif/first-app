@@ -67,7 +67,7 @@ function findRepeatedAdvice(sections){
 // same evidence in another chapter is not a second paid insight.
 function findReusedEvidenceConclusions(sections){
  const seen=new Map(),errors=[];
- const norm=x=>String(x||'').normalize('NFKC').replace(/[\\s.,!?。！？"'“”‘’·:;()[\\]]/g,'');
+ const norm=x=>String(x||'').normalize('NFKC').replace(/[\s.,!?。！？"'“”‘’·:;()[\\]]/g,'');
  for(const section of sections||[]){
   const judgment=norm(section?.keyJudgment);
   if(judgment.length<14)continue;
