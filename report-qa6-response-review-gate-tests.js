@@ -96,8 +96,15 @@ async function run(){
    /QA6_KNOWN_UNSUPPORTED_ASSERTION/);
   reject((raw,p)=>{p.text+=' 이 사주에서는 무조건 혈압이 올라갑니다.'},
    /QA6_KNOWN_UNSUPPORTED_ASSERTION/);
-  reject((raw,p)=>{p.text+=' 근거 없이 매운 음식을 좋아할 가능성이 높습니다.'},
-   /QA3_CLAIM_LINKS_UNSAFE_PROSE|QA6_KNOWN_UNSUPPORTED_ASSERTION/);
+  // Unknown newly invented claims are NOT automatically verified by a
+  // correct quote/ref mapping: the only allowed outcome remains human review.
+  const novel=structuredClone(response);
+  novel.chapters.saju_core.paragraphs.temperament.text+=
+   ' 근거 없이 매운 음식을 좋아할 가능성이 높습니다.';
+  const novelVerdict=gate.inspect(prompt,novel);
+  assert.equal(novelVerdict.semanticEntailmentVerified,false);
+  assert.equal(novelVerdict.status,'requires-human-editorial-review');
+  assert.equal(novelVerdict.readyForSale,false);
   process.env.NODE_ENV='production';
   assert.throws(()=>gate.inspect(prompt,response),
    /QA6_RESPONSE_GATE_OFFLINE_ONLY/);
