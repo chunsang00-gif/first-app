@@ -1,4 +1,4 @@
-name: QA5 claim-linked first chapter (one manually approved attempt)
+name: QA5 claim-linked first chapter (RETIRED - no more paid calls)
 on:
   workflow_dispatch:
     inputs:
@@ -11,11 +11,11 @@ permissions:
   actions: read
 jobs:
   qa5-first-chapter:
-    # Activated only after new user request on 2026-10-29.
-    # The owner must manually dispatch on EXACT feature branch and enter
-    # the NEW QA5 approval. Neither push nor old QA1-QA4 tokens can bill.
-    # The default-branch registry job remains if:false (never billable).
-    if: ${{ github.event_name == 'workflow_dispatch' && github.ref_name == 'fix-paid-qa-fact-bindings-20261014' && inputs.paid_qa_confirmation == 'QA5_ONE_NEW_USER_CONSENT_REQUIRED' && github.run_attempt == 1 }}
+    # RETIRED after one manual workflow_dispatch 40791214095 on 2026-10-29.
+    # The provider step was reached and it FAILED. A charge may have occurred.
+    # This attempt is consumed; never reactivate or rerun it.
+    # Old QA1-QA5 consent strings are not valid for another paid request.
+    if: ${{ false }}
     runs-on: ubuntu-latest
     timeout-minutes: 25
     concurrency:
