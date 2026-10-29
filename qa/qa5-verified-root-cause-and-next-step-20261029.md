@@ -28,3 +28,27 @@
 - `report-qa6-required-research-slot-tests.js`를 `npm test`에 등록했다. GitHub Actions **40799771712**에서 전체 무료 자동 테스트와 smoke 모두 **SUCCESS**, QA6 신규 검증 내용은 `historicalQA5HashUntouched=true`, `qa6RequestHashDiffers=true`, `missingEvidenceFailsBeforeProvider=true`, `realProviderCalls=0` 확인.
 - 현재 검증 완료 코드 HEAD: **4852d09384e411cb97913de6356413ab6309287a** (이 문서 수정 직전). `main` 및 `saju-mbti-app` 불변. 실제 신규 유료 호출은 **실시하지 않았고 승인도 받지 않았다**.
 - **다음 작업**: 새 QA6 전송 스키마의 구조·정확한 요청 해시를 무료로 확정하고, 비-null 결과라도 모든 근거 문장이 사실인지 독립적으로 거절할 수 있는지 검증한다. 충분한 오프라인 품질 검증 및 새로운 사용자 승인 전에는 실제 모델 호출/운영 반영/출시 절대 금지.
+
+## QA6 요청 지문 고정 및 응답 검증 완료 — 2026-10-29
+
+검증 완료 작업 코드 HEAD: `2c35fe7fcfecf1e5703105eb87ca09450f89f367`. GitHub Actions **40800994474**에서 `npm test` 및 `npm run smoke` 전체 성공, 실제 provider 호출 0회.
+
+### 새 요청의 고정 지문 (과거 QA5와 절대 혼합 금지)
+- 과거 소비된 QA5 원본 요청: `9e5c729912c3ff8de023c170a8513c06485466e6e6ae7bba82aed56920e49808` (불변, 재호출 금지).
+- 연구 전용 QA6 HTTP 요청: `762ea76ab47d1573a08548b79c4789ebda565d783c9132687b83b9168ed4412a` (신규 별도 사용자 승인 **없음**, 모델 호출 구현/활성화 금지).
+- QA6 응답 스키마: `8be0a823e1d82df41587861793380035c1645ca3428b597b6c0d477509c338bb`.
+- QA6 system 메시지: `7a14413a0727c049041afb0fb1f1756b15787ace3cd4cc866f6b877938ba5ded`.
+- `report-qa6-required-research-slot-tests.js`가 위 요청·스키마·system 지문을 각각 고정 검증한다. 기존 QA5 지문도 별도 검증하고 모든 플래그가 빠지면 원상 복귀함.
+- `report-qa3-offline-provider-readiness-audit.inspectOne()`으로 실제 전송과 동일한 무료 HTTP-envelope 및 로컬 Strict JSON Schema 제한 검사를 통과했다. **서버의 실시간 schema 수용, GPT-4.1 접근성, 실제 생성 성공은 검증되지 않았음.**
+
+### 연구용 첫 장 실제 decoder 검증 (새 `report-qa6-response-review-gate.js`)
+- 정확한 1994-07-15 14:20 합성 명식의 기존 수작업 예시 원고를 실제 보고서 형태로 구성하고, QA3의 5개 claimLinks + 9개 계산 출처를 검사한 뒤 기존 원본 decoder에 통과시켰다.
+- 첫 장의 선택 문단이 null이거나 필수 strength가 없으면 실패. 잘못된 인용·잘못된 refs·허위 합화·출생월/시간 관계의 거짓 문장·불확실한 건강 미래 단정 등을 거절하는 무료 변형 테스트 통과.
+- 보이는 본문만 검사하지 않고 label 및 basis 필드도 확인. **원본 응답 변경 없음**.
+- 독립적으로 의미가 검증되지 않은 새 주장은 자동 승인하지 않고 **사람 심사 대기 또는 기계 거절**. 문장 의미를 다 알았다고 주장하지 않음.
+- 합성 원고 검사 결과는 `requires-human-editorial-review`, `semanticEntailmentVerified=false`, `readyForSale=false`, `providerCalls=0`로 고정. **소비자 판매 승인 아님.**
+
+### 이후 단계
+- 실제 API 재호출·운영 병합 금지. 먼저 원고 품질 판단 기준을 독립적으로 재검토하고, QA6이 한 합성 명식만 다룬다는 한계를 해결할 우선순위를 판단할 것.
+- 별도 **신규 사용자 승인**이 없는 한 QA6 유료 실행 생성/호출 금지. 보관된 QA5 아티팩트 원문 비공개 및 소비된 승인 재사용 금지.
+- 기존 `main` 및 `saju-mbti-app` 불변. 새 앱 제작·코드 초기화 금지.
