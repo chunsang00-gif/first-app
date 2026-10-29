@@ -101,10 +101,16 @@ async function run(){
   const novel=structuredClone(response);
   novel.chapters.saju_core.paragraphs.temperament.text+=
    ' 근거 없이 매운 음식을 좋아할 가능성이 높습니다.';
-  const novelVerdict=gate.inspect(prompt,novel);
-  assert.equal(novelVerdict.semanticEntailmentVerified,false);
-  assert.equal(novelVerdict.status,'requires-human-editorial-review');
-  assert.equal(novelVerdict.readyForSale,false);
+  // Safe result is either mechanical rejection or a HUMAN-ONLY hold.
+  // Keyword heuristics cannot certify that an unlinked novel claim is true.
+  try{
+   const novelVerdict=gate.inspect(prompt,novel);
+   assert.equal(novelVerdict.semanticEntailmentVerified,false);
+   assert.equal(novelVerdict.status,'requires-human-editorial-review');
+   assert.equal(novelVerdict.readyForSale,false);
+  }catch(e){
+   assert(/QA3_CLAIM_LINKS_UNSAFE_PROSE|QA6_KNOWN_UNSUPPORTED_ASSERTION/.test(e.message));
+  }
   process.env.NODE_ENV='production';
   assert.throws(()=>gate.inspect(prompt,response),
    /QA6_RESPONSE_GATE_OFFLINE_ONLY/);
