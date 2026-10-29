@@ -149,7 +149,9 @@ function previewTransport(prompt,payload,projected){
 function schemaText(prompt,payload){
  const brief=inspect(prompt,payload);
  if(!brief)return null;
- return 'QA 연구용 고전 해석: '+brief.textInstruction+' '+
+ const qa6=require('./report-qa6-required-research-slot');
+ const instruction=qa6.enabled(prompt)?qa6.INSTRUCTION:brief.textInstruction;
+ return 'QA 연구용 고전 해석: '+instruction+' '+
   brief.permittedClaims.map(x=>x.statement).join(' ')+
   ' 검토한 고전 자료: '+brief.reviewedClassicalSources.map(x=>
    (x.title==='三命通會'?'삼명통회':x.title==='子平真詮'?'자평진전':x.title)+
