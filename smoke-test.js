@@ -46,6 +46,34 @@ for(const birthDate of ['2999-01-01','2026-12-01']){
 const validLunar=await fetch('http://127.0.0.1:3210/api/calculate',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({calendar:'lunar',birthDate:'2026-09-01',gender:'male',unknownBirthTime:true,mbti:'모름'})});
 assert.equal(validLunar.status,200,'valid past lunar date must pass at HTTP boundary');
 console.log('PASS HTTP blocks private files and invalid/future solar-lunar dates while accepting valid lunar input');for(const asset of require('./assets/characters/manifest.json').assets){const r=await fetch('http://127.0.0.1:3210/assets/characters/'+asset.file);assert.equal(r.status,200);assert.equal(r.headers.get('content-type'),'image/webp');assert((await r.arrayBuffer()).byteLength>10000)}console.log('PASS all 18 character images served with image/webp MIME');for(const asset of require('./assets/result/manifest.json').assets){const r=await fetch('http://127.0.0.1:3210/assets/result/'+asset.file);assert.equal(r.status,200);assert.equal(r.headers.get('content-type'),'image/webp');assert((await r.arrayBuffer()).byteLength>1000)}console.log('PASS all '+require('./assets/result/manifest.json').assets.length+' reference-style assets served with image/webp MIME');const input={calendar:'solar',birthDate:'2000-06-15',birthTime:'12:00',birthplace:'서울',gender:'female',mbti:'모름',name:''};const r=await fetch('http://127.0.0.1:3210/api/calculate',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(input)});assert.equal(r.status,200);const x=await r.json();assert.equal(x.status,'ready');assert.equal(x.targetYear.pillar,'丁未');assert.ok(x.chart.year&&x.chart.month&&x.chart.day&&x.chart.hour);console.log('PASS calculate API end-to-end');
+const coverageResponse=await fetch('http://127.0.0.1:3210/api/report-coverage',{
+ method:'POST',headers:{'content-type':'application/json'},
+ body:JSON.stringify(input)});
+assert.equal(coverageResponse.status,200);
+assert.equal(coverageResponse.headers.get('cache-control'),'no-store');
+const estimated=await coverageResponse.json();
+assert.equal(estimated.status,'ready');
+assert.equal(estimated.catalog.chapterDefinitions,12);
+assert.equal(estimated.catalog.topicDefinitions,28);
+assert(estimated.estimate.plannedChapters>=4);
+assert(estimated.estimate.evidenceEligibleTopicUpperBound<=22);
+assert.equal(estimated.purchaseEnabled,false);
+assert.equal(estimated.paymentVerificationAvailable,false);
+assert.equal(estimated.modelCalls,0);
+assert.equal(JSON.stringify(estimated).includes('서울'),false);
+const invalidCoverage=await fetch('http://127.0.0.1:3210/api/report-coverage',{
+ method:'POST',headers:{'content-type':'application/json'},
+ body:JSON.stringify({...input,birthDate:'2000-02-30'})});
+assert.equal(invalidCoverage.status,422);
+const invalidScope=await invalidCoverage.json();
+assert.equal(invalidScope.status,'blocked');
+const servedUI=await(await fetch('http://127.0.0.1:3210/live-report-ui.js')).text();
+const servedApiClient=await(await fetch('http://127.0.0.1:3210/report-api-contract.js')).text();
+assert(servedUI.includes('showCoverage(lastAnalysis.calculationInput)'));
+assert(servedUI.includes('현재 유료 구매와 정식 보고서 생성은 준비 중입니다'));
+assert(servedApiClient.includes("'/api/report-coverage'"));
+console.log('PASS actual HTTP pre-purchase coverage, invalid birth rejection, no paid call, UI disclosure');
+
 const mbtiTypes=['INTJ','INTP','ENTJ','ENTP','INFJ','INFP','ENFJ','ENFP','ISTJ','ISTP','ESTJ','ESTP','ISFJ','ISFP','ESFJ','ESFP','모름'];
 const apiProfiles=[
  {calendar:'solar',birthDate:'1990-05-15',birthTime:'10:30',gender:'male'},
