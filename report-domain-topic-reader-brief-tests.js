@@ -43,6 +43,16 @@ for(const [calendar,birthDate,birthTime] of cases){
    assert.equal(brief.observedCustomerBehavior,false);
    assert.equal(brief.realWorldOutcomeEstablished,false);
    assert.equal(brief.independentCategoriesPresent,brief.sourceGroups.length>=2);
+   assert.equal(brief.sourceCategoryBoundScene,true);
+   assert(brief.illustratedSourceGroups.length>=1);
+   assert(brief.illustratedSourceGroups.every(g=>brief.sourceGroups.includes(g)));
+   assert(brief.hypotheticalContrast.includes('실제로 확인된'));
+   if(!brief.sourceGroups.includes('식상')&&chapterId==='money'&&topicId==='earning')
+    assert(!brief.hypotheticalContrast.includes('직접 제작'),
+     'wealth-only calculation must not smuggle in the absent output symbol');
+   if(!brief.sourceGroups.includes('재성')&&chapterId==='money'&&topicId==='earning')
+    assert(!brief.hypotheticalContrast.includes('물품 거래'),
+     'output-only calculation must not import a wealth explanation');
    assert.deepEqual(brief.sourceRefs,topic.citableFacts.map(x=>x.id));
    assert(brief.sourceRefs.every(x=>Object.hasOwn(actual.source,x)));
    assert(brief.readerQuestion&&brief.hypotheticalContrast);
@@ -91,6 +101,47 @@ for(const [calendar,birthDate,birthTime] of cases){
  assert(Object.values(noProvenance.topics).every(t=>
   !t.readerDistinction?.previouslyCitedRefs.includes(known.id)));
 }
+
+// Controlled "prior/general promise" vs CURRENT real-source scenario:
+// these synthetic inputs are category facts, NOT fabricated people.
+const editor=require('./report-domain-topic-reader-brief');
+const row=(id,position,tenGod)=>({id,position,tenGod});
+const wealthOnly=editor.build({chapterId:'money',topicId:'earning',
+ topic:{mode:'use-primary',citableFacts:[
+  row('natal.month.stem','월간','정재')]}});
+const outputOnly=editor.build({chapterId:'money',topicId:'earning',
+ topic:{mode:'use-primary',citableFacts:[
+  row('natal.hour.stem','시간','식신')]}});
+const mixed=editor.build({chapterId:'money',topicId:'earning',
+ topic:{mode:'use-primary',citableFacts:[
+  row('natal.month.stem','월간','정재'),
+  row('natal.hour.stem','시간','식신')]}});
+assert.deepEqual(wealthOnly.illustratedSourceGroups,['재성']);
+assert.deepEqual(outputOnly.illustratedSourceGroups,['식상']);
+assert.deepEqual(mixed.illustratedSourceGroups,['재성','식상']);
+assert(!wealthOnly.hypotheticalContrast.includes('직접 제작'),
+ 'baseline stock wording must no longer invent an uncited output category');
+assert(!outputOnly.hypotheticalContrast.includes('물품 거래'),
+ 'baseline stock wording must no longer invent an uncited wealth category');
+assert(mixed.hypotheticalContrast.includes('물품 거래')&&
+ mixed.hypotheticalContrast.includes('직접 제작'));
+const learningOnly=editor.build({chapterId:'career',topicId:'workstyle',
+ topic:{mode:'use-primary',citableFacts:[
+  row('natal.year.stem','연간','정인')]}});
+assert.deepEqual(learningOnly.illustratedSourceGroups,['인성']);
+assert(!learningOnly.hypotheticalContrast.includes('결과물을 만들고'),
+ 'learning-only workstyle must not imply a missing output category');
+assert.equal(editor.build({chapterId:'career',topicId:'change',
+ topic:{mode:'state-limits',citableFacts:[]}}),null);
+const noClassification=editor.build({chapterId:'money',topicId:'earning',
+ topic:{mode:'use-primary',citableFacts:[
+  {id:'person.mbti',position:'입력 선호'}]}});
+assert.equal(noClassification.sourceCategoryBoundScene,false);
+assert.deepEqual(noClassification.illustratedSourceGroups,[]);
+assert(!noClassification.hypotheticalContrast.includes('거래'));
+assert(wealthOnly.hypotheticalContrast.includes('가상'));
+assert(wealthOnly.observedCustomerBehavior===false);
+console.log('PASS actual cited-role scenes: wealth only, output only, both, learning only, and unsupported category abstention');
 console.log('PASS paid-domain reader contrasts: '+verified+
  ' actual source-backed topic text slots, '+unavailable+
  ' disabled, '+distinct+' distinct money-lens cases, verified previous citation only; 0 paid model calls');
