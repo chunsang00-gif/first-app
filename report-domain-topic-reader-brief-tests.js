@@ -55,6 +55,21 @@ for(const [calendar,birthDate,birthTime] of cases){
      'output-only calculation must not import a wealth explanation');
    assert.deepEqual(brief.sourceRefs,topic.citableFacts.map(x=>x.id));
    assert(brief.sourceRefs.every(x=>Object.hasOwn(actual.source,x)));
+   assert(brief.exactRoleLens);
+   assert.equal(brief.exactRoleLens.independentLifeProof,false);
+   assert.equal(brief.exactRoleLens.priorityAssessed,false);
+   assert(brief.exactRoleLens.sourceRoles.length<=2);
+   for(const role of brief.exactRoleLens.sourceRoles){
+    const exact=topic.citableFacts.find(x=>x.id===role.sourceId);
+    assert(exact,'role must be a citation-eligible source');
+    assert.equal(exact.tenGod,role.tenGod);
+    assert.equal(exact.traditionalMeaning,role.traditionalMeaning);
+    assert.equal(exact.position,role.sourcePosition);
+    assert.equal(exact.layer,role.sourceLayer);
+    assert.equal(exact.stem,role.observedStem);
+    assert.equal(role.observedLifeExperience,false);
+    assert.equal(role.traditionalPrioritySelected,false);
+   }
    assert(brief.readerQuestion&&brief.hypotheticalContrast);
    assert(brief.differentFromOtherTopics.length>12);
    const slot=providerSchema.properties.chapters.properties[chapterId]
@@ -63,6 +78,9 @@ for(const [calendar,birthDate,birthTime] of cases){
    assert(part.properties.text.description.includes(brief.readerQuestion),
     'actual strict output schema must carry the unique reader question');
    assert(part.properties.text.description.includes(brief.hypotheticalContrast));
+   assert(part.properties.text.description.includes(brief.exactRoleLens.internalWritingContrast),
+    'actual provider JSON text instruction must carry exact, real classified positions');
+
    assert(!part.properties.text.description.includes('실제 고객의 행동이 확인되었다'));
    verified++;
   }
@@ -140,6 +158,37 @@ assert.equal(noClassification.sourceCategoryBoundScene,false);
 assert.deepEqual(noClassification.illustratedSourceGroups,[]);
 assert(!noClassification.hypotheticalContrast.includes('거래'));
 assert(wealthOnly.hypotheticalContrast.includes('가상'));
+
+// Difference WITHIN the same source group is not evidence for two people:
+// 정재 and 편재 have distinct verified traditional meanings. Keep both
+// source IDs, positions, layers, and meanings without asserting behavior.
+const words=require('./report-facts-node').build({
+ calendar:'solar',birthDate:'1994-04-15',birthTime:'14:20',
+ gender:'male',mbti:'ISFP'},2027).facts.tenGodGlossary;
+const exactRow=(id,position,layer,stem,tenGod)=>({
+ id,position,layer,stem,tenGod,traditionalMeaning:words[tenGod]});
+const sameGroup=editor.build({chapterId:'money',topicId:'spending',
+ topic:{mode:'use-primary',citableFacts:[
+  exactRow('natal.month.stem','월간','천간','己','정재'),
+  exactRow('natal.hour.hidden.戊','시지','지장간','戊','편재')]}});
+assert.equal(sameGroup.exactRoleLens.hasTwoDifferentRoles,true);
+assert.equal(sameGroup.exactRoleLens.sameTraditionalGroupDifferentRoles,true);
+assert.deepEqual(sameGroup.exactRoleLens.sourceRoles.map(r=>r.tenGod),['정재','편재']);
+assert(sameGroup.exactRoleLens.internalWritingContrast.includes(words['정재']));
+assert(sameGroup.exactRoleLens.internalWritingContrast.includes(words['편재']));
+assert(sameGroup.exactRoleLens.internalWritingContrast.includes('natal.month.stem'));
+assert(sameGroup.exactRoleLens.internalWritingContrast.includes('natal.hour.hidden.戊'));
+const exactOne=editor.build({chapterId:'money',topicId:'spending',
+ topic:{mode:'use-primary',citableFacts:[
+  exactRow('natal.month.stem','월간','천간','己','정재'),
+  exactRow('natal.year.hidden.己','연지','지장간','己','정재')]}});
+assert.equal(exactOne.exactRoleLens.sourceRoles.length,1);
+assert.equal(exactOne.exactRoleLens.hasTwoDifferentRoles,false);
+assert(!exactOne.exactRoleLens.internalWritingContrast.includes('편재'));
+assert.equal(noClassification.exactRoleLens.sourceRoles.length,0);
+assert.equal(sameGroup.exactRoleLens.sourceRoles.every(x=>x.observedLifeExperience===false),true);
+console.log('PASS exact-role contrast: 정재 and 편재 remain distinct when really cited; absent classification and same-role duplicates do not fabricate another role');
+
 assert(wealthOnly.observedCustomerBehavior===false);
 console.log('PASS actual cited-role scenes: wealth only, output only, both, learning only, and unsupported category abstention');
 console.log('PASS paid-domain reader contrasts: '+verified+
