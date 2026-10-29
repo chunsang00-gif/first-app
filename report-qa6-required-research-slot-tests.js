@@ -72,6 +72,14 @@ async function run(){
   assert.equal(fresh.schemaHash,twice.schemaHash,'QA6 schema must be stable');
   assert(/^[0-9a-f]{64}$/.test(fresh.requestHash));
   assert(/^[0-9a-f]{64}$/.test(fresh.schemaHash));
+  // Exact FREE snapshot from GitHub Actions 40800673455. Any later
+  // request, instruction or schema change requires explicit re-review.
+  assert.equal(fresh.requestHash,
+   '762ea76ab47d1573a08548b79c4789ebda565d783c9132687b83b9168ed4412a');
+  assert.equal(fresh.schemaHash,
+   '8be0a823e1d82df41587861793380035c1645ca3428b597b6c0d477509c338bb');
+  assert.equal(fresh.systemHash,
+   '7a14413a0727c049041afb0fb1f1756b15787ace3cd4cc866f6b877938ba5ded');
   assert.equal(fresh.providerCalls,0);
   assert.equal(fresh.approvalToCharge,false);
   assert.equal(fresh.releaseVerdict,'not-approved');
