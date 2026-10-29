@@ -27,9 +27,14 @@ function inspect(prompt,response){
  for(const field of [p.label,p.text,p.basis.interpretation,
   p.basis.condition,p.basis.limit]){
   if(typeof field!=='string')throw Error('QA6_REVIEW_METADATA_REQUIRED');
-  for(const line of sentences(field))
-   if(dangerous(line).length||contradiction(line).length)
+  for(const line of sentences(field)){
+   // This five-claim research scope contains no medical outcome evidence.
+   // Reject a concrete health forecast even when old generic prose guards
+   // recognize only "높아집니다" rather than "올라갑니다".
+   const healthForecast=/(?:혈압|심장병|암|당뇨|건강|질병).{0,60}(?:올라갑니다|오릅니다|높아집니다|발병|진단|위험이 높|생깁니다)/.test(line);
+   if(healthForecast||dangerous(line).length||contradiction(line).length)
     throw Error('QA6_KNOWN_UNSUPPORTED_ASSERTION');
+  }
  }
  // Existing QA3 audit enforces server refs, quotes, claim order, true text
  // matching, cue screening, reader checks and rejection of known false claims.
