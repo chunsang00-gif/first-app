@@ -169,3 +169,11 @@
 - `report-domain-topic-reader-brief-tests.js`에서 실제 `2018-07-15 14:20` 합성 명식을 생성해 AI provider-bound **9개 활성 주제의 어린이용 가상 상황·문단 텍스트 지침** 확인, 성인 직장/매출/납품/결혼 장면 부재, 2006년생 성인/2009년생 보수적 생일 경계/불완전한 생일자료의 unknown 분류 확인.
 - 코드 커밋 **f579635cac9aa99e4e0099c7b20b4973211d4cc3**, GitHub Actions **40967189273**: 전체 `npm test`와 `npm run smoke` **SUCCESS**. 유료 OpenAI API 호출 0회, `main`·운영 `saju-mbti-app` 변경 없음.
 - **남은 진짜 품질 장애**: 금전·직업의 실제 개인별 유료 해석이 충분히 깊은지, 단지 학급/직장 예시만 다른 템플릿인지에 대한 전문가/사람 독서 검토 필요. 12장/28개 정의, 최대 22개 활성 vs 35항목 고정 목표 불일치 유지. 기존 QA5 유료 null과 구매 검증/결제/출시 승인 미해결. 새 유료 호출은 새 명시적 승인 필요.
+
+## 독자용 문단에 내부 출처 설명을 과도하게 섞던 생성 경로 수정 — 2026-10-30
+- 기존 보관 합성 원고 8건에 대한 사람의 판독 기록 `qa/qa3-eight-manuscripts-human-editorial-rejection-20261028.md`는 전문 용어와 계산 설명·공통 면책이 본문을 채워 **0/8 유료 독자 가치 불합격**이라고 명시함. 새 실 GPT 원고로 다시 시험한 것이 아님.
+- 실 유료 provider 경계 `report-generation-request.schema()`의 9개 도메인 항목 `paragraphs[topic].text.description`에 이전에는 `exactRoleLens.internalWritingContrast` 전체(출처 ID, 글자, 십성, 정통 분류 어휘)를 길게 집어넣어 독자용 답변에 기술적 설명을 복사할 가능성이 있었음.
+- **해결:** 이 실제 검증 가능한 계산 세부 내용은 `paragraphs[topic].basis.interpretation.description`의 **내부 감사용 슬롯**에 넣고, 고객에게 노출되는 `text.description`은 *고유한 독자의 질문 → 서로 다른 조건이 주는 차이 → 반대 조건에선 빠지는 질문 → 실제 특성/미래 사건 단정 금지*라는 풀이로 좁힘. 기존 출처 참조 enum, `report-generation-request.restoreEvidence`, 첫 장·natal-depth 동결 유료 QA 지문, 사주 계산, 결제·출시 차단은 그대로.
+- `report-domain-topic-reader-brief-tests.js`: 동일 4개 합성 명식의 활성 36건, 비활성 12건에 대해 **실제 provider strict JSON text와 basis 슬롯을 별도로 조회**. 내부 슬롯에는 정확한 출처/전통 뜻이 있고 독자용 text 지시에는 출처 ID/전체 기술자료가 실리지 않음을 검증함. 새 모델 생성/과금 0회. 스키마 검사 통과가 실제 독자용 문장 품질을 뜻하지 않음.
+- 검증 코드 커밋 `f85cd464c2e8ec9d67597351e22c39885e0d1a95`, GitHub Actions **40971830393**: `npm test` 및 `npm run smoke` 모두 **SUCCESS**. `main`/운영 `saju-mbti-app` 변경 없음.
+- **다음 실제 과제:** 아직 실 모델이 작성한 새 보고서가 없으므로 원고의 자연스러움·전문 명리 해석 가치는 재검증되지 않음. 이미 저장한 합성 원고의 판독 결과를 기준으로 한 사람의 내용 검수, 그리고 12장/35항목 상품 약속과 실제 상한의 차이를 해결해야 함. 판매 승인 및 새 유료 호출은 별도 승인 전 불가.
