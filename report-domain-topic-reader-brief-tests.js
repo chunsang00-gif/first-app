@@ -233,6 +233,50 @@ console.log('PASS exact-role contrast: 정재 and 편재 remain distinct when re
 
 assert(wealthOnly.observedCustomerBehavior===false);
 console.log('PASS actual cited-role scenes: wealth only, output only, both, learning only, and unsupported category abstention');
+// A previous eight-sample reading audit rejected an adult workplace
+// example for a 2018-born child. Test the REAL provider task and schema,
+ // not just an isolated helper or a pretend reader manuscript.
+const minor=facts.build({calendar:'solar',birthDate:'2018-07-15',
+ birthTime:'14:20',gender:'male',mbti:'ISFP'},2027);
+const adult=facts.build({calendar:'solar',birthDate:'2006-08-15',
+ birthTime:'14:20',gender:'male',mbti:'ISFP'},2027);
+assert.equal(editor.readerAgeBand(minor),'minor');
+assert.equal(editor.readerAgeBand(adult),'adult');
+assert.equal(editor.readerAgeBand(facts.build({calendar:'solar',
+ birthDate:'2009-05-15',birthTime:'14:20',gender:'male',mbti:'ISFP'},2027)),
+ 'minor','birthday boundary must conservatively use youth examples');
+assert.equal(editor.readerAgeBand({targetYear:{year:2027},
+ calculationInput:{birthDate:'not-a-date'}}),'unknown');
+const minorPlan=guidance.preflight(minor);
+const minorPrompt={facts:minor,stage:'body',requestedSections:IDS,
+ includeFinal:false,includeCover:false,
+ analysisGuidance:{...guidance.forRequest(IDS,minor.person.mbti),
+  editorialBlueprint:minorPlan},
+ rules:{sectionGoals:require('./report-prompt').sectionGoals},
+ priorSections:[]};
+const minorProvider=generator.compile(minorPrompt);
+const minorSchema=generator.schema(minorPrompt,wire.schemaFor(minorPrompt,schema));
+let checkedChildren=0;
+for(const chapterId of IDS){
+ for(const [topicId,topic] of Object.entries(minorProvider.task.chapters[chapterId].topics)){
+  const brief=topic.readerDistinction;
+  if(!brief)continue;
+  checkedChildren++;
+  assert.equal(brief.readerAgeWritingBand,'minor');
+  assert(!/(?:직장|납품|매출|채용|승진|계약직|연애 상대|결혼 상대)/.test(brief.hypotheticalContrast),
+   'minor examples must not assume adult careers, earnings or dating');
+  assert(!/(?:승진할|취업할|연봉이|결혼할)/.test(brief.readerQuestion));
+  const slot=minorSchema.properties.chapters.properties[chapterId]
+   .properties.paragraphs.properties[topicId];
+  const part=slot.anyOf?.find(x=>x.type==='object')||slot;
+  assert(part.properties.text.description.includes(brief.hypotheticalContrast));
+  assert(part.properties.text.description.includes(brief.readerQuestion));
+ }
+}
+assert(checkedChildren>=5,'minor context must actually reach multiple domain topics');
+console.log('PASS youth context: '+checkedChildren+
+ ' real provider-bound topic briefs contain no assumed adult workplace or marriage story; frozen natal QA unchanged');
+
 console.log('PASS paid-domain reader contrasts: '+verified+
  ' actual source-backed topic text slots, '+unavailable+
  ' disabled, '+distinct+' distinct money-lens cases, verified previous citation only; 0 paid model calls');
