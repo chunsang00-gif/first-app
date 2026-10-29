@@ -325,9 +325,12 @@ function compile(prompt){
      topicMbtiLens(chapterId,topicId,source['person.mbti']):null;
     // Send an exact-source per-domain reader question to the actual provider.
     // No new model calls, unverified source facts, or user history.
-    topic.readerDistinction=require('./report-domain-topic-reader-brief').build({
+    const scopedReaderBrief=require('./report-domain-topic-reader-brief').build({
      chapterId,topicId,topic,priorSections:prompt.priorSections||[]
     });
+    // A frozen first-chapter/natal-depth paid QA request is byte-pinned:
+    // NEVER add even a null field to its provider envelope.
+    if(scopedReaderBrief)topic.readerDistinction=scopedReaderBrief;
    }
   }
   // The only purpose of this batch is Saju core: do not show the writer
