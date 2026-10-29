@@ -116,3 +116,11 @@
 - 모의 제공자에서 비활성 항목을 반환해도 통과하던 `smoke-test.js`의 허위 데이터를 수정하여 실제 `editorialBlueprint`에 맞게 응답하도록 했다. `report-delivery-scope-tests.js`, `result-dashboard-tests.js` 확대.
 - **GitHub Actions 40859749031**: 전체 `npm test`+ `npm run smoke` **SUCCESS** (변경 코드 커밋 `68bf689b9c9e1dff72e9e39fa413128bb5ea707f`), 실제 유료 API 0회. 상세 `qa/product-final-delivery-reconciliation-20261029.md`.
 - **상품 핵심 문제는 여전히 미해결**: 35개 정의 목표와 기존 28개/현재 정책상 22개 최대 활성의 격차, 실제 유료 문장 품질/인간 전문가 심사/결제 권한. 새 35개를 만들어냈다고 말하지 않는다. 다음 실제 작업은 기존 유료 원본의 재사용 가능한 품질 근거와 상품 규격의 현실적 일치, 불필요한 동일 QA 반복 중단.
+
+## 실제 유료 QA5 실패→일반 생성 경로의 초기 차단 강화 — 2026-10-29
+- QA5 보관 아카이브의 안전한 고정 메타데이터를 재확인: `temperament=explicit-null`, `strength=object`, 유료 호출 1회, 실패 `QA4_MISSING_REQUIRED_RESEARCH_OUTPUT`. 연구에서 필수로 취급한 문단이 일반 계약에선 선택 사항이라는 불일치. 기존 별도 QA6 수정과 구 요청 해시 불변. 개인 유료 원고 공개/재실행 없음.
+- 실제 `report-wire.decode`가 선택 항목의 **명시적 null은 생략**하면서도 **누락된 필드·비어 있거나 불완전한 non-null 문단 객체**는 오류로 거절하도록 변경.
+- 실제 `report-server-contract.generate`의 `validateBatch`에서 **각 batch 직후** `report-batch-evidence-gate.check()` 실행: 근거 없는 `state-limits`·중복·문단 ID 순서 오류를 다음 유료 호출 **이전에** 거절. 기존 최종 `report-delivery-scope` 및 운영 판매 차단은 유지.
+- 테스트 모의 모델에서 28개 항목을 무조건 채워 잘못 통과시키던 `report-request-tests.js`와 `report-editorial-tests.js`를 실제 계산 plan에 맞게 수정. QA5 null replay/malformed 사례 및 네 합성 명식의 40개 anchor, 18개 부적격 문단 차단 확인.
+- 검증 코드 커밋 **bf6c85e2e798718096820d4a22a882ef2d942f35**, GitHub Actions **40861600428** `npm test`와 `npm run smoke` 전체 성공. 문서 `qa/qa5-archive-to-live-early-batch-fix-20261029.md`. 실제 유료 API 호출 0, `main`/`saju-mbti-app` 변경 없음.
+- **남은 과제**: QA6 신규 비-null 연구 요청의 실 모델 반응 미검증, 실제 유료 12장/35항목의 근거-내용 계약 불일치, 전문 명리·편집 인간 검수 및 결제. 기계 테스트 통과를 유료 고객 가치 승인이라고 말하지 않는다.
