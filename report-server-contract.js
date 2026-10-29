@@ -95,7 +95,30 @@ function findRecycledThemes(sections){
  });
  const annualErrors=formalResponsibilityRepetition?
   ['2027 domain chapters repeat formal responsibility instead of distinct money, career and relationship analysis']:[];
- return [...annualErrors,...themes.flatMap(theme=>{
+ // Two domain headings must not turn ONE unchanged conclusion into two
+ // billable interpretations. This detects only near-identical thesis text
+ // after removing the domain noun; it does not infer semantic equivalence
+ // from a shared word or forbid different grounded actions.
+ const readerDomains=new Set([
+  'money','career','relationship','year_2027_money',
+  'year_2027_career','year_2027_relationship'
+ ]);
+ const canonicalConclusion=value=>String(value||'')
+  .replace(/인간관계|대인관계|금전|재물|직업|직장|업무|관계|돈/g,'')
+  .replace(/[\\s.,!?。！？·“”‘’"'()]/g,'').trim();
+ const noNewConclusion=/(?:단정할수없|확인할수없|알수없|예측할수없|판단할수없|근거가없)/;
+ const decision=/확인|검토|판단|결정|선택|비교|따져|지키|구분|조정|정리/;
+ const comparisons=new Map(),strictDuplicates=[];
+ for(const s of sections.filter(s=>readerDomains.has(s.id))){
+  const normalized=canonicalConclusion(s.keyJudgment);
+  if(normalized.length<15||noNewConclusion.test(normalized)||
+     !decision.test(normalized))continue;
+  const previous=comparisons.get(normalized);
+  if(previous&&previous!==s.id)
+   strictDuplicates.push('same paid thesis with domain noun substituted: '+previous+' / '+s.id);
+  else comparisons.set(normalized,s.id);
+ }
+ return [...annualErrors,...strictDuplicates,...themes.flatMap(theme=>{
   // Count the repeated thesis only when BOTH motifs appear in the chapter's
   // own main conclusion. Shared technical vocabulary in long body sections
   // cannot, by itself, convict a genuinely different chapter.
