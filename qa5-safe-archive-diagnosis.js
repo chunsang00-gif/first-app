@@ -24,6 +24,17 @@ function diagnostic(dir){
   attempt.providerCallMaximum!==1||provider?.providerCalls!==1)
   throw Error('QA5_ONE_ATTEMPT_CHECKPOINT_INCONSISTENT');
  const raw=provider?.response;
+ // Fixed categories only: distinguish an intentional null from an absent
+ // topic, without printing AI prose, user data, untrusted keys or raw JSON.
+ const paragraphs=raw?.chapters?.saju_core?.paragraphs;
+ const shape=key=>{
+  if(!paragraphs||typeof paragraphs!=='object'||Array.isArray(paragraphs))
+   return 'parent-missing';
+  if(!Object.hasOwn(paragraphs,key))return 'key-missing';
+  const item=paragraphs[key];
+  return item===null?'explicit-null':
+   item&&typeof item==='object'&&!Array.isArray(item)?'object':'other-type';
+ };
  const known=['incomplete','invalid_json','empty_output'];
  const providerStatus=known.includes(raw?.status)?raw.status:
   raw&&typeof raw==='object'?'parsed-json-callback':'callback-missing';
@@ -56,6 +67,8 @@ function diagnostic(dir){
   storedRawAvailable:provider!==null,
   machineFailureCode:'QA4_MISSING_REQUIRED_RESEARCH_OUTPUT',
   responseCategory:providerStatus,
+  temperamentShape:shape('temperament'),
+  strengthShape:shape('strength'),
   incompleteReason,
   outputTokens:outTokens,
   rootCauseCategory:fixedReason,
