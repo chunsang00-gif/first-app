@@ -6,6 +6,7 @@ on:
     branches: [fix-paid-qa-fact-bindings-20261014]
     paths:
       - '.github/workflows/qa5-safe-postmortem.yml'
+      - 'qa5-safe-archive-diagnosis.js'
   workflow_dispatch:
 permissions:
   contents: read
