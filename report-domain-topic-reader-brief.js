@@ -99,21 +99,38 @@ function groundedScene(chapterId,topicId,groups){
 // The two roles within ONE traditional group can answer different reader
 // questions. Use only original source rows with their canonical glossary.
 // Do not mistake the existence of a hidden stem for its strength/priority.
-function exactRoleLens(rows){
+function exactRoleLens(rows,illustratedGroups){
  const eligible=rows.filter(row=>row?.id?.startsWith('natal.')&&
   GROUPS[row.tenGod]&&row.position&&row.layer&&row.stem&&
   typeof row.traditionalMeaning==='string'&&row.traditionalMeaning.trim());
- const chosen=[];
- for(const row of eligible){
-  if(chosen.some(x=>x.tenGod===row.tenGod))continue;
-  chosen.push(Object.freeze({
-   sourceId:row.id,sourcePosition:row.position,
-   sourceLayer:row.layer,observedStem:row.stem,tenGod:row.tenGod,
-   group:GROUPS[row.tenGod],traditionalMeaning:row.traditionalMeaning,
-   observedLifeExperience:false,traditionalPrioritySelected:false
-  }));
-  if(chosen.length===2)break;
+ // The two examples in groundedScene describe different categories when
+ // possible. The previously selected "first two distinct ten-gods" could
+ // accidentally pick two wealth entries and OMIT the actual output symbol
+ // used by the reader's example. Select by confirmed scene categories,
+ // not by first source row or presumed favorable traditional priority.
+ const chosenRows=[];
+ const preferred=(illustratedGroups||[]).filter((g,i,a)=>a.indexOf(g)===i);
+ for(const group of preferred){
+  const found=eligible.find(row=>GROUPS[row.tenGod]===group&&
+   !chosenRows.some(x=>x.id===row.id));
+  if(found)chosenRows.push(found);
+  if(chosenRows.length===2)break;
  }
+ // A one-category explanation may distinguish its two genuinely different
+ // ten-gods; never count multiple placements of the SAME god as two roles.
+ if(chosenRows.length===1&&preferred.length===1){
+  const another=eligible.find(row=>GROUPS[row.tenGod]===preferred[0]&&
+   row.tenGod!==chosenRows[0].tenGod);
+  if(another)chosenRows.push(another);
+ }
+ // If a canonical glossary is unavailable, do NOT fill the remaining
+ // category with an unrelated source or invent its meaning.
+ const chosen=chosenRows.map(row=>Object.freeze({
+  sourceId:row.id,sourcePosition:row.position,
+  sourceLayer:row.layer,observedStem:row.stem,tenGod:row.tenGod,
+  group:GROUPS[row.tenGod],traditionalMeaning:row.traditionalMeaning,
+  observedLifeExperience:false,traditionalPrioritySelected:false
+ }));
  const two=chosen.length===2;
  const sameGroup=two&&chosen[0].group===chosen[1].group;
  const text=!chosen.length?
@@ -122,13 +139,16 @@ function exactRoleLens(rows){
    ' ('+x.sourcePosition+' '+x.sourceLayer+' '+x.observedStem+
    '): '+x.traditionalMeaning).join(' / ')+
    (two?
-    sameGroup?' 같은 분류군 안에서도 계산된 두 세부 관계의 뜻이 다르므로, 각 관계가 다루는 가상 질문을 분리한다.':
-    ' 두 분류군의 각각 다른 전통적 뜻을 한 상황에서 비교하되 우선순위와 실제 작용을 확정하지 않는다.':
-    ' 이 출처 하나만으로 존재하지 않는 다른 세부 관계를 만든 것처럼 풀이하지 않는다.')+
-   ' 이 자료는 출생 위치의 상징 구분이며 실제 성격·수입·직업·관계 이력이나 강약을 관찰한 증거가 아니다.';
+    sameGroup?' 같은 분류군 안의 서로 다른 세부 관계로 가상 질문을 구별한다.':
+    ' 실제 확인된 두 분류군의 다른 뜻을 가상 상황에서 비교하되 전통적 우선순위나 실제 작용은 정하지 않는다.':
+    ' 이 출처 하나만으로 존재하지 않는 두 번째 분류를 만들어 풀이하지 않는다.')+
+   ' 계산 분류는 실제 성격·수입·직업·관계 이력이나 강약을 관찰한 증거가 아니다.';
  return Object.freeze({kind:'exact-natal-ten-god-source-lens-v1',
   sourceRoles:chosen,hasTwoDifferentRoles:two,
   sameTraditionalGroupDifferentRoles:sameGroup,
+  illustratedGroupRolesAligned:chosen.every(x=>preferred.includes(x.group)),
+  contrastedGroups:[...new Set(chosen.map(x=>x.group))],
+  selectionMethod:'match-verified-scene-categories-no-traditional-priority',
   independentLifeProof:false,priorityAssessed:false,
   internalWritingContrast:text});
 }
@@ -148,7 +168,7 @@ function build({chapterId,topicId,topic,priorSections}={}){
  const distinctPositions=[...new Set(rows.map(x=>x.position).filter(Boolean))];
  const separateSymbolGroups=groups.length>=2;
  const scene=groundedScene(chapterId,topicId,groups);
- const roleLens=exactRoleLens(rows);
+ const roleLens=exactRoleLens(rows,scene.included);
  return Object.freeze({
   kind:'per-topic-source-grounded-reader-question-v1',
   readerQuestion:spec[0],hypotheticalContrast:scene.text,
