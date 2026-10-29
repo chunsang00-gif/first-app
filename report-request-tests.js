@@ -161,6 +161,19 @@ const {createQueue,retryDelay,rateLimitKind}=require('./report-request-control')
  // the writer. In particular followthrough/risk/change/action can be disabled.
  const activeKeys=(request,id)=>Object.keys(outline.topics[id]).filter(t=>
   request.analysisGuidance?.editorialBlueprint?.[id]?.topicTasks?.[t]?.mode!=='state-limits');
+ // The two generation paths must make the same duplicate decision:
+ // changing whitespace must not resell one paid paragraph as new analysis.
+ const repeatedText='태어난 달의 두 글자는 전통적 분류에서 서로 다른 질문으로 읽을 수 있습니다. 그 뜻은 개인이 실제로 어떤 선택을 했다는 기록과는 다르므로, 원래의 계산 근거를 확인하면서 각 문단을 서로 다른 질문에 연결해야 합니다.';
+ const alternateSpacing=repeatedText.replace(/\s+/g,'    ');
+ assert(contract.findRepeatedTopicContent([
+  {id:'money',bodyTopics:['earning'],body:[repeatedText]},
+  {id:'career',bodyTopics:['workstyle'],body:[alternateSpacing]}
+ ]).some(x=>x.includes('repeated topic paragraph')),
+ 'newly generated chapters must not bypass identical-content review by altering spaces');
+ assert.deepEqual(contract.findRepeatedTopicContent([
+  {id:'money',bodyTopics:['earning'],body:[repeatedText]},
+  {id:'career',bodyTopics:['workstyle'],body:['업무 역할을 분리하여 교육의 순서와 협업할 범위를 설명하는 별도의 근거를 검토합니다.']}
+ ]),[],'genuinely different questions should be allowed');
  const sampleInput={calendar:'solar',birthDate:'1990-06-15',unknownBirthTime:true,gender:'male',mbti:'INFP'};
  const blueprint=require('./report-analysis-guidance').preflight(require('./report-facts-node').build(sampleInput,2027)); 
   const canonicalPlan=require('./report-analysis-guidance').preflight(require('./report-facts-node').build(sampleInput,2027));
