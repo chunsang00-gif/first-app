@@ -105,7 +105,7 @@ function findRecycledThemes(sections){
  ]);
  const canonicalConclusion=value=>String(value||'')
   .replace(/인간관계|대인관계|금전|재물|직업|직장|업무|관계|돈/g,'')
-  .replace(/[\\s.,!?。！？·“”‘’"'()]/g,'').trim();
+  .replace(/[\s.,!?。！？·“”‘’"'()]/g,'').trim();
  const noNewConclusion=/(?:단정할수없|확인할수없|알수없|예측할수없|판단할수없|근거가없)/;
  const decision=/확인|검토|판단|결정|선택|비교|따져|지키|구분|조정|정리/;
  const comparisons=new Map(),strictDuplicates=[];
