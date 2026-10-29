@@ -241,6 +241,21 @@ assert.equal(p.stage,'body');assert.equal(p.priorSections.length,expectedBatches
  const duplicateCheckpoints=JSON.parse(JSON.stringify(checkpoints.slice(0,2)));
  duplicateCheckpoints[1].sections[0].body=duplicateCheckpoints[0].sections[0].body.slice();
  await assert.rejects(contract.generate({calendar:'solar',birthDate:'1990-06-15',unknownBirthTime:true,gender:'male',mbti:'INFP'},async()=>{throw Error('provider must not be called')},()=>{},()=>{},duplicateCheckpoints),/QA resume repeated topic explanations|QA resume recycled chapter thesis/,'reused duplicate chapter text must be rejected before spending');
+ // Resume duplication must normalize whitespace just like live batches.
+ // An identical evidence sentence with altered spacing is NOT a new insight.
+ const spaceVariant=structuredClone(checkpoints.slice(0,2));
+ const originalEvidence=spaceVariant[0].sections[0].evidence[0];
+ assert(originalEvidence.length>=24&&/\s/.test(originalEvidence));
+ spaceVariant[1].sections[0].evidence=[originalEvidence.replace(/\s+/g,'    ')];
+ let spaceVariantPaidCalls=0;
+ await assert.rejects(
+  contract.generate(resumeInput,async()=>{
+   spaceVariantPaidCalls++;throw Error('unexpected paid call');
+  },()=>{},()=>{},spaceVariant),
+  /QA resume repeated chapter evidence/,
+  'resumed copy with whitespace changes must not bypass source-duplicate review');
+ assert.equal(spaceVariantPaidCalls,0,
+  'inconsistent stored evidence must fail before any additional model call');
  assert.equal(mockedReport.status,'rejected','placeholder prose must never be accepted as a paid report');
  assert(mockedReport.qa.errors.length>0,'placeholder report should produce concrete quality failures');
  // A report created for one person must be rejected when checked against another.
