@@ -110,6 +110,11 @@ function previewTransport(prompt,payload,projected){
  // payload, but not sent as a competing command to the model in this preview.
  delete topic.serverOwnedWritingContract;
  topic.qaClassicalWritingBrief=brief;
+ // New offline QA6 only: five verified research claims have a required slot,
+ // so the model-facing task cannot simultaneously instruct it to emit null.
+ if(require('./report-qa6-required-research-slot').enabled(prompt))
+  topic.qaClassicalWritingBrief.textInstruction=
+   require('./report-qa6-required-research-slot').INSTRUCTION;
  // The ordinary contrast reference list contains five IDs and describes a
  // workplace scene. Do not send that as a competing source decision beside
  // this nine-reference published-rule research assignment.
@@ -128,7 +133,9 @@ function previewTransport(prompt,payload,projected){
  target.coreV2ConditionalReadingBrief=
   '이 QA에서 temperament의 유일한 작성 자료는 qaClassicalWritingBrief이다. '+
   '기존 가상 업무/두 누락 조건 템플릿은 이 명식의 고전 적용 범위 설명에 해당하지 않는다. '+
-  '실제 금전·성격 결과를 단정할 수 없으면 이 선택 문단은 null로 둔다. '+
+  (require('./report-qa6-required-research-slot').enabled(prompt)?
+   '이미 검증된 5개 주장에 연결된 이 연구용 문단은 필수다. 자료가 부족하면 검증 실패로 중단하며 내용을 만들어 채우지 않는다. ':
+   '실제 금전·성격 결과를 단정할 수 없으면 이 선택 문단은 null로 둔다. ')+
   'strength와 다른 장의 내용·출처는 그대로 유지한다.';
  if(JSON.stringify(copy.source)!==JSON.stringify(payload.source)||
     JSON.stringify(target.topics.strength)!==
