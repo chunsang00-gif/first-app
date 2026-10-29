@@ -1,0 +1,12 @@
+name: QA5 archived response safe diagnosis (NO paid API)
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  main-branch-safe-stub:
+    # Registry only. The default branch NEVER decrypts or exposes any data.
+    if: ${{ false }}
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo 'Select feature branch for SAFE QA5 archived metadata diagnosis'
