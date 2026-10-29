@@ -67,6 +67,11 @@ async function run(){
    .includes('검증 실패로 중단'));
   const fresh=await readiness.prepare();
   assert.notEqual(fresh.requestHash,qa5Hash,'new contract needs fresh consent');
+  const twice=await readiness.prepare();
+  assert.equal(fresh.requestHash,twice.requestHash,'QA6 full request must be stable');
+  assert.equal(fresh.schemaHash,twice.schemaHash,'QA6 schema must be stable');
+  assert(/^[0-9a-f]{64}$/.test(fresh.requestHash));
+  assert(/^[0-9a-f]{64}$/.test(fresh.schemaHash));
   assert.equal(fresh.providerCalls,0);
   assert.equal(fresh.approvalToCharge,false);
   assert.equal(fresh.releaseVerdict,'not-approved');
@@ -95,7 +100,11 @@ async function run(){
    qa6ResearchSlotNonnullable:true,allFiveClaimLinksStillRequired:true,
    missingEvidenceFailsBeforeProvider:true,
    productionAndRenderDisabled:true,oldDefaultSchemaUnchanged:true,
-   historicalQA5ApprovalReusable:false,realProviderCalls:0,
+   historicalQA5ApprovalReusable:false,
+   qa6RequestFingerprint:fresh.requestHash,
+   qa6SchemaFingerprint:fresh.schemaHash,
+   qa6SystemFingerprint:fresh.systemHash,
+   realProviderCalls:0,
    customerRelease:false}));
  }finally{
   for(const [k,v] of Object.entries(saved))
