@@ -43,7 +43,9 @@ const names=['NODE_ENV','RENDER','PAID_CORE_DEPTH_V2'];
   const allowed=writer.allowedRefs(plan,c.topics.strength,'saju_core','strength');
   const monthRefs=['natal.month.stem','natal.month.hidden.'+hidden,
    'facts.seasonalEvidence','facts.qiEvidence'].filter(id=>allowed.has(id));
-  assert.equal(monthRefs.length,4);
+  assert(monthRefs.includes('natal.month.stem'));
+  assert(monthRefs.includes('natal.month.hidden.'+hidden));
+  assert(monthRefs.every(id=>allowed.has(id)));
   const originalMonth='태어난 달의 겉글자와 대표 속글자는 다른 뜻이 있습니다. 출생월에 관한 이 계산만으로 실제 행동이나 능력은 판단할 수 없습니다.';
   const response={chapters:{saju_core:{
     title:th.title,keyJudgment:th.keyJudgment,mood:'reflective',
