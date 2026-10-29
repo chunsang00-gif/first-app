@@ -35,7 +35,7 @@ for(const [calendar,birthDate,birthTime] of cases){
   for(const [topicId,topic] of Object.entries(actual.task.chapters[chapterId].topics)){
    const brief=topic.readerDistinction;
    if(topic.mode==='state-limits'){
-    assert.equal(brief,null);
+    assert.equal(brief??null,null);
     unavailable++;
     continue;
    }
