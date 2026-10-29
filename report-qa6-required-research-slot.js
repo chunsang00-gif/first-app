@@ -59,9 +59,7 @@ function harden(prompt,payload,slot){
  Object.assign(slot,fixed);
  slot.description='연구 전용 필수 사주 추가 해석. 5개 검증 주장과 문장별 근거를 모두 연결한다. 근거 없는 내용은 실패 처리한다.';
  slot.properties.label.description='검증된 출생 시각 조건을 설명하는 짧고 쉬운 제목만 작성한다. 임의의 기질·미래 결과는 금지한다.';
- slot.properties.text.description=INSTRUCTION+' '+classical.schemaText(prompt,payload)
-  .replace(/근거를 설명할 수 없으면 null로 둔다\./g,'근거가 없다면 검증을 통과할 수 없다.')
-  .replace(/문단 전체를 null로 둔다\./g,'실험은 실패로 판정한다.');
+ slot.properties.text.description=classical.schemaText(prompt,payload);
  return true;
 }
 module.exports={requested,enabled,requireVerified,harden,INSTRUCTION};
