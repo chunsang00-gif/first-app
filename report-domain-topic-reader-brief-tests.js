@@ -56,6 +56,21 @@ for(const [calendar,birthDate,birthTime] of cases){
    assert.deepEqual(brief.sourceRefs,topic.citableFacts.map(x=>x.id));
    assert(brief.sourceRefs.every(x=>Object.hasOwn(actual.source,x)));
    assert(brief.exactRoleLens);
+   assert.equal(brief.exactRoleLens.illustratedGroupRolesAligned,true);
+   assert(brief.exactRoleLens.sourceRoles.every(role=>
+    brief.illustratedSourceGroups.includes(role.group)));
+   if(brief.illustratedSourceGroups.length===2&&
+      brief.illustratedSourceGroups.every(group=>topic.citableFacts.some(row=>
+       row.id.startsWith('natal.')&&row.traditionalMeaning&&
+       (row.tenGod==='정재'||row.tenGod==='편재'?'재성':
+        row.tenGod==='식신'||row.tenGod==='상관'?'식상':
+        row.tenGod==='정관'||row.tenGod==='편관'?'관성':
+        row.tenGod==='정인'||row.tenGod==='편인'?'인성':
+        row.tenGod==='비견'||row.tenGod==='겁재'?'비겁':null)===group))){
+    assert.deepEqual(brief.exactRoleLens.contrastedGroups,
+     brief.illustratedSourceGroups,
+     'a mixed-source example must cite an actual role from BOTH described categories');
+   }
    assert.equal(brief.exactRoleLens.independentLifeProof,false);
    assert.equal(brief.exactRoleLens.priorityAssessed,false);
    assert(brief.exactRoleLens.sourceRoles.length<=2);
@@ -182,6 +197,33 @@ const exactOne=editor.build({chapterId:'money',topicId:'spending',
  topic:{mode:'use-primary',citableFacts:[
   exactRow('natal.month.stem','월간','천간','己','정재'),
   exactRow('natal.year.hidden.己','연지','지장간','己','정재')]}});
+
+// Regression: when the first two source rows are both wealth symbols,
+// the second DISTINCT source category (output) must NOT be lost.
+const mixedThree=editor.build({chapterId:'money',topicId:'earning',
+ topic:{mode:'use-primary',citableFacts:[
+  exactRow('natal.year.stem','연간','천간','己','정재'),
+  exactRow('natal.month.hidden.戊','월지','지장간','戊','편재'),
+  exactRow('natal.hour.stem','시간','천간','丁','식신')]}});
+assert.deepEqual(mixedThree.illustratedSourceGroups,['재성','식상']);
+assert.deepEqual(mixedThree.exactRoleLens.sourceRoles.map(r=>r.sourceId),
+ ['natal.year.stem','natal.hour.stem']);
+assert.deepEqual(mixedThree.exactRoleLens.contrastedGroups,['재성','식상']);
+assert.equal(mixedThree.exactRoleLens.sameTraditionalGroupDifferentRoles,false);
+assert(mixedThree.exactRoleLens.internalWritingContrast.includes(words['식신']));
+assert(!mixedThree.exactRoleLens.internalWritingContrast.includes(words['편재']),
+ 'third source is not a selected independent role and must not be falsely treated as the contrasted example');
+// If a second category is present but lacks a canonical traditional meaning,
+// do not fill the missing role with another unrelated classification.
+const missingGlossary=structuredClone(mixedThree);
+const noMeaning=editor.build({chapterId:'money',topicId:'earning',
+ topic:{mode:'use-primary',citableFacts:[
+  exactRow('natal.year.stem','연간','천간','己','정재'),
+  {id:'natal.hour.stem',position:'시간',layer:'천간',stem:'丁',tenGod:'식신'}]}});
+assert.deepEqual(noMeaning.exactRoleLens.contrastedGroups,['재성']);
+assert(noMeaning.exactRoleLens.sourceRoles.every(x=>x.observedLifeExperience===false));
+assert.equal(noMeaning.exactRoleLens.priorityAssessed,false);
+
 assert.equal(exactOne.exactRoleLens.sourceRoles.length,1);
 assert.equal(exactOne.exactRoleLens.hasTwoDifferentRoles,false);
 assert(!exactOne.exactRoleLens.internalWritingContrast.includes('편재'));
