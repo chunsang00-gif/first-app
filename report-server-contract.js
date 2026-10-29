@@ -345,7 +345,7 @@ async function generate(input,callModel,onProgress=()=>{},onValidatedBatch=()=>{
   const evidenceOwners=new Map();
   for(const section of [...priorSections,...verified.sections]){
    for(const item of section.evidence||[]){
-    const key=String(item||'').replace(/\\s+/g,' ').trim().replace(/[.!?。！？]+$/,'');
+    const key=String(item||'').replace(/\s+/g,' ').trim().replace(/[.!?。！？]+$/,'');
     if(key.length<24)continue;
     const owner=evidenceOwners.get(key);
     if(owner&&owner!==section.id)throw Error('QA resume repeated chapter evidence');
