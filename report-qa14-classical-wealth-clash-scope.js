@@ -5,9 +5,13 @@
 // NO change to paid product, model prompt, chapter selector or decoder.
 const qa13=require('./report-qa13-money-risk-independent-source');
 const relations=require('./report-branch-relations');
-const STORAGE=new Set(['辰','戌','丑','未']);
-const ZHENG=new Set(['子','午','卯','酉']);
-const GEN=new Set(['寅','申','巳','亥']);
+// Exact six-clash pairs ONLY. Being in the same branch family is NOT
+// evidence of a clash (子酉, 寅亥 etc. must never be accepted).
+const CLASH_TYPES=Object.freeze(Object.fromEntries([
+ ['辰戌','辰戌-four-storage'],['丑未','丑未-four-storage'],
+ ['子午','four-cardinal-opposition'],['卯酉','four-cardinal-opposition'],
+ ['寅申','four-birth-opposition'],['巳亥','four-birth-opposition']
+].map(([pair,kind])=>[[...pair].sort().join(''),kind])));
 const SOURCE=Object.freeze([
  Object.freeze({
   work:'子平真詮',chapter:'七、論刑沖會合解法',
@@ -29,12 +33,11 @@ const SOURCE=Object.freeze([
  })
 ]);
 function pairType(pair){
- const token=[...String(pair)].sort().join('');
- if(token==='戌辰'.split('').sort().join(''))return '辰戌-four-storage';
- if(token==='丑未'.split('').sort().join(''))return '丑未-four-storage';
- if([...String(pair)].every(x=>ZHENG.has(x)))return 'four-cardinal-opposition';
- if([...String(pair)].every(x=>GEN.has(x)))return 'four-birth-opposition';
- throw Error('QA14_UNCLASSIFIED_VERIFIED_CLASH:'+pair);
+ const token=typeof pair==='string'&&pair.length===2?
+  [...pair].sort().join(''):null;
+ const kind=token&&CLASH_TYPES[token];
+ if(!kind)throw Error('QA14_UNCLASSIFIED_VERIFIED_CLASH:'+pair);
+ return kind;
 }
 function inspect(packet){
  if(process.env.NODE_ENV!=='test'||process.env.RENDER==='true')
