@@ -20,6 +20,8 @@ function inspect(packet){
   throw Error('QA13_OFFLINE_SOURCE_INSPECTION_ONLY');
  if(!packet||packet.status!=='ready'||!packet.chart||!packet.facts)
   throw Error('QA13_CALCULATED_PACKET_REQUIRED');
+ const integrity=require('./report-calculation-integrity').verify(packet);
+ if(!integrity.pass)throw Error('QA13_CALCULATION_INTEGRITY_INVALID:'+integrity.errors.join('|'));
  const policy=guidance.preflight(packet).money?.topicTasks?.risk;
  if(!policy||policy.mode!=='state-limits'||policy.evidencePresent!==false||
     (policy.allowedSourceRefs||[]).length!==0)
