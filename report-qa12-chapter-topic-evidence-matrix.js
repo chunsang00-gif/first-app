@@ -19,7 +19,7 @@ function hasValue(value){
 }
 function inspect(packet,prompt){
  if(process.env.NODE_ENV!=='test'||process.env.RENDER==='true'||
-   !packet||prompt?.facts!==packet)
+   !packet||JSON.stringify(prompt?.facts?.chart)!==JSON.stringify(packet.chart))
   throw Error('QA12_PREPAID_DIAGNOSTIC_OFFLINE_ONLY');
  const measured=qa11.scope(packet,prompt);
  const plan=guidance.preflight(packet);
