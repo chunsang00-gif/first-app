@@ -323,6 +323,11 @@ function compile(prompt){
     topic.mbtiFocus=topic.mode!=='state-limits'&&permitted.includes('person.mbti')&&
      permitted.some(ref=>ref.startsWith('natal.'))?
      topicMbtiLens(chapterId,topicId,source['person.mbti']):null;
+    // Send an exact-source per-domain reader question to the actual provider.
+    // No new model calls, unverified source facts, or user history.
+    topic.readerDistinction=require('./report-domain-topic-reader-brief').build({
+     chapterId,topicId,topic,priorSections:prompt.priorSections||[]
+    });
    }
   }
   // The only purpose of this batch is Saju core: do not show the writer
