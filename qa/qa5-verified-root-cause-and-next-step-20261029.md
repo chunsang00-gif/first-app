@@ -101,3 +101,11 @@
 - `report-qa14-classical-wealth-clash-scope.js` / `report-qa14-classical-wealth-clash-scope-tests.js` 생성, `npm test` 등록. 첫 통합 테스트에서 '같은 분류의 자유(子酉)조차 육충'으로 판정한 **연구 검사기 버그**를 찾아 정확한 여섯 육충 쌍만 허용하도록 교정. 기존 계산 알고리즘/보고서/실 API 코드 불변.
 - GitHub Actions **40826562530**: `npm test`와 `npm run smoke` **전체 성공**, 검증된 QA 코드 커밋 `970f9ed68d731f6827ba668d14d0577645a9d7f9`. API 호출 0, 운영·main 변경 없음. 이후 문서만 변경.
 - **핵심 결론**: 금전 위험 `money.risk`는 여전히 `state-limits`, 유료 고객 문단은 `null`. 12장 정의/28항목 정의/현재 22개 활성 상한 대 35 목표 사이 상품 계약 차이 **미해결**. 이제 같은 기계 QA 반복보다 12/35 상품을 실제 근거량과 맞게 정직하게 정의하고 결제 전 범위를 확인하는 제품 수준의 작업이 우선. 결제 모델 호출과 배포/병합은 계속 금지.
+
+## QA15 실제 사용자 결제 전 범위 미리보기 — 2026-10-29
+- **상품 기능 구현 완료**: 서버 `POST /api/report-coverage`, 서버 계산 `report-product-coverage.js`, 브라우저 `report-api-contract.js`와 `live-report-ui.js` 연결. 기존 12장/35항목 목표를 과장하지 않고 실제 `report-analysis-guidance.preflight` + `report-chapter-selection.select`로 사전 **장 포함/제외, 근거상 활성 항목 상한**을 계산하고 한국어로 표시한다. 사용자가 입력한 이름·생년월일·출생지나 계산 원본을 응답에 포함하지 않는다.
+- 실제 계산을 사용한 네 합성 명식의 미리보기 **9장/19, 10장/19, 10장/20, 11장/20** 상한과 같음. 실제 제공 완료 개수 아님. 소비자 유료 생성·결제권 검증은 계속 사용 불가, API 비용 0.
+- `report-product-coverage-tests.js`와 `smoke-test.js`의 실제 HTTP 200/422, 입력 검증/위조 source 필드 무시, 개인정보 미노출, 화면 무료 범위 노출, `report-timing-tests.js` 기존 시간 표시와 새 화면 검증을 추가.
+- GitHub Actions **40851977117**: `npm test`와 `npm run smoke` 모두 **SUCCESS**. 코드 커밋 `a0ba68ea2d5e678ba4a3b3ff0b4eb4eb212f1599`. 세부 인수인계 `qa/qa15-prepurchase-report-coverage-20261029.md`.
+- 기존 원국 계산, 유료 생성/검증, QA5 소비 승인, 품질 게이트, 운영/main 브랜치 모두 불변. 판매·배포 승인 없음.
+- **다음 과제**: 12장·35항목 고정 판매 규격과 코드의 실질적 22개 상한을 독립 근거/원고 품질 기준으로 해결하거나 가변형 상품으로 재정의하고 고지; 실제 생성 본문의 인간 전문가 심사 및 결제 권한 보안 설계 별도 진행. 단순 QA 번호 추가보다 실제 사용자 상품 UX를 개선할 것.
