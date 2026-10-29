@@ -51,6 +51,16 @@ function inspect(prompt,response){
     !decoded.sections[0].bodyTopics?.includes('strength'))
   throw Error('QA6_REAL_DECODER_REJECTED_OR_MISSING_FIRST_CHAPTER');
  const rows=sentences(p.text);
+ const readerValue=require('./report-qa6-reader-value-comparison')
+  .describe(p,strength.text);
+ const readerRisks=[];
+ if(!readerValue.containsConcreteIllustration)
+  readerRisks.push('QA6_READER_VALUE_NO_APPLIED_SCENE');
+ if(readerValue.techniqueSentenceShare>=0.6)
+  readerRisks.push('QA6_READER_VALUE_METHOD_DESCRIPTION_DOMINATES');
+ if(readerValue.limitationSentenceCount>=3)
+  readerRisks.push('QA6_READER_VALUE_LIMITATIONS_NEED_BALANCING');
+ // These are editorial alerts, not grounds to invent a personality claim.
  // Fixed vocabulary only: neither user input nor generated prose is returned.
  return Object.freeze({
   kind:'qa6-offline-first-chapter-editorial-hold-v1',
@@ -59,6 +69,9 @@ function inspect(prompt,response){
   originalModelResponseModified:false,
   allSentencesRequireHumanReview:true,
   sentenceCount:rows.length,
+  readerValueEditorialRisks:readerRisks,
+  concreteExampleIsIndividualEvidence:false,
+  premiumReaderValueIndependentlyReviewed:false,
   semanticEntailmentVerified:false,
   classicalExpertReviewApproved:false,
   customerRelease:false,providerCalls:0,
