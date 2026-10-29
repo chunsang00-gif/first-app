@@ -35,6 +35,26 @@ const {createQueue,retryDelay,rateLimitKind}=require('./report-request-control')
 
  const decoded=wire.decode({chapters:{saju_core:{title:'기본 성향',keyJudgment:'판단을 확인합니다',evidence:['일간'],mood:'reflective',paragraphs:Object.fromEntries(Object.keys(outlineForWire.saju_core).map(t=>[t,t===oneTopic?{label:'핵심',text:'계산된 근거를 설명합니다'}:null]))}},cover:null,finalJudgment:null},wirePrompt);
  assert.deepEqual(decoded.sections[0].bodyTopics,[oneTopic],'null topics are omitted');
+ // Original paid QA5 returned explicit null for the OPTIONAL temperament.
+ // Do not turn that legitimate absence into a decoder error. Reject a
+ // non-null but malformed response instead of silently dropping it.
+ const qa5Style={chapters:{saju_core:{title:'기본 성향',
+  keyJudgment:'기본 풀이를 구별합니다',evidence:['출생 근거'],
+  mood:'reflective',paragraphs:{
+   temperament:null,strength:{label:'필수 핵심',text:'월간과 월지 본기의 전통적 뜻을 구별합니다'}
+  }}},cover:null,finalJudgment:null};
+ assert.deepEqual(wire.decode(qa5Style,wirePrompt).sections[0].bodyTopics,
+  ['strength'],'historical optional null must remain a valid omission');
+ const malformedOptional=structuredClone(qa5Style);
+ malformedOptional.chapters.saju_core.paragraphs.temperament={label:'',text:'문단은 있지만 제목이 빠졌습니다'};
+ assert.throws(()=>wire.decode(malformedOptional,wirePrompt),
+  /malformed paragraph field: saju_core:temperament/,
+  'non-null incomplete paid response cannot be silently omitted');
+ const missingOptional=structuredClone(qa5Style);
+ delete missingOptional.chapters.saju_core.paragraphs.temperament;
+ assert.throws(()=>wire.decode(missingOptional,wirePrompt),
+  /missing required paragraph field: saju_core:temperament/,
+  'missing schema slot is different from an explicit optional null');
  assert.equal(decoded.sections[0].body.length,1,'one grounded explanation remains');
  assert.throws(()=>wire.decode({chapters:{saju_core:{paragraphs:Object.fromEntries(Object.keys(outlineForWire.saju_core).map(t=>[t,null]))}}},wirePrompt),/empty chapter/,'fully empty chapters are rejected');
  const queue=createQueue();let active=0,maxActive=0;const order=[];
