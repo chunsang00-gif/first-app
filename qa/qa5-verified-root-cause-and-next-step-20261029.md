@@ -94,3 +94,10 @@
 - 연구 코드 `report-qa13-money-risk-independent-source.js`; 10개 합성 명식·허위 십성/충 조작 차단·유료 돈 위험 필드가 `null`임을 확인하는 `report-qa13-money-risk-independent-source-tests.js`를 전체 무료 `npm test`에 등록.
 - GitHub Actions **40825635009**: `npm test` + `npm run smoke` 모두 **SUCCESS**. 유료 API 0회, `main`/`saju-mbti-app` 변경 없음. `qa/qa13-money-risk-independent-evidence-20261029.md`에 자료·가상 연구 문장 기록.
 - **핵심 결론:** 4건의 관계 존재만으로 `money.risk`를 켜면 경제적 결과를 지어낼 위험이 있으므로 현행 `state-limits` 그대로 보존, 12장/28개 정식 슬롯 및 최대 22개 활성 가능 구조 불변. 다음은 고전 문헌의 정확한 조건을 독립 조사하거나 12/35 고정 판매 문구를 현재 가변 상품과 정합화하는 제품 의사결정. 신규 유료 요청/운영 병합 없이 진행.
+
+## QA14 고전 원문 적용 범위 검증 — 2026-10-29
+- QA13 금전 위험 후보를 『자평진전』 **칠 「논형충회합해법」/팔 「논용신」/십칠 「논묘고형충지설」** 공개 원문과 대조해 **적용 전제만** 검증. 각 장 링크와 구체 조건은 `qa/qa14-classical-wealth-clash-source-applicability-20261029.md`.
+- 실제 합성 명식 10개 중 4개 명식의 재성 위치+충 후보 8행은 **모두 辰戌/丑未 사묘고 충**, 겹치는 형/파 후보가 있고, 고전의 갑일·진월·무토 투간 또는 기일·진월·임수 투간 등 **좁은 예시와 정확한 동일 조건은 0개**. 위치와 글자 겹침으로 재물 손실·수익 사건을 예상하거나 해석 우선순위를 선택하면 안 됨.
+- `report-qa14-classical-wealth-clash-scope.js` / `report-qa14-classical-wealth-clash-scope-tests.js` 생성, `npm test` 등록. 첫 통합 테스트에서 '같은 분류의 자유(子酉)조차 육충'으로 판정한 **연구 검사기 버그**를 찾아 정확한 여섯 육충 쌍만 허용하도록 교정. 기존 계산 알고리즘/보고서/실 API 코드 불변.
+- GitHub Actions **40826562530**: `npm test`와 `npm run smoke` **전체 성공**, 검증된 QA 코드 커밋 `970f9ed68d731f6827ba668d14d0577645a9d7f9`. API 호출 0, 운영·main 변경 없음. 이후 문서만 변경.
+- **핵심 결론**: 금전 위험 `money.risk`는 여전히 `state-limits`, 유료 고객 문단은 `null`. 12장 정의/28항목 정의/현재 22개 활성 상한 대 35 목표 사이 상품 계약 차이 **미해결**. 이제 같은 기계 QA 반복보다 12/35 상품을 실제 근거량과 맞게 정직하게 정의하고 결제 전 범위를 확인하는 제품 수준의 작업이 우선. 결제 모델 호출과 배포/병합은 계속 금지.
