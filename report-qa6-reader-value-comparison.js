@@ -13,7 +13,7 @@ function describe(paragraph,monthText=''){
  const lines=method.sentences(text);
  const contains=(re)=>re.test(text);
  const concreteIllustration=contains(/(?:예를 들어|상황을 가정|선택을 생각)/)&&
-   contains(/(?:장비|부품|재고|검수|납품|예산|승인|시간과 인력|취미 수업|정기 수업|정기 구독)/);
+   contains(/(?:장비|부품|재고|검수|납품|예산|승인|시간과 인력|취미 수업|정기 수업|정기 구독|전시 안내문)/);
  const classicalSourceContext=contains(/(?:삼명통회|三命通會)/)&&
    contains(/(?:자평진전|子平真詮)/);
  const changedHourCounterexample=contains(/(?:오후 8시 20분|20:20)/)&&
