@@ -47,10 +47,13 @@ function policyFor(prompt){
   const baseline=parts.join('\n')+
    (prompt.qaNatalDepthPreview===true?'':'\n'+normalPaidMonthMethodBoundary)+
    (prompt.paidCoreDepthV2===true?'\n'+coreDepthExperimentalPolicy:'');
+  const qa6=require('./report-qa6-required-research-slot');
   return baseline+(require('./report-paid-core-v2-classical-provider-bridge')
-   .enabled(prompt)?'\n고전 연구용 작성에서는 temperament.qaClassicalWritingBrief를 이 선택 문단의 유일한 추가 작성 계약으로 사용한다. ' +
+   .enabled(prompt)?(qa6.enabled(prompt)?
+    '\nQA6 출처 고정 연구용 첫 장: '+qa6.INSTRUCTION:
+    '\n고전 연구용 작성에서는 temperament.qaClassicalWritingBrief를 이 선택 문단의 유일한 추가 작성 계약으로 사용한다. ' +
     '가상의 업무 장면이나 두 누락 조건을 보태지 않는다. ' +
-    '실제 합화·방법 우선순위·개인 성격·재물 결과를 단정하지 않으며, 검증 근거를 모두 설명할 수 없으면 null로 둔다.':'');
+    '실제 합화·방법 우선순위·개인 성격·재물 결과를 단정하지 않으며, 검증 근거를 모두 설명할 수 없으면 null로 둔다.'):'');
  }
  return policy+(prompt?.stage==='body'&&prompt?.requestedSections?.includes('saju_core')&&
   prompt.qaNatalDepthPreview!==true?'\n'+normalPaidMonthMethodBoundary:'');
@@ -529,6 +532,11 @@ function schema(prompt,transport){
     }
    }
    p.properties={basis,...p.properties};p.required=['basis',...p.required];
+   // QA6 is a new, separately gated FREE research contract. It must not
+   // modify the frozen QA5 request hash or the normal paid optional slot.
+   if(chapterId==='saju_core'&&topic==='temperament'&&
+      require('./report-qa6-required-research-slot').requested())
+    require('./report-qa6-required-research-slot').harden(prompt,payload,slot);
   }
  }
  return result;
