@@ -148,7 +148,20 @@ function decode(value,prompt){
   for(const [topic,task] of Object.entries(plan?.topicTasks||{}))if(task.mode==='state-limits'&&topic!==anchor&&s.paragraphs[topic]!==null)throw Error('AI report service generated unsupported topic: '+id+':'+topic);
   const topicKeys=[...Object.keys(topics[id])];
   if(prompt.qaNatalDepthPreview===true&&id==='saju_core')topicKeys.push('natal_depth');
-  const bodyTopics=topicKeys.filter(t=>s.paragraphs[t]&&typeof s.paragraphs[t].text==='string'&&s.paragraphs[t].text.trim()&&typeof s.paragraphs[t].label==='string'&&s.paragraphs[t].label.trim());
+  // A null optional paragraph is deliberate and allowed (the actual QA5
+  // response did this). A non-null but malformed paragraph is NOT null;
+  // silently dropping it used to hide an invalid paid provider response.
+  for(const topic of topicKeys){
+   if(!Object.hasOwn(s.paragraphs,topic))
+    throw Error('AI report service missing required paragraph field: '+id+':'+topic);
+   const item=s.paragraphs[topic];
+   if(item===null)continue;
+   if(!item||typeof item!=='object'||Array.isArray(item)||
+      typeof item.text!=='string'||!item.text.trim()||
+      typeof item.label!=='string'||!item.label.trim())
+    throw Error('AI report service returned malformed paragraph field: '+id+':'+topic);
+  }
+  const bodyTopics=topicKeys.filter(t=>s.paragraphs[t]!==null);
   if(!bodyTopics.length){console.error('[Report empty chapter diagnostic]',{chapterId:id,requestedSections:prompt.requestedSections,topics:Object.fromEntries(Object.keys(topics[id]).map(t=>[t,s.paragraphs[t]===null?'null':typeof s.paragraphs[t]?.text==='string'?'blank-or-incomplete':'missing']))});throw Error('AI report service returned an empty chapter');}
   return {id,title:s.title,keyJudgment:s.keyJudgment,evidence:s.evidence,mood:s.mood,bodyTopics,
    bodyLabels:bodyTopics.map(t=>s.paragraphs[t]?.label),body:bodyTopics.map(t=>s.paragraphs[t]?.text)};
