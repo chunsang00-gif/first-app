@@ -66,6 +66,11 @@ async function run(){
    .replace('출처 확인이 빠지면','별도의 사전 검토를 마치면');
   assert.throws(()=>judge.inspect(inputs[0],oneSided),
    /QA10_CASE_COMPARISON_NOT_TWO_SIDED/);
+  const oneSidedFirst=structuredClone(inputs[0]);
+  oneSidedFirst.paragraph.text=oneSidedFirst.paragraph.text
+   .replace('여유가 충분해도','상황에 따라서');
+  assert.throws(()=>judge.inspect(oneSidedFirst,inputs[1]),
+   /QA10_CASE_COMPARISON_NOT_TWO_SIDED/);
   process.env.NODE_ENV='production';
   assert.throws(()=>judge.inspect(...inputs),/QA10_TWO_CHART_OFFLINE_ONLY/);
   process.env.NODE_ENV='test';process.env.RENDER='true';
