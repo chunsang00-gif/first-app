@@ -93,9 +93,21 @@ for(const [calendar,birthDate,birthTime] of cases){
    assert(part.properties.text.description.includes(brief.readerQuestion),
     'actual strict output schema must carry the unique reader question');
    assert(part.properties.text.description.includes(brief.hypotheticalContrast));
-   assert(part.properties.text.description.includes(brief.exactRoleLens.internalWritingContrast),
-    'actual provider JSON text instruction must carry exact, real classified positions');
-
+   const internal=part.properties.basis.properties.interpretation.description;
+   const visible=part.properties.text.description;
+   assert(internal.includes(brief.exactRoleLens.internalWritingContrast),
+    'actual strict JSON internal basis must carry exact source positions and role meanings');
+   assert(visible.includes('조건이 바뀌면 무엇을 다르게 고려해야 하는지'),
+    'reader prose must explain the meaning of a changed hypothetical condition');
+   assert(visible.includes('한쪽 관점만 보면'),
+    'reader prose must say what the opposite condition misses');
+   assert(!visible.includes(brief.exactRoleLens.internalWritingContrast),
+    'customer text instruction must not dump internal technical source ledger');
+   for(const role of brief.exactRoleLens.sourceRoles){
+    assert(internal.includes(role.sourceId));
+    assert(!visible.includes(role.sourceId),
+     'customer text prompt must not contain exact source reference IDs');
+   }
    assert(!part.properties.text.description.includes('실제 고객의 행동이 확인되었다'));
    verified++;
   }
