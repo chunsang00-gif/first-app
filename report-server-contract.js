@@ -263,17 +263,11 @@ async function generate(input,callModel,onProgress=()=>{},onValidatedBatch=()=>{
     fail('paragraph/label count mismatch',{sectionId:section.id,expected:topics.length,paragraphCount:section.body?.length??null,labelCount:section.bodyLabels?.length??null});
    if(section.body.some(p=>typeof p!=='string'||!p.trim())||section.bodyLabels.some(p=>typeof p!=='string'||!p.trim()))
     fail('empty paragraph/label',{sectionId:section.id});
-   const chapterPlan=editorialBlueprint[section.id];
-   const anchor=chapterPlan?.anchorTopic;
+   const anchor=editorialBlueprint[section.id]?.anchorTopic;
    if(anchor&&!actualTopics.includes(anchor))fail('planned evidence anchor missing',{sectionId:section.id,anchor,actualTopics});
-   // Direct mock adapters may bypass provider JSON schema. Reject invented
-   // fields in the FIRST offending batch, before any further paid call.
-   for(const topic of actualTopics){
-    const task=chapterPlan?.topicTasks?.[topic];
-    if(!task||task.mode==='state-limits')
-     fail('unsupported source-evidence topic in paid batch',{sectionId:section.id,topicId:topic});
-   }
   }
+  const eligible=require('./report-batch-evidence-gate').check(result.sections,editorialBlueprint);
+  if(!eligible.pass)fail('source-ineligible paid topic returned',{codes:eligible.problems});
   return result;
  };
  // Assign one chapter the responsibility for each explanation before any model calls.
