@@ -415,15 +415,28 @@ function schema(prompt,transport){
         payload.source[x.sourceId]?.tenGod!==x.tenGod||
         payload.source[x.sourceId]?.traditionalMeaning!==x.traditionalMeaning))
      throw Error('PAID_TOPIC_EXACT_ROLE_LENS_DRIFT:'+chapterId+':'+topic);
-    // Exact cited source differences are part of the actual JSON text slot,
-    // rather than a distant generic request to "write more deeply".
-    p.properties.text.description+=' 이 항목의 고유 질문: '+
-     brief.readerQuestion+'. 서로 다른 가상 선택: '+
-     brief.hypotheticalContrast+'. 출생 근거별 뜻의 차이: '+
-     roles.internalWritingContrast+'. 다른 항목과의 차이: '+
-     brief.differentFromOtherTopics+'. '+brief.sourceComparison+' '+
-     brief.previousSourceConstraint+
-     ' 명리 전문용어와 출처 번호를 고객 문단에 나열하지 말고 전통적 뜻의 차이를 쉬운 말로 푼다. 실제 개인의 행동 증거가 아니며 독립적인 뜻이 없다면 선택 문단은 null로 둔다.';
+    // Place positional calculations, precise terms and negative findings in
+    // the INTERNAL explanation slot. Previously we put the whole ledger in
+    // the reader prose slot and encouraged textbook-like customer output.
+    basis.properties.interpretation.description=
+     '내부 근거 비교만 적는다. 다음 실제 인용 가능한 출생 위치의 글자와 전통적 뜻에서 '+
+     '이 항목의 질문과 직접 관련된 차이를 설명한다. '+roles.internalWritingContrast+
+     ' '+brief.sourceComparison+' '+brief.previousSourceConstraint+
+     ' 우선순위나 실제 행동·금전·직업의 결과는 계산된 것이 아니다. '+
+     '본문에는 출처 번호·분류 이름·이 내부 감사 설명을 복사하지 않는다.';
+    // The model must WRITE an accessible conditional interpretation, not
+    // recite ledger entries. Keep the actual chart-specific reader question.
+    p.properties.text.description+=
+     ' 이 항목에서 독자가 이해할 질문: '+brief.readerQuestion+
+     '. 실제 출생 근거로 설명 가능한 두 조건의 차이를 쉬운 문장으로 먼저 말한다. '+
+     '가정 상황은 설명을 돕는 경우에만 사용한다: '+brief.hypotheticalContrast+
+     '. 조건이 바뀌면 무엇을 다르게 고려해야 하는지, 한쪽 관점만 보면 '+
+     '어떤 질문을 놓치는지를 이 항목에 한해 설명한다. '+
+     '다른 항목에서 이미 다룬 결론은 반복하지 않는다: '+
+     brief.differentFromOtherTopics+'. '+
+     '전통 분류 이름·출처 번호·검증 절차를 독자에게 강의하지 않는다. '+
+     '판단 가능한 범위를 넘는 실제 성격·능력·미래 사건은 단정하지 않으며, '+
+     '독립적인 해석이 없다면 선택 문단은 null로 둔다.';
    }
    if(chapterId==='saju_core'&&topic==='natal_depth'&&
       prompt.qaNatalDepthPreview===true){
