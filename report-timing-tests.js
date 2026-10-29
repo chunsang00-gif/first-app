@@ -58,14 +58,23 @@ assert.equal(createTiming().snapshot().sampleCount,0);
  assert(body.innerHTML.includes('평균 약 2분'));
  assert(body.innerHTML.includes('1건 기준'));
  assert.equal(typeof resolveCoverage,'function');
- resolveCoverage({status:'ready',estimate:{plannedChapters:9,
+ resolveCoverage({status:'ready',catalog:{chapterDefinitions:12,topicDefinitions:28,originallyPlannedTopics:35},estimate:{plannedChapters:9,
   evidenceEligibleTopicUpperBound:19,chapters:[
    {name:'사주 기본',includedInPlan:true,eligibleTopicUpperBound:2},
    {name:'2027년 금전',includedInPlan:false,omittedReason:'근거 없음'}]}});
  await pending;
  assert(body.innerHTML.includes('최대 19개 항목'));
  assert(body.innerHTML.includes('현재 유료 구매와 정식 보고서 생성은 준비 중입니다'));
+ assert(body.innerHTML.includes('현재 목차에는 12개 장, 28개 세부 항목'));
+ assert(body.innerHTML.includes('35항목 고정 제공은 검증되지 않았습니다'));
+ assert(!body.innerHTML.includes('12개 장을 작성한 뒤'));
  assert.equal(charged,0);
+ ui.window.REPORT_API.coverage=async()=>({status:'blocked',errors:['범위 조회 실패']});
+ await ui.window.LIVE_REPORT_UI.run();
+ assert(body.innerHTML.includes('제공 가능 범위를 확인하지 못했습니다'));
+ assert(body.innerHTML.includes('입력 화면으로 돌아가기'));
+ assert(body.innerHTML.includes('범위 조회 실패'));
+ assert.equal(charged,0,'scope failure cannot dispatch a paid job');
  const resumed=await api.window.REPORT_API.resume();assert.equal(resumed.status,'ready');assert.equal(requests,3,'completed reload must not issue another request');
  console.log('PASS real-duration mean, bounded/expired samples, restart reset, failed/rejected exclusions, status timing, existing polling only, average loading text; no paid API');
 })().catch(e=>{console.error(e);process.exitCode=1});
