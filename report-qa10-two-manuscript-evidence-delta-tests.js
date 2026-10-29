@@ -14,7 +14,9 @@ async function run(){
  const prior=Object.fromEntries(names.map(k=>[k,process.env[k]]));
  try{
   process.env.NODE_ENV='test';delete process.env.RENDER;
-  for(const k of names.slice(2))process.env[k]='offline-preview';
+  process.env.PAID_CORE_DEPTH_V2='offline-preview';
+  // QA6's exact-one-chart mandatory slot must not bleed into QA9.
+  for(const k of names.slice(3))delete process.env[k];
   const a=await capture(old.INPUT),b=await capture(qa9.FIXTURE);
   assert.equal(a.providerCalls+b.providerCalls,0);
   const firstPrompt=scoped(a.prompt),secondPrompt=scoped(b.prompt);
