@@ -15,6 +15,9 @@ assert(html.includes("['calendar','birthDate','birthTime','leapMonth','unknownBi
  'changes to calendar identity during calculation must force revalidation');
 assert(html.includes('step=2;show();return;'),'navigate only after the free calculation succeeded');
 assert(ui.includes("calendar:calendar==='lunar'||calendar==='음력'?'lunar':'solar'"));
+assert(ui.includes('catalog.chapterDefinitions')&&ui.includes('catalog.topicDefinitions'),'visible scope count must use verified server catalog, not stale promises');
+assert(!ui.includes('12개 장을 작성한 뒤'),'free scope loading must not pretend a paid report is being generated');
+assert(ui.includes('showScopeError(e)')&&ui.includes('returnFromCoverageError'),'scope query failures must offer recovery');
 assert(ui.includes("leapMonth:Boolean($('#leapMonth')?.checked)"),
  'premium request input must preserve the checked leap-month field');
 const base={calendar:'lunar',leapMonth:false,birthDate:'1982-11-24',
