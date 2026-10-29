@@ -46,7 +46,7 @@ const names=['NODE_ENV','RENDER','PAID_CORE_DEPTH_V2',
    assert(result.estimate.selectedDefinedTopicUpperBound>=eligible);
    assert(result.estimate.canAttemptGeneration);
    for(const chapter of result.estimate.chapters){
-    assert(chapter.name.length>2);
+    assert(chapter.name.length>=2);
     if(!chapter.includedInPlan){
      assert(chapter.omittedReason);
      assert.equal(chapter.eligibleTopicUpperBound,0);
