@@ -1,6 +1,8 @@
 'use strict';
-// Required object keys make the 35 topics structural requirements. Parallel
-// arrays cannot guarantee equal lengths or the association of text and topic.
+// Canonical topic keys are structural slots (currently 28 over 12 chapters).
+// Optional slots may be null and entire evidence-poor chapters may be omitted.
+// Neither a topic key nor a section schema guarantees a customer paragraph.
+// Parallel arrays cannot guarantee equal lengths or text/topic association.
 const {topics}=require('./report-outline');
 const reader=require('./report-reader-policy');
 const visible=s=>reader.describe(s,reader.readerField);
