@@ -81,7 +81,7 @@ const CATEGORY_SCENES=Object.freeze({
 function readerAgeBand(packet){
  const birth=packet?.calculationInput?.birthDate;
  const year=packet?.targetYear?.year;
- if(!/^\\d{4}-\\d{2}-\\d{2}$/.test(birth||'')||
+ if(!/^\d{4}-\d{2}-\d{2}$/.test(birth||'')||
     !Number.isInteger(year))return 'unknown';
  const diff=year-Number(birth.slice(0,4));
  if(diff<0||diff>125)return 'unknown';
