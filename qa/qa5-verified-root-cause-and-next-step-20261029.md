@@ -20,3 +20,11 @@
 - 매번 GitHub 최신 커밋/Actions와 실제 원문 결과를 확인. 이미 한 작업은 반복하지 않음.
 - API 키 재질문 금지. 모든 정상/실패 QA 기록은 비공개로 유지. 유료 호출은 명시적 새 승인 전 금지.
 - 유료 상품의 목표는 단순 기계검사 통과가 아니라 정확한 명리 근거와 독자에게 실질적으로 가치 있는 사주×MBTI 풀이.
+
+## 후속 QA6 진행 완료 — 2026-10-29
+- 소비된 QA5 실행은 원본 그대로 보존하고, **별도 신규 실험 플래그** `PAID_CORE_V2_REQUIRED_RESEARCH_SLOT=offline-preview`를 도입했다. 현재 플래그가 없으면 일반 보고서와 QA5의 선택 문단·원본 요청 해시는 기존과 같다.
+- 신규 `report-qa6-required-research-slot.js`는 검증된 출처 9개/연결할 주장 5개를 확인한 첫 장 연구 범위에서만 `temperament`의 `anyOf(object, null)`을 `object` 필수로 바꾼다. 원문을 억지로 채우거나 성공으로 자동 승인하는 기능은 없다.
+- `report-generation-request.js`의 실험 전용 작성 정책, `report-paid-core-v2-classical-provider-bridge.js`의 연구용 전송 지침과 스키마를 일치시켜 기존 null 지시와 충돌하지 않도록 했다. 모델 응답의 모든 근거 연결·기존 decoder·실제 사람의 품질 평가는 계속 필요하다.
+- `report-qa6-required-research-slot-tests.js`를 `npm test`에 등록했다. GitHub Actions **40799771712**에서 전체 무료 자동 테스트와 smoke 모두 **SUCCESS**, QA6 신규 검증 내용은 `historicalQA5HashUntouched=true`, `qa6RequestHashDiffers=true`, `missingEvidenceFailsBeforeProvider=true`, `realProviderCalls=0` 확인.
+- 현재 검증 완료 코드 HEAD: **4852d09384e411cb97913de6356413ab6309287a** (이 문서 수정 직전). `main` 및 `saju-mbti-app` 불변. 실제 신규 유료 호출은 **실시하지 않았고 승인도 받지 않았다**.
+- **다음 작업**: 새 QA6 전송 스키마의 구조·정확한 요청 해시를 무료로 확정하고, 비-null 결과라도 모든 근거 문장이 사실인지 독립적으로 거절할 수 있는지 검증한다. 충분한 오프라인 품질 검증 및 새로운 사용자 승인 전에는 실제 모델 호출/운영 반영/출시 절대 금지.
