@@ -60,7 +60,7 @@ function inspect(packet){
    // the exact 辰戌 opposition; even all these matches do NOT establish
    // the complete pattern or a money prediction.
    earthWealthCase:chart.day?.[0]==='甲'&&month==='辰'&&
-    wealthVisibleAt.includes('natal.year.stem')&&
+    wealthVisibleAt.length>0&&
     row.wealthStem==='戊'&&kind==='辰戌-four-storage'&&
     row.pairedPositions.includes('month'),
    waterWealthCounterCase:chart.day?.[0]==='己'&&month==='辰'&&
