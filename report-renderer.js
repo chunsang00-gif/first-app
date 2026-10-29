@@ -34,10 +34,11 @@ function render(report,target){
  const mbti=report?.meta?.mbti||input.mbti||'모름'; const hasMbti=mbti!=='모름'; const balance=report?.meta?.profileBalance; const axes=balance?.axes||{};
  const cover=report.cover||{}; const first=report.sections?.[0];
  const deliveredChapters=(report.sections||[]).length;
- const deliveredTopics=(report.sections||[]).reduce((count,section)=>
-  count+(Array.isArray(section.bodyTopics)&&
-  section.bodyTopics.length===section.body?.length?
-   section.body.filter(text=>typeof text==='string'&&text.trim()).length:0),0); const integrated=(report.sections||[]).find(s=>s.id==='integrated_judgment');
+ const hasCountableTopics=deliveredChapters>0&&(report.sections||[]).every(s=>
+  Array.isArray(s.bodyTopics)&&s.bodyTopics.length===s.body?.length&&
+  s.body.every(text=>typeof text==='string'&&text.trim()));
+ const deliveredTopics=hasCountableTopics?(report.sections||[])
+  .reduce((count,section)=>count+section.bodyTopics.length,0):null; const integrated=(report.sections||[]).find(s=>s.id==='integrated_judgment');
  const pick=id=>(report.sections||[]).find(s=>s.id===id); const keyword=s=>{const t=String(s?.keyJudgment||'').replace(/[“”"'.,]/g,' ').replace(/\s+/g,' ').trim();const rules=[[/직접|확인|검증|시험/,'직접 확인'],[/결정|선택|판단/,'판단과 결정'],[/계획|준비|순서/,'계획과 실행'],[/책임|약속|원칙/,'책임과 원칙'],[/의견|표현|말하|설명/,'분명한 표현'],[/변화|새로운|새 방법|시도/,'변화 수용'],[/돈|수입|지출|재물/,'돈 관리'],[/일|업무|직업|성과/,'일과 성과'],[/관계|사람|상대|갈등/,'대인관계'],[/스트레스|압박|피로/,'압박 반응']];const found=rules.filter(([re])=>re.test(t)).map(([,label])=>label);return [...new Set(found)].slice(0,2).join(' · ')||'핵심 성향'}; const legacyTopInsights=(hasMbti?[['기본 성향',pick('saju_core')?.keyJudgment,'detail-saju_core'],['MBTI와 다른 의외의 점',pick('mbti_contradiction')?.keyJudgment,'detail-mbti_contradiction'],['사주 × MBTI 최종 성향',pick('integrated_judgment')?.keyJudgment,'detail-integrated_judgment']]:[['기본 성향',pick('saju_core')?.keyJudgment,'detail-saju_core'],['겉과 속의 차이',pick('mbti_contradiction')?.keyJudgment,'detail-mbti_contradiction'],['사주 최종 성향',pick('integrated_judgment')?.keyJudgment,'detail-integrated_judgment']]).filter(x=>x[1]); const topInsights=Array.isArray(cover.highlights)&&cover.highlights.length===3&&cover.highlights.every(h=>pick(h.sectionId))?cover.highlights.map(h=>[themes[h.sectionId]?.[0]||'핵심 특징',h.description,'detail-'+h.sectionId,h.title]):legacyTopInsights; const fallbackKeywords=[...new Set([pick('saju_core'),pick('mbti_contradiction'),pick('integrated_judgment'),pick('decision'),pick('relationship')].filter(Boolean).flatMap(s=>keyword(s).split(' · ')))].slice(0,5); const keywords=Array.isArray(cover.keywords)&&cover.keywords.length?cover.keywords.map(k=>String(k).replace(/^#+/,'')):fallbackKeywords; const balanceRows=[['사람/관계',axes.relationship],['일/성과',axes.achievement],['감정/마음',axes.emotion],['현실/계획',axes.planning],['독립/자유',axes.independence]].filter(x=>Number.isFinite(x[1])).map(([label,v])=>[label,Math.round(Math.max(0,Math.min(100,v)))]);
  document.body.classList.add('has-report');
  target.closest('.screen')?.classList.add('report-ready');
@@ -47,7 +48,7 @@ function render(report,target){
 <h1 class="hero-name">${esc(name||'당신')}<small>님</small></h1>
 <div class="hero-badges">${hasMbti?`<span class="mbti-badge">${esc(mbti)}</span>`:''}<span class="zodiac-badge">${window.CHARACTER_ASSETS.badge(report,input)}${esc(animal)}</span></div>
 <h2 class="hero-quote">${esc(cover.headline||integrated?.title||first?.title||integrated?.keyJudgment||'')}</h2><p class="hero-description">${esc(cover.description||integrated?.keyJudgment||first?.keyJudgment||'')}</p>
-<p class="meta report-delivered-scope">실제로 작성된 분석: ${deliveredChapters}개 장 · ${deliveredTopics}개 세부 풀이</p>
+${deliveredTopics===null?'':`<p class="meta report-delivered-scope">실제로 작성된 분석: ${deliveredChapters}개 장 · ${deliveredTopics}개 세부 풀이</p>`}
 </div>
 <div class="hero-character" aria-label="사주 결과 캐릭터">${window.CHARACTER_ASSETS.hero(report,input)}</div>
 </div>
