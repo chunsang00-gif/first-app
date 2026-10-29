@@ -8,6 +8,7 @@ const writer=require('./report-generation-request');
 const wire=require('./report-wire');
 const schemaBase=require('./report-schema.json');
 const readiness=require('./report-paid-core-v2-billable-readiness');
+const strictAudit=require('./report-qa3-offline-provider-readiness-audit');
 const preflight=require('./report-provider-preflight');
 const projection=require('./report-paid-core-v2-provider-projection');
 const links=require('./report-qa3-classical-claim-linked-schema');
@@ -80,6 +81,19 @@ async function run(){
    '8be0a823e1d82df41587861793380035c1645ca3428b597b6c0d477509c338bb');
   assert.equal(fresh.systemHash,
    '7a14413a0727c049041afb0fb1f1756b15787ace3cd4cc866f6b877938ba5ded');
+  // FREE real HTTP-envelope replay through the original provider-side
+  // strict-schema checker; this does not prove remote model acceptance.
+  const strict=await strictAudit.inspectOne();
+  assert.equal(strict.envelopeSha256,fresh.requestHash);
+  assert.equal(strict.schemaSha256,fresh.schemaHash);
+  assert.equal(strict.strictSchemaStructuralCheck,'passed-local-only');
+  assert.equal(strict.schemaStatistics.maxDepth<=10,true);
+  assert.equal(strict.outputTokenCap,18000);
+  assert.equal(strict.providerEndpointValidation,'not-tested');
+  assert.equal(strict.actualModelCompletion,'not-generated');
+  assert.equal(strict.networkCalls,0);
+  assert.equal(strict.approvalToCharge,false);
+  assert(strict.estimatedCostUSDAtOutputCapAndInputBound<1);
   assert.equal(fresh.providerCalls,0);
   assert.equal(fresh.approvalToCharge,false);
   assert.equal(fresh.releaseVerdict,'not-approved');
@@ -112,6 +126,8 @@ async function run(){
    qa6RequestFingerprint:fresh.requestHash,
    qa6SchemaFingerprint:fresh.schemaHash,
    qa6SystemFingerprint:fresh.systemHash,
+   realStrictSchemaSubsetPassed:true,
+   remoteProviderAcceptanceVerified:false,
    realProviderCalls:0,
    customerRelease:false}));
  }finally{
