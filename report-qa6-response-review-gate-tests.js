@@ -68,6 +68,9 @@ async function run(){
   assert.equal(result.semanticEntailmentVerified,false);
   assert.equal(result.readyForSale,false);
   assert.equal(result.status,'requires-human-editorial-review');
+  assert(result.readerValueEditorialRisks.includes('QA6_READER_VALUE_NO_APPLIED_SCENE'));
+  assert.equal(result.premiumReaderValueIndependentlyReviewed,false);
+  assert.equal(result.concreteExampleIsIndividualEvidence,false);
   assert(!JSON.stringify(result).includes(specimen.text),'no raw prose in public QA metadata');
   const reject=(change,reason)=>{
    const copy=structuredClone(response);
@@ -125,7 +128,10 @@ async function run(){
    forgedQuotesAndRefsBlocked:true,
    knownFalseClaimsBlockedAcrossBodyAndMetadata:true,
    otherUnsupportedSentencesNotAutomaticallyApproved:true,
-   originalRealDecoderUsed:true,providerCalls:0,
+   originalRealDecoderUsed:true,
+   missingPracticalReaderApplicationFlagged:true,
+   premiumReaderValueIndependentlyReviewed:false,
+   providerCalls:0,
    semanticTruthProven:false,customerRelease:false,
    humanReviewRequired:true
   }));
