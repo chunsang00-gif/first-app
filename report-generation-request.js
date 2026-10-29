@@ -397,6 +397,20 @@ function schema(prompt,transport){
    basis.description=limited
     ?'직접 근거가 없는 항목. refs·interpretation·condition은 반드시 null로 반환하고, limit에는 무엇을 판단할 수 없는지만 구체적으로 적는다. 독자에게 성격이나 사건을 만들어 설명하지 않는다.'
     :'내부 근거 기록. 이 질문과 관련된 계산 참조만 선택한다. 실제 자료의 의미와 해석의 연결, 적용 조건, 판단 한계를 구분한다. 독자용 본문이 아니다.';
+   if(task.readerDistinction){
+    const brief=task.readerDistinction;
+    if(JSON.stringify(brief.sourceRefs)!==JSON.stringify(permitted)||
+       brief.observedCustomerBehavior!==false||
+       brief.realWorldOutcomeEstablished!==false)
+     throw Error('PAID_TOPIC_READER_BRIEF_SOURCE_DRIFT:'+chapterId+':'+topic);
+    // Precise output slot, not generic chapter instructions that blur topics.
+    p.properties.text.description+=' 이 항목의 고유 질문: '+
+     brief.readerQuestion+'. 서로 다른 가상 선택: '+
+     brief.hypotheticalContrast+'. 다른 항목과의 차이: '+
+     brief.differentFromOtherTopics+'. '+brief.sourceComparison+' '+
+     brief.previousSourceConstraint+
+     ' 실제 개인의 행동 증거가 아니며 독립적인 뜻이 없다면 선택 문단은 null로 둔다.';
+   }
    if(chapterId==='saju_core'&&topic==='natal_depth'&&
       prompt.qaNatalDepthPreview===true){
     const locked=require('./report-core-paid-natal-depth-fact-lock')
