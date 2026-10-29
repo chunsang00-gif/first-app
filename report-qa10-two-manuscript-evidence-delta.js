@@ -59,8 +59,10 @@ function inspect(first,second){
  if(aa.length!==3||bb.length!==3||
     !/(?:수업|비용)/.test(aa[1])||
     !/(?:안내문|인쇄)/.test(bb[1])||
-    !/(?:여유가 없다면|여유가 충분해도)/.test(aa[1])||
-    !/(?:편집 시간이 없다면|출처 확인이 빠지면)/.test(bb[1]))
+    !aa[1].includes('여유가 없다면')||
+    !aa[1].includes('여유가 충분해도')||
+    !bb[1].includes('편집 시간이 없다면')||
+    !bb[1].includes('출처 확인이 빠지면'))
   throw Error('QA10_CASE_COMPARISON_NOT_TWO_SIDED');
  // Compare the non-scene reasoning separately. Different props or topics
  // must not camouflage a single generic conclusion copied between charts.
