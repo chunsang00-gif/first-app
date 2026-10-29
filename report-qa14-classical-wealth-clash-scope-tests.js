@@ -88,6 +88,15 @@ const env=['NODE_ENV','RENDER','PAID_CORE_DEPTH_V2',
    packetForNegative=packet;
   }
   assert.equal(firstMatches.length,4,'QA13 candidates must remain four charts');
+  const allCandidates=firstMatches.flatMap(x=>x.candidates);
+  assert.equal(allCandidates.length,8);
+  assert(allCandidates.every(x=>x.clashClass.endsWith('four-storage')),
+   'all documented wealth-at-clash candidates are four-storage, not universal clashes');
+  assert(allCandidates.every(x=>x.competing.length>0),
+   'same-position alternative relationships must stay unresolved');
+  assert(allCandidates.every(x=>!x.sourceWorkedExamplePrerequisites.earth&&
+   !x.sourceWorkedExamplePrerequisites.water),
+   'no sample matches the narrow classical worked examples');
   assert(zeroPacket);
   // A verified clash without matching wealth and an entirely missing clash
   // cannot be decorated with a classical claim.
@@ -105,7 +114,10 @@ const env=['NODE_ENV','RENDER','PAID_CORE_DEPTH_V2',
   console.log('QA14_CLASSICAL_WEALTH_CLASH='+JSON.stringify({
    checkedCharts:seen.length,chartsWithRelationCandidates:firstMatches.length,
    interpretationMethodApproved:false,
-   chapter17AppliedOnlyToFourStorage:false,
+   allCandidatePairsFourStorage:true,
+   exactChapter17WorkedExamplesMatched:0,
+   allHaveCompetingRelations:true,
+   chapter17OnlyAppliedToFourStorage:true,
    sourceScopeSeparatedByClashClass:true,
    paidRiskSlotStillDisabled:true,modelCalls:0,
    cases:seen
