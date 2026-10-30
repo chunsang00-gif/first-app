@@ -35,6 +35,20 @@ const names=['NODE_ENV','RENDER','PAID_CORE_DEPTH_V2',
    assert.equal(result.estimate.chapters.length,12);
    assert.equal(result.estimate.chapters.filter(x=>x.includedInPlan).length,chapters);
    assert.equal(result.estimate.chapters.reduce((n,x)=>n+x.eligibleTopicUpperBound,0),eligible);
+   assert.equal(result.estimate.chapters.reduce((n,x)=>n+x.eligibleTopics.length,0),eligible,
+    'the sum of actually displayed topic questions must equal the verified preflight upper bound');
+   const blueprint=require('./report-analysis-guidance').preflight(facts.build(input,2027));
+   const outline=require('./report-outline').topics;
+   for(const chapter of result.estimate.chapters){
+    const allowed=chapter.includedInPlan?Object.keys(outline[chapter.id]).filter(topic=>
+     blueprint[chapter.id].topicTasks[topic]?.mode!=='state-limits'):[];
+    assert.deepEqual(chapter.eligibleTopics.map(t=>t.id),allowed,
+     'question list must match the same source plan as the paid writer');
+    assert(chapter.eligibleTopics.every(t=>t.title.length>8&&
+     !/^(?:natal\\.|facts\\.|person\\.)/.test(t.title)),
+     'visible questions must be readable without disclosing calculated raw references');
+    if(!chapter.includedInPlan)assert.deepEqual(chapter.eligibleTopics,[]);
+   }
    assert.equal(result.purchaseEnabled,false);
    assert.equal(result.paymentVerificationAvailable,false);
    assert.equal(result.premiumReportCompleted,false);
