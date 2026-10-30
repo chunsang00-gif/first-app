@@ -101,6 +101,11 @@ for(const [calendar,birthDate,birthTime] of cases){
    assert(part.properties.text.description.includes(brief.readerQuestion),
     'actual strict output schema must carry the unique reader question');
    assert(part.properties.text.description.includes(brief.hypotheticalContrast));
+   const packagedProse=brief.hypotheticalContrast+' '+part.properties.text.description;
+   assert(!/(?:가상의 물품 거래에서|가상의 주문에서|가상의 업무에서|가상의 구매에서|가상의 모둠 활동에서|가상의 친밀한 관계에서|장비 인수인계|직접 제작할 결과물)/.test(packagedProse),
+    'actual paid-provider topic must not receive recycled stock scenes');
+   assert(part.properties.text.description.includes('고정 예시나 고객의 실제 생활 이력은 제공되지 않았다'),
+    'provider text must prioritize calculated meaning over unverified fictional biography');
    const internal=part.properties.basis.properties.interpretation.description;
    const visible=part.properties.text.description;
    assert(internal.includes(brief.exactRoleLens.internalWritingContrast),
@@ -193,14 +198,14 @@ assert(!wealthOnly.hypotheticalContrast.includes('조건 A:'));
 assert(!wealthOnly.hypotheticalContrast.includes('조건 B:'));
 assert(!outputOnly.hypotheticalContrast.includes('조건 A:'));
 assert(mixed.hypotheticalContrast.includes('별도로 확인된'),
- 'a second scene may be supplied only for independently grounded second category');
+ 'different verified source categories may be discussed without mandatory stock scenes');
 
 assert(!wealthOnly.hypotheticalContrast.includes('직접 제작'),
  'baseline stock wording must no longer invent an uncited output category');
 assert(!outputOnly.hypotheticalContrast.includes('물품 거래'),
  'baseline stock wording must no longer invent an uncited wealth category');
-assert(mixed.hypotheticalContrast.includes('물품 거래')&&
- mixed.hypotheticalContrast.includes('직접 제작'));
+assert(!/(?:물품 거래|직접 제작|가상의 주문|장비 인수인계|납품)/.test(mixed.hypotheticalContrast),
+ 'two source groups must still avoid a canned scenario that is the same for everyone');
 const learningOnly=editor.build({chapterId:'career',topicId:'workstyle',
  topic:{mode:'use-primary',citableFacts:[
   row('natal.year.stem','연간','정인')]}});
