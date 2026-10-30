@@ -41,6 +41,26 @@ const prompt={
 };
 const payload=generation.compile(prompt);
 assert(Object.hasOwn(payload.source,'facts.targetYearBranchContext.annualContext.day'));
+const yearlyTopic=payload.task.chapters.year_2027_relationship.topics.change;
+const realClashReading=yearlyTopic.sourceOwnedAnnualRelationship;
+assert(realClashReading,'calculated annual/day clash must reach the real paid writer');
+assert.equal(realClashReading.kind,'source-owned-annual-day-branch-reading-v1');
+assert.equal(realClashReading.sourceRef,'facts.targetYearBranchContext.annualContext.day');
+assert.equal(realClashReading.birthDayBranch,'丑');
+assert.equal(realClashReading.annualBranch,'未');
+assert.deepEqual(realClashReading.directRelations.map(x=>x.type),['충']);
+assert.deepEqual(realClashReading.otherDirectTypes,['형']);
+assert.equal(realClashReading.unresolvedPriority,true);
+assert.equal(realClashReading.transformationAssessed,false);
+assert.equal(realClashReading.outcomePredicted,false);
+const yearDescription=generation.schema(prompt,wire.schemaFor(prompt,schema))
+ .properties.chapters.properties.year_2027_relationship
+ .properties.paragraphs.properties.change.properties.text.description;
+assert(yearDescription.includes(realClashReading.readerWritingGoal),
+ 'clash meaning must reach the ACTUAL paid JSON text description');
+assert(yearDescription.includes('맞부딪히는 배치'));
+assert(!realClashReading.readerWritingGoal.includes('화해나 결혼이 생긴다는'));
+
 const reportSchema=generation.schema(prompt,wire.schemaFor(prompt,schema));
 const props=reportSchema.properties.chapters.properties.year_2027_relationship.properties.paragraphs.properties;
 assert.deepEqual(props.change.properties.basis.properties.refs.items.enum,
@@ -67,6 +87,32 @@ favorable.facts.targetYearRelations=[];
 const sameMonth=guidance.preflight(favorable).year_2027_relationship;
 assert.equal(sameMonth.hasGroundedTopic,true,'a direct 午未 六位合 should permit factual annual relational reading');
 assert(sameMonth.annualDomainEvidence.directRelationTypes.includes('육합'));
+const harmonyPrompt={...prompt,facts:favorable,analysisGuidance:{
+ ...guidance.forRequest(['year_2027_relationship'],'ISFP'),
+ editorialBlueprint:{year_2027_relationship:sameMonth}}};
+const harmonyResult=generation.compile(harmonyPrompt);
+const harmonyReading=harmonyResult.task.chapters.year_2027_relationship.topics.change
+ .sourceOwnedAnnualRelationship;
+assert(harmonyReading,'a real natal-day/annual harmony must produce its own writer instruction');
+assert.equal(harmonyReading.birthDayBranch,'午');
+assert.deepEqual(harmonyReading.directRelations.map(x=>x.type),['육합']);
+assert(harmonyReading.readerWritingGoal.includes('짝을 이루는'));
+assert(!harmonyReading.readerWritingGoal.includes('맞부딪히는 배치'));
+assert.notEqual(harmonyReading.readerWritingGoal,realClashReading.readerWritingGoal,
+ 'different calculated branch relations must not receive a copied paid interpretation');
+const harmonyText=generation.schema(harmonyPrompt,wire.schemaFor(harmonyPrompt,schema))
+ .properties.chapters.properties.year_2027_relationship.properties.paragraphs.properties
+ .change.properties.text.description;
+assert(harmonyText.includes(harmonyReading.readerWritingGoal));
+const relationWriter=require('./report-paid-annual-reading').buildRelationship;
+const forgedSource={...payload.source,
+ 'facts.targetYearBranchContext.annualContext.day':{
+  ...facts,primaryEvidence:[{...facts.primaryEvidence[0],type:'육합'}]}};
+assert.equal(relationWriter({chapterId:'year_2027_relationship',topicId:'change',
+ topic:{...yearlyTopic,annualScope:annual.annualDomainEvidence},
+ source:forgedSource}),null,
+ 'a fake harmony label on real clashing branches must never enter paid prose');
+
 const secondary=structuredClone(packet);
 secondary.chart.day='丙子';
 secondary.facts.targetYearBranchContext=context.evaluate(secondary.chart,'丁未');
@@ -74,4 +120,10 @@ secondary.facts.targetYearRelations=[];
 const none=guidance.preflight(secondary).year_2027_relationship;
 assert.equal(none.hasGroundedTopic,false,'子未 harm alone should not be sold as a verified outcome');
 assert.equal(none.topicTasks.change.mode,'state-limits');
+const secondaryPrompt={...prompt,facts:secondary,analysisGuidance:{
+ ...guidance.forRequest(['year_2027_relationship'],'ISFP'),
+ editorialBlueprint:{year_2027_relationship:none}}};
+assert.equal(generation.compile(secondaryPrompt).task.chapters.year_2027_relationship
+ .topics.change.sourceOwnedAnnualRelationship,undefined,
+ 'secondary-only relationship must not be sold as a primary verified annual reading');
 console.log('PASS contextual annual-day relation, strict provider refs, competing interpretation and secondary-only refusal; no paid API');
