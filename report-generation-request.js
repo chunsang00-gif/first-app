@@ -773,6 +773,14 @@ function restoreEvidence(value,prompt){
       throw Error('AI report service domain MBTI comparison missing natal basis: '+id+':'+topic);
     }
     if(!allowed.size||b.refs.some(ref=>!allowed.has(ref)))throw Error('AI report service unrelated paragraph basis: '+id+':'+topic);
+    // A generic calculated fact can be a valid extra citation, but it cannot
+    // be the ONLY cited basis for a domain question whose writer brief was
+    // built from a real ten-god category. Otherwise a grounded-looking
+    // paragraph could reuse the same broad fact across money/work/relations.
+    const domainRoleCheck=require('./report-domain-topic-reader-brief')
+     .citedRoleCoverage(task.readerDistinction,b.refs,payload.source);
+    if(!domainRoleCheck.pass)
+     throw Error('AI report service domain paragraph lacks a cited relevant role: '+id+':'+topic);
     if(id==='saju_core'&&topic==='temperament'&&prompt.paidCoreDepthV2===true){
      const contrast=task.paidCoreDepthV2.readerClassicalScope||
       task.paidCoreDepthV2.readerContrast||
