@@ -53,7 +53,10 @@ function inspect(sections){
   const tags=signatures(p.text);
   if(!tags.size)continue;
   for(const older of checked){
-   if(older.section===p.section)continue;
+   // Different topic slots in ONE chapter can repackage the same
+   // calculated row and causal claim just as easily as separate chapters.
+   // Do not give same-chapter repeats a free pass; require both an actually
+   // shared citation and the same substantive causal signature.
    // Same causal conclusion with at least ONE reused factual source is
    // repeated even when an additional symbolic row is appended. A shared
    // vague word, different source or MBTI token alone does not count.
