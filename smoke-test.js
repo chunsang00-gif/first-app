@@ -32,6 +32,16 @@ function mockReport(){
  return {meta:{name:'',mbti:'모름',chart:{year:'甲子',month:'甲子',day:'甲子',hour:'甲子',calculationStatus:'complete'},targetYear:2027,versions:{ruleset:'test',prompt:'test',schema:'test'}},sections:Q.IDS.map((id,i)=>({id,title:'테스트 '+(i+1),mood:['confident','reflective','encouraging','cautious'][i%4],bodyTopics:Object.keys(require('./report-outline').topics[id]),bodyLabels:Object.keys(require('./report-outline').topics[id]).map((_,i)=>'검증 항목 '+i),body:Object.keys(require('./report-outline').topics[id]).map((topic,j)=>bodies[id].split(/(?<=다\.)\s+/)[j]||topic+'에 관한 독립적인 해석입니다.'),keyJudgment:judgments[id],evidence:['검증된 계산 사실 '+i]})),cover:{headline:'선택을 확인하고 행동으로 옮기는 사람',description:'테스트용 개인별 요약 설명입니다.',keywords:['직접확인','실행력','의견표현'],highlights:['money','relationship','career'].map(id=>({sectionId:id,title:'선별 '+id,description:judgments[id]}))},finalJudgment:{headline:'다음 선택에 강점을 쓰세요',strengths:['확인하고 실행하는 선택'],watchouts:['다른 의견을 늦게 듣는 선택'],routines:[{trigger:'결정하기 전',action:'반대 의견 한 가지를 먼저 확인해보세요',reason:'누락된 정보를 찾는 데 도움이 됩니다'}],body:['전체 판단을 종합합니다.'],closingQuestion:'서로 다른 의견을 들은 뒤 판단하면 놓치기 쉬운 문제를 줄일 수 있습니다.',afterClosingText:''}}}
 
 assert.equal(Q.validate(mockReport()).pass,true,JSON.stringify(Q.validate(mockReport()).errors));
+const privateSourceOnly=mockReport();
+privateSourceOnly.sections[0].evidence.push(
+ 'strength: natal.month.stem / 해석: qa_internal_source_token / 조건: 모의 / 한계: 사람 관찰 아님');
+assert.equal(Q.validate(privateSourceOnly).pass,true,
+ 'internal source identifiers may remain in audit evidence without appearing to customers');
+const visibleLeak=mockReport();
+visibleLeak.sections[0].body[0]+=' qa_internal_source_token';
+assert(Q.validate(visibleLeak).errors.includes('internal field leaked into prose'),
+ 'the SAME source token must still be rejected when it leaks into the actual reader-facing body');
+
 const child=spawn(process.execPath,['server.js'],{env:{...process.env,PORT:'3210',REPORT_MODEL_URL:'http://127.0.0.1:3211/report'},stdio:'ignore'});
 let modelCalls=0,editorialCalls=0,rejectFixture=false;
 const model=httpServer();
