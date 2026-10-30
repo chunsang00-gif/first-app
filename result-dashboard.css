@@ -50,3 +50,18 @@ body.has-report{background:#f5f7fa}.has-report .app{max-width:1000px}.has-report
 @media(max-width:540px){.approved-cover .hero-copy{display:grid;grid-template-columns:1fr;grid-template-rows:auto auto minmax(210px,auto) auto auto}.approved-cover .hero-copy .eyebrow{max-width:43%}.approved-cover .hero-name{max-width:43%;font-size:32px}.approved-cover .hero-badges{align-content:start;align-self:start;max-width:40%}.approved-cover .hero-character{top:50px;right:0;width:57%;height:255px;overflow:hidden}.asset-stage .hero-portrait{left:0;width:100%}.approved-cover .hero-quote{margin:24px 0 12px!important;font-size:27px!important}.hero-description{margin-bottom:0}}
 
 .topic-nav{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}.topic-nav a{font-size:12px;line-height:1.5;color:#395880;background:#f0f5fc;text-decoration:none;border-radius:9px;padding:8px 11px}.topic-nav a:focus-visible{outline:2px solid #3264ef;outline-offset:3px}.copy-block{scroll-margin-top:85px}
+
+/* Source-scoped report contents: actual delivered chapters, not the 12-slot target. */
+.approved-cover .report-contents{margin:0 24px 28px;padding:20px 22px;border:1px solid #e2eaf4;border-radius:20px;background:#fafcff}
+.report-contents h3{margin:0 0 4px;font-size:20px;line-height:1.5;color:#192c46}
+.report-contents>p{margin:0 0 15px;color:#617089;font-size:12px;line-height:1.6}
+.report-contents ol{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.report-contents li{min-width:0}
+.report-contents a{display:flex;align-items:center;gap:9px;min-height:56px;padding:10px 12px;text-decoration:none;color:#253a57;background:white;border:1px solid #e5edf6;border-radius:12px;scroll-margin-top:80px}
+.report-contents a:hover{border-color:#97b7fa;background:#f3f7ff}
+.report-contents a:focus-visible{outline:3px solid #3264ef;outline-offset:2px}
+.report-contents-number{font-size:11px;font-weight:750;color:#4575cc}
+.report-contents-name{flex:1;min-width:0;line-height:1.45;font-size:13px;font-weight:700;overflow-wrap:anywhere}
+.report-contents small{font-size:10px;color:#64748b;white-space:nowrap}
+@media(max-width:760px){.report-contents ol{grid-template-columns:repeat(2,minmax(0,1fr))}.approved-cover .report-contents{margin:0 18px 22px}}
+@media(max-width:540px){.approved-cover .report-contents{margin:0 14px 19px;padding:16px 13px}.report-contents ol{grid-template-columns:1fr;gap:6px}.report-contents a{min-height:46px;padding:9px 11px}}
