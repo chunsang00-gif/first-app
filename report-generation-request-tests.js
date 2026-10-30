@@ -189,6 +189,45 @@ const schema=require('./report-schema.json');
  assert.deepEqual(transportAudit.inspectTransport(annualPrompt,actualAnnual),[],
   'correct 2027 analysis plan must be transported unchanged before paid calls');
  const annualGoals=actualAnnual.task.chapters;
+ // Actual money chapter for a separately calculated 1994 chart: a changed
+ // 2027 subtype must be explained only when BOTH annual and natal positions
+ // are legal citations. This tests the real paid provider body text slot.
+ const annualMoneyInput={calendar:'solar',birthDate:'1994-07-15',
+  birthTime:'14:20',gender:'male',mbti:'ISFP'};
+ const annualMoneyPacket=require('./report-facts-node').build(annualMoneyInput,2027);
+ const annualMoneyPlan=guidance.preflight(annualMoneyPacket);
+ const annualMoneyIds=['year_2027_money','year_2027_career'];
+ const annualMoneyPrompt={facts:annualMoneyPacket,stage:'body',
+  requestedSections:annualMoneyIds,
+  analysisGuidance:{...guidance.forRequest(annualMoneyIds,annualMoneyPacket.person.mbti),
+   editorialBlueprint:annualMoneyPlan},
+  rules:{sectionGoals:require('./report-prompt').sectionGoals},priorSections:[]};
+ const annualWriter=generation.compile(annualMoneyPrompt);
+ const changeTopic=annualWriter.task.chapters.year_2027_money.topics.change;
+ const paidAnnual=changeTopic.sourceOwnedAnnualReading;
+ assert(paidAnnual,'a truly source-eligible 2027 wealth distinction must reach the paid writer');
+ assert.equal(paidAnnual.kind,'source-owned-annual-domain-reading-v1');
+ assert.deepEqual(paidAnnual.sourceRefs,[paidAnnual.annualSource.id,paidAnnual.natalSource.id]);
+ assert.equal(paidAnnual.sourceRefs[0],'annual.stem');
+ assert.notEqual(paidAnnual.annualSource.tenGod,paidAnnual.natalSource.tenGod);
+ assert(paidAnnual.sourceRefs.every(id=>changeTopic.citableFacts.some(row=>row.id===id)));
+ assert.equal(paidAnnual.noEventPrediction,true);
+ const annualText=generation.schema(annualMoneyPrompt,wire.schemaFor(annualMoneyPrompt,schema))
+  .properties.chapters.properties.year_2027_money.properties.paragraphs.properties.change
+  .properties.text.description;
+ assert(annualText.includes(paidAnnual.actualDifference)&&annualText.includes(paidAnnual.readerQuestion),
+  'the STRICT actual paid writer must see an original year-to-birth interpretation');
+ assert(annualText.includes('일반 2027년 장이 이미 한 내용을 반복하지 말고'));
+ const missingYearPacket=require('./report-facts-node').build({
+  ...annualMoneyInput,birthDate:'1994-01-15'},2027);
+ const missingYearPlan=guidance.preflight(missingYearPacket);
+ const missingPrompt={...annualMoneyPrompt,facts:missingYearPacket,
+  analysisGuidance:{...guidance.forRequest(annualMoneyIds,missingYearPacket.person.mbti),
+   editorialBlueprint:missingYearPlan}};
+ assert.equal(generation.compile(missingPrompt).task.chapters.year_2027_money.topics.change
+  .sourceOwnedAnnualReading,undefined,
+  'when the 2027 money chapter is unsupported, the model must not receive a copied annual thesis');
+
  assert(annualGoals.year_2027.analysisGoal.includes('삶의 변화 크기는 추정하지')&&
   annualGoals.year_2027.analysisFocus.includes('실제 변화 정도는 계산하지 않았'),
   'generic 2027 analysis must not equate symbolic appearance with strong or weak effects');
