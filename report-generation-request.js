@@ -333,6 +333,12 @@ function compile(prompt){
     // A frozen first-chapter/natal-depth paid QA request is byte-pinned:
     // NEVER add even a null field to its provider envelope.
     if(scopedReaderBrief)topic.readerDistinction=scopedReaderBrief;
+    // REAL paid batch: compile a chart-owned INTERPRETIVE PROPOSITION,
+    // not an optional QA screenshot or a stock scenario. No extra model
+    // calls; do not attach it to the frozen Saju-core QA contracts.
+    const thesis=require('./report-paid-interpretive-bridge')
+     .build({chapterId,topicId,topic});
+    if(thesis)topic.sourceOwnedInterpretiveThesis=thesis;
    }
   }
   // The only purpose of this batch is Saju core: do not show the writer
@@ -452,6 +458,49 @@ function schema(prompt,transport){
      '출처 ID·전문 분류 이름·검증 절차·반복적인 면책 문구는 본문에 나열하지 않는다. '+
      '실제 성격·능력·재산·사건을 관찰하거나 예측했다고 단정하지 않는다. '+
      '독립적인 새 해석이 없는 선택 문단은 null로 둔다.';
+   }
+   if(task.sourceOwnedInterpretiveThesis){
+    const thesis=task.sourceOwnedInterpretiveThesis;
+    const roles=thesis.sourceRoles||[];
+    if(thesis.kind!=='paid-source-owned-interpretive-thesis-v1'||
+       thesis.topic!==chapterId+'.'+topic||
+       thesis.claimedRealWorldOutcome!==false||
+       thesis.traditionalPriorityAssessed!==false||roles.length!==2||
+       !roles.every(role=>permitted.includes(role.ref)&&
+         payload.source[role.ref]?.stem===role.stem&&
+         payload.source[role.ref]?.tenGod===role.tenGod&&
+         payload.source[role.ref]?.position===role.position&&
+         payload.source[role.ref]?.traditionalMeaning===role.traditionalMeaning))
+     throw Error('PAID_SOURCE_OWNED_THESIS_MISMATCH:'+chapterId+':'+topic);
+    if(thesis.exactStemBridge){
+     const link=thesis.exactStemBridge;
+     if(link.refs.length!==2||
+        !link.refs.every(id=>permitted.includes(id))||
+        !/^natal\\.month\\.hidden\\./.test(link.refs[0])||
+        !/^natal\\.(?:year|hour)\\.stem$/.test(link.refs[1])||
+        payload.source[link.refs[0]]?.stem!==link.exactStem||
+        payload.source[link.refs[1]]?.stem!==link.exactStem||
+        payload.source[link.refs[0]]?.tenGod!==link.tenGod||
+        payload.source[link.refs[1]]?.tenGod!==link.tenGod)
+      throw Error('PAID_THESIS_EXACT_STEM_LINK_MISMATCH:'+chapterId+':'+topic);
+    }
+    // This directly annotates the paid provider's strict JSON text leaf.
+    // The model must turn the source-owned contrast into ONE useful reader
+    // interpretation, not copy source IDs or fill with generic advice.
+    p.properties.text.description+=
+     ' 이 명식에서 독립된 두 계산 근거가 확인될 때 적용하는 실제 풀이 방향: '+
+     thesis.question+' '+thesis.explanation+
+     ' 출처 1: '+roles[0].position+' '+roles[0].layer+' '+roles[0].stem+
+     ' '+roles[0].tenGod+'. 출처 2: '+roles[1].position+' '+roles[1].layer+
+     ' '+roles[1].stem+' '+roles[1].tenGod+'. '+
+     (thesis.exactStemBridge?
+      '별도 실제 관계: 태어난 달의 숨은 '+thesis.exactStemBridge.exactStem+
+      ' 글자가 '+thesis.exactStemBridge.visiblePosition+
+      ' 겉글자에도 동일하게 존재한다. 이는 두 글자의 동일성만 뜻하며 실제 작용·강도는 모른다. ':'')+
+     ' 원래 질문과 실제 위치가 왜 연결되는지 알기 쉬운 하나의 조건부 풀이로 쓴다. '+ 
+     '근거가 지지하지 않는 두 번째 인생 특징이나 정해진 가상 생활 장면을 만들지 않는다. '+ 
+     '출처 번호·한자·전문 분류어는 독자 본문에 옮기지 않는다. '+ 
+     '같은 결론을 다른 항목에 재판매하지 않고 설명할 새 뜻이 없다면 선택 문단은 null로 둔다.';
    }
    if(chapterId==='saju_core'&&topic==='natal_depth'&&
       prompt.qaNatalDepthPreview===true){
