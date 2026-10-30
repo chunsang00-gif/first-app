@@ -276,6 +276,59 @@ for(const [chapterId,topicId,first,second,expected] of [
  assert.equal(paidBridge.build({chapterId,topicId,
   topic:{mode:'state-limits',citableFacts:pair}}),null);
 }
+// In the REAL paid relationship chapter, distinct roles are read only
+// from the day branch, not a convenient matching year/month/hour symbol.
+function dayHidden(stem,tenGod){
+ return {id:'natal.day.hidden.'+stem,position:'일지',layer:'지장간',
+  stem,tenGod,traditionalMeaning:tenGod+'의 검증용 전통적 의미'};
+}
+const dayPair=[dayHidden('甲','비견'),dayHidden('丁','정관')];
+const intimacy=paidBridge.build({chapterId:'relationship',topicId:'closeness',
+ topic:{mode:'use-primary',citableFacts:dayPair}});
+assert(intimacy,'independent day-branch roles must support a distinct intimacy question');
+assert.equal(intimacy.topic,'relationship.closeness');
+assert.deepEqual(intimacy.sourceRoles.map(x=>x.ref),
+ ['natal.day.hidden.甲','natal.day.hidden.丁']);
+assert(intimacy.question.includes('약속·책임'));
+assert.equal(intimacy.claimedRealWorldOutcome,false);
+assert.equal(intimacy.traditionalPriorityAssessed,false);
+assert.equal(paidBridge.build({chapterId:'relationship',topicId:'closeness',
+ topic:{mode:'use-primary',citableFacts:[dayPair[0]]}}),null,
+ 'one day-branch role is not a two-role relationship story');
+assert.equal(paidBridge.build({chapterId:'relationship',topicId:'closeness',
+ topic:{mode:'use-primary',citableFacts:[
+ dayPair[0],paidRole('year','丁','정관')]}}),null,
+ 'a different natal position cannot be borrowed to fabricate a day-branch contrast');
+assert.equal(paidBridge.build({chapterId:'relationship',topicId:'closeness',
+ topic:{mode:'state-limits',citableFacts:dayPair}}),null);
+// This also has to flow through the actual writer JSON text field;
+// an offline research-only explanation is not paid manuscript content.
+let paidDayReadings=0;
+for(const [calendar,date,time] of cases){
+ const packet=facts.build({calendar,birthDate:date,birthTime:time,
+  gender:'male',mbti:'ISFP',leapMonth:false},2027);
+ const ids=['relationship'];
+ const prompt={facts:packet,stage:'body',requestedSections:ids,
+  analysisGuidance:{...guidance.forRequest(ids,packet.person.mbti),
+   editorialBlueprint:guidance.preflight(packet)},
+  rules:{sectionGoals:require('./report-prompt').sectionGoals},priorSections:[]};
+ const actual=generator.compile(prompt);
+ const topic=actual.task.chapters.relationship.topics.closeness;
+ const reading=topic.sourceOwnedInterpretiveThesis;
+ if(!reading)continue;
+ paidDayReadings++;
+ assert(reading.sourceRoles.every(x=>/^natal\\.day\\.hidden\\./.test(x.ref)));
+ assert.equal(new Set(reading.sourceRoles.map(x=>x.tenGod)).size,2,
+  'independent day-branch subtypes, not a repeated label');
+ const slot=generator.schema(prompt,wire.schemaFor(prompt,schema))
+  .properties.chapters.properties.relationship.properties.paragraphs.properties.closeness;
+ const body=slot.anyOf?.find(x=>x.type==='object')||slot;
+ assert(body.properties.text.description.includes(reading.question),
+  'the actual paid relationship paragraph must explain the chart-owned difference');
+ assert(reading.sourceRoles.every(x=>body.properties.basis.properties.refs.items.enum.includes(x.ref)));
+}
+assert(paidDayReadings>=2,
+ 'at least two real verified natal charts should receive distinct day-branch relationship readings');
 // Relationship.expression already had the exact 식신/상관 contrast.
 // Do not add an alternative with identical source roles and another label.
 const existingExpression=paidBridge.build({chapterId:'relationship',
