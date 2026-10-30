@@ -11,7 +11,7 @@ const bodyBefore=JSON.stringify(report.sections.map(s=>s.body));const repairs=re
 assert.equal(repairs.length,1);assert.equal(report.sections[0].bodyLabels[0],concrete);assert.equal(JSON.stringify(report.sections.map(s=>s.body)),bodyBefore);
 report.sections[0].bodyLabels[0]='납득의 순서';report.sections[0].body[0]='짧음';assert.equal(review.repair(report).length,0);assert(review.issues(report).length);
 const original={status:'rejected',code:'REPORT_QUALITY_REJECTED',report,qa:quality.validate(report)};
-const values=new Map([['reportJobId','existing']]);let fetchCount=0;
+const values=new Map([['reportJobId','existing'],['reportJobAccessToken','b'.repeat(64)]]);let fetchCount=0;
 const response={status:422,ok:false,json:async()=>original,clone(){return this}};
 const context={window:{},sessionStorage:{getItem:k=>values.get(k),setItem:(k,v)=>values.set(k,v),removeItem:k=>values.delete(k)},setTimeout:fn=>fn(),Date,console,fetch:async()=>{fetchCount++;return response;}};
 vm.runInNewContext(fs.readFileSync(require.resolve('./report-api-contract'),'utf8'),context);
