@@ -260,3 +260,14 @@
 - 실제 개발용 합성 명식 1994-07-15 양력 14:20에서 `year_2027_money.change`의 연간 `annual.stem`과 출생 위치 ID를 실제 유료 공급자 strict text slot에 넣는 것을 회귀 검증. 금전 연간 분류로 별도 유료 장을 만들 수 없는 1994-01-15에서는 생성 논지가 없음을 확인. `report-interpretation-core-tests.js`의 원래 synthetic source packet은 본문용 glossary를 포함하지 않아 신규 부가 논지를 생략하되 기존 계산 일치 검사는 그대로 유지.
 - 최종 코드 커밋 **722b1652e802f6e397d21e20efc7309101f9a2f5**; GitHub Actions **41029496635**: `npm test` 및 `npm run smoke` 모두 SUCCESS. 메인/운영 브랜치 변경 및 유료 API·결제 시도 0회.
 - 중요한 미완성: 최신 AI 실제 원고가 아직 생성되지 않아 사람이 유료 품질을 판정하지 못함. 12장·35항목이 아닌 12장·28개 정의, 테스트 명식 최대 19~20개 후보. 결제·구매 인증·전문가 승인 미완성. 추가 지침 수정만 계속하며 출시됐다고 말하지 말고, 실제 완성 원고 평가 및 판매 기능 구현으로 넘어갈 것. 새로운 비용 지출은 사용자 새 명시적 허락 필요.
+
+## 2026-10-30 보고서 구매자 결과 접근 보호 — 결제 이전 실제 보안 기반
+- 이는 해석 지침·가상 원고·무료 미리보기 추가가 아니라 실제 보고서 결과에 대한 구매자별 접근 보호 기능 구현이다. 서버 `/api/report`와 `/api/report-status`의 정상 개발용 생성 흐름에 모두 적용.
+- `report-job-access.js`: 각 생성 건에 cryptographically random 256-bit 접근 비밀값을 새로 발급하고, 저장소에는 SHA-256 다이제스트만 저장. 조회 검증은 길이/형식 검사와 constant-time 다이제스트 비교 사용.
+- 새 `POST /api/report` 결과는 `jobId`와 발급 시에만 복원 가능한 `accessToken`을 함께 반환. 같은 requestId의 재요청은 출생정보 fingerprint 외에도 원래 접근 비밀값이 있어야 동일한 작업에 접근한다. 권한 확인 실패는 403 `REPORT_ACCESS_DENIED`, 기존 비용 발생 작업을 재생성하거나 원문을 내보내지 않는다.
+- `GET /api/report-status`는 조회 비밀값을 `x-report-access-token` HTTP 헤더로 요구하며, 헤더 없이 jobId만 있거나 과거 버전의 해시 없는 저장 작업이면 본문/QA/진행 상태를 공개하지 않는다. 성공/실패/품질 거절 원고에 모두 적용.
+- `report-api-contract.js`: 서버 발급 비밀값을 브라우저 sessionStorage에서 보관하고 새 결과의 조회/재조회/중복 요청에 비밀값을 헤더로 보내도록 연결. URL 쿼리에는 jobId만 표시하며 접근 비밀값을 실어보내지 않음. 비밀값 없는 옛 세션에서는 새 비용이 드는 요청을 보내는 대신 복구 불가능함을 명시한다.
+- 무료 계산/미리보기와 운영 배포 잠금은 유지. 현재 운영 `/api/report`는 결제·구매 권한 미구현으로 계속 403이고 이번 작업만으로 결제·판매가 가능해지지 않는다.
+- 기존 `report-timing-tests.js`, `report-review-tests.js`, `report-checkpoint-restart-tests.js`, `report-provider-journal-tests.js`, `smoke-test.js`을 실제 소유자 토큰을 사용하는 HTTP 회귀로 갱신. 익명 조회 403, 비밀값 임의 변경 403, 서버 재시작 후 프라이빗 실패 보존, 중복 생성 차단, 동일 세션 조회 성공을 확인함.
+- 코드 커밋 **1ec7e351092caa77be7b4dd73fec5478c93592a1**, GitHub Actions **41031183500** `npm test`와 `npm run smoke` 모두 SUCCESS. 실제 결제 호출/유료 AI 생성 0회; 기존 사주 계산/운영 `saju-mbti-app`/main 변경 없음.
+- 출시까지의 남은 실제 문제는 **결제 제공업체 확정과 승인 결과를 서버에서 검증해 주문·보고서 권한을 연결하는 기능**, 사람의 최신 유료 원고 검수, 12장/35항목 광고와 실제 제공 가능 범위의 정합성, 환불/고객 응대. 지금 만든 접근 비밀값은 구매권한 또는 실제 결제 증빙이 아니므로 판매 가능으로 표시하지 말 것.
