@@ -86,6 +86,8 @@ const names=['NODE_ENV','RENDER','PAID_CORE_DEPTH_V2',
   assert.equal(unknownTime.status,'ready');
   assert.deepEqual(unknownTime.readingSample.cards.map(x=>x.id),['birth-month','annual-2027'],
    'unknown birth time must not advertise a made-up birth-hour interpretation');
+  assert(unknownTime.readingSample.note.includes('잠정 계산'),
+   'unknown birth hour must disclose the boundary limitation to readers');
   const independent=cases.map(([birthDate,birthTime,calendar])=>coverage.calculate({
    calendar,birthDate,birthTime,gender:'male',mbti:'ISFP',
    ...(calendar==='lunar'?{leapMonth:false}:{})
