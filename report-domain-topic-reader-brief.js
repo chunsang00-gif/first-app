@@ -208,6 +208,18 @@ function exactRoleLens(rows,illustratedGroups){
   independentLifeProof:false,priorityAssessed:false,
   internalWritingContrast:text});
 }
+// A paragraph that is assigned a concrete traditional category may not
+// pass its paid basis check using only generic facts or an unrelated category.
+// This checks cited provider output, not mere availability in the prompt.
+// No life traits, priority, or two-source comparison is inferred.
+function citedRoleCoverage(brief,refs,source){
+ const assigned=brief?.sourceGroups||[];
+ if(!assigned.length)return {required:false,pass:true,citedGroups:[]};
+ const citedGroups=[...new Set((refs||[]).map(id=>
+  GROUPS[source?.[id]?.tenGod]).filter(Boolean))];
+ return {required:true,pass:assigned.some(g=>citedGroups.includes(g)),
+  citedGroups};
+}
 function build({chapterId,topicId,topic,priorSections,readerAgeBand:ageBand='unknown'}={}){
  const spec=EDITORIAL[chapterId]?.[topicId];
  if(!spec||!topic||topic.mode==='state-limits')return null;
@@ -249,4 +261,4 @@ function build({chapterId,topicId,topic,priorSections,readerAgeBand:ageBand='unk
   citationScopeIndependentOfChapterHeading:true
  });
 }
-module.exports={build,EDITORIAL,readerAgeBand};
+module.exports={build,EDITORIAL,readerAgeBand,citedRoleCoverage};
