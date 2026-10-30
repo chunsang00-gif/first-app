@@ -46,11 +46,13 @@ async function stop(child){if(!child)return;
    headers:{'content-type':'application/json'},
    body:JSON.stringify({analysisInput:packet,requestId})});
   assert.equal(created.status,202);
-  const id=(await created.json()).jobId;
+  const createdJob=await created.json();
+  const id=createdJob.jobId,accessToken=createdJob.accessToken;
   assert(/^[a-f0-9-]{36}$/.test(id));
+  assert.match(accessToken,/^[a-f0-9]{64}$/);
   let status;
   for(let i=0;i<60;i++){
-   const r=await fetch(srv.origin+'/api/report-status?id='+id);status=await r.json();
+   const r=await fetch(srv.origin+'/api/report-status?id='+id,{headers:{'x-report-access-token':accessToken}});status=await r.json();
    if(status.status==='failed')break;await wait(100);
   }
   assert.equal(status.status,'failed');
@@ -73,10 +75,11 @@ async function stop(child){if(!child)return;
    headers:{'content-type':'application/json'},
    body:JSON.stringify({analysisInput:packet,requestId:unknownRequest})});
   assert.equal(secondary.status,202);
-  const uncertainId=(await secondary.json()).jobId;
+  const secondaryJob=await secondary.json();
+  const uncertainId=secondaryJob.jobId,uncertainToken=secondaryJob.accessToken;
   let unknownResult;
   for(let i=0;i<60;i++){
-   const t=await fetch(srv.origin+'/api/report-status?id='+uncertainId);
+   const t=await fetch(srv.origin+'/api/report-status?id='+uncertainId,{headers:{'x-report-access-token':uncertainToken}});
    unknownResult=await t.json();
    if(unknownResult.status==='failed')break;
    await wait(90);
@@ -89,14 +92,16 @@ async function stop(child){if(!child)return;
   await stop(child);child=null;
   env.PORT=String(await port());srv=await launch(env);child2=srv.child;
   const retry=await fetch(srv.origin+'/api/report',{method:'POST',
-   headers:{'content-type':'application/json'},body:JSON.stringify({analysisInput:packet,requestId})});
+   headers:{'content-type':'application/json','x-report-access-token':accessToken},body:JSON.stringify({analysisInput:packet,requestId})});
   assert.equal(retry.status,202);
-  const restarted=await fetch(srv.origin+'/api/report-status?id='+id);
+  const anonymous=await fetch(srv.origin+'/api/report-status?id='+id);
+  assert.equal(anonymous.status,403,'restart must not expose old paid content by id');
+  const restarted=await fetch(srv.origin+'/api/report-status?id='+id,{headers:{'x-report-access-token':accessToken}});
   assert.equal(restarted.status,422);
   assert.equal((await restarted.json()).status,'failed');
   assert.equal(mock.calls,2,'restart cannot duplicate the provider request');
   const uncertainRetry=await fetch(srv.origin+'/api/report',{method:'POST',
-   headers:{'content-type':'application/json'},
+   headers:{'content-type':'application/json','x-report-access-token':uncertainToken},
    body:JSON.stringify({analysisInput:packet,requestId:'offline-provider-uncertain-20261016'})});
   assert.equal(uncertainRetry.status,202);
   assert.equal((await uncertainRetry.json()).jobId,uncertainId);
