@@ -73,13 +73,6 @@ const ALTERNATIVES=Object.freeze({
    question:'합의한 규칙에 따라 맡는 책임과 예상치 못한 요구를 다루는 책임은 어떻게 다른가?',
    explanation:'정관이 가리키는 정해진 역할·규칙과 편관이 가리키는 압박·요구의 상징을 각각 설명한다. 실제 상사의 성향이나 업무 강도, 승진 결과는 판단할 수 없다.'
   })
- ]),
- 'relationship.expression':Object.freeze([
-  Object.freeze({
-   first:['식신'],second:['상관'],
-   question:'자신의 뜻을 차근히 전하는 상황과 이미 정해진 방식에 이견을 말하는 상황은 어떤 질문을 달리 만드는가?',
-   explanation:'식신의 생산·표현 상징과 상관의 기존 규칙에 대한 표현·반응 상징을 구분해 가상의 대화에 한정한다. 실제 말투·연인 관계·상대의 마음은 알 수 없다.'
-  })
  ])
 });
 const ID=/^natal\.(year|month|day|hour)\.(?:stem|hidden\.[甲乙丙丁戊己庚辛壬癸])$/;
