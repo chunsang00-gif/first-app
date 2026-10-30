@@ -87,6 +87,7 @@ function calculate(input){
  if(packet.status!=='ready')return {status:'blocked',code:'CHART_UNAVAILABLE'};
  const verified=integrity.verify(packet);
  if(!verified.pass)return {status:'blocked',code:'CALCULATION_NOT_VERIFIED'};
+ const readingSample=require('./report-reading-sample').build(packet);
  const blueprint=guidance.preflight(packet);
  const choice=selection.select(groups,blueprint);
  const expected=quality.IDS;
@@ -130,6 +131,7 @@ function calculate(input){
   throw Error('PRODUCT_COVERAGE_COUNT_MISMATCH');
  return {
   status:'ready',kind:'prepurchase-report-scope-v1',
+  readingSample,
   catalog:{chapterDefinitions:expected.length,topicDefinitions:currentDefined,
    originallyPlannedTopics:35},
   estimate:{plannedChapters:choice.plannedIds.length,
