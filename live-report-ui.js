@@ -43,7 +43,22 @@ async function showCoverage(validatedInput){
   throw Error('작성 가능 항목 목록과 계산된 제공 범위가 일치하지 않습니다.');
  const selected=estimate.chapters.filter(x=>x.includedInPlan);
  const omitted=estimate.chapters.filter(x=>!x.includedInPlan);
- body.innerHTML=`<section class="section report-coverage">
+ const sample=out.readingSample;
+ if(sample?.kind!=='free-calculated-meaning-preview-v1'||
+    sample?.status!=='calculated-example'||sample?.modelCalls!==0||
+    sample?.completedPremiumParagraphs!==0||sample?.humanEditorialApproved!==false||
+    !Array.isArray(sample.cards)||sample.cards.length<2||sample.cards.length>3||
+    new Set(sample.cards.map(c=>c.id)).size!==sample.cards.length||
+    sample.cards.some(c=>typeof c.title!=='string'||!c.title.trim()||
+      typeof c.text!=='string'||c.text.length<30)||
+    typeof sample.note!=='string'||!sample.note.trim())
+   throw Error('무료 해석 예시가 검증된 계산 결과와 일치하지 않습니다.');
+ body.innerHTML=`<section class="section report-reading-sample">
+ <h2>실제 출생정보에서 확인한 해석 근거</h2>
+ <p>같은 글을 모든 사람에게 보여 주는 예시가 아니라, 입력한 출생정보로 계산된 위치와 분류를 바탕으로 읽습니다.</p>
+ ${sample.cards.map(item=>`<article class="reading-preview-card"><h3>${esc(item.title)}</h3><p>${esc(item.text)}</p></article>`).join('')}
+ <p class="meta">${esc(sample.note)}</p>
+ </section><section class="section report-coverage">
  <h2>유료 심화 풀이 제공 가능 범위</h2>
  <p><strong>${estimate.plannedChapters}개 장 · 최대 ${estimate.evidenceEligibleTopicUpperBound}개 항목</strong>을 분석 후보로 확인했습니다.</p>
  <p>이는 출생정보로 계산한 <strong>작성 가능 상한</strong>입니다. 실제 완성된 문단 수나 제공 보장은 아닙니다.</p>
