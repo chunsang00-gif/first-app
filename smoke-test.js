@@ -89,6 +89,12 @@ assert.equal(coverageResponse.status,200);
 assert.equal(coverageResponse.headers.get('cache-control'),'no-store');
 const estimated=await coverageResponse.json();
 assert.equal(estimated.status,'ready');
+assert.equal(estimated.readingSample.kind,'free-calculated-meaning-preview-v1');
+assert.equal(estimated.readingSample.modelCalls,0);
+assert.equal(estimated.readingSample.humanEditorialApproved,false);
+assert(estimated.readingSample.cards.length>=2);
+assert(estimated.readingSample.cards.some(x=>x.id==='birth-month'&&x.text.includes('태어난 달')));
+assert(estimated.readingSample.cards.some(x=>x.id==='annual-2027'&&x.text.includes('2027년')));
 assert.equal(estimated.catalog.chapterDefinitions,12);
 assert.equal(estimated.catalog.topicDefinitions,28);
 assert(estimated.estimate.plannedChapters>=4);
@@ -120,6 +126,9 @@ assert(!servedUI.includes('12개 장을 작성한 뒤'),'HTTP free-scope UI must
 assert(servedUI.includes('returnFromCoverageError'),'HTTP free-scope UI must allow failure recovery');
 assert(servedUI.includes('작성 후보 질문 보기')&&servedUI.includes('x.eligibleTopics.map'),
  'HTTP reader must render exact source-eligible questions rather than fabricated fixed 35 topics');
+assert(servedUI.includes('실제 출생정보에서 확인한 해석 근거')&&
+ servedUI.includes('sample.cards.map'),
+ 'HTTP reader must render actual calculated traditional meanings rather than only premium scope counts');
 assert(servedApiClient.includes("'/api/report-coverage'"));
 console.log('PASS actual HTTP pre-purchase coverage, invalid birth rejection, no paid call, UI disclosure');
 
