@@ -58,17 +58,29 @@ assert.equal(createTiming().snapshot().sampleCount,0);
  assert(body.innerHTML.includes('평균 약 2분'));
  assert(body.innerHTML.includes('1건 기준'));
  assert.equal(typeof resolveCoverage,'function');
- resolveCoverage({status:'ready',catalog:{chapterDefinitions:12,topicDefinitions:28,originallyPlannedTopics:35},estimate:{plannedChapters:9,
-  evidenceEligibleTopicUpperBound:19,chapters:[
-   {name:'사주 기본',includedInPlan:true,eligibleTopicUpperBound:2},
-   {name:'2027년 금전',includedInPlan:false,omittedReason:'근거 없음'}]}});
+ resolveCoverage({status:'ready',catalog:{chapterDefinitions:12,topicDefinitions:28,originallyPlannedTopics:35},estimate:{plannedChapters:1,
+  evidenceEligibleTopicUpperBound:2,chapters:[
+   {name:'사주 기본',includedInPlan:true,eligibleTopicUpperBound:2,
+    eligibleTopics:[{id:'temperament',title:'태어난 시기의 전통적 해석'},{id:'strength',title:'기질을 설명하는 별도 근거'}]},
+   {name:'2027년 금전',includedInPlan:false,eligibleTopicUpperBound:0,
+    eligibleTopics:[],omittedReason:'근거 없음'}]}});
  await pending;
- assert(body.innerHTML.includes('최대 19개 항목'));
+ assert(body.innerHTML.includes('최대 2개 항목'));
+ assert(body.innerHTML.includes('작성 후보 질문 보기'));
+ assert(body.innerHTML.includes('태어난 시기의 전통적 해석'));
+ assert(!body.innerHTML.includes('금전 손실 예측에서 알 수 없는 부분'));
  assert(body.innerHTML.includes('현재 유료 구매와 정식 보고서 생성은 준비 중입니다'));
  assert(body.innerHTML.includes('현재 목차에는 12개 장, 28개 세부 항목'));
  assert(body.innerHTML.includes('35항목 고정 제공은 검증되지 않았습니다'));
  assert(!body.innerHTML.includes('12개 장을 작성한 뒤'));
  assert.equal(charged,0);
+ ui.window.REPORT_API.coverage=async()=>({status:'ready',
+  catalog:{chapterDefinitions:12,topicDefinitions:28,originallyPlannedTopics:35},
+  estimate:{plannedChapters:1,evidenceEligibleTopicUpperBound:2,
+   chapters:[{name:'사주 기본',includedInPlan:true,eligibleTopicUpperBound:2,eligibleTopics:[]}]}});
+ await ui.window.LIVE_REPORT_UI.run();
+ assert(body.innerHTML.includes('작성 가능 항목 목록과 계산된 제공 범위가 일치하지 않습니다.'));
+ assert.equal(charged,0,'forged/inconsistent topic preview must not dispatch provider');
  ui.window.REPORT_API.coverage=async()=>({status:'blocked',errors:['범위 조회 실패']});
  await ui.window.LIVE_REPORT_UI.run();
  assert(body.innerHTML.includes('제공 가능 범위를 확인하지 못했습니다'));
