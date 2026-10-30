@@ -16,6 +16,28 @@ assert.deepEqual(inspect([money,section('career','workstyle',career.body[0],['na
 const meaningful=section('career','workstyle','직업에서 정해진 업무를 배울 때는 익혀야 할 절차의 의미와 자신의 역할을 구분합니다.');
 assert.deepEqual(inspect([money,meaningful]),[],
  'shared source with a different substantive claim is permissible');
+// A duplicate inside ONE chapter used to be skipped even when both
+// paragraphs cited the exact same natal row and sold the same causal claim.
+const sameChapterCopied={id:'money',
+ bodyTopics:['earning','spending'],
+ body:[money.body[0],
+  '지출과 보유를 결정할 때에도 계산된 근거와 자료를 검토한 다음 기준을 확인하고 선택합니다.'],
+ evidence:[
+  'earning: natal.month.stem (월간 辛 겁재) / 해석: 돈의 상징 / 조건: 가정 / 한계: 실제 수입 미측정',
+  'spending: natal.month.stem (월간 辛 겁재) / 해석: 같은 상징 / 조건: 가정 / 한계: 실제 지출 미측정'
+ ]};
+assert(inspect([sameChapterCopied]).some(x=>x.includes('money:earning / money:spending')),
+ 'same-chapter paid topics cannot sell one cited causal claim twice');
+const sameChapterDistinct=structuredClone(sameChapterCopied);
+sameChapterDistinct.body[1]='금전 관련 전통 기호는 자원을 보유한다는 뜻을 설명하지만 실제 지출 습관이나 수입은 측정한 것이 아닙니다.';
+assert.deepEqual(inspect([sameChapterDistinct]),[],
+ 'the same traditional symbol can answer a genuinely different, limited question');
+const sameChapterDifferentSource=structuredClone(sameChapterCopied);
+sameChapterDifferentSource.evidence[1]=sameChapterDifferentSource.evidence[1]
+ .replace('natal.month.stem','natal.day.hidden.己');
+assert.deepEqual(inspect([sameChapterDifferentSource]),[],
+ 'shared vocabulary without actually cited shared source cannot prove duplication');
+
 // The real paid writer is allowed to cite multiple exact rows; padding a
 // duplicate MBTI/Saju claim with one extra row must NOT bypass this gate.
 const expanded=section('career','workstyle',career.body[0],
