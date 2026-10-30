@@ -183,6 +183,24 @@ function preflight(packet){
    task.interpretationBoundary=rule.boundary;
   }
  }
+ // A single wealth classification does not prove TWO independent paid
+ // interpretations about earning and spending. Source positions alone
+ // repeat the same classification; require output-symbol evidence for an
+ // earning-activity lens, OR both distinct wealth subtypes (정재/편재).
+ // This is a SOURCE eligibility rule only; it does not prove observed
+ // financial behavior or force a second paragraph.
+ const wealthSourceRows=natalRows.filter(row=>row.tenGod==='정재'||row.tenGod==='편재');
+ const outputSourceRows=natalRows.filter(row=>row.tenGod==='식신'||row.tenGod==='상관');
+ const distinctWealthKinds=new Set(wealthSourceRows.map(row=>row.tenGod));
+ const separateMoneyQuestions=outputSourceRows.length>0||distinctWealthKinds.size>1;
+ const spendingTask=plans.money.topicTasks.spending;
+ if(spendingTask.mode!=='state-limits'&&!separateMoneyQuestions){
+  spendingTask.mode='state-limits';
+  spendingTask.evidencePresent=false;
+  spendingTask.allowedSourceRefs=[];
+  spendingTask.verifiedFallbackPaths=[];
+  spendingTask.interpretationBoundary='수입 풀이와 독립된 금전 분류가 확인되지 않아 같은 재성 근거 하나를 지출·보유 성향으로 다시 판매하지 않는다. 지출 기록은 계산되지 않았다.';
+ }
  // Wealth (재성) is a valid traditional money symbol in BOTH earning
  // and ownership discussions. Dropping it entirely from earning would erase
  // meaningful calculation. Prevent duplication at the interpretation lens,
