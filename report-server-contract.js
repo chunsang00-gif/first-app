@@ -475,7 +475,10 @@ async function generate(input,callModel,onProgress=()=>{},onValidatedBatch=()=>{
   qa={...qa,pass:false,
    errors:[...(qa.errors||[]),'Final report paragraph scope differs from verified preflight plan']};
  }
- qa.releaseGate=require('./report-release-gate').assess({report,qa,packet,coverage});
+ // Technical release conditions are not redundant with the manuscript
+ // quality validator. A passing report must satisfy BOTH; human review is
+ // still required even for technical 'ready'. Never issue another paid call.
+ qa=require('./report-release-gate').finalize({report,qa,packet,coverage});
  return qa.pass?{status:'ready',report,qa,headingRepairs,coverage}:{status:'rejected',report,qa,headingRepairs,coverage};
 }
 module.exports={findReusedEvidenceConclusions,enforceAnnualEvidenceLimits,narrativeMotifLedger,IDS,validateShape,buildPrompt,generate,findRepeatedTopicContent,findRecycledThemes,findParaphrasedTopicContent,findRepeatedAdvice};
