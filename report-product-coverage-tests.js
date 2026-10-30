@@ -32,10 +32,10 @@ const names=['NODE_ENV','RENDER','PAID_CORE_DEPTH_V2',
    assert.equal(result.readingSample.modelCalls,0);
    assert.equal(result.readingSample.completedPremiumParagraphs,0);
    assert.equal(result.readingSample.humanEditorialApproved,false);
-   assert.equal(result.readingSample.cards.length,3,
-    'known-hour chart should show month, real year/hour distinction and annual symbol');
+   assert([3,4].includes(result.readingSample.cards.length),
+    'known-hour chart may add a fourth card only for a verified month-to-visible-stem link');
    assert(result.readingSample.cards[0].text.includes('태어난 달'));
-   assert(result.readingSample.cards[2].text.includes('2027년'));
+   assert(result.readingSample.cards.at(-1).text.includes('2027년'));
    assert(!/TEST_DO_NOT_EXPOSE|TEST_ADDRESS_DO_NOT_EXPOSE/.test(JSON.stringify(result.readingSample)));
    assert(!/(?:natal\\.|annual\\.|facts\\.)/.test(JSON.stringify(result.readingSample)),
     'actual source identifiers belong in internal audit, not public copy');
@@ -81,11 +81,25 @@ const names=['NODE_ENV','RENDER','PAID_CORE_DEPTH_V2',
    }
    checked.push({birthDate,plannedChapters:chapters,upperBound:eligible});
   }
+  const chartWithHour=coverage.calculate({calendar:'solar',
+   birthDate:'1994-07-15',birthTime:'14:20',gender:'male',mbti:'ISFP'});
+  const directLink=chartWithHour.readingSample.cards.find(x=>x.id==='month-visible-link');
+  assert(directLink&&directLink.text.includes('태어난 시간'),
+   'the exact verified 丁 month-hidden to 丁 birth-hour visible relationship should be explained');
+  assert(directLink.text.includes('정확히 같은 글자'));
+  assert(!directLink.text.includes('辛')&&!directLink.text.includes('壬'),
+   'reader copy should not become an unexplained character ledger');
+  const alteredHour=coverage.calculate({calendar:'solar',
+   birthDate:'1994-07-15',birthTime:'20:20',gender:'male',mbti:'ISFP'});
+  assert(!alteredHour.readingSample.cards.some(x=>x.id==='month-visible-link'&&
+   x.text.includes('태어난 시간')),
+   'an altered birth hour must never inherit an old month-to-hour link');
   const unknownTime=coverage.calculate({calendar:'solar',birthDate:'2001-11-03',
    unknownBirthTime:true,birthTime:'12:00',gender:'male',mbti:'모름'});
   assert.equal(unknownTime.status,'ready');
-  assert.deepEqual(unknownTime.readingSample.cards.map(x=>x.id),['birth-month','annual-2027'],
-   'unknown birth time must not advertise a made-up birth-hour interpretation');
+  assert(!unknownTime.readingSample.cards.some(x=>x.id==='year-hour'||(
+   x.id==='month-visible-link'&&x.text.includes('태어난 시간'))),
+   'unknown birth time must never include an hour-derived traditional interpretation');
   assert(unknownTime.readingSample.note.includes('잠정 계산'),
    'unknown birth hour must disclose the boundary limitation to readers');
   const independent=cases.map(([birthDate,birthTime,calendar])=>coverage.calculate({
