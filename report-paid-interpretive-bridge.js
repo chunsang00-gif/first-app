@@ -50,6 +50,38 @@ const RULES=Object.freeze({
   explanation:'보호·학습의 분류와 독자적 이해의 분류는 다른 관점을 제시한다. 실제 회복력이나 생활 대처 능력을 판정하지 않는다.'
  })
 });
+// When an entire domain has two DISTINCT verified subtypes but not the
+// two categories chosen for the main reading, preserve their real contrast.
+// This is a chart-specific alternative, not a second paid paragraph and not
+// a claim about an observed person's behavior.
+const ALTERNATIVES=Object.freeze({
+ 'career.workstyle':Object.freeze([
+  Object.freeze({
+   first:['식신'],second:['상관'],
+   question:'결과를 차근차근 만드는 관점과 이미 정해진 방식에 질문을 던지는 관점은 업무 설명에서 어떻게 다른가?',
+   explanation:'식신의 생산·표현 상징과 상관의 표현·관례에 대한 반응 상징을 구별한다. 두 분류가 실제 나온 위치를 각각 읽고, 작업 성과나 지시 불이행이 관찰됐다고 주장하지 않는다.'
+  })
+ ]),
+ 'career.teamwork':Object.freeze([
+  Object.freeze({
+   first:['비견'],second:['겁재'],
+   question:'함께 참여하는 관계와 서로의 몫을 조정해야 하는 관계를 어떻게 다르게 바라볼 수 있는가?',
+   explanation:'비견은 나란히 참여하는 동료·자기 몫의 상징으로, 겁재는 같은 자원을 놓고 몫을 조정하는 상징으로 구별한다. 실제 동료와 경쟁하거나 갈등을 겪는다는 뜻은 아니다.'
+  }),
+  Object.freeze({
+   first:['정관'],second:['편관'],
+   question:'합의한 규칙에 따라 맡는 책임과 예상치 못한 요구를 다루는 책임은 어떻게 다른가?',
+   explanation:'정관이 가리키는 정해진 역할·규칙과 편관이 가리키는 압박·요구의 상징을 각각 설명한다. 실제 상사의 성향이나 업무 강도, 승진 결과는 판단할 수 없다.'
+  })
+ ]),
+ 'relationship.expression':Object.freeze([
+  Object.freeze({
+   first:['식신'],second:['상관'],
+   question:'자신의 뜻을 차근히 전하는 상황과 이미 정해진 방식에 이견을 말하는 상황은 어떤 질문을 달리 만드는가?',
+   explanation:'식신의 생산·표현 상징과 상관의 기존 규칙에 대한 표현·반응 상징을 구분해 가상의 대화에 한정한다. 실제 말투·연인 관계·상대의 마음은 알 수 없다.'
+  })
+ ])
+});
 const ID=/^natal\.(year|month|day|hour)\.(?:stem|hidden\.[甲乙丙丁戊己庚辛壬癸])$/;
 function build({chapterId,topicId,topic}={}){
  if(!topic||topic.mode==='state-limits')return null;
@@ -61,8 +93,13 @@ function build({chapterId,topicId,topic}={}){
   GROUP[row.tenGod]&&typeof row.traditionalMeaning==='string'&&
   row.traditionalMeaning.trim());
  const pick=kind=>roles.find(row=>kind.includes(row.tenGod));
- const a=pick(rule.first),b=pick(rule.second);
- if(!a||!b||a.id===b.id)return null;
+ const variants=[rule,...(ALTERNATIVES[key]||[])];
+ const selected=variants.map(candidate=>({
+  rule:candidate,a:pick(candidate.first),b:pick(candidate.second)
+ })).find(x=>x.a&&x.b&&x.a.id!==x.b.id);
+ if(!selected)return null;
+ const {a,b}=selected;
+ const chosenRule=selected.rule;
  const subjects=[a,b].map(row=>Object.freeze({
   ref:row.id,position:row.position,layer:row.layer,
   stem:row.stem,tenGod:row.tenGod,
@@ -83,10 +120,10 @@ function build({chapterId,topicId,topic}={}){
  }):null;
  return Object.freeze({
   kind:'paid-source-owned-interpretive-thesis-v1',
-  topic:key,question:rule.question,explanation:rule.explanation,
+  topic:key,question:chosenRule.question,explanation:chosenRule.explanation,
   sourceRoles:Object.freeze(subjects),exactStemBridge:matched,
   interpretationLimit:'전통적 계산 분류의 연결만 해당한다. 성향의 강약, 길흉, 실제 이력, 예측 결과는 검증하지 않았다.',
   claimedRealWorldOutcome:false,traditionalPriorityAssessed:false
  });
 }
-module.exports={build,RULES};
+module.exports={build,RULES,ALTERNATIVES};
