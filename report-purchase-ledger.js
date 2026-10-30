@@ -60,7 +60,10 @@ function create({dir,priceKRW,salesApproved=false,secretKey,transport}={}){
   async confirm({orderId,ownerToken,paymentKey,claimedAmount}={}){
    ensureSalesReady();
    const {root,order}=authorized(orderId,ownerToken);
-   // Validate all browser-supplied values BEFORE the lock or API request.
+   // Validate merchant configuration and all browser-supplied values
+   // BEFORE the durable lock or provider request.
+   if(typeof secretKey!=='string'||secretKey.length<16)
+    throw Error('PAYMENT_MERCHANT_NOT_CONFIGURED');
    toss.checkOrder(order);
    if(typeof paymentKey!=='string'||paymentKey.length<1||paymentKey.length>200||
       claimedAmount!==order.amount)throw Error('PAYMENT_REDIRECT_DOES_NOT_MATCH_STORED_ORDER');
