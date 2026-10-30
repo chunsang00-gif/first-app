@@ -44,6 +44,20 @@ if(p.stage==='body')for(const section of sections){
  section.bodyTopics=allowed.map(x=>x.topic);
  section.bodyLabels=allowed.map(x=>section.bodyLabels[x.i]);
  section.body=allowed.map(x=>section.body[x.i]);
+ // An old fixture used "검증된 계산 사실" with no canonical references.
+ // That could pass the prose validator but NOT the independent source
+ // coverage check. Build evidence from the actual provider-bound scope.
+ const sourcePlan=require('./report-generation-request').compile(p);
+ section.evidence=section.bodyTopics.map(topic=>{
+  const rows=sourcePlan.task.chapters[section.id]?.topics[topic]?.citableFacts||[];
+  const cited=rows.filter(row=>row.id.startsWith('natal.')||row.id.startsWith('annual.')||
+   row.id.startsWith('facts.')||row.id==='person.mbti');
+  if(!cited.length)throw Error('smoke active topic has no canonical cited source: '+section.id+':'+topic);
+  return topic+': '+cited.slice(0,3).map(row=>row.id+
+   (row.position?' ('+row.position+' '+(row.stem||'')+' '+(row.tenGod||'')+')':'')).join('; ')+
+   ' / 해석: '+section.id+' '+topic+'의 소유 근거를 연결한 모의 데이터'+
+   ' / 조건: 합성 테스트 / 한계: 실제 생활 행동을 관찰한 결과가 아님';
+ });
  if(!section.bodyTopics.includes(p.analysisGuidance.editorialBlueprint[section.id].anchorTopic))
   throw Error('smoke mocked body is missing the active anchor: '+section.id);
 }
