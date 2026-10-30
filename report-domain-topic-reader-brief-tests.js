@@ -14,7 +14,7 @@ const cases=[
  ['solar','1994-01-15','14:20'],
  ['solar','1994-05-15','20:20']
 ];
-let verified=0,unavailable=0,distinct=0;
+let verified=0,unavailable=0,distinct=0,substantiveTheses=0;
 const IDS=['money','career','relationship','stress'];
 for(const [calendar,birthDate,birthTime] of cases){
  const packet=facts.build({calendar,birthDate,birthTime,
@@ -101,6 +101,37 @@ for(const [calendar,birthDate,birthTime] of cases){
    assert(part.properties.text.description.includes(brief.readerQuestion),
     'actual strict output schema must carry the unique reader question');
    assert(part.properties.text.description.includes(brief.hypotheticalContrast));
+   // The real paid provider text slot, not a discarded top-level brief,
+   // must receive a distinct, chart-owned traditional interpretation when
+   // TWO eligible subtypes or categories exist. No fabricated secondary role.
+   const thesis=topic.sourceOwnedInterpretiveThesis;
+   if(thesis){
+    substantiveTheses++;
+    assert.equal(thesis.kind,'paid-source-owned-interpretive-thesis-v1');
+    assert.equal(thesis.topic,chapterId+'.'+topicId);
+    assert.equal(thesis.claimedRealWorldOutcome,false);
+    assert.equal(thesis.traditionalPriorityAssessed,false);
+    assert.equal(thesis.sourceRoles.length,2);
+    for(const role of thesis.sourceRoles){
+     const original=topic.citableFacts.find(row=>row.id===role.ref);
+     assert(original,'both thesis roles must be in this actual paid topic');
+     assert.equal(role.stem,original.stem);
+     assert.equal(role.tenGod,original.tenGod);
+     assert.equal(role.traditionalMeaning,original.traditionalMeaning);
+    }
+    assert(part.properties.text.description.includes(thesis.question),
+     'strict provider JSON must require the calculated topic-specific question');
+    assert(part.properties.text.description.includes(thesis.explanation),
+     'actual paid writer must see a substantive contrast, not just technical names');
+    if(thesis.exactStemBridge){
+     const link=thesis.exactStemBridge;
+     assert.deepEqual(link.refs.map(id=>topic.citableFacts.some(row=>row.id===id)),
+      [true,true],'a matching stem cannot borrow a non-citable source');
+     assert.equal(actual.source[link.refs[0]].stem,actual.source[link.refs[1]].stem);
+     assert(part.properties.text.description.includes('별도 실제 관계'),
+      'verified original hidden-to-visible link must reach the paid writer');
+    }
+   }
    const packagedProse=brief.hypotheticalContrast+' '+part.properties.text.description;
    assert(!/(?:가상의 물품 거래에서|가상의 주문에서|가상의 업무에서|가상의 구매에서|가상의 모둠 활동에서|가상의 친밀한 관계에서|장비 인수인계|직접 제작할 결과물)/.test(packagedProse),
     'actual paid-provider topic must not receive recycled stock scenes');
@@ -178,6 +209,39 @@ for(const [calendar,birthDate,birthTime] of cases){
 // these synthetic inputs are category facts, NOT fabricated people.
 const editor=require('./report-domain-topic-reader-brief');
 const row=(id,position,tenGod)=>({id,position,tenGod});
+// Same synthetic natal chart previously had an offline research reading
+// for month hidden 丁 and the visible birth-hour 丁. That EXACT relation
+// must now inform the REAL money earning provider paragraph when citable,
+// not remain trapped in an offline sample or free-preview component.
+const thisChart=facts.build({calendar:'solar',birthDate:'1994-07-15',
+ birthTime:'14:20',gender:'male',mbti:'ISFP'},2027);
+const thisPlan=guidance.preflight(thisChart);
+const moneyPrompt={facts:thisChart,stage:'body',requestedSections:['money'],
+ analysisGuidance:{...guidance.forRequest(['money'],thisChart.person.mbti),
+  editorialBlueprint:thisPlan},
+ rules:{sectionGoals:require('./report-prompt').sectionGoals},priorSections:[]};
+const earning=generator.compile(moneyPrompt).task.chapters.money.topics.earning;
+assert.equal(earning.sourceOwnedInterpretiveThesis?.topic,'money.earning',
+ 'the real paid money chapter must have the verified output-to-wealth thesis');
+const exactLink=earning.sourceOwnedInterpretiveThesis.exactStemBridge;
+assert.deepEqual(exactLink?.refs,['natal.month.hidden.丁','natal.hour.stem'],
+ 'actual paid earning paragraph should distinguish same month-hidden/hour-visible 丁');
+const paidMoneySlot=generator.schema(moneyPrompt,wire.schemaFor(moneyPrompt,schema))
+ .properties.chapters.properties.money.properties.paragraphs.properties.earning;
+assert(paidMoneySlot.properties.text.description.includes('별도 실제 관계'));
+assert(!generator.compile(moneyPrompt).task.chapters.money.topics.spending
+ .sourceOwnedInterpretiveThesis,
+ 'the single wealth subtype must not create a duplicate spending thesis');
+const changedChart=facts.build({calendar:'solar',birthDate:'1994-07-15',
+ birthTime:'20:20',gender:'male',mbti:'ISFP'},2027);
+const changedPrompt={...moneyPrompt,facts:changedChart,analysisGuidance:{
+ ...guidance.forRequest(['money'],changedChart.person.mbti),
+ editorialBlueprint:guidance.preflight(changedChart)}};
+const changedEarning=generator.compile(changedPrompt).task.chapters.money.topics.earning;
+assert(!changedEarning.sourceOwnedInterpretiveThesis?.exactStemBridge,
+ 'an altered birth hour must not inherit the old same-stem linkage');
+assert(substantiveTheses>0,'at least one real domain task must have a source-owned substantive thesis');
+
 const wealthOnly=editor.build({chapterId:'money',topicId:'earning',
  topic:{mode:'use-primary',citableFacts:[
   row('natal.month.stem','월간','정재')]}});
