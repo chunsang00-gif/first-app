@@ -143,8 +143,7 @@ function groundedScene(chapterId,topicId,groups,ageBand='unknown'){
   '. 별도로 확인된 '+next+' 분류에 해당하는 다른 상황: '+available[next][0]+
   '. 두 상황의 비교는 각각의 출처 의미가 다를 때만 사용한다. 반드시 두 장면을 모두 쓰거나 유불리·실제 결과를 만들어서는 안 된다.':
   '실제로 확인된 '+first+' 분류에 해당하는 설명용 가상 상황: '+available[first][0]+
-  '. 다른 독립 분류를 확인하지 않았으므로 조건 A/조건 B를 억지로 대비하거나 '+available[first][1]+
-  '라는 두 번째 일반 조언을 별도 심화 풀이로 판매하지 않는다.';
+  '. 다른 독립 분류를 확인하지 않았으므로 조건 A/조건 B를 억지로 대비하거나 두 번째 일반 조언을 별도 심화 풀이로 판매하지 않는다.';
  return {
   text,
   included:supported.slice(0,2),
