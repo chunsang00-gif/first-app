@@ -47,4 +47,18 @@ function assess({report,qa,packet,coverage}={}){
   message:'자동 품질 검사는 유료 출시 승인이 아닙니다. 원문과 계산 근거를 대조한 사람의 독립적 심사가 필요합니다.'
  };
 }
-module.exports={assess};
+// A passing schema/editorial check is only one prerequisite. The technical
+// release checks are independent: chapter scope or source-coverage may still
+// be incomplete even when qa.pass was true. Never advertise 'ready' then.
+function finalize({report,qa,packet,coverage}={}){
+ const base=qa&&typeof qa==='object'?qa:{pass:false,errors:['missing-automated-quality-result']};
+ const gate=assess({report,qa:base,packet,coverage});
+ const errors=Array.isArray(base.errors)?base.errors.slice():[];
+ if(base.pass===true&&gate.technicalChecks!=='passed'){
+  for(const code of gate.failedTechnicalChecks)
+   errors.push('technical-release-check:'+code);
+ }
+ return {...base,pass:base.pass===true&&gate.technicalChecks==='passed',
+  errors:[...new Set(errors)],releaseGate:gate};
+}
+module.exports={assess,finalize};
