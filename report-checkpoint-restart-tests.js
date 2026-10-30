@@ -35,7 +35,12 @@ const wait=t=>new Promise(resolve=>setTimeout(resolve,t));
    REPORT_STORAGE_DIR:directory,REPORT_MODEL_URL:modelUrl,REPORT_MODEL:'mock-restart',
    RENDER:'false',NODE_ENV:'test'};
   const store=create(directory);
-  store.save(jobId,{status:'processing',createdAt:Date.now()-5000,startedAt:Date.now()-5000});
+  const accessToken='c'.repeat(64);
+  const accessHash=require('./report-job-access').digest(accessToken);
+  store.save(jobId,{status:'processing',createdAt:Date.now()-5000,startedAt:Date.now()-5000,accessHash});
+  assert.equal(store.load(jobId).accessHash,accessHash);
+  assert(!JSON.stringify(store.load(jobId)).includes(accessToken),
+   'durable state must never store the unencrypted user access token');
   store.saveRequest(requestId,{id:jobId,fingerprint});
   const identity=check.signature(input,env);
   store.saveCheckpoint(jobId,{identity,batches:[batch]});
@@ -58,13 +63,16 @@ const wait=t=>new Promise(resolve=>setTimeout(resolve,t));
    await wait(100);
   }
   assert(connected,'offline restart server never became ready');
-  const status=await fetch(origin+'/api/report-status?id='+jobId);
+  const unauthorized=await fetch(origin+'/api/report-status?id='+jobId);
+  assert.equal(unauthorized.status,403,'a saved job id cannot reveal results after restart');
+  const status=await fetch(origin+'/api/report-status?id='+jobId,{
+   headers:{'x-report-access-token':accessToken}});
   assert.equal(status.status,503);
   const stale=await status.json();
   assert.equal(stale.code,'REPORT_INTERRUPTED');
   assert.equal(stale.validatedBatches,1);
   const retry=await fetch(origin+'/api/report',{method:'POST',
-   headers:{'content-type':'application/json'},
+   headers:{'content-type':'application/json','x-report-access-token':accessToken},
    body:JSON.stringify({requestId,analysisInput:{status:'ready',calculationInput:input}})});
   assert.equal(retry.status,409,'same request must NOT be advertised as processing');
   const refused=await retry.json();
