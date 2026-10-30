@@ -24,7 +24,13 @@ assert.equal(createTiming().snapshot().sampleCount,0);
  const payload={analysisInput:{status:'ready',calculationInput:{calendar:'solar',birthDate:'1990-06-15',unknownBirthTime:true,gender:'male',mbti:'INFP'}}};
  const first=await request('POST','/api/report',{...payload,requestId:'one-delivery-test-0001'});const duplicate=await request('POST','/api/report',{...payload,requestId:'one-delivery-test-0001'});assert.equal(duplicate.jobId,first.jobId);assert.equal(first.timing.averageSeconds,null);
  clock=31000;const loading=await request('GET','/api/report-status?id='+first.jobId);assert.equal(loading.timing.elapsedSeconds,30);
- clock=121000;finish({status:'ready',report:{}});await Promise.resolve();
+ clock=121000;finish({status:'ready',report:{},
+  qa:{pass:true,releaseGate:{technicalChecks:'passed',releaseVerdict:'not-approved',humanReviewRequired:true}}});await Promise.resolve();
+ const eligible=await request('GET','/api/report-status?id='+first.jobId);
+ assert.equal(eligible.status,'ready');
+ assert.equal(eligible.humanReviewRequired,true);
+ assert.equal(eligible.customerSaleApproved,false);
+ assert.equal(eligible.releaseVerdict,'not-approved');
  const second=await request('POST','/api/report',payload);assert.equal(second.timing.averageSeconds,120);assert.equal(second.timing.sampleCount,1);
  fail(Error('AI report service timed out'));await Promise.resolve();await Promise.resolve();
  const third=await request('POST','/api/report',payload);assert.equal(third.timing.sampleCount,1);
@@ -88,6 +94,14 @@ assert.equal(createTiming().snapshot().sampleCount,0);
  assert(body.innerHTML.includes('범위 조회 실패'));
  assert.equal(charged,0,'scope failure cannot dispatch a paid job');
  const resumed=await api.window.REPORT_API.resume();assert.equal(resumed.status,'ready');assert.equal(requests,3,'completed reload must not issue another request');
+ const unfinished=await request('POST','/api/report',payload);
+ finish({status:'ready',report:{}});await Promise.resolve();
+ const oldReady=await request('GET','/api/report-status?id='+unfinished.jobId);
+ assert.equal(oldReady.status,'rejected',
+  'a persisted ready job without checked release metadata must not leak as a completed report');
+ assert.equal(oldReady.code,'REPORT_TECHNICAL_GATE_INCOMPLETE');
+ assert.equal(oldReady.report,undefined);
+
  console.log('PASS real-duration mean, bounded/expired samples, restart reset, failed/rejected exclusions, status timing, existing polling only, average loading text; no paid API');
 })().catch(e=>{console.error(e);process.exitCode=1});
 
