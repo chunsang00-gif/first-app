@@ -62,7 +62,9 @@ function build(packet){
   modelCalls:0,
   completedPremiumParagraphs:0,
   humanEditorialApproved:false,
-  note:'출생정보에서 확인한 전통적 분류의 뜻을 읽기 쉽게 보여 주는 무료 예시입니다. 실제 개인의 생활과 미래를 검증한 유료 풀이가 아닙니다.'
+  note:'출생정보에서 확인한 전통적 분류의 뜻을 읽기 쉽게 보여 주는 무료 예시입니다. 실제 개인의 생활과 미래를 검증한 유료 풀이가 아닙니다.'+
+   (packet.calculationInput?.unknownBirthTime===true?
+    ' 출생 시각을 모르는 경우에는 시각에 따른 날짜 경계와 시주를 확정할 수 없으므로 잠정 계산 예시로만 보세요.':'')
  });
 }
 module.exports={build};
