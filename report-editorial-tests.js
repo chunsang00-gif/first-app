@@ -589,6 +589,15 @@ const overlapA='생각을 충분히 정리하고 자료를 확인한 뒤에 결�
 const overlapB='자료를 확인하고 생각을 충분히 정리한 뒤에 결정하는 방식이 나타납니다. 다시 검토하는 행동이 반복되며 상대방의 설명을 듣고 책임지는 범위를 구별합니다.';
 const distinct='2027년 계절에 해당하는 월별 지지의 충합은 실제로 계산되지 않았으며 예측할 수 없는 미래 사건과 구별해야 합니다. 그 대신 입력 시각에 따른 한계를 정확히 밝힙니다.';
 assert(paraphrases([{id:'money',bodyTopics:['spending'],body:[overlapA]},{id:'career',bodyTopics:['workstyle'],body:[overlapB]}]).length>0);
+const sameMoneyCopied={id:'money',bodyTopics:['earning','spending'],
+ body:[overlapA,overlapB]};
+assert(paraphrases([sameMoneyCopied]).some(x=>x.includes('money:earning / money:spending')),
+ 'same-chapter rearranged paragraphs must not be resold as separate paid topics');
+const sameMoneyDistinct={id:'money',bodyTopics:['earning','spending'],
+ body:[overlapA,distinct]};
+assert.deepEqual(paraphrases([sameMoneyDistinct]),[],
+ 'sharing a chapter or a money-related word does not automatically duplicate a conclusion');
+
 assert.equal(paraphrases([{id:'money',bodyTopics:['spending'],body:[overlapA]},{id:'career',bodyTopics:['workstyle'],body:[distinct]}]).length,0);
 
 const themeAudit=sandbox.module.exports.findRecycledThemes;
