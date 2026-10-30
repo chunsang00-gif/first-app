@@ -40,8 +40,11 @@ function build({chapterId,topicId,topic,source}={}){
  const selected=candidates[0];
  if(!selected)return null;
  const annual=facts.get(selected.annualId),natal=facts.get(selected.natalId);
+ // Synthetic source-only oracles intentionally omit the glossary. They
+ // may verify the original gate, but cannot author an additional premium
+ // interpretive claim without BOTH complete position-bound meaning rows.
  if(!annual.position||!natal.position||!annual.traditionalMeaning||!natal.traditionalMeaning)
-  throw Error('ANNUAL_PAID_READING_SOURCE_DETAIL_MISSING');
+  return null;
  const domainQuestion=domain==='money'?
   '돈을 버는 사건을 예측하지 않고, 기존에 계산된 자원·결과 분류와 2027년 겉글자의 세부 뜻이 어떻게 다른지 설명한다.':
   '승진·이직을 예측하지 않고, 기존에 계산된 배움·역할 분류와 2027년 겉글자의 세부 뜻이 어떻게 다른지 설명한다.';
