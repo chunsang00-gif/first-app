@@ -216,3 +216,14 @@
 - report-domain-topic-reader-brief-tests.js에서 4개 합성 명식의 provider task/strict schema를 직접 검사해 이전의 고정 상황 문자열이 공급자에게 전달되지 않음을 검증. 과거 테스트가 '미리 준비된 두 상황' 출력을 요구하던 부분도 품질 방해 검증으로 교체.
 - 검증 코드 커밋 c4d390f5fa1e5bcb0b7a77417588f546b6db6b09, GitHub Actions 40988200133, 전체 npm test 및 npm run smoke SUCCESS. 실 유료 API 호출 0건; 본체 사주 계산/원래 근거·응답 검증, 출시 차단, main 및 saju-mbti-app 불변.
 - 남은 핵심: 실제 생성된 새 모델 결과의 문장 품질과 전문적 해석 깊이는 미검증. 목표 12장/35항목과 실제 12장/28개 정의·최대 22개 활성 후보의 차이, 원고 사람의 품질 검수, 결제·권한·환불 시스템은 미완료. 지침만 계속 추가해 성과를 보장할 수 없으므로 다음 단계는 승인된 1회 신규 모델 생성 평가나, 계산 사실→차별화된 해석의 전문가 기준 설계. 승인 없이 새 유료 호출 금지.
+
+## 2026-10-30 기술적 원고 완료 판정 불일치 및 내부 출처 검증 범위 수정
+- QA 검증과 별도 출고 기술 검증(releaseGate)이 둘 다 있었으나 report-server-contract.generate()의 최종 반환은 qa.pass만 보고 status=ready를 줄 수 있었다. 완성된 원고의 실제 인용 출처, 준비된 장 계획, 기술적 출고 범위 검증이 실패해도 미검증 결과가 'ready'로 둔갑할 가능성이 있었다.
+- report-release-gate.finalize()가 기존 assess()의 독립 technicalChecks를 최종 qa.pass와 연결한다. 원고 검사는 통과했지만 별도 출고 검증이 미완료이면 pass=false, technical-release-check:<code>를 오류 목록에 기록하고 rejected로 반환한다. 새 AI 호출/재시도는 하지 않는다. 'technicalChecks passed'여도 humanReviewRequired와 releaseVerdict:not-approved는 그대로 유지한다.
+- server.js의 조회 경로는 저장된 job.status=ready를 무조건 믿지 않고 저장된 qa.releaseGate.technicalChecks=passed와 releaseVerdict:not-approved를 추가 검증한다. 없으면 REPORT_TECHNICAL_GATE_INCOMPLETE로 보고서 원문을 내려주지 않는다. 통과한 개발용 결과도 humanReviewRequired:true, customerSaleApproved:false를 응답에 명시한다.
+- 검증 중 오래된 smoke-test.js가 모의 보고서 각 장에 '검증된 계산 사실'만 기록하고 출처를 전혀 인용하지 않아도 기술 완료로 보던 점이 확인됐다. 새 스모크는 실제 공급자 요청 계획 report-generation-request.compile()에서 각 항목의 출처를 수집해 모의 evidence에 기록하며, 다른 데이터로 대체해 회피하지 않는다.
+- report-quality-node.validate()의 'internal field leaked into prose' 검사는 기존에 내부 evidence까지 포함한 readable에 적용돼 canonical 내부 출처·장 코드의 존재만으로 독자용 문장 누출로 오판했다. 해당 검사만 report-reader-policy.visibleFields()에 한정하고, verifyEvidenceAgainstFacts()의 독립 명리 근거 검증은 유지했다. 회귀 테스트는 같은 내부 ID가 private evidence에만 있으면 통과하고 public body에 있으면 거절함을 확인한다.
+- report-release-gate-tests.js는 품질 통과여도 장 누락/불완전 출처면 무조건 보류, 명료한 검증 실패와 사람 검수 미승인을 확인한다. report-timing-tests.js는 이전 ready 결과의 저장 검증 누락을 차단하는 서버 API 회귀를 추가했다. smoke-test.js는 계산·실제 HTTP·전체 모의 생성을 확인.
+- 최종 코드 커밋 6dd30031660de8b2d0b86a36f0ac99500132262f, GitHub Actions 40989494477에서 npm test 및 npm run smoke SUCCESS. 운영 saju-mbti-app과 main 변경 없음. 새 유료 API 호출/결제 0회.
+- 중요한 미완성: 실제 공급자 모델의 새 유료 해석 원고 품질은 미검증; 기존 8개 합성 원고 전문 독서 판정 0/8을 개선 성공으로 주장하지 않는다. 목표 12장·35항목은 현재 12장·28개 정의, 최대 22개 활성 후보와 다르고, 고객별 실제 출고 가능량은 더 적을 수 있다. 명리 해석 우선순위·전문가 사람 검수, 결제/구매권한/환불 연동 미구현. 지침 강화와 무료 CI 추가만으로 유료 출시를 선언하지 않는다.
+- 다음 단계는 중복된 QA를 무한 증설하지 말고, 입력 명식 1건의 실제 원고를 새 유료 모델로 검토하는 1회 사용자 승인·회차 한도를 지키거나, 돈이 들지 않는 범위에서 독립적인 명리 해석 후보의 출전/실제 근거를 검토하고 계약 35개 목표의 독립 가능한 질문을 확인하는 것이다. 승인 없이 기존 QA 키/해시 재사용 및 결제·운영 배포 금지.
