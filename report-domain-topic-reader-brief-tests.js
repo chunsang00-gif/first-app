@@ -247,6 +247,44 @@ assert(!changedEarning.sourceOwnedInterpretiveThesis?.exactStemBridge,
  'an altered birth hour must not inherit the old same-stem linkage');
 assert(substantiveTheses>0,'at least one real domain task must have a source-owned substantive thesis');
 
+// A full category pair is not the only genuine two-source traditional
+// contrast. These different-subtype pairs reach the ACTUAL paid text schema
+// through sourceOwnedInterpretiveThesis; never invent a missing second role.
+const paidBridge=require('./report-paid-interpretive-bridge');
+function paidRole(position,stem,tenGod){
+ const id='natal.'+position+'.stem';
+ return {id,position:position==='year'?'연간':position==='month'?'월간':'시간',
+  layer:'천간',stem,tenGod,traditionalMeaning:'실제 계산 사전의 '+tenGod+' 뜻'};
+}
+for(const [chapterId,topicId,first,second,expected] of [
+ ['career','workstyle','식신','상관','차근차근'],
+ ['career','teamwork','비견','겁재','서로의 몫'],
+ ['career','teamwork','정관','편관','예상치 못한 요구'],
+ ['relationship','expression','식신','상관','이견을 말하는']
+]){
+ const pair=[paidRole('year','甲',first),paidRole('month','乙',second)];
+ const thesis=paidBridge.build({chapterId,topicId,
+  topic:{mode:'use-primary',citableFacts:pair}});
+ assert(thesis,chapterId+'.'+topicId+' must retain its genuine two-subtype contrast');
+ assert.equal(thesis.sourceRoles.length,2);
+ assert.deepEqual(thesis.sourceRoles.map(x=>x.tenGod),[first,second]);
+ assert(thesis.question.includes(expected),thesis.question);
+ assert.equal(thesis.claimedRealWorldOutcome,false);
+ assert.equal(thesis.traditionalPriorityAssessed,false);
+ const missing=paidBridge.build({chapterId,topicId,
+  topic:{mode:'use-primary',citableFacts:[pair[0]]}});
+ assert.equal(missing,null,'one source alone must not produce two-role prose');
+ assert.equal(paidBridge.build({chapterId,topicId,
+  topic:{mode:'state-limits',citableFacts:pair}}),null);
+}
+// A broader primary category comparison wins when both source groups exist;
+// otherwise the new same-group question would erase a stronger distinction.
+const primary=paidBridge.build({chapterId:'career',topicId:'teamwork',
+ topic:{mode:'use-primary',citableFacts:[
+  paidRole('year','甲','비견'),paidRole('month','乙','겁재'),
+  paidRole('hour','丙','정관')]}});
+assert.equal(primary.sourceRoles[0].tenGod,'비견');
+assert.equal(primary.sourceRoles[1].tenGod,'정관');
 const wealthOnly=editor.build({chapterId:'money',topicId:'earning',
  topic:{mode:'use-primary',citableFacts:[
   row('natal.month.stem','월간','정재')]}});
