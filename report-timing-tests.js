@@ -64,13 +64,26 @@ assert.equal(createTiming().snapshot().sampleCount,0);
  assert(body.innerHTML.includes('평균 약 2분'));
  assert(body.innerHTML.includes('1건 기준'));
  assert.equal(typeof resolveCoverage,'function');
- resolveCoverage({status:'ready',catalog:{chapterDefinitions:12,topicDefinitions:28,originallyPlannedTopics:35},estimate:{plannedChapters:1,
+ resolveCoverage({status:'ready',
+  readingSample:{kind:'free-calculated-meaning-preview-v1',status:'calculated-example',
+   cards:[
+    {id:'birth-month',title:'태어난 달에서 확인되는 두 근거',text:'태어난 달에서 서로 다른 두 분류가 계산됐으나 실제 성향은 측정된 사실이 아닙니다.'},
+    {id:'annual-2027',title:'2027년 계산에서 추가되는 질문',text:'2027년 천간은 미래를 예언하지 않으며 실제 삶의 결과를 입증한 것이 아닙니다.'}
+   ],modelCalls:0,completedPremiumParagraphs:0,humanEditorialApproved:false,
+   note:'전통적인 분류를 확인하는 무료 예시이며 유료 보고서가 아닙니다.'},
+  catalog:{chapterDefinitions:12,topicDefinitions:28,originallyPlannedTopics:35},estimate:{plannedChapters:1,
   evidenceEligibleTopicUpperBound:2,chapters:[
    {name:'사주 기본',includedInPlan:true,eligibleTopicUpperBound:2,
     eligibleTopics:[{id:'temperament',title:'태어난 시기의 전통적 해석'},{id:'strength',title:'기질을 설명하는 별도 근거'}]},
    {name:'2027년 금전',includedInPlan:false,eligibleTopicUpperBound:0,
     eligibleTopics:[],omittedReason:'근거 없음'}]}});
  await pending;
+ assert(body.innerHTML.includes('실제 출생정보에서 확인한 해석 근거'));
+ assert(body.innerHTML.includes('태어난 달에서 확인되는 두 근거'));
+ assert(body.innerHTML.includes('2027년 계산에서 추가되는 질문'));
+ assert(body.innerHTML.indexOf('태어난 달에서 확인되는 두 근거')<
+   body.innerHTML.indexOf('유료 심화 풀이 제공 가능 범위'),
+   'the real calculated preview must appear BEFORE numerical scope');
  assert(body.innerHTML.includes('최대 2개 항목'));
  assert(body.innerHTML.includes('작성 후보 질문 보기'));
  assert(body.innerHTML.includes('태어난 시기의 전통적 해석'));
