@@ -595,7 +595,7 @@ assert(paraphrases([sameMoneyCopied]).some(x=>x.includes('money:earning / money:
  'same-chapter rearranged paragraphs must not be resold as separate paid topics');
 const sameMoneyDistinct={id:'money',bodyTopics:['earning','spending'],
  body:[overlapA,distinct]};
-assert.deepEqual(paraphrases([sameMoneyDistinct]),[],
+assert.equal(paraphrases([sameMoneyDistinct]).length,0,
  'sharing a chapter or a money-related word does not automatically duplicate a conclusion');
 
 assert.equal(paraphrases([{id:'money',bodyTopics:['spending'],body:[overlapA]},{id:'career',bodyTopics:['workstyle'],body:[distinct]}]).length,0);
