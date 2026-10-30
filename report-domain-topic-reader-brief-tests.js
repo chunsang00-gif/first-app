@@ -97,10 +97,24 @@ for(const [calendar,birthDate,birthTime] of cases){
    const visible=part.properties.text.description;
    assert(internal.includes(brief.exactRoleLens.internalWritingContrast),
     'actual strict JSON internal basis must carry exact source positions and role meanings');
-   assert(visible.includes('조건이 바뀌면 무엇을 다르게 고려해야 하는지'),
-    'reader prose must explain the meaning of a changed hypothetical condition');
-   assert(visible.includes('한쪽 관점만 보면'),
-    'reader prose must say what the opposite condition misses');
+   const crossCategory=brief.contrastMode==='two-verified-categories'&&
+    brief.exactRoleLens.contrastedGroups.length===2;
+   const withinCategory=brief.contrastMode==='single-grounded-category'&&
+    brief.exactRoleLens.sameTraditionalGroupDifferentRoles;
+   if(crossCategory){
+    assert(visible.includes('서로 다른 두 출처가 실제로 답할 수 있는 질문을 구별한다'),
+     'only two verified categories may request a source-to-source contrast');
+   }else if(withinCategory){
+    assert(visible.includes('같은 분류 안의 두 세부 의미'),
+     'two independently verified subroles can be compared within their category');
+   }else{
+    assert(visible.includes('억지 대비·조건 A/B·양면성을 만들어내지 않는다'),
+     'single verified source must not mandate a fabricated second personality');
+    assert(!visible.includes('실제 출생 근거로 설명 가능한 두 조건의 차이를'),
+     'old universal A/B paid text instruction must not return');
+   }
+   assert(visible.includes('출처 ID·전문 분류 이름·검증 절차'),
+    'technical ledger must remain separated from public reader prose');
    assert(!visible.includes(brief.exactRoleLens.internalWritingContrast),
     'customer text instruction must not dump internal technical source ledger');
    for(const role of brief.exactRoleLens.sourceRoles){
@@ -164,6 +178,16 @@ const mixed=editor.build({chapterId:'money',topicId:'earning',
 assert.deepEqual(wealthOnly.illustratedSourceGroups,['재성']);
 assert.deepEqual(outputOnly.illustratedSourceGroups,['식상']);
 assert.deepEqual(mixed.illustratedSourceGroups,['재성','식상']);
+assert.equal(wealthOnly.contrastMode,'single-grounded-category');
+assert.equal(outputOnly.contrastMode,'single-grounded-category');
+assert.equal(mixed.contrastMode,'two-verified-categories');
+assert(!wealthOnly.hypotheticalContrast.includes('조건 A:'));
+assert(!wealthOnly.hypotheticalContrast.includes('조건 B:'));
+assert(!outputOnly.hypotheticalContrast.includes('조건 A:'));
+assert(!learningOnly.hypotheticalContrast.includes('조건 B:'));
+assert(mixed.hypotheticalContrast.includes('별도로 확인된'),
+ 'a second scene may be supplied only for independently grounded second category');
+
 assert(!wealthOnly.hypotheticalContrast.includes('직접 제작'),
  'baseline stock wording must no longer invent an uncited output category');
 assert(!outputOnly.hypotheticalContrast.includes('물품 거래'),
@@ -182,6 +206,7 @@ const noClassification=editor.build({chapterId:'money',topicId:'earning',
  topic:{mode:'use-primary',citableFacts:[
   {id:'person.mbti',position:'입력 선호'}]}});
 assert.equal(noClassification.sourceCategoryBoundScene,false);
+assert.equal(noClassification.contrastMode,'no-grounded-category');
 assert.deepEqual(noClassification.illustratedSourceGroups,[]);
 assert(!noClassification.hypotheticalContrast.includes('거래'));
 assert(wealthOnly.hypotheticalContrast.includes('가상'));
