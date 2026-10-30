@@ -476,8 +476,8 @@ function schema(prompt,transport){
      const link=thesis.exactStemBridge;
      if(link.refs.length!==2||
         !link.refs.every(id=>permitted.includes(id))||
-        !/^natal\\.month\\.hidden\\./.test(link.refs[0])||
-        !/^natal\\.(?:year|hour)\\.stem$/.test(link.refs[1])||
+        !/^natal\.month\.hidden\./.test(link.refs[0])||
+        !/^natal\.(?:year|hour)\.stem$/.test(link.refs[1])||
         payload.source[link.refs[0]]?.stem!==link.exactStem||
         payload.source[link.refs[1]]?.stem!==link.exactStem||
         payload.source[link.refs[0]]?.tenGod!==link.tenGod||
