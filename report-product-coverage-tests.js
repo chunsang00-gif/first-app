@@ -80,6 +80,41 @@ const names=['NODE_ENV','RENDER','PAID_CORE_DEPTH_V2',
   const actual=coverage.calculate(fake);
   assert.equal(JSON.stringify(actual),JSON.stringify(noMBTI),
    'forged caller chart or purchaseEnabled may not control server report scope');
+  // Stage-independent source ownership: a single wealth subtype, even
+  // when repeated in several positions, does not support selling earning
+  // and spending as two independent personal interpretations.
+  const base=facts.build({calendar:'solar',birthDate:'1994-07-15',
+   birthTime:'14:20',gender:'male',mbti:'ISFP'},2027);
+  assert.equal(base.status,'ready');
+  function symbolicProfile(rows){
+   const packet=structuredClone(base);
+   for(const position of ['year','month','day','hour']){
+    packet.facts.tenGods[position].stemTenGod='비견';
+    packet.facts.tenGods[position].hiddenStems=[];
+   }
+   for(const [position,tenGod] of rows)
+    packet.facts.tenGods[position].stemTenGod=tenGod;
+   const plan=require('./report-analysis-guidance').preflight(packet);
+   return plan.money.topicTasks;
+  }
+  const oneWealth=symbolicProfile([['year','정재']]);
+  assert.equal(oneWealth.earning.mode,'use-primary');
+  assert.equal(oneWealth.spending.mode,'state-limits',
+   'one wealth subtype alone must not create both paid financial topics');
+  assert.deepEqual(oneWealth.spending.allowedSourceRefs,[]);
+  const repeatedWealth=symbolicProfile([['year','정재'],['month','정재']]);
+  assert.equal(repeatedWealth.spending.mode,'state-limits',
+   'two positions with the same traditional subtype are not automatically two different claims');
+  const distinctWealth=symbolicProfile([['year','정재'],['month','편재']]);
+  assert.equal(distinctWealth.spending.mode,'use-primary',
+   'different genuine wealth subtypes can support distinct questions, subject to final review');
+  const wealthAndOutput=symbolicProfile([['year','정재'],['month','식신']]);
+  assert.equal(wealthAndOutput.spending.mode,'use-primary',
+   'an independent production/output meaning can separate earning from wealth stewardship');
+  const onlyOutput=symbolicProfile([['year','식신']]);
+  assert.equal(onlyOutput.earning.mode,'use-primary');
+  assert.equal(onlyOutput.spending.mode,'state-limits');
+  assert.deepEqual(onlyOutput.spending.allowedSourceRefs,[]);
   console.log('PRODUCT_COVERAGE='+JSON.stringify({
    samples:checked.length,definedChapters:12,definedTopics:28,
    actualProviderCalls:0,purchaseStillDisabled:true,
