@@ -60,3 +60,37 @@ assert(!fewerHtml.includes('35개 세부 풀이'));
 assert(!render(edited).includes('report-delivered-scope'),
  'legacy records without source-owned topic IDs must not display a misleading zero');
 console.log('PASS reader sees actual completed chapter/topic count, not undefined/target volume');
+ // The actual paid report may omit annual or relationship chapters. Every
+ // customer-visible navigation destination must be a delivered section.
+ const narrow=structuredClone(fewer);
+ narrow.sections=narrow.sections.filter(s=>!['relationship','year_2027'].includes(s.id));
+ const narrowHtml=render(narrow);
+ const toc=narrowHtml.match(/<nav class="report-contents"[\\s\\S]*?<\\/nav>/)?.[0];
+ assert(toc,'customer report must show a chapter index');
+ assert.equal((toc.match(/<li>/g)||[]).length,narrow.sections.length,
+  'index must contain delivered chapters, not all 12 canonical slots');
+ for(const section of narrow.sections){
+  assert(toc.includes('href="#detail-'+section.id+'"'),
+   'chapter index must point to actually rendered content: '+section.id);
+  assert(narrowHtml.includes('id="detail-'+section.id+'"'));
+ }
+ assert(!toc.includes('href="#detail-relationship"'));
+ assert(!toc.includes('href="#detail-year_2027"'));
+ assert(!narrowHtml.includes('data-target="detail-relationship"'));
+ assert(!narrowHtml.includes('data-target="detail-year_2027"'));
+ assert(narrowHtml.includes('실제로 작성된 분석: 7개 장 · 7개 세부 풀이'));
+ assert(narrowHtml.includes('실제로 작성된 7개 장의 해석을 확인합니다'));
+ // For multiple real paragraph labels, let readers jump directly to their
+ // section's two/three topics (not only when five are present).
+ const labeled=render(edited);
+ assert.equal((labeled.match(/<nav class="topic-nav"/g)||[]).length,12);
+ assert(labeled.includes('href="#topic-saju_core-0"'));
+ assert(labeled.includes('id="topic-saju_core-0"'));
+ const noLabels=structuredClone(edited);
+ noLabels.sections[0].bodyLabels=['이름 하나뿐'];
+ const noLabelsHtml=render(noLabels);
+ assert(!noLabelsHtml.includes('href="#topic-saju_core-0"'),
+  'mismatched labels may not create a broken in-chapter index');
+ assert.equal((noLabelsHtml.match(/<nav class="topic-nav"/g)||[]).length,11);
+ console.log('PASS delivered-only chapter navigation, no omitted links, exact paragraph shortcuts and mismatched-label refusal');
+
