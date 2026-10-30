@@ -36,10 +36,14 @@ function findParaphrasedTopicContent(sections){
  }
  const errors=[];
  for(let i=0;i<entries.length;i++)for(let j=i+1;j<entries.length;j++){
-  const a=entries[i],b=entries[j];if(a.owner.split(':')[0]===b.owner.split(':')[0])continue;
+  const a=entries[i],b=entries[j];
+  const sameChapter=a.owner.split(':')[0]===b.owner.split(':')[0];
   const shared=[...a.words].filter(w=>b.words.has(w)).length;
   const score=shared/Math.max(a.words.size,b.words.size);
-  if(shared>=6&&score>=0.6)errors.push('high lexical topic overlap: '+a.owner+' / '+b.owner);
+  // Chapters naturally reuse topic vocabulary. Detect only near copies
+  // within one chapter, while keeping existing cross-chapter sensitivity.
+  if(sameChapter?(shared>=8&&score>=0.8):(shared>=6&&score>=0.6))
+   errors.push('high lexical topic overlap: '+a.owner+' / '+b.owner);
  }
  return errors;
 }
