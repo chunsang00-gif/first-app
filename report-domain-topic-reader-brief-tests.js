@@ -219,11 +219,6 @@ assert.equal(editor.citedRoleCoverage(noClassification,['person.mbti'],
  {'person.mbti':{type:'ISFP'}}).required,false);
 assert.equal(editor.citedRoleCoverage(noClassification,['person.mbti'],
  {'person.mbti':{type:'ISFP'}}).pass,true);
-assert.equal(editor.citedRoleCoverage(sameGroup,
- ['natal.year.stem'],{'natal.year.stem':{tenGod:'식신'}}).pass,false,
- 'a real cited source from the wrong category cannot back a wealth paragraph');
-assert.equal(editor.citedRoleCoverage(sameGroup,
- ['natal.month.stem'],{'natal.month.stem':{tenGod:'정재'}}).pass,true);
 assert.equal(noClassification.contrastMode,'no-grounded-category');
 assert.deepEqual(noClassification.illustratedSourceGroups,[]);
 assert(!noClassification.hypotheticalContrast.includes('거래'));
@@ -241,6 +236,11 @@ const sameGroup=editor.build({chapterId:'money',topicId:'spending',
  topic:{mode:'use-primary',citableFacts:[
   exactRow('natal.month.stem','월간','천간','己','정재'),
   exactRow('natal.hour.hidden.戊','시지','지장간','戊','편재')]}});
+assert.equal(editor.citedRoleCoverage(sameGroup,
+ ['natal.year.stem'],{'natal.year.stem':{tenGod:'식신'}}).pass,false,
+ 'a real cited source from the wrong category cannot back a wealth paragraph');
+assert.equal(editor.citedRoleCoverage(sameGroup,
+ ['natal.month.stem'],{'natal.month.stem':{tenGod:'정재'}}).pass,true);
 assert.equal(sameGroup.exactRoleLens.hasTwoDifferentRoles,true);
 assert.equal(sameGroup.exactRoleLens.sameTraditionalGroupDifferentRoles,true);
 assert.deepEqual(sameGroup.exactRoleLens.sourceRoles.map(r=>r.tenGod),['정재','편재']);
