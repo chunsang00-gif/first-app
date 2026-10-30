@@ -184,7 +184,6 @@ assert.equal(mixed.contrastMode,'two-verified-categories');
 assert(!wealthOnly.hypotheticalContrast.includes('조건 A:'));
 assert(!wealthOnly.hypotheticalContrast.includes('조건 B:'));
 assert(!outputOnly.hypotheticalContrast.includes('조건 A:'));
-assert(!learningOnly.hypotheticalContrast.includes('조건 B:'));
 assert(mixed.hypotheticalContrast.includes('별도로 확인된'),
  'a second scene may be supplied only for independently grounded second category');
 
@@ -198,6 +197,8 @@ const learningOnly=editor.build({chapterId:'career',topicId:'workstyle',
  topic:{mode:'use-primary',citableFacts:[
   row('natal.year.stem','연간','정인')]}});
 assert.deepEqual(learningOnly.illustratedSourceGroups,['인성']);
+assert(!learningOnly.hypotheticalContrast.includes('조건 B:'));
+
 assert(!learningOnly.hypotheticalContrast.includes('결과물을 만들고'),
  'learning-only workstyle must not imply a missing output category');
 assert.equal(editor.build({chapterId:'career',topicId:'change',
