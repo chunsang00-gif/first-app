@@ -36,14 +36,20 @@ async function showCoverage(validatedInput){
  clearInterval(timer);openResult();
  const body=$('#reportBody'),estimate=out.estimate,catalog=out.catalog;
  if(!Array.isArray(estimate?.chapters)||!catalog||!Number.isInteger(catalog.chapterDefinitions)||!Number.isInteger(catalog.topicDefinitions))throw Error('제공 범위 데이터가 완전하지 않습니다.');
+ if(estimate.chapters.some(chapter=>!Array.isArray(chapter.eligibleTopics)||
+    chapter.eligibleTopics.length!==chapter.eligibleTopicUpperBound||
+    chapter.eligibleTopics.some(topic=>typeof topic.title!=='string'||!topic.title.trim()))||
+    estimate.chapters.reduce((n,chapter)=>n+chapter.eligibleTopics.length,0)!==estimate.evidenceEligibleTopicUpperBound)
+  throw Error('작성 가능 항목 목록과 계산된 제공 범위가 일치하지 않습니다.');
  const selected=estimate.chapters.filter(x=>x.includedInPlan);
  const omitted=estimate.chapters.filter(x=>!x.includedInPlan);
  body.innerHTML=`<section class="section report-coverage">
  <h2>유료 심화 풀이 제공 가능 범위</h2>
  <p><strong>${estimate.plannedChapters}개 장 · 최대 ${estimate.evidenceEligibleTopicUpperBound}개 항목</strong>을 분석 후보로 확인했습니다.</p>
  <p>이는 출생정보로 계산한 <strong>작성 가능 상한</strong>입니다. 실제 완성된 문단 수나 제공 보장은 아닙니다.</p>
+ <p class="meta">장마다 펼쳐 볼 수 있는 세부 질문은 실제 계산에서 작성 후보로 선택된 항목만 보여 줍니다. 이것만으로 개인별 풀이가 완성됐다는 뜻은 아닙니다.</p>
  <h3>근거가 확인된 장</h3>
- <ul>${selected.map(x=>`<li>${esc(x.name)} · 최대 ${x.eligibleTopicUpperBound}개 항목</li>`).join('')}</ul>
+ <ul>${selected.map(x=>`<li><strong>${esc(x.name)} · 최대 ${x.eligibleTopicUpperBound}개 항목</strong><details><summary>작성 후보 질문 보기</summary><ul>${x.eligibleTopics.map(t=>`<li>${esc(t.title)}</li>`).join('')}</ul></details></li>`).join('')}</ul>
  ${omitted.length?`<h3>제외된 장</h3><ul>${omitted.map(x=>`<li>${esc(x.name)}: ${esc(x.omittedReason)}</li>`).join('')}</ul>`:''}
  <p class="meta">현재 목차에는 ${catalog.chapterDefinitions}개 장, ${catalog.topicDefinitions}개 세부 항목이 정의되어 있습니다. ${catalog.originallyPlannedTopics}항목 고정 제공은 검증되지 않았습니다. 중복·근거 부족 항목은 실제 작성에서 생략될 수 있습니다.</p>
  <p><strong>현재 유료 구매와 정식 보고서 생성은 준비 중입니다.</strong> 결제나 유료 AI 생성 요청은 진행하지 않습니다.</p>
