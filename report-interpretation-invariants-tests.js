@@ -17,6 +17,16 @@ const base={person:{mbti:'ISFP'},targetYear:2027,fortune:{},
 const canonical=guidance.preflight(base);
 assert.equal(invariant.verify(base,canonical).pass,true);
 assert.equal(invariant.verify(base,canonical).supportedDomains.money,false);
+assert.equal(canonical.money.topicTasks.earning.mode,'use-primary');
+assert.equal(canonical.money.topicTasks.spending.mode,'state-limits',
+ 'one natal wealth subtype cannot independently support both earning and spending');
+const forcedDoubleCount=structuredClone(canonical);
+forcedDoubleCount.money.topicTasks.spending.mode='use-primary';
+forcedDoubleCount.money.topicTasks.spending.evidencePresent=true;
+forcedDoubleCount.money.topicTasks.spending.allowedSourceRefs=['natal.year.stem'];
+assert(invariant.verify(base,forcedDoubleCount).errors.includes('domain-topic-source-mismatch:money:spending'),
+ 'an edited blueprint cannot bypass the independent wealth source oracle');
+
 assert.equal(invariant.verify(base,canonical).supportedDomains.career,true);
 const outdated=structuredClone(canonical);
 outdated.year_2027_career.annualDomainEvidence.relevant=false;
