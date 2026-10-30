@@ -424,19 +424,34 @@ function schema(prompt,transport){
      ' '+brief.sourceComparison+' '+brief.previousSourceConstraint+
      ' 우선순위나 실제 행동·금전·직업의 결과는 계산된 것이 아니다. '+
      '본문에는 출처 번호·분류 이름·이 내부 감사 설명을 복사하지 않는다.';
-    // The model must WRITE an accessible conditional interpretation, not
-    // recite ledger entries. Keep the actual chart-specific reader question.
+    // Different sources can support a contrast, but a single source cannot.
+    // The old universal two-condition request produced the same conditional
+    // A/B paragraph for unrelated charts (verified in the 8-draft review).
+    const comparisonMode=brief.contrastMode;
+    if(!['two-verified-categories','single-grounded-category','no-grounded-category'].includes(comparisonMode))
+     throw Error('PAID_TOPIC_UNKNOWN_READER_COMPARISON_MODE:'+chapterId+':'+topic);
+    const twoVerifiedGroups=comparisonMode==='two-verified-categories'&&
+     roles.contrastedGroups.length===2;
+    const twoVerifiedSubroles=comparisonMode==='single-grounded-category'&&
+     roles.sameTraditionalGroupDifferentRoles===true;
+    const explanatoryGoal=twoVerifiedGroups?
+     '서로 다른 두 출처가 실제로 답할 수 있는 질문을 구별한다. 대비해야 새 의미가 생길 때만 조건을 짧게 비교하고, 가상의 두 상황을 기계적으로 나열하지 않는다. 두 분류의 실제 우선순위나 길흉을 임의로 판정하지 않는다.':
+     twoVerifiedSubroles?
+     '같은 분류 안의 두 세부 의미가 어떤 질문을 다르게 설명하는지 밝힌다. 출처가 두 개라고 반대 성격·인생 결과를 만들지 않는다. 필요 없다면 가상 상황은 하나만 사용한다.':
+     '실제 인용 가능한 하나의 의미가 이 질문에 답하는 범위만 풀어 쓴다. 다른 상징을 확인하지 못했으므로 억지 대비·조건 A/B·양면성을 만들어내지 않는다. 근거가 설명하지 못하는 내용으로 문단을 늘리지 않는다.';
+    // Writer-facing prose must answer this reader's question, not copy the
+    // audit ledger or the same prepackaged example for every birth chart.
     p.properties.text.description+=
      ' 이 항목에서 독자가 이해할 질문: '+brief.readerQuestion+
-     '. 실제 출생 근거로 설명 가능한 두 조건의 차이를 쉬운 문장으로 먼저 말한다. '+
-     '가정 상황은 설명을 돕는 경우에만 사용한다: '+brief.hypotheticalContrast+
-     '. 조건이 바뀌면 무엇을 다르게 고려해야 하는지, 한쪽 관점만 보면 '+
-     '어떤 질문을 놓치는지를 이 항목에 한해 설명한다. '+
-     '다른 항목에서 이미 다룬 결론은 반복하지 않는다: '+
+     '. 답을 쉬운 한국어의 한 가지 해석으로 먼저 제시하고, 그 해석을 뒷받침하는 계산 뜻과 적용 가능한 조건을 연결한다. '+
+     explanatoryGoal+
+     ' 가정 상황은 설명에 도움이 될 경우에만 참고한다. 그대로 복사해 생활 사실이나 정형화된 예시로 쓰지 않는다: '+
+     brief.hypotheticalContrast+
+     '. 앞 장의 해석을 영역 이름만 바꾸어 반복하지 않는다: '+
      brief.differentFromOtherTopics+'. '+
-     '전통 분류 이름·출처 번호·검증 절차를 독자에게 강의하지 않는다. '+
-     '판단 가능한 범위를 넘는 실제 성격·능력·미래 사건은 단정하지 않으며, '+
-     '독립적인 해석이 없다면 선택 문단은 null로 둔다.';
+     '출처 ID·전문 분류 이름·검증 절차·반복적인 면책 문구는 본문에 나열하지 않는다. '+
+     '실제 성격·능력·재산·사건을 관찰하거나 예측했다고 단정하지 않는다. '+
+     '독립적인 새 해석이 없는 선택 문단은 null로 둔다.';
    }
    if(chapterId==='saju_core'&&topic==='natal_depth'&&
       prompt.qaNatalDepthPreview===true){
