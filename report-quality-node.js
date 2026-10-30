@@ -367,7 +367,11 @@ function validate(r,packet){
  }
  const issues=require('./report-heading-review').issues(r);
  for(const issue of issues)if(issue.reason==='abstract headline without concrete meaning')errors.push(issue.reason);
- if(readable.some(x=>/(?:[A-Za-z]+_){1,}[A-Za-z]+|undefined|\[object Object\]/.test(x)))errors.push('internal field leaked into prose');
+ // Internal evidence legitimately contains canonical source paths and QA
+ // identifiers. Only reader-visible prose may fail for exposing those names;
+ // source facts are validated independently by verifyEvidenceAgainstFacts().
+ if(require('./report-reader-policy').visibleFields(r).some(x=>/(?:[A-Za-z]+_){1,}[A-Za-z]+|undefined|\[object Object\]/.test(String(x||''))))
+  errors.push('internal field leaked into prose');
  if(readable.some(x=>/([가-힣]{2,})\s+\1(?=[\s,.!?]|$)/.test(x)))errors.push('duplicated adjacent word');
  if(readable.some(x=>/\uFFFD/.test(x)))errors.push('invalid text encoding');
  // An individually cautious sentence is legitimate; a paid report dominated by the
