@@ -229,9 +229,14 @@ assert.deepEqual(exactLink?.refs,['natal.month.hidden.丁','natal.hour.stem'],
 const paidMoneySlot=generator.schema(moneyPrompt,wire.schemaFor(moneyPrompt,schema))
  .properties.chapters.properties.money.properties.paragraphs.properties.earning;
 assert(paidMoneySlot.properties.text.description.includes('별도 실제 관계'));
-assert(!generator.compile(moneyPrompt).task.chapters.money.topics.spending
- .sourceOwnedInterpretiveThesis,
- 'the single wealth subtype must not create a duplicate spending thesis');
+const spendingThesis=generator.compile(moneyPrompt)
+ .task.chapters.money.topics.spending.sourceOwnedInterpretiveThesis;
+if(spendingThesis){
+ assert.deepEqual(spendingThesis.sourceRoles.map(x=>x.tenGod),['정재','편재'],
+  'a spending contrast is separate only when both wealth subtypes really exist');
+ assert(spendingThesis.question.includes('꾸준히 관리하는 자원'),
+  'spending interpretation must answer a different paid reader question');
+}
 const changedChart=facts.build({calendar:'solar',birthDate:'1994-07-15',
  birthTime:'20:20',gender:'male',mbti:'ISFP'},2027);
 const changedPrompt={...moneyPrompt,facts:changedChart,analysisGuidance:{
