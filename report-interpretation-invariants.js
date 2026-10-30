@@ -36,10 +36,19 @@ const domainKindChecks={
 function checkDomainSources(rows,plan){
  const errors=[];
  const natal=rows.filter(row=>row.id.startsWith('natal.'));
+ // Independent oracle: do NOT trust plan flags to decide whether one
+ // wealth subtype can fund both earning and spending content. This is
+ // reconstructed directly from the calculated, canonical natal rows.
+ const wealth=natal.filter(row=>['정재','편재'].includes(row.tenGod));
+ const output=natal.filter(row=>['식신','상관'].includes(row.tenGod));
+ const spendingIndependent=output.length>0||
+  new Set(wealth.map(row=>row.tenGod)).size>1;
  for(const [chapterId,topics] of Object.entries(domainKindChecks)){
   for(const [topic,accept] of Object.entries(topics)){
    const actual=plan?.[chapterId]?.topicTasks?.[topic];
-   const expected=natal.filter(accept).map(row=>row.id);
+   const sourceIds=natal.filter(accept).map(row=>row.id);
+   const expected=(chapterId==='money'&&topic==='spending'&&!spendingIndependent)?
+    []:sourceIds;
    const supported=expected.length>0;
    if(!actual||!same(actual.allowedSourceRefs,expected)||
       actual.mode!==(supported?'use-primary':'state-limits')||
