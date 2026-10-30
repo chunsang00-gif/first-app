@@ -339,6 +339,14 @@ function compile(prompt){
     const thesis=require('./report-paid-interpretive-bridge')
      .build({chapterId,topicId,topic});
     if(thesis)topic.sourceOwnedInterpretiveThesis=thesis;
+    // Only annual money/career CHANGE topics with an exact verified pair
+    // get an extra paid interpretation. This is not a new paid model call.
+    if(topicId==='change'&&['year_2027_money','year_2027_career'].includes(chapterId)){
+     const annualReading=require('./report-paid-annual-reading').build({
+      chapterId,topicId,source,topic:{...topic,annualScope:chapter.annualScope}
+     });
+     if(annualReading)topic.sourceOwnedAnnualReading=annualReading;
+    }
    }
   }
   // The only purpose of this batch is Saju core: do not show the writer
@@ -501,6 +509,34 @@ function schema(prompt,transport){
      '근거가 지지하지 않는 두 번째 인생 특징이나 정해진 가상 생활 장면을 만들지 않는다. '+ 
      '출처 번호·한자·전문 분류어는 독자 본문에 옮기지 않는다. '+ 
      '같은 결론을 다른 항목에 재판매하지 않고 설명할 새 뜻이 없다면 선택 문단은 null로 둔다.';
+   }
+   if(task.sourceOwnedAnnualReading){
+    const reading=task.sourceOwnedAnnualReading;
+    const rows=[reading.annualSource,reading.natalSource];
+    if(reading.kind!=='source-owned-annual-domain-reading-v1'||
+       reading.chapter!==chapterId||reading.topic!==topic||
+       reading.noEventPrediction!==true||
+       reading.relativeStrengthAssessed!==false||
+       reading.impliesRealHistory!==false||
+       reading.sourceRefs.length!==2||
+       reading.sourceRefs[0]!=='annual.stem'||
+       !rows.every(row=>permitted.includes(row.id)&&
+        payload.source[row.id]?.tenGod===row.tenGod&&
+        payload.source[row.id]?.position===row.position&&
+        payload.source[row.id]?.traditionalMeaning===row.traditionalMeaning))
+     throw Error('PAID_ANNUAL_READING_SOURCE_DRIFT:'+chapterId+':'+topic);
+    // Put the actual subtype comparison in the STRICT provider text leaf,
+    // so the model must explain why this is not a recycled general 2027 page.
+    p.properties.text.description+=
+     ' 별도 2027년 분야 풀이의 실제 두 출처: 출생 원국의 '+
+     reading.natalSource.position+' '+reading.natalSource.tenGod+
+     ' ('+reading.natalSource.traditionalMeaning+'), '+
+     '2027년 겉글자의 '+reading.annualSource.tenGod+
+     ' ('+reading.annualSource.traditionalMeaning+'). '+
+     reading.readerQuestion+' '+reading.actualDifference+
+     ' 두 종류를 같은 뜻으로 뭉뚱그리거나 그 차이만으로 운의 상승·감소, 실제 소득, 이직, 승진을 단정하지 않는다. '+
+     '일반 2027년 장이 이미 한 내용을 반복하지 말고 이 분야에서만 추가된 계산 질문을 쉬운 문장으로 설명한다. '+
+     '새 뜻을 설명할 수 없다면 선택 문단은 null로 둔다.';
    }
    if(chapterId==='saju_core'&&topic==='natal_depth'&&
       prompt.qaNatalDepthPreview===true){
