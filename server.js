@@ -172,7 +172,17 @@ reportContract.generate(a.calculationInput,prompt=>enqueueModel(async()=>{
  return json(res,503,{status:'failed',code:'REPORT_INTERRUPTED',
   validatedBatches:saved?.batches?.length||0,
   message:'서버 재시작으로 기존 분석이 중단됐습니다. 저장된 장이 있어도 추가 API 비용 방지를 위해 자동 재생성하지 않습니다.'});
-}return json(res,200,{status:'processing',progress:job.progress||null,timing:reportTiming.snapshot(job.createdAt)})}if(job.status==='ready')return json(res,200,{status:'ready',report:job.result.report});if(job.status==='rejected'){console.warn('[Report quality rejected]',{errors:job.result?.qa?.errors||[],issues:job.result?.qa?.issues||[]});return json(res,422,{status:'rejected',code:'REPORT_QUALITY_REJECTED',jobId:id,report:job.result.report,qa:job.result.qa,headingRepairs:job.result.headingRepairs||[],message:'풀이에서 수정할 문장이 발견됐습니다. 원문과 검사 내용을 저장할 수 있습니다. 다시 생성할 필요 없이 문제 부분부터 확인하세요.'})}console.error('[Report quality failure]',job.message||job.result?.qa?.errors||'report generation failed');const code=job.code||'REPORT_GENERATION_FAILED';return json(res,422,{status:'failed',code,progress:job.progress||null,message:diagnostics.messageFor(code)})}if(req.method==='GET'){const file=resolvePublic(ROOT,req.url);if(!file||!fs.existsSync(file)||fs.statSync(file).isDirectory()){res.writeHead(404);return res.end('Not found')}res.writeHead(200,staticHeaders(mime(file)));return fs.createReadStream(file).pipe(res)}res.writeHead(405);res.end('Method not allowed')}catch(e){const safe=/^(AI report service|invalid json|request too large)/.test(String(e.message||''))?e.message:'server error';json(res,500,{status:'error',message:safe})}}
+}return json(res,200,{status:'processing',progress:job.progress||null,timing:reportTiming.snapshot(job.createdAt)})}if(job.status==='ready'){
+ const gate=job.result?.qa?.releaseGate;
+ // Old or corrupted persisted jobs cannot bypass the current technical
+ // completion check by retaining a historical 'ready' status on disk.
+ if(gate?.technicalChecks!=='passed'||gate.releaseVerdict!=='not-approved')
+  return json(res,422,{status:'rejected',code:'REPORT_TECHNICAL_GATE_INCOMPLETE',
+   message:'보고서의 출고 기술 검사가 확인되지 않았습니다. 자동 재생성하지 않습니다.'});
+ return json(res,200,{status:'ready',report:job.result.report,
+  technicalChecks:'passed',humanReviewRequired:true,
+  releaseVerdict:'not-approved',customerSaleApproved:false});
+}if(job.status==='rejected'){console.warn('[Report quality rejected]',{errors:job.result?.qa?.errors||[],issues:job.result?.qa?.issues||[]});return json(res,422,{status:'rejected',code:'REPORT_QUALITY_REJECTED',jobId:id,report:job.result.report,qa:job.result.qa,headingRepairs:job.result.headingRepairs||[],message:'풀이에서 수정할 문장이 발견됐습니다. 원문과 검사 내용을 저장할 수 있습니다. 다시 생성할 필요 없이 문제 부분부터 확인하세요.'})}console.error('[Report quality failure]',job.message||job.result?.qa?.errors||'report generation failed');const code=job.code||'REPORT_GENERATION_FAILED';return json(res,422,{status:'failed',code,progress:job.progress||null,message:diagnostics.messageFor(code)})}if(req.method==='GET'){const file=resolvePublic(ROOT,req.url);if(!file||!fs.existsSync(file)||fs.statSync(file).isDirectory()){res.writeHead(404);return res.end('Not found')}res.writeHead(200,staticHeaders(mime(file)));return fs.createReadStream(file).pipe(res)}res.writeHead(405);res.end('Method not allowed')}catch(e){const safe=/^(AI report service|invalid json|request too large)/.test(String(e.message||''))?e.message:'server error';json(res,500,{status:'error',message:safe})}}
 if(require.main===module)http.createServer(handler).listen(PORT,()=>console.log(`saju-mbti server listening on ${PORT}`));
 module.exports={handler,callOpenAI};
 
