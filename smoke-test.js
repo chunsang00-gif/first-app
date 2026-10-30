@@ -55,7 +55,7 @@ if(p.stage==='body')for(const section of sections){
   if(!cited.length)throw Error('smoke active topic has no canonical cited source: '+section.id+':'+topic);
   return topic+': '+cited.slice(0,3).map(row=>row.id+
    (row.position?' ('+row.position+' '+(row.stem||'')+' '+(row.tenGod||'')+')':'')).join('; ')+
-   ' / 해석: '+section.id+' '+topic+'의 소유 근거를 연결한 모의 데이터'+
+   ' / 해석: '+section.title+'의 '+topic+' 근거를 연결한 모의 데이터'+
    ' / 조건: 합성 테스트 / 한계: 실제 생활 행동을 관찰한 결과가 아님';
  });
  if(!section.bodyTopics.includes(p.analysisGuidance.editorialBlueprint[section.id].anchorTopic))
