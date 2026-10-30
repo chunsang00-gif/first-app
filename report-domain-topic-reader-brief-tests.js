@@ -259,8 +259,7 @@ function paidRole(position,stem,tenGod){
 for(const [chapterId,topicId,first,second,expected] of [
  ['career','workstyle','식신','상관','차근차근'],
  ['career','teamwork','비견','겁재','서로의 몫'],
- ['career','teamwork','정관','편관','예상치 못한 요구'],
- ['relationship','expression','식신','상관','이견을 말하는']
+ ['career','teamwork','정관','편관','예상치 못한 요구']
 ]){
  const pair=[paidRole('year','甲',first),paidRole('month','乙',second)];
  const thesis=paidBridge.build({chapterId,topicId,
@@ -277,6 +276,13 @@ for(const [chapterId,topicId,first,second,expected] of [
  assert.equal(paidBridge.build({chapterId,topicId,
   topic:{mode:'state-limits',citableFacts:pair}}),null);
 }
+// Relationship.expression already had the exact 식신/상관 contrast.
+// Do not add an alternative with identical source roles and another label.
+const existingExpression=paidBridge.build({chapterId:'relationship',
+ topicId:'expression',topic:{mode:'use-primary',citableFacts:[
+  paidRole('year','甲','식신'),paidRole('month','乙','상관')]}});
+assert(existingExpression);
+assert(existingExpression.question.includes('자신의 뜻을 표현하는 질문'));
 // A broader primary category comparison wins when both source groups exist;
 // otherwise the new same-group question would erase a stronger distinction.
 const primary=paidBridge.build({chapterId:'career',topicId:'teamwork',
