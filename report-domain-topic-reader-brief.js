@@ -125,28 +125,27 @@ const MINOR_SCENES=Object.freeze({
   response:{인성:['가상의 어려운 수업에서 설명을 다시 듣는다','같은 수업에서 도움받은 뒤 자신이 이해한 것을 확인한다']}
  }
 });
+// The former provider brief included fixed scenes such as orders, factory
+// handovers and purchases. Across charts, those examples displaced the
+// symbolic interpretation and repeatedly produced the same paid manuscript.
+// Keep the category eligibility check, but NEVER send stock life scenes to
+// the paid writer. A hypothetical example is optional, not a source of facts.
 function groundedScene(chapterId,topicId,groups,ageBand='unknown'){
  const available=(ageBand==='minor'?MINOR_SCENES:CATEGORY_SCENES)[chapterId]?.[topicId]||{};
  const supported=groups.filter(g=>available[g]);
  if(!supported.length)return {
-  text:'이 항목에 맞는 계산 분류가 확인되지 않아 가상 생활 장면으로 설명을 보충하지 않는다.',
+  text:'이 항목의 질문에 직접 해당하는 계산 분류가 확인되지 않았다. 가상의 직업·금전·관계 경험이나 두 번째 성격을 만들어 빈칸을 채우지 않는다.',
   included:[],unavailable:groups,categorySupported:false,
   contrastMode:'no-grounded-category'
  };
  const first=supported[0],next=supported[1];
- // Past copies asked EVERY reader to compare two scenes, even where only
- // one source category was verified. That padded the report with the same
- // conditional A/B template. Only two genuinely different cited groups
- // can justify a group-to-group comparison.
  const text=next?
-  '실제로 확인된 '+first+' 분류에 해당하는 설명용 상황: '+available[first][0]+
-  '. 별도로 확인된 '+next+' 분류에 해당하는 다른 상황: '+available[next][0]+
-  '. 두 상황의 비교는 각각의 출처 의미가 다를 때만 사용한다. 반드시 두 장면을 모두 쓰거나 유불리·실제 결과를 만들어서는 안 된다.':
-  '실제로 확인된 '+first+' 분류에 해당하는 설명용 가상 상황: '+available[first][0]+
-  '. 다른 독립 분류를 확인하지 않았으므로 조건 A/조건 B를 억지로 대비하거나 두 번째 일반 조언을 별도 심화 풀이로 판매하지 않는다.';
+  '실제로 확인된 '+first+' 분류와 별도로 확인된 '+next+
+  ' 분류의 뜻을 각각의 계산 위치에 연결한다. 두 뜻이 이 질문에 서로 다른 설명을 추가할 때만 짧게 비교한다. 미리 정해진 업무·계약·거래·납품 장면은 제공하지 않는다. 실제 개인의 생활 사실이나 두 분류의 강약·우선순위는 알 수 없다.':
+  '실제로 확인된 '+first+
+  ' 분류의 뜻으로만 이 질문에 답한다. 또 다른 독립 분류나 반대 성격을 가정하지 않는다. 설명에 꼭 필요한 경우에만 짧은 가상 상황을 사용하며 미리 정해진 업무·계약·거래·납품 예시를 채워 넣지 않는다.';
  return {
-  text,
-  included:supported.slice(0,2),
+  text,included:supported.slice(0,2),
   unavailable:groups.filter(g=>!supported.slice(0,2).includes(g)),
   categorySupported:true,
   contrastMode:next?'two-verified-categories':'single-grounded-category'
