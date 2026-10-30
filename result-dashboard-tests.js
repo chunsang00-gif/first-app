@@ -65,7 +65,7 @@ console.log('PASS reader sees actual completed chapter/topic count, not undefine
  const narrow=structuredClone(fewer);
  narrow.sections=narrow.sections.filter(s=>!['relationship','year_2027'].includes(s.id));
  const narrowHtml=render(narrow);
- const toc=narrowHtml.match(/<nav class="report-contents"[\\s\\S]*?<\\/nav>/)?.[0];
+ const toc=narrowHtml.split('<nav class="report-contents"')[1]?.split('</nav>')[0];
  assert(toc,'customer report must show a chapter index');
  assert.equal((toc.match(/<li>/g)||[]).length,narrow.sections.length,
   'index must contain delivered chapters, not all 12 canonical slots');
