@@ -27,6 +27,19 @@ const names=['NODE_ENV','RENDER','PAID_CORE_DEPTH_V2',
    assert.equal(JSON.stringify(input),before,'never rewrite caller birth data');
    assert.equal(result.status,'ready');
    assert.equal(result.kind,'prepurchase-report-scope-v1');
+   assert.equal(result.readingSample.kind,'free-calculated-meaning-preview-v1');
+   assert.equal(result.readingSample.status,'calculated-example');
+   assert.equal(result.readingSample.modelCalls,0);
+   assert.equal(result.readingSample.completedPremiumParagraphs,0);
+   assert.equal(result.readingSample.humanEditorialApproved,false);
+   assert.equal(result.readingSample.cards.length,3,
+    'known-hour chart should show month, real year/hour distinction and annual symbol');
+   assert(result.readingSample.cards[0].text.includes('태어난 달'));
+   assert(result.readingSample.cards[2].text.includes('2027년'));
+   assert(!/TEST_DO_NOT_EXPOSE|TEST_ADDRESS_DO_NOT_EXPOSE/.test(JSON.stringify(result.readingSample)));
+   assert(!/(?:natal\\.|annual\\.|facts\\.)/.test(JSON.stringify(result.readingSample)),
+    'actual source identifiers belong in internal audit, not public copy');
+
    assert.equal(result.catalog.chapterDefinitions,12);
    assert.equal(result.catalog.topicDefinitions,28);
    assert.equal(result.catalog.originallyPlannedTopics,35);
@@ -68,6 +81,17 @@ const names=['NODE_ENV','RENDER','PAID_CORE_DEPTH_V2',
    }
    checked.push({birthDate,plannedChapters:chapters,upperBound:eligible});
   }
+  const unknownTime=coverage.calculate({calendar:'solar',birthDate:'2001-11-03',
+   unknownBirthTime:true,birthTime:'12:00',gender:'male',mbti:'모름'});
+  assert.equal(unknownTime.status,'ready');
+  assert.deepEqual(unknownTime.readingSample.cards.map(x=>x.id),['birth-month','annual-2027'],
+   'unknown birth time must not advertise a made-up birth-hour interpretation');
+  const independent=cases.map(([birthDate,birthTime,calendar])=>coverage.calculate({
+   calendar,birthDate,birthTime,gender:'male',mbti:'ISFP',
+   ...(calendar==='lunar'?{leapMonth:false}:{})
+  }).readingSample.cards.map(c=>c.text).join(' / '));
+  assert(new Set(independent).size>=3,
+   'the free explanation must change with actually computed natal symbols across charts');
   // Source scope rather than a hardcoded four-chart lookup:
   // a different MBTI field cannot fabricate a new natal ten-god relation.
   const input={calendar:'solar',birthDate:'1994-07-15',birthTime:'14:20',
