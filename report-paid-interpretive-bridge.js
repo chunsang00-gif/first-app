@@ -34,6 +34,11 @@ const RULES=Object.freeze({
   question:'도움과 기준을 통해 배우는 관점과 독자적으로 이해하는 관점은 무엇을 달리 묻는가?',
   explanation:'보호·기초 학습과 독자적 이해라는 전통 분류를 구별한다. 실제 공부 방식, 성적 또는 자격 획득을 증명하지 않는다.'
  }),
+ 'relationship.closeness':Object.freeze({
+  first:['비견','겁재'],second:['정관','편관'],
+  question:'가까운 사이에 서로 참여하는 몫을 정하는 일과 약속·책임을 지키는 일을 어떻게 구별해 설명할 수 있는가?',
+  explanation:'같은 출생일 지지에 실제로 있는 동료·참여의 전통 상징과 역할·규칙의 전통 상징을 따로 읽는다. 출생일 안에서 함께 확인된다는 것만 말하고 실제 친밀감, 배우자 성격이나 관계의 지속 여부는 예언하지 않는다.'
+ }),
  'relationship.expression':Object.freeze({
   first:['식신'],second:['상관'],
   question:'자신의 뜻을 표현하는 질문과 기존 규칙에 대한 반응을 표현하는 질문은 어떻게 다른가?',
@@ -55,6 +60,33 @@ const RULES=Object.freeze({
 // This is a chart-specific alternative, not a second paid paragraph and not
 // a claim about an observed person's behavior.
 const ALTERNATIVES=Object.freeze({
+ 'relationship.closeness':Object.freeze([
+  Object.freeze({
+   first:['식신','상관'],second:['정인','편인'],
+   question:'가까운 관계에서 자기 뜻을 전하는 질문과 도움·이해를 구하는 질문은 어떻게 다른가?',
+   explanation:'출생일의 실제 숨은 글자에 있는 표현 상징과 이해·지원 상징의 별도 뜻을 구별한다. 함께 있다고 어느 쪽이 더 강하다는 뜻은 아니며 실제 대화 방식은 확인되지 않았다.'
+  }),
+  Object.freeze({
+   first:['정재','편재'],second:['정관','편관'],
+   question:'함께 쓰는 자원에 관해 결정하는 일과 서로 지킬 약속을 정하는 일은 어떤 질문을 달리 만드는가?',
+   explanation:'출생일 내부의 재물·자원 상징과 역할·약속 상징을 나란히 설명한다. 실제 부부 재산이나 소비 성향, 다툼은 알 수 없다.'
+  }),
+  Object.freeze({
+   first:['비견','겁재'],second:['식신','상관'],
+   question:'서로 맡을 몫을 정하는 일과 자신의 생각을 전달하는 일은 어떻게 다른 질문인가?',
+   explanation:'같은 출생일에 확인된 참여·동료 상징과 표현 상징의 의미를 구별한다. 역할과 표현이 어느 쪽에서 먼저 나타난다거나 실제 대화 경험이 있다는 주장은 하지 않는다.'
+  }),
+  Object.freeze({
+   first:['정재','편재'],second:['정인','편인'],
+   question:'함께 사용하는 자원을 검토하는 일과 서로에게 필요한 도움을 확인하는 일은 어떻게 다른가?',
+   explanation:'출생일의 실제 자원 상징과 이해·지원 상징을 서로 다른 전통적 질문으로 읽는다. 관계의 좋고 나쁨이나 실제 상대 행동은 검증되지 않았다.'
+  }),
+  Object.freeze({
+   first:['식신','상관'],second:['정재','편재'],
+   question:'서로에게 뜻을 전달하는 일과 공동 자원의 조건을 정하는 일은 어떻게 구별되는가?',
+   explanation:'실제로 계산된 출생일의 표현 상징과 재물·자원 상징을 분리해 설명한다. 두 역할의 우열이나 실제 가정 경제는 알 수 없다.'
+  })
+ ]),
  'career.workstyle':Object.freeze([
   Object.freeze({
    first:['식신'],second:['상관'],
@@ -82,9 +114,12 @@ function build({chapterId,topicId,topic}={}){
  // Never invent a cross-domain analogy merely to add a premium paragraph.
  if(!rule)return null;
  const roles=(topic.citableFacts||[]).filter(row=>
-  ID.test(row.id)&&row.position&&row.stem&&row.tenGod&&
-  GROUP[row.tenGod]&&typeof row.traditionalMeaning==='string'&&
-  row.traditionalMeaning.trim());
+  ID.test(row.id)&&
+  // Only the day-branch *hidden* stems may inform a closeness reading.
+  // A year/month/hour role is neither a substitute nor a new day-branch fact.
+  (key!=='relationship.closeness'||/^natal\.day\.hidden\./.test(row.id))&&
+  row.position&&row.stem&&row.tenGod&&GROUP[row.tenGod]&&
+  typeof row.traditionalMeaning==='string'&&row.traditionalMeaning.trim());
  const pick=kind=>roles.find(row=>kind.includes(row.tenGod));
  const variants=[rule,...(ALTERNATIVES[key]||[])];
  const selected=variants.map(candidate=>({
