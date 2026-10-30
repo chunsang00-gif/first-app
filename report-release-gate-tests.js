@@ -32,6 +32,26 @@ assert.equal(okay.humanReviewRequired,true);
 assert.deepEqual(okay.failedTechnicalChecks,[]);
 assert.equal(okay.sourceCoverage.status,'canonical-source-data');
 assert(okay.manualChecks.includes('depth-worth-paying-for'));
+const finalized=release.finalize({report,qa:{pass:true,errors:[]},packet,coverage});
+assert.equal(finalized.pass,true,'valid technical draft can be ready for human review');
+assert.equal(finalized.releaseGate.releaseVerdict,'not-approved',
+ 'automated success can never count as human editorial approval');
+const missingChapters=release.finalize({report,qa:{pass:true,errors:[]},packet,
+ coverage:{canGenerate:true,plannedIds:ids.slice(0,-1)}});
+assert.equal(missingChapters.pass,false,
+ 'a passing prose validator must not bypass an inconsistent chapter plan');
+assert(missingChapters.errors.some(x=>x.includes('chapter-scope-not-confirmed')));
+const invalidCitationReport=structuredClone(report);
+invalidCitationReport.sections[1].evidence=['no canonical source'];
+const missingCitations=release.finalize({report:invalidCitationReport,
+ qa:{pass:true,errors:[]},packet,coverage});
+assert.equal(missingCitations.pass,false);
+assert(missingCitations.errors.some(x=>x.includes('paragraph-citation-coverage-incomplete')));
+const alreadyFailed=release.finalize({report,qa:{pass:false,errors:['invalid prose']},packet,coverage});
+assert.equal(alreadyFailed.pass,false);
+assert(alreadyFailed.errors.includes('invalid prose'));
+assert(!alreadyFailed.errors.some(x=>x.includes('technical-release-check:automated-quality-not-passed')),
+ 'an original editorial failure should not be duplicated as a technical discrepancy');
 // Product scope is about distinct analysis areas, not a minimum of six titles.
 const compact={...structuredClone(report),sections:report.sections.filter(s=>
  ['saju_core','career','relationship','year_2027'].includes(s.id))};
