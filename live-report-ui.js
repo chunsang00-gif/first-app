@@ -47,7 +47,7 @@ async function showCoverage(validatedInput){
  if(sample?.kind!=='free-calculated-meaning-preview-v1'||
     sample?.status!=='calculated-example'||sample?.modelCalls!==0||
     sample?.completedPremiumParagraphs!==0||sample?.humanEditorialApproved!==false||
-    !Array.isArray(sample.cards)||sample.cards.length<2||sample.cards.length>3||
+    !Array.isArray(sample.cards)||sample.cards.length<2||sample.cards.length>4||
     new Set(sample.cards.map(c=>c.id)).size!==sample.cards.length||
     sample.cards.some(c=>typeof c.title!=='string'||!c.title.trim()||
       typeof c.text!=='string'||c.text.length<30)||
