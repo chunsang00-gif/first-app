@@ -71,6 +71,14 @@ for(const [calendar,birthDate,birthTime] of cases){
      brief.illustratedSourceGroups,
      'a mixed-source example must cite an actual role from BOTH described categories');
    }
+   const citedCategory=require('./report-domain-topic-reader-brief').citedRoleCoverage;
+   const categories=topic.citableFacts.filter(row=>row.tenGod).map(row=>row.id);
+   assert(categories.some(ref=>citedCategory(brief,[ref],actual.source).pass),
+    'some truly available source must substantiate the displayed domain category');
+   assert.equal(citedCategory(brief,['person.mbti'],actual.source).pass,false,
+    'a broad MBTI input cannot substitute for a cited role in domain interpretation');
+   assert.equal(citedCategory(brief,[],actual.source).pass,false,
+    'an empty citation list must not produce a grounded premium topic');
    assert.equal(brief.exactRoleLens.independentLifeProof,false);
    assert.equal(brief.exactRoleLens.priorityAssessed,false);
    assert(brief.exactRoleLens.sourceRoles.length<=2);
@@ -207,6 +215,15 @@ const noClassification=editor.build({chapterId:'money',topicId:'earning',
  topic:{mode:'use-primary',citableFacts:[
   {id:'person.mbti',position:'입력 선호'}]}});
 assert.equal(noClassification.sourceCategoryBoundScene,false);
+assert.equal(editor.citedRoleCoverage(noClassification,['person.mbti'],
+ {'person.mbti':{type:'ISFP'}}).required,false);
+assert.equal(editor.citedRoleCoverage(noClassification,['person.mbti'],
+ {'person.mbti':{type:'ISFP'}}).pass,true);
+assert.equal(editor.citedRoleCoverage(sameGroup,
+ ['natal.year.stem'],{'natal.year.stem':{tenGod:'식신'}}).pass,false,
+ 'a real cited source from the wrong category cannot back a wealth paragraph');
+assert.equal(editor.citedRoleCoverage(sameGroup,
+ ['natal.month.stem'],{'natal.month.stem':{tenGod:'정재'}}).pass,true);
 assert.equal(noClassification.contrastMode,'no-grounded-category');
 assert.deepEqual(noClassification.illustratedSourceGroups,[]);
 assert(!noClassification.hypotheticalContrast.includes('거래'));
