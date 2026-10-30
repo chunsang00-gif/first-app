@@ -317,7 +317,7 @@ for(const [calendar,date,time] of cases){
  const reading=topic.sourceOwnedInterpretiveThesis;
  if(!reading)continue;
  paidDayReadings++;
- assert(reading.sourceRoles.every(x=>/^natal\\.day\\.hidden\\./.test(x.ref)));
+ assert(reading.sourceRoles.every(x=>x.ref.startsWith('natal.day.hidden.')));
  assert.equal(new Set(reading.sourceRoles.map(x=>x.tenGod)).size,2,
   'independent day-branch subtypes, not a repeated label');
  const slot=generator.schema(prompt,wire.schemaFor(prompt,schema))
