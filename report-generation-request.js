@@ -347,6 +347,14 @@ function compile(prompt){
      });
      if(annualReading)topic.sourceOwnedAnnualReading=annualReading;
     }
+    // Use the calculated day/annual-branch relation as its own distinct
+    // annual relationship reading, not a generic yearly warning.
+    if(chapterId==='year_2027_relationship'&&topicId==='change'){
+     const annualRelationship=require('./report-paid-annual-reading')
+      .buildRelationship({chapterId,topicId,source,
+       topic:{...topic,annualScope:chapter.annualScope}});
+     if(annualRelationship)topic.sourceOwnedAnnualRelationship=annualRelationship;
+    }
    }
   }
   // The only purpose of this batch is Saju core: do not show the writer
@@ -537,6 +545,32 @@ function schema(prompt,transport){
      ' 두 종류를 같은 뜻으로 뭉뚱그리거나 그 차이만으로 운의 상승·감소, 실제 소득, 이직, 승진을 단정하지 않는다. '+
      '일반 2027년 장이 이미 한 내용을 반복하지 말고 이 분야에서만 추가된 계산 질문을 쉬운 문장으로 설명한다. '+
      '새 뜻을 설명할 수 없다면 선택 문단은 null로 둔다.';
+   }
+   if(task.sourceOwnedAnnualRelationship){
+    const reading=task.sourceOwnedAnnualRelationship;
+    const ref='facts.targetYearBranchContext.annualContext.day';
+    const sourceDay=payload.source[ref];
+    if(reading.kind!=='source-owned-annual-day-branch-reading-v1'||
+       chapterId!=='year_2027_relationship'||topic!=='change'||
+       reading.chapter!==chapterId||reading.topic!==topic||
+       reading.sourceRef!==ref||!permitted.includes(ref)||
+       reading.birthDayBranch!==sourceDay?.dayBranch||
+       reading.annualBranch!==sourceDay?.annualBranch||
+       reading.unresolvedPriority!==true||
+       reading.transformationAssessed!==false||
+       reading.outcomePredicted!==false||
+       reading.customerHistoryObserved!==false||
+       !reading.directRelations?.length||
+       reading.directRelations.some(item=>
+        !['충','육합'].includes(item.type)||
+        !sourceDay.primaryEvidence?.some(row=>row.type===item.type))||
+       reading.overlappingRelations!==(sourceDay.hasCompetingClaims===true))
+     throw Error('PAID_ANNUAL_RELATIONSHIP_SOURCE_DRIFT');
+    p.properties.text.description+=
+     ' 별도 2027년 인간관계 해석: '+reading.readerWritingGoal+
+     ' 출생일의 지지와 2027년 지지를 혼동하지 말고, 충이면 맞부딪히는 배치의 질문을, 육합이면 짝을 이루는 배치의 질문을 가상의 관계 상황으로 풀어 쓴다. '+
+     '형·파·해나 기존 원국과 관계가 겹쳐도 원인·결과·우선순위를 만들지 않는다. '+
+     '다른 2027년 장의 직업·금전 해석을 반복하지 않고 실제 연애·이별·결혼을 예측하지 않는다.';
    }
    if(chapterId==='saju_core'&&topic==='natal_depth'&&
       prompt.qaNatalDepthPreview===true){
