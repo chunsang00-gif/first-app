@@ -7,6 +7,31 @@ const reportTiming=require('./report-timing').createTiming();
 const reportStore=require('./report-job-store').create(process.env.REPORT_STORAGE_DIR);
 const checkpointIdentity=require('./report-checkpoint-identity');
 const jobAccess=require('./report-job-access');
+// One verified merchant order may authorize ONE report job. Sales remain
+// disabled unless both separate business and editorial approvals are set.
+const paymentLedger=reportStore.enabled?require('./report-purchase-ledger').create({
+ dir:path.join(process.env.REPORT_STORAGE_DIR,'purchases'),
+ priceKRW:Number(process.env.PREMIUM_REPORT_PRICE_KRW),
+ salesApproved:process.env.PREMIUM_SALES_APPROVED==='true'&&
+  process.env.PREMIUM_EDITORIAL_REVIEW_APPROVED==='true',
+ secretKey:process.env.TOSS_SECRET_KEY
+}):null;
+const paymentSalesReady=()=>Boolean(paymentLedger&&
+ process.env.PREMIUM_SALES_APPROVED==='true'&&
+ process.env.PREMIUM_EDITORIAL_REVIEW_APPROVED==='true'&&
+ Number.isSafeInteger(Number(process.env.PREMIUM_REPORT_PRICE_KRW))&&
+ Number(process.env.PREMIUM_REPORT_PRICE_KRW)>0&&
+ typeof process.env.TOSS_SECRET_KEY==='string'&&
+ process.env.TOSS_SECRET_KEY.length>=16&&
+ diagnostics.configuration().configured);
+function verifiedPurchase(purchase){
+ if(!paymentLedger||!purchase||typeof purchase!=='object')return null;
+ const {orderId,ownerToken}=purchase;
+ if(typeof orderId!=='string'||typeof ownerToken!=='string')return null;
+ try{const info=paymentLedger.status({orderId,ownerToken});
+  return info.state==='verified-paid'||info.state==='delivery-bound'?info:null;
+ }catch{return null}
+}
 // Mock generation is strictly for non-production local testing, never a public deployment.
 function localMockEnabled(req){const remote=req?.socket?.remoteAddress;const loopback=remote==='127.0.0.1'||remote==='::1'||remote==='::ffff:127.0.0.1';return loopback&&process.env.RENDER!=='true'&&process.env.NODE_ENV!=='production'&&/^http:\/\/127\.0\.0\.1:\d+\//.test(process.env.REPORT_MODEL_URL||'')}
 const {createQueue,rateLimitKind}=require('./report-request-control');const enqueueModel=createQueue();
