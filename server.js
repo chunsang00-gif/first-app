@@ -240,6 +240,9 @@ reportContract.generate(a.calculationInput,prompt=>enqueueModel(async()=>{
  if(job?.status==='processing')job.validatedBatches=(existing?.batches.length||0)+1;
 }).then(result=>{if(result.status==='ready')reportTiming.record(startedAt);const completed={status:result.status,result,createdAt:Date.now(),startedAt,accessHash,paidOrderId};if(reportStore.enabled)reportStore.save(id,completed);JOBS.set(id,completed)}).catch(e=>{const m=String(e?.message||'');console.error('[Report job error]',{type:e?.name||'Error',message:/^AI report service/.test(m)?m:'report generation failed'});const failed={status:'failed',progress:JOBS.get(id)?.progress||null,code:diagnostics.failureCode(m),message:/^AI report service/.test(m)?m:'report generation failed',createdAt:Date.now(),accessHash,paidOrderId};JOBS.set(id,failed);if(reportStore.enabled)try{reportStore.save(id,failed)}catch(err){console.error('[Report storage error]',err?.code||'storage failure')}});return json(res,202,{status:'processing',jobId:id,accessToken,timing:reportTiming.snapshot(startedAt)})}if(req.method==='GET'&&req.url.startsWith('/api/report-status?')){
  const localMock=localMockEnabled(req);
+ if(!localMock&&(!paymentLedger||
+   !/^[a-f0-9]{64}$/.test(req.headers?.['x-report-access-token']||'')))
+  return json(res,403,{status:'blocked',code:'PURCHASE_VERIFICATION_REQUIRED'});
  cleanupJobs();const id=new URL(req.url,'http://localhost').searchParams.get('id'),job=JOBS.get(id)||reportStore.load(id);
 if(!job)return json(res,404,{status:'missing'});
 if(!localMock){
