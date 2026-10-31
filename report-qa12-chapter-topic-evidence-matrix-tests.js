@@ -35,7 +35,7 @@ const keys=['NODE_ENV','RENDER','PAID_CORE_DEPTH_V2',
    assert.equal(JSON.stringify(snapshot.prompt),unchanged);
    assert.equal(result.targetTopics,35);
    assert.equal(result.definedTopics,28);
-   assert.equal(result.countPolicyDisabled,6);
+   assert.equal(result.countPolicyDisabled,5);
    assert.equal(result.structurallyPossibleTopicSlotsAtMost,23);
    assert.equal(result.minimumGapTo35EvenForOptimisticChart,12);
    assert.equal(result.actualGeneratedTopics,0);
