@@ -33,7 +33,7 @@ const domainKindChecks={
   response:row=>['정인','편인'].includes(row.tenGod)
  }
 };
-function checkDomainSources(rows,plan){
+function checkDomainSources(rows,plan,packet){
  const errors=[];
  const natal=rows.filter(row=>row.id.startsWith('natal.'));
  // Independent oracle: do NOT trust plan flags to decide whether one
@@ -47,8 +47,10 @@ function checkDomainSources(rows,plan){
   for(const [topic,accept] of Object.entries(topics)){
    const actual=plan?.[chapterId]?.topicTasks?.[topic];
    const sourceIds=natal.filter(accept).map(row=>row.id);
-   const expected=(chapterId==='money'&&topic==='spending'&&!spendingIndependent)?
-    []:sourceIds;
+   const expected=chapterId==='relationship'&&topic==='conflict'?
+    (require('./report-paid-natal-day-clash').matching(packet.chart,packet.facts?.natalClashes).length?
+     ['facts.natalClashes']:[]):
+    (chapterId==='money'&&topic==='spending'&&!spendingIndependent)?[]:sourceIds;
    const supported=expected.length>0;
    if(!actual||!same(actual.allowedSourceRefs,expected)||
       actual.mode!==(supported?'use-primary':'state-limits')||
@@ -66,7 +68,7 @@ function verify(packet,plan){
   return {pass:false,errors:['missing-calculation-or-interpretation-plan']};
  const rows=bindings.build(packet);
  const ids=new Set(rows.map(row=>row.id));
- errors.push(...checkDomainSources(rows,plan));
+ errors.push(...checkDomainSources(rows,plan,packet));
  if(ids.size!==rows.length)errors.push('duplicate-position-bound-calculation-id');
  const expected=core.all(packet);
  if(packet.facts?.seasonalEvidence){
@@ -162,7 +164,8 @@ function verify(packet,plan){
     if(task.evidenceReuseBoundary)errors.push('blocked-topic-owns-calculation-source:'+chapterId+':'+topic);
    }
    if(Array.isArray(task.allowedSourceRefs)){
-    const permitted=new Set([...ids,'facts.targetYearBranchContext.annualContext.day']);
+    const permitted=new Set([...ids,'facts.targetYearBranchContext.annualContext.day',
+     ...(Array.isArray(packet.facts?.natalClashes)?['facts.natalClashes']:[])]);
     const missing=task.allowedSourceRefs.filter(id=>!permitted.has(id)||
       (id==='facts.targetYearBranchContext.annualContext.day'&&!dayContext));
     if(missing.length)errors.push('unresolved-source-ids:'+chapterId+':'+topic);
