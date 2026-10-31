@@ -14,7 +14,7 @@ const cases=[
  ['solar','1994-01-15','14:20'],
  ['solar','1994-05-15','20:20']
 ];
-let verified=0,unavailable=0,distinct=0,substantiveTheses=0;
+let verified=0,unavailable=0,distinct=0,substantiveTheses=0,singleTheses=0;
 const IDS=['money','career','relationship','stress'];
 for(const [calendar,birthDate,birthTime] of cases){
  const packet=facts.build({calendar,birthDate,birthTime,
@@ -132,6 +132,25 @@ for(const [calendar,birthDate,birthTime] of cases){
       'verified original hidden-to-visible link must reach the paid writer');
     }
    }
+   const single=topic.sourceOwnedSingleReading;
+   if(single){
+    singleTheses++;
+    assert.equal(thesis,undefined,'one source cannot be sold as a two-source interpretation');
+    assert.equal(single.kind,'paid-single-source-reader-thesis-v1');
+    assert.equal(single.topic,chapterId+'.'+topicId);
+    assert.equal(single.uniqueSubtypeCount,1);
+    assert.equal(single.claimedRealWorldOutcome,false);
+    assert.equal(single.traditionalPriorityAssessed,false);
+    assert.equal(single.missingCounterpartInferred,false);
+    const original=topic.citableFacts.find(row=>row.id===single.source.ref);
+    assert(original,'single source must be a real permitted natal reference');
+    assert.equal(single.source.tenGod,original.tenGod);
+    assert.equal(single.source.traditionalMeaning,original.traditionalMeaning);
+    assert.equal(actual.source[single.source.ref].stem,single.source.stem);
+    assert(part.properties.text.description.includes(single.question));
+    assert(part.properties.text.description.includes(single.explanation));
+    assert(!part.properties.text.description.includes('출처 2:'));
+   }
    const packagedProse=brief.hypotheticalContrast+' '+part.properties.text.description;
    assert(!/(?:가상의 물품 거래에서|가상의 주문에서|가상의 업무에서|가상의 구매에서|가상의 모둠 활동에서|가상의 친밀한 관계에서|장비 인수인계|직접 제작할 결과물)/.test(packagedProse),
     'actual paid-provider topic must not receive recycled stock scenes');
@@ -246,6 +265,7 @@ const changedEarning=generator.compile(changedPrompt).task.chapters.money.topics
 assert(!changedEarning.sourceOwnedInterpretiveThesis?.exactStemBridge,
  'an altered birth hour must not inherit the old same-stem linkage');
 assert(substantiveTheses>0,'at least one real domain task must have a source-owned substantive thesis');
+assert(singleTheses>0,'real charts must send single subtype interpretation into paid writer');
 
 // A full category pair is not the only genuine two-source traditional
 // contrast. These different-subtype pairs reach the ACTUAL paid text schema
@@ -344,6 +364,53 @@ const primary=paidBridge.build({chapterId:'career',topicId:'teamwork',
   paidRole('hour','丙','정관')]}});
 assert.equal(primary.sourceRoles[0].tenGod,'비견');
 assert.equal(primary.sourceRoles[1].tenGod,'정관');
+// Unlike optional two-source contrasts, this question is about ONE
+// genuinely calculated subtype; different true categories get different
+// customer questions without fabricated second traits or predictions.
+const singleBridge=require('./report-paid-interpretive-bridge');
+const loneRow=(id,position,tenGod)=>({id,position,layer:'천간',
+ stem:id.endsWith('hour.stem')?'丁':'甲',tenGod,
+ traditionalMeaning:'원국에서 계산된 '+tenGod+' 뜻'});
+let singleVariants=0;
+for(const [chapterId,topicId,roles] of [
+ ['money','earning',['식신','상관','정재','편재']],
+ ['money','spending',['정재','편재']],
+ ['career','workstyle',['정인','편인','식신','상관']],
+ ['career','teamwork',['비견','겁재','정관','편관']],
+ ['career','growth',['정인','편인']],
+ ['relationship','expression',['식신','상관']],
+ ['stress','trigger',['정관','편관']],
+ ['stress','response',['정인','편인']]
+]){
+ const questions=[];
+ for(const god of roles){
+  const row=loneRow('natal.year.stem','연간',god);
+  const value=singleBridge.buildSingle({chapterId,topicId,
+   topic:{mode:'use-primary',citableFacts:[row]}});
+  assert(value,chapterId+'.'+topicId+' must explain '+god+' with only real source');
+  assert.equal(value.source.ref,row.id);
+  assert.equal(value.source.tenGod,god);
+  assert.equal(value.claimedRealWorldOutcome,false);
+  questions.push(value.question);singleVariants++;
+  // A repeated category across distinct positions is not another source
+  // of an independent new interpretation.
+  const duplicate=singleBridge.buildSingle({chapterId,topicId,
+   topic:{mode:'use-primary',citableFacts:[
+    row,loneRow('natal.hour.stem','시간',god)]}});
+  assert.equal(duplicate.uniqueSubtypeCount,1);
+ }
+ assert.equal(new Set(questions).size,roles.length);
+ const ineligible=singleBridge.buildSingle({chapterId,topicId,
+  topic:{mode:'state-limits',citableFacts:[
+   loneRow('natal.year.stem','연간',roles[0])]}});
+ assert.equal(ineligible,null);
+ const multiple=singleBridge.buildSingle({chapterId,topicId,
+  topic:{mode:'use-primary',citableFacts:[
+   loneRow('natal.year.stem','연간',roles[0]),
+   loneRow('natal.hour.stem','시간',roles[1])]}});
+ assert.equal(multiple,null,'two subtypes must not be silently collapsed');
+}
+assert(singleVariants>=20);
 const wealthOnly=editor.build({chapterId:'money',topicId:'earning',
  topic:{mode:'use-primary',citableFacts:[
   row('natal.month.stem','월간','정재')]}});
@@ -503,6 +570,7 @@ assert(checkedChildren>=5,'minor context must actually reach multiple domain top
 console.log('PASS youth context: '+checkedChildren+
  ' real provider-bound topic briefs contain no assumed adult workplace or marriage story; frozen natal QA unchanged');
 
+console.log('PASS '+singleVariants+' single-role questions and '+singleTheses+' real paid writer fields, no API calls');
 console.log('PASS paid-domain reader contrasts: '+verified+
  ' actual source-backed topic text slots, '+unavailable+
  ' disabled, '+distinct+' distinct money-lens cases, verified previous citation only; 0 paid model calls');
