@@ -30,6 +30,20 @@ global.fetch=async(url,opts={})=>{
  }
  return nativeFetch(url,opts);
 };
+// Keep testing the previously working one-payment/one-report HTTP flow
+// with a synthetic fully eligible catalog. This is ONLY require-cache test
+// injection into this offline process, not an environment flag that an
+// operator could accidentally enable in production.
+const realReadiness=require('./report-commercial-readiness');
+const actual=realReadiness.assess();
+assert.equal(actual.canAcceptNewPayment,false);
+assert.equal(actual.targetTopics,35);
+assert.equal(actual.definedTopics,28);
+assert.equal(actual.structuralUpperBound,22);
+assert.equal(actual.minimumShortfall,13);
+require.cache[require.resolve('./report-commercial-readiness')].exports={
+ assess:()=>({canAcceptNewPayment:true})
+};
 const server=http.createServer(require('./server').handler);
 (async()=>{
  try{
@@ -109,7 +123,7 @@ const server=http.createServer(require('./server').handler);
    .map(file=>fs.readFileSync(path.join(dir,'purchases',file),'utf8')));
   assert(!receiptDisk.includes(ownerToken),'purchase credential is stored as hash only');
   assert.equal(chargeAttempts,1);
-  console.log('PASS offline HTTP checkout: exact amount, one Toss confirmation, one report entitlement, owner-only recovery, sales-off access, failure without auto recharging; zero external requests');
+  console.log('PASS offline HTTP checkout with synthetic scope: exact amount, one Toss confirmation, one report entitlement, owner-only recovery, sales-off access, failure without auto recharging; zero external requests');
  }finally{
   await new Promise(resolve=>server.close(resolve));
   global.fetch=nativeFetch;
