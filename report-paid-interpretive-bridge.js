@@ -154,4 +154,72 @@ function build({chapterId,topicId,topic}={}){
   claimedRealWorldOutcome:false,traditionalPriorityAssessed:false
  });
 }
-module.exports={build,RULES,ALTERNATIVES};
+
+// A lone verified subtype still deserves a precise reader-facing question.
+// The existing pair-thesis is stronger when TWO genuinely different roles
+// are present; these are never a second paragraph or a fabricated opposite.
+// Never call this with a general natal row outside the PAID topic's citations.
+const SINGLE_QUESTIONS=Object.freeze({
+ 'money.earning':Object.freeze({
+  '식신':['만들어 낸 결과를 설명하는 질문과 그 결과로 대가를 얻었다는 사실은 어떻게 다른가?','결과물을 만들어 제시하는 과정을 가정해 설명한다. 생산의 상징만으로 돈을 받았거나 받을 것이라고 주장하지 않는다.'],
+  '상관':['기존 방식과 다른 결과를 제시하는 관점과 실제 수입을 얻는 일은 어떻게 다른가?','정해진 설명 방식을 바꾸어 결과를 제안하는 가상 상황으로 풀이한다. 상관 하나로 반항적인 성격이나 수익을 단정하지 않는다.'],
+  '정재':['꾸준히 다루는 자원과 그 자원에서 실제로 얻은 소득을 어떻게 구별하는가?','정해진 자원을 계속 관리해야 하는 가상 선택을 풀이한다. 재물의 상징이 있다는 이유로 실제 저축액이나 수입을 확인했다고 쓰지 않는다.'],
+  '편재':['외부에서 사용할 자원을 검토하는 관점과 그 자원으로 실제 수익을 거두는 일은 어떻게 다른가?','밖에서 활용할 수 있는 자원의 조건을 고르는 가상 선택을 설명한다. 돈을 잘 벌거나 위험을 즐기는 성격으로 단정하지 않는다.']
+ }),
+ 'money.spending':Object.freeze({
+  '정재':['지속적으로 남겨 두고 관리할 자원에 관한 질문은 무엇인가?','한정된 자원을 사용하거나 보유하는 가상 결정을 설명한다. 이 분류로 실제 소비 습관이나 절약 여부는 판정하지 않는다.'],
+  '편재':['여러 활용처 사이에서 자원을 배치하는 질문은 무엇인가?','자원을 서로 다른 쓰임에 배치하는 가상 결정을 설명한다. 실제 충동구매나 투자 수익을 알 수 있다고 쓰지 않는다.']
+ }),
+ 'career.workstyle':Object.freeze({
+  '정인':['새 과업에서 기존 설명을 이해하고 적용하는 과정은 어떤 질문을 만드는가?','가상의 새 작업에서 설명을 읽고 절차를 익히는 단계만 풀이한다. 실제 학습 속도나 업무 능력으로 단정하지 않는다.'],
+  '편인':['익숙하지 않은 작업의 원리를 다른 방법으로 이해하는 질문은 무엇인가?','가상의 낯선 과업에서 방법의 뜻을 탐색하는 과정을 풀이한다. 남다른 재능이나 업무 성취가 측정됐다고 말하지 않는다.'],
+  '식신':['업무의 결과를 만들어 전달하는 과정은 어떤 조건에서 설명될 수 있는가?','가상의 업무에서 결과물을 만들고 그 의미를 전달하는 관점을 설명한다. 실제 일처리가 빠르거나 뛰어나다고 주장하지 않는다.'],
+  '상관':['정해진 업무 방식을 달리 표현하는 일에서 무엇을 확인해야 하는가?','기존 절차를 다른 방식으로 설명해 보는 가상 상황만 풀이한다. 실제 직장에서 반항하거나 규칙을 어긴다는 뜻이 아니다.']
+ }),
+ 'career.teamwork':Object.freeze({
+  '비견':['함께하는 작업에서 서로의 맡은 몫을 확인하는 질문은 무엇인가?','공동 작업의 참여 범위를 정하는 가상 상황으로 읽는다. 실제 동료 관계가 좋다는 증거는 아니다.'],
+  '겁재':['같은 자원을 함께 사용할 때 각자의 몫을 조정하는 질문은 무엇인가?','한정된 자원을 나눠야 하는 가상 협업 상황으로 읽는다. 실제 경쟁이나 금전 손해의 증거는 아니다.'],
+  '정관':['공동 작업에서 정해진 책임을 확인하는 질문은 무엇인가?','역할과 승인 범위가 정해진 가상 협업 상황으로 읽는다. 실제 회사에서 신뢰받거나 승진할 것이라는 뜻이 아니다.'],
+  '편관':['예상하지 못한 요구가 생길 때 맡을 범위를 정하는 질문은 무엇인가?','갑작스러운 요구를 분담하는 가상 협업 상황으로 읽는다. 실제 압박 강도나 직장 갈등을 단정하지 않는다.']
+ }),
+ 'career.growth':Object.freeze({
+  '정인':['기초 지식과 도움을 받아 익히는 관점은 어떤 조건에서 설명되는가?','새로운 절차를 안내받아 익히는 가상 과정으로 읽는다. 실제 학습 능력이나 자격 취득을 예언하지 않는다.'],
+  '편인':['익숙하지 않은 내용을 자기 방식으로 이해하는 관점은 어떤 조건에서 설명되는가?','낯선 지식의 원리를 스스로 정리해 보는 가상 과정으로 읽는다. 실제 성적이나 독학 능력을 측정한 것은 아니다.']
+ }),
+ 'relationship.expression':Object.freeze({
+  '식신':['상대에게 생각을 차근히 드러내는 질문은 무엇인가?','자기 의견을 말하는 가상의 대화로 전통적 표현 상징만 설명한다. 실제 말투나 연애 경험을 추정하지 않는다.'],
+  '상관':['이미 정해진 약속에 이견을 말하는 질문은 무엇인가?','기존 약속을 바꾸자고 말하는 가상의 대화로 전통적 표현 상징만 설명한다. 실제로 불평이 많다는 뜻이 아니다.']
+ }),
+ 'stress.trigger':Object.freeze({
+  '정관':['정해진 역할을 지켜야 한다는 요구를 어떻게 해석할 수 있는가?','규칙과 책임이 주어진 가상 상황에서 요구의 성격만 설명한다. 실제 불안·질병·스트레스 정도를 진단하지 않는다.'],
+  '편관':['예상하지 못한 강한 요구가 생겼을 때 어떤 질문이 추가되는가?','갑작스러운 외부 요청을 받는 가상 상황에서 요구의 종류만 설명한다. 실제 스트레스 강도나 건강 문제는 판단하지 않는다.']
+ }),
+ 'stress.response':Object.freeze({
+  '정인':['어려운 상황에서 설명과 도움을 요청하는 선택을 어떻게 읽을 수 있는가?','가상 문제를 해결할 때 도움을 받아 방법을 익히는 관점을 설명한다. 실제 회복력이나 심리 반응을 단정하지 않는다.'],
+  '편인':['어려운 상황에서 다른 설명 방식을 탐색하는 선택을 어떻게 읽을 수 있는가?','가상 문제의 원리를 다른 관점으로 정리하는 선택을 설명한다. 실제 정신건강이나 회복 속도를 판단하지 않는다.']
+ })
+});
+function buildSingle({chapterId,topicId,topic}={}){
+ if(!topic||topic.mode==='state-limits')return null;
+ const key=chapterId+'.'+topicId,questions=SINGLE_QUESTIONS[key];
+ if(!questions)return null;
+ const roles=(topic.citableFacts||[]).filter(row=>
+  ID.test(row.id)&&row.position&&row.layer&&row.stem&&
+  questions[row.tenGod]&&
+  typeof row.traditionalMeaning==='string'&&row.traditionalMeaning.trim());
+ // Multiple placements of ONE category are a single traditional meaning.
+ // Different eligible subtypes require a separate actual contrast; never
+ // silently choose one as superior or fabricate a second reading.
+ const kinds=[...new Set(roles.map(row=>row.tenGod))];
+ if(kinds.length!==1)return null;
+ const row=roles[0],[question,explanation]=questions[row.tenGod];
+ return Object.freeze({
+  kind:'paid-single-source-reader-thesis-v1',topic:key,
+  source:Object.freeze({ref:row.id,position:row.position,layer:row.layer,
+   stem:row.stem,tenGod:row.tenGod,traditionalMeaning:row.traditionalMeaning}),
+  question,explanation,uniqueSubtypeCount:1,
+  claimedRealWorldOutcome:false,traditionalPriorityAssessed:false,
+  missingCounterpartInferred:false
+ });
+}
+module.exports={build,buildSingle,RULES,ALTERNATIVES,SINGLE_QUESTIONS};
