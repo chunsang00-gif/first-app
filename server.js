@@ -7,16 +7,19 @@ const reportTiming=require('./report-timing').createTiming();
 const reportStore=require('./report-job-store').create(process.env.REPORT_STORAGE_DIR);
 const checkpointIdentity=require('./report-checkpoint-identity');
 const jobAccess=require('./report-job-access');
+const commercialReadiness=require('./report-commercial-readiness');
 // One verified merchant order may authorize ONE report job. Sales remain
 // disabled unless both separate business and editorial approvals are set.
 const paymentLedger=reportStore.enabled&&path.isAbsolute(process.env.REPORT_STORAGE_DIR||'')?require('./report-purchase-ledger').create({
  dir:path.join(process.env.REPORT_STORAGE_DIR,'purchases'),
  priceKRW:Number(process.env.PREMIUM_REPORT_PRICE_KRW),
  salesApproved:process.env.PREMIUM_SALES_APPROVED==='true'&&
-  process.env.PREMIUM_EDITORIAL_REVIEW_APPROVED==='true',
+  process.env.PREMIUM_EDITORIAL_REVIEW_APPROVED==='true'&&
+  commercialReadiness.assess().canAcceptNewPayment,
  secretKey:process.env.TOSS_SECRET_KEY
 }):null;
 const paymentSalesReady=()=>Boolean(paymentLedger&&
+ commercialReadiness.assess().canAcceptNewPayment&&
  process.env.PREMIUM_SALES_APPROVED==='true'&&
  process.env.PREMIUM_EDITORIAL_REVIEW_APPROVED==='true'&&
  Number.isSafeInteger(Number(process.env.PREMIUM_REPORT_PRICE_KRW))&&
