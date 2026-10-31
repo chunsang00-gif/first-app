@@ -67,6 +67,14 @@ function findRepeatedAdvice(sections){
  }
  return hits;
 }
+// The billable synthesis stage may only begin if EVERY known duplicate check
+// passes. In particular, lexical paraphrase rejection is not deferred until
+// after calling the provider, because that call cannot repair the body copy.
+function preSynthesisDuplicateErrors(sections){
+ return [...findParaphrasedTopicContent(sections),
+  ...findRecycledThemes(sections),...findReusedEvidenceConclusions(sections),
+  ...require('./report-interpretation-overlap').inspect(sections)];
+}
 // A shared calculation is allowed, but repeating the same conclusion with the
 // same evidence in another chapter is not a second paid insight.
 function findReusedEvidenceConclusions(sections){
@@ -436,12 +444,11 @@ async function generate(input,callModel,onProgress=()=>{},onValidatedBatch=()=>{
  if(sections.some(section=>!section))throw Error('AI report service omitted a planned chapter after validated batches');
  // Synthesize only the independently supported chapters. Other chapters were excluded before paid generation. The final local quality
  // gate below remains mandatory; no automatic paid rewrite or retry is issued.
- // Stop before paying for synthesis when chapters already recycle the same thesis.
- // No extra model call, and the rejected draft remains available for operator QA.
- const paraphraseErrors=findParaphrasedTopicContent(sections);
+ // Stop before paying for synthesis if the manuscript already repeats
+ // near-identical prose. All checked sections have passed body decoding;
+ // a known rejection must not trigger another billable synthesis request.
  const adviceWarnings=findRepeatedAdvice(sections);
- const repeatedErrors=[...findRecycledThemes(sections),...findReusedEvidenceConclusions(sections),
-  ...require('./report-interpretation-overlap').inspect(sections)];
+ const repeatedErrors=preSynthesisDuplicateErrors(sections);
  if(repeatedErrors.length){
   const report={meta,sections,cover:null,finalJudgment:null};
   const qa={pass:false,errors:repeatedErrors,warnings:adviceWarnings};
@@ -455,7 +462,7 @@ async function generate(input,callModel,onProgress=()=>{},onValidatedBatch=()=>{
  let report={meta,sections,cover:summary.cover,finalJudgment:summary.finalJudgment};
  const headingRepairs=require('./report-heading-review').repair(report);
  let shape=validateShape(report),qa=shape.pass?quality.validate(report,packet):shape;
- if(paraphraseErrors.length)qa={...qa,pass:false,errors:[...(qa.errors||[]),...paraphraseErrors]};
+ // Duplicate prose has already been rejected before the final provider call.
  // Semantic heuristics are human review leads, never release approval.
  // Never print private excerpts in automation logs or public QA status.
  const review=require('./report-semantic-review').review(report);
@@ -485,6 +492,6 @@ async function generate(input,callModel,onProgress=()=>{},onValidatedBatch=()=>{
  qa=require('./report-release-gate').finalize({report,qa,packet,coverage});
  return qa.pass?{status:'ready',report,qa,headingRepairs,coverage}:{status:'rejected',report,qa,headingRepairs,coverage};
 }
-module.exports={findReusedEvidenceConclusions,enforceAnnualEvidenceLimits,narrativeMotifLedger,IDS,validateShape,buildPrompt,generate,findRepeatedTopicContent,findRecycledThemes,findParaphrasedTopicContent,findRepeatedAdvice};
+module.exports={findReusedEvidenceConclusions,enforceAnnualEvidenceLimits,narrativeMotifLedger,IDS,validateShape,buildPrompt,generate,findRepeatedTopicContent,findRecycledThemes,findParaphrasedTopicContent,findRepeatedAdvice,preSynthesisDuplicateErrors};
 
 
