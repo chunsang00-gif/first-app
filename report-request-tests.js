@@ -233,8 +233,9 @@ assert.equal(p.stage,'body');assert.equal(p.priorSections.length,expectedBatches
   assert.throws(()=>disk.saveCheckpoint(jobId,{identity,batches:checkpoints.slice(0,2)}),/overwrite, gap/);
   assert.equal(durableFs.statSync(durablePath.join(directory,'checkpoint-'+jobId+'.json')).mode&0o777,0o600);
  }finally{durableFs.rmSync(directory,{recursive:true,force:true})}
- // Resume five already validated batches: only the sixth body batch and synthesis
- // may call the mock provider. Never spend calls on the cached ten chapters.
+ // Resume five already validated batches: only the sixth body batch may
+ // call the provider. The repeated placeholder prose must be refused
+ // before paying for synthesis, even after process restart.
  const resumeStages=[];const resumeCalls=[];
  const resumed=await contract.generate({calendar:'solar',birthDate:'1990-06-15',unknownBirthTime:true,gender:'male',mbti:'INFP'},async p=>{
   resumeCalls.push(p.stage==='body'?p.requestedSections.join(','):'synthesis');
@@ -247,8 +248,12 @@ assert.equal(p.stage,'body');assert.equal(p.priorSections.length,expectedBatches
   assert.equal(p.completedReport.sections.length,expectedCount);
   return {sections:[],cover:null,finalJudgment:{body:['전체 풀이 검증'],closingQuestion:'꼼꼼하게 확인하느라 결정을 늦출 때는, 오늘 확인할 내용을 먼저 정하는 것이 도움이 됩니다.',afterClosingText:''}};
  },p=>resumeStages.push(p),()=>{},diskReloaded);
- assert.deepEqual(resumeCalls,[expectedBatches.at(-1).join(','),'synthesis'],'resume must skip five provider body calls');
+ assert.deepEqual(resumeCalls,[expectedBatches.at(-1).join(',')],
+  'resume must skip five body batches and reject near-copy prose before paid synthesis');
  assert.equal(resumed.status,'rejected','resume does not bypass final quality gate');
+ assert.equal(resumed.stoppedBeforeSynthesis,true);
+ assert(resumed.qa.errors.some(x=>x.startsWith('high lexical topic overlap:')),
+  'repeated placeholder prose must be diagnosed as near-copy rather than paid again');
  await assert.rejects(contract.generate({calendar:'solar',birthDate:'1990-06-15',unknownBirthTime:true,gender:'male',mbti:'INFP'},async()=>{throw Error('provider must not be called')},()=>{},()=>{},[checkpoints[1]]),/order mismatch/,'non-prefix checkpoint must fail closed');
  // Tampered checkpoints must fail before any paid provider call.
  const duplicateCheckpoints=JSON.parse(JSON.stringify(checkpoints.slice(0,2)));
@@ -283,7 +288,10 @@ assert.equal(p.stage,'body');assert.equal(p.priorSections.length,expectedBatches
  assert(crossUserErrors.some(x=>x.includes('report display name differs')),'swapped display name must be rejected');
  const wrongYear={...swapped,meta:{...swapped.meta,targetYear:2028}};
  assert(qualityGate.validate(wrongYear,factsA).errors.some(x=>x.includes('target year differs')),'wrong report year must be rejected');
- assert.equal(calls,expectedBatches.length+1);assert(!stages.some(x=>x.stage==='edit'));assert(stages.some(x=>x.stage==='body'&&x.completed===expectedCount));
+ assert.equal(calls,expectedBatches.length,'repetitive placeholders must not incur synthesis cost');
+ assert.equal(mockedReport.stoppedBeforeSynthesis,true);
+ assert(!stages.some(x=>x.stage==='edit'));
+ assert(stages.some(x=>x.stage==='body'&&x.completed===expectedCount));
  let failedCalls=0;await assert.rejects(contract.generate({calendar:'solar',birthDate:'1990-06-15',unknownBirthTime:true,gender:'male',mbti:'INFP'},async()=>{failedCalls++;throw Error('AI report service token rate limit')}));assert.equal(failedCalls,1);
  // Compare the exact first paid-generation payloads across distinct inputs.
  // Names are display-only: they must not change calculated chart evidence.
