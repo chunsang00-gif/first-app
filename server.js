@@ -9,7 +9,7 @@ const checkpointIdentity=require('./report-checkpoint-identity');
 const jobAccess=require('./report-job-access');
 // One verified merchant order may authorize ONE report job. Sales remain
 // disabled unless both separate business and editorial approvals are set.
-const paymentLedger=reportStore.enabled?require('./report-purchase-ledger').create({
+const paymentLedger=reportStore.enabled&&path.isAbsolute(process.env.REPORT_STORAGE_DIR||'')?require('./report-purchase-ledger').create({
  dir:path.join(process.env.REPORT_STORAGE_DIR,'purchases'),
  priceKRW:Number(process.env.PREMIUM_REPORT_PRICE_KRW),
  salesApproved:process.env.PREMIUM_SALES_APPROVED==='true'&&
@@ -191,9 +191,19 @@ if(req.method==='POST'&&req.url==='/api/checkout/status'){
  if(!info)return json(res,403,{status:'blocked',code:'PAYMENT_ORDER_OWNER_DENIED'});
  return json(res,200,{status:'ready',...info});
 }
-if(req.method==='POST'&&req.url==='/api/calculate'){const input=await body(req),errors=validateInput(input);if(errors.length)return json(res,422,{status:'blocked',errors});if(input.unknownBirthTime)input.birthTime='12:00';const packet=facts.build(input,2027);return json(res,packet.status==='ready'?200:422,packet)}if(req.method==='POST'&&req.url==='/api/report-coverage'){const input=await body(req),errors=validateInput(input);if(errors.length)return json(res,422,{status:'blocked',errors});if(input.unknownBirthTime)input.birthTime='12:00';const summary=require('./report-product-coverage').calculate(input);return json(res,summary.status==='ready'?200:422,summary)}if(req.method==='POST'&&req.url==='/api/report'){if(!localMockEnabled(req))return json(res,403,{status:'blocked',code:'PAYMENT_NOT_CONFIGURED',message:'유료 보고서 결제 및 구매 권한 확인 기능이 준비되지 않아 보고서 생성을 중단했습니다. 결제 없이 API 비용이 발생하지 않습니다.'});const payload=await body(req),a=payload.analysisInput;if(a?.status!=='ready'||!a.calculationInput)return json(res,422,{status:'blocked',errors:['validated calculation input is missing']});const errors=validateInput(a.calculationInput);if(errors.length)return json(res,422,{status:'blocked',errors});if(a.calculationInput.unknownBirthTime)a.calculationInput.birthTime='12:00';const config=diagnostics.configuration();if(!config.configured)return json(res,503,{status:'failed',code:config.issues[0],message:diagnostics.messageFor(config.issues[0])});cleanupJobs();const requestId=payload.requestId;if(requestId!==undefined&&(typeof requestId!=='string'||!/^[a-zA-Z0-9-]{16,100}$/.test(requestId)))return json(res,422,{status:'blocked',errors:['invalid request id']});const fingerprint=require('crypto').createHash('sha256').update(JSON.stringify(a.calculationInput)).digest('hex');const previous=requestId&&(REQUESTS.get(requestId)||reportStore.loadRequest(requestId));if(previous){if(previous.fingerprint!==fingerprint)return json(res,409,{status:'blocked',errors:['request id already used for different input']});const existing=JOBS.get(previous.id)||reportStore.load(previous.id);if(!existing)return json(res,409,{status:'blocked',code:'REPORT_REQUEST_ALREADY_USED',message:'기존 요청 기록이 있으나 생성 상태를 확인할 수 없습니다. 자동 재생성을 막았습니다.'});
+if(req.method==='POST'&&req.url==='/api/calculate'){const input=await body(req),errors=validateInput(input);if(errors.length)return json(res,422,{status:'blocked',errors});if(input.unknownBirthTime)input.birthTime='12:00';const packet=facts.build(input,2027);return json(res,packet.status==='ready'?200:422,packet)}if(req.method==='POST'&&req.url==='/api/report-coverage'){const input=await body(req),errors=validateInput(input);if(errors.length)return json(res,422,{status:'blocked',errors});if(input.unknownBirthTime)input.birthTime='12:00';const summary=require('./report-product-coverage').calculate(input);return json(res,summary.status==='ready'?200:422,summary)}if(req.method==='POST'&&req.url==='/api/report'){
+ const localMock=localMockEnabled(req);
+ const payload=await body(req);
+ const paid= !localMock&&paymentSalesReady()?verifiedPurchase(payload.purchase):null;
+ if(!localMock&&!paid)return json(res,403,{status:'blocked',code:'PAYMENT_NOT_CONFIGURED',message:'판매 승인 또는 본인 명의의 결제 검증을 확인할 수 없습니다. 비용 발생 없이 중단했습니다.'});
+ if(paid?.state==='delivery-bound')return json(res,409,{status:'blocked',
+  code:'PAYMENT_ALREADY_USED_FOR_ANOTHER_REPORT',jobId:paid.jobId,
+  message:'기존 주문이 보고서 한 건에 이미 연결되었습니다. 주문 상태에서 기존 결과를 조회하세요.'});
+ const a=payload.analysisInput;if(a?.status!=='ready'||!a.calculationInput)return json(res,422,{status:'blocked',errors:['validated calculation input is missing']});const errors=validateInput(a.calculationInput);if(errors.length)return json(res,422,{status:'blocked',errors});if(a.calculationInput.unknownBirthTime)a.calculationInput.birthTime='12:00';const config=diagnostics.configuration();if(!config.configured)return json(res,503,{status:'failed',code:config.issues[0],message:diagnostics.messageFor(config.issues[0])});cleanupJobs();const requestId=payload.requestId;if((paid&&!requestId)||(requestId!==undefined&&(typeof requestId!=='string'||!/^[a-zA-Z0-9-]{16,100}$/.test(requestId))))return json(res,422,{status:'blocked',errors:['invalid request id']});const fingerprint=require('crypto').createHash('sha256').update(JSON.stringify(a.calculationInput)).digest('hex');const previous=requestId&&(REQUESTS.get(requestId)||reportStore.loadRequest(requestId));if(previous){if(previous.fingerprint!==fingerprint)return json(res,409,{status:'blocked',errors:['request id already used for different input']});const existing=JOBS.get(previous.id)||reportStore.load(previous.id);if(!existing)return json(res,409,{status:'blocked',code:'REPORT_REQUEST_ALREADY_USED',message:'기존 요청 기록이 있으나 생성 상태를 확인할 수 없습니다. 자동 재생성을 막았습니다.'});
 // A duplicate idempotency key is NOT proof of ownership. Only the browser
 // holding the original unguessable credential may resume the same job.
+if(!localMock&&existing.paidOrderId!==payload.purchase?.orderId)
+ return json(res,403,{status:'blocked',code:'PAYMENT_ORDER_JOB_MISMATCH'});
 if(!jobAccess.valid(req.headers?.['x-report-access-token'],existing.accessHash))
  return json(res,403,{status:'blocked',code:'REPORT_ACCESS_DENIED'});
 if(existing.status==='processing'&&!JOBS.has(previous.id)){
@@ -203,8 +213,14 @@ if(existing.status==='processing'&&!JOBS.has(previous.id)){
   message:'중단된 작업을 새 작업으로 착각하지 않도록 차단했습니다. 검증된 장은 별도 보관되지만 유료 생성은 자동 재개하지 않습니다.'});
 }
 return json(res,202,{status:'processing',jobId:previous.id,timing:reportTiming.snapshot(existing.createdAt)})}const id=require('crypto').randomUUID(),startedAt=Date.now();
-const accessToken=jobAccess.issue(),accessHash=jobAccess.digest(accessToken);
-if(reportStore.enabled){reportStore.save(id,{status:'processing',createdAt:startedAt,startedAt,accessHash});if(requestId)reportStore.saveRequest(requestId,{id,fingerprint})}if(requestId)REQUESTS.set(requestId,{id,fingerprint});JOBS.set(id,{status:'processing',createdAt:startedAt,accessHash});let attemptedCalls=0;
+const accessToken=paid?payload.purchase.ownerToken:jobAccess.issue();
+const accessHash=jobAccess.digest(accessToken);
+const paidOrderId=paid?payload.purchase.orderId:null;
+if(paid){
+ try{paymentLedger.bindDelivery({orderId:paidOrderId,ownerToken:accessToken,jobId:id})}
+ catch{return json(res,409,{status:'blocked',code:'PAYMENT_DELIVERY_BINDING_FAILED'})}
+}
+if(reportStore.enabled){reportStore.save(id,{status:'processing',createdAt:startedAt,startedAt,accessHash,paidOrderId});if(requestId)reportStore.saveRequest(requestId,{id,fingerprint})}if(requestId)REQUESTS.set(requestId,{id,fingerprint});JOBS.set(id,{status:'processing',createdAt:startedAt,accessHash,paidOrderId});let attemptedCalls=0;
 reportContract.generate(a.calculationInput,prompt=>enqueueModel(async()=>{
  const n=++attemptedCalls;
  if(reportStore.enabled)reportStore.startProviderCall(id,n,{
@@ -222,7 +238,7 @@ reportContract.generate(a.calculationInput,prompt=>enqueueModel(async()=>{
  reportStore.saveCheckpoint(id,{identity,batches:[...(existing?.batches||[]),batch]});
  const job=JOBS.get(id);
  if(job?.status==='processing')job.validatedBatches=(existing?.batches.length||0)+1;
-}).then(result=>{if(result.status==='ready')reportTiming.record(startedAt);const completed={status:result.status,result,createdAt:Date.now(),startedAt,accessHash};if(reportStore.enabled)reportStore.save(id,completed);JOBS.set(id,completed)}).catch(e=>{const m=String(e?.message||'');console.error('[Report job error]',{type:e?.name||'Error',message:/^AI report service/.test(m)?m:'report generation failed'});const failed={status:'failed',progress:JOBS.get(id)?.progress||null,code:diagnostics.failureCode(m),message:/^AI report service/.test(m)?m:'report generation failed',createdAt:Date.now(),accessHash};JOBS.set(id,failed);if(reportStore.enabled)try{reportStore.save(id,failed)}catch(err){console.error('[Report storage error]',err?.code||'storage failure')}});return json(res,202,{status:'processing',jobId:id,accessToken,timing:reportTiming.snapshot(startedAt)})}if(req.method==='GET'&&req.url.startsWith('/api/report-status?')){if(!localMockEnabled(req))return json(res,403,{status:'blocked',code:'PURCHASE_VERIFICATION_REQUIRED',message:'결제 및 구매 권한 확인 기능이 준비되지 않아 보고서를 조회할 수 없습니다.'});cleanupJobs();const id=new URL(req.url,'http://localhost').searchParams.get('id'),job=JOBS.get(id)||reportStore.load(id);
+}).then(result=>{if(result.status==='ready')reportTiming.record(startedAt);const completed={status:result.status,result,createdAt:Date.now(),startedAt,accessHash,paidOrderId};if(reportStore.enabled)reportStore.save(id,completed);JOBS.set(id,completed)}).catch(e=>{const m=String(e?.message||'');console.error('[Report job error]',{type:e?.name||'Error',message:/^AI report service/.test(m)?m:'report generation failed'});const failed={status:'failed',progress:JOBS.get(id)?.progress||null,code:diagnostics.failureCode(m),message:/^AI report service/.test(m)?m:'report generation failed',createdAt:Date.now(),accessHash,paidOrderId};JOBS.set(id,failed);if(reportStore.enabled)try{reportStore.save(id,failed)}catch(err){console.error('[Report storage error]',err?.code||'storage failure')}});return json(res,202,{status:'processing',jobId:id,accessToken,timing:reportTiming.snapshot(startedAt)})}if(req.method==='GET'&&req.url.startsWith('/api/report-status?')){if(!localMockEnabled(req))return json(res,403,{status:'blocked',code:'PURCHASE_VERIFICATION_REQUIRED',message:'결제 및 구매 권한 확인 기능이 준비되지 않아 보고서를 조회할 수 없습니다.'});cleanupJobs();const id=new URL(req.url,'http://localhost').searchParams.get('id'),job=JOBS.get(id)||reportStore.load(id);
 if(!job)return json(res,404,{status:'missing'});
 // Legacy jobs have no credential. They are deliberately inaccessible;
 // never serve a saved paid manuscript to anyone who guesses a job id.
