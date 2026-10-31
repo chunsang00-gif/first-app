@@ -180,7 +180,7 @@ const noDirect={...natalPrompt,facts:irrelevant,analysisGuidance:{
 assert.equal(generation.compile(noDirect).task.chapters.relationship.topics.conflict
  .sourceOwnedNatalDayClash,undefined);
 const forged=structuredClone(natalPacket);
-forged.facts.natalClashes[0].branches='申寅';
+forged.facts.natalClashes.find(x=>x.positions.includes('day')).branches='申寅';
 const forgedPlan=guidance.preflight(forged);
 assert.equal(forgedPlan.relationship.topicTasks.conflict.mode,'state-limits');
 const noClashDay={...natalPacket,chart:{...dayChart,day:'丙辰'}};
