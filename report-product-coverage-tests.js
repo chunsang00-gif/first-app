@@ -4,7 +4,7 @@ const coverage=require('./report-product-coverage');
 const qa12=require('./report-qa12-chapter-topic-evidence-matrix');
 const facts=require('./report-facts-node');
 const cases=[
- ['1982-11-24','14:20','lunar',9,19],
+ ['1982-11-24','14:20','lunar',9,20],
  ['1994-07-15','14:20','solar',10,19],
  ['1994-01-15','14:20','solar',10,20],
  ['1994-05-15','20:20','solar',11,20]
