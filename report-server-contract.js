@@ -24,6 +24,33 @@ function findRepeatedTopicContent(sections){
  }
  return errors;
 }
+// A copied paid conclusion may be hidden inside TWO otherwise different
+// paragraphs. Full-paragraph comparison cannot see it, and adding another
+// verified citation does not make the copied sentence a new insight.
+// Ignore repeated generic limitations; flag only the same long, substantive
+// choice/action sentence in distinct chapters. Never log customer prose.
+function findRepeatedSubstantiveSentences(sections){
+ const seen=new Map(),errors=[];
+ const material=/(?:선택|결정|판단|비교|역할|책임|행동|조정|바꾸|확인|준비|맡|표현|설명|진행|지출|지키|따르)/;
+ const limitations=/(?:알\s*수\s*없|확인할\s*수\s*없|판단할\s*수\s*없|단정할\s*수\s*없|확정할\s*수\s*없|예측할\s*수\s*없|보장하지\s*않|관찰한\s*것이\s*아니|검증한\s*것이\s*아니|실제로\s*측정한\s*것이\s*아니)/;
+ for(const section of sections||[]){
+  if(!section||!Array.isArray(section.body))continue;
+  for(let i=0;i<section.body.length;i++){
+   const owner=section.id+':'+(section.bodyTopics?.[i]||i);
+   for(const sentence of String(section.body[i]||'').split(/[.!?。！？\n]+/)){
+    const readable=sentence.normalize('NFKC').trim();
+    if(!material.test(readable)||limitations.test(readable))continue;
+    const canonical=readable.replace(/[\s"'“”‘’·:;()[\],，、]/g,'');
+    if(canonical.length<54)continue;
+    const prior=seen.get(canonical);
+    if(prior&&prior.chapter!==section.id){
+     errors.push('reused substantive sentence across chapters: '+prior.owner+' / '+owner);
+    }else if(!prior)seen.set(canonical,{chapter:section.id,owner});
+   }
+  }
+ }
+ return [...new Set(errors)];
+}
 // Compare substantive interpretations across different topics, not merely shared words.
 function findParaphrasedTopicContent(sections){
  const entries=[];
@@ -71,7 +98,8 @@ function findRepeatedAdvice(sections){
 // passes. In particular, lexical paraphrase rejection is not deferred until
 // after calling the provider, because that call cannot repair the body copy.
 function preSynthesisDuplicateErrors(sections){
- return [...findParaphrasedTopicContent(sections),
+ return [...findRepeatedSubstantiveSentences(sections),
+  ...findParaphrasedTopicContent(sections),
   ...findRecycledThemes(sections),...findReusedEvidenceConclusions(sections),
   ...require('./report-interpretation-overlap').inspect(sections)];
 }
@@ -492,6 +520,6 @@ async function generate(input,callModel,onProgress=()=>{},onValidatedBatch=()=>{
  qa=require('./report-release-gate').finalize({report,qa,packet,coverage});
  return qa.pass?{status:'ready',report,qa,headingRepairs,coverage}:{status:'rejected',report,qa,headingRepairs,coverage};
 }
-module.exports={findReusedEvidenceConclusions,enforceAnnualEvidenceLimits,narrativeMotifLedger,IDS,validateShape,buildPrompt,generate,findRepeatedTopicContent,findRecycledThemes,findParaphrasedTopicContent,findRepeatedAdvice,preSynthesisDuplicateErrors};
+module.exports={findReusedEvidenceConclusions,enforceAnnualEvidenceLimits,narrativeMotifLedger,IDS,validateShape,buildPrompt,generate,findRepeatedTopicContent,findRecycledThemes,findParaphrasedTopicContent,findRepeatedAdvice,findRepeatedSubstantiveSentences,preSynthesisDuplicateErrors};
 
 
