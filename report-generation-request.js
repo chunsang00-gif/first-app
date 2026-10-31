@@ -339,6 +339,10 @@ function compile(prompt){
     const bridge=require('./report-paid-interpretive-bridge');
     const thesis=bridge.build({chapterId,topicId,topic});
     if(thesis)topic.sourceOwnedInterpretiveThesis=thesis;
+    else{
+     const single=bridge.buildSingle({chapterId,topicId,topic});
+     if(single)topic.sourceOwnedSingleReading=single;
+    }
     // A separately proven birth-day clash may answer the relationship
     // conflict question even when closeness/expression already cite ten-gods.
     // It never licenses an actual interpersonal outcome.
@@ -349,12 +353,6 @@ function compile(prompt){
      if(dayClash)topic.sourceOwnedNatalDayClash=dayClash;
      else if(topic.mode==='use-primary')
       throw Error('PAID_DAY_CLASH_EVIDENCE_NOT_VERIFIED');
-    }
-    else{
-     // The one verified subtype gets an exact reader question in the
-     // actual paid batch; a nonexistent second subtype is never invented.
-     const single=bridge.buildSingle({chapterId,topicId,topic});
-     if(single)topic.sourceOwnedSingleReading=single;
     }
     // Only annual money/career CHANGE topics with an exact verified pair
     // get an extra paid interpretation. This is not a new paid model call.
