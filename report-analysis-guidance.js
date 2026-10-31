@@ -183,6 +183,18 @@ function preflight(packet){
    task.interpretationBoundary=rule.boundary;
   }
  }
+ // A distinct relationship conflict question requires a computed
+ // natal DAY-branch clash, not a generic ten-god label or another position.
+ const directDayClashes=require('./report-paid-natal-day-clash')
+  .matching(packet.chart,packet.facts?.natalClashes);
+ const conflictTask=plans.relationship.topicTasks.conflict;
+ conflictTask.mode=directDayClashes.length?'use-primary':'state-limits';
+ conflictTask.allowedSourceRefs=directDayClashes.length?['facts.natalClashes']:[];
+ conflictTask.evidencePresent=directDayClashes.length>0;
+ conflictTask.verifiedFallbackPaths=[];
+ conflictTask.interpretationBoundary=directDayClashes.length?
+  '출생일 지지와 다른 원국 지지가 직접 마주 보는 관계가 계산된 경우에만 풀이한다. 실제 다툼·이별·상대의 감정이나 갈등 빈도는 계산하지 않았으며, 친밀감과 표현 풀이의 숨은 글자를 재사용하지 않는다. 두 요구가 서로 다른 조건을 갖는 가상의 상황만 구별하고 강약이나 우열은 정하지 않는다.':
+  '출생일 지지와 직접 연결된 충이 없으므로 다른 출생 위치의 충으로 관계 갈등을 지어내지 않는다.';
  // A single wealth classification does not prove TWO independent paid
  // interpretations about earning and spending. Source positions alone
  // repeat the same classification; require output-symbol evidence for an
