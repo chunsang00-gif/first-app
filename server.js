@@ -168,7 +168,7 @@ async function qaHandler(req,res){
  return json(res,202,{status:'processing',message:'One QA attempt started; no automatic retry'});
 }
 
-async function handler(req,res){try{if(req.url.split('?')[0]==='/api/internal/report-qa')return await qaHandler(req,res);if(req.method==='GET'&&req.url.split('?')[0]==='/api/health'){const c=diagnostics.configuration();return json(res,200,{status:'ok',reportServiceConfigured:c.configured,premiumSalesReady:false,reportGenerationEnabled:localMockEnabled(req)&&c.configured,configurationIssues:c.issues,deployCommit:process.env.RENDER_GIT_COMMIT||process.env.GIT_COMMIT||null})}if(req.method==='POST'&&req.url==='/api/checkout/start'){
+async function handler(req,res){try{if(req.url.split('?')[0]==='/api/internal/report-qa')return await qaHandler(req,res);if(req.method==='GET'&&req.url.split('?')[0]==='/api/health'){const c=diagnostics.configuration();return json(res,200,{status:'ok',reportServiceConfigured:c.configured,premiumSalesReady:paymentSalesReady(),reportGenerationEnabled:(localMockEnabled(req)||paymentSalesReady())&&c.configured,configurationIssues:c.issues,deployCommit:process.env.RENDER_GIT_COMMIT||process.env.GIT_COMMIT||null})}if(req.method==='POST'&&req.url==='/api/checkout/start'){
  if(!paymentSalesReady())return json(res,403,{status:'blocked',code:'PREMIUM_SALES_NOT_APPROVED'});
  try{return json(res,201,{status:'pending',...paymentLedger.reserve()})}
  catch{return json(res,409,{status:'blocked',code:'PAYMENT_RESERVATION_FAILED'})}
@@ -238,8 +238,17 @@ reportContract.generate(a.calculationInput,prompt=>enqueueModel(async()=>{
  reportStore.saveCheckpoint(id,{identity,batches:[...(existing?.batches||[]),batch]});
  const job=JOBS.get(id);
  if(job?.status==='processing')job.validatedBatches=(existing?.batches.length||0)+1;
-}).then(result=>{if(result.status==='ready')reportTiming.record(startedAt);const completed={status:result.status,result,createdAt:Date.now(),startedAt,accessHash,paidOrderId};if(reportStore.enabled)reportStore.save(id,completed);JOBS.set(id,completed)}).catch(e=>{const m=String(e?.message||'');console.error('[Report job error]',{type:e?.name||'Error',message:/^AI report service/.test(m)?m:'report generation failed'});const failed={status:'failed',progress:JOBS.get(id)?.progress||null,code:diagnostics.failureCode(m),message:/^AI report service/.test(m)?m:'report generation failed',createdAt:Date.now(),accessHash,paidOrderId};JOBS.set(id,failed);if(reportStore.enabled)try{reportStore.save(id,failed)}catch(err){console.error('[Report storage error]',err?.code||'storage failure')}});return json(res,202,{status:'processing',jobId:id,accessToken,timing:reportTiming.snapshot(startedAt)})}if(req.method==='GET'&&req.url.startsWith('/api/report-status?')){if(!localMockEnabled(req))return json(res,403,{status:'blocked',code:'PURCHASE_VERIFICATION_REQUIRED',message:'결제 및 구매 권한 확인 기능이 준비되지 않아 보고서를 조회할 수 없습니다.'});cleanupJobs();const id=new URL(req.url,'http://localhost').searchParams.get('id'),job=JOBS.get(id)||reportStore.load(id);
+}).then(result=>{if(result.status==='ready')reportTiming.record(startedAt);const completed={status:result.status,result,createdAt:Date.now(),startedAt,accessHash,paidOrderId};if(reportStore.enabled)reportStore.save(id,completed);JOBS.set(id,completed)}).catch(e=>{const m=String(e?.message||'');console.error('[Report job error]',{type:e?.name||'Error',message:/^AI report service/.test(m)?m:'report generation failed'});const failed={status:'failed',progress:JOBS.get(id)?.progress||null,code:diagnostics.failureCode(m),message:/^AI report service/.test(m)?m:'report generation failed',createdAt:Date.now(),accessHash,paidOrderId};JOBS.set(id,failed);if(reportStore.enabled)try{reportStore.save(id,failed)}catch(err){console.error('[Report storage error]',err?.code||'storage failure')}});return json(res,202,{status:'processing',jobId:id,accessToken,timing:reportTiming.snapshot(startedAt)})}if(req.method==='GET'&&req.url.startsWith('/api/report-status?')){
+ const localMock=localMockEnabled(req);
+ cleanupJobs();const id=new URL(req.url,'http://localhost').searchParams.get('id'),job=JOBS.get(id)||reportStore.load(id);
 if(!job)return json(res,404,{status:'missing'});
+if(!localMock){
+ // Previously paid reports remain recoverable even if new sales are closed.
+ const token=req.headers?.['x-report-access-token'];
+ const order=job.paidOrderId&&verifiedPurchase({orderId:job.paidOrderId,ownerToken:token});
+ if(!order||order.state!=='delivery-bound'||order.jobId!==id)
+  return json(res,403,{status:'blocked',code:'PURCHASE_VERIFICATION_REQUIRED'});
+}
 // Legacy jobs have no credential. They are deliberately inaccessible;
 // never serve a saved paid manuscript to anyone who guesses a job id.
 if(!jobAccess.valid(req.headers?.['x-report-access-token'],job.accessHash))
