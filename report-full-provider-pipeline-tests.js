@@ -18,6 +18,7 @@ const nouns={
  year_2027_career:'2027년 직업 해석',year_2027_relationship:'2027년 관계 해석'};
 // Distinct non-personal fixture prose: a successful transport test must
 // not depend on paying for synthesis of recycled boilerplate.
+const sharedConclusion='새로 맡은 일을 시작하기 전에 준비할 순서를 세 가지로 나누고 각 순서의 마감 시간과 담당할 사람을 분명하게 적어 두는 것이 바람직하다고 해석합니다.';
 const scenes={
  saju_core:'태어난 달의 글자와 그 안에 담긴 글자를 따로 기록하고 두 분류가 계산표에서 어떤 위치에 있는지 확인하는 가상 사례입니다. 첫 해석을 한 문장으로 제한하고 실제 기질은 이 기록으로 확정하지 않습니다.',
  mbti_contradiction:'입력된 선호 유형의 질문과 출생 기호가 설명하는 질문을 서로 다른 카드에 적는 가상 비교입니다. 카드의 문구가 같아 보여도 두 이론이 같은 사실을 측정했다는 결론은 낼 수 없습니다.',
@@ -87,7 +88,7 @@ function bodyResponse(p,strict,kind){
       limit:'개인의 실제 행동을 확인한 기록이 아니며 구체적 사건을 예언하지 않습니다.'},
      label,text:(kind==='duplicate-before-synthesis'?
       nouns[id]+'에서는 한 가지 계산상의 차이를 확인합니다. 이 분류를 활용하는 예를 들면 새로운 선택 앞에서 어떤 자료를 먼저 살필지 고민하는 장면입니다. 다만 이 설명은 입력된 자료의 전통적인 뜻을 시험하기 위한 문장으로 특정 사람의 경험을 확인한 것은 아닙니다.':
-      scenes[id])+' '+(id==='saju_core'&&topic==='strength'?
+      scenes[id])+(kind==='reused-sentence-before-synthesis'&&['decision','career'].includes(id)?' '+sharedConclusion:'')+' '+(id==='saju_core'&&topic==='strength'?
       require('./qa/core-meaning-mock').fromKinds([
        chapter.topics.strength.evidenceFocus.tenGodFocus.monthStem.tenGod,
        chapter.topics.strength.evidenceFocus.tenGodFocus.monthMainHidden.tenGod
@@ -174,6 +175,17 @@ async function runScenario(kind){
     assert.equal(calls,archived,'each already-used body response is retained for diagnosis');
     return;
    }
+   if(kind==='reused-sentence-before-synthesis'){
+    const result=await generate(input,p=>callOpenAI(p,v=>{archived++;seen.push(v)}),
+     ()=>{},x=>{snapshots.push(x)});
+    assert.equal(result.status,'rejected','copied sentence must not be sold twice');
+    assert.equal(result.stoppedBeforeSynthesis,true);
+    assert(result.qa.errors.some(x=>x.startsWith('reused substantive sentence across chapters:')),
+     'new sentence-level reason must be visible without private report prose');
+    assert.equal(stages.includes('synthesis'),false,'must not pay for rejected summary');
+    assert.equal(calls,archived,'raw body calls remain archived');
+    return;
+   }
    if(kind==='synthesis-cover-missing'){
     const result=await generate(input,p=>callOpenAI(p,v=>{archived++;seen.push(v)}),
       ()=>{},x=>{snapshots.push(x)});
@@ -227,6 +239,7 @@ async function runScenario(kind){
 (async()=>{
  await runScenario('complete');
  await runScenario('duplicate-before-synthesis');
+ await runScenario('reused-sentence-before-synthesis');
  await runScenario('malformed');
  await runScenario('provider-limit');
  await runScenario('provider-json-syntax');
