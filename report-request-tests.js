@@ -174,6 +174,35 @@ const {createQueue,retryDelay,rateLimitKind}=require('./report-request-control')
   {id:'money',bodyTopics:['earning'],body:[repeatedText]},
   {id:'career',bodyTopics:['workstyle'],body:['업무 역할을 분리하여 교육의 순서와 협업할 범위를 설명하는 별도의 근거를 검토합니다.']}
  ]),[],'genuinely different questions should be allowed');
+ // A repeated long interpretation sentence remains duplicated paid content
+ // even when its surrounding paragraph and cited natal source differ.
+ const repeatedDecision='새로운 요청이 들어오면 선택할 자료를 먼저 확인하고 다른 사람에게 설명한 다음에 결정하는 순서를 그대로 따라야 한다고 풀이합니다.';
+ const reusedSentences=[
+  {id:'decision',bodyTopics:['approach'],body:[
+   '가상으로 여러 선택지를 놓고 비교합니다. '+repeatedDecision+' 다른 시기의 계산 근거를 따로 다룹니다.']},
+  {id:'career',bodyTopics:['workstyle'],body:[
+   '업무에서 어떤 역할을 맡는지 다르게 살핍니다. '+repeatedDecision+' 과거 직업은 확인하지 않았습니다.']}
+ ];
+ const crossSentence=contract.findRepeatedSubstantiveSentences(reusedSentences);
+ assert.equal(crossSentence.length,1,
+  'distinct paragraphs must not disguise the same substantive interpretation');
+ assert(crossSentence[0].includes('decision:approach / career:workstyle'));
+ assert(contract.preSynthesisDuplicateErrors(reusedSentences).some(x=>
+  x.startsWith('reused substantive sentence across chapters:')));
+ const differentlyWorded=structuredClone(reusedSentences);
+ differentlyWorded[1].body[0]=
+  '업무에서는 업무를 나누는 규칙과 승인 담당자의 역할을 비교합니다. 선택의 경험을 실제 관찰했다고 주장하지 않습니다.';
+ assert.deepEqual(contract.findRepeatedSubstantiveSentences(differentlyWorded),[],
+  'different evidence questions must not be rejected for common vocabulary');
+ const onlyDisclaimer=structuredClone(reusedSentences);
+ const caution='실제 성격이나 직무 역량을 확인할 수 없으므로 출생 계산만으로 판단을 확정할 수 없다는 한계를 함께 밝힙니다.';
+ for(const row of onlyDisclaimer)row.body=[caution];
+ assert.deepEqual(contract.findRepeatedSubstantiveSentences(onlyDisclaimer),[],
+  'repeated accurate caution is not a second paid interpretation');
+ const sameChapter=structuredClone(reusedSentences);
+ sameChapter[1].id='decision';
+ assert.deepEqual(contract.findRepeatedSubstantiveSentences(sameChapter),[],
+  'the cross-chapter sentence rule must not override existing same-chapter checks');
  const sampleInput={calendar:'solar',birthDate:'1990-06-15',unknownBirthTime:true,gender:'male',mbti:'INFP'};
  const blueprint=require('./report-analysis-guidance').preflight(require('./report-facts-node').build(sampleInput,2027)); 
   const canonicalPlan=require('./report-analysis-guidance').preflight(require('./report-facts-node').build(sampleInput,2027));
