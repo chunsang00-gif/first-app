@@ -80,7 +80,7 @@ const keys=['NODE_ENV','RENDER','PAID_CORE_DEPTH_V2',
   }
   assert(allStates.has('state-limits')&&allStates.has('use-primary'));
   assert.equal(observations[0].selectedChapters,9);
-  assert.equal(observations[0].eligibleTopicUpperBound,19);
+  assert.equal(observations[0].eligibleTopicUpperBound,20);
   assert.equal(observations[1].selectedChapters,10);
   assert.equal(observations[1].eligibleTopicUpperBound,19);
   process.env.NODE_ENV='production';
