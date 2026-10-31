@@ -336,9 +336,15 @@ function compile(prompt){
     // REAL paid batch: compile a chart-owned INTERPRETIVE PROPOSITION,
     // not an optional QA screenshot or a stock scenario. No extra model
     // calls; do not attach it to the frozen Saju-core QA contracts.
-    const thesis=require('./report-paid-interpretive-bridge')
-     .build({chapterId,topicId,topic});
+    const bridge=require('./report-paid-interpretive-bridge');
+    const thesis=bridge.build({chapterId,topicId,topic});
     if(thesis)topic.sourceOwnedInterpretiveThesis=thesis;
+    else{
+     // The one verified subtype gets an exact reader question in the
+     // actual paid batch; a nonexistent second subtype is never invented.
+     const single=bridge.buildSingle({chapterId,topicId,topic});
+     if(single)topic.sourceOwnedSingleReading=single;
+    }
     // Only annual money/career CHANGE topics with an exact verified pair
     // get an extra paid interpretation. This is not a new paid model call.
     if(topicId==='change'&&['year_2027_money','year_2027_career'].includes(chapterId)){
@@ -517,6 +523,41 @@ function schema(prompt,transport){
      '근거가 지지하지 않는 두 번째 인생 특징이나 정해진 가상 생활 장면을 만들지 않는다. '+ 
      '출처 번호·한자·전문 분류어는 독자 본문에 옮기지 않는다. '+ 
      '같은 결론을 다른 항목에 재판매하지 않고 설명할 새 뜻이 없다면 선택 문단은 null로 둔다.';
+   }
+   if(task.sourceOwnedSingleReading){
+    const single=task.sourceOwnedSingleReading,one=single.source;
+    const paidBridge=require('./report-paid-interpretive-bridge');
+    const questions=paidBridge.SINGLE_QUESTIONS[chapterId+'.'+topic]||{};
+    const eligible=(task.citableFacts||[]).filter(row=>
+     /^natal\.(?:year|month|day|hour)\.(?:stem|hidden\.[甲乙丙丁戊己庚辛壬癸])$/.test(row.id)&&
+     questions[row.tenGod]&&row.position&&row.layer&&row.stem&&row.traditionalMeaning);
+    const orig=one&&payload.source[one.ref];
+    if(single.kind!=='paid-single-source-reader-thesis-v1'||
+       single.topic!==chapterId+'.'+topic||
+       single.uniqueSubtypeCount!==1||
+       single.claimedRealWorldOutcome!==false||
+       single.traditionalPriorityAssessed!==false||
+       single.missingCounterpartInferred!==false||
+       task.sourceOwnedInterpretiveThesis||
+       !one||!permitted.includes(one.ref)||
+       !eligible.some(row=>row.id===one.ref&&row.tenGod===one.tenGod)||
+       new Set(eligible.map(row=>row.tenGod)).size!==1||
+       !orig||one.stem!==orig.stem||one.position!==orig.position||
+       one.layer!==orig.layer||one.tenGod!==orig.tenGod||
+       one.traditionalMeaning!==orig.traditionalMeaning||
+       single.question!==questions[one.tenGod]?.[0]||
+       single.explanation!==questions[one.tenGod]?.[1])
+     throw Error('PAID_SINGLE_SOURCE_THESIS_MISMATCH:'+chapterId+':'+topic);
+    // A question tied to an actual position and category, not an invented
+    // two-sided personality, and never a second paid paragraph.
+    p.properties.text.description+=
+     ' 이 명식에서 이 항목에 확인된 단일 십성 근거: '+
+     one.position+' '+one.layer+' '+one.stem+' '+one.tenGod+
+     ' ('+one.traditionalMeaning+'). 독자를 위한 이 근거만의 질문: '+
+     single.question+' '+single.explanation+
+     ' 계산되지 않은 반대 성향이나 다른 십성의 존재를 가정하지 않는다. '+
+     '출처와 설명을 한 가지 조건부 생활 풀이로 바꾸되 실제 행동·능력·소득·관계 경험을 확정하지 않는다. '+
+     '같은 출처의 이미 제공된 결론을 다시 쓰는 것뿐이면 선택 문단은 null로 둔다.';
    }
    if(task.sourceOwnedAnnualReading){
     const reading=task.sourceOwnedAnnualReading;
