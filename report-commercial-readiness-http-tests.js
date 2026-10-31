@@ -20,8 +20,8 @@ Object.assign(process.env,{
 const readiness=require('./report-commercial-readiness').assess();
 assert.equal(readiness.canAcceptNewPayment,false);
 assert.equal(readiness.definedTopics,28);
-assert.equal(readiness.structuralUpperBound,22);
-assert.equal(readiness.minimumShortfall,13);
+assert.equal(readiness.structuralUpperBound,23);
+assert.equal(readiness.minimumShortfall,12);
 const server=http.createServer(require('./server').handler);
 const nativeFetch=global.fetch;
 global.fetch=async()=>{throw Error('PRODUCTION_GATE_MUST_NOT_CONTACT_PAYMENT_OR_MODEL_PROVIDER')};
