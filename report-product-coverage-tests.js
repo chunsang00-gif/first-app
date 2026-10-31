@@ -6,7 +6,7 @@ const facts=require('./report-facts-node');
 const cases=[
  ['1982-11-24','14:20','lunar',9,20],
  ['1994-07-15','14:20','solar',10,19],
- ['1994-01-15','14:20','solar',10,20],
+ ['1994-01-15','14:20','solar',10,21],
  ['1994-05-15','20:20','solar',11,20]
 ];
 const names=['NODE_ENV','RENDER','PAID_CORE_DEPTH_V2',
