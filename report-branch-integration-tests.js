@@ -127,3 +127,64 @@ assert.equal(generation.compile(secondaryPrompt).task.chapters.year_2027_relatio
  .topics.change.sourceOwnedAnnualRelationship,undefined,
  'secondary-only relationship must not be sold as a primary verified annual reading');
 console.log('PASS contextual annual-day relation, strict provider refs, competing interpretation and secondary-only refusal; no paid API');
+
+// New optional relationship paragraph is different from annual-day clashes:
+// only a NATAL day branch facing a different natal branch can authorize it.
+// Another two-position clash MUST NOT be recycled as a day relationship.
+const branchRelations=require('./report-branch-relations');
+const dayChart={year:'甲子',month:'乙未',day:'丙丑',hour:'丁午'};
+const natalPacket=structuredClone(packet);
+natalPacket.chart=dayChart;
+natalPacket.facts.natalClashes=branchRelations.natal(dayChart).pairs
+ .filter(x=>x.type==='충').map(x=>({
+  type:x.type,positions:x.positions,branches:x.branches,
+  note:'충 관계표만 확인됨. 실제 인간관계 문제는 관찰하지 않음'
+ }));
+const natalPlan=guidance.preflight(natalPacket);
+const natalTask=natalPlan.relationship.topicTasks.conflict;
+assert.equal(natalTask.mode,'use-primary');
+assert.deepEqual(natalTask.allowedSourceRefs,['facts.natalClashes']);
+const natalPrompt={
+ stage:'body',facts:natalPacket,requestedSections:['relationship'],
+ analysisGuidance:{...guidance.forRequest(['relationship'],'ISFP'),
+  editorialBlueprint:{relationship:natalPlan.relationship}}
+};
+const paidNatal=generation.compile(natalPrompt);
+const actualConflict=paidNatal.task.chapters.relationship.topics.conflict;
+const originalReading=actualConflict.sourceOwnedNatalDayClash;
+assert(originalReading,'exact day/month natal clash must get an independent real paid reading');
+assert.equal(originalReading.kind,'paid-natal-day-branch-clash-reader-v1');
+assert.equal(originalReading.sourceRef,'facts.natalClashes');
+assert.deepEqual(originalReading.directPairs.map(x=>x.otherPosition),['month']);
+assert.equal(originalReading.actualConflictObserved,false);
+assert.equal(originalReading.actualRelationshipOutcomePredicted,false);
+assert(!actualConflict.sourceOwnedInterpretiveThesis);
+const natalSchema=generation.schema(natalPrompt,wire.schemaFor(natalPrompt,schema));
+const natalText=natalSchema.properties.chapters.properties.relationship
+ .properties.paragraphs.properties.conflict.properties.text.description;
+assert(natalText.includes(originalReading.independentQuestion));
+assert(natalText.includes('丑(출생일) / 未(태어난 달)'));
+assert(!natalText.includes('子(출생일) / 午'));
+const tamperedPlan=structuredClone(natalPlan);
+tamperedPlan.relationship.topicTasks.conflict.allowedSourceRefs=['natal.year.stem'];
+assert(invariant.verify(natalPacket,tamperedPlan).errors.includes(
+ 'domain-topic-source-mismatch:relationship:conflict'));
+const irrelevant=structuredClone(natalPacket);
+irrelevant.facts.natalClashes=irrelevant.facts.natalClashes.filter(x=>
+ !x.positions.includes('day'));
+const irrelevantPlan=guidance.preflight(irrelevant);
+assert.equal(irrelevantPlan.relationship.topicTasks.conflict.mode,'state-limits');
+const noDirect={...natalPrompt,facts:irrelevant,analysisGuidance:{
+ ...guidance.forRequest(['relationship'],'ISFP'),
+ editorialBlueprint:{relationship:irrelevantPlan.relationship}}};
+assert.equal(generation.compile(noDirect).task.chapters.relationship.topics.conflict
+ .sourceOwnedNatalDayClash,undefined);
+const forged=structuredClone(natalPacket);
+forged.facts.natalClashes[0].branches='申寅';
+const forgedPlan=guidance.preflight(forged);
+assert.equal(forgedPlan.relationship.topicTasks.conflict.mode,'state-limits');
+const noClashDay={...natalPacket,chart:{...dayChart,day:'丙辰'}};
+assert.equal(require('./report-paid-natal-day-clash').matching(
+ noClashDay.chart,noClashDay.facts.natalClashes).length,0);
+console.log('PASS actual natal day-clash conflict prose, precise source, unrelated pair refusal, tamper rejection and no event claims; 0 paid API');
+
