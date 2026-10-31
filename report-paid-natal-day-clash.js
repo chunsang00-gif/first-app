@@ -6,9 +6,15 @@ const POS=Object.freeze({year:'태어난 해',month:'태어난 달',hour:'태어
 function matching(chart,clashes){
  if(!chart?.day||!chart?.month||!Array.isArray(clashes))return [];
  const expected=relations.natal(chart).pairs.filter(x=>x.type==='충'&&x.positions.includes('day'));
- return expected.filter(pair=>clashes.some(row=>row.type==='충'&&
+ const verified=expected.filter(pair=>clashes.some(row=>row.type==='충'&&
   row.branches===pair.branches&&Array.isArray(row.positions)&&
   JSON.stringify(row.positions)===JSON.stringify(pair.positions)));
+ const dayRows=clashes.filter(row=>Array.isArray(row?.positions)&&
+  row.positions.includes('day'));
+ // No partial day evidence, or extra fabricated pairs, may enable a
+ // premium reading. A natal clash on other positions is allowed.
+ return verified.length===expected.length&&dayRows.length===expected.length?
+  verified:[];
 }
 function build({chapterId,topicId,topic,source,chart}={}){
  const ref='facts.natalClashes';
