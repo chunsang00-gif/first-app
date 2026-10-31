@@ -339,6 +339,17 @@ function compile(prompt){
     const bridge=require('./report-paid-interpretive-bridge');
     const thesis=bridge.build({chapterId,topicId,topic});
     if(thesis)topic.sourceOwnedInterpretiveThesis=thesis;
+    // A separately proven birth-day clash may answer the relationship
+    // conflict question even when closeness/expression already cite ten-gods.
+    // It never licenses an actual interpersonal outcome.
+    if(chapterId==='relationship'&&topicId==='conflict'){
+     const dayClash=require('./report-paid-natal-day-clash').build({
+      chapterId,topicId,topic,source,chart:prompt.facts.chart
+     });
+     if(dayClash)topic.sourceOwnedNatalDayClash=dayClash;
+     else if(topic.mode==='use-primary')
+      throw Error('PAID_DAY_CLASH_EVIDENCE_NOT_VERIFIED');
+    }
     else{
      // The one verified subtype gets an exact reader question in the
      // actual paid batch; a nonexistent second subtype is never invented.
@@ -523,6 +534,32 @@ function schema(prompt,transport){
      '근거가 지지하지 않는 두 번째 인생 특징이나 정해진 가상 생활 장면을 만들지 않는다. '+ 
      '출처 번호·한자·전문 분류어는 독자 본문에 옮기지 않는다. '+ 
      '같은 결론을 다른 항목에 재판매하지 않고 설명할 새 뜻이 없다면 선택 문단은 null로 둔다.';
+   }
+   if(task.sourceOwnedNatalDayClash){
+    const clash=task.sourceOwnedNatalDayClash;
+    const ref='facts.natalClashes',src=payload.source[ref];
+    const verified=require('./report-paid-natal-day-clash').build({
+     chapterId,topicId:topic,topic:task,source:payload.source,chart:prompt.facts.chart
+    });
+    if(clash.kind!=='paid-natal-day-branch-clash-reader-v1'||
+       chapterId!=='relationship'||topic!=='conflict'||
+       clash.chapter!==chapterId||clash.topic!==topic||
+       clash.sourceRef!==ref||!permitted.includes(ref)||
+       !Array.isArray(src)||!verified||
+       !clash.directPairs?.length||
+       JSON.stringify(clash.directPairs)!==JSON.stringify(verified.directPairs)||
+       clash.priorityAssessed!==false||clash.actualConflictObserved!==false||
+       clash.actualRelationshipOutcomePredicted!==false||
+       clash.independentQuestion!==verified.independentQuestion)
+     throw Error('PAID_NATAL_DAY_CLASH_SOURCE_DRIFT');
+    p.properties.text.description+=
+     ' 출생일과 출생 당시 다른 위치의 검증된 지지 관계에만 속하는 독립 질문: '+
+     clash.independentQuestion+
+     ' 정확한 내부 관계 근거: '+clash.directPairs.map(x=>
+      x.natalDayBranch+'(출생일) / '+x.otherBranch+'('+x.otherReaderPosition+')'+
+      ' 충').join('; ')+
+     '. 가상의 관계에서 두 서로 다른 요구가 만났을 때를 설명하되 이는 실제 대인갈등의 발생이 아니다. '+
+     '사람의 성향, 상대의 성격, 이별·관계 실패를 예언하거나 다른 장의 친밀감·표현 해석을 반복하지 않는다.';
    }
    if(task.sourceOwnedSingleReading){
     const single=task.sourceOwnedSingleReading,one=single.source;
