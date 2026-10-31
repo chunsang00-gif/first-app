@@ -7,7 +7,7 @@ const guidance=require('./report-analysis-guidance');
 const selection=require('./report-chapter-selection');
 const qa11=require('./report-qa11-premium-scope-audit');
 const CONSTRAINED=Object.freeze([
- 'money.risk','career.change','relationship.conflict',
+ 'money.risk','career.change',
  'year_2027_money.action','year_2027_career.action',
  'year_2027_relationship.action'
 ]);
