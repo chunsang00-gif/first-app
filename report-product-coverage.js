@@ -50,7 +50,7 @@ const TOPIC_NAMES=Object.freeze({
  relationship:Object.freeze({
   closeness:'가까운 관계를 이해하는 관점',
   expression:'마음을 표현하고 이해하는 관점',
-  conflict:'관계 갈등을 예측할 때의 한계'
+  conflict:'태어난 날과 다른 자리의 마주 보는 관계'
  }),
  stress:Object.freeze({
   trigger:'압박과 요구를 해석할 수 있는 조건',
