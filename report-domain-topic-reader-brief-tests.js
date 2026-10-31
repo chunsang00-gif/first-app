@@ -39,6 +39,22 @@ for(const [calendar,birthDate,birthTime] of cases){
     unavailable++;
     continue;
    }
+   if(chapterId==='relationship'&&topicId==='conflict'){
+    // A branch-table relation is not a ten-god category and must never
+    // inherit the glossary-based source-role scene requirement.
+    assert.equal(brief??null,null);
+    const reading=topic.sourceOwnedNatalDayClash;
+    assert(reading,'day-specific conflict topic requires direct natal pair evidence');
+    assert.equal(reading.actualConflictObserved,false);
+    assert.equal(reading.actualRelationshipOutcomePredicted,false);
+    assert(topic.citableFacts.some(x=>x.id===reading.sourceRef));
+    const slot=providerSchema.properties.chapters.properties[chapterId]
+     .properties.paragraphs.properties[topicId];
+    const part=slot.anyOf?.find(x=>x.type==='object')||slot;
+    assert(part.properties.text.description.includes(reading.independentQuestion),
+     'day-pair reading must reach strict actual writer text instead of a generic reader brief');
+    verified++;continue;
+   }
    assert(brief,chapterId+':'+topicId);
    assert.equal(brief.observedCustomerBehavior,false);
    assert.equal(brief.realWorldOutcomeEstablished,false);
