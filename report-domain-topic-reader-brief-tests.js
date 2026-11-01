@@ -439,7 +439,10 @@ assert(moneyRequired.every(ref=>paidMoneySlot.properties.basis.properties.refs.d
  // the request text. An author cannot claim two distinct meanings while
  // omitting one of the referenced original calculated positions.
  const pair=earning.sourceOwnedInterpretiveThesis.sourceRoles.map(x=>x.ref);
- const moneyParagraph={label:'검증용 금전 풀이',text:'두 전통 분류가 서로 다른 질문에 답하는 가상의 상황입니다.',
+ const moneyParagraph={label:'검증용 금전 풀이',
+ text:'가상 제작 활동에서 결과물을 만들어 대가를 받는다고 가정합니다. '+
+  '완성해야 할 산출물만 생각하면 이를 제공하고 받을 비용을 관리할 기준이 빠집니다. '+
+  '반대로 가격과 운영 자원만 정하면 실제로 무엇을 제작해 전달할지가 빠집니다.',
   basis:{refs:moneyRequired.slice(),interpretation:'두 실제 계산 분류의 서로 다른 뜻',
    condition:moneyCond.computedCondition,
    limit:'실제 수입이나 개인 소비 행동을 확인한 것은 아닙니다.'}};
@@ -451,6 +454,13 @@ assert(moneyRequired.every(ref=>paidMoneySlot.properties.basis.properties.refs.d
   'even two correct citations cannot justify a generic earning condition');
  assert.doesNotThrow(()=>generator.restoreEvidence(makePaidResponse(moneyParagraph),moneyPrompt),
   'two original source references make the composite thesis traceable');
+ const emptyMoney=structuredClone(moneyParagraph);
+ emptyMoney.text='이 명식에는 서로 다른 두 전통 분류가 있습니다. '+
+  '주어진 정보에 따라 신중하게 결정하면 도움이 됩니다. '+
+  '실제로 돈을 얼마나 벌지는 알 수 없습니다.';
+ assert.throws(()=>generator.restoreEvidence(makePaidResponse(emptyMoney),moneyPrompt),
+  /paid source-owned reader substance missing: money:earning:missing-chart-specific-role-meanings/,
+  'correct citations and a locked basis condition cannot make generic advice a paid reading');
  for(const missing of pair){
   const altered=structuredClone(moneyParagraph);
   altered.basis.refs=moneyRequired.filter(x=>x!==missing);
@@ -540,12 +550,25 @@ const requiredCareerRefs=[...new Set([
  ...(careerThesis.exactStemBridge?.refs||[])
 ])];
 const careerParagraph={label:'작업 방식과 결과물의 조건',
- text:'새 작업 방법을 익히는 근거와 결과물을 검토하는 근거는 서로 다른 질문입니다. '+
- '가상 과업에서는 방법만 이해하고 끝내거나 결과만 보고 과정을 확인하지 못하는 차이를 설명합니다.',
+ text:'가상의 과업에서 지침을 배우고 새 작업 방법을 익히는 일과, 완성된 결과물을 '+
+ '검수하는 일은 서로 다릅니다. 방법만 배운 경우에는 납품할 결과물이 '+
+ '제대로 완성됐는지 확인할 기준이 빠지고, 반대로 결과물만 검사하면 '+
+ '왜 그 방법을 선택해 적용했는지 이해할 근거가 남지 않습니다.',
  basis:{refs:requiredCareerRefs,interpretation:'실제 두 전통 분류의 다른 조건',
   condition:method.computedCondition,limit:'실제 업무 성적이나 취업 결과를 예언하지 않습니다.'}};
 const careerResponse=p=>({chapters:{career:{paragraphs:{workstyle:p}}}});
 assert.doesNotThrow(()=>generator.restoreEvidence(careerResponse(careerParagraph),careerPrompt));
+const genericCareer=structuredClone(careerParagraph);
+genericCareer.text='업무를 시작할 때는 상황을 잘 살피고 신중하게 일해야 합니다. '+
+ '다양한 관점을 고려하면 직장 생활이 좋아질 수 있습니다.';
+assert.throws(()=>generator.restoreEvidence(careerResponse(genericCareer),careerPrompt),
+ /paid source-owned reader substance missing: career:workstyle:missing-chart-specific-role-meanings/,
+ 'a correct natal workstyle source ID must not authorize a generic work-life recommendation');
+const noContrast=structuredClone(careerParagraph);
+noContrast.text='지침을 배우고 작업 방법을 익힙니다. 결과물을 완성해 검수합니다.';
+assert.throws(()=>generator.restoreEvidence(careerResponse(noContrast),careerPrompt),
+ /paid source-owned reader substance missing: career:workstyle:missing-two-sided-reading-difference/,
+ 'listing learning and output actions without comparing their meaning is not a paid interpretation');
 const brokenCondition=structuredClone(careerParagraph);
 brokenCondition.basis.condition=moneyCond.computedCondition;
 assert.throws(()=>generator.restoreEvidence(careerResponse(brokenCondition),careerPrompt),
