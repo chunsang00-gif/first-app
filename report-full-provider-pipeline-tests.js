@@ -44,7 +44,10 @@ function subsetRefs(source,chapter,id,topic,slot){
   const ids=paired.sourceRoles?.map(x=>x.ref)||[];
   if(ids.length!==2||ids.some(x=>!permitted.includes(x)))
    throw Error('Synthetic provider has no verified paired domain sources');
-  required.push(...ids);
+  const exposure=paired.exactStemBridge?.refs||[];
+  if(exposure.some(x=>!permitted.includes(x)))
+   throw Error('Synthetic provider lacks verified exposure source');
+  required.push(...ids,...exposure);
  }
  if(id==='saju_core'&&topic==='temperament'){
   for(const key of ['facts.seasonalEvidence','facts.qiEvidence','facts.stemConnections','facts.rootConditions'])
