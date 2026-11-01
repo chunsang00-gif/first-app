@@ -149,7 +149,7 @@ for(const [calendar,birthDate,birthTime] of cases){
      assert.deepEqual(link.refs.map(id=>topic.citableFacts.some(row=>row.id===id)),
       [true,true],'a matching stem cannot borrow a non-citable source');
      assert.equal(actual.source[link.refs[0]].stem,actual.source[link.refs[1]].stem);
-     assert(part.properties.text.description.includes('별도 실제 관계'),
+     assert(part.properties.text.description.includes('세 번째 사실'),
       'verified original hidden-to-visible link must reach the paid writer');
     }
    }
