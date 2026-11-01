@@ -343,6 +343,20 @@ function compile(prompt){
      const single=bridge.buildSingle({chapterId,topicId,topic});
      if(single)topic.sourceOwnedSingleReading=single;
     }
+    // Independently sourced, user-reported MBTI dimensions never borrow
+    // natal evidence merely to pad the paid cross-framework comparison.
+    if(chapterId==='mbti_contradiction'&&
+       ['information','judgment'].includes(topicId)&&
+       topic.mode!=='state-limits'){
+     const actual=require('./report-paid-mbti-dimension')
+      .build(prompt.facts.person?.mbti,topicId);
+     if(!actual||JSON.stringify(actual.sourceRefs)!==
+        JSON.stringify(topic.allowedSourceRefs)||
+        permitted.length!==1||permitted[0]!=='person.mbti'||
+        !Object.hasOwn(source,'person.mbti'))
+      throw Error('PAID_MBTI_DIMENSION_SOURCE_NOT_GROUNDED:'+topicId);
+     topic.sourceOwnedMbtiDimension=actual;
+    }
     if(chapterId==='money'&&topicId==='risk'&&topic.mode!=='state-limits'){
      const actual=require('./report-paid-money-clash-reading').candidate(prompt.facts);
      if(!actual||JSON.stringify(actual.sourceRefs)!==
@@ -526,6 +540,27 @@ function schema(prompt,transport){
       '이 질문에 추가되는 독립적인 출생 근거 또는 명확히 다른 전통적 의미가 없으면 '+
       '선택 문단은 null로 두고, 필수 문단은 근거의 한계만 정확히 밝힌다.';
     }
+   }
+   if(task.sourceOwnedMbtiDimension){
+    const proof=task.sourceOwnedMbtiDimension;
+    const actual=require('./report-paid-mbti-dimension')
+     .build(prompt.facts.person?.mbti,topic);
+    if(chapterId!=='mbti_contradiction'||!actual||
+       JSON.stringify(proof)!==JSON.stringify(actual)||
+       JSON.stringify(permitted)!=='["person.mbti"]'||
+       proof.actualBehaviorObserved!==false||
+       proof.sajuAgreementVerified!==false)
+     throw Error('PAID_MBTI_DIMENSION_WRITING_SOURCE_DRIFT:'+topic);
+    basis.properties.condition.enum=[proof.computedCondition];
+    basis.properties.refs.description+=' 이 항목은 직접 입력한 MBTI '+proof.inputType+
+     '의 '+proof.selectedCode+' 정보만 인용한다: person.mbti.';
+    p.properties.text.description+=
+     ' 별도 선택 문단 '+topic+'의 고유 질문은 '+proof.readerQuestion+
+     '이다. 선택한 기호의 입력된 선호 뜻: '+proof.interpretedPreference+
+     '. 실제로 선택할 때: '+proof.appliedQuestion+
+     '. '+proof.limit+'. 다른 MBTI 차원의 뜻이나 사주와의 일치·반전 설명을 재사용하지 말고 '+
+     '선호가 작동할 조건과 실제 행동을 아직 모르는 한계를 일상 한국어로 구별한다. '+
+     '본문에 계산용 condition 문자열을 그대로 붙여 넣지 않는다.';
    }
    if(task.sourceOwnedWealthClash){
     const candidate=task.sourceOwnedWealthClash;
@@ -1230,7 +1265,8 @@ function restoreEvidence(value,prompt){
     const allowed=allowedRefs(payload,task,id,topic);
     // The integrated chapter must cite both frameworks, not a Saju-only
     // source while implying that the MBTI comparison was substantiated.
-    if(payload.source['person.mbti']&&['mbti_contradiction','integrated_judgment'].includes(id)&&!(
+    if(payload.source['person.mbti']&&['mbti_contradiction','integrated_judgment'].includes(id)&&
+      !(id==='mbti_contradiction'&&['information','judgment'].includes(topic))&&!( 
      b.refs.includes('person.mbti')&&b.refs.some(ref=>ref.startsWith('natal.'))
     ))throw Error('AI report service missing dual MBTI/Saju evidence: '+id+':'+topic);
     if(linkedDomainIds.has(id)&&payload.source['person.mbti']){
@@ -1280,6 +1316,15 @@ function restoreEvidence(value,prompt){
         !expected.sourceRefs.every(ref=>allowed.has(ref)&&b.refs.includes(ref))||
         b.condition!==expected.computedCondition)
       throw Error('AI report service workstyle source-specific condition missing: '+id+':'+topic);
+    }
+    if(task.sourceOwnedMbtiDimension){
+     const proof=task.sourceOwnedMbtiDimension;
+     if(id!=='mbti_contradiction'||proof.topic!==topic||
+        proof.actualBehaviorObserved!==false||
+        proof.sajuAgreementVerified!==false||
+        JSON.stringify(b.refs)!=='["person.mbti"]'||
+        b.condition!==proof.computedCondition)
+      throw Error('AI report service entered MBTI dimension evidence missing: '+id+':'+topic);
     }
     if(task.sourceOwnedWealthClash){
      const proof=task.sourceOwnedWealthClash;
