@@ -341,6 +341,20 @@ assert.equal(sourceTradeoff.realizedInfluence,false);
 const sourceOnly=generator.compile(moneyPrompt);
 assert(relation.refs.every(id=>sourceOnly.source[id]?.stem&&
  sourceOnly.source[id].stem==='甲'||sourceOnly.source[id]?.stem==='丁'));
+const moneyCond=earning.sourceOwnedInterpretiveThesis.earnedValueConditionalReading;
+assert.equal(moneyCond?.kind,'verified-two-sided-earning-condition-v1');
+assert.deepEqual(moneyCond.sourceRefs,relation.refs);
+assert.deepEqual(moneyCond.categories,['식신','정재']);
+assert.equal(moneyCond.observedIncome,false);
+assert.equal(moneyCond.guaranteedOutcome,false);
+assert(moneyCond.computedCondition.includes('첫 번째만 검토하면'));
+assert(moneyCond.computedCondition.includes('반대로 두 번째만 검토하면'));
+const paidMoneyConditionSchema=generator.schema(
+ moneyPrompt,wire.schemaFor(moneyPrompt,schema))
+ .properties.chapters.properties.money.properties.paragraphs.properties.earning
+ .properties.basis.properties.condition;
+assert.deepEqual(paidMoneyConditionSchema.enum,[moneyCond.computedCondition],
+ 'the real paid strict JSON schema must bind the verified condition, not a free-text hint');
 const relationSchema=generator.schema(moneyPrompt,wire.schemaFor(moneyPrompt,schema))
  .properties.chapters.properties.money.properties.paragraphs.properties.earning
  .properties.text.description;
@@ -413,9 +427,14 @@ assert(moneyRequired.every(ref=>paidMoneySlot.properties.basis.properties.refs.d
  const pair=earning.sourceOwnedInterpretiveThesis.sourceRoles.map(x=>x.ref);
  const moneyParagraph={label:'검증용 금전 풀이',text:'두 전통 분류가 서로 다른 질문에 답하는 가상의 상황입니다.',
   basis:{refs:moneyRequired.slice(),interpretation:'두 실제 계산 분류의 서로 다른 뜻',
-   condition:'가상으로 결과를 만들고 대가를 비교하는 경우',
+   condition:moneyCond.computedCondition,
    limit:'실제 수입이나 개인 소비 행동을 확인한 것은 아닙니다.'}};
  const makePaidResponse=p=>({chapters:{money:{paragraphs:{earning:p}}}});
+ const genericCondition=structuredClone(moneyParagraph);
+ genericCondition.basis.condition='실제 근거와 관계없는 일반적인 신중한 선택';
+ assert.throws(()=>generator.restoreEvidence(makePaidResponse(genericCondition),moneyPrompt),
+  /earning two-sided grounded condition missing: money:earning/,
+  'even two correct citations cannot justify a generic earning condition');
  assert.doesNotThrow(()=>generator.restoreEvidence(makePaidResponse(moneyParagraph),moneyPrompt),
   'two original source references make the composite thesis traceable');
  for(const missing of pair){
