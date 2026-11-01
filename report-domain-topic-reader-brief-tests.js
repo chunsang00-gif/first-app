@@ -319,11 +319,26 @@ assert(relationSchema.includes('첫 번째 글자의 오행이 두 번째 글자
  'the real provider text field receives the computed original-stem relationship');
 assert(relationSchema.includes('실제 성과·성격·수입이나 명리적 우선순위'),
  'a verified element direction cannot be sold as a personal prediction');
+assert(relationSchema.includes('식신생재(食神生財) 관계 후보'),
+ 'the actual paid writer must receive a named classical interpretive relation');
+assert(relationSchema.includes('두 출생 위치 사이의 다른 글자를 생략하거나 식신생재격 성립을 확정하지 말라'),
+ 'a non-adjacent source pair must not become an unverified fortune pattern');
 assert(relationSchema.includes(sourceTradeoff.sourceSpecificQuestion));
 assert(relationSchema.includes(sourceTradeoff.firstOnlyQuestion));
 assert(relationSchema.includes(sourceTradeoff.secondOnlyQuestion));
 assert(relationSchema.includes('가상의 선택 장면을 붙이는 것만으로 독립된 풀이가 되는 것은 아니다'),
  'actual paid output instruction must demand source-specific differences');
+const foodWealth=earning.sourceOwnedInterpretiveThesis.classicalOutputWealthCandidate;
+assert(foodWealth,'the verified output-to-wealth pair should carry a named classical question');
+assert.equal(foodWealth.phrase,'식신생재(食神生財) 관계 후보');
+assert.deepEqual(foodWealth.sourceRefs,relation.refs);
+assert.deepEqual(foodWealth.betweenPillars,['month','day'],
+ 'year-to-hour output/wealth symbols must not be sold as a proven direct flow');
+assert.equal(foodWealth.adjacentVisibleStems,false);
+assert.equal(foodWealth.actualFlowEstablished,false);
+assert.equal(foodWealth.monthPatternChosen,false);
+assert.equal(foodWealth.dayMasterStrengthVerified,false);
+assert.equal(foodWealth.financialOutcomeVerified,false);
 const classical=earning.sourceOwnedInterpretiveThesis.classicalMonthQuestion;
 assert(classical,'a verified mixed-month single exposed candidate must reach the real paid domain');
 assert.equal(classical.monthBranch,'未');
@@ -458,6 +473,15 @@ for(const [chapterId,topicId,first,second,expected] of [
  assert.equal(different.elementalDirection,'day-controls',
   'fire 丁 controls metal 辛, reverse of the original source order');
  assert.equal(different.realizedEffect,false);
+ const syntheticFood=paidBridge.classicalOutputWealthCandidate('money.earning',
+  {id:'natal.year.stem',stem:'甲',tenGod:'식신'},
+  {id:'natal.hour.stem',stem:'丁',tenGod:'정재'},
+  paidBridge.exactElementRelation(
+   {id:'natal.year.stem',stem:'甲'},
+   {id:'natal.hour.stem',stem:'丁'}),
+  {chart:{year:'甲戌',month:'辛未',day:'壬寅',hour:'庚戌'}});
+ assert.equal(syntheticFood,null,
+  'a changed real birth-hour stem must not inherit the old 食神生財 relation');
  const missing=paidBridge.build({chapterId,topicId,
   topic:{mode:'use-primary',citableFacts:[pair[0]]}});
  assert.equal(missing,null,'one source alone must not produce two-role prose');
