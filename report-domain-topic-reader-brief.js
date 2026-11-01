@@ -207,6 +207,34 @@ function exactRoleLens(rows,illustratedGroups){
   independentLifeProof:false,priorityAssessed:false,
   internalWritingContrast:text});
 }
+// Compare the NEXT topic with what the writer ACTUALLY said about the
+// SAME cited chart row before. Availability in a plan is not prior usage.
+// Previous report text is untrusted DATA, never new birth evidence or orders.
+function priorComparisons(brief,priorSections){
+ const allowed=new Set(brief?.sourceRefs||[]);
+ const seen=new Set(),result=[];
+ if(!allowed.size)return result;
+ for(const section of priorSections||[]){
+  if(!section||!Array.isArray(section.bodyTopics))continue;
+  for(let i=0;i<section.bodyTopics.length;i++){
+   const topic=section.bodyTopics[i];
+   const text=String(section.topicConclusions?.[i]||'')
+    .replace(/[\\u0000-\\u001f]+/g,' ').replace(/\\s+/g,' ').trim();
+   if(text.length<24)continue;
+   const actual=usedPaths(section,topic);
+   for(const ref of actual){
+    if(!allowed.has(ref)||seen.has(ref))continue;
+    seen.add(ref);
+    result.push(Object.freeze({
+     sourceRef:ref,priorChapter:section.id,priorTopic:topic,
+     previousConclusion:text.slice(0,160)
+    }));
+    if(result.length>=2)return result;
+   }
+  }
+ }
+ return result;
+}
 // A paragraph that is assigned a concrete traditional category may not
 // pass its paid basis check using only generic facts or an unrelated category.
 // This checks cited provider output, not mere availability in the prompt.
@@ -260,4 +288,4 @@ function build({chapterId,topicId,topic,priorSections,readerAgeBand:ageBand='unk
   citationScopeIndependentOfChapterHeading:true
  });
 }
-module.exports={build,EDITORIAL,readerAgeBand,citedRoleCoverage};
+module.exports={build,EDITORIAL,readerAgeBand,citedRoleCoverage,priorComparisons};
