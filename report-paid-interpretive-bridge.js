@@ -146,11 +146,26 @@ function build({chapterId,topicId,topic}={}){
   (key!=='relationship.closeness'||/^natal\.day\.hidden\./.test(row.id))&&
   row.position&&row.stem&&row.tenGod&&GROUP[row.tenGod]&&
   typeof row.traditionalMeaning==='string'&&row.traditionalMeaning.trim());
- const pick=kind=>roles.find(row=>kind.includes(row.tenGod));
+ // Before selecting among same-category source placements, identify
+ // independently observed exposure. Selecting the first wealth row blindly
+ // can hide the actual month-hidden/hour-visible link and leave nothing but
+ // two dictionary labels. Keep the rule's category pairing and priority,
+ // and prefer a real linked placement WITHIN that pairing if it exists.
+ const matchedPairs=roles.filter(row=>/^natal\.month\.hidden\./.test(row.id))
+  .flatMap(hidden=>roles.filter(visible=>
+   /^natal\.(year|hour)\.stem$/.test(visible.id)&&
+   visible.stem===hidden.stem&&visible.tenGod===hidden.tenGod)
+   .map(visible=>({hidden,visible})));
  const variants=[rule,...(ALTERNATIVES[key]||[])];
- const selected=variants.map(candidate=>({
-  rule:candidate,a:pick(candidate.first),b:pick(candidate.second)
- })).find(x=>x.a&&x.b&&x.a.id!==x.b.id);
+ const selected=variants.map(candidate=>{
+  const first=roles.filter(row=>candidate.first.includes(row.tenGod));
+  const second=roles.filter(row=>candidate.second.includes(row.tenGod));
+  const choices=first.flatMap(a=>second.filter(b=>a.id!==b.id)
+   .map(b=>({rule:candidate,a,b,exposure:matchedPairs.find(link=>
+    [a.id,b.id].includes(link.hidden.id)||
+    [a.id,b.id].includes(link.visible.id))||null})));
+  return choices.find(x=>x.exposure)||choices[0];
+ }).find(Boolean);
  if(!selected)return null;
  const {a,b}=selected;
  const chosenRule=selected.rule;
@@ -167,13 +182,7 @@ function build({chapterId,topicId,topic}={}){
  // in the chart. At least one endpoint MUST be part of this topic's selected
  // two-role thesis and share its exact traditional classification.
  const chosenRefs=new Set([a.id,b.id]);
- const matchedPairs=roles.filter(row=>/^natal\.month\.hidden\./.test(row.id))
-  .flatMap(hidden=>roles.filter(visible=>
-   /^natal\.(year|hour)\.stem$/.test(visible.id)&&
-   visible.stem===hidden.stem&&visible.tenGod===hidden.tenGod)
-   .map(visible=>({hidden,visible})));
- const exposure=matchedPairs.find(({hidden,visible})=>
-  chosenRefs.has(hidden.id)||chosenRefs.has(visible.id));
+ const exposure=selected.exposure;
  const matched=exposure?Object.freeze({
   refs:Object.freeze([exposure.hidden.id,exposure.visible.id]),
   hiddenPosition:exposure.hidden.position,
