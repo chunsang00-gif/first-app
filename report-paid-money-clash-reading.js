@@ -24,7 +24,8 @@ function candidate(packet){
  // unrelated, deliberately incomplete branch ledger here.
  if(!'辰戌丑未'.includes(mainBranch))return null;
  const actual=packet.facts.natalClashes;
- const recomputed=relations.natal(chart).pairs.filter(x=>x.type==='충');
+ const originalRelations=relations.natal(chart);
+ const recomputed=originalRelations.pairs.filter(x=>x.type==='충');
  // An incomplete/tampered relationship ledger must NEVER qualify this
  // paid topic. Other domain tests deliberately remove a day-clash to
  // confirm an unrelated question is suppressed; fail closed here rather
@@ -37,6 +38,14 @@ function candidate(packet){
  for(const clash of actual){
   if(!clash.positions.includes('month')||
      !STORAGE_PAIRS.has([...clash.branches].sort().join('')))continue;
+  // Existing expert-research QA14 found that concurrent pair and group
+  // relationships make the supposed single-clash explanation incomplete.
+  // Do not promote any of those unresolved charts to paid money reading.
+  const contested=originalRelations.pairs.some(x=>x.type!=='충'&&
+     x.positions.some(p=>clash.positions.includes(p)))||
+    originalRelations.groups.some(x=>
+     x.positions.some(p=>clash.positions.includes(p)));
+  if(contested)continue;
   const other=clash.positions.find(x=>x!=='month');
   if(!POSITIONS.includes(other)||chart[other]?.[1]===
      undefined||!clash.branches.includes(chart[other][1]))continue;
