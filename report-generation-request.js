@@ -543,16 +543,27 @@ function schema(prompt,transport){
         payload.source[link.refs[0]]?.stem!==link.exactStem||
         payload.source[link.refs[1]]?.stem!==link.exactStem||
         payload.source[link.refs[0]]?.tenGod!==link.tenGod||
-        payload.source[link.refs[1]]?.tenGod!==link.tenGod)
+        payload.source[link.refs[1]]?.tenGod!==link.tenGod||
+        !link.refs.some(id=>roles.some(role=>role.ref===id))||
+        link.sameStemObserved!==true||
+        link.realizedStrength!=='not-assessed'||
+        JSON.stringify(link.extraCitedRefs)!==
+          JSON.stringify(link.refs.filter(id=>!roles.some(role=>role.ref===id))))
       throw Error('PAID_THESIS_EXACT_STEM_LINK_MISMATCH:'+chapterId+':'+topic);
     }
     // The comparison is not evidence-backed if only one original role is
     // cited. Tell the actual STRICT provider basis slot which exact two
     // independently verified rows its comparative reading must cite.
+    const exactSourceRefs=[...new Set([
+     ...roles.map(row=>row.ref),
+     ...(thesis.exactStemBridge?.refs||[])
+    ])];
     basis.properties.refs.description=
-     '두 서로 다른 실제 분류를 비교해 문단을 작성한다면 반드시 두 출처를 모두 refs에 넣는다: '+
-     roles.map(row=>row.ref).join(' / ')+
-     '. 출처 하나만으로 둘을 비교하거나 제3의 일반 출처로 대신하지 않는다. 선택 문단에서 독립 해석이 불가능하면 null을 반환한다.';
+     '두 서로 다른 실제 분류 및 연결된 정확한 노출 관계를 비교해 문단을 작성한다면 '+
+     '다음 원래 출처를 모두 refs에 넣는다: '+
+     exactSourceRefs.join(' / ')+
+     '. 특히 숨은 글자와 겉글자의 동일성을 별도로 설명한다면 양쪽 위치도 인용한다. '+
+     '단일 출처나 일반 참고자료로 대체하지 않는다. 독립 해석이 불가능한 선택 문단은 null로 둔다.';
     // This directly annotates the paid provider's strict JSON text leaf.
     // The model must turn the source-owned contrast into ONE useful reader
     // interpretation, not copy source IDs or fill with generic advice.
@@ -571,9 +582,14 @@ function schema(prompt,transport){
      ' '+roles[0].tenGod+'. 출처 2: '+roles[1].position+' '+roles[1].layer+
      ' '+roles[1].stem+' '+roles[1].tenGod+'. '+
      (thesis.exactStemBridge?
-      '별도 실제 관계: 태어난 달의 숨은 '+thesis.exactStemBridge.exactStem+
-      ' 글자가 '+thesis.exactStemBridge.visiblePosition+
-      ' 겉글자에도 동일하게 존재한다. 이는 두 글자의 동일성만 뜻하며 실제 작용·강도는 모른다. ':'')+
+      '이 명식에서 반드시 구별할 세 번째 사실: 태어난 달에 숨은 '+
+      thesis.exactStemBridge.exactStem+' 글자가 '+
+      thesis.exactStemBridge.visiblePosition+' 겉에도 정확히 드러난다. '+
+      '이를 단순한 분류 이름 반복과 구별한다. 같은 재물 분류가 두 위치에서 확인되더라도 '+
+      '재물 운이 두 배이거나 돈을 벌 사건이 일어난다는 뜻은 아니다. '+
+      '앞의 두 분류가 연결되는 방향과 이 실제 노출 위치를 종합해 '+
+      '왜 이 분야에서 별도 질문을 다룰 계산 근거가 생겼는지 한 문장으로 풀고, '+
+      '나머지 문단은 그 질문에 답한다. 관계의 우선순위나 실제 작용은 유보한다. ':'')+
      ' 원래 질문과 실제 위치가 왜 연결되는지 알기 쉬운 하나의 조건부 풀이로 쓴다. '+ 
      '근거가 지지하지 않는 두 번째 인생 특징이나 정해진 가상 생활 장면을 만들지 않는다. '+ 
      '출처 번호·한자·전문 분류어는 독자 본문에 옮기지 않는다. '+ 
@@ -1032,6 +1048,10 @@ function restoreEvidence(value,prompt){
      if(pair.length!==2||new Set(pair).size!==2||
         !pair.every(ref=>allowed.has(ref)&&b.refs.includes(ref)))
       throw Error('AI report service paired domain thesis citations missing: '+id+':'+topic);
+     const linked=owned.exactStemBridge?.refs||[];
+     if(linked.length&&
+        (linked.length!==2||linked.some(ref=>!allowed.has(ref)||!b.refs.includes(ref))))
+      throw Error('AI report service exact paid domain stem exposure citations missing: '+id+':'+topic);
     }
     if(require('./report-domain-topic-reader-brief')
        .emptyReaderInterpretation(p,task))
