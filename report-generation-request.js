@@ -550,6 +550,21 @@ function schema(prompt,transport){
        tradeoff.realizedInfluence!==false||
        tradeoff.traditionalPriorityChosen!==false)
      throw Error('PAID_DOMAIN_DIRECTIONAL_READER_QUESTION_DRIFT:'+chapterId+':'+topic);
+    if(thesis.classicalOutputWealthCandidate){
+     const classic=thesis.classicalOutputWealthCandidate;
+     const recomputed=require('./report-paid-interpretive-bridge')
+      .classicalOutputWealthCandidate(
+       chapterId+'.'+topic,
+       {id:roles[0].ref,stem:roles[0].stem,tenGod:roles[0].tenGod},
+       {id:roles[1].ref,stem:roles[1].stem,tenGod:roles[1].tenGod},
+       computed,prompt.facts);
+     if(!recomputed||JSON.stringify(classic)!==JSON.stringify(recomputed)||
+        classic.candidateOnly!==true||
+        classic.actualFlowEstablished!==false||
+        classic.dayMasterStrengthVerified!==false||
+        classic.financialOutcomeVerified!==false)
+      throw Error('PAID_CLASSICAL_FOOD_WEALTH_SOURCE_DRIFT:'+chapterId+':'+topic);
+    }
     if(thesis.classicalMonthQuestion){
      const classical=thesis.classicalMonthQuestion;
      const verified=require('./report-paid-interpretive-bridge')
@@ -616,6 +631,17 @@ function schema(prompt,transport){
      '가상의 선택 장면을 붙이는 것만으로 독립된 풀이가 되는 것은 아니다. '+
      '답변의 핵심은 이 출생 위치에서 확인된 질문의 차이이며, '+
      '분류 관계로 실제 행동의 선후나 특정 인생 결과를 단정하지 않는다. '+
+     (thesis.classicalOutputWealthCandidate?
+      ' 이 명식에서 실제로 확인된 별도의 전통 명리 질문: '+
+      thesis.classicalOutputWealthCandidate.traditionalQuestion+
+      ' 해당 분류 관계의 이름은 '+
+      thesis.classicalOutputWealthCandidate.phrase+
+      '이며, 이는 계산 근거와 분류 방향에 맞는 후보라는 뜻일 뿐이다. '+
+      '두 출생 위치 사이의 다른 글자를 생략하거나 식신생재격 성립을 확정하지 말라. '+
+      '일간 강약, 재성의 뿌리, 월령과 다른 생극 관계를 검증하지 않았으므로 '+
+      '돈을 버는 능력, 부자가 될 가능성 또는 수입의 시기를 추론하지 않는다. '+
+      '고전 출전: '+thesis.classicalOutputWealthCandidate.sourceChapter+
+      ' ('+thesis.classicalOutputWealthCandidate.sourceUrl+'). ':'')+
      (thesis.classicalMonthQuestion?
       ' 이 명식에서만 추가로 확인된 고전의 독립된 질문: '+
       thesis.classicalMonthQuestion.classicalQuestion+
