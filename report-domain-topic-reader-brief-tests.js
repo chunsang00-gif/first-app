@@ -189,8 +189,11 @@ for(const [calendar,birthDate,birthTime] of cases){
       basis:{refs:[actualRefs[0]],interpretation:'하나의 분류가 두 위치에 있는 점을 해석합니다.',
        condition:'같은 전통 뜻을 두 번 말하지 않는 가정입니다.',
        limit:'개인 경험이나 강약을 확정하지 않습니다.'}};
+     const allChapters=Object.fromEntries(prompt.requestedSections.map(id=>[
+      id,{paragraphs:id===chapterId?{[topicId]:onlyOne}:{}}
+     ]));
      assert.throws(()=>generator.restoreEvidence({
-      chapters:{[chapterId]:{paragraphs:{[topicId]:onlyOne}}}},prompt),
+      chapters:allChapters},prompt),
       /repeated single-category positional citations missing/,
       'the real paid decoder must reject an uncited additional position');
     }else assert.equal(single.placementContrast,null);
