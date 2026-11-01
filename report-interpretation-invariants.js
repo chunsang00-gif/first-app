@@ -47,7 +47,9 @@ function checkDomainSources(rows,plan,packet){
   for(const [topic,accept] of Object.entries(topics)){
    const actual=plan?.[chapterId]?.topicTasks?.[topic];
    const sourceIds=natal.filter(accept).map(row=>row.id);
-   const expected=chapterId==='career'&&topic==='change'?
+   const expected=chapterId==='money'&&topic==='risk'?
+    (require('./report-paid-money-clash-reading').candidate(packet)?.sourceRefs||[]):
+    chapterId==='career'&&topic==='change'?
     (require('./report-paid-career-decade-reading').candidate(packet)?.sourceRefs||[]):
     chapterId==='relationship'&&topic==='conflict'?
     (require('./report-paid-natal-day-clash').matching(packet.chart,packet.facts?.natalClashes).length?
