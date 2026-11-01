@@ -337,7 +337,7 @@ function compile(prompt){
     // not an optional QA screenshot or a stock scenario. No extra model
     // calls; do not attach it to the frozen Saju-core QA contracts.
     const bridge=require('./report-paid-interpretive-bridge');
-    const thesis=bridge.build({chapterId,topicId,topic});
+    const thesis=bridge.build({chapterId,topicId,topic,packet:prompt.facts});
     if(thesis)topic.sourceOwnedInterpretiveThesis=thesis;
     else{
      const single=bridge.buildSingle({chapterId,topicId,topic});
@@ -534,6 +534,20 @@ function schema(prompt,transport){
        linked.realizedEffect!==false||
        linked.predictedIncomeOrBehavior!==false)
      throw Error('PAID_DOMAIN_ELEMENTAL_RELATION_SOURCE_DRIFT:'+chapterId+':'+topic);
+    if(thesis.classicalMonthQuestion){
+     const classical=thesis.classicalMonthQuestion;
+     const verified=require('./report-paid-interpretive-bridge')
+      .classicalMonthCandidate(prompt.facts,
+       thesis.exactStemBridge?{
+        hidden:{id:thesis.exactStemBridge.refs[0]},
+        visible:{id:thesis.exactStemBridge.refs[1],position:thesis.exactStemBridge.visiblePosition}
+       }:null,task.citableFacts||[]);
+     if(!verified||JSON.stringify(classical)!==JSON.stringify(verified)||
+        classical.adoptedSchoolMethod!==false||
+        classical.chosenPattern!==false||
+        classical.chosenUsefulGod!==false)
+      throw Error('PAID_CLASSICAL_MONTH_METHOD_SOURCE_DRIFT:'+chapterId+':'+topic);
+    }
     if(thesis.exactStemBridge){
      const link=thesis.exactStemBridge;
      if(link.refs.length!==2||
@@ -577,6 +591,13 @@ function schema(prompt,transport){
      linked.computedRelation+'. '+
      '이 오행의 방향이 곧 실제 성과·성격·수입이나 명리적 우선순위를 뜻하는 것은 아니다. '+
      '상징적으로 두 질문을 나눠 읽는 이유를 분명히 밝히되 우세함을 임의로 정하지 않는다. '+
+     (thesis.classicalMonthQuestion?
+      ' 이 명식에서만 추가로 확인된 고전의 독립된 질문: '+
+      thesis.classicalMonthQuestion.classicalQuestion+
+      ' 출처 문헌: '+thesis.classicalMonthQuestion.sourceChapter+
+      ' ('+thesis.classicalMonthQuestion.sourceUrl+'). '+
+      '두 전통 분류의 일반적인 뜻과 달리 실제 출생월에 무엇이 드러났는지를 '+
+      '이 질문의 새로운 정보로 설명하라. 이를 격국 확정, 용신 선택, 재물 예측으로 바꾸지 않는다. ':'')+
      '검증하지 못한 우열이나 인생 결과를 추가해서 차이를 만들어내지 않는다. '+
      ' 출처 1: '+roles[0].position+' '+roles[0].layer+' '+roles[0].stem+
      ' '+roles[0].tenGod+'. 출처 2: '+roles[1].position+' '+roles[1].layer+
