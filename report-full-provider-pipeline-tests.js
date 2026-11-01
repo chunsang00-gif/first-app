@@ -126,9 +126,19 @@ function bodyResponse(p,strict,kind){
        '정해진 선택을 검토하는 가정 상황입니다.',
       limit:'개인의 실제 행동을 확인한 기록이 아니며 구체적 사건을 예언하지 않습니다.'},
      label,text:((chapter.topics?.[topic]?.sourceOwnedInterpretiveThesis
-       ?.earnedValueConditionalReading?.readerParagraph||
-       chapter.topics?.[topic]?.sourceOwnedInterpretiveThesis
-       ?.careerWorkstyleCondition?.readerParagraph)||
+       ?.earnedValueConditionalReading?
+       '가상의 의뢰에서 완성할 결과물을 만들거나 기존 방식을 개선하는 일을 정합니다. '+
+       '이 활동에서 지급받을 대가와 투입 자원을 관리할 계획이 없으면 '+
+       '작업만 끝내고 비용을 감당할 수 있는지는 알 수 없습니다. '+
+       '반대로 거래에 쓸 비용과 자원만 정한다면 무엇을 만들어 '+
+       '전달해야 하는지 놓치게 됩니다. 이 비교는 가상의 조건입니다.':null)||
+      (chapter.topics?.[topic]?.sourceOwnedInterpretiveThesis
+       ?.careerWorkstyleCondition?
+       '새 작업에서 설명과 지침을 배우거나 낯선 방법을 이해하는 단계가 있습니다. '+
+       '하지만 작업을 마친 뒤에는 완성한 결과물을 검토하거나 기존 절차를 개선할 '+
+       '기준도 필요합니다. 이해하는 일만 하면 결과 검수가 빠지고, '+
+       '반대로 결과만 보고 판단하면 어떤 방법을 배워 적용했는지 빠집니다.':null)||
+
        (kind==='all-eligible'?
       (chapter.topics?.[topic]?.sourceOwnedInterpretiveThesis
        ?.earnedValueConditionalReading?.readerParagraph||
