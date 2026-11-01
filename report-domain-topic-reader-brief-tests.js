@@ -144,6 +144,20 @@ for(const [calendar,birthDate,birthTime] of cases){
     assert(thesis.sourceRoles.every(row=>
      part.properties.basis.properties.refs.description.includes(row.ref)),
      'strict provider must explicitly request both actual interpretation sources');
+    if(chapterId==='career'&&topicId==='workstyle'&&
+       thesis.careerWorkstyleCondition){
+     const c=thesis.careerWorkstyleCondition;
+     assert.equal(c.kind,'verified-work-method-vs-output-condition-v1');
+     assert.deepEqual(c.sourceRefs,thesis.sourceRoles.map(role=>role.ref));
+     assert.equal(c.observedWorkPerformance,false);
+     assert.equal(c.careerOutcomePredicted,false);
+     assert.equal(c.traditionalPriorityAssessed,false);
+     assert(part.properties.text.description.includes(c.firstOnlyMissing));
+     assert(part.properties.text.description.includes(c.secondOnlyMissing));
+     assert.deepEqual(part.properties.basis.properties.condition.enum,
+      [c.computedCondition],
+      'real career writer must receive the calculated two-sided work condition');
+    }
     if(thesis.exactStemBridge){
      const link=thesis.exactStemBridge;
      assert.deepEqual(link.refs.map(id=>topic.citableFacts.some(row=>row.id===id)),
@@ -499,6 +513,50 @@ assert(singleTheses>0,'real charts must send single subtype interpretation into 
 // A full category pair is not the only genuine two-source traditional
 // contrast. These different-subtype pairs reach the ACTUAL paid text schema
 // through sourceOwnedInterpretiveThesis; never invent a missing second role.
+// The REAL compiled 1994 chart contains learning and output roles.
+// Its work-style interpretation must use a DIFFERENT topic-owned
+// conditional meaning from the income interpretation, with original refs.
+const careerPrompt={...moneyPrompt,requestedSections:['career'],
+ analysisGuidance:{...guidance.forRequest(['career'],thisChart.person.mbti),
+  editorialBlueprint:thisPlan}};
+const careerTask=generator.compile(careerPrompt).task.chapters.career.topics.workstyle;
+const careerThesis=careerTask.sourceOwnedInterpretiveThesis;
+assert(careerThesis,'the real chart must supply both learning and output positions');
+const method=careerThesis.careerWorkstyleCondition;
+assert(method,'the real paid career chapter must contain an independently grounded workstyle distinction');
+assert(method.firstFocus.includes('어떤 근거로')||
+ method.firstFocus.includes('어떻게 비교해 이해할지'));
+assert(method.secondFocus.includes('기준'));
+assert.equal(method.observedWorkPerformance,false);
+assert.equal(method.careerOutcomePredicted,false);
+assert.notEqual(method.computedCondition,moneyCond.computedCondition);
+assert(!method.computedCondition.includes('대가를 정하는 상황'));
+const careerSlot=generator.schema(careerPrompt,wire.schemaFor(careerPrompt,schema))
+ .properties.chapters.properties.career.properties.paragraphs.properties.workstyle;
+assert.deepEqual(careerSlot.properties.basis.properties.condition.enum,
+ [method.computedCondition]);
+const requiredCareerRefs=[...new Set([
+ ...careerThesis.sourceRoles.map(row=>row.ref),
+ ...(careerThesis.exactStemBridge?.refs||[])
+])];
+const careerParagraph={label:'작업 방식과 결과물의 조건',
+ text:'새 작업 방법을 익히는 근거와 결과물을 검토하는 근거는 서로 다른 질문입니다. '+
+ '가상 과업에서는 방법만 이해하고 끝내거나 결과만 보고 과정을 확인하지 못하는 차이를 설명합니다.',
+ basis:{refs:requiredCareerRefs,interpretation:'실제 두 전통 분류의 다른 조건',
+  condition:method.computedCondition,limit:'실제 업무 성적이나 취업 결과를 예언하지 않습니다.'}};
+const careerResponse=p=>({chapters:{career:{paragraphs:{workstyle:p}}}});
+assert.doesNotThrow(()=>generator.restoreEvidence(careerResponse(careerParagraph),careerPrompt));
+const brokenCondition=structuredClone(careerParagraph);
+brokenCondition.basis.condition=moneyCond.computedCondition;
+assert.throws(()=>generator.restoreEvidence(careerResponse(brokenCondition),careerPrompt),
+ /workstyle source-specific condition missing: career:workstyle/,
+ 'the financial narrative cannot be copied into a career source condition');
+const brokenSource=structuredClone(careerParagraph);
+brokenSource.basis.refs=requiredCareerRefs.filter(ref=>ref!==method.sourceRefs[0]);
+assert.throws(()=>generator.restoreEvidence(careerResponse(brokenSource),careerPrompt),
+ /paired domain thesis citations missing: career:workstyle/,
+ 'a career interpretation must retain both actually computed positions');
+
 const paidBridge=require('./report-paid-interpretive-bridge');
 const sameSourceKind=(position,id,layer)=>({
  id,position,layer,stem:'丁',tenGod:'정재',
