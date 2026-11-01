@@ -112,7 +112,7 @@ const keys=['NODE_ENV','RENDER','PAID_CORE_DEPTH_V2',
   assert.deepEqual(plan.career.topicTasks.change.allowedSourceRefs,
    positive.verified.sourceRefs);
   const selected=require('./report-chapter-selection')
-   .select(audit.CONSTRAINED.length?require('./report-qa11-premium-scope-audit').GROUPS:[],plan);
+   .select(require('./report-qa11-premium-scope-audit').GROUPS,plan);
   assert(selected.plannedIds.includes('career'));
   const writer=require('./report-generation-request');
   const prompt={stage:'body',facts:positive.packet,requestedSections:['career'],
