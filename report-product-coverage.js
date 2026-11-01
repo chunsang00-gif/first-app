@@ -39,7 +39,7 @@ const TOPIC_NAMES=Object.freeze({
  money:Object.freeze({
   earning:'수입 활동과 보상에 대한 전통적 질문',
   spending:'자원의 사용과 보유에 관한 질문',
-  risk:'금전 손실 예측에서 알 수 없는 부분'
+  risk:'출생월의 숨은 재성과 실제 충을 구별하는 고전적 질문'
  }),
  career:Object.freeze({
   workstyle:'활동과 일을 수행하는 방식에 대한 질문',
