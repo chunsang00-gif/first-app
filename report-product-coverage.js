@@ -82,6 +82,50 @@ const WHY=Object.freeze({
  'no-grounded-topic':'독립적으로 해석할 계산 근거가 확인되지 않았습니다.',
  'no-direct-annual-domain-evidence':'2027년 계산과 이 분야를 따로 연결할 근거가 확인되지 않았습니다.'
 });
+// These two brief reader paragraphs come from the SAME source-owned
+// interpretive builder used by the REAL paid writer. They are free,
+// unapproved illustrative interpretations, not a paid provider response.
+// Never return the original natal ledger, raw IDs, personal name or birth date.
+function independentDomainReadings(packet,blueprint,planned){
+ if(packet.calculationInput?.unknownBirthTime===true)return [];
+ const birthYear=Number(packet.calculationInput?.birthDate?.slice(0,4));
+ const targetYear=Number(packet.targetYear?.year||2027);
+ // A younger reader's study and allowance questions require a different
+ // audience. Do not reuse adult income/employment illustrations for minors.
+ if(!Number.isInteger(birthYear)||targetYear-birthYear<=19)return [];
+ const owned=[
+  {id:'money.earning',chapter:'money',topic:'earning',title:'돈을 얻는 활동의 두 조건',
+   field:'earnedValueConditionalReading'},
+  {id:'career.workstyle',chapter:'career',topic:'workstyle',title:'일을 배우고 완성하는 두 조건',
+   field:'careerWorkstyleCondition'}
+ ].filter(x=>planned.has(x.chapter)&&
+  blueprint[x.chapter]?.topicTasks?.[x.topic]?.mode!=='state-limits');
+ if(!owned.length)return [];
+ const sections=[...new Set(owned.map(x=>x.chapter))];
+ const guidance=require('./report-analysis-guidance');
+ const prompt={
+  facts:packet,stage:'body',requestedSections:sections,
+  includeFinal:false,includeCover:false,priorSections:[],
+  analysisGuidance:{...guidance.forRequest(sections,packet.person.mbti),
+   editorialBlueprint:blueprint},
+  rules:{sectionGoals:require('./report-prompt').sectionGoals}
+ };
+ // This only compiles local calculated evidence; it cannot call the model.
+ const payload=require('./report-generation-request').compile(prompt);
+ return owned.flatMap(x=>{
+  const task=payload.task.chapters?.[x.chapter]?.topics?.[x.topic];
+  const reading=task?.sourceOwnedInterpretiveThesis?.[x.field];
+  if(!reading)return [];
+  if(!Array.isArray(reading.sourceRefs)||reading.sourceRefs.length!==2||
+     !reading.sourceRefs.every(ref=>payload.source[ref]?.stem)||
+     reading.observedIncome===true||reading.observedWorkPerformance===true||
+     typeof reading.readerParagraph!=='string'||
+     reading.readerParagraph.length<130||
+     /(?:natal\.|annual\.|facts\.|person\.)/.test(reading.readerParagraph))
+   throw Error('PREPURCHASE_INTERPRETIVE_READING_SOURCE_DRIFT:'+x.id);
+  return [Object.freeze({id:x.id,title:x.title,text:reading.readerParagraph})];
+ });
+}
 function calculate(input){
  const packet=facts.build(input,2027);
  if(packet.status!=='ready')return {status:'blocked',code:'CHART_UNAVAILABLE'};
@@ -101,6 +145,7 @@ function calculate(input){
     JSON.stringify(Object.keys(outline.topics[id]))))
   throw Error('PRODUCT_COVERAGE_CONTRACT_DRIFT');
  const planned=new Set(choice.plannedIds);
+ const interpretivePreviews=independentDomainReadings(packet,blueprint,planned);
  const chapters=expected.map(id=>{
   const entries=Object.keys(outline.topics[id]);
   const selected=planned.has(id);
@@ -131,7 +176,7 @@ function calculate(input){
   throw Error('PRODUCT_COVERAGE_COUNT_MISMATCH');
  return {
   status:'ready',kind:'prepurchase-report-scope-v1',
-  readingSample,
+  readingSample,interpretivePreviews,
   catalog:{chapterDefinitions:expected.length,topicDefinitions:currentDefined,
    originallyPlannedTopics:35},
   estimate:{plannedChapters:choice.plannedIds.length,
