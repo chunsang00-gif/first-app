@@ -207,7 +207,11 @@ async function runScenario(kind){
    // separate structured-source boundary, including all optional slots.
    const captured=await require('./report-core-paid-full-prompt-capture').capture(input);
    assert.equal(captured.status,'captured-full-paid-composition');
-   const blueprint=captured.prompt.analysisGuidance.editorialBlueprint;
+   // Captured first provider call is intentionally chapter-scoped; the
+   // full preflight must be re-derived from the ORIGINAL calculated packet
+   // when enumerating all future body batches.
+   const blueprint=require('./report-analysis-guidance')
+    .preflight(captured.prompt.facts);
    const selection=require('./report-chapter-selection').select(
     require('./report-qa11-premium-scope-audit').GROUPS,blueprint);
    assert(selection.canGenerate);
@@ -216,7 +220,9 @@ async function runScenario(kind){
    const wire=require('./report-wire');
    let count=0,anchors=0,blocked=0;
    for(const ids of batches){
-    const prompt={...captured.prompt,requestedSections:ids};
+    const prompt={...captured.prompt,requestedSections:ids,
+     analysisGuidance:{...captured.prompt.analysisGuidance,
+      editorialBlueprint:blueprint}};
     const compiled=writer.compile(prompt);
     const strict=writer.schema(prompt,wire.schemaFor(prompt,schema));
     const synthetic=bodyResponse(compiled,strict,kind);
