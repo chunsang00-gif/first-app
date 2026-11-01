@@ -187,6 +187,57 @@ function classicalMonthCandidate(packet,exposure,roles){
   chosenUsefulGod:false,individualOutcomeEstablished:false
  });
 }
+// The reader question must change with the chart's REAL source direction.
+// This is a counter-reading of the symbolic evidence (what a reader would
+// miss if each SOURCE were absent), NOT invented life-event alternatives.
+// A dictionary list of two ten-god names is not a composite reading.
+function sourceDecisionContrast(a,b,relation,topicQuestion){
+ const decisions={
+  'resource':{
+   owner:'first',direction:'첫 번째 글자가 두 번째 글자를 생하는 방향',
+   scopedQuestion:'첫 번째 분류에서 두 번째 분류로 이어지는 연결을 설명할 때 무엇을 추가로 물을 수 있는가?'
+  },
+  'output':{
+   owner:'second',direction:'두 번째 글자가 첫 번째 글자를 생하는 방향',
+   scopedQuestion:'두 번째 분류에서 첫 번째 분류로 이어지는 연결을 거꾸로 읽지 않고 무엇을 물을 수 있는가?'
+  },
+  'control-on-day':{
+   owner:'first',direction:'첫 번째 글자가 두 번째 글자를 극하는 방향',
+   scopedQuestion:'첫 번째 분류가 두 번째 분류를 제한하는 계산 방향과 두 질문의 차이를 어떻게 구분할 것인가?'
+  },
+  'day-controls':{
+   owner:'second',direction:'두 번째 글자가 첫 번째 글자를 극하는 방향',
+   scopedQuestion:'두 번째 분류가 첫 번째 분류를 제한하는 계산 방향을 반대로 쓰지 않고 어떻게 구분할 것인가?'
+  },
+  'same-element':{
+   owner:'neither',direction:'두 글자가 같은 오행에 속하고 생극 방향이 없는 관계',
+   scopedQuestion:'같은 오행이면서도 전통적 세부 분류가 다른 두 질문을 왜 하나의 성격으로 합치면 안 되는가?'
+  }
+ };
+ const chosen=decisions[relation?.elementalDirection];
+ if(!chosen||relation.refs[0]!==a.id||relation.refs[1]!==b.id)
+  throw Error('PAID_READER_DIRECTION_SOURCE_UNVERIFIED');
+ const focus=row=>row.position+'의 '+row.tenGod+'('+row.stem+')';
+ return Object.freeze({
+  kind:'chart-owned-two-source-decision-contrast-v1',
+  topicQuestion,
+  firstSourceRef:a.id,secondSourceRef:b.id,
+  direction:relation.elementalDirection,
+  symbolicRelationship:chosen.direction,
+  directionalOwner:chosen.owner,
+  sourceSpecificQuestion:chosen.scopedQuestion,
+  firstOnlyQuestion:focus(a)+'만 읽으면 '+focus(b)+
+   '가 추가하는 독립된 질문은 무엇이 빠지는가?',
+  secondOnlyQuestion:focus(b)+'만 읽으면 '+focus(a)+
+   '가 추가하는 독립된 질문은 무엇이 빠지는가?',
+  requiredEditorialDifference:'두 출처를 각각 소개한 다음 끝내지 않는다. '+
+   '한쪽 출처만 있는 경우와 양쪽이 함께 확인된 경우에 답할 수 있는 '+
+   '질문의 차이를 '+chosen.direction+'에 맞게 설명한다. '+
+   '방향이 뜻하는 계산 관계와 실제 삶에서 발휘되는 효과를 반드시 구별한다.',
+  observedCustomerChoice:false,realizedInfluence:false,
+  traditionalPriorityChosen:false
+ });
+}
 function build({chapterId,topicId,topic,packet}={}){
  if(!topic||topic.mode==='state-limits')return null;
  const key=chapterId+'.'+topicId,rule=RULES[key];
@@ -251,6 +302,7 @@ function build({chapterId,topicId,topic,packet}={}){
   topic:key,question:chosenRule.question,explanation:chosenRule.explanation,
   sourceRoles:Object.freeze(subjects),exactStemBridge:matched,
   sourceElementRelation:exactElementRelation(a,b),
+  sourceDecisionContrast:sourceDecisionContrast(a,b,exactElementRelation(a,b),chosenRule.question),
   classicalMonthQuestion:classicalMonthCandidate(packet,exposure,roles),
   interpretationLimit:'전통적 계산 분류의 연결만 해당한다. 성향의 강약, 길흉, 실제 이력, 예측 결과는 검증하지 않았다.',
   claimedRealWorldOutcome:false,traditionalPriorityAssessed:false
@@ -324,4 +376,4 @@ function buildSingle({chapterId,topicId,topic}={}){
   missingCounterpartInferred:false
  });
 }
-module.exports={build,buildSingle,exactElementRelation,classicalMonthCandidate,RULES,ALTERNATIVES,SINGLE_QUESTIONS};
+module.exports={build,buildSingle,exactElementRelation,classicalMonthCandidate,sourceDecisionContrast,RULES,ALTERNATIVES,SINGLE_QUESTIONS};
