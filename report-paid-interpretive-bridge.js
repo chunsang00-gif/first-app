@@ -421,12 +421,39 @@ function buildSingle({chapterId,topicId,topic}={}){
  // silently choose one as superior or fabricate a second reading.
  const kinds=[...new Set(roles.map(row=>row.tenGod))];
  if(kinds.length!==1)return null;
+ // A single traditional kind may occupy multiple ORIGINAL natal places.
+ // Preserve actual visible/hidden positions, never infer amplified strength.
+ const placements=roles.map(row=>Object.freeze({
+  ref:row.id,position:row.position,layer:row.layer,stem:row.stem,
+  tenGod:row.tenGod,traditionalMeaning:row.traditionalMeaning
+ }));
+ if(new Set(placements.map(x=>x.ref)).size!==placements.length)
+  throw Error('PAID_SINGLE_READING_DUPLICATED_NATAL_SOURCE');
+ const visible=placements.filter(x=>x.layer==='천간');
+ const hidden=placements.filter(x=>x.layer==='지장간');
+ const placementContrast=placements.length>1?Object.freeze({
+  kind:'same-ten-god-distinct-natal-placements-v1',
+  refs:Object.freeze(placements.map(x=>x.ref)),
+  visibleRefs:Object.freeze(visible.map(x=>x.ref)),
+  hiddenRefs:Object.freeze(hidden.map(x=>x.ref)),
+  hasBothVisibleAndHidden:visible.length>0&&hidden.length>0,
+  interpretationQuestion:visible.length&&hidden.length?
+   '같은 전통 분류가 출생의 겉글자와 숨은 글자에서 각각 확인된다. '+
+   '이 두 출처를 구별해 이 주제의 하나의 상징적 질문으로 설명하되 '+
+   '두 배로 강한 성격이나 재능이 있다는 뜻으로 쓰지 않는다.':
+   '같은 전통 분류가 서로 다른 출생 위치에서 확인된다. '+
+   '어느 출처에서 확인되는지 구별하되 동일 의미를 별개의 성격이나 '+
+   '두 번의 인생 사건으로 계산하지 않는다.',
+  categoryCount:1,measuredPersonalityStrength:false,
+  relativePositionPriority:'not-assessed'
+ }):null;
  const row=roles[0],[question,explanation]=questions[row.tenGod];
  return Object.freeze({
   kind:'paid-single-source-reader-thesis-v1',topic:key,
   source:Object.freeze({ref:row.id,position:row.position,layer:row.layer,
    stem:row.stem,tenGod:row.tenGod,traditionalMeaning:row.traditionalMeaning}),
-  question,explanation,uniqueSubtypeCount:1,
+  sourcePlacements:Object.freeze(placements),
+  placementContrast,question,explanation,uniqueSubtypeCount:1,
   claimedRealWorldOutcome:false,traditionalPriorityAssessed:false,
   missingCounterpartInferred:false
  });
