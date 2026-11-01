@@ -518,7 +518,7 @@ function schema(prompt,transport){
     // The comparison is not evidence-backed if only one original role is
     // cited. Tell the actual STRICT provider basis slot which exact two
     // independently verified rows its comparative reading must cite.
-    p.properties.basis.properties.refs.description=
+    basis.properties.refs.description=
      '두 서로 다른 실제 분류를 비교해 문단을 작성한다면 반드시 두 출처를 모두 refs에 넣는다: '+
      roles.map(row=>row.ref).join(' / ')+
      '. 출처 하나만으로 둘을 비교하거나 제3의 일반 출처로 대신하지 않는다. 선택 문단에서 독립 해석이 불가능하면 null을 반환한다.';
