@@ -522,6 +522,18 @@ function schema(prompt,transport){
          payload.source[role.ref]?.position===role.position&&
          payload.source[role.ref]?.traditionalMeaning===role.traditionalMeaning))
      throw Error('PAID_SOURCE_OWNED_THESIS_MISMATCH:'+chapterId+':'+topic);
+    // This exact five-element direction is computed from the same two
+    // source stems that the paid paragraph cites. It is NOT a conclusion
+    // about the reader's character, strength or real-world earnings.
+    const linked=thesis.sourceElementRelation;
+    const computed=require('./report-paid-interpretive-bridge')
+      .exactElementRelation(
+       {id:roles[0].ref,stem:roles[0].stem},
+       {id:roles[1].ref,stem:roles[1].stem});
+    if(!linked||JSON.stringify(linked)!==JSON.stringify(computed)||
+       linked.realizedEffect!==false||
+       linked.predictedIncomeOrBehavior!==false)
+     throw Error('PAID_DOMAIN_ELEMENTAL_RELATION_SOURCE_DRIFT:'+chapterId+':'+topic);
     if(thesis.exactStemBridge){
      const link=thesis.exactStemBridge;
      if(link.refs.length!==2||
@@ -549,6 +561,11 @@ function schema(prompt,transport){
      thesis.question+' '+thesis.explanation+
      ' 두 분류의 사전적 뜻을 각각 나열하는 답변은 불충분하다. '+
      '두 근거를 함께 검토할 때 이 분야의 선택에서 실제로 달라지는 질문을 설명한다. '+
+     '두 출처를 별도로 나열하는 데 그치지 않고, 실제 글자끼리 계산한 관계도 풀이의 제한 조건으로 검토한다: '+
+     roles[0].stem+' / '+roles[1].stem+' — '+
+     linked.computedRelation+'. '+
+     '이 오행의 방향이 곧 실제 성과·성격·수입이나 명리적 우선순위를 뜻하는 것은 아니다. '+
+     '상징적으로 두 질문을 나눠 읽는 이유를 분명히 밝히되 우세함을 임의로 정하지 않는다. '+
      '검증하지 못한 우열이나 인생 결과를 추가해서 차이를 만들어내지 않는다. '+
      ' 출처 1: '+roles[0].position+' '+roles[0].layer+' '+roles[0].stem+
      ' '+roles[0].tenGod+'. 출처 2: '+roles[1].position+' '+roles[1].layer+
