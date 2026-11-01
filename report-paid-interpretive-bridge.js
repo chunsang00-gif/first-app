@@ -292,6 +292,44 @@ function classicalOutputWealthCandidate(key,a,b,relation,packet){
   financialOutcomeVerified:false
  });
 }
+// Money earning: two correctly cited traditional role labels do not yet
+// answer a reader's practical question. The same verified role meanings as
+// the free preview form two concrete *counterconditions*, grounded in the
+// exact selected natal positions. This is an editorial comparison of
+// symbols, not an observed income, a predicted profit, or a personality
+// assessment. Other topics must NOT inherit this financial example.
+function earnedValueConditionalReading(key,a,b,relation){
+ if(key!=='money.earning'||!['식신','상관'].includes(a?.tenGod)||
+    !['정재','편재'].includes(b?.tenGod))return null;
+ if(!relation||relation.refs?.[0]!==a.id||relation.refs?.[1]!==b.id||
+    relation.realizedEffect!==false||relation.predictedIncomeOrBehavior!==false)
+  throw Error('PAID_EARNING_READER_CONDITION_SOURCE_MISMATCH');
+ const conditions=require('./report-reading-sample').CONDITIONS;
+ const first=conditions[a.tenGod],second=conditions[b.tenGod];
+ if(!first?.focus||!first.missing||!second?.focus||!second.missing)
+  throw Error('PAID_EARNING_READER_CONDITION_UNSUPPORTED_CATEGORY');
+ const firstLocation=a.position+' '+a.layer;
+ const secondLocation=b.position+' '+b.layer;
+ const condition=
+  '가상으로 결과물을 제공하고 그 대가를 정하는 상황에서 '+firstLocation+
+  '의 '+a.tenGod+'은 '+first.focus+'을 묻고, '+secondLocation+
+  '의 '+b.tenGod+'은 '+second.focus+'을 묻는다. '+
+  '첫 번째만 검토하면 '+second.missing+'. '+
+  '반대로 두 번째만 검토하면 '+first.missing+'. '+
+  '이 비교는 실제 수입·성격·재물운을 확인하거나 보장하지 않는다.';
+ return Object.freeze({
+  kind:'verified-two-sided-earning-condition-v1',
+  sourceRefs:Object.freeze([a.id,b.id]),
+  sourceStems:Object.freeze([a.stem,b.stem]),
+  categories:Object.freeze([a.tenGod,b.tenGod]),
+  relation:relation.elementalDirection,
+  computedCondition:condition,
+  firstOnlyMissing:second.missing,
+  secondOnlyMissing:first.missing,
+  observedIncome:false,guaranteedOutcome:false,
+  patternPriorityAssessed:false
+ });
+}
 function build({chapterId,topicId,topic,packet}={}){
  if(!topic||topic.mode==='state-limits')return null;
  const key=chapterId+'.'+topicId,rule=RULES[key];
@@ -357,6 +395,7 @@ function build({chapterId,topicId,topic,packet}={}){
   sourceRoles:Object.freeze(subjects),exactStemBridge:matched,
   sourceElementRelation:exactElementRelation(a,b),
   sourceDecisionContrast:sourceDecisionContrast(a,b,exactElementRelation(a,b),chosenRule.question),
+  earnedValueConditionalReading:earnedValueConditionalReading(key,a,b,exactElementRelation(a,b)),
   classicalOutputWealthCandidate:classicalOutputWealthCandidate(key,a,b,exactElementRelation(a,b),packet),
   classicalMonthQuestion:classicalMonthCandidate(packet,exposure,roles),
   interpretationLimit:'전통적 계산 분류의 연결만 해당한다. 성향의 강약, 길흉, 실제 이력, 예측 결과는 검증하지 않았다.',
@@ -458,4 +497,4 @@ function buildSingle({chapterId,topicId,topic}={}){
   missingCounterpartInferred:false
  });
 }
-module.exports={build,buildSingle,exactElementRelation,classicalMonthCandidate,sourceDecisionContrast,classicalOutputWealthCandidate,RULES,ALTERNATIVES,SINGLE_QUESTIONS};
+module.exports={build,buildSingle,exactElementRelation,classicalMonthCandidate,sourceDecisionContrast,classicalOutputWealthCandidate,earnedValueConditionalReading,RULES,ALTERNATIVES,SINGLE_QUESTIONS};
