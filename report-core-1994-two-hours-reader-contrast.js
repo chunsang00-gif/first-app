@@ -74,10 +74,13 @@ function make(input=INPUT){
  if(!originalPair||laterPair||!oldExposure||newExposure)
   throw Error('QA_1994_TWO_HOURS_PAIR_OR_EXPOSURE_DRIFT');
  const laterText=LATER_PARAGRAPHS.join('\n\n');
- if(reader.errors(['같은 생일, 다른 시간에 달라지는 해석',
-   laterText]).length||/[\u3400-\u9fff]/.test(laterText)||
-   /(?:장비를 도입|봉투.{0,10}포장|여섯 달|실제로.{0,15}잘하는 사람)/.test(laterText))
-  throw Error('QA_1994_TWO_HOURS_READER_COPY_NOT_APPROPRIATE');
+ const copyProblems=reader.errors(['같은 생일, 다른 시간에 달라지는 해석',laterText]);
+ if(copyProblems.length)
+  throw Error('QA_1994_TWO_HOURS_READER_JARGON:'+copyProblems.join('|'));
+ if(/[\u3400-\u9fff]/.test(laterText))
+  throw Error('QA_1994_TWO_HOURS_READER_HANJA');
+ if(/(?:장비를 도입|봉투.{0,10}포장|여섯 달|실제로.{0,15}잘하는 사람)/.test(laterText))
+  throw Error('QA_1994_TWO_HOURS_READER_GENERIC_SCENE');
  const early=Object.freeze({birthTime:'14:20',chart:{...first.chart},
   label:before.candidate.label,text:before.candidate.text,
   sourceRefs:refsEarly.slice()});
