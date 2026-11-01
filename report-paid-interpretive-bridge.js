@@ -108,6 +108,32 @@ const ALTERNATIVES=Object.freeze({
  ])
 });
 const ID=/^natal\.(year|month|day|hour)\.(?:stem|hidden\.[甲乙丙丁戊己庚辛壬癸])$/;
+// This relationship is derived from BOTH actual stem elements, not from
+// a stock contrast of two ten-god names. It describes mathematical five-
+// element direction only; traditional strength, usefulness and consequences
+// require further classical analysis and remain unresolved.
+function exactElementRelation(first,second){
+ const season=require('./report-seasonal-evidence');
+ const left=season.ELEMENTS[first?.stem],right=season.ELEMENTS[second?.stem];
+ if(!left||!right)throw Error('PAID_DOMAIN_ELEMENT_SOURCE_NOT_VERIFIED');
+ const kind=season.relation(left,right);
+ const meanings={
+  'same-element':'두 글자가 같은 오행에 속합니다',
+  'resource':'첫 번째 글자의 오행이 두 번째 글자의 오행을 생합니다',
+  'output':'두 번째 글자의 오행이 첫 번째 글자의 오행을 생합니다',
+  'control-on-day':'첫 번째 글자의 오행이 두 번째 글자의 오행을 극합니다',
+  'day-controls':'두 번째 글자의 오행이 첫 번째 글자의 오행을 극합니다'
+ };
+ if(!meanings[kind])throw Error('PAID_DOMAIN_ELEMENT_RELATION_UNCLASSIFIED');
+ return Object.freeze({
+  refs:Object.freeze([first.id,second.id]),
+  stems:Object.freeze([first.stem,second.stem]),
+  elementalDirection:kind,computedRelation:meanings[kind],
+  relativeStrength:'not-assessed', realizedEffect:false,
+  predictedIncomeOrBehavior:false
+ });
+}
+
 function build({chapterId,topicId,topic}={}){
  if(!topic||topic.mode==='state-limits')return null;
  const key=chapterId+'.'+topicId,rule=RULES[key];
@@ -150,6 +176,7 @@ function build({chapterId,topicId,topic}={}){
   kind:'paid-source-owned-interpretive-thesis-v1',
   topic:key,question:chosenRule.question,explanation:chosenRule.explanation,
   sourceRoles:Object.freeze(subjects),exactStemBridge:matched,
+  sourceElementRelation:exactElementRelation(a,b),
   interpretationLimit:'전통적 계산 분류의 연결만 해당한다. 성향의 강약, 길흉, 실제 이력, 예측 결과는 검증하지 않았다.',
   claimedRealWorldOutcome:false,traditionalPriorityAssessed:false
  });
@@ -222,4 +249,4 @@ function buildSingle({chapterId,topicId,topic}={}){
   missingCounterpartInferred:false
  });
 }
-module.exports={build,buildSingle,RULES,ALTERNATIVES,SINGLE_QUESTIONS};
+module.exports={build,buildSingle,exactElementRelation,RULES,ALTERNATIVES,SINGLE_QUESTIONS};
