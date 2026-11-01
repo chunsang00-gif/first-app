@@ -238,6 +238,54 @@ function sourceDecisionContrast(a,b,relation,topicQuestion){
   traditionalPriorityChosen:false
  });
 }
+// Narrow textual rule: 食神生財 names the traditional relationship
+// 'food god generates wealth'. The literal calculated pair may match it,
+// but the *working* classical structure additionally requires a strength,
+// location and whole-chart judgement that this program does not establish.
+// Do not turn an isolated year/hour arrow into a guaranteed income stream.
+function classicalOutputWealthCandidate(key,a,b,relation,packet){
+ if(key!=='money.earning'||a?.tenGod!=='식신'||
+    !['정재','편재'].includes(b?.tenGod)||
+    relation?.elementalDirection!=='resource'||!packet?.chart)
+  return null;
+ const parts=['year','month','day','hour'];
+ const location=id=>{
+  const m=/^natal\.(year|month|day|hour)\.(stem|hidden\.[甲乙丙丁戊己庚辛壬癸])$/.exec(id||'');
+  if(!m)return null;
+  const pillar=packet.chart[m[1]];
+  if(!pillar)return null;
+  if(m[2]==='stem'&&pillar[0]!== (m[1]===a.id.split('.')[1]?a.stem:b.stem))return null;
+  const expectedStem=id===a.id?a.stem:b.stem;
+  if(m[2]==='stem'&&pillar[0]!==expectedStem)return null;
+  if(m[2].startsWith('hidden.')&&
+     (!m[2].endsWith('.'+expectedStem)||
+     !require('./report-seasonal-evidence').HIDDEN[pillar[1]]?.includes(expectedStem)))
+   return null;
+  return {pillar:m[1],layer:m[2]};
+ };
+ const left=location(a.id),right=location(b.id);
+ if(!left||!right||left.pillar===right.pillar&&left.layer===right.layer)return null;
+ const leftIndex=parts.indexOf(left.pillar),rightIndex=parts.indexOf(right.pillar);
+ const between=parts.slice(Math.min(leftIndex,rightIndex)+1,Math.max(leftIndex,rightIndex));
+ const bothVisible=left.layer==='stem'&&right.layer==='stem';
+ return Object.freeze({
+  kind:'verified-food-god-generates-wealth-symbolic-candidate-v1',
+  sourceRefs:Object.freeze([a.id,b.id]),
+  firstTenGod:a.tenGod,secondTenGod:b.tenGod,
+  betweenPillars:Object.freeze(between),
+  adjacentVisibleStems:bothVisible&&Math.abs(leftIndex-rightIndex)===1,
+  phrase:'식신생재(食神生財) 관계 후보',
+  traditionalQuestion:'결과를 만들어 내는 식신이 재성을 생하는 관계가 계산되더라도, '+
+   (between.length?'두 출생 위치 사이에 '+between.join('·')+' 자리가 있어서 ':
+    '원국의 다른 조건을 확인하지 않고 ')+
+   '이것을 이미 성립한 재물 격국이나 실제 소득이라고 읽을 수 없는 이유는 무엇인가?',
+  sourceChapter:'子平真詮評注 / 論食神',
+  sourceUrl:'https://yimatrix.com/ko/academy/books/17/chapter/2982',
+  candidateOnly:true,actualFlowEstablished:false,
+  monthPatternChosen:false,dayMasterStrengthVerified:false,
+  financialOutcomeVerified:false
+ });
+}
 function build({chapterId,topicId,topic,packet}={}){
  if(!topic||topic.mode==='state-limits')return null;
  const key=chapterId+'.'+topicId,rule=RULES[key];
@@ -303,6 +351,7 @@ function build({chapterId,topicId,topic,packet}={}){
   sourceRoles:Object.freeze(subjects),exactStemBridge:matched,
   sourceElementRelation:exactElementRelation(a,b),
   sourceDecisionContrast:sourceDecisionContrast(a,b,exactElementRelation(a,b),chosenRule.question),
+  classicalOutputWealthCandidate:classicalOutputWealthCandidate(key,a,b,exactElementRelation(a,b),packet),
   classicalMonthQuestion:classicalMonthCandidate(packet,exposure,roles),
   interpretationLimit:'전통적 계산 분류의 연결만 해당한다. 성향의 강약, 길흉, 실제 이력, 예측 결과는 검증하지 않았다.',
   claimedRealWorldOutcome:false,traditionalPriorityAssessed:false
@@ -376,4 +425,4 @@ function buildSingle({chapterId,topicId,topic}={}){
   missingCounterpartInferred:false
  });
 }
-module.exports={build,buildSingle,exactElementRelation,classicalMonthCandidate,sourceDecisionContrast,RULES,ALTERNATIVES,SINGLE_QUESTIONS};
+module.exports={build,buildSingle,exactElementRelation,classicalMonthCandidate,sourceDecisionContrast,classicalOutputWealthCandidate,RULES,ALTERNATIVES,SINGLE_QUESTIONS};
