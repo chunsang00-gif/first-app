@@ -316,13 +316,22 @@ assert.deepEqual(exactLink?.refs,['natal.month.hidden.丁','natal.hour.stem'],
  'actual paid earning paragraph should distinguish same month-hidden/hour-visible 丁');
 const paidMoneySlot=generator.schema(moneyPrompt,wire.schemaFor(moneyPrompt,schema))
  .properties.chapters.properties.money.properties.paragraphs.properties.earning;
-assert(paidMoneySlot.properties.text.description.includes('별도 실제 관계'));
+assert(paidMoneySlot.properties.text.description.includes('세 번째 사실'),
+ 'a real exposed third chart position must inform the paid text, not a glossary');
+const moneyRequired=[...new Set([
+ ...earning.sourceOwnedInterpretiveThesis.sourceRoles.map(x=>x.ref),
+ ...earning.sourceOwnedInterpretiveThesis.exactStemBridge.refs
+])];
+assert.equal(moneyRequired.length,3,
+ 'this chart links a third true position to its two-category thesis');
+assert(moneyRequired.every(ref=>paidMoneySlot.properties.basis.properties.refs.description.includes(ref)),
+ 'all three actual positions must reach the strict provider citation instructions');
  // Verify the real paid response -> citation restoration boundary, not just
  // the request text. An author cannot claim two distinct meanings while
  // omitting one of the referenced original calculated positions.
  const pair=earning.sourceOwnedInterpretiveThesis.sourceRoles.map(x=>x.ref);
  const moneyParagraph={label:'검증용 금전 풀이',text:'두 전통 분류가 서로 다른 질문에 답하는 가상의 상황입니다.',
-  basis:{refs:pair.slice(),interpretation:'두 실제 계산 분류의 서로 다른 뜻',
+  basis:{refs:moneyRequired.slice(),interpretation:'두 실제 계산 분류의 서로 다른 뜻',
    condition:'가상으로 결과를 만들고 대가를 비교하는 경우',
    limit:'실제 수입이나 개인 소비 행동을 확인한 것은 아닙니다.'}};
  const makePaidResponse=p=>({chapters:{money:{paragraphs:{earning:p}}}});
@@ -330,12 +339,19 @@ assert(paidMoneySlot.properties.text.description.includes('별도 실제 관계'
   'two original source references make the composite thesis traceable');
  for(const missing of pair){
   const altered=structuredClone(moneyParagraph);
-  altered.basis.refs=pair.filter(x=>x!==missing);
+  altered.basis.refs=moneyRequired.filter(x=>x!==missing);
   assert.throws(()=>generator.restoreEvidence(makePaidResponse(altered),moneyPrompt),
    /paired domain thesis citations missing: money:earning/,
    'a single related source must not authorize two-source interpretation');
  }
- assert.deepEqual(moneyParagraph.basis.refs,pair,'the source model record must remain untouched');
+ assert.deepEqual(moneyParagraph.basis.refs,moneyRequired,'the source model record must remain untouched');
+ const extra=moneyRequired.find(ref=>!pair.includes(ref));
+ assert(extra,'the original two-role contract must now carry a distinct third source');
+ const dropExposure=structuredClone(moneyParagraph);
+ dropExposure.basis.refs=moneyRequired.filter(ref=>ref!==extra);
+ assert.throws(()=>generator.restoreEvidence(makePaidResponse(dropExposure),moneyPrompt),
+  /exact paid domain stem exposure citations missing: money:earning/,
+  'an apparently fluent paid interpretation cannot invent a source-owned exposure');
  // The actual paid decoder used to accept references to BOTH real sources
  // even when the customer paragraph explained only what symbols "mean".
  // That is a glossary, not a distinct interpretation worth purchasing.
