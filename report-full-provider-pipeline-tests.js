@@ -201,18 +201,51 @@ async function runScenario(kind){
  const checks=[];
  try{
   if(kind==='all-eligible'){
-   const output=await generate(input,p=>callOpenAI(p,()=>{archived++}),
-    ()=>{},x=>{checks.push(x)});
-   assert(['ready','rejected'].includes(output.status),
-    'optional topics should reach a typed, post-decoding result');
-   assert.equal(archived,calls);
-   const count=output.report?.sections?.reduce((n,x)=>n+(x.bodyTopics?.length||0),0)||0;
-   assert(count>output.report.sections.length,
-    'real paid body must deliver more than one topic per chapter when independent sources exist');
-   assert.equal(output.qa?.releaseGate?.releaseVerdict,'not-approved');
-   console.log('PASS offline dense paid optional topics through real response decoder: '+
-    count+' paragraphs across '+output.report.sections.length+
-    ' chapters; synthetic content not release-approved');
+   // Do not weaken or disable paid editorial quality to make a fake
+   // manuscript pass: generic mock prose is meant to fail that gate.
+   // Instead exercise EVERY actual eligible provider topic at the
+   // separate structured-source boundary, including all optional slots.
+   const captured=await require('./report-core-paid-full-prompt-capture').capture(input);
+   assert.equal(captured.status,'captured-full-paid-composition');
+   const blueprint=captured.prompt.analysisGuidance.editorialBlueprint;
+   const selection=require('./report-chapter-selection').select(
+    require('./report-qa11-premium-scope-audit').GROUPS,blueprint);
+   assert(selection.canGenerate);
+   const batches=require('./report-paid-batch-plan').plan(selection.groups);
+   const writer=require('./report-generation-request');
+   const wire=require('./report-wire');
+   let count=0,anchors=0,blocked=0;
+   for(const ids of batches){
+    const prompt={...captured.prompt,requestedSections:ids};
+    const compiled=writer.compile(prompt);
+    const strict=writer.schema(prompt,wire.schemaFor(prompt,schema));
+    const synthetic=bodyResponse(compiled,strict,kind);
+    for(const id of ids){
+     const chapter=compiled.task.chapters[id];
+     for(const [topic,t] of Object.entries(chapter.topics)){
+      const slot=strict.properties.chapters.properties[id]
+       .properties.paragraphs.properties[topic];
+      const exists=synthetic.chapters[id].paragraphs[topic]!==null;
+      const isObject=Boolean(slot.anyOf?.some(x=>x.type==='object')||
+       slot.type==='object');
+      const should=Boolean(isObject&&
+       (topic===chapter.anchor||t.mode!=='state-limits'));
+      assert.equal(exists,should,
+       'optional chart-scoped topic does not match strict paid provider slot: '+id+':'+topic);
+      if(exists)count++;else blocked++;
+      if(topic===chapter.anchor)anchors++;
+     }
+    }
+    const parsed=writer.restoreEvidence(synthetic,prompt);
+    assert.deepEqual(Object.keys(parsed.chapters),ids);
+    assert(ids.every(id=>parsed.chapters[id].evidence.length>=1));
+   }
+   assert(count>anchors,'all source-eligible optional topics must be independently decodable');
+   assert.equal(calls,0,'source-only offline exercise never sends any model request');
+   assert.equal(archived,0,'no provider response is archived or purchased');
+   console.log('PASS all evidence-eligible optional paid topics decoded against real strict schema: '+
+    count+' synthetic paragraphs, '+anchors+' anchors, '+blocked+
+    ' deliberately null slots; customer editorial approval is NOT asserted');
    return;
   }
   if(kind!=='complete'){
