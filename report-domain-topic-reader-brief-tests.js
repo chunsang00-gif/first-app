@@ -311,6 +311,18 @@ assert(relationSchema.includes('첫 번째 글자의 오행이 두 번째 글자
  'the real provider text field receives the computed original-stem relationship');
 assert(relationSchema.includes('실제 성과·성격·수입이나 명리적 우선순위'),
  'a verified element direction cannot be sold as a personal prediction');
+const classical=earning.sourceOwnedInterpretiveThesis.classicalMonthQuestion;
+assert(classical,'a verified mixed-month single exposed candidate must reach the real paid domain');
+assert.equal(classical.monthBranch,'未');
+assert.equal(classical.stem,'丁');
+assert.equal(classical.isMainMonthHidden,false,
+ 'a secondary month-hidden wealth source is not the month main governing qi');
+assert.equal(classical.numberOfDistinctVisibleCandidates,1);
+assert.equal(classical.completeMonthTriadCount,0);
+assert.equal(classical.chosenPattern,false);
+assert.equal(classical.chosenUsefulGod,false);
+assert.equal(classical.adoptedSchoolMethod,false);
+assert.equal(classical.sourceUrl,'https://www.donglishuzhai.net/chapter/3729.html');
 const exactLink=earning.sourceOwnedInterpretiveThesis.exactStemBridge;
 assert.deepEqual(exactLink?.refs,['natal.month.hidden.丁','natal.hour.stem'],
  'actual paid earning paragraph should distinguish same month-hidden/hour-visible 丁');
@@ -318,6 +330,12 @@ const paidMoneySlot=generator.schema(moneyPrompt,wire.schemaFor(moneyPrompt,sche
  .properties.chapters.properties.money.properties.paragraphs.properties.earning;
 assert(paidMoneySlot.properties.text.description.includes('세 번째 사실'),
  'a real exposed third chart position must inform the paid text, not a glossary');
+assert(paidMoneySlot.properties.text.description.includes('이 명식에서만 추가로 확인된 고전의 독립된 질문'),
+ 'the verified classical rule must change the paid writing question, not a QA-only sample');
+assert(paidMoneySlot.properties.text.description.includes('달의 대표 숨은 글자가 아닌 별도 글자'),
+ 'the customer interpretation must distinguish exposed secondary stem from month main');
+assert(paidMoneySlot.properties.text.description.includes('격국이나 우선순위가 확정되었다고 주장하지 않는다'),
+ 'a classical exposed candidate may never be promoted to an adopted pattern');
 const moneyRequired=[...new Set([
  ...earning.sourceOwnedInterpretiveThesis.sourceRoles.map(x=>x.ref),
  ...earning.sourceOwnedInterpretiveThesis.exactStemBridge.refs
@@ -391,6 +409,8 @@ const changedPrompt={...moneyPrompt,facts:changedChart,analysisGuidance:{
 const changedEarning=generator.compile(changedPrompt).task.chapters.money.topics.earning;
 assert(!changedEarning.sourceOwnedInterpretiveThesis?.exactStemBridge,
  'an altered birth hour must not inherit the old same-stem linkage');
+assert(!changedEarning.sourceOwnedInterpretiveThesis?.classicalMonthQuestion,
+ 'an alternate hour with no matching month-hidden exposure cannot inherit a classical candidate');
 assert(substantiveTheses>0,'at least one real domain task must have a source-owned substantive thesis');
 assert(singleTheses>0,'real charts must send single subtype interpretation into paid writer');
 
