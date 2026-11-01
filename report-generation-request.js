@@ -579,6 +579,36 @@ function schema(prompt,transport){
       '. 하나의 가상 수입 활동을 설명하되 양쪽 조건을 모두 비교한다. '+
       'basis.condition의 문장을 본문에 그대로 복사하지 말고 독자가 이해할 해석으로 구성한다. ';
     }
+    const careerCondition=thesis.careerWorkstyleCondition;
+    if(careerCondition){
+     const recomputed=require('./report-paid-interpretive-bridge')
+      .careerWorkstyleCondition(
+       chapterId+'.'+topic,
+       {id:roles[0].ref,position:roles[0].position,
+        layer:roles[0].layer,stem:roles[0].stem,tenGod:roles[0].tenGod},
+       {id:roles[1].ref,position:roles[1].position,
+        layer:roles[1].layer,stem:roles[1].stem,tenGod:roles[1].tenGod},
+       computed);
+     if(!recomputed||JSON.stringify(careerCondition)!==JSON.stringify(recomputed)||
+        careerCondition.observedWorkPerformance!==false||
+        careerCondition.careerOutcomePredicted!==false||
+        careerCondition.traditionalPriorityAssessed!==false)
+      throw Error('PAID_CAREER_WORKSTYLE_SOURCE_DRIFT:'+chapterId+':'+topic);
+     basis.properties.condition.enum=[careerCondition.computedCondition];
+     basis.properties.condition.description=
+      '출생 원래 위치의 학습 관련 분류와 결과·개선 관련 분류를 구분하는 '+
+      '계산 근거. 지정된 문자열만 사용한다. 개인이 실제로 업무를 잘한다는 뜻은 아니다.';
+     p.properties.text.description+=
+      ' 이 직업 항목은 금전의 수입 활동과 다른 문제를 다룬다. '+
+      '방식을 이해할 첫 근거: '+careerCondition.firstFocus+'. '+
+      '업무 결과를 확인할 두 번째 근거: '+careerCondition.secondFocus+'. '+
+      '첫 조건만 있으면 '+careerCondition.firstOnlyMissing+
+      ', 둘째 조건만 있으면 '+careerCondition.secondOnlyMissing+'. '+
+      '독자에게는 가상 작업의 방법 검토와 완성·개선 기준이 서로 다른 '+
+      '선택이 되는 이유를 짧고 자연스러운 하나의 해석으로 설명한다. '+
+      '같은 금전/보상 장면을 복사하거나 실제 직무 능력을 추정하지 않는다. '+
+      'basis.condition은 원래 계산 근거로 남기되 긴 고정 문자열을 본문에 복사하지 않는다.';
+    }
     if(thesis.classicalOutputWealthCandidate){
      const classic=thesis.classicalOutputWealthCandidate;
      const recomputed=require('./report-paid-interpretive-bridge')
@@ -1184,6 +1214,14 @@ function restoreEvidence(value,prompt){
         !expected.sourceRefs.every(ref=>allowed.has(ref)&&b.refs.includes(ref))||
         b.condition!==expected.computedCondition)
       throw Error('AI report service earning two-sided grounded condition missing: '+id+':'+topic);
+    }
+    if(owned?.careerWorkstyleCondition){
+     const expected=owned.careerWorkstyleCondition;
+     if(id!=='career'||topic!=='workstyle'||
+        expected.kind!=='verified-work-method-vs-output-condition-v1'||
+        !expected.sourceRefs.every(ref=>allowed.has(ref)&&b.refs.includes(ref))||
+        b.condition!==expected.computedCondition)
+      throw Error('AI report service workstyle source-specific condition missing: '+id+':'+topic);
     }
     const single=task.sourceOwnedSingleReading;
     if(single?.placementContrast){
