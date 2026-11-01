@@ -47,7 +47,9 @@ function checkDomainSources(rows,plan,packet){
   for(const [topic,accept] of Object.entries(topics)){
    const actual=plan?.[chapterId]?.topicTasks?.[topic];
    const sourceIds=natal.filter(accept).map(row=>row.id);
-   const expected=chapterId==='relationship'&&topic==='conflict'?
+   const expected=chapterId==='career'&&topic==='change'?
+    (require('./report-paid-career-decade-reading').candidate(packet)?.sourceRefs||[]):
+    chapterId==='relationship'&&topic==='conflict'?
     (require('./report-paid-natal-day-clash').matching(packet.chart,packet.facts?.natalClashes).length?
      ['facts.natalClashes']:[]):
     (chapterId==='money'&&topic==='spending'&&!spendingIndependent)?[]:sourceIds;
@@ -164,7 +166,10 @@ function verify(packet,plan){
     if(task.evidenceReuseBoundary)errors.push('blocked-topic-owns-calculation-source:'+chapterId+':'+topic);
    }
    if(Array.isArray(task.allowedSourceRefs)){
-    const permitted=new Set([...ids,'facts.targetYearBranchContext.annualContext.day',
+    const permitted=new Set([...ids,
+     ...(require('./report-paid-career-decade-reading').candidate(packet)?
+      ['fortune.activeDecade']:[]),
+     'facts.targetYearBranchContext.annualContext.day',
      ...(Array.isArray(packet.facts?.natalClashes)?['facts.natalClashes']:[])]);
     const missing=task.allowedSourceRefs.filter(id=>!permitted.has(id)||
       (id==='facts.targetYearBranchContext.annualContext.day'&&!dayContext));
