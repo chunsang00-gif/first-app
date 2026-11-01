@@ -102,6 +102,30 @@ async function run(){
     .properties.paragraphs.properties.risk.anyOf.find(x=>x.type==='object');
    assert.deepEqual(exact.properties.basis.properties.condition.enum,
     [classical.computedCondition]);
+   const grounded={label:'월지의 숨은 재성과 묘고 충의 한계',
+    text:'이 출생월 안에는 실제로 계산된 재성 분류가 있습니다. 해당 월지와 다른 출생 자리 사이에 실제 진술 또는 축미 충이 확인된 경우에도 이를 곧바로 재물 창고가 열린다거나 손실을 본다는 뜻으로 읽지 않습니다. 서로 다른 출생 위치에서 확인한 근거와 전체 해석이 필요한 지점을 구분합니다.',
+    basis:{refs:classical.sourceRefs.slice(),
+     interpretation:'확인된 월지 재성 분류와 서로 다른 지지의 충 관계만 연결합니다.',
+     condition:classical.computedCondition,
+     limit:'손익, 투기, 채무, 미래 사건이나 격국의 완성은 검증하지 않았습니다.'}};
+   const response=p=>({chapters:{money:{paragraphs:{risk:p}}}});
+   assert.doesNotThrow(()=>writer.restoreEvidence(response(grounded),draft));
+   const missingClash=structuredClone(grounded);
+   missingClash.basis.refs=classical.sourceRefs.filter(x=>x!=='facts.natalClashes');
+   assert.throws(()=>writer.restoreEvidence(response(missingClash),draft),
+    /money storage clash grounded condition missing: money:risk/,
+    'an uncited clash must fail before accepting premium text');
+   const moneyOnly=structuredClone(grounded);
+   moneyOnly.basis.refs=classical.sourceRefs.filter(x=>x!==classical.wealthRef);
+   assert.throws(()=>writer.restoreEvidence(response(moneyOnly),draft),
+    /money storage clash grounded condition missing: money:risk/,
+    'a wealth interpretation requires the exact month-hidden wealth row');
+   const wrongOutcome=structuredClone(grounded);
+   wrongOutcome.basis.condition='재물 창고의 충으로 실제 금전 손실이 발생합니다.';
+   assert.throws(()=>writer.restoreEvidence(response(wrongOutcome),draft),
+    /money storage clash grounded condition missing: money:risk/,
+    'a predicted financial loss cannot replace the historically grounded condition');
+
   }else assert.equal(slot.type,'null','unsupported risk still cannot be published');
   const broken=structuredClone(lastPacket);
   broken.facts.tenGods.year.hiddenStems[0].tenGod='편재';
