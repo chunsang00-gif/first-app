@@ -49,6 +49,13 @@ function subsetRefs(source,chapter,id,topic,slot){
    throw Error('Synthetic provider lacks verified exposure source');
   required.push(...ids,...exposure);
  }
+ const single=chapter.topics?.[topic]?.sourceOwnedSingleReading;
+ if(single?.placementContrast){
+  const refs=single.sourcePlacements?.map(x=>x.ref)||[];
+  if(refs.length<2||refs.some(x=>!permitted.includes(x)))
+   throw Error('Synthetic paid provider missing multiple true placements of one category');
+  required.push(...refs);
+ }
  if(id==='saju_core'&&topic==='temperament'){
   for(const key of ['facts.seasonalEvidence','facts.qiEvidence','facts.stemConnections','facts.rootConditions'])
    if(permitted.includes(key))required.push(key);
