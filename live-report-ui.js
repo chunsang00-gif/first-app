@@ -53,12 +53,26 @@ async function showCoverage(validatedInput){
       typeof c.text!=='string'||c.text.length<30)||
     typeof sample.note!=='string'||!sample.note.trim())
    throw Error('무료 해석 예시가 검증된 계산 결과와 일치하지 않습니다.');
+ const interpreted=out.interpretivePreviews;
+ if(!Array.isArray(interpreted)||interpreted.length>2||
+    new Set(interpreted.map(x=>x.id)).size!==interpreted.length||
+    interpreted.some(x=>!['money.earning','career.workstyle'].includes(x.id)||
+      typeof x.title!=='string'||!x.title.trim()||
+      typeof x.text!=='string'||x.text.length<130))
+   throw Error('독자용 분야별 예시가 계산된 원본 근거와 일치하지 않습니다.');
  body.innerHTML=`<section class="section report-reading-sample">
  <h2>실제 출생정보에서 확인한 해석 근거</h2>
  <p>같은 글을 모든 사람에게 보여 주는 예시가 아니라, 입력한 출생정보로 계산된 위치와 분류를 바탕으로 읽습니다.</p>
  ${sample.cards.map(item=>`<article class="reading-preview-card"><h3>${esc(item.title)}</h3><p>${esc(item.text)}</p></article>`).join('')}
  <p class="meta">${esc(sample.note)}</p>
- </section><section class="section report-coverage">
+ </section>
+ ${interpreted.length?`<section class="section report-reading-sample">
+ <h2>금전·직업 분야별 풀이 맛보기</h2>
+ <p>출생정보에서 실제로 확인된 서로 다른 전통 분류를 비교해, 돈을 얻는 활동과 일을 배우고 완성하는 활동을 각각 풀었습니다.</p>
+ ${interpreted.map(item=>`<article class="reading-preview-card"><h3>${esc(item.title)}</h3><p>${esc(item.text)}</p></article>`).join('')}
+ <p class="meta">결제 없이 계산한 참고용 풀이입니다. 실제 삶의 경험을 확인한 결과나 AI 유료 보고서의 완성·판매 승인 기록이 아닙니다.</p>
+ </section>`:''}
+ <section class="section report-coverage">
  <h2>유료 심화 풀이 제공 가능 범위</h2>
  <p><strong>${estimate.plannedChapters}개 장 · 최대 ${estimate.evidenceEligibleTopicUpperBound}개 항목</strong>을 분석 후보로 확인했습니다.</p>
  <p>이는 출생정보로 계산한 <strong>작성 가능 상한</strong>입니다. 실제 완성된 문단 수나 제공 보장은 아닙니다.</p>
