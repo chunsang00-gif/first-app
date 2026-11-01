@@ -32,7 +32,17 @@ async function run(){
    const snap=JSON.stringify(packet);
    const reviewed=boundary.inspect(packet);
    assert.equal(JSON.stringify(packet),snap);
-   assert.equal(reviewed.paidRiskTopicModeUnchanged,'state-limits');
+   const verifiedClassical=require('./report-paid-money-clash-reading').candidate(packet);
+   assert.equal(reviewed.paidRiskTopicMode,
+    verifiedClassical?'use-primary':'state-limits');
+   assert.equal(reviewed.classicalScopeProven,Boolean(verifiedClassical));
+   if(verifiedClassical){
+    assert(verifiedClassical.monthBranch==='辰'||verifiedClassical.monthBranch==='戌'||
+     verifiedClassical.monthBranch==='丑'||verifiedClassical.monthBranch==='未');
+    assert.equal(verifiedClassical.promisedGain,false);
+    assert.equal(verifiedClassical.promisedLoss,false);
+    assert.equal(verifiedClassical.usefulGodChosen,false);
+   }
    assert.equal(reviewed.realLossPredicted,false);
    assert.equal(reviewed.methodTextuallyVerified,false);
    assert.equal(reviewed.safeToAutoWriteCustomerRisk,false);
@@ -78,11 +88,19 @@ async function run(){
     editorialBlueprint:{money:guidance.preflight(packet).money}
    }};
   const payload=writer.compile(draft);
-  assert.equal(payload.task.chapters.money.topics.risk.mode,'state-limits');
-  assert.deepEqual(payload.task.chapters.money.topics.risk.citableFacts,[]);
+  const classical=require('./report-paid-money-clash-reading').candidate(packet);
+  const risk=payload.task.chapters.money.topics.risk;
+  assert.equal(risk.mode,classical?'use-primary':'state-limits');
+  assert.deepEqual(risk.citableFacts.map(x=>x.id),classical?.sourceRefs||[]);
   const schema=wire.schemaFor(draft,sourceSchema);
-  assert.equal(schema.properties.chapters.properties.money.properties.paragraphs
-   .properties.risk.type,'null','risk must NOT be auto-published');
+  const slot=schema.properties.chapters.properties.money.properties.paragraphs.properties.risk;
+  if(classical){
+   assert(slot.anyOf,'qualified historical question stays optional in paid manuscript');
+   const exact=writer.schema(draft,schema).properties.chapters.properties.money
+    .properties.paragraphs.properties.risk.anyOf.find(x=>x.type==='object');
+   assert.deepEqual(exact.properties.basis.properties.condition.enum,
+    [classical.computedCondition]);
+  }else assert.equal(slot.type,'null','unsupported risk still cannot be published');
   const broken=structuredClone(lastPacket);
   broken.facts.tenGods.year.hiddenStems[0].tenGod='편재';
   assert.throws(()=>boundary.inspect(broken),/QA13_CALCULATION_INTEGRITY_INVALID/);
@@ -99,7 +117,7 @@ async function run(){
    distinctVerifiedWealthClashCandidates:results.filter(x=>
     x.directWealthEndpointMatches>0).length,
    actualMoneyLossForecasts:0,providerCalls:0,
-   realPaidRiskSchemaStillNull:true,customerRelease:false,
+   realPaidRiskSchemaStillNullForUnsupportedCharts:true,customerRelease:false,
    semanticClassicalMethodUnverified:true,results
   }));
  }finally{
