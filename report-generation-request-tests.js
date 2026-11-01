@@ -153,6 +153,14 @@ const schema=require('./report-schema.json');
    'preflight focus cannot contradict the calculation-free comparison contract: '+id);
   for(const [topic,task] of Object.entries(chapter.topics)){
    if(task.mode==='state-limits')continue;
+   if(id==='mbti_contradiction'&&['information','judgment'].includes(topic)){
+    const proof=require('./report-paid-mbti-dimension')
+     .build(joinedPrompt.facts.person.mbti,topic);
+    assert.deepEqual(task.sourceOwnedMbtiDimension,proof);
+    assert.deepEqual(task.citableFacts.map(x=>x.id),['person.mbti'],
+     'input-only preference cannot borrow Saju to inflate analysis');
+    continue;
+   }
    assert.equal(task.mbtiFocus?.sourceRef,'person.mbti');
    assert.equal(task.mbtiFocus?.verdict,'not-computed');
    assert.equal(task.mbtiFocus?.sharedBehavior,'unobserved');
