@@ -18,12 +18,16 @@ const names=['NODE_ENV','RENDER','PAID_CORE_DEPTH_V2',
   process.env.NODE_ENV='test';delete process.env.RENDER;
   for(const k of names.slice(2))delete process.env[k];
   const checked=[];
-  for(const [birthDate,birthTime,calendar,chapters,eligible] of cases){
+  for(const [birthDate,birthTime,calendar,chapters,baselineEligible] of cases){
    const input={calendar,birthDate,birthTime,gender:'male',
     mbti:'ISFP',name:'TEST_DO_NOT_EXPOSE',birthplace:'TEST_ADDRESS_DO_NOT_EXPOSE',
     ...(calendar==='lunar'?{leapMonth:false}:{})};
    const before=JSON.stringify(input);
    const result=coverage.calculate(input);
+   const decade=require('./report-paid-career-decade-reading')
+    .candidate(facts.build(input,2027));
+   const careerSelected=result.estimate.chapters.find(row=>row.id==='career')?.includedInPlan;
+   const eligible=baselineEligible+Number(Boolean(decade&&careerSelected));
    assert.equal(JSON.stringify(input),before,'never rewrite caller birth data');
    assert.equal(result.status,'ready');
    assert.equal(result.kind,'prepurchase-report-scope-v1');
