@@ -19,6 +19,47 @@ function phrase(tenGod){
  if(!meaning)throw Error('SAMPLE_UNSUPPORTED_CALCULATED_CATEGORY');
  return meaning;
 }
+// A usable reader comparison is a two-sided conditional SCENE, not a
+// glossary plus a generic instruction to be careful. These are conditions
+// from traditional roles, not observations of the person's own behavior.
+const CONDITIONS=Object.freeze({
+ '비견':Object.freeze({focus:'각자 맡을 일의 범위',missing:'각자의 책임 범위가 비어 있습니다'}),
+ '겁재':Object.freeze({focus:'공동 자원의 사용 몫',missing:'함께 쓰는 자원의 몫이 정해지지 않습니다'}),
+ '식신':Object.freeze({focus:'완성해서 전달할 결과물의 범위',missing:'끝내야 할 결과물과 마감 기준이 빠집니다'}),
+ '상관':Object.freeze({focus:'기존 절차를 바꿀 때의 승인과 근거',missing:'바뀐 방법을 승인할 기준이 남아 있습니다'}),
+ '정재':Object.freeze({focus:'반복해서 들어갈 비용과 관리 자원',missing:'일을 이어갈 비용과 자원 계획이 빠집니다'}),
+ '편재':Object.freeze({focus:'외부에서 필요한 자원을 확보할 경로',missing:'필요한 자원을 어디서 확보할지가 빠집니다'}),
+ '정관':Object.freeze({focus:'역할과 승인·검수의 기준',missing:'누가 승인하고 책임지는지가 빠집니다'}),
+ '편관':Object.freeze({focus:'갑자기 늘어난 요구에 대한 책임 경계',missing:'예외 요구에 어디까지 대응할지가 빠집니다'}),
+ '정인':Object.freeze({focus:'배운 설명과 외부 지원을 적용할 조건',missing:'설명과 도움을 실제로 적용할 준비가 빠집니다'}),
+ '편인':Object.freeze({focus:'낯선 방법을 이해할 근거',missing:'새 방법을 판단할 근거가 충분히 정리되지 않습니다'})
+});
+function conditionalMonthReading(main,exposed,location){
+ const first=CONDITIONS[main.tenGod],second=CONDITIONS[exposed.tenGod];
+ if(!first||!second)throw Error('SAMPLE_UNSUPPORTED_CONTRAST_ROLE');
+ if(main.tenGod===exposed.tenGod)return null;
+ const season=require('./report-seasonal-evidence');
+ const a=season.ELEMENTS[main.stem],b=season.ELEMENTS[exposed.stem];
+ if(!a||!b)throw Error('SAMPLE_CONTRAST_ELEMENT_UNKNOWN');
+ const relation=season.relation(a,b);
+ const links={
+  resource:'달 안 중심 글자의 오행이 다른 글자의 오행을 생하는 방향',
+  output:'달 안 다른 글자의 오행이 중심 글자의 오행을 생하는 방향',
+  'control-on-day':'달 안 중심 글자의 오행이 다른 글자의 오행을 극하는 방향',
+  'day-controls':'달 안 다른 글자의 오행이 중심 글자의 오행을 극하는 방향',
+  'same-element':'두 글자의 오행이 같은 관계'
+ };
+ const link=links[relation];
+ if(!link)throw Error('SAMPLE_CONTRAST_ELEMENT_UNCLASSIFIED');
+ return '태어난 달의 중심 글자는 ‘'+first.focus+'’을, 같은 달의 다른 숨은 글자는 ‘'+
+  second.focus+'’을 전통적으로 묻습니다. 특히 두 번째 글자가 '+location+
+  '의 겉에도 정확히 확인됩니다. 예를 들어 한 가지 일을 시작해 여섯 달간 '+
+  '운영하는 가상의 상황에서 첫 번째 조건만 갖추면 '+second.missing+
+  '. 반대로 두 번째 조건만 갖추면 '+first.missing+'. '+
+  '두 글자 사이에는 '+link+'도 계산됩니다. 다만 이것은 출생 기호에 '+
+  '붙이는 조건부 비교이며, 누가 실제로 일 처리를 잘하는지나 어느 '+
+  '뜻이 더 강한지 판정한 결과는 아닙니다.';
+}
 function card(id,title,text){
  if(typeof text!=='string'||text.length<30)
   throw Error('SAMPLE_EMPTY_EVIDENCE_READING');
@@ -35,7 +76,12 @@ function monthToVisibleLink(packet){
     !Array.isArray(graph.exposure))throw Error('SAMPLE_STEM_LINKAGE_UNAVAILABLE');
  const month=packet.facts?.tenGods?.month;
  const hidden=month?.hiddenStems||[];
+ const monthCommand=packet.facts?.structuralEvidence?.monthCommand;
+ const main=hidden.find(row=>row.stem===monthCommand?.mainHiddenStem);
+ if(!main||main.tenGod!==monthCommand.mainHiddenStemTenGod)
+  throw Error('SAMPLE_MONTH_MAIN_EVIDENCE_DRIFT');
  const unknownHour=packet.calculationInput?.unknownBirthTime===true;
+ const verified=[];
  for(const hiddenRow of hidden){
   const exposure=graph.exposure.find(row=>row.hiddenId===
    'natal.month.hidden.'+hiddenRow.stem&&row.position==='month'&&
@@ -49,16 +95,24 @@ function monthToVisibleLink(packet){
    if(!visible||visible.stem!==hiddenRow.stem||
       visible.stemTenGod!==hiddenRow.tenGod)
     throw Error('SAMPLE_STEM_LINKAGE_MISMATCH');
-   const location=position==='year'?'태어난 해':'태어난 시간';
-   const layer=exposure.layer==='main'?'중심 글자':'숨은 글자';
-   const subject=phrase(hiddenRow.tenGod);
-   return card('month-visible-link','태어난 달과 다른 출생 자리의 직접 연결',
-    '태어난 달 안쪽의 '+layer+'와 '+location+
-    '의 겉글자가 정확히 같은 글자로 확인됩니다. 두 자리 모두 ‘'+subject+
-    '’라는 전통적 질문에 연결되므로, 서로 무관한 뜻을 억지로 붙이는 대신 달에 들어 있던 분류가 다른 위치에도 나타났다는 계산 관계를 읽을 수 있습니다. 다만 이것만으로 그 성향이 강하거나 실제 능력·소득·경험이 확인됐다는 뜻은 아닙니다.');
+   verified.push({hiddenRow,position,exposure});
   }
  }
- return null;
+ if(!verified.length)return null;
+ // Prefer a verified DIFFERENT category when available; an exposure of
+ // the main category is true, but must not conceal additional source content.
+ const chosen=verified.find(x=>x.hiddenRow.tenGod!==main.tenGod)||
+  verified[0];
+ const {hiddenRow,position,exposure}=chosen;
+ const location=position==='year'?'태어난 해':'태어난 시간';
+ const scene=conditionalMonthReading(main,hiddenRow,location);
+ if(scene)return card('month-visible-link','출생월에서 실제로 갈라지는 두 가지 조건',scene);
+ const layer=exposure.layer==='main'?'중심 글자':'숨은 글자';
+ const subject=phrase(hiddenRow.tenGod);
+ return card('month-visible-link','태어난 달과 다른 출생 자리의 직접 연결',
+  '태어난 달 안쪽의 '+layer+'와 '+location+
+  '의 겉글자가 정확히 같은 글자로 확인됩니다. 두 자리 모두 ‘'+subject+
+  '’라는 전통적 질문에 연결되므로, 서로 무관한 뜻을 억지로 붙이는 대신 달에 들어 있던 분류가 다른 위치에도 나타났다는 계산 관계를 읽을 수 있습니다. 다만 이것만으로 그 성향이 강하거나 실제 능력·소득·경험이 확인됐다는 뜻은 아닙니다.');
 }
 function build(packet){
  if(packet?.status!=='ready'||!packet.facts?.tenGods?.month||
