@@ -23,12 +23,12 @@ function candidate(packet){
   return null;
  const calendar=require('./report-seasonal-evidence');
  if(!calendar.ELEMENTS[d.pillar[0]])return null;
- const decadeGod=require('./report-ten-gods').tenGod;
- // The stored decade stems have to agree with the actual natal day stem.
- const dayStem=packet.chart.day?.[0];
- if(!calendar.ELEMENTS[dayStem])return null;
- if(typeof decadeGod==='function'&&decadeGod(dayStem,d.pillar[0])!==d.stemTenGod)
-  throw Error('PAID_CAREER_DECADE_GOD_SOURCE_DRIFT');
+ // The active decade must be the exact original fortune row selected for
+ // the target year; do not trust an independently injected activeDecade.
+ const all=packet.fortune?.decades||[];
+ if(!all.some(row=>row.pillar===d.pillar&&row.startYear===d.startYear&&
+    row.endYear===d.endYear&&row.stemTenGod===d.stemTenGod))
+  throw Error('PAID_CAREER_DECADE_ORIGINAL_ROW_MISMATCH');
  const candidates=[];
  for(const position of POS){
   const row=packet.facts.tenGods[position];
