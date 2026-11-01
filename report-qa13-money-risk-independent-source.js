@@ -23,9 +23,13 @@ function inspect(packet){
  const integrity=require('./report-calculation-integrity').verify(packet);
  if(!integrity.pass)throw Error('QA13_CALCULATION_INTEGRITY_INVALID:'+integrity.errors.join('|'));
  const policy=guidance.preflight(packet).money?.topicTasks?.risk;
- if(!policy||policy.mode!=='state-limits'||policy.evidencePresent!==false||
-    (policy.allowedSourceRefs||[]).length!==0)
-  throw Error('QA13_MONEY_RISK_POLICY_UNEXPECTEDLY_ACTIVE');
+ const literary=require('./report-paid-money-clash-reading').candidate(packet);
+ const shouldEnable=Boolean(literary);
+ if(!policy||policy.mode!==(shouldEnable?'use-primary':'state-limits')||
+    policy.evidencePresent!==shouldEnable||
+    JSON.stringify(policy.allowedSourceRefs||[])!==
+     JSON.stringify(literary?.sourceRefs||[]))
+  throw Error('QA13_MONEY_RISK_POLICY_SOURCE_DRIFT');
  const table=calculated.natal(packet.chart);
  const expected=table.pairs.filter(x=>x.type==='충');
  const actual=packet.facts.natalClashes||[];
@@ -90,7 +94,9 @@ function inspect(packet){
   realLossPredicted:false,
   rolePriorityResolved:false,
   methodTextuallyVerified:false,
-  paidRiskTopicModeUnchanged:'state-limits',
+  paidRiskTopicMode:policy.mode,
+  classicalScopeProven:Boolean(literary),
+  selectedVerifiedClassicalQuestion:literary?.readerQuestion||null,
   safeToAutoWriteCustomerRisk:false,
   requiresIndependentClassicalAndEditorialReview:true,
   customerReleaseApproved:false,canSell:false,providerCalls:0
