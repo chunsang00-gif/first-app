@@ -86,7 +86,16 @@ function inspect(prompt,payload,schema){
      note('no-possible-required-source:'+id+'/'+topic+'/'+kind);
     }
    }
-   if(['mbti_contradiction','integrated_judgment'].includes(id)&&
+   const isolatedPreference=id==='mbti_contradiction'&&
+    ['information','judgment'].includes(topic);
+   if(isolatedPreference&&payload.source?.['person.mbti']&&
+      (refs.size!==1||!refs.has('person.mbti')||
+       directive.sourceOwnedMbtiDimension?.computedCondition!==
+        require('./report-paid-mbti-dimension')
+         .build(prompt.facts.person?.mbti,topic)?.computedCondition))
+    note('invalid-input-only-mbti-preference-source:'+id+'/'+topic);
+   if(!isolatedPreference&&
+      ['mbti_contradiction','integrated_judgment'].includes(id)&&
       payload.source?.['person.mbti']&&(!refs.has('person.mbti')||
       ![...refs].some(x=>x.startsWith('natal.'))))
     note('no-possible-two-framework-sources:'+id+'/'+topic);
