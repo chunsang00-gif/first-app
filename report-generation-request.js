@@ -1311,6 +1311,14 @@ function restoreEvidence(value,prompt){
     if(require('./report-domain-topic-reader-brief')
        .emptyReaderInterpretation(p,task))
       throw Error('AI report service paid domain interpretation is only symbol definitions: '+id+':'+topic);
+    // Exact source IDs and a server-locked condition are NOT a paid
+    // interpretation if the reader-visible prose omits the role meanings
+    // or their difference. Narrow scope: two independently proven domains.
+    const omittedMeaning=require('./report-paid-domain-reader-substance')
+     .inspect(p,id,topic,task.sourceOwnedInterpretiveThesis);
+    if(omittedMeaning)
+     throw Error('AI report service paid source-owned reader substance missing: '+
+      id+':'+topic+':'+omittedMeaning);
     if(id==='saju_core'&&topic==='temperament'&&prompt.paidCoreDepthV2===true){
      const contrast=task.paidCoreDepthV2.readerClassicalScope||
       task.paidCoreDepthV2.readerContrast||
