@@ -254,7 +254,6 @@ function classicalOutputWealthCandidate(key,a,b,relation,packet){
   if(!m)return null;
   const pillar=packet.chart[m[1]];
   if(!pillar)return null;
-  if(m[2]==='stem'&&pillar[0]!== (m[1]===a.id.split('.')[1]?a.stem:b.stem))return null;
   const expectedStem=id===a.id?a.stem:b.stem;
   if(m[2]==='stem'&&pillar[0]!==expectedStem)return null;
   if(m[2].startsWith('hidden.')&&
