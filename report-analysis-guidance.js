@@ -198,6 +198,20 @@ function preflight(packet){
   careerChange.sourceOwnedDecadeCareer=decadeReading;
   careerChange.interpretationBoundary='출생 원국의 실제 직업 관련 십성 한 종류와 2027년을 포함하는 실제 대운의 다른 십성 종류를 같은 분류군 안에서 비교한다. 실제 이직·독립·승진 시기나 직업적 성공 여부는 판정할 수 없으며 다른 직업 장의 natal-only 결론을 되풀이하지 않는다.';
  }
+ // Narrow classical counterexample to an unsupported "wealth warehouse
+ // opens" claim. Only verified MONTH storage-clash + genuine hidden wealth
+ // may create a separate money interpretation. No profit/loss inference.
+ const wealthClash=require('./report-paid-money-clash-reading').candidate(packet);
+ const moneyRisk=plans.money.topicTasks.risk;
+ if(wealthClash){
+  moneyRisk.mode='use-primary';
+  moneyRisk.allowedSourceRefs=wealthClash.sourceRefs.slice();
+  moneyRisk.primaryEvidencePath='facts.natalClashes';
+  moneyRisk.evidencePresent=true;
+  moneyRisk.verifiedFallbackPaths=[];
+  moneyRisk.sourceOwnedWealthClash=wealthClash;
+  moneyRisk.interpretationBoundary='출생월의 진·술 또는 축·미 충과 그 달에 실제로 숨은 재성 분류가 연결될 때만 고전의 성립 조건을 구분한다. 충을 재물 개방·손실·투자위험 등 미래 사건으로 읽지 않으며 수입·지출 습관 해석과 중복하지 않는다.';
+ }
  // A distinct relationship conflict question requires a computed
  // natal DAY-branch clash, not a generic ten-god label or another position.
  const directDayClashes=require('./report-paid-natal-day-clash')
