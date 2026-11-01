@@ -534,6 +534,22 @@ function schema(prompt,transport){
        linked.realizedEffect!==false||
        linked.predictedIncomeOrBehavior!==false)
      throw Error('PAID_DOMAIN_ELEMENTAL_RELATION_SOURCE_DRIFT:'+chapterId+':'+topic);
+    // The source-owned tradeoff is an interpretation ASSIGNMENT, not
+    // permission to infer someone's actual choices from an element arrow.
+    const tradeoff=thesis.sourceDecisionContrast;
+    const reconstructed=require('./report-paid-interpretive-bridge')
+     .sourceDecisionContrast(
+      {id:roles[0].ref,position:roles[0].position,
+       stem:roles[0].stem,tenGod:roles[0].tenGod},
+      {id:roles[1].ref,position:roles[1].position,
+       stem:roles[1].stem,tenGod:roles[1].tenGod},
+      computed,thesis.question);
+    if(!tradeoff||
+       JSON.stringify(tradeoff)!==JSON.stringify(reconstructed)||
+       tradeoff.observedCustomerChoice!==false||
+       tradeoff.realizedInfluence!==false||
+       tradeoff.traditionalPriorityChosen!==false)
+     throw Error('PAID_DOMAIN_DIRECTIONAL_READER_QUESTION_DRIFT:'+chapterId+':'+topic);
     if(thesis.classicalMonthQuestion){
      const classical=thesis.classicalMonthQuestion;
      const verified=require('./report-paid-interpretive-bridge')
@@ -591,6 +607,15 @@ function schema(prompt,transport){
      linked.computedRelation+'. '+
      '이 오행의 방향이 곧 실제 성과·성격·수입이나 명리적 우선순위를 뜻하는 것은 아니다. '+
      '상징적으로 두 질문을 나눠 읽는 이유를 분명히 밝히되 우세함을 임의로 정하지 않는다. '+
+     ' 이 명식의 두 출처를 합쳐 실제로 새롭게 설명해야 할 질문: '+
+     tradeoff.sourceSpecificQuestion+' '+
+     '첫 번째 출처만 있으면 답할 수 없는 질문: '+tradeoff.firstOnlyQuestion+' '+
+     '두 번째 출처만 있으면 답할 수 없는 질문: '+tradeoff.secondOnlyQuestion+' '+
+     '두 출처 사이의 계산 방향: '+tradeoff.symbolicRelationship+'. '+
+     tradeoff.requiredEditorialDifference+' '+
+     '가상의 선택 장면을 붙이는 것만으로 독립된 풀이가 되는 것은 아니다. '+
+     '답변의 핵심은 이 출생 위치에서 확인된 질문의 차이이며, '+
+     '분류 관계로 실제 행동의 선후나 특정 인생 결과를 단정하지 않는다. '+
      (thesis.classicalMonthQuestion?
       ' 이 명식에서만 추가로 확인된 고전의 독립된 질문: '+
       thesis.classicalMonthQuestion.classicalQuestion+
