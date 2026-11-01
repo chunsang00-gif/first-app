@@ -159,4 +159,4 @@ function build(packet){
     ' 출생 시각을 모르는 경우에는 시각에 따른 날짜 경계와 시주를 확정할 수 없으므로 잠정 계산 예시로만 보세요.':'')
  });
 }
-module.exports={build};
+module.exports={build,CONDITIONS};
