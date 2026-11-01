@@ -168,6 +168,32 @@ for(const [calendar,birthDate,birthTime] of cases){
     assert.equal(single.source.tenGod,original.tenGod);
     assert.equal(single.source.traditionalMeaning,original.traditionalMeaning);
     assert.equal(actual.source[single.source.ref].stem,single.source.stem);
+    assert(Array.isArray(single.sourcePlacements)&&single.sourcePlacements.length>=1);
+    assert.equal(single.sourcePlacements[0].ref,single.source.ref);
+    assert(single.sourcePlacements.every(row=>topic.citableFacts.some(source=>
+     row.ref===source.id&&row.stem===source.stem&&row.tenGod===source.tenGod&&
+     row.position===source.position&&row.layer===source.layer)),
+     'every source of a single kind must come from this calculated chart');
+    if(single.sourcePlacements.length>1){
+     assert.equal(single.placementContrast?.categoryCount,1);
+     assert.equal(single.placementContrast?.measuredPersonalityStrength,false);
+     assert.equal(single.placementContrast?.relativePositionPriority,'not-assessed');
+     const actualRefs=single.sourcePlacements.map(row=>row.ref);
+     assert.deepEqual(single.placementContrast.refs,actualRefs);
+     assert(actualRefs.every(ref=>part.properties.text.description.includes(ref)||
+      part.properties.text.description.includes(
+       single.sourcePlacements.find(row=>row.ref===ref).position)),
+      'multiple original placements must reach the actual paid text schema');
+     const onlyOne={label:'검증용 한 분류 설명',
+      text:'실제 계산된 출생 분류가 어디서 확인되는지 구분하는 가상 풀이입니다.',
+      basis:{refs:[actualRefs[0]],interpretation:'하나의 분류가 두 위치에 있는 점을 해석합니다.',
+       condition:'같은 전통 뜻을 두 번 말하지 않는 가정입니다.',
+       limit:'개인 경험이나 강약을 확정하지 않습니다.'}};
+     assert.throws(()=>generator.restoreEvidence({
+      chapters:{[chapterId]:{paragraphs:{[topicId]:onlyOne}}}},prompt),
+      /repeated single-category positional citations missing/,
+      'the real paid decoder must reject an uncited additional position');
+    }else assert.equal(single.placementContrast,null);
     assert(part.properties.text.description.includes(single.question));
     assert(part.properties.text.description.includes(single.explanation));
     assert(!part.properties.text.description.includes('출처 2:'));
@@ -452,6 +478,25 @@ assert(singleTheses>0,'real charts must send single subtype interpretation into 
 // contrast. These different-subtype pairs reach the ACTUAL paid text schema
 // through sourceOwnedInterpretiveThesis; never invent a missing second role.
 const paidBridge=require('./report-paid-interpretive-bridge');
+const sameSourceKind=(position,id,layer)=>({
+ id,position,layer,stem:'丁',tenGod:'정재',
+ traditionalMeaning:'계산된 정재의 전통 분류 뜻'
+});
+const repeated=paidBridge.buildSingle({chapterId:'money',topicId:'spending',
+ topic:{mode:'use-primary',citableFacts:[
+  sameSourceKind('연간','natal.year.stem','천간'),
+  sameSourceKind('월지','natal.month.hidden.丁','지장간')
+ ]}});
+assert.equal(repeated.sourcePlacements.length,2);
+assert.deepEqual(repeated.placementContrast.visibleRefs,['natal.year.stem']);
+assert.deepEqual(repeated.placementContrast.hiddenRefs,['natal.month.hidden.丁']);
+assert.equal(repeated.placementContrast.hasBothVisibleAndHidden,true);
+assert.equal(repeated.placementContrast.measuredPersonalityStrength,false);
+assert.equal(paidBridge.buildSingle({chapterId:'money',topicId:'spending',
+ topic:{mode:'use-primary',citableFacts:[sameSourceKind('연간','natal.year.stem','천간')]}
+}).placementContrast,null,
+ 'a chart with one source position must not inherit a fictional second position');
+
 function paidRole(position,stem,tenGod){
  const id='natal.'+position+'.stem';
  return {id,position:position==='year'?'연간':position==='month'?'월간':'시간',
