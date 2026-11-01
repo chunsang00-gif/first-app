@@ -267,17 +267,24 @@ function classicalOutputWealthCandidate(key,a,b,relation,packet){
  const leftIndex=parts.indexOf(left.pillar),rightIndex=parts.indexOf(right.pillar);
  const between=parts.slice(Math.min(leftIndex,rightIndex)+1,Math.max(leftIndex,rightIndex));
  const bothVisible=left.layer==='stem'&&right.layer==='stem';
+ const hiddenInPair=left.layer.startsWith('hidden.')||right.layer.startsWith('hidden.');
  return Object.freeze({
   kind:'verified-food-god-generates-wealth-symbolic-candidate-v1',
   sourceRefs:Object.freeze([a.id,b.id]),
   firstTenGod:a.tenGod,secondTenGod:b.tenGod,
+  sourceLayers:Object.freeze([left.layer,right.layer]),
+  hiddenSourceInPair:hiddenInPair,
   betweenPillars:Object.freeze(between),
   adjacentVisibleStems:bothVisible&&Math.abs(leftIndex-rightIndex)===1,
+  literalElementCycleOnly:true,
   phrase:'식신생재(食神生財) 관계 후보',
-  traditionalQuestion:'결과를 만들어 내는 식신이 재성을 생하는 관계가 계산되더라도, '+
-   (between.length?'두 출생 위치 사이에 '+between.join('·')+' 자리가 있어서 ':
-    '원국의 다른 조건을 확인하지 않고 ')+
-   '이것을 이미 성립한 재물 격국이나 실제 소득이라고 읽을 수 없는 이유는 무엇인가?',
+  traditionalQuestion:'이 명식에서 결과를 만들어 내는 식신과 자원을 다루는 재성이 '+
+   '오행상 생하는 방향인 사실은 확인된다. 하지만 '+
+   (hiddenInPair?'둘 중 한 글자는 출생 지지 안쪽에 숨은 글자이므로 ':
+    between.length?'두 출생 겉글자 사이에 '+between.join('·')+' 자리가 있어 ':
+    '두 겉글자가 계산상 인접하더라도 ')+
+   '이것을 곧바로 실제 작용하는 식신생재격이나 소득으로 결론 내릴 수 없는 '+
+   '전통적 조건은 무엇인가?',
   sourceChapter:'子平真詮評注 / 論食神',
   sourceUrl:'https://yimatrix.com/ko/academy/books/17/chapter/2982',
   candidateOnly:true,actualFlowEstablished:false,
