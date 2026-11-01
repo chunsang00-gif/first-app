@@ -219,7 +219,7 @@ function priorComparisons(brief,priorSections){
   for(let i=0;i<section.bodyTopics.length;i++){
    const topic=section.bodyTopics[i];
    const text=String(section.topicConclusions?.[i]||'')
-    .replace(/[\\u0000-\\u001f]+/g,' ').replace(/\\s+/g,' ').trim();
+    .replace(/\s+/g,' ').trim();
    if(text.length<24)continue;
    const actual=usedPaths(section,topic);
    for(const ref of actual){
