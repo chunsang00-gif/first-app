@@ -343,6 +343,16 @@ function compile(prompt){
      const single=bridge.buildSingle({chapterId,topicId,topic});
      if(single)topic.sourceOwnedSingleReading=single;
     }
+    // A decade comparison must have TWO independent original sources.
+    // It can never turn a period label into a guaranteed job event.
+    if(chapterId==='career'&&topicId==='change'&&topic.mode!=='state-limits'){
+     const actual=require('./report-paid-career-decade-reading').candidate(prompt.facts);
+     if(!actual||JSON.stringify(actual.sourceRefs)!==
+        JSON.stringify(topic.allowedSourceRefs)||
+        !actual.sourceRefs.every(id=>permitted.includes(id)&&Object.hasOwn(source,id)))
+      throw Error('PAID_CAREER_DECADE_SOURCE_NOT_GROUNDED');
+     topic.sourceOwnedDecadeCareer=actual;
+    }
     // A separately proven birth-day clash may answer the relationship
     // conflict question even when closeness/expression already cite ten-gods.
     // It never licenses an actual interpersonal outcome.
@@ -508,6 +518,25 @@ function schema(prompt,transport){
       '이 질문에 추가되는 독립적인 출생 근거 또는 명확히 다른 전통적 의미가 없으면 '+
       '선택 문단은 null로 두고, 필수 문단은 근거의 한계만 정확히 밝힌다.';
     }
+   }
+   if(task.sourceOwnedDecadeCareer){
+    const item=task.sourceOwnedDecadeCareer;
+    const actual=require('./report-paid-career-decade-reading').candidate(prompt.facts);
+    if(chapterId!=='career'||topic!=='change'||!actual||
+       JSON.stringify(item)!==JSON.stringify(actual)||
+       !item.sourceRefs.every(ref=>permitted.includes(ref)&&Object.hasOwn(payload.source,ref))||
+       item.predictedJobChange!==false||item.relativeStrengthAssessed!==false||
+       item.realizedEffect!==false)
+     throw Error('PAID_CAREER_DECADE_WRITING_SOURCE_DRIFT');
+    basis.properties.refs.description+=' 두 원래 출처를 모두 포함한다: '+
+     item.sourceRefs.join(' / ')+'.';
+    basis.properties.condition.enum=[item.computedCondition];
+    p.properties.text.description+=
+     ' 이 항목은 실제로 선택된 대운과 출생 원국의 직업 관련 십성을 대비한다. '+
+     item.readerQuestion+' '+item.computedCondition+
+     ' 2027년 세운을 근거로 별도 승진·이직 사건을 추정하거나, 출생 당시 '+
+     '직업 성향을 다시 쓰지 않는다. 독자가 대운 시기의 질문과 원국의 '+
+     '질문이 왜 다른지 알 수 있게 설명하되 실제 선택·성취는 판정하지 않는다.';
    }
    if(task.sourceOwnedInterpretiveThesis){
     const thesis=task.sourceOwnedInterpretiveThesis;
@@ -1222,6 +1251,17 @@ function restoreEvidence(value,prompt){
         !expected.sourceRefs.every(ref=>allowed.has(ref)&&b.refs.includes(ref))||
         b.condition!==expected.computedCondition)
       throw Error('AI report service workstyle source-specific condition missing: '+id+':'+topic);
+    }
+    if(task.sourceOwnedDecadeCareer){
+     const period=task.sourceOwnedDecadeCareer;
+     if(id!=='career'||topic!=='change'||
+        period.kind!=='actual-decade-versus-natal-career-subtype-v1'||
+        period.predictedJobChange!==false||
+        period.chosenUsefulGod!==false||
+        period.realizedEffect!==false||
+        !period.sourceRefs.every(ref=>allowed.has(ref)&&b.refs.includes(ref))||
+        b.condition!==period.computedCondition)
+      throw Error('AI report service career decade evidence missing: '+id+':'+topic);
     }
     const single=task.sourceOwnedSingleReading;
     if(single?.placementContrast){
