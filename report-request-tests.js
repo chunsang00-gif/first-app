@@ -286,7 +286,12 @@ assert.equal(p.stage,'body');assert.equal(p.priorSections.length,expectedBatches
  await assert.rejects(contract.generate({calendar:'solar',birthDate:'1990-06-15',unknownBirthTime:true,gender:'male',mbti:'INFP'},async()=>{throw Error('provider must not be called')},()=>{},()=>{},[checkpoints[1]]),/order mismatch/,'non-prefix checkpoint must fail closed');
  // Tampered checkpoints must fail before any paid provider call.
  const duplicateCheckpoints=JSON.parse(JSON.stringify(checkpoints.slice(0,2)));
- duplicateCheckpoints[1].sections[0].body=duplicateCheckpoints[0].sections[0].body.slice();
+ // Keep both different chapter shapes valid after adding two MBTI topics.
+ // Test the REAL reuse gate rather than tripping a length mismatch first.
+ duplicateCheckpoints[1].sections[0].body=
+  duplicateCheckpoints[1].sections[0].body.map((_,i)=>
+   duplicateCheckpoints[0].sections[0].body[i%
+    duplicateCheckpoints[0].sections[0].body.length]);
  await assert.rejects(contract.generate({calendar:'solar',birthDate:'1990-06-15',unknownBirthTime:true,gender:'male',mbti:'INFP'},async()=>{throw Error('provider must not be called')},()=>{},()=>{},duplicateCheckpoints),/QA resume repeated topic explanations|QA resume recycled chapter thesis/,'reused duplicate chapter text must be rejected before spending');
  // Resume duplication must normalize whitespace just like live batches.
  // An identical evidence sentence with altered spacing is NOT a new insight.
