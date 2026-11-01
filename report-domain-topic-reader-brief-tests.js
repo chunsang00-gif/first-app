@@ -301,6 +301,14 @@ assert.equal(relation.elementalDirection,'resource',
  'the actual chart year 甲 wood generates 丁 fire; this is not a wealth prediction');
 assert.deepEqual(relation.refs,earning.sourceOwnedInterpretiveThesis.sourceRoles.map(x=>x.ref));
 assert.equal(relation.realizedEffect,false);
+const sourceTradeoff=earning.sourceOwnedInterpretiveThesis.sourceDecisionContrast;
+assert.equal(sourceTradeoff.direction,'resource');
+assert.equal(sourceTradeoff.directionalOwner,'first');
+assert.deepEqual([sourceTradeoff.firstSourceRef,sourceTradeoff.secondSourceRef],relation.refs);
+assert(sourceTradeoff.firstOnlyQuestion.includes('식신'));
+assert(sourceTradeoff.secondOnlyQuestion.includes('정재'));
+assert.equal(sourceTradeoff.observedCustomerChoice,false);
+assert.equal(sourceTradeoff.realizedInfluence,false);
 const sourceOnly=generator.compile(moneyPrompt);
 assert(relation.refs.every(id=>sourceOnly.source[id]?.stem&&
  sourceOnly.source[id].stem==='甲'||sourceOnly.source[id]?.stem==='丁'));
@@ -311,6 +319,11 @@ assert(relationSchema.includes('첫 번째 글자의 오행이 두 번째 글자
  'the real provider text field receives the computed original-stem relationship');
 assert(relationSchema.includes('실제 성과·성격·수입이나 명리적 우선순위'),
  'a verified element direction cannot be sold as a personal prediction');
+assert(relationSchema.includes(sourceTradeoff.sourceSpecificQuestion));
+assert(relationSchema.includes(sourceTradeoff.firstOnlyQuestion));
+assert(relationSchema.includes(sourceTradeoff.secondOnlyQuestion));
+assert(relationSchema.includes('가상의 선택 장면을 붙이는 것만으로 독립된 풀이가 되는 것은 아니다'),
+ 'actual paid output instruction must demand source-specific differences');
 const classical=earning.sourceOwnedInterpretiveThesis.classicalMonthQuestion;
 assert(classical,'a verified mixed-month single exposed candidate must reach the real paid domain');
 assert.equal(classical.monthBranch,'未');
@@ -451,6 +464,44 @@ for(const [chapterId,topicId,first,second,expected] of [
  assert.equal(paidBridge.build({chapterId,topicId,
   topic:{mode:'state-limits',citableFacts:pair}}),null);
 }
+// This REAL reader decision is sensitive to the exact computed arrow,
+// not a fixed 'two kinds are different' instruction shared by every chart.
+for(const [a,b,expected,owner] of [
+ ['甲','丁','resource','first'],
+ ['丁','甲','output','second'],
+ ['戊','癸','control-on-day','first'],
+ ['癸','戊','day-controls','second'],
+ ['甲','乙','same-element','neither']
+]){
+ const left={id:'natal.year.stem',position:'연간',stem:a,tenGod:'식신'};
+ const right={id:'natal.hour.stem',position:'시간',stem:b,tenGod:'정재'};
+ const link=paidBridge.exactElementRelation(left,right);
+ const decision=paidBridge.sourceDecisionContrast(left,right,link,
+  '검증용 첫 번째/두 번째 범주의 실제 차이는 무엇인가?');
+ assert.equal(link.elementalDirection,expected);
+ assert.equal(decision.direction,expected);
+ assert.equal(decision.directionalOwner,owner);
+ assert.deepEqual([decision.firstSourceRef,decision.secondSourceRef],link.refs);
+ assert(decision.firstOnlyQuestion.includes('연간'));
+ assert(decision.secondOnlyQuestion.includes('시간'));
+ assert.equal(decision.observedCustomerChoice,false);
+ assert.equal(decision.traditionalPriorityChosen,false);
+}
+const originalArrow=paidBridge.sourceDecisionContrast(
+ {id:'natal.year.stem',position:'연간',stem:'甲',tenGod:'식신'},
+ {id:'natal.hour.stem',position:'시간',stem:'丁',tenGod:'정재'},
+ paidBridge.exactElementRelation(
+  {id:'natal.year.stem',stem:'甲'},
+  {id:'natal.hour.stem',stem:'丁'}),'같은 질문');
+const reverseArrow=paidBridge.sourceDecisionContrast(
+ {id:'natal.year.stem',position:'연간',stem:'丁',tenGod:'식신'},
+ {id:'natal.hour.stem',position:'시간',stem:'甲',tenGod:'정재'},
+ paidBridge.exactElementRelation(
+  {id:'natal.year.stem',stem:'丁'},
+  {id:'natal.hour.stem',stem:'甲'}),'같은 질문');
+assert.notEqual(originalArrow.sourceSpecificQuestion,reverseArrow.sourceSpecificQuestion,
+ 'opposite natal arrows must produce different source-owned reader questions');
+
 // In the REAL paid relationship chapter, distinct roles are read only
 // from the day branch, not a convenient matching year/month/hour symbol.
 function dayHidden(stem,tenGod){
