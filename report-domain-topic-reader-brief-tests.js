@@ -139,6 +139,8 @@ for(const [calendar,birthDate,birthTime] of cases){
      'strict provider JSON must require the calculated topic-specific question');
     assert(part.properties.text.description.includes(thesis.explanation),
      'actual paid writer must see a substantive contrast, not just technical names');
+    assert(part.properties.text.description.includes('사전적 뜻을 각각 나열하는 답변은 불충분하다'),
+     'real paid writer must request a domain-specific interpretation, not two symbol definitions');
     assert(thesis.sourceRoles.every(row=>
      part.properties.basis.properties.refs.description.includes(row.ref)),
      'strict provider must explicitly request both actual interpretation sources');
