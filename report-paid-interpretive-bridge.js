@@ -324,6 +324,15 @@ function earnedValueConditionalReading(key,a,b,relation){
   categories:Object.freeze([a.tenGod,b.tenGod]),
   relation:relation.elementalDirection,
   computedCondition:condition,
+  readerParagraph:'수입 활동을 전통적으로 풀이할 때 '+a.position+'에 있는 '+
+   a.tenGod+'은 '+first.focus+'을 살피는 단서이고, '+
+   b.position+'에 있는 '+b.tenGod+'은 '+second.focus+'을 살피는 단서입니다. '+
+   '예를 들어 결과물을 만들고 그 대가를 정하는 가상 상황이라면, '+
+   '첫 번째 조건만 고려할 때는 '+second.missing+
+   '. 반대로 두 번째 조건만 있으면 '+first.missing+
+   '. 두 글자의 오행에서는 '+relation.computedRelation+
+   '. 이는 두 종류의 전통적 질문을 함께 읽은 예시이며, '+
+   '실제 소득이나 일의 성공을 예측한 것은 아닙니다.',
   firstOnlyMissing:second.missing,
   secondOnlyMissing:first.missing,
   observedIncome:false,guaranteedOutcome:false,
@@ -382,6 +391,15 @@ function careerWorkstyleCondition(key,a,b,relation){
   firstOnlyMissing:second.missing,
   secondOnlyMissing:first.missing,
   computedCondition,
+  readerParagraph:'직업과 일하는 방식을 전통적으로 풀이하면 '+
+   a.position+'에 있는 '+a.tenGod+'에서는 '+first.focus+
+   '를, '+b.position+'에 있는 '+b.tenGod+'에서는 '+
+   second.focus+'를 각각 살펴볼 수 있습니다. '+
+   '새로운 작업 방식을 적용하는 가상 상황에서 앞의 조건만 확인하면 '+
+   second.missing+'. 뒤의 조건만 확인한다면 '+first.missing+
+   '. 따라서 방법을 이해하는 일과 작업의 결과를 검토하는 일은 '+
+   '서로 다른 질문이라는 해석입니다. '+
+   '실제 업무 능력이나 직장 성과를 확인한 결과는 아닙니다.',
   observedWorkPerformance:false,careerOutcomePredicted:false,
   traditionalPriorityAssessed:false
  });
