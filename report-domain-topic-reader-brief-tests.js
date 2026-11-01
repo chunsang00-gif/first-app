@@ -317,6 +317,29 @@ assert(paidMoneySlot.properties.text.description.includes('별도 실제 관계'
    'a single related source must not authorize two-source interpretation');
  }
  assert.deepEqual(moneyParagraph.basis.refs,pair,'the source model record must remain untouched');
+ // The actual paid decoder used to accept references to BOTH real sources
+ // even when the customer paragraph explained only what symbols "mean".
+ // That is a glossary, not a distinct interpretation worth purchasing.
+ const definitions=structuredClone(moneyParagraph);
+ definitions.text='첫 번째 출생 글자는 전통적인 식신 분류의 의미를 나타냅니다. '+
+  '두 번째 출생 글자는 전통적인 정재 분류의 뜻을 나타냅니다. '+
+  '이 두 글자는 서로 다른 십성의 분류로 기록됩니다.';
+ const domainReader=require('./report-domain-topic-reader-brief');
+ assert.equal(domainReader.emptyReaderInterpretation(definitions,earning),true);
+ assert.throws(()=>generator.restoreEvidence(makePaidResponse(definitions),moneyPrompt),
+  /paid domain interpretation is only symbol definitions: money:earning/,
+  'two correct citations must not justify a customer-facing dictionary');
+ const worked=structuredClone(definitions);
+ worked.text+=' 예를 들어 가상의 작업에서 결과물을 전달하는 상황에서는 '+
+  '자원을 관리하는 결정과 결과를 설명하는 선택을 서로 다른 질문으로 구분합니다.';
+ assert.equal(domainReader.emptyReaderInterpretation(worked,earning),false,
+  'a genuine applied difference is not a dictionary-only draft');
+ assert.doesNotThrow(()=>generator.restoreEvidence(makePaidResponse(worked),moneyPrompt),
+  'rejection lint must not insist on canned wording or fabricate outcomes');
+ assert.equal(domainReader.emptyReaderInterpretation(definitions,{
+  sourceOwnedSingleReading:{source:{ref:pair[0]}}}),false,
+  'a single-source topic cannot silently inherit the two-role prose gate');
+
 const spendingThesis=generator.compile(moneyPrompt)
  .task.chapters.money.topics.spending.sourceOwnedInterpretiveThesis;
 if(spendingThesis){
