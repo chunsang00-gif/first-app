@@ -49,6 +49,14 @@ function subsetRefs(source,chapter,id,topic,slot){
    throw Error('Synthetic provider lacks verified exposure source');
   required.push(...ids,...exposure);
  }
+ const decade=chapter.topics?.[topic]?.sourceOwnedDecadeCareer;
+ const wealthClash=chapter.topics?.[topic]?.sourceOwnedWealthClash;
+ for(const exact of [decade,wealthClash]){
+  if(!exact)continue;
+  if(exact.sourceRefs?.some(id=>!permitted.includes(id)))
+   throw Error('Offline optional domain citation cannot be resolved');
+  required.push(...exact.sourceRefs);
+ }
  const single=chapter.topics?.[topic]?.sourceOwnedSingleReading;
  if(single?.placementContrast){
   const refs=single.sourcePlacements?.map(x=>x.ref)||[];
@@ -93,7 +101,11 @@ function bodyResponse(p,strict,kind){
   const anchor=chapter.anchor;
   assert(anchor&&slots[anchor],'mandatory anchor absent '+id);
   for(const [topic,slot] of Object.entries(slots)){
-   if(topic!==anchor){paragraphs[topic]=null;continue}
+   const isOptional=topic!==anchor;
+   const qualifiedOptional=kind==='all-eligible'&&isOptional&&
+    slot.anyOf?.some(x=>x.type==='object')&&
+    chapter.topics[topic]?.mode!=='state-limits';
+   if(isOptional&&!qualifiedOptional){paragraphs[topic]=null;continue}
    const leaf=slot.anyOf?.find(x=>x.type==='object')||slot;
    const label=nouns[id]+'를 설명하는 항목';
    if(leaf.properties.basis.properties.refs.type==='null'){
@@ -107,7 +119,11 @@ function bodyResponse(p,strict,kind){
       condition:leaf.properties.basis.properties.condition.enum?.[0]||
        '정해진 선택을 검토하는 가정 상황입니다.',
       limit:'개인의 실제 행동을 확인한 기록이 아니며 구체적 사건을 예언하지 않습니다.'},
-     label,text:(kind==='duplicate-before-synthesis'?
+     label,text:(kind==='all-eligible'?
+      '이 계산에서 '+topic+'에 연결된 근거는 '+refs.join(', ')+
+      '입니다. '+scenes[id]+' 다른 주제의 결론을 빌려오지 않으며 실제 사건을 '+
+      '확정하지 않는 가상 상황입니다. ':
+      kind==='duplicate-before-synthesis'?
       nouns[id]+'에서는 한 가지 계산상의 차이를 확인합니다. 이 분류를 활용하는 예를 들면 새로운 선택 앞에서 어떤 자료를 먼저 살필지 고민하는 장면입니다. 다만 이 설명은 입력된 자료의 전통적인 뜻을 시험하기 위한 문장으로 특정 사람의 경험을 확인한 것은 아닙니다.':
       scenes[id])+(kind==='reused-sentence-before-synthesis'&&['decision','career'].includes(id)?' '+sharedConclusion:'')+' '+(id==='saju_core'&&topic==='strength'?
       require('./qa/core-meaning-mock').fromKinds([
@@ -183,6 +199,21 @@ async function runScenario(kind){
  };
  const checks=[];
  try{
+  if(kind==='all-eligible'){
+   const output=await generate(input,p=>callOpenAI(p,()=>{archived++}),
+    ()=>{},x=>{checks.push(x)});
+   assert(['ready','rejected'].includes(output.status),
+    'optional topics should reach a typed, post-decoding result');
+   assert.equal(archived,calls);
+   const count=output.report?.sections?.reduce((n,x)=>n+(x.bodyTopics?.length||0),0)||0;
+   assert(count>output.report.sections.length,
+    'real paid body must deliver more than one topic per chapter when independent sources exist');
+   assert.equal(output.qa?.releaseGate?.releaseVerdict,'not-approved');
+   console.log('PASS offline dense paid optional topics through real response decoder: '+
+    count+' paragraphs across '+output.report.sections.length+
+    ' chapters; synthetic content not release-approved');
+   return;
+  }
   if(kind!=='complete'){
    const seen=[];
    if(kind==='duplicate-before-synthesis'){
@@ -259,6 +290,7 @@ async function runScenario(kind){
 }
 (async()=>{
  await runScenario('complete');
+ await runScenario('all-eligible');
  await runScenario('duplicate-before-synthesis');
  await runScenario('reused-sentence-before-synthesis');
  await runScenario('malformed');
