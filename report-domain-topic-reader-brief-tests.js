@@ -294,6 +294,23 @@ const moneyPrompt={facts:thisChart,stage:'body',requestedSections:['money'],
 const earning=generator.compile(moneyPrompt).task.chapters.money.topics.earning;
 assert.equal(earning.sourceOwnedInterpretiveThesis?.topic,'money.earning',
  'the real paid money chapter must have the verified output-to-wealth thesis');
+const relation=earning.sourceOwnedInterpretiveThesis.sourceElementRelation;
+assert.deepEqual(relation.stems,['甲','丁'],
+ 'the 1994 verified earning example must use original year output and month/hour wealth stems');
+assert.equal(relation.elementalDirection,'resource',
+ 'the actual chart year 甲 wood generates 丁 fire; this is not a wealth prediction');
+assert.deepEqual(relation.refs,earning.sourceOwnedInterpretiveThesis.sourceRoles.map(x=>x.ref));
+assert.equal(relation.realizedEffect,false);
+const sourceOnly=generator.compile(moneyPrompt);
+assert(relation.refs.every(id=>sourceOnly.source[id]?.stem&&
+ sourceOnly.source[id].stem==='甲'||sourceOnly.source[id]?.stem==='丁'));
+const relationSchema=generator.schema(moneyPrompt,wire.schemaFor(moneyPrompt,schema))
+ .properties.chapters.properties.money.properties.paragraphs.properties.earning
+ .properties.text.description;
+assert(relationSchema.includes('첫 번째 글자의 오행이 두 번째 글자의 오행을 생합니다'),
+ 'the real provider text field receives the computed original-stem relationship');
+assert(relationSchema.includes('실제 성과·성격·수입이나 명리적 우선순위'),
+ 'a verified element direction cannot be sold as a personal prediction');
 const exactLink=earning.sourceOwnedInterpretiveThesis.exactStemBridge;
 assert.deepEqual(exactLink?.refs,['natal.month.hidden.丁','natal.hour.stem'],
  'actual paid earning paragraph should distinguish same month-hidden/hour-visible 丁');
@@ -384,6 +401,14 @@ for(const [chapterId,topicId,first,second,expected] of [
  assert(thesis.question.includes(expected),thesis.question);
  assert.equal(thesis.claimedRealWorldOutcome,false);
  assert.equal(thesis.traditionalPriorityAssessed,false);
+ assert.equal(thesis.sourceElementRelation.elementalDirection,'same-element',
+  'different ten-god names do not imply a new element relation when both stems are wood');
+ const different=paidBridge.exactElementRelation(
+  {id:'natal.year.stem',stem:'辛'},
+  {id:'natal.hour.stem',stem:'丁'});
+ assert.equal(different.elementalDirection,'day-controls',
+  'fire 丁 controls metal 辛, reverse of the original source order');
+ assert.equal(different.realizedEffect,false);
  const missing=paidBridge.build({chapterId,topicId,
   topic:{mode:'use-primary',citableFacts:[pair[0]]}});
  assert.equal(missing,null,'one source alone must not produce two-role prose');
