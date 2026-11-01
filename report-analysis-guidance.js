@@ -130,6 +130,24 @@ function preflight(packet){
     interpretationBoundary:mode==='use-primary'?'전통적 해석의 연결 가능성만 설명하고 실제 행동으로 입증된 것처럼 단정하지 않는다.':mode==='use-verified-fallback'?'우선 계산값이 없으므로 실제 확인된 보조 근거만 사용한다. 보조 근거를 주된 근거처럼 말하거나 사건을 단정하지 않는다.':'다른 세부 항목의 성격 설명으로 채우지 말고 이 질문에서 판단할 수 없는 범위를 밝힌다.'}];
   }));
  }
+ // NEW paid MBTI dimensions use ONLY the exact user-entered preference.
+ // They do not borrow a Saju natal source to inflate paid-topic count.
+ const preferenceType=packet.person?.mbti;
+ for(const topic of ['information','judgment']){
+  const proof=require('./report-paid-mbti-dimension').build(preferenceType,topic);
+  const task=plans.mbti_contradiction.topicTasks[topic];
+  task.mode=proof?'use-primary':'state-limits';
+  task.evidencePresent=Boolean(proof);
+  task.allowedSourceRefs=proof?['person.mbti']:[];
+  task.primaryEvidencePath='person.mbti';
+  task.verifiedFallbackPaths=[];
+  task.sourceOwnedPreference=proof;
+  task.interpretationBoundary=proof?
+   '사용자가 직접 입력한 '+proof.selectedCode+
+   ' 선호의 실제 의미와 해당 판단 질문만 설명한다. '+proof.limit+
+   '. 사주 분류와 일치·충돌한다고 주장하거나 다른 MBTI 차원의 설명을 복제하지 않는다.':
+   '사용자가 유효한 MBTI를 입력하지 않아 이 차원의 선호를 개인에게 배정하지 않는다.';
+ }
  // The second core topic starts from ACTUAL month-position ten-god
  // relationships. Roots and natal clashes stay optional internal checks.
  // A valid symbolic interpretation cannot require inventing a root.
