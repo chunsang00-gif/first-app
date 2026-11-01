@@ -139,6 +139,9 @@ for(const [calendar,birthDate,birthTime] of cases){
      'strict provider JSON must require the calculated topic-specific question');
     assert(part.properties.text.description.includes(thesis.explanation),
      'actual paid writer must see a substantive contrast, not just technical names');
+    assert(thesis.sourceRoles.every(row=>
+     part.properties.basis.properties.refs.description.includes(row.ref)),
+     'strict provider must explicitly request both actual interpretation sources');
     if(thesis.exactStemBridge){
      const link=thesis.exactStemBridge;
      assert.deepEqual(link.refs.map(id=>topic.citableFacts.some(row=>row.id===id)),
@@ -264,6 +267,25 @@ assert.deepEqual(exactLink?.refs,['natal.month.hidden.丁','natal.hour.stem'],
 const paidMoneySlot=generator.schema(moneyPrompt,wire.schemaFor(moneyPrompt,schema))
  .properties.chapters.properties.money.properties.paragraphs.properties.earning;
 assert(paidMoneySlot.properties.text.description.includes('별도 실제 관계'));
+ // Verify the real paid response -> citation restoration boundary, not just
+ // the request text. An author cannot claim two distinct meanings while
+ // omitting one of the referenced original calculated positions.
+ const pair=earning.sourceOwnedInterpretiveThesis.sourceRoles.map(x=>x.ref);
+ const moneyParagraph={label:'검증용 금전 풀이',text:'두 전통 분류가 서로 다른 질문에 답하는 가상의 상황입니다.',
+  basis:{refs:pair.slice(),interpretation:'두 실제 계산 분류의 서로 다른 뜻',
+   condition:'가상으로 결과를 만들고 대가를 비교하는 경우',
+   limit:'실제 수입이나 개인 소비 행동을 확인한 것은 아닙니다.'}};
+ const makePaidResponse=p=>({chapters:{money:{paragraphs:{earning:p}}}});
+ assert.doesNotThrow(()=>generator.restoreEvidence(makePaidResponse(moneyParagraph),moneyPrompt),
+  'two original source references make the composite thesis traceable');
+ for(const missing of pair){
+  const altered=structuredClone(moneyParagraph);
+  altered.basis.refs=pair.filter(x=>x!==missing);
+  assert.throws(()=>generator.restoreEvidence(makePaidResponse(altered),moneyPrompt),
+   /paired domain thesis citations missing: money:earning/,
+   'a single related source must not authorize two-source interpretation');
+ }
+ assert.deepEqual(moneyParagraph.basis.refs,pair,'the source model record must remain untouched');
 const spendingThesis=generator.compile(moneyPrompt)
  .task.chapters.money.topics.spending.sourceOwnedInterpretiveThesis;
 if(spendingThesis){
