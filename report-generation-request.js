@@ -550,6 +550,35 @@ function schema(prompt,transport){
        tradeoff.realizedInfluence!==false||
        tradeoff.traditionalPriorityChosen!==false)
      throw Error('PAID_DOMAIN_DIRECTIONAL_READER_QUESTION_DRIFT:'+chapterId+':'+topic);
+    const earningCondition=thesis.earnedValueConditionalReading;
+    if(earningCondition){
+     const recalculated=require('./report-paid-interpretive-bridge')
+      .earnedValueConditionalReading(
+       chapterId+'.'+topic,
+       {id:roles[0].ref,position:roles[0].position,
+        layer:roles[0].layer,stem:roles[0].stem,tenGod:roles[0].tenGod},
+       {id:roles[1].ref,position:roles[1].position,
+        layer:roles[1].layer,stem:roles[1].stem,tenGod:roles[1].tenGod},
+       computed);
+     if(!recalculated||JSON.stringify(earningCondition)!==JSON.stringify(recalculated)||
+        earningCondition.observedIncome!==false||
+        earningCondition.guaranteedOutcome!==false||
+        earningCondition.patternPriorityAssessed!==false)
+      throw Error('PAID_EARNING_TWO_SIDED_CONDITION_SOURCE_DRIFT:'+chapterId+':'+topic);
+     // An actual strict JSON slot, not just one more prose instruction.
+     // The provider cannot substitute "be prudent" for the source-specific
+     // if-only-A / if-only-B calculation recorded in basis.condition.
+     basis.properties.condition.enum=[earningCondition.computedCondition];
+     basis.properties.condition.description=
+      '이 명식의 원래 두 출처에서 계산한 양방향 적용 조건. 정확한 문자열 하나만 반환하며 '+
+      '이 조건은 실제 소득 예측이나 검증된 성격 평가가 아니다.';
+     p.properties.text.description+=
+      ' 근거에 실제로 붙는 두 가지 누락 조건을 적용한 독자용 풀이를 작성한다. '+
+      '첫 출처만 있을 때: '+earningCondition.firstOnlyMissing+
+      '. 둘째 출처만 있을 때: '+earningCondition.secondOnlyMissing+
+      '. 하나의 가상 수입 활동을 설명하되 양쪽 조건을 모두 비교한다. '+
+      'basis.condition의 문장을 본문에 그대로 복사하지 말고 독자가 이해할 해석으로 구성한다. ';
+    }
     if(thesis.classicalOutputWealthCandidate){
      const classic=thesis.classicalOutputWealthCandidate;
      const recomputed=require('./report-paid-interpretive-bridge')
@@ -1147,6 +1176,14 @@ function restoreEvidence(value,prompt){
      if(linked.length&&
         (linked.length!==2||linked.some(ref=>!allowed.has(ref)||!b.refs.includes(ref))))
       throw Error('AI report service exact paid domain stem exposure citations missing: '+id+':'+topic);
+    }
+    if(owned?.earnedValueConditionalReading){
+     const expected=owned.earnedValueConditionalReading;
+     if(id!=='money'||topic!=='earning'||
+        expected.kind!=='verified-two-sided-earning-condition-v1'||
+        !expected.sourceRefs.every(ref=>allowed.has(ref)&&b.refs.includes(ref))||
+        b.condition!==expected.computedCondition)
+      throw Error('AI report service earning two-sided grounded condition missing: '+id+':'+topic);
     }
     const single=task.sourceOwnedSingleReading;
     if(single?.placementContrast){
