@@ -515,6 +515,13 @@ function schema(prompt,transport){
         payload.source[link.refs[1]]?.tenGod!==link.tenGod)
       throw Error('PAID_THESIS_EXACT_STEM_LINK_MISMATCH:'+chapterId+':'+topic);
     }
+    // The comparison is not evidence-backed if only one original role is
+    // cited. Tell the actual STRICT provider basis slot which exact two
+    // independently verified rows its comparative reading must cite.
+    p.properties.basis.properties.refs.description=
+     '두 서로 다른 실제 분류를 비교해 문단을 작성한다면 반드시 두 출처를 모두 refs에 넣는다: '+
+     roles.map(row=>row.ref).join(' / ')+
+     '. 출처 하나만으로 둘을 비교하거나 제3의 일반 출처로 대신하지 않는다. 선택 문단에서 독립 해석이 불가능하면 null을 반환한다.';
     // This directly annotates the paid provider's strict JSON text leaf.
     // The model must turn the source-owned contrast into ONE useful reader
     // interpretation, not copy source IDs or fill with generic advice.
@@ -976,6 +983,17 @@ function restoreEvidence(value,prompt){
      .citedRoleCoverage(task.readerDistinction,b.refs,payload.source);
     if(!domainRoleCheck.pass)
      throw Error('AI report service domain paragraph lacks a cited relevant role: '+id+':'+topic);
+    // A chart-specific two-role paid interpretation may not cite ONE of
+    // those roles and then sell the other role's meaning as a new finding.
+    // The writer and the server both use the SAME compiled, verified role
+    // IDs. Optional topics may still be null; never fabricate a second row.
+    const owned=task.sourceOwnedInterpretiveThesis;
+    if(owned){
+     const pair=owned.sourceRoles?.map(row=>row.ref)||[];
+     if(pair.length!==2||new Set(pair).size!==2||
+        !pair.every(ref=>allowed.has(ref)&&b.refs.includes(ref)))
+      throw Error('AI report service paired domain thesis citations missing: '+id+':'+topic);
+    }
     if(id==='saju_core'&&topic==='temperament'&&prompt.paidCoreDepthV2===true){
      const contrast=task.paidCoreDepthV2.readerClassicalScope||
       task.paidCoreDepthV2.readerContrast||
