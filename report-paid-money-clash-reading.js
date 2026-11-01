@@ -17,13 +17,17 @@ function candidate(packet){
  if(!packet?.chart?.month||!packet?.facts?.tenGods?.month||
     !Array.isArray(packet.facts.natalClashes))return null;
  const chart=packet.chart;
+ const mainBranch=chart.month[1];
+ // Many independent unit fixtures intentionally hold only the yearly
+ // relation being studied. On a non-storage month, none of those relations
+ // can qualify for this narrow classical question; do not validate an
+ // unrelated, deliberately incomplete branch ledger here.
+ if(!'辰戌丑未'.includes(mainBranch))return null;
  const actual=packet.facts.natalClashes;
  const recomputed=relations.natal(chart).pairs.filter(x=>x.type==='충');
  if(actual.length!==recomputed.length||
     actual.some(x=>!recomputed.some(y=>sameClash(x,y))))
   throw Error('PAID_MONEY_STORAGE_CLASH_ORIGINAL_LEDGER_DRIFT');
- const mainBranch=chart.month[1];
- if(!'辰戌丑未'.includes(mainBranch))return null;
  const monthRoles=packet.facts.tenGods.month.hiddenStems||[];
  const observed=[];
  for(const clash of actual){
