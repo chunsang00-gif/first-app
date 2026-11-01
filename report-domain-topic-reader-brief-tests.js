@@ -236,11 +236,42 @@ for(const [calendar,birthDate,birthTime] of cases){
  assert(overlapped);
  assert(overlapped.readerDistinction.previouslyCitedRefs.includes(known.id),
   'an actual previously cited exact natal source must change the next reader brief');
+ const editorial=require('./report-domain-topic-reader-brief');
+ const actualPrior=editorial.priorComparisons(overlapped.readerDistinction,[cited]);
+ assert.deepEqual(actualPrior.map(x=>x.sourceRef),[known.id],
+  'reused conclusions must belong to an actual previously cited source');
+ assert.equal(actualPrior[0].previousConclusion,cited.topicConclusions[0]);
+ const overlapId=Object.entries(nextTask.topics).find(([,topic])=>
+  topic===overlapped)?.[0];
+ assert(overlapId);
+ const schemaWithPrior=generator.schema(next,wire.schemaFor(next,schema));
+ const rawTopic=schemaWithPrior.properties.chapters.properties[firstId]
+  .properties.paragraphs.properties[overlapId];
+ const actualLeaf=rawTopic.anyOf?.find(x=>x.type==='object')||rawTopic;
+ assert(actualLeaf.properties.text.description.includes(
+  JSON.stringify(cited.topicConclusions[0])),
+  'the exact actual prior reading must reach this topic strict text field');
+ assert(actualLeaf.properties.text.description.includes(overlapped.readerDistinction.readerQuestion));
+ assert(actualLeaf.properties.text.description.includes('인용된 출력 데이터'),
+  'prior paid model output must be treated as reference data, not fresh instructions');
+ const unavailablePrior={...cited,topicConclusions:[]};
+ assert.deepEqual(editorial.priorComparisons(overlapped.readerDistinction,[unavailablePrior]),[],
+  'no prior customer sentence means no fabricated earlier interpretation');
  const neverCited={...cited,evidence:['선행 장의 일반적인 한국어 설명']};
  const noProvenance=generator.compile({...next,priorSections:[neverCited]})
   .task.chapters[firstId];
  assert(Object.values(noProvenance.topics).every(t=>
   !t.readerDistinction?.previouslyCitedRefs.includes(known.id)));
+ assert.deepEqual(editorial.priorComparisons(overlapped.readerDistinction,[neverCited]),[],
+  'an eligible source not actually cited must not become a prior paid conclusion');
+ const absentSchema=generator.schema({...next,priorSections:[neverCited]},
+  wire.schemaFor({...next,priorSections:[neverCited]},schema));
+ const absentLeaf=absentSchema.properties.chapters.properties[firstId]
+  .properties.paragraphs.properties[overlapId];
+ const absentObject=absentLeaf.anyOf?.find(x=>x.type==='object')||absentLeaf;
+ assert(!absentObject.properties.text.description.includes(
+  JSON.stringify(cited.topicConclusions[0])),
+  'uncited previous text must never leak into the next scoped writer prompt');
 }
 
 // Controlled "prior/general promise" vs CURRENT real-source scenario:
