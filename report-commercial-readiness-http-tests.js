@@ -19,7 +19,7 @@ Object.assign(process.env,{
 });
 const readiness=require('./report-commercial-readiness').assess();
 assert.equal(readiness.canAcceptNewPayment,false);
-assert.equal(readiness.definedTopics,28);
+assert.equal(readiness.definedTopics,30);
 assert.equal(readiness.structuralUpperBound,27);
 assert.equal(readiness.minimumShortfall,8);
 const server=http.createServer(require('./server').handler);
