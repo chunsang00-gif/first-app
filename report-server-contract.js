@@ -300,7 +300,9 @@ async function generate(input,callModel,onProgress=()=>{},onValidatedBatch=()=>{
  const sajuOnlyTopics={
   mbti_contradiction:{
    agreement:'원국에서 밖으로 드러나기 쉬운 반응을 뒷받침하는 계산 근거',
-   difference:'같은 원국에서 혼자 판단할 때 달라질 수 있는 반응과 그 조건'
+   difference:'같은 원국에서 혼자 판단할 때 달라질 수 있는 반응과 그 조건',
+   information:'입력되지 않은 별도의 정보 선호는 원국으로 추정하지 않으며 이 문단은 작성하지 않는다',
+   judgment:'입력되지 않은 별도의 판단 선호는 원국으로 추정하지 않으며 이 문단은 작성하지 않는다'
   },
   integrated_judgment:{
    insight:'원국의 서로 다른 두 근거를 함께 읽을 때 드러나는 새로운 선택 조건',
