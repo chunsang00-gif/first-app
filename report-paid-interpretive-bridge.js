@@ -162,15 +162,27 @@ function build({chapterId,topicId,topic}={}){
  // Exact hidden-to-visible relationship is independently true only when
  // BOTH original rows are permitted in this paragraph, at birth month and
  // a different actual visible position. Repeated names are not extra roles.
- const monthHidden=roles.find(row=>/^natal\.month\.hidden\./.test(row.id));
- const otherVisible=monthHidden&&roles.find(row=>
-  /^natal\.(year|hour)\.stem$/.test(row.id)&&
-  row.stem===monthHidden.stem&&row.tenGod===monthHidden.tenGod);
- const matched=otherVisible?Object.freeze({
-  refs:[monthHidden.id,otherVisible.id],
-  hiddenPosition:monthHidden.position,visiblePosition:otherVisible.position,
-  exactStem:monthHidden.stem,tenGod:monthHidden.tenGod,
-  meaning:monthHidden.traditionalMeaning
+ // A same-stem exposure is an additional, chart-specific positional
+ // finding. Never attach a third role merely because it happens elsewhere
+ // in the chart. At least one endpoint MUST be part of this topic's selected
+ // two-role thesis and share its exact traditional classification.
+ const chosenRefs=new Set([a.id,b.id]);
+ const matchedPairs=roles.filter(row=>/^natal\.month\.hidden\./.test(row.id))
+  .flatMap(hidden=>roles.filter(visible=>
+   /^natal\.(year|hour)\.stem$/.test(visible.id)&&
+   visible.stem===hidden.stem&&visible.tenGod===hidden.tenGod)
+   .map(visible=>({hidden,visible})));
+ const exposure=matchedPairs.find(({hidden,visible})=>
+  chosenRefs.has(hidden.id)||chosenRefs.has(visible.id));
+ const matched=exposure?Object.freeze({
+  refs:Object.freeze([exposure.hidden.id,exposure.visible.id]),
+  hiddenPosition:exposure.hidden.position,
+  visiblePosition:exposure.visible.position,
+  exactStem:exposure.hidden.stem,tenGod:exposure.hidden.tenGod,
+  meaning:exposure.hidden.traditionalMeaning,
+  sameStemObserved:true,realizedStrength:'not-assessed',
+  extraCitedRefs:Object.freeze([exposure.hidden.id,exposure.visible.id]
+   .filter(id=>!chosenRefs.has(id)))
  }):null;
  return Object.freeze({
   kind:'paid-source-owned-interpretive-thesis-v1',
