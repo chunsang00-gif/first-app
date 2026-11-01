@@ -37,6 +37,18 @@ const names=['NODE_ENV','RENDER','PAID_CORE_DEPTH_V2',
    assert(result.readingSample.cards[0].text.includes('태어난 달'));
    assert(result.readingSample.cards.at(-1).text.includes('2027년'));
    assert(!/TEST_DO_NOT_EXPOSE|TEST_ADDRESS_DO_NOT_EXPOSE/.test(JSON.stringify(result.readingSample)));
+   assert(Array.isArray(result.interpretivePreviews));
+   assert(result.interpretivePreviews.length<=2);
+   assert(result.interpretivePreviews.every(row=>
+    ['money.earning','career.workstyle'].includes(row.id)&&
+    row.title&&row.text.length>=130));
+   assert(!/TEST_DO_NOT_EXPOSE|TEST_ADDRESS_DO_NOT_EXPOSE/.test(
+    JSON.stringify(result.interpretivePreviews)),
+    'never return private name or location in substantive mini-readings');
+   assert(!/(?:natal\\.|annual\\.|facts\\.|person\\.)/.test(
+    JSON.stringify(result.interpretivePreviews)),
+    'displayed preview must not expose internal source identifiers');
+
    assert(!/(?:natal\\.|annual\\.|facts\\.)/.test(JSON.stringify(result.readingSample)),
     'actual source identifiers belong in internal audit, not public copy');
 
@@ -83,6 +95,17 @@ const names=['NODE_ENV','RENDER','PAID_CORE_DEPTH_V2',
   }
   const chartWithHour=coverage.calculate({calendar:'solar',
    birthDate:'1994-07-15',birthTime:'14:20',gender:'male',mbti:'ISFP'});
+  const income=chartWithHour.interpretivePreviews.find(x=>x.id==='money.earning');
+  const career=chartWithHour.interpretivePreviews.find(x=>x.id==='career.workstyle');
+  assert(income&&career,'the real natal chart must expose both independently supported domains');
+  assert(income.text.includes('대가를 정하는 가상 상황'));
+  assert(career.text.includes('새로운 작업 방식을 적용하는 가상 상황'));
+  assert.notEqual(income.text,career.text,
+   'career interpretation cannot be the same money paragraph with different heading');
+  assert(income.text.includes('첫 번째 조건만')&&income.text.includes('반대로'));
+  assert(career.text.includes('앞의 조건만')&&career.text.includes('뒤의 조건만'));
+  assert(!/(?:실제 소득이나|실제 업무 능력이나)/.test(income.text.slice(0,30)),
+   'the reader explanation should lead with the traditional difference');
   const directLink=chartWithHour.readingSample.cards.find(x=>x.id==='month-visible-link');
   assert(directLink&&directLink.text.includes('태어난 시간'),
    'the exact verified 丁 month-hidden to 丁 birth-hour visible relationship should be explained');
@@ -123,6 +146,8 @@ const names=['NODE_ENV','RENDER','PAID_CORE_DEPTH_V2',
    'unknown birth time must never include an hour-derived traditional interpretation');
   assert(unknownTime.readingSample.note.includes('잠정 계산'),
    'unknown birth hour must disclose the boundary limitation to readers');
+  assert.deepEqual(unknownTime.interpretivePreviews,[],
+   'unknown birth hour is not an adult paid-source cross-domain sample');
   const independent=cases.map(([birthDate,birthTime,calendar])=>coverage.calculate({
    calendar,birthDate,birthTime,gender:'male',mbti:'ISFP',
    ...(calendar==='lunar'?{leapMonth:false}:{})
