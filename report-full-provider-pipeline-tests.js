@@ -70,6 +70,12 @@ function subsetRefs(source,chapter,id,topic,slot){
   const natal=permitted.find(x=>x.startsWith('natal.month.'));
   if(natal)required.push(natal);
  }
+ // The synthetic writer now renders every optional question. A domain
+ // question that literally mentions self-entered MBTI preference must
+ // cite that user input IN ADDITION to its original natal source.
+ const visibleQuestion=require('./report-outline').topics[id]?.[topic]||'';
+ if(/MBTI/i.test(visibleQuestion)&&permitted.includes('person.mbti'))
+  required.push('person.mbti');
  if(['mbti_contradiction','integrated_judgment'].includes(id)){
   if(permitted.includes('person.mbti'))required.push('person.mbti');
   const natal=permitted.find(x=>x.startsWith('natal.month.'));
