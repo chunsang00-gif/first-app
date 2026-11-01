@@ -330,6 +330,62 @@ function earnedValueConditionalReading(key,a,b,relation){
   patternPriorityAssessed:false
  });
 }
+// Only a real learning/understanding role PLUS a separate expression/output
+// role can support this workstyle contrast. It is deliberately NOT the
+// earnings scenario: the issue here is whether a work method can be
+// explained AND whether the resulting work can be evaluated. Source
+// positions are observed chart facts; no skill or employment is inferred.
+const WORK_METHOD_QUESTIONS=Object.freeze({
+ '정인':Object.freeze({
+  focus:'기존 지침이나 조언을 어떤 근거로 배워 적용하는지',
+  missing:'확인된 지침을 참고할 근거가 빠진다'
+ }),
+ '편인':Object.freeze({
+  focus:'낯선 방법의 원리를 어떻게 비교해 이해할지',
+  missing:'새 방법을 평가할 설명의 근거가 빠진다'
+ }),
+ '식신':Object.freeze({
+  focus:'완성된 결과물을 어떤 기준으로 확인할지',
+  missing:'완료된 결과물과 검수 기준이 빠진다'
+ }),
+ '상관':Object.freeze({
+  focus:'기존 절차 대신 제안한 방법을 어떤 기준으로 검증할지',
+  missing:'바뀐 절차의 타당성을 검증할 기준이 빠진다'
+ })
+});
+function careerWorkstyleCondition(key,a,b,relation){
+ if(key!=='career.workstyle'||
+   !['정인','편인'].includes(a?.tenGod)||
+   !['식신','상관'].includes(b?.tenGod))return null;
+ if(!relation||relation.refs?.[0]!==a.id||relation.refs?.[1]!==b.id||
+   relation.realizedEffect!==false||
+   relation.predictedIncomeOrBehavior!==false)
+  throw Error('PAID_CAREER_WORKSTYLE_RELATION_UNVERIFIED');
+ const first=WORK_METHOD_QUESTIONS[a.tenGod],second=WORK_METHOD_QUESTIONS[b.tenGod];
+ if(!first||!second||!a.position||!b.position||!a.layer||!b.layer)
+  throw Error('PAID_CAREER_WORKSTYLE_POSITION_UNVERIFIED');
+ const computedCondition=
+  '가상으로 새 작업 방식을 검토하는 상황에서 '+
+  a.position+' '+a.layer+'의 '+a.tenGod+'은 '+first.focus+' 묻고, '+
+  b.position+' '+b.layer+'의 '+b.tenGod+'은 '+second.focus+' 묻는다. '+
+  '방법을 이해하는 첫 조건만 검토하면 '+second.missing+'. '+
+  '결과나 개선안을 검토하는 둘째 조건만 남기면 '+first.missing+'. '+
+  '두 글자 사이의 오행 계산은 '+relation.computedRelation+
+  '. 이것이 실제 업무 능력, 입사·승진 결과 또는 사주상의 우선순위라는 뜻은 아니다.';
+ return Object.freeze({
+  kind:'verified-work-method-vs-output-condition-v1',
+  sourceRefs:Object.freeze([a.id,b.id]),
+  sourceStems:Object.freeze([a.stem,b.stem]),
+  categories:Object.freeze([a.tenGod,b.tenGod]),
+  relation:relation.elementalDirection,
+  firstFocus:first.focus,secondFocus:second.focus,
+  firstOnlyMissing:second.missing,
+  secondOnlyMissing:first.missing,
+  computedCondition,
+  observedWorkPerformance:false,careerOutcomePredicted:false,
+  traditionalPriorityAssessed:false
+ });
+}
 function build({chapterId,topicId,topic,packet}={}){
  if(!topic||topic.mode==='state-limits')return null;
  const key=chapterId+'.'+topicId,rule=RULES[key];
@@ -396,6 +452,7 @@ function build({chapterId,topicId,topic,packet}={}){
   sourceElementRelation:exactElementRelation(a,b),
   sourceDecisionContrast:sourceDecisionContrast(a,b,exactElementRelation(a,b),chosenRule.question),
   earnedValueConditionalReading:earnedValueConditionalReading(key,a,b,exactElementRelation(a,b)),
+  careerWorkstyleCondition:careerWorkstyleCondition(key,a,b,exactElementRelation(a,b)),
   classicalOutputWealthCandidate:classicalOutputWealthCandidate(key,a,b,exactElementRelation(a,b),packet),
   classicalMonthQuestion:classicalMonthCandidate(packet,exposure,roles),
   interpretationLimit:'전통적 계산 분류의 연결만 해당한다. 성향의 강약, 길흉, 실제 이력, 예측 결과는 검증하지 않았다.',
@@ -497,4 +554,4 @@ function buildSingle({chapterId,topicId,topic}={}){
   missingCounterpartInferred:false
  });
 }
-module.exports={build,buildSingle,exactElementRelation,classicalMonthCandidate,sourceDecisionContrast,classicalOutputWealthCandidate,earnedValueConditionalReading,RULES,ALTERNATIVES,SINGLE_QUESTIONS};
+module.exports={build,buildSingle,exactElementRelation,classicalMonthCandidate,sourceDecisionContrast,classicalOutputWealthCandidate,earnedValueConditionalReading,careerWorkstyleCondition,RULES,ALTERNATIVES,SINGLE_QUESTIONS};
