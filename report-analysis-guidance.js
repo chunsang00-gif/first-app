@@ -69,7 +69,7 @@ const chapterBlueprint={
 // This prevents the same topic answer being requested by multiple chapters.
 const topicEvidencePaths={
  saju_core:{temperament:'facts.structuralEvidence.monthCommand',strength:'facts.tenGods.month'},
- mbti_contradiction:{agreement:'person.mbti',difference:'facts.tenGods.month'},
+ mbti_contradiction:{agreement:'person.mbti',difference:'facts.tenGods.month',information:'person.mbti',judgment:'person.mbti'},
  decision:{approach:'facts.tenGods.day',followthrough:'facts.natalClashes'},
  money:{earning:'facts.tenGods.month',spending:'facts.tenGods.day',risk:'facts.natalClashes'},
  career:{workstyle:'facts.structuralEvidence.visibleStems',teamwork:'facts.tenGods.month',growth:'facts.structuralEvidence.monthCommand',change:'fortune.activeDecade'},
