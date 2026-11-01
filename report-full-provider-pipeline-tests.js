@@ -120,9 +120,10 @@ function bodyResponse(p,strict,kind){
        '정해진 선택을 검토하는 가정 상황입니다.',
       limit:'개인의 실제 행동을 확인한 기록이 아니며 구체적 사건을 예언하지 않습니다.'},
      label,text:(kind==='all-eligible'?
-      '이 계산에서 '+topic+'에 연결된 근거는 '+refs.join(', ')+
-      '입니다. '+scenes[id]+' 다른 주제의 결론을 빌려오지 않으며 실제 사건을 '+
-      '확정하지 않는 가상 상황입니다. ':
+      '이 분야에서 실제로 따로 답할 수 있는 질문은 '+ 
+      require('./report-outline').topics[id][topic]+'입니다. '+
+      scenes[id]+' 서로 다른 계산 출처의 의미를 각 질문의 상황에서 구별합니다. '+
+      '실제 사건을 확인한 결과로 해석하지 않습니다. ':
       kind==='duplicate-before-synthesis'?
       nouns[id]+'에서는 한 가지 계산상의 차이를 확인합니다. 이 분류를 활용하는 예를 들면 새로운 선택 앞에서 어떤 자료를 먼저 살필지 고민하는 장면입니다. 다만 이 설명은 입력된 자료의 전통적인 뜻을 시험하기 위한 문장으로 특정 사람의 경험을 확인한 것은 아닙니다.':
       scenes[id])+(kind==='reused-sentence-before-synthesis'&&['decision','career'].includes(id)?' '+sharedConclusion:'')+' '+(id==='saju_core'&&topic==='strength'?
