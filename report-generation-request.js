@@ -343,6 +343,14 @@ function compile(prompt){
      const single=bridge.buildSingle({chapterId,topicId,topic});
      if(single)topic.sourceOwnedSingleReading=single;
     }
+    if(chapterId==='money'&&topicId==='risk'&&topic.mode!=='state-limits'){
+     const actual=require('./report-paid-money-clash-reading').candidate(prompt.facts);
+     if(!actual||JSON.stringify(actual.sourceRefs)!==
+        JSON.stringify(topic.allowedSourceRefs)||
+        !actual.sourceRefs.every(id=>permitted.includes(id)&&Object.hasOwn(source,id)))
+      throw Error('PAID_MONEY_STORAGE_CLASH_SOURCE_NOT_GROUNDED');
+     topic.sourceOwnedWealthClash=actual;
+    }
     // A decade comparison must have TWO independent original sources.
     // It can never turn a period label into a guaranteed job event.
     if(chapterId==='career'&&topicId==='change'&&topic.mode!=='state-limits'){
@@ -518,6 +526,27 @@ function schema(prompt,transport){
       '이 질문에 추가되는 독립적인 출생 근거 또는 명확히 다른 전통적 의미가 없으면 '+
       '선택 문단은 null로 두고, 필수 문단은 근거의 한계만 정확히 밝힌다.';
     }
+   }
+   if(task.sourceOwnedWealthClash){
+    const candidate=task.sourceOwnedWealthClash;
+    const actual=require('./report-paid-money-clash-reading').candidate(prompt.facts);
+    if(chapterId!=='money'||topic!=='risk'||!actual||
+       JSON.stringify(candidate)!==JSON.stringify(actual)||
+       !candidate.sourceRefs.every(ref=>permitted.includes(ref)&&
+        Object.hasOwn(payload.source,ref))||
+       candidate.promisedLoss!==false||candidate.promisedGain!==false||
+       candidate.usefulGodChosen!==false||candidate.realizedImpact!==false)
+     throw Error('PAID_MONEY_CLASSICAL_CLASH_SCHEMA_DRIFT');
+    basis.properties.refs.description+=' 이 항목은 반드시 실제 월지 재성·원국 충 출처'+
+     (candidate.exposedRef?'·겉글자 출처':'')+'를 모두 인용한다: '+
+     candidate.sourceRefs.join(' / ')+'.';
+    basis.properties.condition.enum=[candidate.computedCondition];
+    p.properties.text.description+=
+     ' 고전적인 묘고 충 설명을 검토하되 실제 금전 손실·재물 창고 개방이라는 단정은 금지한다. '+
+     candidate.readerQuestion+' '+candidate.computedCondition+
+     ' 이는 실제 금전 위험을 측정하지 않는 원국 분류 해석이다. '+
+     '출전: '+candidate.ancientSource+' ('+candidate.ancientUrl+'). '+
+     '수입 활동이나 지출 성향 설명을 다른 말로 복제하지 않는다.';
    }
    if(task.sourceOwnedDecadeCareer){
     const item=task.sourceOwnedDecadeCareer;
@@ -1251,6 +1280,16 @@ function restoreEvidence(value,prompt){
         !expected.sourceRefs.every(ref=>allowed.has(ref)&&b.refs.includes(ref))||
         b.condition!==expected.computedCondition)
       throw Error('AI report service workstyle source-specific condition missing: '+id+':'+topic);
+    }
+    if(task.sourceOwnedWealthClash){
+     const proof=task.sourceOwnedWealthClash;
+     if(id!=='money'||topic!=='risk'||
+        proof.kind!=='verified-storage-month-wealth-clash-question-v1'||
+        proof.promisedGain!==false||proof.promisedLoss!==false||
+        proof.realizedImpact!==false||
+        !proof.sourceRefs.every(ref=>allowed.has(ref)&&b.refs.includes(ref))||
+        b.condition!==proof.computedCondition)
+      throw Error('AI report service money storage clash grounded condition missing: '+id+':'+topic);
     }
     if(task.sourceOwnedDecadeCareer){
      const period=task.sourceOwnedDecadeCareer;
