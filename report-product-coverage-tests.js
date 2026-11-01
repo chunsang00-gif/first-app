@@ -27,7 +27,7 @@ const names=['NODE_ENV','RENDER','PAID_CORE_DEPTH_V2',
    const decade=require('./report-paid-career-decade-reading')
     .candidate(facts.build(input,2027));
    const careerSelected=result.estimate.chapters.find(row=>row.id==='career')?.includedInPlan;
-   const eligible=baselineEligible+Number(Boolean(decade&&careerSelected));
+   const eligible=baselineEligible+2+Number(Boolean(decade&&careerSelected));
    assert.equal(JSON.stringify(input),before,'never rewrite caller birth data');
    assert.equal(result.status,'ready');
    assert.equal(result.kind,'prepurchase-report-scope-v1');
@@ -57,7 +57,7 @@ const names=['NODE_ENV','RENDER','PAID_CORE_DEPTH_V2',
     'actual source identifiers belong in internal audit, not public copy');
 
    assert.equal(result.catalog.chapterDefinitions,12);
-   assert.equal(result.catalog.topicDefinitions,28);
+   assert.equal(result.catalog.topicDefinitions,30);
    assert.equal(result.catalog.originallyPlannedTopics,35);
    assert.equal(result.estimate.plannedChapters,chapters);
    assert.equal(result.estimate.evidenceEligibleTopicUpperBound,eligible);
