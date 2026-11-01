@@ -547,6 +547,9 @@ function schema(prompt,transport){
     p.properties.text.description+=
      ' 이 명식에서 독립된 두 계산 근거가 확인될 때 적용하는 실제 풀이 방향: '+
      thesis.question+' '+thesis.explanation+
+     ' 두 분류의 사전적 뜻을 각각 나열하는 답변은 불충분하다. '+
+     '두 근거를 함께 검토할 때 이 분야의 선택에서 실제로 달라지는 질문을 설명한다. '+
+     '검증하지 못한 우열이나 인생 결과를 추가해서 차이를 만들어내지 않는다. '+
      ' 출처 1: '+roles[0].position+' '+roles[0].layer+' '+roles[0].stem+
      ' '+roles[0].tenGod+'. 출처 2: '+roles[1].position+' '+roles[1].layer+
      ' '+roles[1].stem+' '+roles[1].tenGod+'. '+
