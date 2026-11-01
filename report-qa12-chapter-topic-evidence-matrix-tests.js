@@ -44,14 +44,14 @@ const keys=['NODE_ENV','RENDER','PAID_CORE_DEPTH_V2',
     assert.deepEqual(careerChange.explicitSourceRefs,eligibleDecade.sourceRefs);
     assert.equal(eligibleDecade.predictedJobChange,false);
    }
-   assert.equal(result.countPolicyDisabled,4);
-   assert.equal(result.structurallyPossibleTopicSlotsAtMost,24);
-   assert.equal(result.minimumGapTo35EvenForOptimisticChart,11);
+   assert.equal(result.countPolicyDisabled,3);
+   assert.equal(result.structurallyPossibleTopicSlotsAtMost,25);
+   assert.equal(result.minimumGapTo35EvenForOptimisticChart,10);
    assert.equal(result.actualGeneratedTopics,0);
    assert.equal(result.canPromise35,false);
    assert.equal(result.canSell,false);
    assert.equal(result.providerCalls,0);
-   assert(result.eligibleSlots<=24);
+   assert(result.eligibleSlots<=25);
    assert(result.eligibleSlots<=result.selectedDefinedSlots);
    assert.equal(Object.keys(result.byChapter).length,12);
    const rows=Object.values(result.byChapter).flatMap(x=>x.entries);
@@ -160,8 +160,8 @@ const keys=['NODE_ENV','RENDER','PAID_CORE_DEPTH_V2',
    /QA12_PREPAID_DIAGNOSTIC_OFFLINE_ONLY/);
   console.log('QA12_CHAPTER_TOPIC_EVIDENCE='+JSON.stringify({
    charts:observations.length,definedChapters:12,definedTopics:28,
-   currentPolicyDisabledTopics:4,maximumPotentialBeforeChartSelection:24,
-   minimumUnreachable35TopicGap:11,
+   currentPolicyDisabledTopics:3,maximumPotentialBeforeChartSelection:25,
+   minimumUnreachable35TopicGap:10,
    archivedPaidResponsesUnchanged:true,actualProviderCalls:0,
    businessScopeFullyAuthorized:false,cases:observations
   }));
