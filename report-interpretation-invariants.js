@@ -163,12 +163,26 @@ function verify(packet,plan){
   if(!same(chapter.fallbackEvidencePaths||[],fallbacks))
    errors.push('chapter-fallback-drift:'+chapterId);
   for(const [topic,task] of Object.entries(chapter?.topicTasks||{})){
+   const ownMbti=chapterId==='mbti_contradiction'&&
+    ['information','judgment'].includes(topic);
+   if(ownMbti){
+    const truth=require('./report-paid-mbti-dimension')
+     .build(packet.person?.mbti,topic);
+    if(task.mode!==(truth?'use-primary':'state-limits')||
+       task.evidencePresent!==Boolean(truth)||
+       !same(task.allowedSourceRefs,truth?['person.mbti']:[])||
+       !same(task.verifiedFallbackPaths,[])||
+       task.sourceOwnedPreference?.computedCondition!==truth?.computedCondition)
+     errors.push('mbti-preference-source-mismatch:'+topic);
+   }
    if(task.mode==='state-limits'){
     if(task.evidencePresent)errors.push('unsupported-topic-has-evidence:'+chapterId+':'+topic);
     if(task.evidenceReuseBoundary)errors.push('blocked-topic-owns-calculation-source:'+chapterId+':'+topic);
    }
    if(Array.isArray(task.allowedSourceRefs)){
     const permitted=new Set([...ids,
+     ...(ownMbti&&require('./report-paid-mbti-dimension')
+      .build(packet.person?.mbti,topic)?['person.mbti']:[]),
      ...(require('./report-paid-career-decade-reading').candidate(packet)?
       ['fortune.activeDecade']:[]),
      'facts.targetYearBranchContext.annualContext.day',
