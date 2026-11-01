@@ -183,6 +183,21 @@ function preflight(packet){
    task.interpretationBoundary=rule.boundary;
   }
  }
+ // The previously disabled career.change slot can ask an independent
+ // traditional question ONLY with a computed active ten-year pillar AND
+ // a distinct natal subtype in the SAME career family. This is not an
+ // assertion that the person changes employers or should start a business.
+ const decadeReading=require('./report-paid-career-decade-reading').candidate(packet);
+ const careerChange=plans.career.topicTasks.change;
+ if(decadeReading){
+  careerChange.mode='use-primary';
+  careerChange.allowedSourceRefs=decadeReading.sourceRefs.slice();
+  careerChange.primaryEvidencePath='fortune.activeDecade';
+  careerChange.evidencePresent=true;
+  careerChange.verifiedFallbackPaths=[];
+  careerChange.sourceOwnedDecadeCareer=decadeReading;
+  careerChange.interpretationBoundary='출생 원국의 실제 직업 관련 십성 한 종류와 2027년을 포함하는 실제 대운의 다른 십성 종류를 같은 분류군 안에서 비교한다. 실제 이직·독립·승진 시기나 직업적 성공 여부는 판정할 수 없으며 다른 직업 장의 natal-only 결론을 되풀이하지 않는다.';
+ }
  // A distinct relationship conflict question requires a computed
  // natal DAY-branch clash, not a generic ten-god label or another position.
  const directDayClashes=require('./report-paid-natal-day-clash')
