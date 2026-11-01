@@ -30,7 +30,9 @@ const TOPIC_NAMES=Object.freeze({
  }),
  mbti_contradiction:Object.freeze({
   agreement:'사주와 MBTI가 각각 설명하는 공통 질문',
-  difference:'두 풀이가 다르게 설명할 수 있는 조건'
+  difference:'두 풀이가 다르게 설명할 수 있는 조건',
+  information:'입력한 MBTI에서 정보를 받아들이는 선호',
+  judgment:'입력한 MBTI에서 선택할 때의 판단 선호'
  }),
  decision:Object.freeze({
   approach:'선택할 때 정보를 비교하는 관점',
