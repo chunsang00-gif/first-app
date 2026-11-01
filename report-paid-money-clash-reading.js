@@ -25,9 +25,13 @@ function candidate(packet){
  if(!'辰戌丑未'.includes(mainBranch))return null;
  const actual=packet.facts.natalClashes;
  const recomputed=relations.natal(chart).pairs.filter(x=>x.type==='충');
+ // An incomplete/tampered relationship ledger must NEVER qualify this
+ // paid topic. Other domain tests deliberately remove a day-clash to
+ // confirm an unrelated question is suppressed; fail closed here rather
+ // than breaking their unrelated report planning.
  if(actual.length!==recomputed.length||
     actual.some(x=>!recomputed.some(y=>sameClash(x,y))))
-  throw Error('PAID_MONEY_STORAGE_CLASH_ORIGINAL_LEDGER_DRIFT');
+  return null;
  const monthRoles=packet.facts.tenGods.month.hiddenStems||[];
  const observed=[];
  for(const clash of actual){
