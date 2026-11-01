@@ -332,8 +332,14 @@ const foodWealth=earning.sourceOwnedInterpretiveThesis.classicalOutputWealthCand
 assert(foodWealth,'the verified output-to-wealth pair should carry a named classical question');
 assert.equal(foodWealth.phrase,'식신생재(食神生財) 관계 후보');
 assert.deepEqual(foodWealth.sourceRefs,relation.refs);
-assert.deepEqual(foodWealth.betweenPillars,['month','day'],
- 'year-to-hour output/wealth symbols must not be sold as a proven direct flow');
+assert.deepEqual(foodWealth.sourceLayers,['stem','hidden.丁'],
+ 'the source pair is YEAR visible output plus MONTH hidden wealth, not year/hour');
+assert.equal(foodWealth.hiddenSourceInPair,true);
+assert.deepEqual(foodWealth.betweenPillars,[],
+ 'year and month are neighboring pillars but one source is HIDDEN, not a direct visible pair');
+assert.equal(foodWealth.literalElementCycleOnly,true);
+assert(foodWealth.traditionalQuestion.includes('출생 지지 안쪽에 숨은 글자'),
+ 'the customer-facing question must preserve the source layer distinction');
 assert.equal(foodWealth.adjacentVisibleStems,false);
 assert.equal(foodWealth.actualFlowEstablished,false);
 assert.equal(foodWealth.monthPatternChosen,false);
