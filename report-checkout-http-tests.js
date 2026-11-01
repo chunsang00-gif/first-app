@@ -38,7 +38,7 @@ const realReadiness=require('./report-commercial-readiness');
 const actual=realReadiness.assess();
 assert.equal(actual.canAcceptNewPayment,false);
 assert.equal(actual.targetTopics,35);
-assert.equal(actual.definedTopics,28);
+assert.equal(actual.definedTopics,30);
 assert.equal(actual.structuralUpperBound,27);
 assert.equal(actual.minimumShortfall,8);
 require.cache[require.resolve('./report-commercial-readiness')].exports={
