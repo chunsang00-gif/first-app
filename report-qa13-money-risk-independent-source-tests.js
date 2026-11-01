@@ -91,7 +91,9 @@ async function run(){
   const classical=require('./report-paid-money-clash-reading').candidate(packet);
   const risk=payload.task.chapters.money.topics.risk;
   assert.equal(risk.mode,classical?'use-primary':'state-limits');
-  assert.deepEqual(risk.citableFacts.map(x=>x.id),classical?.sourceRefs||[]);
+  assert.deepEqual(risk.citableFacts.map(x=>x.id).filter(id=>id!=='person.mbti'),
+   classical?.sourceRefs||[],
+   'the optional self-reported MBTI metadata cannot replace the two verified natal sources');
   const schema=wire.schemaFor(draft,sourceSchema);
   const slot=schema.properties.chapters.properties.money.properties.paragraphs.properties.risk;
   if(classical){
