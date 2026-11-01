@@ -36,6 +36,16 @@ const scenes={
 function subsetRefs(source,chapter,id,topic,slot){
  const permitted=slot.properties.basis.properties.refs.items.enum;
  const required=[];
+ // The synthetic provider must cite BOTH actual source roles whenever the
+ // strict paid writer assigns a two-role thesis. Older one-ref fixtures
+ // inadvertently hid the very failure this boundary now rejects.
+ const paired=chapter.topics?.[topic]?.sourceOwnedInterpretiveThesis;
+ if(paired){
+  const ids=paired.sourceRoles?.map(x=>x.ref)||[];
+  if(ids.length!==2||ids.some(x=>!permitted.includes(x)))
+   throw Error('Synthetic provider has no verified paired domain sources');
+  required.push(...ids);
+ }
  if(id==='saju_core'&&topic==='temperament'){
   for(const key of ['facts.seasonalEvidence','facts.qiEvidence','facts.stemConnections','facts.rootConditions'])
    if(permitted.includes(key))required.push(key);
