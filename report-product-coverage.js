@@ -45,7 +45,7 @@ const TOPIC_NAMES=Object.freeze({
   workstyle:'활동과 일을 수행하는 방식에 대한 질문',
   teamwork:'함께 맡는 일과 역할의 관점',
   growth:'배움과 새로운 과제를 보는 관점',
-  change:'직업 변화를 예측할 때의 한계'
+  change:'현재 대운과 태어난 사주의 직업 관련 관점 비교'
  }),
  relationship:Object.freeze({
   closeness:'가까운 관계를 이해하는 관점',
