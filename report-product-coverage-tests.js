@@ -86,7 +86,21 @@ const names=['NODE_ENV','RENDER','PAID_CORE_DEPTH_V2',
   const directLink=chartWithHour.readingSample.cards.find(x=>x.id==='month-visible-link');
   assert(directLink&&directLink.text.includes('태어난 시간'),
    'the exact verified 丁 month-hidden to 丁 birth-hour visible relationship should be explained');
-  assert(directLink.text.includes('정확히 같은 글자'));
+  assert(directLink.title.includes('실제로 갈라지는 두 가지 조건'),
+   'the free preview must show a reader distinction, not another glossary card');
+  assert(directLink.text.includes('정확히 확인됩니다'));
+  assert(directLink.text.includes('역할과 승인·검수의 기준')&&
+   directLink.text.includes('반복해서 들어갈 비용과 관리 자원'),
+   'the actual 1994 chart exposes distinct authority and recurring-cost questions');
+  assert(directLink.text.includes('누가 승인하고 책임지는지가 빠집니다')&&
+   directLink.text.includes('일을 이어갈 비용과 자원 계획이 빠집니다'),
+   'both missing conditions must change the outcome of the hypothetical example');
+  assert(directLink.text.includes('반대로')&&directLink.text.includes('여섯 달간'),
+   'free prose must contain a practical two-sided illustration');
+  assert(directLink.text.includes('오행이')&&directLink.text.includes('생하는 방향'),
+   'the actual Ding/己 stems determine the element direction, not a fixed stock claim');
+  assert(!/(?:실제로 성실한 사람|돈을 잘 번다|재물운이 강하다)/.test(directLink.text),
+   'a chart-specific hypothetical cannot become a verified personal trait');
   assert(!directLink.text.includes('辛')&&!directLink.text.includes('壬'),
    'reader copy should not become an unexplained character ledger');
   const alteredHour=coverage.calculate({calendar:'solar',
@@ -94,6 +108,13 @@ const names=['NODE_ENV','RENDER','PAID_CORE_DEPTH_V2',
   assert(!alteredHour.readingSample.cards.some(x=>x.id==='month-visible-link'&&
    x.text.includes('태어난 시간')),
    'an altered birth hour must never inherit an old month-to-hour link');
+  const alternateYear=coverage.calculate({calendar:'solar',
+   birthDate:'1994-01-15',birthTime:'14:20',gender:'male',mbti:'ISFP'});
+  const yearLink=alternateYear.readingSample.cards.find(x=>x.id==='month-visible-link');
+  assert(yearLink&&yearLink.text.includes('태어난 해'),
+   'a genuine year exposure must be about the year rather than a generic hour case');
+  assert.notEqual(yearLink.text,directLink.text,
+   'the independent chart must produce a different role-grounded conditional reading');
   const unknownTime=coverage.calculate({calendar:'solar',birthDate:'2001-11-03',
    unknownBirthTime:true,birthTime:'12:00',gender:'male',mbti:'모름'});
   assert.equal(unknownTime.status,'ready');
