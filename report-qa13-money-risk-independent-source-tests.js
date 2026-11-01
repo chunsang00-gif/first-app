@@ -134,6 +134,49 @@ async function run(){
   corrupted.facts.natalClashes.push({type:'충',positions:['year','hour'],
    branches:'卯酉',note:'forged'});
   assert.throws(()=>boundary.inspect(corrupted),/QA13_CALCULATION_INTEGRITY_INVALID/);
+  // Exercise one actually eligible calendar chart. All original QA13/QA14
+  // samples have competing relationships and must stay excluded. A nominal
+  // 25-slot catalog is not evidence that any original chart can use this slot.
+  let proved=null;
+  for(let year=1979;year<=2029&&!proved;year++)for(let month=1;month<=12&&!proved;month++)
+   for(const birthTime of ['14:20','20:20']){
+    const input={calendar:'solar',birthDate:year+'-'+String(month).padStart(2,'0')+'-15',
+     birthTime,gender:'male',mbti:'ISFP'};
+    const chart=facts.build(input,2027);
+    const reading=require('./report-paid-money-clash-reading').candidate(chart);
+    if(reading){proved={chart,reading};break}
+   }
+  assert(proved,
+   'an independently calculated calendar example must actually qualify, not merely inflate structural topic count');
+  const eligiblePlan=guidance.preflight(proved.chart);
+  assert.equal(eligiblePlan.money.topicTasks.risk.mode,'use-primary');
+  const eligiblePrompt={stage:'body',facts:proved.chart,requestedSections:['money'],
+   analysisGuidance:{...guidance.forRequest(['money'],proved.chart.person.mbti),
+    editorialBlueprint:{money:eligiblePlan.money}},priorSections:[]};
+  const actualPayload=writer.compile(eligiblePrompt);
+  const actualRisk=actualPayload.task.chapters.money.topics.risk;
+  assert.deepEqual(actualRisk.sourceOwnedWealthClash,proved.reading);
+  const strict=writer.schema(eligiblePrompt,wire.schemaFor(eligiblePrompt,sourceSchema))
+   .properties.chapters.properties.money.properties.paragraphs.properties.risk;
+  const object=strict.anyOf?.find(x=>x.type==='object')||strict;
+  assert.deepEqual(object.properties.basis.properties.condition.enum,
+   [proved.reading.computedCondition]);
+  const body={label:'출생월 재성의 실제 충 관계',
+   text:'출생월에 계산된 숨은 재성 분류는 다른 출생 자리의 지지와 네 묘고 중 한 충 관계로 연결됩니다. 그렇지만 이것이 무조건 좋은 재물 운이거나 돈이 줄어든다는 결론은 아닙니다. 월의 숨은 글자가 겉으로 드러났는지와 다른 관계가 겹치는지 구분해야 합니다.',
+   basis:{refs:proved.reading.sourceRefs.slice(),
+    interpretation:'정확한 출생월의 숨은 재성 분류와 원국의 지지 충을 따로 인용합니다.',
+    condition:proved.reading.computedCondition,
+    limit:'실제 수입·투자 손익·용신의 성립과 작용은 판단하지 못합니다.'}};
+  const shaped=p=>({chapters:{money:{paragraphs:{risk:p}}}});
+  assert.doesNotThrow(()=>writer.restoreEvidence(shaped(body),eligiblePrompt));
+  const uncited=structuredClone(body);
+  uncited.basis.refs=uncited.basis.refs.filter(x=>x!=='facts.natalClashes');
+  assert.throws(()=>writer.restoreEvidence(shaped(uncited),eligiblePrompt),
+   /money storage clash grounded condition missing: money:risk/);
+  const invalid=structuredClone(body);
+  invalid.basis.condition='충이 생겨 실제 투자에 손실이 발생할 것입니다.';
+  assert.throws(()=>writer.restoreEvidence(shaped(invalid),eligiblePrompt),
+   /money storage clash grounded condition missing: money:risk/);
   process.env.NODE_ENV='production';
   assert.throws(()=>boundary.inspect(lastPacket),/QA13_OFFLINE_SOURCE_INSPECTION_ONLY/);
   process.env.NODE_ENV='test';process.env.RENDER='true';
