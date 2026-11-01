@@ -1191,7 +1191,12 @@ function allowedRefs(payload,task,chapterId,topic){
  // at least one exact natal row. It cannot compare one theory to itself.
  if(['mbti_contradiction','integrated_judgment'].includes(chapterId)&&payload.source['person.mbti']&&task.mode!=='state-limits'){
   ids.add('person.mbti');
-  for(const id of Object.keys(payload.source))if(id.startsWith('natal.month.'))ids.add(id);
+  // A self-reported dimension is not a Saju-vs-MBTI comparison. No
+  // automatic natal-source borrowing in these two source-exclusive topics.
+  const exclusive=chapterId==='mbti_contradiction'&&
+   ['information','judgment'].includes(topic);
+  if(!exclusive)
+   for(const id of Object.keys(payload.source))if(id.startsWith('natal.month.'))ids.add(id);
  }
  // Domain chapters already have natal-specific topic permissions. Allow the
  // self-reported MBTI only alongside real positional natal evidence; never
