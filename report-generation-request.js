@@ -1013,6 +1013,9 @@ function restoreEvidence(value,prompt){
         !pair.every(ref=>allowed.has(ref)&&b.refs.includes(ref)))
       throw Error('AI report service paired domain thesis citations missing: '+id+':'+topic);
     }
+    if(require('./report-domain-topic-reader-brief')
+       .emptyReaderInterpretation(p,task))
+      throw Error('AI report service paid domain interpretation is only symbol definitions: '+id+':'+topic);
     if(id==='saju_core'&&topic==='temperament'&&prompt.paidCoreDepthV2===true){
      const contrast=task.paidCoreDepthV2.readerClassicalScope||
       task.paidCoreDepthV2.readerContrast||
