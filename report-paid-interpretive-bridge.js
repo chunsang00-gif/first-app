@@ -134,7 +134,60 @@ function exactElementRelation(first,second){
  });
 }
 
-function build({chapterId,topicId,topic}={}){
+// 《子平真詮》卷二〈論雜氣如何取用〉: for a mixed-storage month,
+// the question is WHICH month-hidden category is visibly exposed, not
+// whether a generic pair of ten-god names can be combined into a story.
+// This is a textual method APPLICABILITY screen, never a chosen 格, 用神,
+// strength, favorable/unfavorable verdict, or a claim about a person.
+const CLASSICAL_SOURCE='https://www.donglishuzhai.net/chapter/3729.html';
+function classicalMonthCandidate(packet,exposure,roles){
+ if(!packet?.chart?.hour||!exposure)return null;
+ const month=packet.chart.month?.[1];
+ if(!['辰','戌','丑','未'].includes(month))return null;
+ const original=packet.facts?.stemConnections;
+ const calculated=require('./report-stem-connections').build(packet.chart);
+ if(JSON.stringify(original)!==JSON.stringify(calculated))
+  throw Error('PAID_CLASSICAL_MONTH_SOURCE_GRAPH_MISMATCH');
+ const hidden=calculated.exposure.filter(x=>x.position==='month');
+ const candidateRows=hidden.filter(x=>x.exactVisibleMatches.some(y=>
+  ['year','month','hour'].includes(y.position)));
+ const groups=require('./report-branch-relations').natal(packet.chart).groups
+  .filter(g=>g.type==='삼합'&&g.positions.includes('month'));
+ // One *kind*, not repeated placements. A complete branch triad or a
+ // second exposed kind requires an unresolved classical comparison.
+ if(candidateRows.length!==1||groups.length)return null;
+ const row=candidateRows[0];
+ const expectedRefs=[exposure.hidden.id,exposure.visible.id];
+ if(row.hiddenId!==expectedRefs[0]||
+    !row.exactVisibleMatches.some(x=>x.id===expectedRefs[1])||
+    !expectedRefs.every(id=>roles.some(r=>r.id===id)))
+  return null;
+ const actualMain=packet.facts?.structuralEvidence?.monthCommand?.mainHiddenStem;
+ if(!actualMain||!require('./report-seasonal-evidence').HIDDEN[month]?.includes(actualMain))
+  throw Error('PAID_CLASSICAL_MONTH_MAIN_SOURCE_UNKNOWN');
+ return Object.freeze({
+  kind:'single-exposed-mixed-month-classical-question-v1',
+  monthBranch:month,monthHiddenRef:row.hiddenId,
+  exposedAtRef:exposure.visible.id,stem:row.hiddenStem,
+  isMainMonthHidden:row.hiddenStem===actualMain,
+  numberOfDistinctVisibleCandidates:1,
+  completeMonthTriadCount:0,
+  sourceChapter:'子平真詮 / 論雜氣如何取用',
+  sourceUrl:CLASSICAL_SOURCE,
+  classicalQuestion:'이 출생월은 여러 글자가 함께 들어 있는 잡기월에 해당한다. '+
+   '그 안의 '+row.hiddenStem+' 글자가 '+exposure.visible.position+
+   ' 겉에 정확히 드러나는 한 가지 후보가 확인된다. '+
+   (row.hiddenStem===actualMain?'이 글자는 달의 대표 숨은 글자다. ':
+    '이 글자는 달의 대표 숨은 글자가 아닌 별도 글자다. ')+
+   '따라서 출생월의 대표 글자 뜻만 말하는 설명과, '+
+   '밖으로 드러난 이 글자를 고전의 후보로 함께 검토하는 설명의 차이를 설명한다. '+
+   '다른 완성된 삼합은 이 계산에서 확인되지 않았으나, '+
+   '이를 근거로 어느 격국이나 우선순위가 확정되었다고 주장하지 않는다.',
+  adoptedSchoolMethod:false,chosenPattern:false,
+  chosenUsefulGod:false,individualOutcomeEstablished:false
+ });
+}
+function build({chapterId,topicId,topic,packet}={}){
  if(!topic||topic.mode==='state-limits')return null;
  const key=chapterId+'.'+topicId,rule=RULES[key];
  // Never invent a cross-domain analogy merely to add a premium paragraph.
@@ -198,6 +251,7 @@ function build({chapterId,topicId,topic}={}){
   topic:key,question:chosenRule.question,explanation:chosenRule.explanation,
   sourceRoles:Object.freeze(subjects),exactStemBridge:matched,
   sourceElementRelation:exactElementRelation(a,b),
+  classicalMonthQuestion:classicalMonthCandidate(packet,exposure,roles),
   interpretationLimit:'전통적 계산 분류의 연결만 해당한다. 성향의 강약, 길흉, 실제 이력, 예측 결과는 검증하지 않았다.',
   claimedRealWorldOutcome:false,traditionalPriorityAssessed:false
  });
@@ -270,4 +324,4 @@ function buildSingle({chapterId,topicId,topic}={}){
   missingCounterpartInferred:false
  });
 }
-module.exports={build,buildSingle,exactElementRelation,RULES,ALTERNATIVES,SINGLE_QUESTIONS};
+module.exports={build,buildSingle,exactElementRelation,classicalMonthCandidate,RULES,ALTERNATIVES,SINGLE_QUESTIONS};
