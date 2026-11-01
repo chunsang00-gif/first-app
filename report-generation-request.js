@@ -715,7 +715,24 @@ function schema(prompt,transport){
        one.layer!==orig.layer||one.tenGod!==orig.tenGod||
        one.traditionalMeaning!==orig.traditionalMeaning||
        single.question!==questions[one.tenGod]?.[0]||
-       single.explanation!==questions[one.tenGod]?.[1])
+       single.explanation!==questions[one.tenGod]?.[1]||
+       !Array.isArray(single.sourcePlacements)||
+       single.sourcePlacements.length!==eligible.length||
+       single.sourcePlacements.some((row,i)=>!permitted.includes(row.ref)||
+        row.ref!==eligible[i]?.id||
+        row.stem!==eligible[i]?.stem||
+        row.tenGod!==eligible[i]?.tenGod||
+        row.position!==eligible[i]?.position||
+        row.layer!==eligible[i]?.layer||
+        row.traditionalMeaning!==eligible[i]?.traditionalMeaning||
+        payload.source[row.ref]?.stem!==row.stem)||
+       (eligible.length===1?single.placementContrast!==null:
+        !single.placementContrast||
+        JSON.stringify(single.placementContrast.refs)!==
+         JSON.stringify(eligible.map(row=>row.id))||
+        single.placementContrast.categoryCount!==1||
+        single.placementContrast.measuredPersonalityStrength!==false||
+        single.placementContrast.relativePositionPriority!=='not-assessed'))
      throw Error('PAID_SINGLE_SOURCE_THESIS_MISMATCH:'+chapterId+':'+topic);
     // A question tied to an actual position and category, not an invented
     // two-sided personality, and never a second paid paragraph.
@@ -724,6 +741,12 @@ function schema(prompt,transport){
      one.position+' '+one.layer+' '+one.stem+' '+one.tenGod+
      ' ('+one.traditionalMeaning+'). 독자를 위한 이 근거만의 질문: '+
      single.question+' '+single.explanation+
+     (single.placementContrast?
+      ' 이 명식에서 동일한 한 분류가 실제로 확인되는 서로 다른 출생 위치: '+
+      single.sourcePlacements.map(row=>row.position+'('+row.layer+', '+row.stem+')').join(' / ')+'. '+
+      single.placementContrast.interpretationQuestion+
+      ' 이 출처들이 실제로 모두 인용된 경우에만 여러 위치를 비교한다. '+
+      '글자의 반복을 강한 성격이나 두 배의 효과로 해석하지 않는다. ':'')+
      ' 계산되지 않은 반대 성향이나 다른 십성의 존재를 가정하지 않는다. '+
      '출처와 설명을 한 가지 조건부 생활 풀이로 바꾸되 실제 행동·능력·소득·관계 경험을 확정하지 않는다. '+
      '같은 출처의 이미 제공된 결론을 다시 쓰는 것뿐이면 선택 문단은 null로 둔다.';
@@ -1124,6 +1147,12 @@ function restoreEvidence(value,prompt){
      if(linked.length&&
         (linked.length!==2||linked.some(ref=>!allowed.has(ref)||!b.refs.includes(ref))))
       throw Error('AI report service exact paid domain stem exposure citations missing: '+id+':'+topic);
+    }
+    const single=task.sourceOwnedSingleReading;
+    if(single?.placementContrast){
+     const list=single.sourcePlacements?.map(row=>row.ref)||[];
+     if(list.length<2||list.some(ref=>!allowed.has(ref)||!b.refs.includes(ref)))
+      throw Error('AI report service repeated single-category positional citations missing: '+id+':'+topic);
     }
     if(require('./report-domain-topic-reader-brief')
        .emptyReaderInterpretation(p,task))
