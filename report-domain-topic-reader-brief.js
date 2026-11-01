@@ -235,6 +235,26 @@ function priorComparisons(brief,priorSections){
  }
  return result;
 }
+// A real two-role paid interpretation can cite the correct sources yet
+// deliver only a dictionary of symbols. Fail closed ONLY for unmistakable
+// definition-only prose; neither this lint nor cited references proves that
+// a customer's personal behavior or an expert Saju conclusion is valid.
+function emptyReaderInterpretation(paragraph,topic){
+ if(!topic?.sourceOwnedInterpretiveThesis||typeof paragraph?.text!=='string')
+  return false;
+ const lines=paragraph.text.split(/[.!?。！？\n]+/)
+  .map(x=>x.trim()).filter(x=>x.length>=12);
+ if(lines.length<2)return false;
+ const symbol=/(?:십성|전통|분류|상징|사주|출생|월간|월지|천간|지장간|겉글자|속글자|기운|글자|위치)/;
+ const dictionary=/(?:뜻|의미|상징|분류|가리키|나타내|정의|계산|해석|관련|표시|기록)/;
+ const definitionCount=lines.filter(x=>symbol.test(x)&&dictionary.test(x)).length;
+ if(definitionCount<2||definitionCount/lines.length<0.6)return false;
+ // A genuine worked situation or a concrete domain-specific distinction
+ // must not be rejected just because it introduces technical terms first.
+ const applied=/(?:예를\s*들|가령|가상의?\s*(?:선택|상황|대화|업무|구매|작업)|만약|실제로\s*선택할\s*때|(?:지출|구매|업무|책임|약속|관계|작업|과제|학습).{0,35}(?:할\s*때|경우|바꾸|선택|조정|결정|구분|비교)|(?:선택|판단|결정)할\s*때)/;
+ if(lines.some(x=>applied.test(x)))return false;
+ return true;
+}
 // A paragraph that is assigned a concrete traditional category may not
 // pass its paid basis check using only generic facts or an unrelated category.
 // This checks cited provider output, not mere availability in the prompt.
@@ -288,4 +308,4 @@ function build({chapterId,topicId,topic,priorSections,readerAgeBand:ageBand='unk
   citationScopeIndependentOfChapterHeading:true
  });
 }
-module.exports={build,EDITORIAL,readerAgeBand,citedRoleCoverage,priorComparisons};
+module.exports={build,EDITORIAL,readerAgeBand,citedRoleCoverage,priorComparisons,emptyReaderInterpretation};
