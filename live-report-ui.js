@@ -53,7 +53,9 @@ async function showCoverage(validatedInput){
       typeof c.text!=='string'||c.text.length<30)||
     typeof sample.note!=='string'||!sample.note.trim())
    throw Error('무료 해석 예시가 검증된 계산 결과와 일치하지 않습니다.');
- const interpreted=out.interpretivePreviews;
+ // Older cached calculation results and UI fixtures have no optional
+ // domain mini-reading field. Never mistake absence for a corrupt report.
+ const interpreted=out.interpretivePreviews??[];
  if(!Array.isArray(interpreted)||interpreted.length>2||
     new Set(interpreted.map(x=>x.id)).size!==interpreted.length||
     interpreted.some(x=>!['money.earning','career.workstyle'].includes(x.id)||
