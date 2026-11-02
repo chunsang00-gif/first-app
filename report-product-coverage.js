@@ -185,12 +185,18 @@ function calculate(input){
   catalog:{chapterDefinitions:expected.length,topicDefinitions:currentDefined,
    originallyPlannedTopics:35},
   estimate:{plannedChapters:choice.plannedIds.length,
+   chaptersNotSelected:expected.length-choice.plannedIds.length,
+   targetChapterCount:12,targetTopicCount:35,
+   topicUpperBoundGapToTarget:Math.max(0,35-eligible),
+   advertised12x35NotDeliverable:choice.plannedIds.length!==12||eligible<35,
    selectedDefinedTopicUpperBound:selectedDefined,
    evidenceEligibleTopicUpperBound:eligible,
    chapters,
    canAttemptGeneration:choice.canGenerate,
    eligibilityIssues:choice.issues.slice()},
-  notice:'제공 가능 범위의 사전 계산 결과입니다. 실제 생성된 보고서나 확정 제공 문단 수가 아닙니다.',
+  notice:'이 입력에서 12개 장 중 '+choice.plannedIds.length+
+   '개 장만 계산 근거에 따라 선택되며, 목표 35개 항목 중 최대 '+eligible+
+   '개만 작성 후보입니다. 이는 실제 생성되거나 품질 검수를 통과한 문단 수가 아닙니다.',
   limitations:[
    '항목마다 독립적인 풀이가 가능한지는 실제 작성·검증 후에만 확정됩니다.',
    '근거가 약하거나 다른 항목과 중복되면 해당 문단이 생략될 수 있습니다.',
