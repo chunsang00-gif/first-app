@@ -80,10 +80,21 @@ function review(packet){
   branch.relativePriority==='not-assessed'&&
   branch.realizedCombination===false&&branch.realizedBreakage===false&&
   branch.approvedForPaid===false&&
+  branch.exactClassicalSourceScope?.solePriorityClaimAllowed===false&&
   JSON.stringify(branch.labels)===JSON.stringify(exactPair?.tableLabels)&&
   JSON.stringify(branch.sourceRefs)===JSON.stringify(['facts.natalBranchRelations'])&&
-  found.text.endsWith(branch.readerText)&&
-  refs.includes('facts.natalBranchRelations'):!refs.includes('facts.natalBranchRelations');
+  found.branchSourceAddsIndependentReaderInsight===false&&
+  found.appendedBranchReaderParagraph===false&&
+  found.branchEvidenceScope==='review-only-does-not-change-classical-reader-conclusion'&&
+  JSON.stringify(found.contextualReviewSourceRefs)===
+   JSON.stringify(['facts.natalBranchRelations'])&&
+  !found.text.includes(branch.readerText)&&
+  !refs.includes('facts.natalBranchRelations'):
+   found.branchSourceAddsIndependentReaderInsight===false&&
+   found.appendedBranchReaderParagraph===false&&
+   !refs.includes('facts.natalBranchRelations')&&
+   Array.isArray(found.contextualReviewSourceRefs)&&
+   found.contextualReviewSourceRefs.length===0;
  if(!Array.isArray(refs)||refs.length<4||
     refs.length!==new Set(refs).size||
     !validBranch||
@@ -263,6 +274,12 @@ function review(packet){
   independentMonthBranchContacts:cardinality.independentPairContactCount,
   multipleLabelsForOneBranchContact:
    cardinality.hasDuplicateLabelsForSameTwoPositions,
+  branchEvidenceSourceOnly:branch?{
+   kind:branch.kind,sourceRefs:branch.sourceRefs.slice(),
+   actualIndependentReaderConclusion:false,
+   appendedToCustomerDraft:false,
+   conclusion:'same-pair branch labels do not change the source-limited classical first-role question'
+  }:null,
   monthBranchGroups:cardinality.completeGroupEntryCount,
   chosenClassicalPriorityForFullChart:false,
   overallMethodApproved:false,releaseVerdict:'not-approved'
