@@ -1,5 +1,5 @@
 'use strict';
-// Canonical topic keys are structural slots (32 over 12 chapters in concise-v6).
+// Canonical topic keys are structural slots (33 over 12 chapters in concise-v7).
 // Optional slots may be null and entire evidence-poor chapters may be omitted.
 // Neither a topic key nor a section schema guarantees a customer paragraph.
 // Parallel arrays cannot guarantee equal lengths or text/topic association.
