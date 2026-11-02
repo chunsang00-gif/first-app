@@ -193,6 +193,15 @@ function verify(packet,plan){
        task.sourceOwnedAnnualTriad?.computedCondition!==truth?.computedCondition)
       errors.push('annual-triad-source-mismatch');
    }
+   if(chapterId==='year_2027'&&topic==='root_contrast'){
+    const truth=require('./report-paid-annual-root-contrast').candidate(packet);
+    if(task.mode!==(truth?'use-primary':'state-limits')||
+       task.evidencePresent!==Boolean(truth)||
+       !same(task.allowedSourceRefs,truth?truth.sourceRefs:[])||
+       !same(task.verifiedFallbackPaths,[])||
+       task.sourceOwnedAnnualRootContrast?.computedCondition!==truth?.computedCondition)
+      errors.push('annual-day-root-contrast-source-mismatch');
+   }
    if(task.mode==='state-limits'){
     if(task.evidencePresent)errors.push('unsupported-topic-has-evidence:'+chapterId+':'+topic);
     if(task.evidenceReuseBoundary)errors.push('blocked-topic-owns-calculation-source:'+chapterId+':'+topic);
@@ -206,7 +215,8 @@ function verify(packet,plan){
      'facts.targetYearBranchContext.annualContext.day',
      ...(Array.isArray(packet.facts?.natalClashes)?['facts.natalClashes']:[]),
      ...(require('./report-paid-natal-day-harmony').candidate(packet)?['facts.natalBranchRelations']:[]),
-     ...(require('./report-paid-annual-triad').candidate(packet)?['facts.targetYearBranchRelations']:[])]);
+     ...(require('./report-paid-annual-triad').candidate(packet)?['facts.targetYearBranchRelations']:[]),
+     ...(require('./report-paid-annual-root-contrast').candidate(packet)?['facts.rootConditions']:[])]);
     const missing=task.allowedSourceRefs.filter(id=>!permitted.has(id)||
       (id==='facts.targetYearBranchContext.annualContext.day'&&!dayContext));
     if(missing.length)errors.push('unresolved-source-ids:'+chapterId+':'+topic);
