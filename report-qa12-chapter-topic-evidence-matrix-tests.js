@@ -34,7 +34,7 @@ const keys=['NODE_ENV','RENDER','PAID_CORE_DEPTH_V2',
    const result=audit.inspect(packet,snapshot.prompt);
    assert.equal(JSON.stringify(snapshot.prompt),unchanged);
    assert.equal(result.targetTopics,35);
-   assert.equal(result.definedTopics,30);
+   assert.equal(result.definedTopics,31);
    const careerChange=result.byChapter.career.entries.find(x=>x.topicId==='change');
    const eligibleDecade=require('./report-paid-career-decade-reading').candidate(packet);
    assert.equal(careerChange.eligibleForModelDraft,
@@ -45,17 +45,22 @@ const keys=['NODE_ENV','RENDER','PAID_CORE_DEPTH_V2',
     assert.equal(eligibleDecade.predictedJobChange,false);
    }
    assert.equal(result.countPolicyDisabled,3);
-   assert.equal(result.structurallyPossibleTopicSlotsAtMost,27);
-   assert.equal(result.minimumGapTo35EvenForOptimisticChart,8);
+   assert.equal(result.structurallyPossibleTopicSlotsAtMost,28);
+   assert.equal(result.minimumGapTo35EvenForOptimisticChart,7);
    assert.equal(result.actualGeneratedTopics,0);
+   const verifiedHarmony=require('./report-paid-natal-day-harmony').candidate(packet);
+   const harmonyRow=result.byChapter.relationship.entries.find(x=>x.topicId==='coordination');
+   assert.equal(harmonyRow.eligibleForModelDraft,
+    result.byChapter.relationship.selected&&Boolean(verifiedHarmony));
+   if(verifiedHarmony)assert.deepEqual(harmonyRow.explicitSourceRefs,verifiedHarmony.sourceRefs);
    assert.equal(result.canPromise35,false);
    assert.equal(result.canSell,false);
    assert.equal(result.providerCalls,0);
-   assert(result.eligibleSlots<=27);
+   assert(result.eligibleSlots<=28);
    assert(result.eligibleSlots<=result.selectedDefinedSlots);
    assert.equal(Object.keys(result.byChapter).length,12);
    const rows=Object.values(result.byChapter).flatMap(x=>x.entries);
-   assert.equal(rows.length,30);
+   assert.equal(rows.length,31);
    assert.deepEqual(rows.map(x=>x.chapterId+'.'+x.topicId),
     Object.entries(outline.topics).flatMap(([c,ts])=>Object.keys(ts).map(t=>c+'.'+t)));
    assert.deepEqual(rows.filter(x=>x.permanentlyDisabledByCurrentPolicy)
