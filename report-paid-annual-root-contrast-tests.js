@@ -62,7 +62,21 @@ const paragraph={label:'2027년 충과 두 뿌리 자리',text:'태어날 때 �
  interpretation:'두 위치가 같은 오행의 출처를 품지만 한 자리만 세운 충의 상대입니다.',
  limit:'실제 신강약·합화·능력·결과는 계산으로 판정되지 않았습니다.'}};
 const response=p=>({chapters:{year_2027:{paragraphs:{root_contrast:p}}}});
-assert.doesNotThrow(()=>writer.restoreEvidence(response(paragraph),prompt));
+const restored=writer.restoreEvidence(response(paragraph),prompt);
+const actualEvidence=restored.chapters.year_2027.evidence;
+assert.equal(actualEvidence.length,1);
+assert.deepEqual(require('./report-source-ledger').usedPaths({
+ evidence:actualEvidence},'root_contrast'),[reader.REF],
+ 'the real restored provider output must preserve the source ID in the citation ledger');
+const repeated={
+ id:'year_2027',bodyTopics:['root_contrast','impact'],
+ body:[paragraph.text,'2027년 세운의 충은 숨은 글자가 있는 한 위치에만 걸리므로 다른 위치의 뿌리와 구분됩니다.'],
+ evidence:[actualEvidence[0],
+  'impact: facts.rootConditions / 해석: 2027년 충과 뿌리 / 조건: 실제 다른 위치 / 한계: 강약 미판정']
+};
+assert(require('./report-interpretation-overlap').inspect([repeated])
+ .some(x=>x.includes('annual-clash-vs-other-day-root')),
+ 'actual paid response evidence must trigger same-chapter duplicate interpretation rejection');
 const altered=structuredClone(paragraph);altered.basis.condition='충으로 뿌리가 사라져 운세가 약합니다.';
 assert.throws(()=>writer.restoreEvidence(response(altered),prompt),/annual root contrast evidence missing/);
 const wrong=structuredClone(paragraph);wrong.basis.refs=['facts.annualTenGods'];
