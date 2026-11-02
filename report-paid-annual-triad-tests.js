@@ -26,7 +26,7 @@ assert.equal(triad.candidate(overlap),null,'two newly complete groups cannot be 
 let actual=null,seen=0;
 for(let year=1980;year<=2006&&!actual;year+=2)for(const month of [1,3,5,7,9,11]){
  const input={calendar:'solar',birthDate:year+'-'+String(month).padStart(2,'0')+'-15',
-  birthTime:'14:20',gender:'male',mbti:'ISFP'};
+  birthTime:'08:20',gender:'male',mbti:'ISFP'};
  const packet=facts.build(input,2027);seen++;
  if(packet.status!=='ready')continue;
  const match=triad.candidate(packet);
