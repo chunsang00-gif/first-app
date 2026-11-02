@@ -95,4 +95,54 @@ assert.equal(coverage(oldReport.sections).status,'no-canonical-source-data');
 assert.equal(coverage([money,career]).status,'canonical-source-data');
 assert.equal(coverage([money,noEvidence]).status,'partial-canonical-source-data');
 assert.equal(coverage([money,career]).withCitations,2);
+// Three recently shipped source-ledger types used to bypass the older
+// inspector: their refs were parsed, but not considered interpretive sources.
+// Check different wordings of one computed proposition, not word counts.
+const annualTriadA=section('year_2027','new_triad',
+ '2027년에는 태어날 때 미완성이던 세 자리 조합이 새로 완성되는 것으로 계산됩니다.',
+ ['facts.targetYearBranchRelations']);
+const annualTriadB=section('year_2027','impact',
+ '2027년 세운이 더해지며 출생 당시 없던 삼합의 세 지지가 모두 갖춰집니다.',
+ ['facts.targetYearBranchRelations']);
+assert(inspect([annualTriadA,annualTriadB]).some(x=>
+ x.includes('new-annual-triad-membership')&&x.includes('year_2027:new_triad / year_2027:impact')),
+ 'same newly completed annual group cannot be sold twice inside the year chapter');
+const annualRootA=section('year_2027','root_contrast',
+ '2027년에는 태어난 날을 받치는 뿌리의 한 자리가 충을 만나지만 다른 자리는 같은 충을 맺지 않습니다.',
+ ['facts.rootConditions']);
+const annualRootB=section('year_2027','impact',
+ '2027년 세운의 충은 숨은 글자가 있는 한 위치에만 걸리므로 다른 위치의 뿌리와 구분됩니다.',
+ ['facts.rootConditions']);
+assert(inspect([annualRootA,annualRootB]).some(x=>x.includes('annual-clash-vs-other-day-root')),
+ 'same positional root contrast cannot be republished as a year overview');
+const natalHarmonyA=section('relationship','coordination',
+ '태어난 날과 태어난 달의 지지 사이에 육합 짝 관계가 계산되므로 두 출생 자리를 연결해 살펴봅니다.',
+ ['facts.natalBranchRelations']);
+const natalHarmonyB=section('relationship','closeness',
+ '일지와 월지의 결합 관계는 하나의 짝으로 확인되지만 실제 배우자 운세를 보증하지 않습니다.',
+ ['facts.natalBranchRelations']);
+assert(inspect([natalHarmonyA,natalHarmonyB]).some(x=>x.includes('isolated-natal-day-harmony-pair')),
+ 'same natal day combination cannot be rebranded as a second intimacy insight');
+// Having a ledger in common is not enough to call two DIFFERENT traditional
+// calculations identical. Different factual propositions remain eligible.
+const separateAnnual=section('year_2027','impact',
+ '2027년의 지지와 태어난 날 사이의 직접 충을 계산했더라도 실제 관계 갈등은 알 수 없습니다.',
+ ['facts.targetYearBranchRelations']);
+assert.deepEqual(inspect([annualTriadA,separateAnnual]),[],
+ 'a new triad and an unrelated direct annual pair are not interchangeable');
+assert.deepEqual(inspect([annualTriadA,{
+ ...annualTriadB,evidence:['새로운 세 자리 계산은 검증되지 않았습니다.']
+}]),[],
+ 'citation missing: a similar phrase alone is not a source-proven duplicate');
+assert.deepEqual(inspect([annualTriadA,{
+ ...annualTriadB,evidence:[annualTriadB.evidence[0].replace('facts.targetYearBranchRelations','facts.annualTenGods')]
+}]),[],
+ 'unrelated annual stems must not be equated to actual branch groups');
+const genuineLimit=section('year_2027','impact',
+ '2027년 세운으로 삼합 세 글자가 완성된다고 단정할 수 없습니다.',
+ ['facts.targetYearBranchRelations']);
+assert.deepEqual(inspect([annualTriadA,genuineLimit]),[],
+ 'a caution about unverified transformation cannot be treated as a second asserted result');
+assert.equal(coverage([annualTriadA,annualRootA,natalHarmonyA]).withCitations,3,
+ 'the new ledgers must be counted as actually cited report evidence');
 console.log('PASS deterministic repeated causal interpretation under shared verified facts; no paid API');
