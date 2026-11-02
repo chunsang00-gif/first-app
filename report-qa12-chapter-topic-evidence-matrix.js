@@ -69,7 +69,7 @@ function inspect(packet,prompt){
    }));
   }
  }
- if(entries.length!==32||CONSTRAINED.some(id=>!entries.some(x=>
+ if(entries.length!==33||CONSTRAINED.some(id=>!entries.some(x=>
   x.chapterId+'.'+x.topicId===id&&x.permanentlyDisabledByCurrentPolicy)))
   throw Error('QA12_REACHABILITY_BASELINE_DRIFT');
  const enabled=entries.filter(x=>x.eligibleForModelDraft);
