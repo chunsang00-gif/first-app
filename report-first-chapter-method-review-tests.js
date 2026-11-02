@@ -1,0 +1,60 @@
+'use strict';
+const assert=require('node:assert/strict');
+const handoff=require('./report-first-chapter-method-review');
+const writer=require('./report-generation-request');
+const report=handoff.build();
+assert.equal(report.kind,'first-chapter-method-decision-handoff-v1');
+assert.equal(report.status,'ready-for-expert-method-review-not-ready-for-sale');
+assert.equal(report.cases.length,5);
+assert.equal(report.decisionQuestions.length,4);
+assert.equal(new Set(report.decisionQuestions.map(x=>x.id)).size,4);
+assert.equal(report.independentMethodApproved,false);
+assert.equal(report.readerValueApproved,false);
+assert.equal(report.canChangeOrdinaryPaidWriter,false);
+assert.equal(report.canEnableCheckout,false);
+assert.equal(report.providerCalls,0);
+assert.equal(report.releaseVerdict,'not-approved');
+const [yi,other,single,dual,otherMonth]=report.cases;
+assert(yi.exactTextualCondition.includes('癸未'));
+assert(other.exactTextualCondition.includes('丙戌'));
+assert.equal(yi.chart.split('/').slice(0,3).join('/'),
+ other.chart.split('/').slice(0,3).join('/'));
+assert.notEqual(yi.chart,other.chart);
+assert(!yi.cannotApplyOtherHourWinterRule);
+assert.equal(other.cannotApplyOtherHourWinterRule,true);
+assert.equal(single.exactTextualCondition,'xin-yin-bing-only-not-jia');
+assert.equal(dual.exactTextualCondition,'xin-yin-jia-plus-bing');
+assert.notDeepEqual(single.traditionalPositionRows,dual.traditionalPositionRows);
+assert.equal(otherMonth.exactTextualCondition,'no-exact-classical-case');
+assert.equal(otherMonth.comparableExactTextUnapproved,false);
+for(const row of report.cases){
+ assert.equal(row.traditionalPositionRows.length,4);
+ assert.deepEqual(row.traditionalPositionRows.map(x=>x.position),
+  ['year','month','day','hour']);
+ assert(row.traditionalPositionRows.every(x=>x.sourceId===
+  'natal.'+x.position+'.stem'&&x.stem&&x.traditionalCategory));
+ assert.equal(row.livePaidStillMonthOnly,true);
+ assert.equal(row.readyForPaidWriter,false);
+ assert.equal(row.actualPersonalLifeConclusionsVerified,false);
+ assert.equal(row.readerBenefitIndependentlyApproved,false);
+ assert(!row.livePaidSourceRefs.some(id=>/^natal\.(year|day|hour)\./.test(id)));
+ assert(!row.livePaidSourceRefs.includes('facts.stemConnections'));
+ assert.equal(row.paidModelCalls,0);
+}
+assert(yi.sourceUrls.some(x=>x.includes('wikisource.org')));
+assert(single.sourceUrls.some(x=>x.includes('donglishuzhai.net')));
+const md=handoff.markdown(report);
+assert(md.includes('전통 해석방법 검토용 인수인계'));
+assert(md.includes('판매 미승인'));
+assert(md.includes('실제 유료 첫 장은 출생월'));
+assert(md.includes('丙戌時 원고에 복사할 수 없습니다'));
+assert(md.includes('甲·丙이 함께 드러난'));
+assert(md.includes('전통적 방법의 원문 근거'));
+assert(!md.includes('유료 보고서를 판매할 수 있습니다'));
+assert.throws(()=>handoff.markdown({...report,releaseVerdict:'approved'}),/METHOD_HANDOFF_NOT_A_REVIEW_DOC/);
+assert.throws(()=>handoff.markdown({...report,canChangeOrdinaryPaidWriter:true}),/METHOD_HANDOFF_NOT_A_REVIEW_DOC/);
+const rechecked=handoff.build();
+assert.deepEqual(rechecked,report,'repeat reading must not fabricate mutable approved status');
+// This is a NEW research handoff, not a paid transport topic or retry.
+assert(!writer.policy.includes('first-chapter-method-decision-handoff-v1'));
+console.log('PASS expert-method handoff: 5 real charts, two birth-hour counterexamples, 4 unresolved decisions, 0 paid calls, 0 automatic approvals');
