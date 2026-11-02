@@ -43,6 +43,22 @@ async function showCoverage(validatedInput){
   throw Error('작성 가능 항목 목록과 계산된 제공 범위가 일치하지 않습니다.');
  const selected=estimate.chapters.filter(x=>x.includedInPlan);
  const omitted=estimate.chapters.filter(x=>!x.includedInPlan);
+ const proposal=out.productProposal;
+ if(proposal?.kind!=='chart-specific-evidence-scoped-product-proposal-v1'||
+    proposal.status!=='draft-not-for-sale'||proposal.paymentEnabled!==false||
+    proposal.humanEditorialApproved!==false||proposal.fixed12ChaptersPromised!==false||
+    proposal.fixed35TopicsPromised!==false||
+    !Array.isArray(proposal.mainChapterIds)||
+    !Array.isArray(proposal.conditional2027ChapterIds)||
+    proposal.plannedChapterCount!==estimate.plannedChapters||
+    proposal.topicCandidateUpperBound!==estimate.evidenceEligibleTopicUpperBound||
+    proposal.mainChapterCount!==proposal.mainChapterIds.length||
+    proposal.conditionalChapterCount!==proposal.conditional2027ChapterIds.length||
+    JSON.stringify([...proposal.mainChapterIds,...proposal.conditional2027ChapterIds].sort())!==
+     JSON.stringify(selected.map(x=>x.id).sort()))
+   throw Error('맞춤형 상품 초안과 실제 계산 근거가 일치하지 않습니다.');
+ const primary=selected.filter(x=>proposal.mainChapterIds.includes(x.id));
+ const conditional=selected.filter(x=>proposal.conditional2027ChapterIds.includes(x.id));
  const sample=out.readingSample;
  if(sample?.kind!=='free-calculated-meaning-preview-v1'||
     sample?.status!=='calculated-example'||sample?.modelCalls!==0||
@@ -75,14 +91,16 @@ async function showCoverage(validatedInput){
  <p class="meta">결제 없이 계산한 참고용 풀이입니다. 실제 삶의 경험을 확인한 결과나 AI 유료 보고서의 완성·판매 승인 기록이 아닙니다.</p>
  </section>`:''}
  <section class="section report-coverage">
- <h2>유료 심화 풀이 제공 가능 범위</h2>
- <p><strong>${estimate.plannedChapters}개 장 · 최대 ${estimate.evidenceEligibleTopicUpperBound}개 항목</strong>을 분석 후보로 확인했습니다.</p>
+ <h2>맞춤형 심화 풀이 구성안</h2>
+ <p><strong>기본 해석 ${proposal.mainChapterCount}개 장 + 2027년 추가 분야 ${proposal.conditionalChapterCount}개 장</strong>을 계산 근거에 따라 선택했습니다.</p>
+ <p>전체 <strong>${proposal.plannedChapterCount}개 장 · 최대 ${proposal.topicCandidateUpperBound}개 세부 항목</strong>이 작성 후보입니다.</p>
  <p>이는 출생정보로 계산한 <strong>작성 가능 상한</strong>입니다. 실제 완성된 문단 수나 제공 보장은 아닙니다.</p>
  <p class="meta">장마다 펼쳐 볼 수 있는 세부 질문은 실제 계산에서 작성 후보로 선택된 항목만 보여 줍니다. 이것만으로 개인별 풀이가 완성됐다는 뜻은 아닙니다.</p>
- <h3>근거가 확인된 장</h3>
- <ul>${selected.map(x=>`<li><strong>${esc(x.name)} · 최대 ${x.eligibleTopicUpperBound}개 항목</strong><details><summary>작성 후보 질문 보기</summary><ul>${x.eligibleTopics.map(t=>`<li>${esc(t.title)}</li>`).join('')}</ul></details></li>`).join('')}</ul>
+ <h3>기본 해석 구성</h3>
+ <ul>${primary.map(x=>`<li><strong>${esc(x.name)} · 최대 ${x.eligibleTopicUpperBound}개 항목</strong><details><summary>작성 후보 질문 보기</summary><ul>${x.eligibleTopics.map(t=>`<li>${esc(t.title)}</li>`).join('')}</ul></details></li>`).join('')}</ul>
+ ${conditional.length?`<h3>별도 계산 근거가 있는 2027년 추가 분야</h3><ul>${conditional.map(x=>`<li><strong>${esc(x.name)} · 최대 ${x.eligibleTopicUpperBound}개 항목</strong><details><summary>작성 후보 질문 보기</summary><ul>${x.eligibleTopics.map(t=>`<li>${esc(t.title)}</li>`).join('')}</ul></details></li>`).join('')}</ul>`:'<p class="meta">별도로 추가할 수 있는 2027년 금전·직업·관계 풀이가 확인되지 않았습니다.</p>'}
  ${omitted.length?`<h3>제외된 장</h3><ul>${omitted.map(x=>`<li>${esc(x.name)}: ${esc(x.omittedReason)}</li>`).join('')}</ul>`:''}
- <p class="meta">현재 목차에는 ${catalog.chapterDefinitions}개 장, ${catalog.topicDefinitions}개 세부 항목이 정의되어 있습니다. ${catalog.originallyPlannedTopics}항목 고정 제공은 검증되지 않았습니다. 중복·근거 부족 항목은 실제 작성에서 생략될 수 있습니다.</p>
+ <p class="meta">이 구성은 구매 상품의 확정 약속이 아닌 검토 초안입니다. 기존 12장·${catalog.originallyPlannedTopics}항목 고정 목표는 달성하지 못했습니다. 선택된 항목도 중복이나 근거 부족으로 실제 작성 시 생략될 수 있으며, 판매 가격과 정식 제공량은 결정되지 않았습니다.</p>
  <p><strong>현재 유료 구매와 정식 보고서 생성은 준비 중입니다.</strong> 결제나 유료 AI 생성 요청은 진행하지 않습니다.</p>
  <button class="btn primary" type="button" id="coverageBackToInput">입력 화면으로 돌아가기</button>
  </section>`;
