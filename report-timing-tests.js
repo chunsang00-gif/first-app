@@ -88,26 +88,34 @@ assert.equal(createTiming().snapshot().sampleCount,0);
     {id:'annual-2027',title:'2027년 계산에서 추가되는 질문',text:'2027년 천간은 미래를 예언하지 않으며 실제 삶의 결과를 입증한 것이 아닙니다.'}
    ],modelCalls:0,completedPremiumParagraphs:0,humanEditorialApproved:false,
    note:'전통적인 분류를 확인하는 무료 예시이며 유료 보고서가 아닙니다.'},
+  productProposal:{kind:'chart-specific-evidence-scoped-product-proposal-v1',
+   status:'draft-not-for-sale',mainChapterIds:['saju_core'],conditional2027ChapterIds:[],
+   mainChapterCount:1,conditionalChapterCount:0,plannedChapterCount:1,topicCandidateUpperBound:2,
+   fixed12ChaptersPromised:false,fixed35TopicsPromised:false,paymentEnabled:false,
+   humanEditorialApproved:false},
   catalog:{chapterDefinitions:12,topicDefinitions:28,originallyPlannedTopics:35},estimate:{plannedChapters:1,
   evidenceEligibleTopicUpperBound:2,chapters:[
-   {name:'사주 기본',includedInPlan:true,eligibleTopicUpperBound:2,
+   {id:'saju_core',name:'사주 기본',includedInPlan:true,eligibleTopicUpperBound:2,
     eligibleTopics:[{id:'temperament',title:'태어난 시기의 전통적 해석'},{id:'strength',title:'기질을 설명하는 별도 근거'}]},
-   {name:'2027년 금전',includedInPlan:false,eligibleTopicUpperBound:0,
+   {id:'year_2027_money',name:'2027년 금전',includedInPlan:false,eligibleTopicUpperBound:0,
     eligibleTopics:[],omittedReason:'근거 없음'}]}});
  await pending;
  assert(body.innerHTML.includes('실제 출생정보에서 확인한 해석 근거'));
  assert(body.innerHTML.includes('태어난 달에서 확인되는 두 근거'));
  assert(body.innerHTML.includes('2027년 계산에서 추가되는 질문'));
  assert(body.innerHTML.indexOf('태어난 달에서 확인되는 두 근거')<
-   body.innerHTML.indexOf('유료 심화 풀이 제공 가능 범위'),
+   body.innerHTML.indexOf('맞춤형 심화 풀이 구성안'),
    'the real calculated preview must appear BEFORE numerical scope');
- assert(body.innerHTML.includes('최대 2개 항목'));
+ assert(body.innerHTML.includes('최대 2개 세부 항목'));
+ assert(body.innerHTML.includes('기본 해석 1개 장 + 2027년 추가 분야 0개 장'));
+ assert(body.innerHTML.includes('상품의 확정 약속이 아닌 검토 초안'));
+ assert(body.innerHTML.includes('2027년 금전'));
  assert(body.innerHTML.includes('작성 후보 질문 보기'));
  assert(body.innerHTML.includes('태어난 시기의 전통적 해석'));
  assert(!body.innerHTML.includes('금전 손실 예측에서 알 수 없는 부분'));
  assert(body.innerHTML.includes('현재 유료 구매와 정식 보고서 생성은 준비 중입니다'));
- assert(body.innerHTML.includes('현재 목차에는 12개 장, 28개 세부 항목'));
- assert(body.innerHTML.includes('35항목 고정 제공은 검증되지 않았습니다'));
+ assert(body.innerHTML.includes('기존 12장·35항목 고정 목표는 달성하지 못했습니다'));
+ assert(!body.innerHTML.includes('구매가 가능합니다'));
  assert(!body.innerHTML.includes('12개 장을 작성한 뒤'));
  assert.equal(charged,0);
  ui.window.REPORT_API.coverage=async()=>({status:'ready',
