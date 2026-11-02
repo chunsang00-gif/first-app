@@ -58,7 +58,11 @@ assert.equal(readerCandidate.kind,'qa-classical-natal-reader-candidate-v1');
 assert.equal(readerCandidate.audience,'child-and-caregiver');
 assert.equal(readerCandidate.ageAtTargetYear,3);
 assert.equal(readerCandidate.hypotheticalExampleNotObservedBehavior,true);
-assert(readerCandidate.text.includes('새로운 놀이'));
+assert(readerCandidate.text.includes('두 조건이 함께 성립한 경우'));
+assert(readerCandidate.text.includes('달의 기본 글자는 드러나지 않고'));
+assert(readerCandidate.text.includes('해석의 출발점이 바뀌는 다른 사례와 구별됩니다'));
+assert(!/(?:새로운 놀이|안전 약속|보호자가 필요한|여섯 달|장비|납품)/.test(readerCandidate.text),
+ 'classic-specific cause, not a fictional lifestyle scene, must dominate reader prose');
 assert(!/(?:직장|직책|직업|급여|새 프로젝트|업무 성과|재물 능력)/.test(readerCandidate.label+' '+readerCandidate.text));
 assert.equal(readerCandidate.releaseVerdict,'not-approved');
 assert.equal(readerCandidate.readyForPaidModelProbe,false);
@@ -122,12 +126,25 @@ assert.deepEqual(singleReader.sourceRefs,[
 assert.deepEqual(require('./report-reader-policy').errors(
  [singleReader.label,singleReader.text]),[]);
 assert(singleReader.text.includes('해석의 출발점을 바꿉니다'));
+assert(singleReader.text.includes('기본 글자도 함께 드러났다면'));
+assert(singleReader.text.includes('다른 예시에서는 자원을 중심에 두고 책임을 곁들이지만'));
+assert(!/(?:새로운 역할을 맡는 상황|공장|사업|장비|납품|가정해 보겠습니다)/.test(singleReader.text),
+ 'the opposite source condition must change the interpretation itself, not only the scene');
 assert(singleReader.text.includes('실제로 책임감이 강하거나 높은 직책을 맡는다는 뜻은 아닙니다'));
 assert(!singleReader.text.includes('자원을 중심에 두고 책임에 관한 뜻을 곁들입니다'));
 assert(singleReader.text.length>200);
 assert.notEqual(singleReader.label,readerCandidate.label);
 assert.notEqual(singleReader.text,readerCandidate.text,
  'different classical applicability must not recycle one reader paragraph');
+assert(readerCandidate.text.includes('자원에 관한 뜻을 중심에 두고 책임에 관한 뜻을 곁들입니다'));
+assert(!singleReader.text.includes('이 명식은 자원에 관한 뜻을 중심에 두고 책임에 관한 뜻을 곁들입니다'));
+assert(!readerCandidate.text.includes('실제로 책임감이 강하거나 높은 직책을 맡는다는 뜻은 아닙니다'));
+assert(readerCandidate.text.includes('아이')&&
+ !/(?:직장|직업|급여|투자|소득|재물 능력|높은 직책)/.test(readerCandidate.text),
+ '2027 preschool-aged source may not receive an adult employment or finance reading');
+assert(singleReader.text.includes('이 명식은 그 조건이 성립하지 않아'));
+assert(!singleReader.text.includes('자원을 중심에 두고 책임에 관한 뜻을 곁들입니다.'),
+ 'the single-visible case must never assert dual case as this chart own conclusion');
 assert.notDeepEqual(singleReader.sourceRefs,readerCandidate.sourceRefs);
 assert.equal(source.offlineSingleReaderCandidate(paired),null,
  'the single-exposure text cannot be reused when Jia is exposed');
