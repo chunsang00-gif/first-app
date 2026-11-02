@@ -84,8 +84,16 @@ assert.equal(branch.realizedCombination,false);
 assert.equal(branch.realizedBreakage,false);
 assert.equal(branch.approvedForPaid,false);
 assert.deepEqual(branch.sourceRefs,['facts.natalBranchRelations']);
-assert(readerCandidate.text.includes('태어난 달과 날 사이의 같은 두 자리에'));
-assert(readerCandidate.text.includes('별개 사건이 두 번 생겼다는 뜻도'));
+assert(readerCandidate.text.includes('태어난 달과 날은 이웃한 두 자리입니다'));
+assert(readerCandidate.text.includes('별개 사건이 두 번 생겼다는 뜻이 아닙니다'));
+assert(readerCandidate.text.includes('두 이름 중 어느 것이 우세한지는 정하지 않습니다'));
+assert(readerCandidate.monthDayPairContext.exactClassicalSourceScope.sourceUrl===
+ 'https://luckclub.cn/bazi/018/080/');
+assert.equal(readerCandidate.monthDayPairContext.exactClassicalSourceScope.liuheTextualConditionSatisfied,true);
+assert.equal(readerCandidate.monthDayPairContext.exactClassicalSourceScope.poRuleSourcedByThisPassage,false);
+assert.equal(readerCandidate.monthDayPairContext.exactClassicalSourceScope.relativeLiuhePoPriority,'not-established');
+assert.equal(readerCandidate.monthDayPairContext.exactClassicalSourceScope
+ .methodSourceBoundary.itsYinHaiInterpretationAllowedForNatal,false);
 assert(readerCandidate.text.includes('출생 전체에서 확정된 결과로 넓혀서는 안 됩니다'));
 assert(!readerCandidate.text.includes('두 개의 독립된 관계가 함께 강해'));
 const canonicalRelations=structuredClone(paired.facts.natalBranchRelations);
