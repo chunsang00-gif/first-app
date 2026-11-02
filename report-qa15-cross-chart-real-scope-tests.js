@@ -58,8 +58,19 @@ for(const day of days)for(const birthTime of times){
  assert.equal(shown.estimate.chaptersNotSelected,12-chosen.plannedIds.length);
  assert.equal(shown.estimate.topicUpperBoundGapToTarget,35-valid);
  assert.equal(shown.estimate.advertised12x35NotDeliverable,true);
- assert(shown.notice.includes('12개 장 중 '+chosen.plannedIds.length+'개 장'));
- assert(shown.notice.includes('35개 항목 중 최대 '+valid+'개'));
+ assert.deepEqual([...shown.productProposal.mainChapterIds,
+  ...shown.productProposal.conditional2027ChapterIds].sort(),
+  chosen.plannedIds.slice().sort(),
+  'draft product grouping must be identical to the true paid section selection');
+ assert.equal(shown.productProposal.topicCandidateUpperBound,valid);
+ assert.equal(shown.productProposal.paymentEnabled,false);
+ assert.equal(shown.productProposal.humanEditorialApproved,false);
+ assert.equal(shown.productProposal.fixed12ChaptersPromised,false);
+ assert.equal(shown.productProposal.fixed35TopicsPromised,false);
+ assert(shown.notice.includes('기본 해석 '+shown.productProposal.mainChapterCount+'개 장'));
+ assert(shown.notice.includes('조건부 2027년 분야별 해석 '+
+  shown.productProposal.conditionalChapterCount+'개 장'));
+ assert(shown.notice.includes('최대 '+valid+'개가 작성 후보'));
  assert(!shown.notice.includes(date),'private birth date cannot leak into preview');
  assert(!shown.notice.includes(birthTime),'private birth time cannot leak into preview');
  assert(valid<=30);
