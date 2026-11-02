@@ -19,9 +19,9 @@ Object.assign(process.env,{
 });
 const readiness=require('./report-commercial-readiness').assess();
 assert.equal(readiness.canAcceptNewPayment,false);
-assert.equal(readiness.definedTopics,30);
-assert.equal(readiness.structuralUpperBound,27);
-assert.equal(readiness.minimumShortfall,8);
+assert.equal(readiness.definedTopics,31);
+assert.equal(readiness.structuralUpperBound,28);
+assert.equal(readiness.minimumShortfall,7);
 const server=http.createServer(require('./server').handler);
 const nativeFetch=global.fetch;
 global.fetch=async()=>{throw Error('PRODUCTION_GATE_MUST_NOT_CONTACT_PAYMENT_OR_MODEL_PROVIDER')};
@@ -47,7 +47,7 @@ global.fetch=async()=>{throw Error('PRODUCTION_GATE_MUST_NOT_CONTACT_PAYMENT_OR_
   const purchases=path.join(dir,'purchases');
   assert(!fs.existsSync(purchases)||fs.readdirSync(purchases).length===0,
    'the closed gate must not create even a pending order');
-  console.log('PASS real HTTP production checkout stays closed with both sales flags set: canonical writer max 27 vs promised 35; zero payments or model calls');
+  console.log('PASS real HTTP production checkout stays closed with both sales flags set: canonical writer max 28 vs promised 35; zero payments or model calls');
  }finally{
   await new Promise(ok=>server.close(ok));
   global.fetch=nativeFetch;
