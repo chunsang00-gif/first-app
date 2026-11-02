@@ -15,6 +15,20 @@ function mockReport(){
   year_2027_career:'2027년 일에서는 평소 역할과 비교해 책임 범위와 판단권의 변화 가능성을 살핍니다. 연간 계산 근거가 기존 직업 성향을 더 강하게 만드는지 또는 다른 우선순위를 요구하는지 구분합니다. 이직이나 합격 같은 사건을 예측하지 않습니다.',
   year_2027_relationship:'2027년 관계는 평소 정보 공유와 역할 배분 방식에 연간 변화가 더해지는지를 봅니다. 시간 배분과 기대치 조정의 압력이 기존보다 강해지는지 비교하고 근거가 약하면 유지로 판정합니다. 특정 만남이나 결혼 같은 사건은 확정하지 않습니다.'
  };
+ // Distinct offline-only paragraphs; don't fill later topics with the
+ // same test sentence or suppress the real quality gate.
+ const supplements={
+  mbti_contradiction:{
+   information:'입력한 성격 유형의 정보 선호는 구체적인 사실을 먼저 읽는 방식과 가능한 연결을 먼저 살피는 방식이라는 다른 질문을 가리킵니다. 실제 정보 처리 능력을 측정한 결과는 아닙니다.',
+   judgment:'선택지의 일관된 원칙과 사람에게 미치는 영향을 판단 기준으로 보는 선호는 구별해서 다룹니다. 이는 감정의 유무나 개인의 인품을 판정한 자료가 아닙니다.'
+  },
+  career:{change:'장기간의 전통적 시기 분류와 출생 당시의 일 관련 분류는 서로 다른 시간 범위의 자료입니다. 실제 두 세부 종류가 다를 때만 이를 설명하며 이직·승진을 예고하지 않습니다.'},
+  relationship:{coordination:'태어난 날과 다른 출생 자리의 짝 관계가 겹침 없이 계산되면 두 위치의 연결 조건만 풀이합니다. 그 짝을 현실의 인연이나 결혼이 성립한다는 약속으로 바꾸지 않습니다.'},
+  year_2027:{
+   new_triad:'출생 당시 미완성이었던 세 자리 조합이 2027년의 새 글자로 완성된다면 전후의 구성 차이를 살펴볼 수 있습니다. 그 조합은 현실에서 좋은 일이 생긴다는 증거는 아닙니다.',
+   root_contrast:'출생 사주에서 같은 종류의 숨은 글자를 품은 두 자리가 계산되더라도 2027년의 글자와 직접 충을 맺는 위치는 따로 구별해야 합니다. 한 자리의 충만으로 다른 뿌리가 사라지거나 실제 운이 약해진다고 판단하지 않습니다.'
+  }
+ };
  const judgments={
   saju_core:'처음 해 보는 일을 맡을 때 무엇부터 확인하는지 설명합니다.',
   mbti_contradiction:'외부 표현과 내부 반응의 간격이 두 체계의 핵심 차이입니다.',
@@ -29,7 +43,7 @@ function mockReport(){
   year_2027_career:'2027년 일은 평소 역할에서 책임과 판단권이 달라지는지를 비교합니다.',
   year_2027_relationship:'2027년 관계는 기존 정보 공유와 시간 배분의 변화를 비교합니다.'
  };
- return {meta:{name:'',mbti:'모름',chart:{year:'甲子',month:'甲子',day:'甲子',hour:'甲子',calculationStatus:'complete'},targetYear:2027,versions:{ruleset:'test',prompt:'test',schema:'test'}},sections:Q.IDS.map((id,i)=>({id,title:'테스트 '+(i+1),mood:['confident','reflective','encouraging','cautious'][i%4],bodyTopics:Object.keys(require('./report-outline').topics[id]),bodyLabels:Object.keys(require('./report-outline').topics[id]).map((_,i)=>'검증 항목 '+i),body:Object.keys(require('./report-outline').topics[id]).map((topic,j)=>bodies[id].split(/(?<=다\.)\s+/)[j]||(topic==='root_contrast'?'태어난 날의 기준 글자를 받치는 숨은 글자가 두 출생 자리에 따로 계산될 수 있습니다. 2027년의 글자와 맞부딪히는 자리가 한 곳일 때 다른 출생 자리까지 같은 영향을 받는다고 볼 수는 없습니다. 사람의 힘이나 실제 결과를 판단한 것은 아닙니다.':topic+'에 관한 독립적인 해석입니다.')),keyJudgment:judgments[id],evidence:['검증된 계산 사실 '+i]})),cover:{headline:'선택을 확인하고 행동으로 옮기는 사람',description:'테스트용 개인별 요약 설명입니다.',keywords:['직접확인','실행력','의견표현'],highlights:['money','relationship','career'].map(id=>({sectionId:id,title:'선별 '+id,description:judgments[id]}))},finalJudgment:{headline:'다음 선택에 강점을 쓰세요',strengths:['확인하고 실행하는 선택'],watchouts:['다른 의견을 늦게 듣는 선택'],routines:[{trigger:'결정하기 전',action:'반대 의견 한 가지를 먼저 확인해보세요',reason:'누락된 정보를 찾는 데 도움이 됩니다'}],body:['전체 판단을 종합합니다.'],closingQuestion:'서로 다른 의견을 들은 뒤 판단하면 놓치기 쉬운 문제를 줄일 수 있습니다.',afterClosingText:''}}}
+ return {meta:{name:'',mbti:'모름',chart:{year:'甲子',month:'甲子',day:'甲子',hour:'甲子',calculationStatus:'complete'},targetYear:2027,versions:{ruleset:'test',prompt:'test',schema:'test'}},sections:Q.IDS.map((id,i)=>({id,title:'테스트 '+(i+1),mood:['confident','reflective','encouraging','cautious'][i%4],bodyTopics:Object.keys(require('./report-outline').topics[id]),bodyLabels:Object.keys(require('./report-outline').topics[id]).map((_,i)=>'검증 항목 '+i),body:Object.keys(require('./report-outline').topics[id]).map((topic,j)=>supplements[id]?.[topic]||bodies[id].split(/(?<=다\.)\s+/)[j]||('이 항목은 '+id+'의 '+topic+'에 관한 자료 점검을 위해 작성된 모의 문단입니다. 실제 개인의 과거 경험은 이 문장에서 주장하지 않습니다.')),keyJudgment:judgments[id],evidence:['검증된 계산 사실 '+i]})),cover:{headline:'선택을 확인하고 행동으로 옮기는 사람',description:'테스트용 개인별 요약 설명입니다.',keywords:['직접확인','실행력','의견표현'],highlights:['money','relationship','career'].map(id=>({sectionId:id,title:'선별 '+id,description:judgments[id]}))},finalJudgment:{headline:'다음 선택에 강점을 쓰세요',strengths:['확인하고 실행하는 선택'],watchouts:['다른 의견을 늦게 듣는 선택'],routines:[{trigger:'결정하기 전',action:'반대 의견 한 가지를 먼저 확인해보세요',reason:'누락된 정보를 찾는 데 도움이 됩니다'}],body:['전체 판단을 종합합니다.'],closingQuestion:'서로 다른 의견을 들은 뒤 판단하면 놓치기 쉬운 문제를 줄일 수 있습니다.',afterClosingText:''}}}
 
 assert.equal(Q.validate(mockReport()).pass,true,JSON.stringify(Q.validate(mockReport()).errors));
 const privateSourceOnly=mockReport();
