@@ -83,7 +83,8 @@ for(const sample of cases){
  assert.equal(draft.readerReasoning.conditionalScenarioUsesInventedWorkplaceOrPlay,false);
  assert.equal(draft.readerReasoning.branchLabelIsIndependentPaidInsight,false);
  assert.equal(draft.readerReasoning.rootObservationInReaderText,false);
- assert(draft.text.includes('반대로')||draft.text.includes('다만'));
+ assert(draft.text.includes('반대로')||draft.text.includes('같은 달에 태어나도'),
+  'the actual opposite classical condition must be described explicitly');
  assert(draft.readerReasoning.branchUncertainty.length>=40);
  assert(/판단|확정|검토|단정|결론/.test(draft.readerReasoning.branchUncertainty),
   'each competing chart fact must state why the full-chart order is unresolved');
