@@ -111,6 +111,14 @@ assert(estimated.readingSample.cards.some(x=>x.id==='birth-month'&&x.text.includ
 assert(estimated.readingSample.cards.some(x=>x.id==='annual-2027'&&x.text.includes('2027년')));
 assert.equal(estimated.catalog.chapterDefinitions,12);
 assert.equal(estimated.catalog.topicDefinitions,33);
+assert.equal(estimated.productProposal.kind,'chart-specific-evidence-scoped-product-proposal-v1');
+assert.equal(estimated.productProposal.plannedChapterCount,estimated.estimate.plannedChapters);
+assert.equal(estimated.productProposal.topicCandidateUpperBound,
+ estimated.estimate.evidenceEligibleTopicUpperBound);
+assert.equal(estimated.productProposal.paymentEnabled,false);
+assert.equal(estimated.productProposal.humanEditorialApproved,false);
+assert.equal(estimated.productProposal.fixed12ChaptersPromised,false);
+assert.equal(estimated.productProposal.fixed35TopicsPromised,false);
 assert(estimated.estimate.plannedChapters>=4);
 assert(estimated.estimate.evidenceEligibleTopicUpperBound<=22);
 assert.equal(estimated.estimate.chapters.reduce((n,ch)=>n+ch.eligibleTopics.length,0),
@@ -138,6 +146,13 @@ assert(servedUI.includes('현재 유료 구매와 정식 보고서 생성은 준
 assert(servedUI.includes('catalog.chapterDefinitions')&&servedUI.includes('catalog.topicDefinitions'),'HTTP UI must use actual scope counts');
 assert(!servedUI.includes('12개 장을 작성한 뒤'),'HTTP free-scope UI must not promise paid generation');
 assert(servedUI.includes('returnFromCoverageError'),'HTTP free-scope UI must allow failure recovery');
+assert(servedUI.includes('맞춤형 심화 풀이 구성안')&&
+ servedUI.includes('proposal.mainChapterCount')&&
+ servedUI.includes('proposal.conditionalChapterCount')&&
+ servedUI.includes('조건부 2027년 분야별')===false,
+ 'HTTP buyer-facing UI must render computed main and annual supplemental groups, not old fixed promises');
+assert(servedUI.includes('별도 계산 근거가 있는 2027년 추가 분야'),
+ 'conditional annual source group must be visible separately');
 assert(servedUI.includes('작성 후보 질문 보기')&&servedUI.includes('x.eligibleTopics.map'),
  'HTTP reader must render exact source-eligible questions rather than fabricated fixed 35 topics');
 assert(servedUI.includes('실제 출생정보에서 확인한 해석 근거')&&
