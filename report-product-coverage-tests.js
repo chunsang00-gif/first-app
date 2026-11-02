@@ -133,7 +133,7 @@ const names=['NODE_ENV','RENDER','PAID_CORE_DEPTH_V2',
    'the exact verified 丁 month-hidden to 丁 birth-hour visible relationship should be explained');
   assert(directLink.title.includes('다른 출생 자리에서 확인한 연결'),
    'the free preview must say source linkage, not promise a new personality interpretation');
-  assert(directLink.text.includes('정확히 확인됩니다'));
+  assert(directLink.text.includes('정확히 같은 글자로 확인됩니다'));
   assert(directLink.text.includes('역할과 승인·검수의 기준')&&
    directLink.text.includes('반복해서 들어갈 비용과 관리 자원'),
    'the actual 1994 chart exposes distinct authority and recurring-cost questions');
