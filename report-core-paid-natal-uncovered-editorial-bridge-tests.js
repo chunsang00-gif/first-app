@@ -60,11 +60,17 @@ for(const sample of cases){
  assert.equal(draft.ageAtTargetYear,young?3:38);
  assert.equal(draft.exampleIsNotObservedChildOrAdultBehavior,true);
  if(young){
-  assert(draft.readerReasoning.conditionalScenario.includes('아이가 새로운 놀이'));
+  assert(draft.readerReasoning.conditionalScenario.includes('원문의 새로운 정보는'));
+  assert(!/(?:가정해 보겠습니다|아이의 놀이|안전 약속|직장|새 프로젝트|관리 업무)/.test(draft.text),
+   'the reader must receive a classical difference, not a recycled lifestyle story');
   assert(!/(?:직장|직책|직업|급여|새 프로젝트|업무 성과|재물 능력)/.test(
    x.candidate.label+' '+x.candidate.text+' '+draft.label+' '+draft.text),
    'a three-year-old must not receive an adult occupation or income reading');
- }else assert(draft.readerReasoning.conditionalScenario.includes('새로운 관리 업무'));
+ }else {
+  assert(draft.readerReasoning.conditionalScenario.includes('원문의 새로운 정보는'));
+  assert(!/(?:관리 업무|새 프로젝트|권한과 지켜야 할 기준|가정해 보겠습니다)/.test(draft.text),
+   'adult chapter must explain what its exact birth positions change rather than invent a job scene');
+ }
  assert.equal(draft.releaseVerdict,'not-approved');
  assert.equal(draft.customerReady,false);
  assert.equal(draft.independentlyReviewed,false);
@@ -72,7 +78,11 @@ for(const sample of cases){
  assert.equal(draft.textualOrdering,sample.category==='bing-only-textual-change'?
   'responsibility-before-resources':'resources-before-responsibility');
  assert(draft.text.includes('고전의 해당 사례'));
- assert(draft.text.includes('가정해 보겠습니다'));
+ assert(draft.text.includes('원문의 새로운 정보는'));
+ assert(!draft.text.includes('가정해 보겠습니다'));
+ assert.equal(draft.readerReasoning.conditionalScenarioUsesInventedWorkplaceOrPlay,false);
+ assert.equal(draft.readerReasoning.branchLabelIsIndependentPaidInsight,false);
+ assert.equal(draft.readerReasoning.rootObservationInReaderText,false);
  assert(draft.text.includes('반대로')||draft.text.includes('다만'));
  assert(draft.readerReasoning.branchUncertainty.length>=40);
  assert(/판단|확정|검토|단정|결론/.test(draft.readerReasoning.branchUncertainty),
@@ -105,9 +115,18 @@ for(const sample of cases){
  else
   assert(reverse.includes('바탕 글자가 해·달·시간의 겉에 전혀 드러나지 않는다면'));
  assert(draft.text.includes(draft.readerReasoning.conditionalScenario));
- assert(draft.text.includes(draft.readerReasoning.rootObservation));
+ assert(!draft.text.includes(draft.readerReasoning.rootObservation));
+ assert(draft.readerReasoning.rootObservation.length>50,
+  'independent rooting calculations must remain available to editors, not padded into prose');
  assert(draft.text.includes(draft.readerReasoning.branchUncertainty));
  assert(draft.readerReasoning.rootObservation.includes('태어난 날의 기준'));
+ if(young){
+  assert.equal(context.branchEvidenceSourceOnly?.actualIndependentReaderConclusion,false);
+  assert.equal(context.branchEvidenceSourceOnly?.appendedToCustomerDraft,false);
+  assert.deepEqual(context.branchEvidenceSourceOnly?.sourceRefs,['facts.natalBranchRelations']);
+  assert(!x.candidate.text.includes('태어난 달과 날은 이웃한 두 자리입니다'));
+  assert(!x.candidate.sourceRefs.includes('facts.natalBranchRelations'));
+ }
  assert.equal(x.editorialComparison.kind,'qa-original-vs-revised-classical-reader-v1');
  assert.equal(x.editorialComparison.originalChars,x.candidate.text.length);
  assert.equal(x.editorialComparison.revisedChars,draft.text.length);
