@@ -1520,6 +1520,13 @@ function restoreEvidence(value,prompt){
         !b.refs.includes(actual.sourceRef))
       throw Error('AI report service general annual meaning lacks original yearly source: '+id+':'+topic);
     }
+    // A verified JSON basis is necessary but not sufficient for paid prose:
+    // reject annual paragraphs which explain neither the computed role nor
+    // the precise optional day-pair table they cite.
+    const proseGap=require('./report-paid-annual-reader-substance')
+     .inspect(p,id,topic,task);
+    if(proseGap)
+     throw Error('AI report service paid annual reader meaning missing: '+id+':'+topic+':'+proseGap);
     if(task.sourceOwnedAnnualRootContrast){
      const proof=task.sourceOwnedAnnualRootContrast;
      if(id!=='year_2027'||topic!=='root_contrast'||
