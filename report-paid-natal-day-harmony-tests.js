@@ -49,5 +49,5 @@ assert.doesNotThrow(()=>writer.restoreEvidence(response(para),prompt));
 const wrong=structuredClone(para);wrong.basis.condition='관계운이 좋아집니다.';
 assert.throws(()=>writer.restoreEvidence(response(wrong),prompt),/day harmony evidence missing/);
 const sourceSwap=structuredClone(para);sourceSwap.basis.refs=['natal.day.stem'];
-assert.throws(()=>writer.restoreEvidence(response(sourceSwap),prompt),/day harmony evidence missing|not permitted/);
+assert.throws(()=>writer.restoreEvidence(response(sourceSwap),prompt),/day harmony evidence missing|not permitted|unrelated paragraph basis/);
 console.log('PASS real chart day harmony evidence, strict source schema, rejected false condition; zero paid calls');
