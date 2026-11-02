@@ -30,6 +30,12 @@ const policy=policyParts.join('\n');
 const corePolicyPartIndexes=[0,1,2,4,5,6,7,8,9,10,12,16];
 const coreDepthExperimentalPolicy='개발용 선택 문단에 전달된 출생 해·날·시간의 추가 근거는 각각의 실제 글자와 전통적 의미에 한정한다. 기존 출생월 두 분류만 설명하는 strength를 반복하지 않는다. 새 근거로 사람의 실제 성격·적성·수입·미래를 단정하거나 합화·강약·격국 우선순위를 발명하지 않는다. 짝 관계는 paidCoreDepthV2.visiblePairCandidates의 원문 계산 표 대응만 확인한 것이며 실제 합쳐짐·좋고 나쁨·효과를 뜻하지 않는다. 출생 날과 시간에 짝 관계가 계산되어도 그 짝 자체를 무조건 본문에 넣지 않는다. 실제로 다른 해석의 질문을 뒷받침할 때에만 계산표의 후보라고 설명한다. 출생시간이 바뀌어 짝이나 달 속글자와 일치가 사라졌으면 관련 문장을 절대 재사용하지 않는다. paidCoreDepthV2.readerContrast가 있으면 월의 대표 속글자와 별도로 출생 해 또는 시간의 겉글자에서 확인된 또 다른 속글자에 대해, readerContrast.comparisonQuestion과 conditionIfMissingMain·conditionIfMissingNew를 이용해 서로 다른 조건을 구체적인 상황으로 설명한다. 단순한 위치 나열이나 직업·생활 일반 조언으로 분량을 채우지 않는다. 이는 실제 성격·경험의 확인이 아니라 전통 분류에 따른 가정 사례이므로 실제 결과를 단정하지 않는다. readerContrast와 readerAlternative, readerClassicalScope 모두 없거나 서로 다른 조건을 의미 있게 설명할 수 없다면 temperament는 null로 둔다. readerAlternative만 있다면 달 속글자가 다른 위치에 정확히 드러났다는 내용을 절대 만들지 않는다. readerClassicalScope가 있으면 정확한 출생일·시간 고전 상징 관계에 대한 제한적 보충으로만 사용하고, 실제 성격·성과·최종 격국의 증거로 사용하지 않는다.';
 const normalPaidMonthMethodBoundary="달의 겉글자가 기본 숨은 글자가 아닌 달의 다른 숨은 글자와 정확히 같을 때에는, 기본 숨은 글자가 실제 사령이나 해석의 최우선 기준이라고 단정하지 않는다. 반대로 다른 숨은 글자가 일치한다고 그것이 곧 우선한다고 결론내리지 않는다. evidenceFocus.tenGodFocus.monthStemVisibility는 오직 계산상 일치·불일치를 설명하는 자료이며 격국과 성격·능력을 검증한 뜻이 아니다. 유료 첫 장의 basis.limit에는 이 판단 한계를 내부적으로 남기고 독자 본문에서 기술 용어를 반복하지 않는다.";
+// Real 2027 release remains blocked. For the existing, source-owned
+// production Saju core, a verifiable interpretation from two month positions
+// takes precedence over obsolete fixed "one workplace scene" requests.
+// QA5/QA6, QA natal-depth and explicitly authorized development V2 keep
+// their pinned writer policy and source schemas unchanged.
+const normalCoreMeaningPriority='일반 유료 첫 장의 필수 strength 작성에서는 task.chapters.saju_core.topics.strength.sourceOwnedCoreReaderValue가 가장 구체적인 독자용 작성 지침이다. 기존 상위 문구의 가상 직장 사례·두 조건의 기계적 장단점 요구보다 이 명식의 월간과 달의 중심 속글자에서 확인한 실제 두 전통 분류의 뜻·오행 관계를 우선한다. 서로 다른 뜻이면 한쪽 뜻만 읽을 때 빠지는 해석 범위를 직접 말하고, 같으면 같은 뜻이 두 출처에 있는 이유만 설명한다. 글자 이름을 나열하거나 직업·부품·납품·인수인계 등의 고정 사례를 만들지 않는다. 실제로 검증된 독립 해석 없이 가상의 도움·손해·성취를 억지로 채우지 않는다. 가상 상황은 독자가 이 구분을 이해하는 데 필요할 때만 짧게 사용한다. 상위 정책의 실제 성격·능력·사건 금지, 인용 출처·월 중심 우선순위 미확정 원칙은 그대로 지킨다.';
 const additivePolicy='선택형 QA: temperament는 일반 유료 첫 장처럼 독립적 근거가 있을 때만 작성하고 strength는 필수로 유지한다. natal_depth는 선택 항목이며 새로운 개인별 판단 근거가 없으면 null로 반환한다. 고전이나 계산 정보의 일치 자체를 실제 성격 또는 미래 결과로 단정하지 않는다.';
 function policyFor(prompt){
  if(prompt?.stage==='body'&&
@@ -46,7 +52,10 @@ function policyFor(prompt){
   );
   const baseline=parts.join('\n')+
    (prompt.qaNatalDepthPreview===true?'':'\n'+normalPaidMonthMethodBoundary)+
-   (prompt.paidCoreDepthV2===true?'\n'+coreDepthExperimentalPolicy:'');
+   (prompt.paidCoreDepthV2===true?'\n'+coreDepthExperimentalPolicy:'')+
+   (prompt.qaNatalDepthPreview!==true&&prompt.paidCoreDepthV2!==true&&
+    prompt.qaAdditiveDepthPreview!==true&&
+    prompt.qaOfflineEditorialResearchPreview!==true?'\n'+normalCoreMeaningPriority:'');
   const qa6=require('./report-qa6-required-research-slot');
   return baseline+(require('./report-paid-core-v2-classical-provider-bridge')
    .enabled(prompt)?(qa6.enabled(prompt)?
@@ -55,8 +64,15 @@ function policyFor(prompt){
     '가상의 업무 장면이나 두 누락 조건을 보태지 않는다. ' +
     '실제 합화·방법 우선순위·개인 성격·재물 결과를 단정하지 않으며, 검증 근거를 모두 설명할 수 없으면 null로 둔다.'):'');
  }
+ const isNormalCore=prompt?.stage==='body'&&
+  prompt?.requestedSections?.includes('saju_core')&&
+  prompt.qaNatalDepthPreview!==true&&
+  prompt.paidCoreDepthV2!==true&&
+  prompt.qaAdditiveDepthPreview!==true&&
+  prompt.qaOfflineEditorialResearchPreview!==true;
  return policy+(prompt?.stage==='body'&&prompt?.requestedSections?.includes('saju_core')&&
-  prompt.qaNatalDepthPreview!==true?'\n'+normalPaidMonthMethodBoundary:'');
+  prompt.qaNatalDepthPreview!==true?'\n'+normalPaidMonthMethodBoundary:'')+
+  (isNormalCore?'\n'+normalCoreMeaningPriority:'');
 }
 // MBTI was present in money/work/relationship depth goals but the strict
 // writer schema did not permit those chapters to cite the actual MBTI input.
