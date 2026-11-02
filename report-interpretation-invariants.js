@@ -175,6 +175,24 @@ function verify(packet,plan){
        task.sourceOwnedPreference?.computedCondition!==truth?.computedCondition)
      errors.push('mbti-preference-source-mismatch:'+topic);
    }
+   if(chapterId==='relationship'&&topic==='coordination'){
+    const truth=require('./report-paid-natal-day-harmony').candidate(packet);
+    if(task.mode!==(truth?'use-primary':'state-limits')||
+       task.evidencePresent!==Boolean(truth)||
+       !same(task.allowedSourceRefs,truth?truth.sourceRefs:[])||
+       !same(task.verifiedFallbackPaths,[])||
+       task.sourceOwnedDayHarmony?.computedCondition!==truth?.computedCondition)
+      errors.push('natal-day-harmony-source-mismatch');
+   }
+   if(chapterId==='year_2027'&&topic==='new_triad'){
+    const truth=require('./report-paid-annual-triad').candidate(packet);
+    if(task.mode!==(truth?'use-primary':'state-limits')||
+       task.evidencePresent!==Boolean(truth)||
+       !same(task.allowedSourceRefs,truth?truth.sourceRefs:[])||
+       !same(task.verifiedFallbackPaths,[])||
+       task.sourceOwnedAnnualTriad?.computedCondition!==truth?.computedCondition)
+      errors.push('annual-triad-source-mismatch');
+   }
    if(task.mode==='state-limits'){
     if(task.evidencePresent)errors.push('unsupported-topic-has-evidence:'+chapterId+':'+topic);
     if(task.evidenceReuseBoundary)errors.push('blocked-topic-owns-calculation-source:'+chapterId+':'+topic);
@@ -186,7 +204,9 @@ function verify(packet,plan){
      ...(require('./report-paid-career-decade-reading').candidate(packet)?
       ['fortune.activeDecade']:[]),
      'facts.targetYearBranchContext.annualContext.day',
-     ...(Array.isArray(packet.facts?.natalClashes)?['facts.natalClashes']:[])]);
+     ...(Array.isArray(packet.facts?.natalClashes)?['facts.natalClashes']:[]),
+     ...(require('./report-paid-natal-day-harmony').candidate(packet)?['facts.natalBranchRelations']:[]),
+     ...(require('./report-paid-annual-triad').candidate(packet)?['facts.targetYearBranchRelations']:[])]);
     const missing=task.allowedSourceRefs.filter(id=>!permitted.has(id)||
       (id==='facts.targetYearBranchContext.annualContext.day'&&!dayContext));
     if(missing.length)errors.push('unresolved-source-ids:'+chapterId+':'+topic);
