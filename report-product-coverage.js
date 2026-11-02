@@ -150,6 +150,7 @@ function calculate(input){
     JSON.stringify(Object.keys(outline.topics[id]))))
   throw Error('PRODUCT_COVERAGE_CONTRACT_DRIFT');
  const planned=new Set(choice.plannedIds);
+ const productProposal=require('./report-adaptive-product-proposal').build(blueprint,choice);
  const interpretivePreviews=independentDomainReadings(packet,blueprint,planned);
  const chapters=expected.map(id=>{
   const entries=Object.keys(outline.topics[id]);
@@ -178,13 +179,16 @@ function calculate(input){
  const selectedDefined=chapters.filter(x=>x.includedInPlan)
   .reduce((n,x)=>n+x.definedTopicSlots,0);
  const eligible=chapters.reduce((n,x)=>n+x.eligibleTopicUpperBound,0);
+ if(productProposal.topicCandidateUpperBound!==eligible||
+    productProposal.plannedChapterCount!==choice.plannedIds.length)
+  throw Error('PRODUCT_PROPOSAL_AND_PAID_PLAN_MISMATCH');
  if(eligible>selectedDefined||selectedDefined>currentDefined||
     choice.plannedIds.length!==chapters.filter(x=>x.includedInPlan).length||
     chapters.some(c=>c.eligibleTopics.length!==c.eligibleTopicUpperBound))
   throw Error('PRODUCT_COVERAGE_COUNT_MISMATCH');
  return {
   status:'ready',kind:'prepurchase-report-scope-v1',
-  readingSample,interpretivePreviews,
+  readingSample,interpretivePreviews,productProposal,
   catalog:{chapterDefinitions:expected.length,topicDefinitions:currentDefined,
    originallyPlannedTopics:35},
   estimate:{plannedChapters:choice.plannedIds.length,
@@ -197,13 +201,14 @@ function calculate(input){
    chapters,
    canAttemptGeneration:choice.canGenerate,
    eligibilityIssues:choice.issues.slice()},
-  notice:'이 입력에서 12개 장 중 '+choice.plannedIds.length+
-   '개 장만 계산 근거에 따라 선택되며, 목표 35개 항목 중 최대 '+eligible+
-   '개만 작성 후보입니다. 이는 실제 생성되거나 품질 검수를 통과한 문단 수가 아닙니다.',
+  notice:'이 출생정보에서는 기본 해석 '+productProposal.mainChapterCount+
+   '개 장과 조건부 2027년 분야별 해석 '+productProposal.conditionalChapterCount+
+   '개 장이 선택됐습니다. 세부 항목은 최대 '+eligible+
+   '개가 작성 후보이며 실제 완성·품질 승인된 문단 수는 아닙니다.',
   limitations:[
    '항목마다 독립적인 풀이가 가능한지는 실제 작성·검증 후에만 확정됩니다.',
    '근거가 약하거나 다른 항목과 중복되면 해당 문단이 생략될 수 있습니다.',
-   '현재 12장·35항목 고정 제공은 검증되지 않았습니다.'
+   '기존 12장·35항목 고정 제공 목표는 현재 상품 약속에 사용할 수 없습니다. 실제 구성과 가격은 미확정입니다.'
   ],
   purchaseEnabled:false,
   paymentVerificationAvailable:false,
