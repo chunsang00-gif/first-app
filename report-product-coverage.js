@@ -169,7 +169,10 @@ function calculate(input){
    definedTopicSlots:entries.length,
    eligibleTopicUpperBound:active.length,
    eligibleTopics,
-   omittedReason:selected?null:WHY[omitted?.reason]||'독립적인 근거가 부족합니다.'};
+   omittedReason:selected?null:
+    (omitted?.reason==='no-direct-annual-domain-evidence'?
+     require('./report-annual-domain-omission').explain(packet,id):null)||
+    WHY[omitted?.reason]||'독립적인 근거가 부족합니다.'};
  });
  const currentDefined=chapters.reduce((n,x)=>n+x.definedTopicSlots,0);
  const selectedDefined=chapters.filter(x=>x.includedInPlan)
