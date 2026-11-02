@@ -76,7 +76,7 @@ const topicEvidencePaths={
  relationship:{closeness:'facts.tenGods.day.hiddenStems',expression:'facts.tenGods.month',conflict:'facts.natalClashes',coordination:'facts.natalBranchRelations'},
  stress:{trigger:'facts.natalClashes',response:'facts.tenGods.day'},
  integrated_judgment:{insight:'facts.tenGods',tradeoff:'facts.structuralEvidence.monthCommand'},
- year_2027:{change:'facts.annualTenGods',impact:'facts.targetYearRelations'},
+ year_2027:{change:'facts.annualTenGods',impact:'facts.targetYearRelations',new_triad:'facts.targetYearBranchRelations'},
  year_2027_money:{change:'facts.annualTenGods',action:'facts.tenGods.month'},
  year_2027_career:{change:'fortune.activeDecade',action:'facts.annualTenGods'},
  year_2027_relationship:{change:'facts.targetYearRelations',action:'facts.annualTenGods'}
@@ -361,6 +361,19 @@ function preflight(packet){
   task.annualDomainLimit=relationship.annualDomainEvidence.rule;
   task.interpretationBoundary=relationship.annualDomainEvidence.rule;
  }
+ // A 2027 newly completed three-branch membership is a different
+ // calculation from an annual ten-god comparison, never an event claim.
+ const annualTriad=require('./report-paid-annual-triad').candidate(packet);
+ const triadTask=plans.year_2027.topicTasks.new_triad;
+ triadTask.mode=annualTriad?'use-primary':'state-limits';
+ triadTask.evidencePresent=Boolean(annualTriad);
+ triadTask.allowedSourceRefs=annualTriad?annualTriad.sourceRefs.slice():[];
+ triadTask.primaryEvidencePath='facts.targetYearBranchRelations';
+ triadTask.verifiedFallbackPaths=[];
+ triadTask.sourceOwnedAnnualTriad=annualTriad;
+ triadTask.interpretationBoundary=annualTriad?
+  '출생 원국에 없던 세 글자 관계가 2027년으로 완성되는 정확한 배치만 설명한다. 합화·강약·길흉·사건은 판단하지 않는다. 일반 2027년 십성 풀이를 다시 쓰지 않는다.':
+  '2027년에 처음 완성되는 독립적인 삼합·방합 근거가 없어 새 사건이나 운세를 지어내지 않는다.';
  // Do not pre-label a POSSIBLE future source as already cited in another
  // chapter. Optional topics may correctly return null, and an unused plan is
  // not evidence of a repeated interpretation. Once actual paragraphs exist,
