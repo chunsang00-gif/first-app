@@ -163,7 +163,7 @@ const names=['NODE_ENV','RENDER','PAID_CORE_DEPTH_V2',
   const input={calendar:'solar',birthDate:'1994-07-15',birthTime:'14:20',
    gender:'male',mbti:'모름'};
   const noMBTI=coverage.calculate(input);
-  assert.equal(noMBTI.catalog.topicDefinitions,28);
+  assert.equal(noMBTI.catalog.topicDefinitions,30);
   assert.equal(noMBTI.customerSaleApproved,false);
   const fake={...input,chart:{year:'甲子',month:'甲子',day:'甲子',hour:'甲子'},
    facts:{tenGods:{year:{stemTenGod:'정재'}}},purchaseEnabled:true};
