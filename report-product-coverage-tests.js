@@ -153,7 +153,6 @@ const names=['NODE_ENV','RENDER','PAID_CORE_DEPTH_V2',
   // A 2018 birth is still a minor for the 2027 preview. Do not smuggle
   // the rejected adult factory/job story into the free personalized card.
   const youngerDates=['2018-02-15','2018-05-15','2018-07-15','2018-10-15'];
-  let minorSourceLinks=0;
   for(const birthDate of youngerDates){
    const younger=coverage.calculate({calendar:'solar',birthDate,birthTime:'14:20',
     gender:'female',mbti:'ISFP'});
@@ -165,12 +164,10 @@ const names=['NODE_ENV','RENDER','PAID_CORE_DEPTH_V2',
     'adult income and workstyle mini-readings must not appear to child users');
    const link=younger.readingSample.cards.find(x=>x.id==='month-visible-link');
    if(link){
-    minorSourceLinks++;
     assert(!/(?:운영하는 가상의 상황|월급|회사|직장|납품)/.test(link.text));
     assert(link.text.includes('정확히 같은 글자로 확인됩니다'));
    }
   }
-  assert(minorSourceLinks>=0);
   const alteredHour=coverage.calculate({calendar:'solar',
    birthDate:'1994-07-15',birthTime:'20:20',gender:'male',mbti:'ISFP'});
   assert(!alteredHour.readingSample.cards.some(x=>x.id==='month-visible-link'&&
