@@ -298,6 +298,23 @@ function compile(prompt){
     if(coreContrast&&topicId!=='natal_depth')
      topic.evidenceFocus=require('./report-chart-contrast').forProvider(
        coreContrast,topicId,permitted,prompt.qaNatalDepthPreview!==true);
+    // Ordinary consumer paid writer only. All previously approved one-call
+    // QA payloads and development-only V2 requests remain byte-untouched.
+    // Replace the forced stock-life-scene prompt with the verified original
+    // month interpretation: what the second real category adds to the first.
+    if(chapterId==='saju_core'&&topicId==='strength'&&
+       prompt.paidCoreDepthV2!==true&&
+       prompt.qaNatalDepthPreview!==true&&
+       prompt.qaAdditiveDepthPreview!==true&&
+       prompt.qaOfflineEditorialResearchPreview!==true){
+     const plan=require('./report-paid-core-reader-value-plan')
+      .build(prompt.facts,topic.evidenceFocus,permitted,source);
+     if(!plan)throw Error('PAID_CORE_READER_VALUE_PLAN_UNAVAILABLE');
+     topic.sourceOwnedCoreReaderValue=plan;
+     topic.evidenceFocus.readerReasoning.hypotheticalQuestion=
+      '가상의 업무 장면을 의무적으로 만들지 않는다. '+plan.readerTakeaway+
+      ' 실제 출생월의 두 의미와 오행 관계를 독자 자신의 삶을 관찰한 사실처럼 말하지 않는다.';
+    }
     if(topicId==='natal_depth'){
      if(prompt.qaNatalDepthPreview!==true||chapterId!=='saju_core'||
         topic.mode!=='use-primary'||permitted.length<5||
@@ -608,6 +625,24 @@ function schema(prompt,transport){
       '이 질문에 추가되는 독립적인 출생 근거 또는 명확히 다른 전통적 의미가 없으면 '+
       '선택 문단은 null로 두고, 필수 문단은 근거의 한계만 정확히 밝힌다.';
     }
+   }
+   if(task.sourceOwnedCoreReaderValue){
+    const plan=task.sourceOwnedCoreReaderValue;
+    const actual=require('./report-paid-core-reader-value-plan')
+     .build(prompt.facts,task.evidenceFocus,permitted,payload.source);
+    if(chapterId!=='saju_core'||topic!=='strength'||!actual||
+       JSON.stringify(plan)!==JSON.stringify(actual)||
+       plan.refs.some(x=>!permitted.includes(x))||
+       plan.noInventedHistory!==true||plan.noUnverifiedPersonalTrait!==true||
+       plan.additionalTopic!==false||plan.professionalReviewComplete!==false)
+     throw Error('PAID_CORE_READER_VALUE_PLAN_SOURCE_DRIFT');
+    p.properties.text.description+=' 이 명식의 첫 장에서 실제로 새로 설명할 내용: '+
+     plan.script+' 계산 출처 두 자리의 차이와 전통적 뜻을 자연스러운 한국어로 풀어 쓴다. '+
+     '월간과 달 중심 숨은 글자의 이름만 나열하거나 거짓 성격 반전을 만들지 않는다. '+
+     '아무 직업·사업·학교 생활을 실제로 경험했다고 추측하지 않는다. '+
+     '정해진 가상 업무 이야기는 작성 의무가 아니다. ';
+    basis.properties.refs.description+=' 이 명식의 필수 실제 두 출처: '+
+     plan.refs.join(' / ')+'.';
    }
    if(task.sourceOwnedMbtiDimension){
     const proof=task.sourceOwnedMbtiDimension;
