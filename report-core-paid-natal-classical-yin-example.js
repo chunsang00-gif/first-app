@@ -102,6 +102,42 @@ function inspect(packet){
  };
 }
 
+// An exact source-table collision can change what the reader may NOT infer
+// from one classical example. Same pair, two table LABELS, not two proven
+// forces or events. No universal branch precedence is adopted here.
+function exactMonthDayPairContext(packet){
+ const measured=require('./report-core-paid-natal-month-method-review').assess(packet);
+ const counts=measured.observed.natalRelationsTouchingMonth.relationshipCardinality;
+ const matching=counts.uniquePairContacts.filter(c=>
+  c.monthPosition==='month'&&c.otherPosition==='day'&&
+  c.branches==='寅亥'&&
+  c.tableLabels.length===2&&
+  new Set(c.tableLabels).size===2&&
+  c.tableLabels.includes('육합')&&c.tableLabels.includes('파'));
+ if(matching.length>1)throw Error('QA_CLASSICAL_PAIR_DUPLICATED_SOURCE_CONTACT');
+ if(matching.length===0)return null;
+ const c=matching[0];
+ if(counts.multipleLabelsOnSamePair.filter(x=>
+     x.otherPosition==='day'&&x.branches==='寅亥').length!==1||
+    counts.independentPairContactCount<1||
+    !packet.facts.natalBranchRelations.pairs.some(x=>
+     x.positions.includes('month')&&x.positions.includes('day')&&
+     x.branches==='寅亥'&&x.type==='육합')||
+    !packet.facts.natalBranchRelations.pairs.some(x=>
+     x.positions.includes('month')&&x.positions.includes('day')&&
+     x.branches==='寅亥'&&x.type==='파'))
+  throw Error('QA_CLASSICAL_MONTH_DAY_PAIR_EVIDENCE_DRIFT');
+ return Object.freeze({
+  kind:'same-month-day-pair-two-branch-table-labels-v1',
+  monthPosition:'month',otherPosition:'day',
+  sourceRefs:['facts.natalBranchRelations'],
+  labels:c.tableLabels.slice(),tableLabelCount:2,
+  distinctPhysicalContactsForThisPair:1,
+  realizedCombination:false,realizedBreakage:false,
+  relativePriority:'not-assessed',approvedForPaid:false,
+  readerText:'이 출생 자료에서는 태어난 달과 날 사이의 같은 두 자리에 관계표의 이름이 두 가지 붙어 있습니다. 이것은 별개 사건이 두 번 생겼다는 뜻도, 어느 관계가 더 강하다는 판정도 아닙니다. 따라서 앞에서 설명한 고전의 중심·보조 구분을 출생 전체에서 확정된 결과로 넓혀서는 안 됩니다.'
+ });
+}
 // Single narrowly curated reader example for an INTERNAL offline editorial
 // comparison. Not a generalized natal generator, paid report, or prediction.
 // Only the explicit YEAR-Jia / MONTH-Bing / DAY-Xin / MONTH-Yin configuration
@@ -132,12 +168,18 @@ function offlineReaderCandidate(packet){
  const text=target.child?
   '이 아이의 출생 자료에서 태어난 달에는 필요한 자원을 마련하고 다루는 뜻과 규칙·책임을 살피는 뜻이 함께 들어 있습니다. 둘을 나열하기만 해서는 어느 쪽을 먼저 읽는지 알 수 없습니다. 달에서 가장 기본이 되는 글자가 태어난 해에도 나타나고, 책임을 나타내는 다른 글자는 태어난 달의 겉에도 나타납니다. 이 두 조건이 함께 성립한 경우, 이 고전은 자원에 관한 뜻을 중심에 두고 책임에 관한 뜻을 곁들입니다. 달의 기본 글자는 드러나지 않고 책임을 뜻하는 글자만 드러나 해석의 출발점이 바뀌는 다른 사례와 구별됩니다. 따라서 먼저 살필 것은 이 글이 나타내는 준비와 자원의 의미이고, 그다음은 함께 등장한 역할과 기준의 의미입니다. 아이가 실제로 물건을 잘 관리하거나 약속을 잘 지킨다는 평가가 아닙니다. 성장 과정이나 앞으로의 생활을 예언하는 뜻도 아니며, 다른 출생 자리까지 종합한 최종 판단은 아직 이루어지지 않았습니다.':
   '이 사주를 고전의 한 방식으로 읽을 때는 맡을 역할보다 먼저 그 역할과 연결된 자원의 뜻을 살펴봅니다. 태어난 달에서 가장 기본이 되는 글자는 태어난 해에도 드러나 자원을 다루는 전통 분류로 확인됩니다. 같은 달에 드러난 다른 글자는 규칙과 책임을 살피는 분류입니다. 그래서 이 고전의 해당 사례는 자원에 관한 뜻을 중심에 두고 책임에 관한 뜻을 곁들입니다. 달의 기본 글자가 전혀 드러나지 않고 책임 쪽 글자만 드러난 경우라면 이 고전의 다른 예시에서는 해석의 출발점 자체가 바뀝니다. 이 출생 자료는 그 반대 조건에 해당하지 않으므로 두 설명을 섞어 어느 쪽이 더 강한 사람인지 말할 수 없습니다. 이 풀이가 추가로 보여 주는 것은 자원과 역할의 두 의미를 나열하는 것이 아니라 왜 첫 질문을 자원 쪽에서 시작하는지에 대한 조건입니다. 실제로 돈을 잘 모으거나 직장에서 인정받는다는 결론은 아닙니다. 전체 출생 관계의 최종 우선순위도 승인된 것은 아닙니다.';
+ const monthDayPair=exactMonthDayPairContext(packet);
+ const finalText=text+(monthDayPair?' '+monthDayPair.readerText:'');
+ if(require('./report-reader-policy').errors([label,finalText]).length)
+  throw Error('QA_CLASSICAL_READER_BRANCH_CONTEXT_JARGON');
  return {
   kind:'qa-classical-natal-reader-candidate-v1',
   calculatedChart:packet.chart,
-  label,text,audience:target.audience,ageAtTargetYear:target.ageAtTargetYear,
+  label,text:finalText,audience:target.audience,ageAtTargetYear:target.ageAtTargetYear,
+  monthDayPairContext:monthDayPair,
   hypotheticalExampleNotObservedBehavior:true,
-  sourceRefs:Object.keys(expected),
+  sourceRefs:[...Object.keys(expected),
+   ...(monthDayPair?monthDayPair.sourceRefs:[])],
   textualRule:'xin-yin-jia-and-bing-both-exposed; primary wealth, supplementary authority',
   cause:'month-main-Jia-and-additional-Bing-visible-not-element-arrow',
   otherBranchEffects:'not-assessed',
