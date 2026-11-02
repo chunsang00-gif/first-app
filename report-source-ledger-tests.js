@@ -95,4 +95,39 @@ assert.deepEqual(annualReused.map(x=>x.path),['annual.stem','annual.hidden.己']
  'following yearly chapters must see actually cited annual rows and prior conclusions');
 assert(annualReused.every(x=>x.previousConclusion.includes('자료를 확인한 다음')),
  'do not lose the original meaning when transmitting an annual reused fact');
+// The three new premium questions cite computed fact LEDGERS rather than
+// single natal symbols. Their actual, restored citations must reach the
+// following batch's evidence-reuse warning, not merely its planning map.
+const composite={id:'year_2027',bodyTopics:['new_triad','root_contrast'],
+ topicConclusions:['세 지지 조합이 2027년에 완성됩니다.','2027년에 한 뿌리 위치만 충을 맺습니다.'],
+ evidence:[
+  'new_triad: facts.targetYearBranchRelations / 해석: 새로 완성되는 세 자리 / 조건: 출생 시 미완성 / 한계: 합화 미판정',
+  'root_contrast: facts.rootConditions / 해석: 별도 뿌리와 충 위치 / 조건: 서로 다른 출생 위치 / 한계: 강약 미판정'
+ ]};
+assert.deepEqual(ledger.usedPaths(composite,'new_triad'),['facts.targetYearBranchRelations']);
+assert.deepEqual(ledger.usedPaths(composite,'root_contrast'),['facts.rootConditions']);
+const newBlueprint={
+ year_2027:{topicTasks:{
+  new_triad:{mode:'use-primary',allowedSourceRefs:['facts.targetYearBranchRelations']},
+  root_contrast:{mode:'use-primary',allowedSourceRefs:['facts.rootConditions']},
+  impact:{mode:'use-primary',allowedSourceRefs:['facts.targetYearBranchRelations','facts.rootConditions']}
+ }},
+ relationship:{topicTasks:{
+  coordination:{mode:'use-primary',allowedSourceRefs:['facts.natalBranchRelations']}
+ }}
+};
+const reuse=ledger.reusedBefore(['year_2027'],newBlueprint,[composite]);
+assert.deepEqual(reuse.map(x=>x.path),['facts.targetYearBranchRelations','facts.rootConditions'],
+ 'a subsequent annual paragraph must see both actual branch/root citations');
+assert(reuse[0].previousConclusion.includes('세 지지')&&
+ reuse[1].previousConclusion.includes('뿌리 위치'),
+ 'the right topic-level prior conclusion must follow each actual source');
+assert.deepEqual(ledger.reusedBefore(['relationship'],newBlueprint,[composite]),[],
+ 'natal day harmony must not inherit unrelated annual grouping or roots');
+const natalCited={id:'relationship',bodyTopics:['coordination'],
+ topicConclusions:['태어난 날과 다른 자리 사이 육합 관계를 읽습니다.'],
+ evidence:['coordination: facts.natalBranchRelations / 해석: 출생일 육합 / 조건: 다른 출생 위치 / 한계: 실제 관계 모름']};
+assert.deepEqual(ledger.usedPaths(natalCited,'coordination'),['facts.natalBranchRelations']);
+assert.equal(ledger.reusedBefore(['relationship'],newBlueprint,[natalCited])[0]?.path,
+ 'facts.natalBranchRelations');
 console.log('PASS real citation provenance ledger, no unused/fabricated source ownership, no paid API');
