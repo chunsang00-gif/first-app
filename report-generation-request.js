@@ -142,6 +142,12 @@ function sources(prompt){
    }else result[path]=value;
   }
  }
+ if(prompt.stage==='body'&&prompt.requestedSections?.includes('year_2027')&&
+    prompt.analysisGuidance?.editorialBlueprint?.year_2027?.topicTasks?.new_triad?.mode==='use-primary'){
+  if(!p?.facts?.targetYearBranchRelations)
+   throw Error('PAID_ANNUAL_TRIAD_SOURCE_NOT_FOUND');
+  result['facts.targetYearBranchRelations']=p.facts.targetYearBranchRelations;
+ }
  // Only the optional QA natal-depth topic may cite independently checked
  // natal relation facts. The normal paid first chapter remains month-only.
  if(prompt.stage==='body'&&prompt.requestedSections?.includes('relationship')&&
@@ -401,6 +407,15 @@ function compile(prompt){
         !Object.hasOwn(source,'facts.natalBranchRelations'))
       throw Error('PAID_DAY_HARMONY_SOURCE_NOT_GROUNDED');
      topic.sourceOwnedDayHarmony=verified;
+    }
+    if(chapterId==='year_2027'&&topicId==='new_triad'&&topic.mode!=='state-limits'){
+     const verified=require('./report-paid-annual-triad').candidate(prompt.facts);
+     if(!verified||JSON.stringify(verified.sourceRefs)!==
+        JSON.stringify(topic.allowedSourceRefs)||
+        !permitted.includes('facts.targetYearBranchRelations')||
+        !Object.hasOwn(source,'facts.targetYearBranchRelations'))
+      throw Error('PAID_ANNUAL_TRIAD_SOURCE_NOT_GROUNDED');
+     topic.sourceOwnedAnnualTriad=verified;
     }
     // Only annual money/career CHANGE topics with an exact verified pair
     // get an extra paid interpretation. This is not a new paid model call.
@@ -860,6 +875,22 @@ function schema(prompt,transport){
       ' 충').join('; ')+
      '. 가상의 관계에서 두 서로 다른 요구가 만났을 때를 설명하되 이는 실제 대인갈등의 발생이 아니다. '+
      '사람의 성향, 상대의 성격, 이별·관계 실패를 예언하거나 다른 장의 친밀감·표현 해석을 반복하지 않는다.';
+   }
+   if(task.sourceOwnedAnnualTriad){
+    const proof=task.sourceOwnedAnnualTriad;
+    const verified=require('./report-paid-annual-triad').candidate(prompt.facts);
+    if(chapterId!=='year_2027'||topic!=='new_triad'||!verified||
+       JSON.stringify(proof)!==JSON.stringify(verified)||
+       JSON.stringify(permitted)!=='["facts.targetYearBranchRelations"]'||
+       !payload.source['facts.targetYearBranchRelations']||
+       proof.transformed!==false||proof.futureEventPredicted!==false)
+      throw Error('PAID_ANNUAL_TRIAD_SCHEMA_SOURCE_DRIFT');
+    basis.properties.condition.enum=[proof.computedCondition];
+    p.properties.text.description+=
+     ' 2027년에 새로 완성된 조합만의 별도 질문: '+proof.readerQuestion+
+     ' 완성된 세 글자: '+proof.groupBranches+'('+proof.groupType+')'+
+     '. 실제 합화·길흉·수입·직업·연애를 예고하지 않는다. '+
+     '일반적인 2027년 십성 해석을 반복하면 null로 반환한다.';
    }
    if(task.sourceOwnedDayHarmony){
     const proof=task.sourceOwnedDayHarmony;
@@ -1361,6 +1392,15 @@ function restoreEvidence(value,prompt){
         JSON.stringify(b.refs)!=='["person.mbti"]'||
         b.condition!==proof.computedCondition)
       throw Error('AI report service entered MBTI dimension evidence missing: '+id+':'+topic);
+    }
+    if(task.sourceOwnedAnnualTriad){
+     const proof=task.sourceOwnedAnnualTriad;
+     if(id!=='year_2027'||topic!=='new_triad'||
+        proof.kind!=='verified-annual-new-triad-membership-question-v1'||
+        proof.transformed!==false||proof.futureEventPredicted!==false||
+        JSON.stringify(b.refs)!=='["facts.targetYearBranchRelations"]'||
+        b.condition!==proof.computedCondition)
+      throw Error('AI report service annual triad evidence missing: '+id+':'+topic);
     }
     if(task.sourceOwnedDayHarmony){
      const proof=task.sourceOwnedDayHarmony;
