@@ -163,6 +163,25 @@ function bodyResponse(p,strict,kind){
        chapter.topics.strength.evidenceFocus.tenGodFocus.monthMainHidden.tenGod
       ]):'')};
    }
+   // Synthetic protocol fixtures must satisfy the SAME semantic source
+   // constraints as the real paid writer, not merely cite an enum.
+   if(id==='year_2027'&&topic==='change'&&paragraphs[topic]){
+    const god=chapter.topics.change?.sourceOwnedAnnualIntegratedScope?.annualGod;
+    const meaning={비견:'자기 몫과 맡을 역할',겁재:'경쟁과 역할 분담',
+     식신:'결과물을 만드는 일',상관:'기존 방법을 바꾸는 제안',
+     정재:'돈과 자원 관리',편재:'외부 자원의 활용',
+     정관:'규칙과 정해진 책임',편관:'뜻밖의 요구와 압박',
+     정인:'배움과 도움',편인:'낯선 자료를 이해하는 방식'};
+    if(god&&meaning[god])
+     paragraphs[topic].text='2027년의 겉글자는 '+meaning[god]+
+      '이라는 전통적 뜻을 설명합니다. '+paragraphs[topic].text;
+   }
+   if(id==='year_2027'&&topic==='impact'&&paragraphs[topic]&&
+      chapter.topics.impact?.sourceOwnedAnnualDayContext?.mode==='secondary-table-only')
+    paragraphs[topic].text=
+     '2027년의 지지와 태어난 날의 지지가 맞물리는 부수적인 관계표가 계산됐습니다. '+
+     '그 관계만으로 실제 인간관계에서 다툼이나 결혼이 생긴다고 판단할 수 없습니다. '+
+     paragraphs[topic].text;
   }
   const chapterSchema=strict.properties.chapters.properties[id].properties;
   chapters[id]={title:chapterSchema.title.enum?.[0]||nouns[id]+' 검토',
