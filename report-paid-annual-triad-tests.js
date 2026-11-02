@@ -34,6 +34,8 @@ for(let year=1980;year<=2006&&!actual;year+=2)for(const month of [1,3,5,7,9,11])
 }
 assert(actual,'at least one real calendar chart must qualify for annual three-branch question');
 const plan=guidance.preflight(actual.packet);
+assert.deepEqual(require('./report-interpretation-invariants').verify(actual.packet,plan).errors,[],
+ 'qualifying annual triad must pass the real pre-billable integrity gate');
 const task=plan.year_2027.topicTasks.new_triad;
 assert.equal(task.mode,'use-primary');
 assert.deepEqual(task.allowedSourceRefs,[triad.REF]);
