@@ -29,10 +29,10 @@ const keys=['NODE_ENV','RENDER','PAID_CORE_DEPTH_V2',
    const audit=scope.scope(packet,observed.prompt);
    assert.equal(JSON.stringify(observed.prompt),before);
    assert.equal(audit.canonicalChapterCount,12);
-   assert.equal(audit.definedCanonicalTopicSlots,30);
-   assert.equal(audit.missingDefinedTopicSlots,5);
+   assert.equal(audit.definedCanonicalTopicSlots,31);
+   assert.equal(audit.missingDefinedTopicSlots,4);
    assert(audit.chartSelectedChapters<=12&&audit.chartSelectedChapters>=4);
-   assert(audit.chartSelectedDefinedTopicUpperBound<=30);
+   assert(audit.chartSelectedDefinedTopicUpperBound<=31);
    assert(audit.chartEvidenceEligibleTopicUpperBound<=
     audit.chartSelectedDefinedTopicUpperBound);
    assert.equal(audit.firstProviderSchemaTopicKeys.saju_core.join('/'),
@@ -53,7 +53,7 @@ const keys=['NODE_ENV','RENDER','PAID_CORE_DEPTH_V2',
     /QA11_FIRST_LIVE_BATCH_SCOPE_DRIFT/);
   }
   assert.equal(Object.values(outline.topics).reduce((n,v)=>n+
-   Object.keys(v).length,0),30);
+   Object.keys(v).length,0),31);
   process.env.NODE_ENV='production';
   assert.throws(()=>scope.scope(facts.build(second,2027),lastLivePrompt),
    /QA11_LIVE_CONTRACT_INSPECTION_OFFLINE_ONLY/);
@@ -61,8 +61,8 @@ const keys=['NODE_ENV','RENDER','PAID_CORE_DEPTH_V2',
   assert.throws(()=>scope.scope(facts.build(first,2027),{stage:'body'}),
    /QA11_LIVE_CONTRACT_INSPECTION_OFFLINE_ONLY/);
   console.log('QA11_PRODUCT_SCOPE='+JSON.stringify({
-   chaptersDefined:12,topicsDefined:30,targetTopics:35,
-   missingTopics:5,productionScopeCanOmitChapters:true,
+   chaptersDefined:12,topicsDefined:31,targetTopics:35,
+   missingTopics:4,productionScopeCanOmitChapters:true,
    optionalTopicsMayBeNull:true,realProviderFirstBatchSchemaChecked:true,
    syntheticInputs:results,actualProviderCalls:0,
    twelveByThirtyFivePromiseVerified:false,
