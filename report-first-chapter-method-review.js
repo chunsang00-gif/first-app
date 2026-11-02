@@ -110,6 +110,16 @@ function markdown(doc){
  if(doc?.kind!=='first-chapter-method-decision-handoff-v1'||doc.releaseVerdict!=='not-approved'||
     doc.canChangeOrdinaryPaidWriter!==false)
   throw Error('METHOD_HANDOFF_NOT_A_REVIEW_DOC');
+ // A reviewer must see actual standalone reader prose, rather than
+ // selecting a method from only a schema of stem names and labels.
+ // These exact day-hour passages are source-bounded and NOT sale approved.
+ const hourPassages=require('./report-core-paid-1982-standalone-day-hour-reader').pair();
+ if(hourPassages.readyForPaidWriter!==false||
+    hourPassages.independentlySaleApproved!==false||
+    hourPassages.cases.some(x=>x.includedInPaidWriter!==false||
+      x.personalInsightProven!==false||
+      x.source.url!==hourPassages.cases[0].source.url))
+  throw Error('METHOD_HANDOFF_UNAPPROVED_READER_ORIGIN');
  const lines=[
   '# 유료 사주 첫 장 — 전통 해석방법 검토용 인수인계',
   '',
@@ -121,6 +131,20 @@ function markdown(doc){
   '| --- | --- | --- | --- |',
   ...doc.cases.map(x=>'| '+x.id+' | '+x.chart+' | '+x.exactTextualCondition+
    ' | '+x.monthExposureCategory+' |'),
+  '',
+  '## 실제 독자용 짧은 원고 — 두 출생시간별 비판매 연구 후보',
+  '',
+  '아래는 다른 출생시간을 비교하는 시험 안내문이 아니라, 해당 시간의 독자에게 별도로 작성한 단독 원고입니다. **실제 유료 모델 출력 아님 / 전문감수·독자 가치 미승인**.',
+  ...hourPassages.cases.flatMap(x=>[
+   '',
+   '### '+x.label+' ('+(x.chartFingerprint.endsWith('癸未')?'14:20':'20:20')+')',
+   '',
+   x.text,
+   '',
+   '인용: '+x.source.url+' — '+x.source.chapter+' / 상태: '+x.source.sourceScope
+  ]),
+  '',
+  '**편집 판정:** 두 원고에 출생월 설명만으로 얻지 못하는 정확한 일·시 고전 조항은 존재합니다. 하지만 조항을 제대로 옮긴 것과 개인별 행동·미래를 검증하는 것은 다르며, 고객이 돈을 낼 가치가 입증된 것도 아닙니다.',
   '',
   '## 사람의 독립 검토가 필요한 결정',
   ...doc.decisionQuestions.map((x,i)=>(i+1)+'. **'+x.question+'** — 완료 증거: '+x.requires),
