@@ -65,7 +65,8 @@ const TOPIC_NAMES=Object.freeze({
  }),
  year_2027:Object.freeze({
   change:'2027년 계산에서 달라지는 부분',
-  impact:'2027년 풀이의 적용 조건과 한계'
+  impact:'2027년 풀이의 적용 조건과 한계',
+  new_triad:'2027년에 새로 모이는 세 지지의 조건'
  }),
  year_2027_money:Object.freeze({
   change:'2027년 금전 분야에 연결되는 별도 근거',
