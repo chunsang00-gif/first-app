@@ -138,14 +138,21 @@ let fetches=0,rawRequest=null,upstreamPrompt=null;
   const secondText=secondSlot.properties.text.description;
   assert(secondText.includes(groundedQuestion),
     'strict provider response schema must receive the same interpretation-first writing question');
-  assert(second.evidenceFocus.readerReasoning.hypotheticalQuestion.includes(
-   require('./report-chart-contrast').TEN_GOD_SCENE[second.evidenceFocus.tenGodFocus.monthMainHidden.tenGod]),
-   'real paid request must carry the category-specific imagined situation');
+  const readerValue=second.sourceOwnedCoreReaderValue;
+  assert(readerValue?.kind==='grounded-paid-core-reader-takeaway-v1');
+  assert(readerValue.monthVisibleTraditionalMeaning.includes('새로운 정보를 자기 방식으로 해석하고 이해'));
+  assert(readerValue.monthMainTraditionalMeaning.includes('여러 곳의 자원을 살피고 필요한 곳에 활용'));
+  assert(readerValue.semanticDifferenceRequired);
+  assert(second.evidenceFocus.readerReasoning.hypotheticalQuestion.includes(readerValue.readerTakeaway));
+  assert(!second.evidenceFocus.readerReasoning.hypotheticalQuestion.includes('가상의 상황:'),
+   'real paid writer must not receive the rejected forced adult-workplace scene');
+  assert(secondText.includes(readerValue.script),
+   'actual provider response field must lead with this calculated symbolic meaning');
   assert(secondText.includes('모든 사주에 새 일을 준비하는 같은 예시를 쓰지 않는다'),
    'real provider schema must forbid the universal job-preparation example');
-  assert(second.evidenceFocus.readerReasoning.hypotheticalQuestion.includes('같은 한 번의 선택')&&
-   second.evidenceFocus.readerReasoning.hypotheticalQuestion.includes('준비 요령·체크리스트'),
-   'real provider task must not offer two disconnected questions or generic tips');
+  assert(readerValue.script.includes('둘을 나열하거나 무조건 둘 다 중요하다는 결론으로 끝내지 않는다')&&
+   readerValue.script.includes('본문 자체로 비교가 이해되면 가상 상황은 생략한다'),
+   'one source-bound interpretation must replace a forced generic two-conditions checklist');
   assert(secondText.includes('두 의미를 별도 질문 두 개나 누구에게나 해당하는 준비 조언으로 바꾸지 않는다')&&
    secondText.includes('전통적 해석의 차이로 설명한다'),
    'actual model response field must prefer source-bound interpretation over advice');
