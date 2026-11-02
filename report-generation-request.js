@@ -144,6 +144,11 @@ function sources(prompt){
  }
  // Only the optional QA natal-depth topic may cite independently checked
  // natal relation facts. The normal paid first chapter remains month-only.
+ if(prompt.stage==='body'&&prompt.requestedSections?.includes('relationship')&&
+    prompt.analysisGuidance?.editorialBlueprint?.relationship?.topicTasks?.coordination?.mode==='use-primary'){
+  if(!p?.facts?.natalBranchRelations)throw Error('PAID_DAY_HARMONY_TABLE_MISSING');
+  result['facts.natalBranchRelations']=p.facts.natalBranchRelations;
+ }
  if(prompt.qaNatalDepthPreview===true){
   if(!p?.facts?.natalBranchRelations)
    throw Error('QA_NATAL_DEPTH_MISSING_NATAL_RELATION_TABLE');
@@ -385,6 +390,17 @@ function compile(prompt){
      if(dayClash)topic.sourceOwnedNatalDayClash=dayClash;
      else if(topic.mode==='use-primary')
       throw Error('PAID_DAY_CLASH_EVIDENCE_NOT_VERIFIED');
+    }
+    // A separate exact DAY pair from the already integrity-checked natal
+    // relation table; only included for qualifying relationship chapters.
+    if(chapterId==='relationship'&&topicId==='coordination'&&topic.mode!=='state-limits'){
+     const verified=require('./report-paid-natal-day-harmony').candidate(prompt.facts);
+     if(!verified||JSON.stringify(verified.sourceRefs)!==
+        JSON.stringify(topic.allowedSourceRefs)||
+        !permitted.includes('facts.natalBranchRelations')||
+        !Object.hasOwn(source,'facts.natalBranchRelations'))
+      throw Error('PAID_DAY_HARMONY_SOURCE_NOT_GROUNDED');
+     topic.sourceOwnedDayHarmony=verified;
     }
     // Only annual money/career CHANGE topics with an exact verified pair
     // get an extra paid interpretation. This is not a new paid model call.
@@ -844,6 +860,21 @@ function schema(prompt,transport){
       ' 충').join('; ')+
      '. 가상의 관계에서 두 서로 다른 요구가 만났을 때를 설명하되 이는 실제 대인갈등의 발생이 아니다. '+
      '사람의 성향, 상대의 성격, 이별·관계 실패를 예언하거나 다른 장의 친밀감·표현 해석을 반복하지 않는다.';
+   }
+   if(task.sourceOwnedDayHarmony){
+    const proof=task.sourceOwnedDayHarmony;
+    const verified=require('./report-paid-natal-day-harmony').candidate(prompt.facts);
+    if(chapterId!=='relationship'||topic!=='coordination'||!verified||
+       JSON.stringify(proof)!==JSON.stringify(verified)||
+       JSON.stringify(permitted)!=='["facts.natalBranchRelations"]'||
+       !payload.source['facts.natalBranchRelations']||
+       proof.guaranteedHarmony!==false||proof.transformationConfirmed!==false)
+      throw Error('PAID_DAY_HARMONY_SCHEMA_SOURCE_DRIFT');
+    basis.properties.condition.enum=[proof.computedCondition];
+    p.properties.text.description+=
+     ' 검증된 별도 전통 관계 질문: '+proof.readerQuestion+
+     ' 계산된 위치: '+proof.pair+'. 실제 애정·결혼·인간관계 결과를 확정하지 않는다. '+
+     '친밀감·표현·갈등을 재진술할 뿐이면 null로 반환한다.';
    }
    if(task.sourceOwnedSingleReading){
     const single=task.sourceOwnedSingleReading,one=single.source;
@@ -1330,6 +1361,15 @@ function restoreEvidence(value,prompt){
         JSON.stringify(b.refs)!=='["person.mbti"]'||
         b.condition!==proof.computedCondition)
       throw Error('AI report service entered MBTI dimension evidence missing: '+id+':'+topic);
+    }
+    if(task.sourceOwnedDayHarmony){
+     const proof=task.sourceOwnedDayHarmony;
+     if(id!=='relationship'||topic!=='coordination'||
+        proof.kind!=='verified-isolated-natal-day-harmony-question-v1'||
+        proof.guaranteedHarmony!==false||proof.transformationConfirmed!==false||
+        JSON.stringify(b.refs)!=='["facts.natalBranchRelations"]'||
+        b.condition!==proof.computedCondition)
+      throw Error('AI report service day harmony evidence missing: '+id+':'+topic);
     }
     if(task.sourceOwnedWealthClash){
      const proof=task.sourceOwnedWealthClash;
