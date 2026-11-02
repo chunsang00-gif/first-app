@@ -188,8 +188,8 @@ let fetches=0,rawRequest=null,upstreamPrompt=null;
   assert(system.includes('독자에게 출처·상징·검증 과정 자체를 강의하지 않는다')&&
    system.includes('결론의 재요약을 붙이지 않는다'),
    'actual system prompt must agree with the schema instructions');
-  assert(second.evidenceFocus.readerReasoning.hypotheticalQuestion.includes('두 전통 분류를 순서대로 정의하지 않는다'),
-   'the chart-specific brief must not force a pair of glossary definitions');
+  assert(readerValue.script.includes('둘을 나열하거나 무조건 둘 다 중요하다는 결론으로 끝내지 않는다'),
+   'actual source-owned interpretation must not be reduced to two glossary definitions');
   assert(secondText.includes('사전적 정의 두 문장 다음에 일반적인 준비·확인 조언')&&
    secondText.includes('같은 가상 상황의 선택에 어떤 차이를 만드는지 출처와 조건을 연결해 설명한다'),
    'paid provider must see the source-to-scene interpretation boundary');
@@ -206,8 +206,8 @@ let fetches=0,rawRequest=null,upstreamPrompt=null;
    valuePlan.second.sourceId===second.evidenceFocus.tenGodFocus.monthMainHidden.sourceId,
    'real provider must retain exact computed month sources but omit competing first/second FAQ prompts');
   assert(valuePlan.traditionalReading.first.reading&&valuePlan.traditionalReading.second.reading&&
-   second.evidenceFocus.readerReasoning.hypotheticalQuestion.includes('같은 한 번의 선택'),
-   'traditional meanings and the single source-specific scene must survive provider pruning');
+   second.evidenceFocus.readerReasoning.hypotheticalQuestion.includes(readerValue.readerTakeaway),
+   'the two real monthly symbolic meanings and their single source-specific reading must reach the paid writer');
   assert(!Object.hasOwn(second.evidenceFocus.readerReasoning.readerValuePlan.traditionalReading,'tentativeThesis')&&
    !Object.hasOwn(second.evidenceFocus.readerReasoning.readerValuePlan.traditionalReading,'evidenceLimit'),
    'do not send duplicated provisional teaching prose or disclaimers');
