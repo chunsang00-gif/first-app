@@ -76,7 +76,7 @@ const topicEvidencePaths={
  relationship:{closeness:'facts.tenGods.day.hiddenStems',expression:'facts.tenGods.month',conflict:'facts.natalClashes',coordination:'facts.natalBranchRelations'},
  stress:{trigger:'facts.natalClashes',response:'facts.tenGods.day'},
  integrated_judgment:{insight:'facts.tenGods',tradeoff:'facts.structuralEvidence.monthCommand'},
- year_2027:{change:'facts.annualTenGods',impact:'facts.targetYearRelations',new_triad:'facts.targetYearBranchRelations'},
+ year_2027:{change:'facts.annualTenGods',impact:'facts.targetYearRelations',new_triad:'facts.targetYearBranchRelations',root_contrast:'facts.rootConditions'},
  year_2027_money:{change:'facts.annualTenGods',action:'facts.tenGods.month'},
  year_2027_career:{change:'fortune.activeDecade',action:'facts.annualTenGods'},
  year_2027_relationship:{change:'facts.targetYearRelations',action:'facts.annualTenGods'}
@@ -374,6 +374,19 @@ function preflight(packet){
  triadTask.interpretationBoundary=annualTriad?
   '출생 원국에 없던 세 글자 관계가 2027년으로 완성되는 정확한 배치만 설명한다. 합화·강약·길흉·사건은 판단하지 않는다. 일반 2027년 십성 풀이를 다시 쓰지 않는다.':
   '2027년에 처음 완성되는 독립적인 삼합·방합 근거가 없어 새 사건이나 운세를 지어내지 않는다.';
+ // Two different day-master root positions can answer a distinct 2027
+ // question ONLY when one meets annual clash and another does not.
+ const rootContrast=require('./report-paid-annual-root-contrast').candidate(packet);
+ const rootTask=plans.year_2027.topicTasks.root_contrast;
+ rootTask.mode=rootContrast?'use-primary':'state-limits';
+ rootTask.evidencePresent=Boolean(rootContrast);
+ rootTask.allowedSourceRefs=rootContrast?rootContrast.sourceRefs.slice():[];
+ rootTask.primaryEvidencePath='facts.rootConditions';
+ rootTask.verifiedFallbackPaths=[];
+ rootTask.sourceOwnedAnnualRootContrast=rootContrast;
+ rootTask.interpretationBoundary=rootContrast?
+  '2027년의 직접 충과 관련된 한 뿌리 위치와 충을 맺지 않은 다른 위치의 존재를 독립적으로 구분한다. 뿌리의 소멸·강약·용신·미래 사건을 추정하지 않고 일반 2027년 십성 설명을 반복하지 않는다.':
+  '서로 다른 두 뿌리 중 하나만 충을 맺는 정확한 계산 근거가 없으므로 뿌리의 손실·약화·실제 결과를 만들어내지 않는다.';
  // Do not pre-label a POSSIBLE future source as already cited in another
  // chapter. Optional topics may correctly return null, and an unused plan is
  // not evidence of a repeated interpretation. Once actual paragraphs exist,
