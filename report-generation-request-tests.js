@@ -8,6 +8,33 @@ const schema=require('./report-schema.json');
  await assert.rejects(generate({calendar:'solar',birthDate:'1990-05-15',birthTime:'10:30',gender:'male',mbti:'INTJ'},async p=>{prompt=p;throw Error('OFFLINE');}),/OFFLINE/);
  const payload=generation.compile(prompt);
  assert(!Object.hasOwn(payload,'rules'));
+ // This is the ACTUAL paid first batch, not an offline authoring preview.
+ // A month-derived reader meaning must outrank the old compulsory
+ // workplace scene in BOTH the real global policy and the topic schema.
+ const readerContract=payload.task.chapters.saju_core.topics.strength
+  .sourceOwnedCoreReaderValue;
+ assert.equal(readerContract.kind,'grounded-paid-core-reader-takeaway-v1');
+ assert.equal(readerContract.professionalReviewComplete,false);
+ assert.deepEqual(readerContract.refs.slice(0,1),['natal.month.stem']);
+ const realPolicy=generation.policyFor(prompt);
+ assert(realPolicy.includes('sourceOwnedCoreReaderValue가 가장 구체적인 독자용 작성 지침'));
+ assert(realPolicy.includes('가상 상황은 독자가 이 구분을 이해하는 데 필요할 때만'));
+ const realWriter=generation.schema(prompt,wire.schemaFor(prompt,schema));
+ assert(realWriter.properties.chapters.properties.saju_core.properties.paragraphs
+  .properties.strength.properties.text.description.includes(readerContract.script));
+ assert(!payload.task.chapters.saju_core.topics.strength.evidenceFocus
+  .readerReasoning.hypotheticalQuestion.includes('가상의 상황:'));
+ assert(!realPolicy.includes('승인된 전문가 해석')&&
+  readerContract.additionalTopic===false);
+ const isolated={...prompt,requestedSections:['saju_core']};
+ assert(generation.policyFor(isolated).includes('sourceOwnedCoreReaderValue가 가장 구체적인'));
+ for(const flag of ['qaNatalDepthPreview','qaAdditiveDepthPreview',
+  'qaOfflineEditorialResearchPreview','paidCoreDepthV2']){
+  const isolatedQa={...isolated,[flag]:true};
+  assert(!generation.policyFor(isolatedQa).includes(
+   'sourceOwnedCoreReaderValue가 가장 구체적인 독자용 작성 지침'),
+   'production-only editorial priority must not enter a frozen QA scope: '+flag);
+ }
  // Audit the ACTUAL transport object rather than trusting the original
  // server prompt. These regressions must fail even if the full prompt is fine.
  const transportAudit=require('./report-instruction-audit');
