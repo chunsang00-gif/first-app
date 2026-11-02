@@ -65,12 +65,33 @@ function review(packet){
     verified.positions.month.stem!=='丙')
   throw Error('QA_UNCOVERED_CLASSICAL_WRONG_NATAL_CONTEXT');
  const refs=found.sourceRefs;
+ const monthly=monthReview.assess(packet);
+ const cardinality=monthly.observed.natalRelationsTouchingMonth.relationshipCardinality;
+ const branch=found.monthDayPairContext;
+ const exactPair=cardinality.multipleLabelsOnSamePair.find(x=>
+  x.otherPosition==='day'&&x.branches==='寅亥'&&
+  x.tableLabels.length===2&&
+  x.tableLabels.includes('육합')&&x.tableLabels.includes('파'));
+ const validBranch=branch?category==='jia-and-bing-textual-priority'&&
+  branch.kind==='same-month-day-pair-two-branch-table-labels-v1'&&
+  branch.monthPosition==='month'&&branch.otherPosition==='day'&&
+  branch.tableLabelCount===2&&
+  branch.distinctPhysicalContactsForThisPair===1&&
+  branch.relativePriority==='not-assessed'&&
+  branch.realizedCombination===false&&branch.realizedBreakage===false&&
+  branch.approvedForPaid===false&&
+  JSON.stringify(branch.labels)===JSON.stringify(exactPair?.tableLabels)&&
+  JSON.stringify(branch.sourceRefs)===JSON.stringify(['facts.natalBranchRelations'])&&
+  found.text.endsWith(branch.readerText)&&
+  refs.includes('facts.natalBranchRelations'):!refs.includes('facts.natalBranchRelations');
  if(!Array.isArray(refs)||refs.length<4||
     refs.length!==new Set(refs).size||
+    !validBranch||
     !['natal.day.stem','natal.year.stem','natal.month.stem'].every(x=>
      refs.includes(x))||
-    !refs.every(id=>id.startsWith('natal.')&&rows[id]?.stem&&
-      rows[id]?.observedBehavior===false&&rows[id]?.interpretationScope===
+    !refs.every(id=>id==='facts.natalBranchRelations'&&validBranch||
+     id.startsWith('natal.')&&rows[id]?.stem&&
+     rows[id]?.observedBehavior===false&&rows[id]?.interpretationScope===
        'traditional-symbol-only'))
   throw Error('QA_UNCOVERED_CLASSICAL_SOURCE_REFS_INVALID');
  if(typeof found.text!=='string'||found.text.length<180||
@@ -97,8 +118,7 @@ function review(packet){
   throw Error('QA_UNCOVERED_CLASSICAL_FULL_CHART_CONTRAST_DRIFT');
  if(language.errors([structural.reader.label,structural.reader.text]).length)
   throw Error('QA_UNCOVERED_CLASSICAL_FULL_CHART_READER_JARGON');
- const monthly=monthReview.assess(packet);
- const cardinality=monthly.observed.natalRelationsTouchingMonth.relationshipCardinality;
+
  if(cardinality.realizedCombinationOrBreakage!=='not-assessed'||
     cardinality.whichLabelPrevails!=='not-assessed')
   throw Error('QA_UNCOVERED_CLASSICAL_BRANCH_PRIORITY_NOT_VERIFIED');
