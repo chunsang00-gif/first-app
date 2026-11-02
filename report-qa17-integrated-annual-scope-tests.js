@@ -64,8 +64,13 @@ for(const day of [7,21])for(const time of ['08:20','20:20']){
  assert(actual.properties.text.description.includes(proof.writerBoundary));
  assert(actual.properties.basis.properties.refs.description.includes(proof.sourceRef));
  if(verified===0){
+  const representative={비견:'스스로 맡을 자기 몫',겁재:'자원을 나누는 경쟁과 협력',
+   식신:'결과물을 만드는 과정',상관:'기존 방법을 개선하는 제안',
+   정재:'돈과 자원의 관리',편재:'외부 자원을 활용하는 조건',
+   정관:'규칙과 맡은 역할',편관:'예상 밖의 요구와 압박',
+   정인:'배우고 도움을 받는 과정',편인:'낯선 자료를 해석하고 이해하는 관점'};
   const paragraph={label:'2027년 기본 해석',text:
-   '2027년의 계산된 겉글자는 전통적으로 역할을 나누어 설명하는 한 가지 자료입니다. 이 사실만으로 실제 금전과 직업의 미래 사건을 확정하지 않습니다.',
+   '2027년 겉글자는 '+representative[proof.annualGod]+'에 관한 전통적 뜻으로 읽습니다. 출생 때의 분류와 연도별 분류를 구별해야 하며 이 사실만으로 실제 금전과 직업의 사건을 확정하지 않습니다.',
    basis:{refs:['facts.annualTenGods'],interpretation:'연간 분류의 의미',
     condition:'기존 자료를 함께 비교하는 경우',limit:'실제 사건은 계산되지 않았습니다.'}};
   const response={chapters:{year_2027:{paragraphs:{change:paragraph}}}};
