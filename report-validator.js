@@ -1,7 +1,7 @@
 /* Paid-report quality gate v1.1 */
 const REPORT_VALIDATOR=(()=>{
 const IDS=['saju_core','mbti_contradiction','decision','money','career','relationship','stress','integrated_judgment','year_2027','year_2027_money','year_2027_career','year_2027_relationship'];
-const CONCISE_COUNTS_V1=[3,3,3,3,4,4,3,3,3,2,2,2];const CONCISE_COUNTS_V2=[3,2,2,3,4,3,2,2,2,2,2,2];const CONCISE_COUNTS_V3=[2,2,2,3,4,3,2,2,2,2,2,2];
+const CONCISE_COUNTS_V1=[3,3,3,3,4,4,3,3,3,2,2,2];const CONCISE_COUNTS_V2=[3,2,2,3,4,3,2,2,2,2,2,2];const CONCISE_COUNTS_V3=[2,2,2,3,4,3,2,2,2,2,2,2];const CONCISE_COUNTS_V4=[2,4,2,3,4,3,2,2,2,2,2,2];
 const banned=['두 경우는 완전히 다릅니다','이 점이 중요합니다','기억할 필요가 있습니다','수익의 질','실제로 남는 돈','맹점'];
 const vague=['현실적인 선택','흐름이 강하다','가능성이 있습니다','구조가 좋다','결과로 만든다'];
 const generic=['신중한 편입니다','책임감이 강합니다','대화를 많이 해야','안정적으로 관리','좋은 기회가 올','타고난 운명','운이 열립니다','대박 운','귀인의 도움','기운을 받아'];
