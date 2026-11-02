@@ -90,11 +90,10 @@ function review(packet){
    JSON.stringify(['facts.natalBranchRelations'])&&
   !found.text.includes(branch.readerText)&&
   !refs.includes('facts.natalBranchRelations'):
-   found.branchSourceAddsIndependentReaderInsight===false&&
-   found.appendedBranchReaderParagraph===false&&
+   found.branchSourceAddsIndependentReaderInsight===undefined&&
+   found.appendedBranchReaderParagraph===undefined&&
    !refs.includes('facts.natalBranchRelations')&&
-   Array.isArray(found.contextualReviewSourceRefs)&&
-   found.contextualReviewSourceRefs.length===0;
+   found.contextualReviewSourceRefs===undefined;
  if(!Array.isArray(refs)||refs.length<4||
     refs.length!==new Set(refs).size||
     !validBranch||
