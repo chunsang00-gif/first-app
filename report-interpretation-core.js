@@ -8,6 +8,13 @@ const families={
 };
 const positions=['year','month','day','hour'];
 const known=new Set(Object.values(families).flatMap(v=>Object.values(v).flat()));
+// Current paid annual domain chapters require a DIFFERENT visible annual
+// heavenly-stem subtype. These sets are the actual source-of-truth groups
+// used by plan(). A 2027 pillar has exactly ONE visible annual stem.
+function eligibleAnnualStemGods(domain){
+ if(!families[domain])throw Error('Unknown annual domain: '+domain);
+ return [...new Set(Object.values(families[domain]).flat())];
+}
 function kind(domain,tenGod){
  for(const [name,labels] of Object.entries(families[domain]||{}))
   if(labels.includes(tenGod))return name;
@@ -83,4 +90,4 @@ function plan(packet,domain){
   guaranteesRealWorldOutcome:false};
 }
 function all(packet){return {money:plan(packet,'money'),career:plan(packet,'career')};}
-module.exports={plan,all,annualRows,natalRows};
+module.exports={plan,all,annualRows,natalRows,eligibleAnnualStemGods};
