@@ -71,7 +71,12 @@ assert.equal(readerCandidate.individualPersonalityOrCareerVerified,false);
 assert.equal(readerCandidate.cause,'month-main-Jia-and-additional-Bing-visible-not-element-arrow');
 assert.deepEqual(readerCandidate.sourceRefs,[
  'natal.day.stem','natal.year.stem','natal.month.stem',
- 'natal.month.hidden.甲','facts.natalBranchRelations']);
+ 'natal.month.hidden.甲']);
+assert.deepEqual(readerCandidate.contextualReviewSourceRefs,['facts.natalBranchRelations']);
+assert.equal(readerCandidate.branchSourceAddsIndependentReaderInsight,false);
+assert.equal(readerCandidate.appendedBranchReaderParagraph,false);
+assert.equal(readerCandidate.branchEvidenceScope,
+ 'review-only-does-not-change-classical-reader-conclusion');
 const branch=readerCandidate.monthDayPairContext;
 assert.equal(branch?.kind,'same-month-day-pair-two-branch-table-labels-v1');
 assert.equal(branch.monthPosition,'month');
@@ -84,9 +89,11 @@ assert.equal(branch.realizedCombination,false);
 assert.equal(branch.realizedBreakage,false);
 assert.equal(branch.approvedForPaid,false);
 assert.deepEqual(branch.sourceRefs,['facts.natalBranchRelations']);
-assert(readerCandidate.text.includes('태어난 달과 날은 이웃한 두 자리입니다'));
-assert(readerCandidate.text.includes('별개 사건이 두 번 생겼다는 뜻이 아닙니다'));
-assert(readerCandidate.text.includes('두 이름 중 어느 것이 우세한지는 정하지 않습니다'));
+assert(!readerCandidate.text.includes('태어난 달과 날은 이웃한 두 자리입니다'));
+assert(!readerCandidate.text.includes('별개 사건이 두 번 생겼다는 뜻이 아닙니다'));
+assert(!readerCandidate.text.includes('두 이름 중 어느 것이 우세한지는 정하지 않습니다'));
+assert(readerCandidate.text.includes('자원에 관한 뜻을 중심에 두고 책임에 관한 뜻을 곁들입니다'),
+ 'the original source-specific first-role conclusion remains after removing repeated branch disclaimers');
 assert(readerCandidate.monthDayPairContext.exactClassicalSourceScope.sourceUrl===
  'https://luckclub.cn/bazi/018/080/');
 assert.equal(readerCandidate.monthDayPairContext.exactClassicalSourceScope.liuheTextualConditionSatisfied,true);
@@ -94,7 +101,9 @@ assert.equal(readerCandidate.monthDayPairContext.exactClassicalSourceScope.poRul
 assert.equal(readerCandidate.monthDayPairContext.exactClassicalSourceScope.relativeLiuhePoPriority,'not-established');
 assert.equal(readerCandidate.monthDayPairContext.exactClassicalSourceScope
  .methodSourceBoundary.itsYinHaiInterpretationAllowedForNatal,false);
-assert(readerCandidate.text.includes('출생 전체에서 확정된 결과로 넓혀서는 안 됩니다'));
+assert(!readerCandidate.text.includes('출생 전체에서 확정된 결과로 넓혀서는 안 됩니다'));
+assert(readerCandidate.text.length<branch.readerText.length+650,
+ 'a calculated but non-additive branch label must not add a second reader passage');
 assert(!readerCandidate.text.includes('두 개의 독립된 관계가 함께 강해'));
 const canonicalRelations=structuredClone(paired.facts.natalBranchRelations);
 const damaged=structuredClone(paired);
