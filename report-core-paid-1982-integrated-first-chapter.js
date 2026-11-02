@@ -37,8 +37,10 @@ function build(packet){
     extra.humanExpertReviewComplete!==false||extra.saleApproved!==false)
   throw Error('QA_INTEGRATED_FIRST_CHAPTER_SOURCE_OR_PAID_BOUNDARY_DRIFT');
  const monthRefs=['natal.month.stem',main];
- if(extra.exactDayHourReferences.some(id=>monthRefs.includes(id))||
-    extra.exactDayHourReferences.some(id=>!id.startsWith('natal.')&&
+ // The later-hour verse itself has a year/month qualifier. Those cited
+ // source positions may overlap the month baseline; the independent
+ // DAY+HOUR pair must be NEW, not all possible cited positions.
+ if(extra.exactDayHourReferences.some(id=>!id.startsWith('natal.')&&
       !['facts.seasonalEvidence'].includes(id))||
     !extra.exactDayHourReferences.includes('natal.hour.stem')||
     !extra.exactDayHourReferences.includes('natal.day.stem'))
