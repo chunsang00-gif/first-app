@@ -131,23 +131,46 @@ const names=['NODE_ENV','RENDER','PAID_CORE_DEPTH_V2',
   const directLink=chartWithHour.readingSample.cards.find(x=>x.id==='month-visible-link');
   assert(directLink&&directLink.text.includes('태어난 시간'),
    'the exact verified 丁 month-hidden to 丁 birth-hour visible relationship should be explained');
-  assert(directLink.title.includes('실제로 갈라지는 두 가지 조건'),
-   'the free preview must show a reader distinction, not another glossary card');
+  assert(directLink.title.includes('다른 출생 자리에서 확인한 연결'),
+   'the free preview must say source linkage, not promise a new personality interpretation');
   assert(directLink.text.includes('정확히 확인됩니다'));
   assert(directLink.text.includes('역할과 승인·검수의 기준')&&
    directLink.text.includes('반복해서 들어갈 비용과 관리 자원'),
    'the actual 1994 chart exposes distinct authority and recurring-cost questions');
-  assert(directLink.text.includes('누가 승인하고 책임지는지가 빠집니다')&&
-   directLink.text.includes('일을 이어갈 비용과 자원 계획이 빠집니다'),
-   'both missing conditions must change the outcome of the hypothetical example');
-  assert(directLink.text.includes('반대로')&&directLink.text.includes('여섯 달간'),
-   'free prose must contain a practical two-sided illustration');
-  assert(directLink.text.includes('오행이')&&directLink.text.includes('생하는 방향'),
-   'the actual Ding/己 stems determine the element direction, not a fixed stock claim');
+  assert(directLink.text.includes('출생월의 중심 글자 하나만 읽으면')&&
+   directLink.text.includes('되풀이되는 별도 분류를 놓치게 됩니다'),
+   'the chart-specific distinction must show exactly what the natal month baseline omitted');
+  assert(!/(?:여섯 달|운영하는 가상의 상황|첫 번째 조건만|반대로 두 번째 조건만|장비|납품)/.test(directLink.text),
+   'rejected reusable adult-workplace examples may not return to the real customer preview');
+  assert(directLink.text.includes('두 글자 사이에는')&&directLink.text.includes('도와주는 방향'),
+   'the actual Ding/己 elements must determine their verified direction, not a fixed template');
+  assert(directLink.text.includes('실제 성격')&&directLink.text.includes('판정한 결과는 아닙니다'),
+   'explicit source scope must not be mistaken for real behavior');
   assert(!/(?:실제로 성실한 사람|돈을 잘 번다|재물운이 강하다)/.test(directLink.text),
    'a chart-specific hypothetical cannot become a verified personal trait');
   assert(!directLink.text.includes('辛')&&!directLink.text.includes('壬'),
    'reader copy should not become an unexplained character ledger');
+  // A 2018 birth is still a minor for the 2027 preview. Do not smuggle
+  // the rejected adult factory/job story into the free personalized card.
+  const youngerDates=['2018-02-15','2018-05-15','2018-07-15','2018-10-15'];
+  let minorSourceLinks=0;
+  for(const birthDate of youngerDates){
+   const younger=coverage.calculate({calendar:'solar',birthDate,birthTime:'14:20',
+    gender:'female',mbti:'ISFP'});
+   assert.equal(younger.status,'ready');
+   const text=younger.readingSample.cards.map(x=>x.text).join(' / ');
+   assert(!/(?:여섯 달간 운영|회사에서|납품 일정|장비 운영|업무 인수인계)/.test(text),
+    'free personal preview cannot assume a child runs an adult workplace: '+birthDate);
+   assert.deepEqual(younger.interpretivePreviews,[],
+    'adult income and workstyle mini-readings must not appear to child users');
+   const link=younger.readingSample.cards.find(x=>x.id==='month-visible-link');
+   if(link){
+    minorSourceLinks++;
+    assert(!/(?:운영하는 가상의 상황|월급|회사|직장|납품)/.test(link.text));
+    assert(link.text.includes('정확히 같은 글자로 확인됩니다'));
+   }
+  }
+  assert(minorSourceLinks>=0);
   const alteredHour=coverage.calculate({calendar:'solar',
    birthDate:'1994-07-15',birthTime:'20:20',gender:'male',mbti:'ISFP'});
   assert(!alteredHour.readingSample.cards.some(x=>x.id==='month-visible-link'&&
