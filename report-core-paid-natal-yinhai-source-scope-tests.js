@@ -45,8 +45,13 @@ assert(!v.readerText.includes('합이 이겼')&&!v.readerText.includes('파가 �
 const good=classical.offlineReaderCandidate(match);
 assert.equal(good.monthDayPairContext.exactClassicalSourceScope.kind,v.kind);
 assert.deepEqual(good.monthDayPairContext.exactClassicalSourceScope,v);
-assert(good.text.includes(v.readerText));
-assert(good.sourceRefs.includes('facts.natalBranchRelations'));
+assert(!good.text.includes(v.readerText),
+ 'same-pair evidence is NOT a new personal conclusion and must not add a pseudo-premium paragraph');
+assert(!good.sourceRefs.includes('facts.natalBranchRelations'),
+ 'the limited first-role reader does not cite an unrelated branch claim');
+assert.deepEqual(good.contextualReviewSourceRefs,['facts.natalBranchRelations']);
+assert.equal(good.branchSourceAddsIndependentReaderInsight,false);
+assert.equal(good.appendedBranchReaderParagraph,false);
 assert(!/(?:직장|직업|소득|장비|납품|결혼|이별)/.test(good.text));
 for(const date of ['2024-02-15','2024-03-17','1989-02-10']){
  const p=create(date);
