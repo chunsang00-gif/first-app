@@ -25,7 +25,7 @@ for(const year of years)for(const month of months)
 for(const day of days)for(const birthTime of times){
  const date=year+'-'+String(month).padStart(2,'0')+'-'+String(day).padStart(2,'0');
  const input={calendar:'solar',birthDate:date,birthTime,
-  gender:(year+day)%2===0?'female':'male',
+  gender:(year/2+month+day)%2===0?'female':'male',
   mbti:mbtis[(year/2+month+day+(birthTime==='20:20'?1:0))%mbtis.length]};
  const packet=facts.build(input,2027);
  assert.equal(packet.status,'ready','expected fully calculable input');
