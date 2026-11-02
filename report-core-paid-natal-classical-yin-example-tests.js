@@ -70,7 +70,35 @@ assert.equal(readerCandidate.providerCalls,0);
 assert.equal(readerCandidate.individualPersonalityOrCareerVerified,false);
 assert.equal(readerCandidate.cause,'month-main-Jia-and-additional-Bing-visible-not-element-arrow');
 assert.deepEqual(readerCandidate.sourceRefs,[
- 'natal.day.stem','natal.year.stem','natal.month.stem','natal.month.hidden.甲']);
+ 'natal.day.stem','natal.year.stem','natal.month.stem',
+ 'natal.month.hidden.甲','facts.natalBranchRelations']);
+const branch=readerCandidate.monthDayPairContext;
+assert.equal(branch?.kind,'same-month-day-pair-two-branch-table-labels-v1');
+assert.equal(branch.monthPosition,'month');
+assert.equal(branch.otherPosition,'day');
+assert.deepEqual(new Set(branch.labels),new Set(['육합','파']));
+assert.equal(branch.tableLabelCount,2);
+assert.equal(branch.distinctPhysicalContactsForThisPair,1);
+assert.equal(branch.relativePriority,'not-assessed');
+assert.equal(branch.realizedCombination,false);
+assert.equal(branch.realizedBreakage,false);
+assert.equal(branch.approvedForPaid,false);
+assert.deepEqual(branch.sourceRefs,['facts.natalBranchRelations']);
+assert(readerCandidate.text.includes('태어난 달과 날 사이의 같은 두 자리에'));
+assert(readerCandidate.text.includes('별개 사건이 두 번 생겼다는 뜻도'));
+assert(readerCandidate.text.includes('출생 전체에서 확정된 결과로 넓혀서는 안 됩니다'));
+assert(!readerCandidate.text.includes('두 개의 독립된 관계가 함께 강해'));
+const canonicalRelations=structuredClone(paired.facts.natalBranchRelations);
+const damaged=structuredClone(paired);
+damaged.facts.natalBranchRelations.pairs=
+ damaged.facts.natalBranchRelations.pairs.filter(x=>
+  !(x.positions.includes('month')&&x.positions.includes('day')&&
+    x.branches==='寅亥'&&x.type==='파'));
+assert.throws(()=>source.offlineReaderCandidate(damaged),
+ /QA_MONTH_METHOD_CALCULATION_DIVERGED:branch-relations/,
+ 'a forged one-label source must never receive the two-label reader prose');
+assert.deepEqual(paired.facts.natalBranchRelations,canonicalRelations,
+ 'offline review must not mutate the canonical calculated relationship table');
 assert.equal(require('./report-reader-policy').errors(
  [readerCandidate.label,readerCandidate.text]).length,0,
  'a reader-facing draft must not expose calculation jargon');
