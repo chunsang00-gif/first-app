@@ -106,36 +106,27 @@ function inspect(packet){
 // from one classical example. Same pair, two table LABELS, not two proven
 // forces or events. No universal branch precedence is adopted here.
 function exactMonthDayPairContext(packet){
- const measured=require('./report-core-paid-natal-month-method-review').assess(packet);
- const counts=measured.observed.natalRelationsTouchingMonth.relationshipCardinality;
- const matching=counts.uniquePairContacts.filter(c=>
-  c.monthPosition==='month'&&c.otherPosition==='day'&&
-  c.branches==='寅亥'&&
-  c.tableLabels.length===2&&
-  new Set(c.tableLabels).size===2&&
-  c.tableLabels.includes('육합')&&c.tableLabels.includes('파'));
- if(matching.length>1)throw Error('QA_CLASSICAL_PAIR_DUPLICATED_SOURCE_CONTACT');
- if(matching.length===0)return null;
- const c=matching[0];
- if(counts.multipleLabelsOnSamePair.filter(x=>
-     x.otherPosition==='day'&&x.branches==='寅亥').length!==1||
-    counts.independentPairContactCount<1||
-    !packet.facts.natalBranchRelations.pairs.some(x=>
-     x.positions.includes('month')&&x.positions.includes('day')&&
-     x.branches==='寅亥'&&x.type==='육합')||
-    !packet.facts.natalBranchRelations.pairs.some(x=>
-     x.positions.includes('month')&&x.positions.includes('day')&&
-     x.branches==='寅亥'&&x.type==='파'))
-  throw Error('QA_CLASSICAL_MONTH_DAY_PAIR_EVIDENCE_DRIFT');
+ const source=require('./report-core-paid-natal-yinhai-source-scope').build(packet);
+ if(!source)return null;
+ if(source.pair!=='寅亥'||source.independentContactCount!==1||
+    source.tableLabelCount!==2||source.adjacencyVerified!==true||
+    source.liuheTextualConditionSatisfied!==true||
+    source.relativeLiuhePoPriority!=='not-established'||
+    source.poRuleSourcedByThisPassage!==false||
+    source.fullNatalConclusionAllowed!==false||
+    source.approvedForPaid!==false)
+  throw Error('QA_CLASSICAL_ADJACENT_BRANCH_SOURCE_NOT_NARROW');
  return Object.freeze({
   kind:'same-month-day-pair-two-branch-table-labels-v1',
   monthPosition:'month',otherPosition:'day',
-  sourceRefs:['facts.natalBranchRelations'],
-  labels:c.tableLabels.slice(),tableLabelCount:2,
-  distinctPhysicalContactsForThisPair:1,
+  sourceRefs:source.sourceRefs.slice(),
+  labels:source.tableLabels.slice(),tableLabelCount:source.tableLabelCount,
+  distinctPhysicalContactsForThisPair:source.independentContactCount,
   realizedCombination:false,realizedBreakage:false,
   relativePriority:'not-assessed',approvedForPaid:false,
-  readerText:'이 출생 자료에서는 태어난 달과 날 사이의 같은 두 자리에 관계표의 이름이 두 가지 붙어 있습니다. 이것은 별개 사건이 두 번 생겼다는 뜻도, 어느 관계가 더 강하다는 판정도 아닙니다. 따라서 앞에서 설명한 고전의 중심·보조 구분을 출생 전체에서 확정된 결과로 넓혀서는 안 됩니다.'
+  exactClassicalSourceScope:source,
+  readerText:source.readerText+
+   ' 이것은 같은 한 쌍의 관계표 이름 두 개이지 별개 사건이 두 번 생겼다는 뜻이 아닙니다. 따라서 앞에서 설명한 고전의 중심·보조 구분을 출생 전체에서 확정된 결과로 넓혀서는 안 됩니다.'
  });
 }
 // Single narrowly curated reader example for an INTERNAL offline editorial
