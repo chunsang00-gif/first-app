@@ -96,7 +96,7 @@ assert(estimated.readingSample.cards.length>=2);
 assert(estimated.readingSample.cards.some(x=>x.id==='birth-month'&&x.text.includes('태어난 달')));
 assert(estimated.readingSample.cards.some(x=>x.id==='annual-2027'&&x.text.includes('2027년')));
 assert.equal(estimated.catalog.chapterDefinitions,12);
-assert.equal(estimated.catalog.topicDefinitions,32);
+assert.equal(estimated.catalog.topicDefinitions,33);
 assert(estimated.estimate.plannedChapters>=4);
 assert(estimated.estimate.evidenceEligibleTopicUpperBound<=22);
 assert.equal(estimated.estimate.chapters.reduce((n,ch)=>n+ch.eligibleTopics.length,0),
