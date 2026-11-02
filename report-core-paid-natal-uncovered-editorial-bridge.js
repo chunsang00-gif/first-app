@@ -143,13 +143,12 @@ function review(packet){
  const explanation=single?
   '태어난 달에서 바탕이 되는 글자는 해·달·시간의 겉에 나타나지 않습니다. 대신 책임과 정해진 기준을 뜻하는 다른 글자가 태어난 달의 겉에 드러났습니다. 이 고전의 해당 사례가 읽는 출발점을 바꾸는 이유는 바로 이 차이입니다.':
   '태어난 달의 바탕 글자가 해의 겉에도 나타나고, 역할과 규칙을 뜻하는 다른 글자는 달의 겉에 함께 드러납니다. 이 고전의 해당 사례에서는 바탕 글자가 실제로 드러난 조건 때문에 자원의 뜻을 먼저 다루고 책임의 뜻을 이어서 읽습니다.';
- const conditional=child?
-  (single?
-   '아이가 새로운 놀이를 시작하는 상황을 가정해 보겠습니다. 이 고전의 해당 사례에서는 물건의 많고 적음을 판단하는 뜻보다 함께 지킬 규칙과 역할의 뜻을 먼저 읽습니다. 보호자가 놀이 약속을 정해 주는 장면으로 비유할 수 있지만, 실제 아이의 성격이나 행동을 확인한 것은 아닙니다.':
-   '이 고전의 다음 장에서는 자원에 관한 글자와 책임에 관한 글자가 서로 이어지는 관계라고 설명합니다. 아이가 새로운 놀이를 시작하는 상황을 가정해 보겠습니다. 보호자가 쓸 물건과 시간을 마련하고 함께 지킬 안전 약속을 정하는 장면에 빗댈 수 있습니다. 실제 놀이 능력이나 앞으로의 행동을 보장한다는 뜻은 아닙니다.'):
-  single?
-   '새로운 관리 업무를 제안받았다고 가정해 보겠습니다. 이 풀이에서 먼저 따질 것은 직책의 이름이나 급여가 아니라 결정할 권한과 지켜야 할 기준이 얼마나 명확한지입니다. 다만 권한만 따지고 일을 수행할 사람과 도구를 놓치면 책임을 해석하는 데 필요한 현실 조건이 빠집니다.':
-   '이 고전의 다음 장에서는 자원에 관한 글자와 책임에 관한 글자가 서로 이어지는 관계라고 설명합니다. 새 프로젝트를 맡았다고 가정해 보겠습니다. 사람·예산과 책임 범위를 함께 살피는 예시로 읽을 수 있지만, 실제 성과를 보장한다는 뜻은 아닙니다.';
+ // A source-specific comparative conclusion, not a stock job/child-life
+ // anecdote. The original QA3 rejection found that changing workplace
+ // nouns did not produce a new personalized interpretation.
+ const conditional=single?
+  '이 출생 조건에서 원문의 새로운 정보는 자원과 책임이라는 두 뜻이 있다는 사실이 아닙니다. 달의 기본 뜻은 겉에 보이지 않고 책임을 나타내는 글자만 나타날 때, 이 고전은 풀이를 어디에서 시작할지 다르게 정한다는 점입니다. 따라서 자원에 관한 풀이를 먼저 쓰고 뒤에 책임을 덧붙이는 다른 사례와 구별해야 합니다. 실제 책임감이나 어떤 일을 하게 될지는 이 자료만으로 알 수 없습니다.':
+  '이 출생 조건에서 원문의 새로운 정보는 자원과 책임이라는 두 뜻이 있다는 사실이 아닙니다. 달의 기본 글자와 책임을 나타내는 글자가 모두 겉에 보이기 때문에 이 고전은 자원의 뜻을 먼저 다루고 책임의 뜻을 함께 읽습니다. 고전의 다음 장에서는 자원에 관한 글자와 책임에 관한 글자가 서로 이어지는 관계도 설명하지만, 그 관계만으로 실제 결과나 두 뜻의 강약을 정할 수는 없습니다. 두 뜻을 그냥 나열하는 설명과 달리 어느 뜻에서 풀이를 시작하는지에 대한 조건이 확인된 것입니다.';
  // Counterfactuals are source-text applicability boundaries, not proof
  // that an actual person's work, character or future changes with a stem.
  // Both cases share a Xin day and Yin month. Only non-day visible Jia
@@ -202,7 +201,10 @@ function review(packet){
  const shortSentences=t=>t.split(/[.!?。！？]+/).map(x=>x.trim())
   .filter(x=>x.length>=18);
  const oldSentences=new Set(shortSentences(found.text));
- const revisedText=explanation+' '+conditional+' '+reversalCondition+' '+competingExposure+' '+rootEvidence+' '+branchUncertainty;
+ // Day-master rooting is a separate computed observation, NOT a new
+ // classical reader conclusion here. Retain it for internal review only.
+ // The additional branch label likewise does not earn another paid paragraph.
+ const revisedText=explanation+' '+conditional+' '+reversalCondition+' '+competingExposure+' '+branchUncertainty;
  const repeatedSentences=shortSentences(revisedText)
   .filter(x=>oldSentences.has(x));
  const interpretiveCaseDraft={
@@ -226,7 +228,10 @@ function review(packet){
      sourceUrl:applicability.crossChapterReading.sourceUrl,
      observedSymbolRelation:applicability.crossChapterReading.restrictedTextualRelation,
      personalSuccessInferred:false}:null,
-   rootObservation:rootEvidence,branchUncertainty,
+   rootObservation:rootEvidence,rootObservationInReaderText:false,
+   branchUncertainty,
+   conditionalScenarioUsesInventedWorkplaceOrPlay:false,
+   branchLabelIsIndependentPaidInsight:false,
    coreReadingIsConditional:true,verifiedPersonalBehavior:false},
   textualApplicabilityCannotBeGeneralized:true,
   rejectedCounterfactualIsAChartConditionNotPredictedBehavior:true,
