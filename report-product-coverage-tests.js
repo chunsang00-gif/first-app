@@ -74,9 +74,23 @@ const names=['NODE_ENV','RENDER','PAID_CORE_DEPTH_V2',
    assert.equal(result.estimate.chaptersNotSelected,12-chapters);
    assert.equal(result.estimate.topicUpperBoundGapToTarget,35-eligible);
    assert.equal(result.estimate.advertised12x35NotDeliverable,true);
-   assert(result.notice.includes('12개 장 중 '+chapters+'개 장'));
-   assert(result.notice.includes('목표 35개 항목 중 최대 '+eligible+'개'));
-   assert(result.notice.includes('실제 생성되거나 품질 검수를 통과한 문단 수가 아닙니다'));
+   const proposal=result.productProposal;
+   assert.equal(proposal.kind,'chart-specific-evidence-scoped-product-proposal-v1');
+   assert.equal(proposal.status,'draft-not-for-sale');
+   assert.equal(proposal.plannedChapterCount,chapters);
+   assert.equal(proposal.topicCandidateUpperBound,eligible);
+   assert.equal(proposal.mainChapterCount+proposal.conditionalChapterCount,chapters);
+   assert.equal(proposal.mainTopicCandidateUpperBound+
+    proposal.conditionalTopicCandidateUpperBound,eligible);
+   assert.equal(proposal.fixed12ChaptersPromised,false);
+   assert.equal(proposal.fixed35TopicsPromised,false);
+   assert.equal(proposal.pricingDecided,false);
+   assert.equal(proposal.paymentEnabled,false);
+   assert.equal(proposal.humanEditorialApproved,false);
+   assert(result.notice.includes('기본 해석 '+proposal.mainChapterCount+'개 장'));
+   assert(result.notice.includes('조건부 2027년 분야별 해석 '+proposal.conditionalChapterCount+'개 장'));
+   assert(result.notice.includes('최대 '+eligible+'개가 작성 후보'));
+   assert(result.notice.includes('실제 완성·품질 승인된 문단 수는 아닙니다'));
    assert(!/TEST_DO_NOT_EXPOSE|TEST_ADDRESS_DO_NOT_EXPOSE/.test(result.notice),
     'customer notice cannot echo sensitive input');
    assert.equal(result.estimate.chapters.length,12);
@@ -84,6 +98,10 @@ const names=['NODE_ENV','RENDER','PAID_CORE_DEPTH_V2',
    assert.equal(result.estimate.chapters.reduce((n,x)=>n+x.eligibleTopicUpperBound,0),eligible);
    assert.equal(result.estimate.chapters.reduce((n,x)=>n+x.eligibleTopics.length,0),eligible,
     'the sum of actually displayed topic questions must equal the verified preflight upper bound');
+   assert.deepEqual([...result.productProposal.mainChapterIds,
+    ...result.productProposal.conditional2027ChapterIds].sort(),
+    result.estimate.chapters.filter(x=>x.includedInPlan).map(x=>x.id).sort(),
+    'the product proposal may never contain a section not selected by the actual paid writer');
    const blueprint=require('./report-analysis-guidance').preflight(facts.build(input,2027));
    const outline=require('./report-outline').topics;
    for(const chapter of result.estimate.chapters){
