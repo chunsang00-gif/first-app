@@ -506,12 +506,22 @@ for(const input of cases){
  assert.equal(transmittedPlan.first.sourceId,'natal.month.stem');
  assert.equal(transmittedPlan.second.sourceId,'natal.month.hidden.'+mc.mainHiddenStem);
  const scenario=strength.readerReasoning.hypotheticalQuestion;
- const mainKind=strength.tenGodFocus.monthMainHidden.tenGod;
- assert(scenario.includes('가상의 상황')&&
-  scenario.includes(contrasts.TEN_GOD_SCENE[mainKind]+' 때'),
-  'first-chapter situation must be selected from its actual main monthly category');
- assert(!scenario.includes('새로운 일을 준비하면서'),
-  'one stock job-preparation scenario must not overwrite distinct computed categories');
+ const readerPlan=core.topics.strength.sourceOwnedCoreReaderValue;
+ assert(readerPlan&&readerPlan.kind==='grounded-paid-core-reader-takeaway-v1');
+ assert.deepEqual(readerPlan.refs,['natal.month.stem',mainMonthId]);
+ assert.equal(readerPlan.monthVisibleTraditionalMeaning,traditional.first.reading);
+ assert.equal(readerPlan.monthMainTraditionalMeaning,traditional.second.reading);
+ assert.equal(readerPlan.sameClassification,strength.tenGodFocus.sameClassification);
+ assert.equal(readerPlan.additionalTopic,false);
+ assert.equal(readerPlan.professionalReviewComplete,false);
+ assert(scenario.includes('가상의 업무 장면을 의무적으로 만들지 않는다')&&
+  scenario.includes(readerPlan.readerTakeaway),
+  'the production writer must prioritize source-specific traditional meaning over a generic adult job scene');
+ assert(!scenario.includes('가상의 상황:')&&!scenario.includes('새로운 일을 준비하면서')&&
+  !scenario.includes('여섯 달간 운영')&&!scenario.includes('TEN_GOD_SCENE'),
+  'the rejected reusable workplace scene must not be sent to the normal paid writer');
+ assert(pairedText.includes(readerPlan.script),
+  'the strict real provider schema must include the exact validated source-owned reader interpretation');
  assert(!/(?:내부 출처|natal\\.|basis\\.|지장간|십성|편인|정인|정재|편재|비견|겁재|식신|상관|정관|편관)/.test(scenario),
   'plain Korean scene must not carry technical source-audit text');
  assert(strength.tenGodFocus.monthStem.tenGod&&strength.tenGodFocus.monthMainHidden.tenGod,
@@ -519,12 +529,12 @@ for(const input of cases){
  assert(!/(?:당신은 실제로|늘 그랬|이미 겪었|갈등이 생깁니다|성격이 충돌합니다)/.test(scenario),
   'calculated categories must not become asserted biography or psychological conflict');
  if(input.calendar==='lunar'&&input.birthDate==='1982-11-24'){
-  assert(scenario.includes('처음 접하는 정보를 자기 방식으로 어떻게 이해할지'),
-   'real lunar sample must give a concrete learning-related scene for 癸 편인');
-  assert(scenario.includes('필요한 돈과 재료를 어디서 마련하고 어떻게 쓸지'),
-   'real lunar sample must give a different resource-related scene for 己 편재');
-  assert(!scenario.includes('반복해서 드는 비용을 어떻게 감당할지'),
-   'actual 편재 must not be swapped with the invented 정재 decision');
+  assert(readerPlan.monthVisibleTraditionalMeaning.includes('새로운 정보를 자기 방식으로 해석하고 이해'));
+  assert(readerPlan.monthMainTraditionalMeaning.includes('여러 곳의 자원을 살피고 필요한 곳에 활용'));
+  assert(readerPlan.semanticDifferenceRequired,
+   'the actual month pair has two separately computed meanings');
+  assert(!readerPlan.script.includes('반복해서 드는 비용을 어떻게 감당할지'),
+   'actual 편재 must not be swapped with invented 정재');
   assert(monthReaderPlan.first.question.includes('처음 접하는 정보를 자기 방식으로 어떻게 이해할지'));
   assert(monthReaderPlan.second.question.includes('필요한 돈과 재료를 어디서 마련하고 어떻게 쓸지'));
   assert(!monthReaderPlan.customerSequence.includes('무조건 두 성격이 충돌'),
