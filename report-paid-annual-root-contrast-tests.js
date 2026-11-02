@@ -57,7 +57,7 @@ assert(field.anyOf.some(x=>x.type==='null'),'no forced fictional paragraph');
 const leaf=field.anyOf.find(x=>x.type==='object');
 assert.deepEqual(leaf.properties.basis.properties.refs.items.enum,[reader.REF]);
 assert.deepEqual(leaf.properties.basis.properties.condition.enum,[actual.result.computedCondition]);
-const paragraph={label:'2027년 충과 두 뿌리 자리',text:'태어날 때 같은 오행을 품은 두 위치가 있지만 2027년 지지가 충을 맺는 자리는 한 곳입니다. 나머지 위치를 같은 충으로 설명할 근거는 없습니다. 이는 운이나 힘의 크기를 확정하는 이야기가 아닙니다.',
+const paragraph={label:'2027년 충과 두 뿌리 자리',text:'태어날 때 같은 오행의 숨은 글자가 두 위치에 있고 2027년 지지의 충은 한 자리에만 있으므로 다른 위치의 뿌리와 구분합니다. 한 자리의 충만으로 다른 뿌리가 사라지거나 실제 힘이 약해진다고 판단할 근거는 없습니다.',
  basis:{refs:[reader.REF],condition:actual.result.computedCondition,
  interpretation:'두 위치가 같은 오행의 출처를 품지만 한 자리만 세운 충의 상대입니다.',
  limit:'실제 신강약·합화·능력·결과는 계산으로 판정되지 않았습니다.'}};
