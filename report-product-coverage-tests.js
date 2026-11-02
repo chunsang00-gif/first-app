@@ -206,7 +206,10 @@ const names=['NODE_ENV','RENDER','PAID_CORE_DEPTH_V2',
   assert.equal(onlyOutput.spending.mode,'state-limits');
   assert.deepEqual(onlyOutput.spending.allowedSourceRefs,[]);
   console.log('PRODUCT_COVERAGE='+JSON.stringify({
-   samples:checked.length,definedChapters:12,definedTopics:28,
+   samples:checked.length,
+   definedChapters:Object.keys(require('./report-outline').topics).length,
+   definedTopics:Object.values(require('./report-outline').topics)
+    .reduce((sum,topics)=>sum+Object.keys(topics).length,0),
    actualProviderCalls:0,purchaseStillDisabled:true,
    clientSuppliedChartIgnored:true,personalInputNotEchoed:true,
    results:checked
