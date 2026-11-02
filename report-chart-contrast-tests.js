@@ -520,8 +520,13 @@ for(const input of cases){
  assert(!scenario.includes('가상의 상황:')&&!scenario.includes('새로운 일을 준비하면서')&&
   !scenario.includes('여섯 달간 운영')&&!scenario.includes('TEN_GOD_SCENE'),
   'the rejected reusable workplace scene must not be sent to the normal paid writer');
- assert(pairedText.includes(readerPlan.script),
-  'the strict real provider schema must include the exact validated source-owned reader interpretation');
+ const strictProviderSchema=generation.schema(p,wire.schemaFor(p,require('./report-schema.json')));
+ const strictReaderText=strictProviderSchema.properties.chapters.properties.saju_core
+  .properties.paragraphs.properties.strength.properties.text.description;
+ assert(strictReaderText.includes(readerPlan.script),
+  'the actual source-restricted provider response schema must include the reader interpretation');
+ assert(!strictReaderText.includes('가상의 상황: '+contrasts.TEN_GOD_SCENE[strength.tenGodFocus.monthMainHidden.tenGod]),
+  'the live schema must not reintroduce the old fixed adult workplace scene');
  assert(!/(?:내부 출처|natal\\.|basis\\.|지장간|십성|편인|정인|정재|편재|비견|겁재|식신|상관|정관|편관)/.test(scenario),
   'plain Korean scene must not carry technical source-audit text');
  assert(strength.tenGodFocus.monthStem.tenGod&&strength.tenGodFocus.monthMainHidden.tenGod,
