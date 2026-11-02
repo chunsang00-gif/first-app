@@ -109,7 +109,7 @@ const outline=require('./report-outline'),wire=require('./report-wire'),schema=r
 const ids=Object.keys(outline.topics),prompt={requestedSections:ids};
 const providerSchema=wire.schemaFor(prompt,schema);assert.deepEqual(providerSchema.properties.chapters.required,ids);
 const chapters=Object.fromEntries([...ids].reverse().map(id=>[id,{paragraphs:Object.fromEntries(Object.keys(outline.topics[id]).reverse().map(t=>[t,{label:outline.topics[id][t],text:id+':'+t}]))}]));
-const decoded=wire.decode({chapters},prompt);assert.equal(decoded.sections.reduce((n,s)=>n+s.body.length,0),28);
+const decoded=wire.decode({chapters},prompt);assert.equal(decoded.sections.reduce((n,s)=>n+s.body.length,0),30);
 for(const s of decoded.sections){assert.deepEqual(s.bodyTopics,Object.keys(outline.topics[s.id]));s.body.forEach((v,i)=>assert.equal(v,s.id+':'+s.bodyTopics[i]));}
 const diagnostics=require('./report-diagnostics');
 assert.equal(diagnostics.failureCode('AI report service output token limit'),'MODEL_OUTPUT_TOKEN_LIMIT');
@@ -120,7 +120,7 @@ assert(quality.verifyEvidenceAgainstFacts({sections:[],finalJudgment:{body:['202
 const noClash={...facts,facts:{...facts.facts,targetYearRelations:[]}};
 assert.equal(quality.verifyEvidenceAgainstFacts({sections:[{id:'year_2027',body:['2027년 일지와 충이 없습니다.']}]},noClash).errors.length,0);
 assert(quality.verifyEvidenceAgainstFacts({sections:[{id:'year_2027',body:['2027년 일지와 충이 있습니다.']}]},noClash).errors.length);
-console.log('PASS private-file denial, invalid inputs, required 29-topic transport, distinct failures, final-summary factual checks and negated clash');
+console.log('PASS private-file denial, invalid inputs, required current-topic transport, distinct failures, final-summary factual checks and negated clash');
 
 // Completed reports remain readable after recreating a store on the same mounted directory.
 {const fs=require('node:fs'),os=require('node:os'),path=require('node:path'),d=fs.mkdtempSync(path.join(os.tmpdir(),'saju-job-'));try{const store=require('./report-job-store');const id='00000000-0000-4000-8000-000000000001';store.create(d).save(id,{status:'ready',result:{report:{meta:{name:'sample'}}}});assert.equal(store.create(d).load(id).result.report.meta.name,'sample');assert.equal(store.create(d).load('../server.js'),null);assert.equal(fs.statSync(path.join(d,id+'.json')).mode&0o777,0o600);const request='request-id-for-restart-0001',fingerprint='a'.repeat(64);store.create(d).saveRequest(request,{id,fingerprint});assert.deepEqual(store.create(d).loadRequest(request),{id,fingerprint});assert.equal(store.create(d).loadRequest('../server.js'),null);assert.equal(fs.statSync(path.join(d,'request-'+request+'.json')).mode&0o777,0o600);store.create(d).save(id,{status:'ready',result:{report:{meta:{name:'persisted'}}}});assert.equal(store.create(d).load(id).result.report.meta.name,'persisted');console.log('PASS mounted report results survive store recreation with owner-only file permissions');}finally{fs.rmSync(d,{recursive:true,force:true})}}
