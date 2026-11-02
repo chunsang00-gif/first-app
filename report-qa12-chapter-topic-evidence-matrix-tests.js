@@ -23,7 +23,7 @@ const keys=['NODE_ENV','RENDER','PAID_CORE_DEPTH_V2',
   process.env.NODE_ENV='test';delete process.env.RENDER;
   for(const k of keys.slice(2))delete process.env[k];
   const observations=[],allStates=new Set();
-  let last=null,lastPacket=null;
+  let last=null,lastPacket=null,lastEvidence=null;
   for(const input of cases){
    const packet=facts.build(input,2027);
    assert.equal(packet.status,'ready');
@@ -85,7 +85,7 @@ const keys=['NODE_ENV','RENDER','PAID_CORE_DEPTH_V2',
     perChapter:Object.fromEntries(Object.entries(result.byChapter)
      .map(([id,row])=>[id,row.selected?row.eligible+'/'.concat(String(row.defined)):'omitted']))
    });
-   last=snapshot.prompt;lastPacket=packet;
+   last=snapshot.prompt;lastPacket=packet;lastEvidence=result;
   }
   assert(allStates.has('state-limits')&&allStates.has('use-primary'));
   assert.equal(observations[0].selectedChapters,9);
@@ -159,9 +159,12 @@ const keys=['NODE_ENV','RENDER','PAID_CORE_DEPTH_V2',
   assert.throws(()=>audit.inspect(lastPacket,last),
    /QA12_PREPAID_DIAGNOSTIC_OFFLINE_ONLY/);
   console.log('QA12_CHAPTER_TOPIC_EVIDENCE='+JSON.stringify({
-   charts:observations.length,definedChapters:12,definedTopics:28,
-   currentPolicyDisabledTopics:3,maximumPotentialBeforeChartSelection:25,
-   minimumUnreachable35TopicGap:10,
+   charts:observations.length,
+   definedChapters:Object.keys(lastEvidence.byChapter).length,
+   definedTopics:lastEvidence.definedTopics,
+   currentPolicyDisabledTopics:lastEvidence.countPolicyDisabled,
+   maximumPotentialBeforeChartSelection:lastEvidence.structurallyPossibleTopicSlotsAtMost,
+   minimumUnreachable35TopicGap:lastEvidence.minimumGapTo35EvenForOptimisticChart,
    archivedPaidResponsesUnchanged:true,actualProviderCalls:0,
    businessScopeFullyAuthorized:false,cases:observations
   }));
