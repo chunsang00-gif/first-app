@@ -261,7 +261,7 @@ function validate(r,packet){
  if(orderedIds.some(id=>!IDS.includes(id))||JSON.stringify(orderedIds)!==JSON.stringify(IDS.filter(id=>orderedIds.includes(id))))errors.push('section id/order mismatch');
  r.sections.forEach((s,i)=>{
   if(!s||typeof s!=='object'){errors.push(`section ${i+1} invalid`);return}
-  if(['depth-v2','concise-v1','concise-v2','concise-v3'].includes(r.meta?.versions?.schema)){
+  if(['depth-v2','concise-v1','concise-v2','concise-v3','concise-v4'].includes(r.meta?.versions?.schema)){
    const keys=Object.keys(require('./report-outline').topics[s.id]||{});
    if(!Array.isArray(s.bodyTopics)||!s.bodyTopics.length||s.bodyTopics.some(t=>!keys.includes(t))||JSON.stringify(s.bodyTopics)!==JSON.stringify(keys.filter(t=>s.bodyTopics.includes(t))))errors.push(s.id+': topics unknown or reordered');
    if(s.body?.length!==s.bodyTopics?.length||s.bodyLabels?.length!==s.bodyTopics?.length)errors.push(s.id+': topic explanations incomplete');
