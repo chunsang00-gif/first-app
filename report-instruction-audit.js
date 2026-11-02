@@ -264,6 +264,23 @@ function inspectTransport(prompt,actual){
       const original=contrast.build(prompt.facts);
       const expected=original&&contrast.forProvider(original,topicId,permitted,
        prompt.qaNatalDepthPreview!==true);
+      const paidOrdinary=topicId==='strength'&&
+       prompt.paidCoreDepthV2!==true&&
+       prompt.qaNatalDepthPreview!==true&&
+       prompt.qaAdditiveDepthPreview!==true&&
+       prompt.qaOfflineEditorialResearchPreview!==true;
+      if(paidOrdinary&&expected){
+       const planned=require('./report-paid-core-reader-value-plan')
+        .build(prompt.facts,expected,permitted,actual.source);
+       if(!planned||
+          JSON.stringify(topic.sourceOwnedCoreReaderValue)!==JSON.stringify(planned))
+        errors.push('core-paid-reader-value-contract-drift');
+       if(planned)expected.readerReasoning.hypotheticalQuestion=
+        '가상의 업무 장면을 의무적으로 만들지 않는다. '+planned.readerTakeaway+
+        ' 실제 출생월의 두 의미와 오행 관계를 독자 자신의 삶을 관찰한 사실처럼 말하지 않는다.';
+      }else if(Object.hasOwn(topic,'sourceOwnedCoreReaderValue')){
+       errors.push('core-paid-reader-value-leaked-into-qa');
+      }
       if(!expected||JSON.stringify(topic.evidenceFocus)!==JSON.stringify(expected))
        errors.push('core-reader-evidence-brief-drift:'+id+'/'+topicId);
      }
