@@ -12,10 +12,10 @@ const group=[
  ['year_2027','year_2027_money'],['year_2027_career','year_2027_relationship']
 ];
 const samples=[
- ['lunar','1982-11-24',9,20],
- ['solar','1994-07-15',10,19],
- ['solar','1994-01-15',10,21],
- ['solar','1994-05-15',11,20]
+ ['lunar','1982-11-24',9,22],
+ ['solar','1994-07-15',10,21],
+ ['solar','1994-01-15',10,23],
+ ['solar','1994-05-15',11,22]
 ];
 for(const [calendar,birthDate,chapterCount,bound] of samples){
  const packet=facts.build({calendar,birthDate,
