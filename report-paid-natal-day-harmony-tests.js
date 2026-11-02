@@ -6,7 +6,7 @@ const harmony=require('./report-paid-natal-day-harmony');
 const guidance=require('./report-analysis-guidance');
 const writer=require('./report-generation-request');
 const wire=require('./report-wire');
-const synthetic={chart:{year:'己巳',month:'乙未',day:'丙午',hour:'癸巳'}};
+const synthetic={chart:{year:'甲辰',month:'乙未',day:'丙午',hour:'戊辰'}};
 synthetic.facts={natalBranchRelations:relations.natal(synthetic.chart)};
 const proof=harmony.candidate(synthetic);
 assert(proof&&proof.otherPosition==='month'&&proof.dayBranch==='午'&&proof.otherBranch==='未');
@@ -19,7 +19,7 @@ competing.facts={natalBranchRelations:relations.natal(competing.chart)};
 assert.equal(harmony.candidate(competing),null,'a day clash and harmony cannot be treated as an isolated pair');
 let actual=null;
 for(let d=1;d<=31;d++){
- const packet=facts.build({calendar:'solar',birthDate:'1989-07-'+String(d).padStart(2,'0'),birthTime:'10:20',gender:'male',mbti:'ISFP'},2027);
+ const packet=facts.build({calendar:'solar',birthDate:'1988-07-'+String(d).padStart(2,'0'),birthTime:'08:20',gender:'male',mbti:'ISFP'},2027);
  if(packet.status!=='ready')continue;
  const item=harmony.candidate(packet);
  if(item){actual={packet,proof:item};break}
