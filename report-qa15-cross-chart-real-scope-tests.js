@@ -55,6 +55,13 @@ for(const day of days)for(const birthTime of times){
  }
  assert.equal(valid,shown.estimate.evidenceEligibleTopicUpperBound);
  assert.equal(chosen.plannedIds.length,shown.estimate.plannedChapters);
+ assert.equal(shown.estimate.chaptersNotSelected,12-chosen.plannedIds.length);
+ assert.equal(shown.estimate.topicUpperBoundGapToTarget,35-valid);
+ assert.equal(shown.estimate.advertised12x35NotDeliverable,true);
+ assert(shown.notice.includes('12개 장 중 '+chosen.plannedIds.length+'개 장'));
+ assert(shown.notice.includes('35개 항목 중 최대 '+valid+'개'));
+ assert(!shown.notice.includes(date),'private birth date cannot leak into preview');
+ assert(!shown.notice.includes(birthTime),'private birth time cannot leak into preview');
  assert(valid<=30);
  const signed=chosen.plannedIds.join('/');
  allSeen.add(signed);
