@@ -34,6 +34,11 @@ const CONDITIONS=Object.freeze({
  '정인':Object.freeze({focus:'배운 설명과 외부 지원을 적용할 조건',missing:'설명과 도움을 실제로 적용할 준비가 빠집니다'}),
  '편인':Object.freeze({focus:'낯선 방법을 이해할 근거',missing:'새 방법을 판단할 근거가 충분히 정리되지 않습니다'})
 });
+// Free preview: explain the VERIFIED source linkage itself, never a
+// reusable adult job story. The old six-month-operations example was
+// precisely the generic scene rejected in eight prior editorial drafts.
+// This wording stays suitable for minors without attributing school/work
+// history, actual income, ability or a predicted event to a birth chart.
 function conditionalMonthReading(main,exposed,location){
  const first=CONDITIONS[main.tenGod],second=CONDITIONS[exposed.tenGod];
  if(!first||!second)throw Error('SAMPLE_UNSUPPORTED_CONTRAST_ROLE');
@@ -43,22 +48,22 @@ function conditionalMonthReading(main,exposed,location){
  if(!a||!b)throw Error('SAMPLE_CONTRAST_ELEMENT_UNKNOWN');
  const relation=season.relation(a,b);
  const links={
-  resource:'달 안 중심 글자의 오행이 다른 글자의 오행을 생하는 방향',
-  output:'달 안 다른 글자의 오행이 중심 글자의 오행을 생하는 방향',
-  'control-on-day':'달 안 중심 글자의 오행이 다른 글자의 오행을 극하는 방향',
-  'day-controls':'달 안 다른 글자의 오행이 중심 글자의 오행을 극하는 방향',
-  'same-element':'두 글자의 오행이 같은 관계'
+  resource:'달의 중심 글자가 다른 글자를 도와주는 방향',
+  output:'달의 다른 글자가 중심 글자를 도와주는 방향',
+  'control-on-day':'달의 중심 글자가 다른 글자를 제약하는 방향',
+  'day-controls':'달의 다른 글자가 중심 글자를 제약하는 방향',
+  'same-element':'두 글자가 같은 성질로 연결된 관계'
  };
  const link=links[relation];
  if(!link)throw Error('SAMPLE_CONTRAST_ELEMENT_UNCLASSIFIED');
- return '태어난 달의 중심 글자는 ‘'+first.focus+'’을, 같은 달의 다른 숨은 글자는 ‘'+
-  second.focus+'’을 전통적으로 묻습니다. 특히 두 번째 글자가 '+location+
-  '의 겉에도 정확히 확인됩니다. 예를 들어 한 가지 일을 시작해 여섯 달간 '+
-  '운영하는 가상의 상황에서 첫 번째 조건만 갖추면 '+second.missing+
-  '. 반대로 두 번째 조건만 갖추면 '+first.missing+'. '+
-  '두 글자 사이에는 '+link+'도 계산됩니다. 다만 이것은 출생 기호에 '+
-  '붙이는 조건부 비교이며, 누가 실제로 일 처리를 잘하는지나 어느 '+
-  '뜻이 더 강한지 판정한 결과는 아닙니다.';
+ return '태어난 달의 중심 글자는 ‘'+first.focus+
+  '’을 전통적으로 묻고, 같은 달에 있는 다른 글자는 ‘'+second.focus+
+  '’을 묻습니다. 이 두 번째 글자가 '+location+
+  '의 겉에도 정확히 같은 글자로 확인됩니다. 따라서 출생월의 중심 글자 하나만 읽으면 '+
+  location+'에서 되풀이되는 별도 분류를 놓치게 됩니다. '+
+  '두 글자 사이에는 '+link+'도 계산됩니다. '+
+  '이것은 출생 위치와 전통적 뜻을 연결한 결과이지, 실제 성격·일하는 능력·돈 쓰는 습관이나 '+
+  '어느 분류가 더 강한지 판정한 결과는 아닙니다.';
 }
 function card(id,title,text){
  if(typeof text!=='string'||text.length<30)
@@ -106,7 +111,7 @@ function monthToVisibleLink(packet){
  const {hiddenRow,position,exposure}=chosen;
  const location=position==='year'?'태어난 해':'태어난 시간';
  const scene=conditionalMonthReading(main,hiddenRow,location);
- if(scene)return card('month-visible-link','출생월에서 실제로 갈라지는 두 가지 조건',scene);
+ if(scene)return card('month-visible-link','태어난 달과 다른 출생 자리에서 확인한 연결',scene);
  const layer=exposure.layer==='main'?'중심 글자':'숨은 글자';
  const subject=phrase(hiddenRow.tenGod);
  return card('month-visible-link','태어난 달과 다른 출생 자리의 직접 연결',
