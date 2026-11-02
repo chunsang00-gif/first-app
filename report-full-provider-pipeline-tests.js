@@ -49,6 +49,13 @@ function subsetRefs(source,chapter,id,topic,slot){
    throw Error('Synthetic provider lacks verified exposure source');
   required.push(...ids,...exposure);
  }
+ const annualDay=chapter.topics?.[topic]?.sourceOwnedAnnualDayContext;
+ if(annualDay?.mode==='secondary-table-only'){
+  assert.equal(id,'year_2027');
+  assert.equal(topic,'impact');
+  assert(permitted.includes(annualDay.sourceRef));
+  required.push(annualDay.sourceRef);
+ }
  const decade=chapter.topics?.[topic]?.sourceOwnedDecadeCareer;
  const wealthClash=chapter.topics?.[topic]?.sourceOwnedWealthClash;
  for(const exact of [decade,wealthClash]){
