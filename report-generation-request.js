@@ -417,6 +417,15 @@ function compile(prompt){
       throw Error('PAID_ANNUAL_TRIAD_SOURCE_NOT_GROUNDED');
      topic.sourceOwnedAnnualTriad=verified;
     }
+    if(chapterId==='year_2027'&&topicId==='root_contrast'&&topic.mode!=='state-limits'){
+     const verified=require('./report-paid-annual-root-contrast').candidate(prompt.facts);
+     if(!verified||JSON.stringify(verified.sourceRefs)!==
+        JSON.stringify(topic.allowedSourceRefs)||
+        !permitted.includes('facts.rootConditions')||
+        !Object.hasOwn(source,'facts.rootConditions'))
+      throw Error('PAID_ANNUAL_ROOT_CONTRAST_SOURCE_NOT_GROUNDED');
+     topic.sourceOwnedAnnualRootContrast=verified;
+    }
     // Only annual money/career CHANGE topics with an exact verified pair
     // get an extra paid interpretation. This is not a new paid model call.
     if(topicId==='change'&&['year_2027_money','year_2027_career'].includes(chapterId)){
@@ -875,6 +884,23 @@ function schema(prompt,transport){
       ' 충').join('; ')+
      '. 가상의 관계에서 두 서로 다른 요구가 만났을 때를 설명하되 이는 실제 대인갈등의 발생이 아니다. '+
      '사람의 성향, 상대의 성격, 이별·관계 실패를 예언하거나 다른 장의 친밀감·표현 해석을 반복하지 않는다.';
+   }
+   if(task.sourceOwnedAnnualRootContrast){
+    const proof=task.sourceOwnedAnnualRootContrast;
+    const actual=require('./report-paid-annual-root-contrast').candidate(prompt.facts);
+    if(chapterId!=='year_2027'||topic!=='root_contrast'||!actual||
+       JSON.stringify(actual)!==JSON.stringify(proof)||
+       JSON.stringify(permitted)!=='["facts.rootConditions"]'||
+       !payload.source['facts.rootConditions']||
+       proof.rootErased!==false||proof.strengthMeasured!==false||
+       proof.realLifeEventPredicted!==false)
+      throw Error('PAID_ANNUAL_ROOT_CONTRAST_SCHEMA_SOURCE_DRIFT');
+    basis.properties.condition.enum=[proof.computedCondition];
+    p.properties.text.description+=
+     ' 별도 2027년 뿌리 위치의 해석 질문: '+proof.readerQuestion+
+     ' 충을 맺는 자리 '+proof.collidedPosition+'와 별도 자리 '+proof.alternativePosition+
+     '를 구별한다. 이 둘이 존재한다는 사실로 신강약, 운세, 성격, 뿌리 소멸을 결론 내리지 않는다. '+
+     '새로운 두 위치 비교의 의미가 없으면 null로 둔다.';
    }
    if(task.sourceOwnedAnnualTriad){
     const proof=task.sourceOwnedAnnualTriad;
@@ -1392,6 +1418,16 @@ function restoreEvidence(value,prompt){
         JSON.stringify(b.refs)!=='["person.mbti"]'||
         b.condition!==proof.computedCondition)
       throw Error('AI report service entered MBTI dimension evidence missing: '+id+':'+topic);
+    }
+    if(task.sourceOwnedAnnualRootContrast){
+     const proof=task.sourceOwnedAnnualRootContrast;
+     if(id!=='year_2027'||topic!=='root_contrast'||
+        proof.kind!=='verified-annual-day-root-differential-question-v1'||
+        proof.rootErased!==false||proof.strengthMeasured!==false||
+        proof.realLifeEventPredicted!==false||
+        JSON.stringify(b.refs)!=='["facts.rootConditions"]'||
+        b.condition!==proof.computedCondition)
+      throw Error('AI report service annual root contrast evidence missing: '+id+':'+topic);
     }
     if(task.sourceOwnedAnnualTriad){
      const proof=task.sourceOwnedAnnualTriad;
