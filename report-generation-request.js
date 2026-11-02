@@ -442,6 +442,18 @@ function compile(prompt){
       topic.sourceOwnedAnnualIntegratedScope=integrated;
      }
     }
+    // The annual impact topic owns ONLY secondary exact day-pair tables,
+    // never a second version of the separately written clash/harmony chapter.
+    if(chapterId==='year_2027'&&topicId==='impact'&&topic.mode!=='state-limits'){
+     const day=require('./report-paid-annual-day-context').build(prompt.facts);
+     if(day){
+      if(day.sourceRef&&(!Object.hasOwn(source,day.sourceRef)||
+         source[day.sourceRef]?.dayBranch!==day.dayBranch||
+         source[day.sourceRef]?.annualBranch!==day.yearBranch))
+       throw Error('PAID_ANNUAL_DAY_SCOPE_UNVERIFIED');
+      topic.sourceOwnedAnnualDayContext=day;
+     }
+    }
     // Only annual money/career CHANGE topics with an exact verified pair
     // get an extra paid interpretation. This is not a new paid model call.
     if(topicId==='change'&&['year_2027_money','year_2027_career'].includes(chapterId)){
@@ -1007,6 +1019,29 @@ function schema(prompt,transport){
      '출처와 설명을 한 가지 조건부 생활 풀이로 바꾸되 실제 행동·능력·소득·관계 경험을 확정하지 않는다. '+
      '같은 출처의 이미 제공된 결론을 다시 쓰는 것뿐이면 선택 문단은 null로 둔다.';
    }
+   if(task.sourceOwnedAnnualDayContext){
+    const day=task.sourceOwnedAnnualDayContext;
+    const recalculated=require('./report-paid-annual-day-context')
+     .build(prompt.facts);
+    if(chapterId!=='year_2027'||topic!=='impact'||!recalculated||
+       JSON.stringify(day)!==JSON.stringify(recalculated)||
+       day.additionalPaidTopic!==false||
+       day.personalRelationshipOutcomeObserved!==false||
+       (day.sourceRef&&(!permitted.includes(day.sourceRef)||
+        payload.source[day.sourceRef]?.dayBranch!==day.dayBranch)))
+     throw Error('PAID_ANNUAL_DAY_SCHEMA_SOURCE_DRIFT');
+    p.properties.text.description+=
+     ' 검증한 2027년 출생일 관계표의 해당 문단 범위: '+
+     day.readerBoundary+
+     ' 관계가 없다는 사실로 실제 관계의 좋고 나쁨을 판단하지 않는다. '+
+     '독립된 충·육합은 별도 관계 장의 소관이며, 2027년 기본 impact 문단에서 복제하지 않는다.';
+    if(day.mode==='secondary-table-only'){
+     basis.properties.refs.description+=
+      ' 이 문단에서 실제 '+day.secondary.join('·')+
+      ' 관계를 설명한다면 '+day.sourceRef+'를 반드시 근거로 인용한다.';
+     basis.properties.condition.enum=[day.computedCondition];
+    }
+   }
    if(task.sourceOwnedAnnualIntegratedScope){
     const expected=require('./report-paid-annual-integrated-scope')
       .build(prompt.facts);
@@ -1313,6 +1348,15 @@ function allowedRefs(payload,task,chapterId,topic){
   if(path==='facts.annualTenGods.hiddenStems'&&Object.hasOwn(payload.source,'facts.annualTenGods')&&Array.isArray(payload.source['facts.annualTenGods']?.hiddenStems)&&payload.source['facts.annualTenGods'].hiddenStems.length)ids.add('facts.annualTenGods');
   if(path==='facts.tenGods')for(const id of Object.keys(payload.source))if(id.startsWith('natal.'))ids.add(id);
  }
+ // A secondary day-pair table belongs ONLY to year_2027.impact.
+ // Exposing its exact source never makes a new paid relationship chapter.
+ if(chapterId==='year_2027'&&topic==='impact'&&
+    task?.sourceOwnedAnnualDayContext?.mode==='secondary-table-only'){
+  const id=task.sourceOwnedAnnualDayContext.sourceRef;
+  if(!id||!Object.hasOwn(payload.source,id))
+   throw Error('PAID_ANNUAL_DAY_SCOPE_REFERENCE_MISSING');
+  ids.add(id);
+ }
  // A comparison must cite both the submitted MBTI preferences and
  // at least one exact natal row. It cannot compare one theory to itself.
  if(['mbti_contradiction','integrated_judgment'].includes(chapterId)&&payload.source['person.mbti']&&task.mode!=='state-limits'){
@@ -1456,6 +1500,17 @@ function restoreEvidence(value,prompt){
         JSON.stringify(b.refs)!=='["person.mbti"]'||
         b.condition!==proof.computedCondition)
       throw Error('AI report service entered MBTI dimension evidence missing: '+id+':'+topic);
+    }
+    if(task.sourceOwnedAnnualDayContext){
+     const scope=task.sourceOwnedAnnualDayContext;
+     const computed=require('./report-paid-annual-day-context')
+      .build(prompt.facts);
+     if(id!=='year_2027'||topic!=='impact'||!computed||
+        JSON.stringify(scope)!==JSON.stringify(computed)||
+        (scope.mode==='secondary-table-only'&&
+         (!b.refs.includes(scope.sourceRef)||
+          b.condition!==scope.computedCondition)))
+      throw Error('AI report service 2027 general day relation lacks verified scope: '+id+':'+topic);
     }
     if(task.sourceOwnedAnnualIntegratedScope){
      const actual=require('./report-paid-annual-integrated-scope')
