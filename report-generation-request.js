@@ -426,6 +426,22 @@ function compile(prompt){
       throw Error('PAID_ANNUAL_ROOT_CONTRAST_SOURCE_NOT_GROUNDED');
      topic.sourceOwnedAnnualRootContrast=verified;
     }
+    // The ordinary annual chapter has its own one-stem meaning even when
+    // separately billable 2027 money/career comparisons are not eligible.
+    // It must NOT summarize an omitted domain as a made-up event or copy
+    // the same annual symbol into multiple paid chapters.
+    if(chapterId==='year_2027'&&topicId==='change'&&topic.mode!=='state-limits'){
+     const integrated=require('./report-paid-annual-integrated-scope')
+      .build(prompt.facts);
+     if(integrated){
+      if(!permitted.includes(integrated.sourceRef)||
+         !Object.hasOwn(source,integrated.sourceRef)||
+         source[integrated.sourceRef].stem!==integrated.annualStem||
+         source[integrated.sourceRef].stemTenGod!==integrated.annualGod)
+       throw Error('PAID_ANNUAL_INTEGRATED_SCOPE_UNVERIFIED');
+      topic.sourceOwnedAnnualIntegratedScope=integrated;
+     }
+    }
     // Only annual money/career CHANGE topics with an exact verified pair
     // get an extra paid interpretation. This is not a new paid model call.
     if(topicId==='change'&&['year_2027_money','year_2027_career'].includes(chapterId)){
@@ -991,6 +1007,28 @@ function schema(prompt,transport){
      '출처와 설명을 한 가지 조건부 생활 풀이로 바꾸되 실제 행동·능력·소득·관계 경험을 확정하지 않는다. '+
      '같은 출처의 이미 제공된 결론을 다시 쓰는 것뿐이면 선택 문단은 null로 둔다.';
    }
+   if(task.sourceOwnedAnnualIntegratedScope){
+    const expected=require('./report-paid-annual-integrated-scope')
+      .build(prompt.facts);
+    const proof=task.sourceOwnedAnnualIntegratedScope;
+    if(chapterId!=='year_2027'||topic!=='change'||
+       !expected||JSON.stringify(proof)!==JSON.stringify(expected)||
+       !permitted.includes(proof.sourceRef)||
+       payload.source[proof.sourceRef]?.stem!==proof.annualStem||
+       payload.source[proof.sourceRef]?.stemTenGod!==proof.annualGod||
+       proof.additionalPaidTopic!==false||proof.personalHistoryObserved!==false)
+     throw Error('PAID_ANNUAL_INTEGRATED_SCHEMA_SOURCE_DRIFT');
+    basis.properties.refs.description+=
+     ' 2027년 기본 해석의 실제 연간 분류를 설명할 때 '+proof.sourceRef+
+     '를 인용한다. 다른 분야의 출생 위치나 사건을 새 근거로 만들지 않는다.';
+    p.properties.text.description+=
+     ' 기존 2027년 기본 풀이 안에서만 다룰 수 있는 계산된 근거: '+
+     proof.annualStem+' '+proof.annualGod+' ('+proof.traditionalMeaning+'). '+
+     '독자에게 답할 질문: '+proof.readerQuestion+' '+
+     '이 명식의 한정된 작성 경계: '+proof.writerBoundary+
+     ' 금전·직업의 별도 장이 누락되더라도 자원을 모으거나 일이 잘 풀리는 사건을 창작하지 않는다. '+
+     '새 소제목이나 추가 유료 문단을 만들지 않고 이 change 문단의 원래 목적에 맞게 설명한다.';
+   }
    if(task.sourceOwnedAnnualReading){
     const reading=task.sourceOwnedAnnualReading;
     const rows=[reading.annualSource,reading.natalSource];
@@ -1418,6 +1456,14 @@ function restoreEvidence(value,prompt){
         JSON.stringify(b.refs)!=='["person.mbti"]'||
         b.condition!==proof.computedCondition)
       throw Error('AI report service entered MBTI dimension evidence missing: '+id+':'+topic);
+    }
+    if(task.sourceOwnedAnnualIntegratedScope){
+     const actual=require('./report-paid-annual-integrated-scope')
+      .build(prompt.facts);
+     if(id!=='year_2027'||topic!=='change'||!actual||
+        JSON.stringify(task.sourceOwnedAnnualIntegratedScope)!==JSON.stringify(actual)||
+        !b.refs.includes(actual.sourceRef))
+      throw Error('AI report service general annual meaning lacks original yearly source: '+id+':'+topic);
     }
     if(task.sourceOwnedAnnualRootContrast){
      const proof=task.sourceOwnedAnnualRootContrast;
