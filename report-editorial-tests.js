@@ -634,7 +634,7 @@ assert(!quality.verifyEvidenceAgainstFacts(unsupportedAnnualReport,unsupportedAn
 const guidance=require('./report-analysis-guidance');
 const blueprint=guidance.preflight({person:{mbti:'ISFP'},facts:{structuralEvidence:{monthCommand:{branch:'子'},visibleStems:[{stem:'甲'}]},tenGods:{day:{stem:'甲',hiddenStems:[]},month:{stem:'乙'}},natalClashes:[],annualTenGods:{stem:'丁',hiddenStems:[]},targetYearRelations:[]},fortune:{activeDecade:null}});
 assert.equal(Object.keys(blueprint).length,12);
-assert.equal(Object.values(blueprint).reduce((count,chapter)=>count+Object.keys(chapter.topicTasks).length,0),28);
+assert.equal(Object.values(blueprint).reduce((count,chapter)=>count+Object.keys(chapter.topicTasks).length,0),30);
 assert.equal(blueprint.money.topicTasks.earning.primaryEvidencePath,'facts.tenGods.month');
 for(const id of ['decision','money','relationship','stress'])for(const topic of Object.values(blueprint[id].topicTasks))if(topic.primaryEvidencePath==='facts.natalClashes'){
  assert.equal(topic.mode,'state-limits','no calculated clash must not become inferred real-life conflict');
