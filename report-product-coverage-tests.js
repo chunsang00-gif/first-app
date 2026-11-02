@@ -69,6 +69,16 @@ const names=['NODE_ENV','RENDER','PAID_CORE_DEPTH_V2',
    assert.equal(result.catalog.originallyPlannedTopics,35);
    assert.equal(result.estimate.plannedChapters,chapters);
    assert.equal(result.estimate.evidenceEligibleTopicUpperBound,eligible);
+   assert.equal(result.estimate.targetChapterCount,12);
+   assert.equal(result.estimate.targetTopicCount,35);
+   assert.equal(result.estimate.chaptersNotSelected,12-chapters);
+   assert.equal(result.estimate.topicUpperBoundGapToTarget,35-eligible);
+   assert.equal(result.estimate.advertised12x35NotDeliverable,true);
+   assert(result.notice.includes('12개 장 중 '+chapters+'개 장'));
+   assert(result.notice.includes('목표 35개 항목 중 최대 '+eligible+'개'));
+   assert(result.notice.includes('실제 생성되거나 품질 검수를 통과한 문단 수가 아닙니다'));
+   assert(!/TEST_DO_NOT_EXPOSE|TEST_ADDRESS_DO_NOT_EXPOSE/.test(result.notice),
+    'customer notice cannot echo sensitive input');
    assert.equal(result.estimate.chapters.length,12);
    assert.equal(result.estimate.chapters.filter(x=>x.includedInPlan).length,chapters);
    assert.equal(result.estimate.chapters.reduce((n,x)=>n+x.eligibleTopicUpperBound,0),eligible);
