@@ -42,6 +42,7 @@ const topics={
   "year_2027": {
     "change": "2027년 사주 계산에서 평소와 달라지는 점",
     "impact": "변화의 의미와 해석할 수 있는 범위·한계",
+    "new_triad": "2027년 지지로 처음 완성되는 삼합·방합의 세 글자와 출생 위치를 설명한다. 합화·길흉·실제 사건은 판정하지 않는다.",
   },
   "year_2027_money": {
     "change": "2027년 계산에서 금전 분야에 추가되는 근거와 평소 분석과의 차이",
@@ -56,4 +57,4 @@ const topics={
     "action": "결혼·이별을 예언하지 않고 관계의 거리감·갈등을 검토할 수 있는 조건"
   }
 };
-module.exports={topics,version:'concise-v5'};
+module.exports={topics,version:'concise-v6'};
