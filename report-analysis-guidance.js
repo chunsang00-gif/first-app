@@ -73,7 +73,7 @@ const topicEvidencePaths={
  decision:{approach:'facts.tenGods.day',followthrough:'facts.natalClashes'},
  money:{earning:'facts.tenGods.month',spending:'facts.tenGods.day',risk:'facts.natalClashes'},
  career:{workstyle:'facts.structuralEvidence.visibleStems',teamwork:'facts.tenGods.month',growth:'facts.structuralEvidence.monthCommand',change:'fortune.activeDecade'},
- relationship:{closeness:'facts.tenGods.day.hiddenStems',expression:'facts.tenGods.month',conflict:'facts.natalClashes'},
+ relationship:{closeness:'facts.tenGods.day.hiddenStems',expression:'facts.tenGods.month',conflict:'facts.natalClashes',coordination:'facts.natalBranchRelations'},
  stress:{trigger:'facts.natalClashes',response:'facts.tenGods.day'},
  integrated_judgment:{insight:'facts.tenGods',tradeoff:'facts.structuralEvidence.monthCommand'},
  year_2027:{change:'facts.annualTenGods',impact:'facts.targetYearRelations'},
@@ -182,7 +182,8 @@ function preflight(packet){
   relationship:{
    closeness:{filter:row=>row.position==='day'&&row.id.includes('.hidden.'),boundary:'태어난 날의 지지 내부 계산을 전통적인 관계 상징으로 설명한다. 실제 친밀감, 연애 경험, 관계의 지속 여부를 알아낸 것처럼 쓰지 않는다.'},
    expression:{kinds:['식신','상관'],boundary:'표현과 관련된 전통적 상징만 설명한다. 실제 애정 표현·서운함·거절 방식은 확인할 수 없다.'},
-   conflict:{kinds:[],boundary:'충돌의 유무나 십성만으로 실제 다툼·이별·상대의 감정을 만들어내지 않는다.'}
+   conflict:{kinds:[],boundary:'충돌의 유무나 십성만으로 실제 다툼·이별·상대의 감정을 만들어내지 않는다.'},
+   coordination:{kinds:[],boundary:'육합 관계표만으로 실제 친밀감이나 혼인·합화가 확인되었다고 주장하지 않는다.'}
   },
   stress:{
    trigger:{kinds:['정관','편관'],boundary:'의무와 압박의 전통적 상징을 가정 상황에 한정해 설명한다. 실제 스트레스 원인·강도·건강 증상은 측정되지 않았다.'},
@@ -242,6 +243,18 @@ function preflight(packet){
  conflictTask.interpretationBoundary=directDayClashes.length?
   '출생일 지지와 다른 원국 지지가 직접 마주 보는 관계가 계산된 경우에만 풀이한다. 실제 다툼·이별·상대의 감정이나 갈등 빈도는 계산하지 않았으며, 친밀감과 표현 풀이의 숨은 글자를 재사용하지 않는다. 두 요구가 서로 다른 조건을 갖는 가상의 상황만 구별하고 강약이나 우열은 정하지 않는다.':
   '출생일 지지와 직접 연결된 충이 없으므로 다른 출생 위치의 충으로 관계 갈등을 지어내지 않는다.';
+ // Isolated natal birth-day harmony, not a repeat of intimacy or conflicts.
+ const dayHarmony=require('./report-paid-natal-day-harmony').candidate(packet);
+ const coordination=plans.relationship.topicTasks.coordination;
+ coordination.mode=dayHarmony?'use-primary':'state-limits';
+ coordination.evidencePresent=Boolean(dayHarmony);
+ coordination.allowedSourceRefs=dayHarmony?dayHarmony.sourceRefs.slice():[];
+ coordination.primaryEvidencePath='facts.natalBranchRelations';
+ coordination.verifiedFallbackPaths=[];
+ coordination.sourceOwnedDayHarmony=dayHarmony;
+ coordination.interpretationBoundary=dayHarmony?
+  '출생일과 다른 출생 자리에서 계산된 단 한 쌍의 육합 관계만 전통적 질문으로 다룬다. 실제 사람의 조화·결혼·합화는 예측하지 않는다. 앞의 친밀감·표현·갈등 설명을 반복하지 않는다.':
+  '겹치는 관계나 별도의 직접 육합 근거가 없어 실제 관계의 조화를 만들어내지 않는다.';
  // A single wealth classification does not prove TWO independent paid
  // interpretations about earning and spending. Source positions alone
  // repeat the same classification; require output-symbol evidence for an
