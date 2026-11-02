@@ -142,7 +142,7 @@ assert(!readerCandidate.text.includes('실제로 책임감이 강하거나 높�
 assert(readerCandidate.text.includes('아이')&&
  !/(?:직장|직업|급여|투자|소득|재물 능력|높은 직책)/.test(readerCandidate.text),
  '2027 preschool-aged source may not receive an adult employment or finance reading');
-assert(singleReader.text.includes('이 명식은 그 조건이 성립하지 않아'));
+assert(singleReader.text.includes('이 출생 자료는 그 조건이 성립하지 않아'));
 assert(!singleReader.text.includes('자원을 중심에 두고 책임에 관한 뜻을 곁들입니다.'),
  'the single-visible case must never assert dual case as this chart own conclusion');
 assert.notDeepEqual(singleReader.sourceRefs,readerCandidate.sourceRefs);
