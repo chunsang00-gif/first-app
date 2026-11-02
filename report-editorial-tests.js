@@ -436,7 +436,7 @@ assert(editorial.wordingErrors(['핵심\u200B성향']).length);
 assert.deepEqual(editorial.wordingErrors(['정인(배움과 보호를 뜻하는 십성)을 함께 살펴봅니다.','부탁을 거절하지 못해 자신의 일을 끝내지 못합니다.']),[]);
 // Concise reports must still contain every planned topic in its exact order.
 const concise=fixture();
-concise.meta={versions:{schema:'concise-v5'}};
+concise.meta={versions:{schema:'concise-v6'}};
 for(const section of concise.sections){
  const keys=Object.keys(outline.topics[section.id]);
  section.bodyTopics=keys;
@@ -634,7 +634,7 @@ assert(!quality.verifyEvidenceAgainstFacts(unsupportedAnnualReport,unsupportedAn
 const guidance=require('./report-analysis-guidance');
 const blueprint=guidance.preflight({person:{mbti:'ISFP'},facts:{structuralEvidence:{monthCommand:{branch:'子'},visibleStems:[{stem:'甲'}]},tenGods:{day:{stem:'甲',hiddenStems:[]},month:{stem:'乙'}},natalClashes:[],annualTenGods:{stem:'丁',hiddenStems:[]},targetYearRelations:[]},fortune:{activeDecade:null}});
 assert.equal(Object.keys(blueprint).length,12);
-assert.equal(Object.values(blueprint).reduce((count,chapter)=>count+Object.keys(chapter.topicTasks).length,0),31);
+assert.equal(Object.values(blueprint).reduce((count,chapter)=>count+Object.keys(chapter.topicTasks).length,0),32);
 assert.equal(blueprint.money.topicTasks.earning.primaryEvidencePath,'facts.tenGods.month');
 for(const id of ['decision','money','relationship','stress'])for(const topic of Object.values(blueprint[id].topicTasks))if(topic.primaryEvidencePath==='facts.natalClashes'){
  assert.equal(topic.mode,'state-limits','no calculated clash must not become inferred real-life conflict');
