@@ -82,9 +82,19 @@ const fixed=require('./report-core-paid-full-prompt-capture').FIXTURE;
     'operator QA first-chapter task must retain its frozen envelope');
    const copied=structuredClone(coreStrength);
    delete copied.evidenceFocus.tenGodFocus.monthStemVisibility;
+   assert(coreStrength.sourceOwnedCoreReaderValue?.kind==='grounded-paid-core-reader-takeaway-v1',
+    'actual paid first chapter must receive an original calculated reader-value plan');
+   assert.equal(Object.hasOwn(qaStrength,'sourceOwnedCoreReaderValue'),false,
+    'previously frozen QA envelope must not inherit a later production-only brief');
+   delete copied.sourceOwnedCoreReaderValue;
+   const originalScope=require('./report-chart-contrast').forProvider(
+    require('./report-chart-contrast').build(packet),'strength',
+    qaStrength.citableFacts.map(row=>row.id),false);
+   copied.evidenceFocus.readerReasoning.hypotheticalQuestion=
+    originalScope.readerReasoning.hypotheticalQuestion;
    assert.deepEqual(qaStrength,copied,
-    'QA depth must preserve every existing month fact and question; '+
-    'normal paid gets only one bounded month-exposure safety observation');
+    'QA depth must preserve all pinned month evidence and original QA reader question; '+
+    'only ordinary paid gets the independent new customer-prose direction');
    const lock=factLock.fromPayload(qa.payload);
    assert(lock.sourceRefs.every(id=>ids.includes(id)));
    assert.equal(qa.schema.properties.chapters.properties.saju_core
