@@ -28,7 +28,7 @@ assert.equal(reader.candidate(noAlternative),null,'one clashed root alone is not
 let actual=null,examined=0;
 outer: for(const year of [1985,1997,2009,2021])for(let month=2;month<=11;month++){
  for(const day of [5,15,25])for(const birthTime of ['08:20','16:20','20:20']){
-  const packet=facts.build({calendar:'solar',birthDate:year+'-'+String(month).padStart(2,'0')+'-'+day,
+  const packet=facts.build({calendar:'solar',birthDate:year+'-'+String(month).padStart(2,'0')+'-'+String(day).padStart(2,'0'),
    birthTime,gender:'male',mbti:'ISFP'},2027);
   examined++;
   if(packet.status!=='ready')continue;
