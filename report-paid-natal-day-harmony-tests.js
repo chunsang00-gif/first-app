@@ -26,6 +26,8 @@ for(let d=1;d<=31;d++){
 }
 assert(actual,'an actual calendar chart must reach the new question');
 const plan=guidance.preflight(actual.packet);
+assert.deepEqual(require('./report-interpretation-invariants').verify(actual.packet,plan).errors,[],
+ 'qualifying day harmony must pass real pre-billable integrity gate');
 const task=plan.relationship.topicTasks.coordination;
 assert.equal(task.mode,'use-primary');
 assert.deepEqual(task.allowedSourceRefs,[harmony.SOURCE]);
