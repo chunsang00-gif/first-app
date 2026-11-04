@@ -683,6 +683,12 @@ for(const a of ['I','E'])for(const b of ['S','N'])for(const c of ['T','F'])for(c
 // state-limits paragraphs is a real paid-batch failure, not valid filler.
 const eligibleTopics=(prompt,id)=>Object.keys(outline.topics[id]).filter(k=>
  prompt.analysisGuidance?.editorialBlueprint?.[id]?.topicTasks?.[k]?.mode!=='state-limits');
+const mockMbtiPaidDimensions={
+ information:'S 선호는 새로운 정보를 살펴볼 때 구체적인 자료와 직접 확인한 사실을 먼저 찾는다는 입력입니다. 의미를 연결하는 능력이 없다는 뜻은 아니며 실제 판단력이나 성적을 확인한 결과는 아닙니다.',
+ judgment:'F 선호는 선택을 비교할 때 사람에게 미칠 영향과 중요하게 여기는 가치를 먼저 생각한다는 입력입니다. 논리적인 기준을 못 쓴다는 뜻이 아니며 실제 공감 행동은 관찰하지 않았습니다.',
+ energy:'I 선호는 생각을 정리할 때 사람들과 이야기하기 전에 혼자 살펴볼 시간을 두는 쪽이 편하다는 입력입니다. 사교성이 부족하다는 의미가 아니며 실제 대화 빈도를 측정하지 않았습니다.',
+ planning:'P 선호는 일정의 변경 여지를 열어 두고 정보를 더 확인한 뒤 조정할 수 있는 쪽이 편하다는 입력입니다. 마감을 어긴다거나 계획이 없다는 실제 행동을 확인한 결과가 아닙니다.'
+};
 (async()=>{
  let calls=0;const seen=[];
  const dryRun=await sandbox.module.exports.generate({mbti:'ISFP'},async p=>{
@@ -733,7 +739,7 @@ const eligibleTopics=(prompt,id)=>Object.keys(outline.topics[id]).filter(k=>
   assert.deepEqual(Object.keys(p.analysisGuidance.chapterTasks),Array.from(p.requestedSections));
   assert.equal(p.analysisGuidance.mbtiReference.type,'ISFP');
   assert.equal(p.analysisGuidance.mbtiReference.preferences.map(x=>x.code).join(''),'ISFP');
-  return {sections:p.requestedSections.map(id=>({id,title:'제목',keyJudgment:'핵심',evidence:['계산한 사주 항목의 설명입니다.'],bodyTopics:eligibleTopics(p,id),bodyLabels:eligibleTopics(p,id).map((_,i)=>'검증 항목 '+i),body:eligibleTopics(p,id).map((topic,i)=>'첫 번째 결론 '+i+'. 이어지는 설명입니다.'+(id==='saju_core'&&topic==='strength'?' '+require('./qa/core-meaning-mock').body(p):''))}))};
+  return {sections:p.requestedSections.map(id=>({id,title:'제목',keyJudgment:'핵심',evidence:['계산한 사주 항목의 설명입니다.'],bodyTopics:eligibleTopics(p,id),bodyLabels:eligibleTopics(p,id).map((_,i)=>'검증 항목 '+i),body:eligibleTopics(p,id).map((topic,i)=>(id==='mbti_contradiction'&&mockMbtiPaidDimensions[topic])||('첫 번째 결론 '+i+'. 이어지는 설명입니다.'+(id==='saju_core'&&topic==='strength'?' '+require('./qa/core-meaning-mock').body(p):'')))}))};
  });
  // The mock intentionally contains placeholder evidence and no cover.
  // Never mistake completed provider calls for a publishable report.
@@ -773,7 +779,7 @@ const eligibleTopics=(prompt,id)=>Object.keys(outline.topics[id]).filter(k=>
    id,title:'서로 다른 제목 '+id,keyJudgment:'논리적인 근거를 확인하고 설명을 납득해야 결정합니다.',
    evidence:['원국의 일간 계산 근거 '+id],bodyTopics:eligibleTopics(p,id),
    bodyLabels:eligibleTopics(p,id).map((_,i)=>'검증 항목 '+i),
-   body:eligibleTopics(p,id).map((topic,i)=>'서로 다른 주제 '+id+i+'에서 논리와 근거를 확인하고 설명에 납득해야 합니다.'+(id==='saju_core'&&topic==='strength'?' '+require('./qa/core-meaning-mock').body(p):''))
+   body:eligibleTopics(p,id).map((topic,i)=>(id==='mbti_contradiction'&&mockMbtiPaidDimensions[topic])||('서로 다른 주제 '+id+i+'에서 논리와 근거를 확인하고 설명에 납득해야 합니다.'+(id==='saju_core'&&topic==='strength'?' '+require('./qa/core-meaning-mock').body(p):'')))
   }))};
  }),/cross-chapter recycled thesis/);
  assert.equal(preflightCalls,4,'recycled thesis must still fail before synthesis with isolated first paid core chapter');
