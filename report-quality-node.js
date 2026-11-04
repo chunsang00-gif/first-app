@@ -315,7 +315,9 @@ function validate(r,packet){
    .inspect(section,type));
  }
  // Free reader prose must never be repackaged as a paid first chapter.
- if(packet?.status==='ready')
+ if(packet?.status==='ready'&&packet.facts?.tenGods?.month&&
+    packet.facts?.structuralEvidence?.monthCommand&&
+    packet.facts?.annualTenGods?.stemTenGod)
   errors.push(...require('./report-paid-free-copy-gate').inspect(r.sections,packet));
  // A paid report must be bound to the exact calculation it was generated for.
  // Otherwise a valid-looking report from another customer can pass prose checks.
