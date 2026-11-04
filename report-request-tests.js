@@ -418,6 +418,29 @@ assert.equal(p.stage,'body');assert.equal(p.priorSections.length,expectedBatches
 
 
  assert.equal(captured[0].facts.person.name,'검증가');
+ // The first paid batch cannot sell the source-matched FREE reading
+ // verbatim and then spend tokens on the second body batch.
+ let freeCopyCalls=0;
+ await assert.rejects(
+  contract.generate(sampleInput,async p=>{
+   freeCopyCalls++;
+   const calculatedFree=require('./report-reading-sample').build(p.facts)
+    .cards.find(x=>x.id==='birth-month').text;
+   return {sections:p.requestedSections.map(id=>({
+    id,title:id,keyJudgment:id,
+    bodyTopics:activeKeys(p,id),
+    bodyLabels:activeKeys(p,id).map((_,i)=>'검증 항목 '+i),
+    body:activeKeys(p,id).map(t=>(id==='saju_core'&&t==='strength')?
+     calculatedFree+' '+require('./qa/core-meaning-mock').body(p):
+     (id==='mbti_contradiction'&&mockMbtiPreferenceCopy[t])||
+     (id+' '+t+'에 대한 독립된 모의 검증 문장입니다. 사주 정보에서 확인된 별도 질문을 설명하지만 실제 생활을 확인하지 않았습니다.')),
+    evidence:[id+'의 원국과 십성 관계를 구분해 확인하는 모의 분석 자료입니다.']
+   }))};
+  }),
+  /reused free preview interpretation in paid prose/
+ );
+ assert.equal(freeCopyCalls,1,
+  'copied FREE first chapter must fail before any second paid model batch');
  let mismatchCalls=0;
  await assert.rejects(contract.generate({calendar:'solar',birthDate:'1990-06-15',unknownBirthTime:true,gender:'male',mbti:'INFP'},async prompt=>{
   mismatchCalls++;
