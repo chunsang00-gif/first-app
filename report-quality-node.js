@@ -314,6 +314,9 @@ function validate(r,packet){
   if(section)errors.push(...require('./report-paid-mbti-reader-substance')
    .inspect(section,type));
  }
+ // Free reader prose must never be repackaged as a paid first chapter.
+ if(packet?.status==='ready')
+  errors.push(...require('./report-paid-free-copy-gate').inspect(r.sections,packet));
  // A paid report must be bound to the exact calculation it was generated for.
  // Otherwise a valid-looking report from another customer can pass prose checks.
  if(packet?.status==='ready'){
