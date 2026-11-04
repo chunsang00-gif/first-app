@@ -29,15 +29,15 @@ const keys=['NODE_ENV','RENDER','PAID_CORE_DEPTH_V2',
    const audit=scope.scope(packet,observed.prompt);
    assert.equal(JSON.stringify(observed.prompt),before);
    assert.equal(audit.canonicalChapterCount,12);
-   assert.equal(audit.definedCanonicalTopicSlots,33);
-   assert.equal(audit.missingDefinedTopicSlots,2);
+   assert.equal(audit.definedCanonicalTopicSlots,35);
+   assert.equal(audit.missingDefinedTopicSlots,0);
    assert(audit.chartSelectedChapters<=12&&audit.chartSelectedChapters>=4);
-   assert(audit.chartSelectedDefinedTopicUpperBound<=33);
+   assert(audit.chartSelectedDefinedTopicUpperBound<=35);
    assert(audit.chartEvidenceEligibleTopicUpperBound<=
     audit.chartSelectedDefinedTopicUpperBound);
    assert.equal(audit.firstProviderSchemaTopicKeys.saju_core.join('/'),
     'temperament/strength');
-   assert(audit.gapCodes.includes('PRODUCT_35_TOPICS_NOT_DEFINED'));
+   assert(!audit.gapCodes.includes('PRODUCT_35_TOPICS_NOT_DEFINED'));
    assert.equal(audit.canPromise12Chapters35Topics,false);
    assert.equal(audit.canSell,false);
    assert.equal(audit.providerCalls,0);
@@ -53,7 +53,7 @@ const keys=['NODE_ENV','RENDER','PAID_CORE_DEPTH_V2',
     /QA11_FIRST_LIVE_BATCH_SCOPE_DRIFT/);
   }
   assert.equal(Object.values(outline.topics).reduce((n,v)=>n+
-   Object.keys(v).length,0),33);
+   Object.keys(v).length,0),35);
   process.env.NODE_ENV='production';
   assert.throws(()=>scope.scope(facts.build(second,2027),lastLivePrompt),
    /QA11_LIVE_CONTRACT_INSPECTION_OFFLINE_ONLY/);
@@ -61,8 +61,8 @@ const keys=['NODE_ENV','RENDER','PAID_CORE_DEPTH_V2',
   assert.throws(()=>scope.scope(facts.build(first,2027),{stage:'body'}),
    /QA11_LIVE_CONTRACT_INSPECTION_OFFLINE_ONLY/);
   console.log('QA11_PRODUCT_SCOPE='+JSON.stringify({
-   chaptersDefined:12,topicsDefined:33,targetTopics:35,
-   missingTopics:2,productionScopeCanOmitChapters:true,
+   chaptersDefined:12,topicsDefined:35,targetTopics:35,
+   missingTopics:0,productionScopeCanOmitChapters:true,
    optionalTopicsMayBeNull:true,realProviderFirstBatchSchemaChecked:true,
    syntheticInputs:results,actualProviderCalls:0,
    twelveByThirtyFivePromiseVerified:false,
