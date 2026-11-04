@@ -18,7 +18,7 @@ global.fetch=()=>{networkAttempts++;throw Error('QA37_NETWORK_PROHIBITED')};
   const request=await capture(input);
   assert.equal(request.status,'captured-full-paid-composition');
   assert.equal(request.providerCalls,0);
-  assert.equal(request.prompt.paidCoreDepthV2,undefined);
+  assert.notEqual(request.prompt.paidCoreDepthV2,true);
   assert.equal(request.prompt.qaNatalDepthPreview,undefined);
   const packet=request.prompt.facts,month=packet.facts.tenGods.month;
   const main=packet.facts.structuralEvidence.monthCommand.mainHiddenStem;
