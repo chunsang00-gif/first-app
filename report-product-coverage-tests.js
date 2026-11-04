@@ -32,7 +32,7 @@ const names=['NODE_ENV','RENDER','PAID_CORE_DEPTH_V2',
    const annualTriad=require('./report-paid-annual-triad').candidate(facts.build(input,2027));
    const annualSelected=result.estimate.chapters.find(row=>row.id==='year_2027')?.includedInPlan;
    const rootContrast=require('./report-paid-annual-root-contrast').candidate(facts.build(input,2027));
-   const eligible=baselineEligible+2+Number(Boolean(decade&&careerSelected))+
+   const eligible=baselineEligible+4+Number(Boolean(decade&&careerSelected))+
     Number(Boolean(harmony&&relationSelected))+
     Number(Boolean(annualTriad&&annualSelected))+
     Number(Boolean(rootContrast&&annualSelected));
@@ -65,9 +65,9 @@ const names=['NODE_ENV','RENDER','PAID_CORE_DEPTH_V2',
     'actual source identifiers belong in internal audit, not public copy');
 
    assert.equal(result.catalog.chapterDefinitions,12);
-   assert.equal(result.catalog.topicDefinitions,33);
+   assert.equal(result.catalog.topicDefinitions,35);
    assert.equal(result.catalog.originallyPlannedTopics,35);
-   assert.equal(result.catalog.historicalDefinitionShortfall,2);
+   assert.equal(result.catalog.historicalDefinitionShortfall,0);
    const selectedCoverage=result.estimate.chapters.filter(x=>x.includedInPlan);
    const unselectedCoverage=result.estimate.chapters.filter(x=>!x.includedInPlan);
    const omittedWithin=selectedCoverage.reduce((n,x)=>n+x.excludedTopics.length,0);
@@ -78,8 +78,8 @@ const names=['NODE_ENV','RENDER','PAID_CORE_DEPTH_V2',
     excludedChapters);
    assert.equal(result.estimate.totalDefinedTopicsNotEligible,
     omittedWithin+excludedChapters);
-   assert.equal(33,eligible+omittedWithin+excludedChapters);
-   assert.equal(35-eligible,2+omittedWithin+excludedChapters);
+   assert.equal(35,eligible+omittedWithin+excludedChapters);
+   assert.equal(35-eligible,omittedWithin+excludedChapters);
    for(const c of result.estimate.chapters){
     assert(Array.isArray(c.excludedTopics));
     if(!c.includedInPlan){assert.deepEqual(c.excludedTopics,[]);continue;}
@@ -243,11 +243,13 @@ const names=['NODE_ENV','RENDER','PAID_CORE_DEPTH_V2',
   const input={calendar:'solar',birthDate:'1994-07-15',birthTime:'14:20',
    gender:'male',mbti:'모름'};
   const noMBTI=coverage.calculate(input);
-  assert.equal(noMBTI.catalog.topicDefinitions,33);
-  assert.equal(noMBTI.catalog.historicalDefinitionShortfall,2);
+  assert.equal(noMBTI.catalog.topicDefinitions,35);
+  assert.equal(noMBTI.catalog.historicalDefinitionShortfall,0);
   const mbti=noMBTI.estimate.chapters.find(x=>x.id==='mbti_contradiction');
   assert(mbti.excludedTopics.some(x=>x.id==='information'&&x.reason.includes('MBTI')));
   assert(mbti.excludedTopics.some(x=>x.id==='judgment'&&x.reason.includes('MBTI')));
+  assert(mbti.excludedTopics.some(x=>x.id==='energy'&&x.reason.includes('MBTI')));
+  assert(mbti.excludedTopics.some(x=>x.id==='planning'&&x.reason.includes('MBTI')));
   const visibleUI=require('node:fs').readFileSync(
    require('node:path').join(__dirname,'live-report-ui.js'),'utf8');
   assert(visibleUI.includes('선택된 장에서 작성하지 않는 질문'));
