@@ -105,6 +105,9 @@ function earlyMbtiReaderProblems(sections,mbti){
   .filter(s=>s?.id==='mbti_contradiction')
   .flatMap(s=>require('./report-paid-mbti-reader-substance').inspect(s,mbti)))];
 }
+function earlyFreePreviewCopyProblems(sections,packet){
+ return require('./report-paid-free-copy-gate').inspect(sections,packet);
+}
 function preSynthesisDuplicateErrors(sections){
  return [...findRepeatedSubstantiveSentences(sections),
   ...findParaphrasedTopicContent(sections),
@@ -389,6 +392,8 @@ async function generate(input,callModel,onProgress=()=>{},onValidatedBatch=()=>{
    const displayed=[s.title,s.keyJudgment,...(s.bodyLabels||[]),...(s.body||[])];
    if(require('./report-reader-policy').errors(displayed).length||editable.wordingErrors(displayed).length||/[\u3400-\u4dbf\u4e00-\u9fff]/.test(displayed.join(' ')))throw Error('QA resume editorial mismatch');
   }
+  if(earlyFreePreviewCopyProblems(verified.sections,packet).length)
+   throw Error('QA resume reused the free reader interpretation as paid prose');
   const combined=[...priorSections.map(s=>({id:s.id,keyJudgment:s.keyJudgment,body:s.topicConclusions,bodyTopics:s.bodyTopics})),...verified.sections];
   if(findRepeatedTopicContent(combined).length)throw Error('QA resume repeated topic explanations');
   if(findRecycledThemes(combined).length||findReusedEvidenceConclusions(combined).length)throw Error('QA resume recycled chapter thesis');
@@ -453,6 +458,13 @@ async function generate(input,callModel,onProgress=()=>{},onValidatedBatch=()=>{
     requestedIds:ids,codes:mbtiProblems
    });
    throw Error('AI report service returned MBTI preference reader-quality defects');
+  }
+  const previewCopyProblems=earlyFreePreviewCopyProblems(result.sections,packet);
+  if(previewCopyProblems.length){
+   console.error('[Paid free-reader copy rejected before next provider call]',{
+    requestedIds:ids,codes:previewCopyProblems
+   });
+   throw Error('AI report service reused free preview interpretation in paid prose');
   }
   // Reusing a substantive evidence sentence across chapters is report padding.
   // Catch it before buying the next batch instead of waiting for final QA.
@@ -541,6 +553,6 @@ async function generate(input,callModel,onProgress=()=>{},onValidatedBatch=()=>{
  qa=require('./report-release-gate').finalize({report,qa,packet,coverage});
  return qa.pass?{status:'ready',report,qa,headingRepairs,coverage}:{status:'rejected',report,qa,headingRepairs,coverage};
 }
-module.exports={earlyMbtiReaderProblems,findReusedEvidenceConclusions,enforceAnnualEvidenceLimits,narrativeMotifLedger,IDS,validateShape,buildPrompt,generate,findRepeatedTopicContent,findRecycledThemes,findParaphrasedTopicContent,findRepeatedAdvice,findRepeatedSubstantiveSentences,preSynthesisDuplicateErrors};
+module.exports={earlyFreePreviewCopyProblems,earlyMbtiReaderProblems,findReusedEvidenceConclusions,enforceAnnualEvidenceLimits,narrativeMotifLedger,IDS,validateShape,buildPrompt,generate,findRepeatedTopicContent,findRecycledThemes,findParaphrasedTopicContent,findRepeatedAdvice,findRepeatedSubstantiveSentences,preSynthesisDuplicateErrors};
 
 
