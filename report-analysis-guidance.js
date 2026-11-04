@@ -69,7 +69,7 @@ const chapterBlueprint={
 // This prevents the same topic answer being requested by multiple chapters.
 const topicEvidencePaths={
  saju_core:{temperament:'facts.structuralEvidence.monthCommand',strength:'facts.tenGods.month'},
- mbti_contradiction:{agreement:'person.mbti',difference:'facts.tenGods.month',information:'person.mbti',judgment:'person.mbti'},
+ mbti_contradiction:{agreement:'person.mbti',difference:'facts.tenGods.month',information:'person.mbti',judgment:'person.mbti',energy:'person.mbti',planning:'person.mbti'},
  decision:{approach:'facts.tenGods.day',followthrough:'facts.natalClashes'},
  money:{earning:'facts.tenGods.month',spending:'facts.tenGods.day',risk:'facts.natalClashes'},
  career:{workstyle:'facts.structuralEvidence.visibleStems',teamwork:'facts.tenGods.month',growth:'facts.structuralEvidence.monthCommand',change:'fortune.activeDecade'},
@@ -133,7 +133,7 @@ function preflight(packet){
  // NEW paid MBTI dimensions use ONLY the exact user-entered preference.
  // They do not borrow a Saju natal source to inflate paid-topic count.
  const preferenceType=packet.person?.mbti;
- for(const topic of ['information','judgment']){
+ for(const topic of ['information','judgment','energy','planning']){
   const proof=require('./report-paid-mbti-dimension').build(preferenceType,topic);
   const task=plans.mbti_contradiction.topicTasks[topic];
   task.mode=proof?'use-primary':'state-limits';

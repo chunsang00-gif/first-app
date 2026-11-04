@@ -390,7 +390,7 @@ function compile(prompt){
     // Independently sourced, user-reported MBTI dimensions never borrow
     // natal evidence merely to pad the paid cross-framework comparison.
     if(chapterId==='mbti_contradiction'&&
-       ['information','judgment'].includes(topicId)&&
+       ['information','judgment','energy','planning'].includes(topicId)&&
        topic.mode!=='state-limits'){
      const actual=require('./report-paid-mbti-dimension')
       .build(prompt.facts.person?.mbti,topicId);
@@ -1415,7 +1415,7 @@ function allowedRefs(payload,task,chapterId,topic){
   // A self-reported dimension is not a Saju-vs-MBTI comparison. No
   // automatic natal-source borrowing in these two source-exclusive topics.
   const exclusive=chapterId==='mbti_contradiction'&&
-   ['information','judgment'].includes(topic);
+   ['information','judgment','energy','planning'].includes(topic);
   if(!exclusive)
    for(const id of Object.keys(payload.source))if(id.startsWith('natal.month.'))ids.add(id);
  }
@@ -1492,7 +1492,7 @@ function restoreEvidence(value,prompt){
     // The integrated chapter must cite both frameworks, not a Saju-only
     // source while implying that the MBTI comparison was substantiated.
     if(payload.source['person.mbti']&&['mbti_contradiction','integrated_judgment'].includes(id)&&
-      !(id==='mbti_contradiction'&&['information','judgment'].includes(topic))&&!( 
+      !(id==='mbti_contradiction'&&['information','judgment','energy','planning'].includes(topic))&&!( 
      b.refs.includes('person.mbti')&&b.refs.some(ref=>ref.startsWith('natal.'))
     ))throw Error('AI report service missing dual MBTI/Saju evidence: '+id+':'+topic);
     if(linkedDomainIds.has(id)&&payload.source['person.mbti']){

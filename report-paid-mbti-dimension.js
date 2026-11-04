@@ -1,5 +1,5 @@
 'use strict';
-// Two genuinely separate USER-ENTERED MBTI preference questions.
+// Four distinct USER-ENTERED MBTI preference questions, one per dimension.
 // Not a personality diagnosis and NOT a Saju/MBTI agreement claim.
 // The current agreement/difference topics still own cross-framework claims.
 const specs=Object.freeze({
@@ -22,6 +22,26 @@ const specs=Object.freeze({
   }),
   before:'두 선택지의 기준과 영향을 비교할 때 어느 질문을 먼저 할 것인가',
   boundary:'지능·공감 능력·실제 결단력이나 어느 판단이 더 옳은지는 측정하지 않았다'
+ }),
+ energy:Object.freeze({
+  index:0,letters:'IE',
+  question:'생각을 정리할 때 혼자 숙고할지 외부 상호작용을 거칠지',
+  sides:Object.freeze({
+   I:'혼자 생각을 정리하는 과정을 더 편안하게 여기는 선호',
+   E:'사람이나 외부 활동과 상호작용하며 생각을 정리하는 선호'
+  }),
+  before:'의견을 나누기 전 혼자 정리할 시간과 대화할 기회 중 무엇을 먼저 둘 것인가',
+  boundary:'말수·사회성·대인 능력과 실제 행동 빈도는 확인하지 않았다'
+ }),
+ planning:Object.freeze({
+  index:3,letters:'JP',
+  question:'일정과 결정을 일찍 닫을지 상황을 보며 선택의 여지를 유지할지',
+  sides:Object.freeze({
+   J:'결정과 일정을 미리 정리하고 진행하는 쪽을 선호',
+   P:'정보와 선택의 여지를 열어 두며 상황에 맞춰 조정하는 쪽을 선호'
+  }),
+  before:'남아 있는 정보를 기다릴 때 마감 시점을 미리 정할지 수정 여지를 남길 것인가',
+  boundary:'성실함·미루는 습관·실행 성과나 마감 준수 여부는 측정하지 않았다'
  })
 });
 function build(type,topic){

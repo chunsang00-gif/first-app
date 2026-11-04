@@ -32,7 +32,9 @@ const TOPIC_NAMES=Object.freeze({
   agreement:'사주와 MBTI가 각각 설명하는 공통 질문',
   difference:'두 풀이가 다르게 설명할 수 있는 조건',
   information:'입력한 MBTI에서 정보를 받아들이는 선호',
-  judgment:'입력한 MBTI에서 선택할 때의 판단 선호'
+  judgment:'입력한 MBTI에서 선택할 때의 판단 선호',
+  energy:'입력한 MBTI에서 생각을 정리할 때의 상호작용 선호',
+  planning:'입력한 MBTI에서 결정을 마무리하고 일정을 진행하는 선호'
  }),
  decision:Object.freeze({
   approach:'선택할 때 정보를 비교하는 관점',
@@ -164,7 +166,7 @@ function calculate(input){
   const active=selected?entries.filter(key=>modes[key]!=='state-limits'):[];
   const excludedTopics=selected?entries.filter(key=>modes[key]==='state-limits')
    .map(key=>({id:key,title:TOPIC_NAMES[id][key],
-    reason:id==='mbti_contradiction'&&['information','judgment'].includes(key)?
+    reason:id==='mbti_contradiction'&&['information','judgment','energy','planning'].includes(key)?
      '해당 MBTI 선호가 확인되지 않아 이 질문을 제외했습니다.':
      '이 질문에만 사용할 별도의 계산 근거가 확인되지 않았습니다.'
    })):[];
