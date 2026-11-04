@@ -64,13 +64,13 @@ const CLASSICAL_COPY={
   scope:'exact-day-hour-with-winter-subclause',
   excerpt:'안온한 쪽으로 풀이합니다',
   label:'태어난 날과 시간에 해당하는 고전의 겨울 풀이',
-  text:"태어난 시간에는 표현에 해당하는 숨은 글자를 제약하는 겉글자가 있습니다. 그러나 같은 고전의 다른 권은 그 제약을 다시 누를 수 있는 조건도 설명합니다. 이 사주에는 그 세 글자가 모두 계산됩니다. 따라서 표현이 막힌다는 설명만 고르거나 반대로 제약이 풀렸다고 확정할 수 없습니다. 같은 날과 시간의 겨울 출생을 안온한 쪽으로 풀이한 구절도 있지만, 세 관계 중 어느 쪽이 우선인지는 아직 검증되지 않았습니다. 실제 성격이나 미래 결과를 확인한 내용은 아닙니다."
+  text:"태어난 날과 시간의 조합을 다룬 고전은 시간의 한 글자가 표현의 뜻을 제약하는 관계를 설명합니다. 같은 책의 다른 장에는 그 제약을 누그러뜨릴 조건도 나옵니다. 태어난 달과 시간의 전체 글자 조합 모두 그 사례 목록에 들어 있습니다. 그래서 '표현이 막힌다'고 단정하는 대신, 불리하게 읽는 규칙과 그 예외 조건을 함께 확인해야 합니다. 해당 날과 시간의 겨울 풀이에는 안온한 쪽으로 읽는 문장도 있지만, 어느 조건이 실제로 우세한지는 확인되지 않았습니다. 이는 실제 성격이나 미래를 검증한 결과가 아닙니다."
  },
  '20:20':{
   scope:'exact-day-hour-with-ambiguous-year-month-clause',
   excerpt:'해에 있는 글자는 그 목록에 있지만',
   label:'해와 달의 조건을 확인해야 하는 고전 풀이',
-  text:"태어난 날과 시간에 해당하는 별도의 옛 사주책 구절에는 특정 해와 달의 조건에 따라 높은 지위를 언급하는 대목이 있습니다. 해에 있는 글자는 그 목록에 있지만 달에 있는 글자는 목록에 없습니다. 그 문구가 해와 달의 조건을 어떤 방식으로 묶는지도 아직 해결되지 않아 좋은 결과가 나온다고 읽을 수 없습니다. 앞서 확인한 시간의 다른 분류와 달·시간 관계만으로 그 조건을 채웠다고 할 수도 없습니다. 따라서 이 구절은 해당 출생 기록에서 찾아볼 고전 문장이지, 실제 직업이나 지위, 미래를 예측한 결과가 아닙니다."
+  text:"태어난 날과 시간에 맞는 고전 구절은 특정 해와 달의 글자를 조건으로 듭니다. 이 기록은 해에 있는 글자는 그 목록에 있지만 달에 있는 글자는 목록에 없습니다. 따라서 그 구절의 좋은 결과를 그대로 적용할 수 없습니다. 다만 태어난 달의 전체 글자 조합은 같은 고전의 다른 장에서 제약을 완화하는 사례로 든 목록에 따로 들어 있습니다. 출생시간이 달라져도 달의 조건은 공통으로 남는다는 뜻입니다. 이 조건은 시간의 문구가 참이 되었다거나 실제 능력·직업·운세를 입증하는 근거가 아닙니다. 어느 조건이 우선하는지는 검증되지 않았습니다."
  }
 };
 // Competing source clauses from the SAME historical work, not a general
@@ -78,41 +78,76 @@ const CLASSICAL_COPY={
 // restriction; 卷六 explicitly names 己 inside 未 / 丑 as a countercondition.
 // The countercondition is textual/structural, not proof that it succeeded.
 const BOOK6="https://zh.wikisource.org/zh-hant/%E4%B8%89%E5%91%BD%E9%80%9A%E6%9C%83/%E5%8D%B7%E5%85%AD";
+// 卷六 separately lists 乙日見癸未 and 乙日見癸丑, both FULL
+// pillars. 癸丑 MONTH is shared by both hours; only 14:20 adds
+// 癸未 HOUR. Neither textual listing proves that any effect manifested.
 function counteractingTextualCondition(packet,rows,extra){
- if(packet.calculationInput?.birthTime!=='14:20')return null;
- const exact={
-  day:'natal.day.stem',visible:'natal.hour.stem',
-  affected:'natal.hour.hidden.丁',counter:'natal.hour.hidden.己',
-  secondCounter:'natal.month.hidden.己'
- };
- const values={
-  [exact.day]:['乙','일간'],[exact.visible]:['癸','편인'],
-  [exact.affected]:['丁','식신'],[exact.counter]:['己','편재'],
-  [exact.secondCounter]:['己','편재']
- };
- const valid=Object.entries(values).every(([id,[stem,role]])=>
+ const input=packet.calculationInput||{},early=input.birthTime==='14:20';
+ if(!['14:20','20:20'].includes(input.birthTime))return null;
+ const shared=[
+  ['natal.day.stem','乙','일간'],
+  ['natal.month.stem','癸','편인'],
+  ['natal.month.hidden.己','己','편재']
+ ];
+ const hasSourceRows=shared.every(([id,stem,role])=>
   rows[id]?.stem===stem&&rows[id]?.tenGod===role&&
   rows[id]?.observedBehavior===false);
- const elements=season.ELEMENTS;
- const status=packet.facts?.seasonalEvidence;
- if(!valid||packet.chart?.hour!=='癸未'||packet.chart?.day!=='乙未'||
+ const seasonStatus=packet.facts?.seasonalEvidence;
+ if(!hasSourceRows||packet.chart?.day!=='乙未'||
     packet.chart?.month!=='癸丑'||
-    elements[rows[exact.visible]?.stem]!=='water'||
-    elements[rows[exact.affected]?.stem]!=='fire'||
-    elements[rows[exact.counter]?.stem]!=='earth'||
-    status?.monthSeason!=='winter'||status?.monthPhase!=='transition'||
-    extra.source.sourceScope!=='exact-day-hour-with-winter-subclause')
-  throw Error('QA_1982_CLASSICAL_COUNTERCONDITION_CALCULATION_DRIFT');
+    seasonStatus?.monthSeason!=='winter'||
+    seasonStatus?.monthPhase!=='transition'||
+    season.ELEMENTS[rows['natal.month.stem']?.stem]!=='water'||
+    season.ELEMENTS[rows['natal.month.hidden.己']?.stem]!=='earth')
+  throw Error('QA_1982_COMMON_MONTH_CLASSICAL_EXCEPTION_DRIFT');
+ const expectedHour=early?'癸未':'丙戌';
+ const expectedScope=early?'exact-day-hour-with-winter-subclause':
+  'exact-day-hour-with-ambiguous-year-month-clause';
+ if(packet.chart?.hour!==expectedHour||
+    rows['natal.hour.stem']?.stem!==expectedHour[0]||
+    rows['natal.hour.stem']?.tenGod!==(early?'편인':'상관')||
+    extra.source.sourceScope!==expectedScope)
+  throw Error('QA_1982_HOUR_CLASSICAL_SOURCE_DRIFT');
+ const hourRefs=[];
+ if(early){
+  const hourRows=[
+   ['natal.hour.hidden.丁','丁','식신'],
+   ['natal.hour.hidden.己','己','편재']
+  ];
+  if(!hourRows.every(([id,stem,role])=>
+    rows[id]?.stem===stem&&rows[id]?.tenGod===role&&
+    rows[id]?.observedBehavior===false)||
+    season.ELEMENTS[rows['natal.hour.hidden.丁']?.stem]!=='fire'||
+    season.ELEMENTS[rows['natal.hour.hidden.己']?.stem]!=='earth')
+   throw Error('QA_1982_EARLY_HOUR_EXCEPTION_ROLE_DRIFT');
+  hourRefs.push('natal.hour.stem','natal.hour.hidden.丁',
+   'natal.hour.hidden.己');
+ }
+ const matches=[
+  {position:'month',exactPillar:'癸丑',
+   refs:['natal.month.stem','natal.month.hidden.己'],
+   applicability:'shared-month-textual-exception'},
+  ...(early?[{position:'hour',exactPillar:'癸未',
+   refs:['natal.hour.stem','natal.hour.hidden.己'],
+   applicability:'additional-hour-textual-exception'}]:[])
+ ];
  return {
-  kind:'source-attested-constraint-and-countercondition-not-settled-effect',
-  volumeEight:{url:extra.source.url,chapter:'卷八·六乙日癸未時斷',
-   textualQuestion:'hour-visible-癸-restricts-hour-hidden-丁'},
+  kind:'two-scope-classical-applicability-not-outcome',
   volumeSix:{url:BOOK6,chapter:'卷六·論倒食',
-   textualQuestion:'hour-hidden-己-may-counter-restrict-visible-癸'},
-  refs:Object.values(exact),monthBranchContext:'winter-transitional-chou',
-  sameBirthHourRequired:true,restrictionEffectProved:false,
-  counteractionEffectProved:false,finalStrengthOrPriorityChosen:false,
-  readerInsight:'the classical restriction has an explicit countercondition',
+   textualRule:'乙日見癸未、癸丑；丑未中有己制癸',
+   matches,eligibleAsHistoricalExceptionExample:true,
+   actualEffectObserved:false},
+  volumeEight:{url:extra.source.url,chapter:extra.source.chapter,
+   selectedQuestionScope:extra.source.sourceScope},
+  refs:['natal.day.stem','natal.month.stem','natal.month.hidden.己',
+   ...hourRefs],
+  sharedMonthExactPillar:'癸丑',
+  additionalHourExactPillar:early?'癸未':null,
+  sourceRuleMayBeDiscussedInBothHours:true,
+  hourSpecificExceptionOnlyInEarlyHour:early,
+  exclusiveTo14Hour:false,
+  restrictionEffectProved:false,counteractionEffectProved:false,
+  finalStrengthOrPriorityChosen:false,realizedLifeEventPredicted:false,
   approvedForSale:false
  };
 }
@@ -126,15 +161,15 @@ function verifiedClassicalCopy(packet,extra,rows){
     extra.saleApproved!==false)
   throw Error('QA_INTEGRATED_FIRST_CHAPTER_CLASSICAL_EDITORIAL_SOURCE_DRIFT');
  const counter=counteractingTextualCondition(packet,rows,extra);
- if(packet.calculationInput?.birthTime==='14:20'&&!counter)
-  throw Error('QA_1982_CLASSICAL_COUNTERCONDITION_REQUIRED');
- if(packet.calculationInput?.birthTime==='20:20'&&counter)
-  throw Error('QA_1982_CLASSICAL_COUNTERCONDITION_BORROWED_WRONG_HOUR');
+ if(!counter||counter.sharedMonthExactPillar!=='癸丑'||
+    counter.additionalHourExactPillar!==
+      (packet.calculationInput?.birthTime==='14:20'?'癸未':null))
+  throw Error('QA_1982_GENERAL_EXCEPTION_MUST_TRACK_UNCHANGED_MONTH');
  return {kind:'exact-day-hour-classical-text',label:spec.label,text:spec.text,
   refs:[...new Set([...extra.exactDayHourReferences.slice(),
    ...(counter?.refs||[])])],
   method:extra.source.sourceScope,
-  qualifyingSource:counter?.volumeSix||null,
+  qualifyingSource:counter.volumeSix,
   conditionalRelationAudit:counter};
 }
 function build(packet){
@@ -231,7 +266,8 @@ function compare(){
   cases:[a,z],sharedMonthParagraphVerified:true,
   separateDayHourHistoricalInterpretationVerified:true,
   verifiedPositionAndRoleContrastIncluded:true,
-  genuineClassicalCounterconditionAuditedForEarlyHourOnly:true,
+  commonMonthHistoricalConditionPreservedAcrossHours:true,
+  additionalHistoricalHourMatchRestrictedToEarly:true,
   oneSourceScopedEditorialCaveatAtEnd:true,
   differentPersonalityOrFuturePredicted:false,
   normalPaidWriterChanged:false,readyForCustomer:false,
@@ -247,8 +283,11 @@ function markdown(){
   for(const p of doc.paragraphs)lines.push('### '+p.label,'',p.text,'');
   lines.push('전통 고전 출전: '+doc.extraTraditionalSource.url+' — '+doc.extraTraditionalSource.chapter,'');
   if(doc.competingClassicalClause)
-   lines.push('같은 고전의 제약 완화 조건: '+doc.competingClassicalClause.url+
-    ' — '+doc.competingClassicalClause.chapter,'');
+   lines.push('두 출생시간에 공통인 출생월 예외 문구: '+
+    doc.competingClassicalClause.url+' — '+doc.competingClassicalClause.chapter,
+    '정확한 해당 자리: '+
+     doc.paragraphs[2].conditionalRelationAudit.volumeSix.matches
+      .map(x=>x.position+'='+x.exactPillar).join(', '),'');
  }
  lines.push('## 별도 품질 판단','',
  '새로운 내용: 실제 출생일과 시간에 맞는 고전 구절의 범위는 출생월 풀이만으로 알 수 없습니다.',
