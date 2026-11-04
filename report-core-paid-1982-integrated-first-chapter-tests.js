@@ -13,6 +13,7 @@ assert.equal(comparison.kind,'qa-two-complete-first-chapters-source-limited-v1')
 assert.equal(comparison.cases.length,2);
 assert.equal(comparison.sharedMonthParagraphVerified,true);
 assert.equal(comparison.separateDayHourHistoricalInterpretationVerified,true);
+assert.equal(comparison.verifiedPositionAndRoleContrastIncluded,true);
 assert.equal(comparison.normalPaidWriterChanged,false);
 assert.equal(comparison.readyForCustomer,false);
 assert.equal(comparison.providerCalls,0);
@@ -24,18 +25,29 @@ assert.equal(a.sourceScope,'exact-day-hour-with-winter-subclause');
 assert.equal(z.sourceScope,'exact-day-hour-with-ambiguous-year-month-clause');
 assert.deepEqual(a.paragraphs[0],z.paragraphs[0],
  'unchanged birth date and month evidence must give unchanged shared first paragraph');
+assert.notDeepEqual(a.paragraphs[2],z.paragraphs[2]);
 assert.notDeepEqual(a.paragraphs[1],z.paragraphs[1],
  'the source-backed second paragraph must CHANGE with the hour');
 assert.equal(a.paragraphs[0].kind,'month-basis');
+assert.equal(a.paragraphs[2].kind,'verified-month-day-hour-positional-context');
+assert.equal(z.paragraphs[2].kind,a.paragraphs[2].kind);
+assert(a.paragraphs[2].refs.includes('facts.natalBranchRelations'));
+assert(z.paragraphs[2].refs.includes('natal.hour.stem'));
 assert.equal(a.paragraphs[1].kind,'exact-day-hour-classical-text');
 assert.equal(z.paragraphs[1].kind,'exact-day-hour-classical-text');
 assert(a.readerText.includes('안온한 쪽으로'));
 assert(!z.readerText.includes('안온한 쪽으로'));
 assert(z.readerText.includes('해에 있는 글자는 그 목록에 있지만'));
+assert(a.paragraphs[2].text.includes('두 자리에 반복됩니다'));
+assert(z.paragraphs[2].text.includes('밖으로 표현하는 뜻'));
+assert(a.paragraphs[2].text.includes('달과 시간 사이 모두 서로 마주 보는 관계'));
+assert(z.paragraphs[2].text.includes('달과 시간 사이에는 같은 마주 보는 관계가 없고'));
+assert(!z.paragraphs[2].text.includes('두 자리에 반복됩니다'));
+assert(!a.paragraphs[2].text.includes('밖으로 표현하는 뜻'));
 assert(!a.readerText.includes('해에 있는 글자는 그 목록에 있지만'));
 for(const [packet,c] of [[early,a],[late,z]]){
  assert.equal(c.kind,'qa-composed-two-paragraph-first-chapter-for-human-review-v1');
- assert.equal(c.paragraphs.length,2);
+ assert.equal(c.paragraphs.length,3);
  assert.equal(c.releaseVerdict,'not-approved');
  assert.equal(c.methodProfessionallyApproved,false);
  assert.equal(c.readerValueApproved,false);
@@ -69,6 +81,12 @@ assert.throws(()=>chapter.build(wrong),/CORE_KNOWLEDGE_CALCULATED_TEN_GOD_DIVERG
 const distorted=structuredClone(late);
 distorted.chart.hour='癸未';
 assert.equal(chapter.build(distorted),null);
+const forged=structuredClone(early);
+forged.facts.natalBranchRelations.pairs=[];
+assert.throws(()=>chapter.build(forged),/QA_|SOURCE_QUESTION_BRANCH_EVIDENCE_TAMPERED/);
+const inventedRole=structuredClone(late);
+inventedRole.facts.tenGods.hour.stemTenGod='편인';
+assert.throws(()=>chapter.build(inventedRole),/QA_|DIVERGED/);
 const md=chapter.markdown();
 assert(md.includes('14:20')&&md.includes('20:20'));
 assert(md.includes('비판매·전문 검수 대기'));
