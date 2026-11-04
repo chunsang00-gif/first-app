@@ -10,6 +10,11 @@ const genuine=[
 ];
 const sec={id:'mbti_contradiction',bodyTopics:topics,body:genuine};
 assert.deepEqual(inspect(sec,'ISFP'),[]);
+const batchGuard=require('./report-server-contract').earlyMbtiReaderProblems;
+assert.deepEqual(batchGuard([sec],'ISFP'),[],
+ 'a valid reader paragraph must not add a model retry');
+assert.deepEqual(batchGuard([sec],'모름'),[],
+ 'unknown MBTI must not create a fabricated preferred dimension');
 const tiny=structuredClone(sec);tiny.body[0]='혼자 생각합니다.';
 assert(inspect(tiny,'ISFP').some(e=>e.includes('energy standalone explanation too thin')));
 const switched=structuredClone(sec);switched.body[0]=
@@ -17,10 +22,16 @@ const switched=structuredClone(sec);switched.body[0]=
 assert(!inspect(switched,'ESFP').some(x=>x.includes('energy selected preference meaning missing')));
 const wrong=structuredClone(sec);wrong.body[0]=genuine[1];
 assert(inspect(wrong,'ISFP').some(e=>e.includes('energy selected preference meaning missing')));
+assert(batchGuard([wrong],'ISFP').some(e=>
+ e.includes('energy selected preference meaning missing')),
+ 'the first paid batch must reject a wrong preference before more calls');
 const cloned=structuredClone(sec);
 cloned.body[3]=genuine[0]+' 일정의 조정 여지는 별도로 살펴봅니다.';
 assert(similarity(cloned.body[0],cloned.body[3])>=0.82);
 assert(inspect(cloned,'ISFP').some(e=>e.includes('repeated independent preference content')));
+assert(batchGuard([cloned],'ISFP').some(e=>
+ e.includes('repeated independent preference content')),
+ 'copied source-owned MBTI paragraphs must fail at batch time');
 assert.deepEqual(inspect(sec,'모름'),[]);
 const nullable={id:'mbti_contradiction',bodyTopics:['energy','planning'],body:[]};
 assert.deepEqual(inspect(nullable,'ISFP'),[]);
