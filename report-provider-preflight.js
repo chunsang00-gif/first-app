@@ -87,7 +87,7 @@ function inspect(prompt,payload,schema){
     }
    }
    const isolatedPreference=id==='mbti_contradiction'&&
-    ['information','judgment'].includes(topic);
+    ['information','judgment','energy','planning'].includes(topic);
    if(isolatedPreference&&payload.source?.['person.mbti']&&
       (refs.size!==1||!refs.has('person.mbti')||
        directive.sourceOwnedMbtiDimension?.computedCondition!==
