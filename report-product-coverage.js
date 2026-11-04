@@ -155,8 +155,19 @@ function calculate(input){
  const chapters=expected.map(id=>{
   const entries=Object.keys(outline.topics[id]);
   const selected=planned.has(id);
-  const active=selected?entries.filter(key=>
-   blueprint[id].topicTasks[key]?.mode!=='state-limits'):[];
+  const modes=Object.fromEntries(entries.map(key=>[
+   key,blueprint[id]?.topicTasks?.[key]?.mode
+  ]));
+  if(Object.values(modes).some(mode=>
+    !['use-primary','use-verified-fallback','state-limits'].includes(mode)))
+   throw Error('PRODUCT_COVERAGE_MISSING_TOPIC_DECISION:'+id);
+  const active=selected?entries.filter(key=>modes[key]!=='state-limits'):[];
+  const excludedTopics=selected?entries.filter(key=>modes[key]==='state-limits')
+   .map(key=>({id:key,title:TOPIC_NAMES[id][key],
+    reason:id==='mbti_contradiction'&&['information','judgment'].includes(key)?
+     '해당 MBTI 선호가 확인되지 않아 이 질문을 제외했습니다.':
+     '이 질문에만 사용할 별도의 계산 근거가 확인되지 않았습니다.'
+   })):[];
   const omitted=choice.omitted.find(x=>x.id===id);
   if(selected&&(!active.length||
     !active.includes(blueprint[id].anchorTopic)))throw Error('PRODUCT_COVERAGE_INVALID_ANCHOR:'+id);
@@ -169,7 +180,7 @@ function calculate(input){
   return {id,name:NAMES[id],includedInPlan:selected,
    definedTopicSlots:entries.length,
    eligibleTopicUpperBound:active.length,
-   eligibleTopics,
+   eligibleTopics,excludedTopics,
    omittedReason:selected?null:
     (omitted?.reason==='no-direct-annual-domain-evidence'?
      require('./report-annual-domain-omission').explain(packet,id):null)||
@@ -179,22 +190,36 @@ function calculate(input){
  const selectedDefined=chapters.filter(x=>x.includedInPlan)
   .reduce((n,x)=>n+x.definedTopicSlots,0);
  const eligible=chapters.reduce((n,x)=>n+x.eligibleTopicUpperBound,0);
+ const excludedWithinPlanned=chapters.reduce((n,x)=>n+x.excludedTopics.length,0);
+ const omittedWithChapter=chapters.filter(x=>!x.includedInPlan)
+  .reduce((n,x)=>n+x.definedTopicSlots,0);
+ const historicalDefinitionShortfall=Math.max(0,35-currentDefined);
+ if(currentDefined!==eligible+excludedWithinPlanned+omittedWithChapter||
+    Math.max(0,35-eligible)!==
+      historicalDefinitionShortfall+excludedWithinPlanned+omittedWithChapter)
+  throw Error('PRODUCT_COVERAGE_TOPIC_GAP_ARITHMETIC_DRIFT');
  if(productProposal.topicCandidateUpperBound!==eligible||
     productProposal.plannedChapterCount!==choice.plannedIds.length)
   throw Error('PRODUCT_PROPOSAL_AND_PAID_PLAN_MISMATCH');
  if(eligible>selectedDefined||selectedDefined>currentDefined||
     choice.plannedIds.length!==chapters.filter(x=>x.includedInPlan).length||
-    chapters.some(c=>c.eligibleTopics.length!==c.eligibleTopicUpperBound))
+    chapters.some(c=>c.eligibleTopics.length!==c.eligibleTopicUpperBound||
+    (c.includedInPlan?
+     c.eligibleTopics.length+c.excludedTopics.length!==c.definedTopicSlots:
+     c.excludedTopics.length!==0)))
   throw Error('PRODUCT_COVERAGE_COUNT_MISMATCH');
  return {
   status:'ready',kind:'prepurchase-report-scope-v1',
   readingSample,interpretivePreviews,productProposal,
   catalog:{chapterDefinitions:expected.length,topicDefinitions:currentDefined,
-   originallyPlannedTopics:35},
+   originallyPlannedTopics:35,historicalDefinitionShortfall},
   estimate:{plannedChapters:choice.plannedIds.length,
    chaptersNotSelected:expected.length-choice.plannedIds.length,
    targetChapterCount:12,targetTopicCount:35,
    topicUpperBoundGapToTarget:Math.max(0,35-eligible),
+   excludedDefinedTopicsWithinPlannedChapters:excludedWithinPlanned,
+   topicsUnavailableBecauseChaptersOmitted:omittedWithChapter,
+   totalDefinedTopicsNotEligible:excludedWithinPlanned+omittedWithChapter,
    advertised12x35NotDeliverable:choice.plannedIds.length!==12||eligible<35,
    selectedDefinedTopicUpperBound:selectedDefined,
    evidenceEligibleTopicUpperBound:eligible,
