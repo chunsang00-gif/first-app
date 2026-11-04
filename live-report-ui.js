@@ -43,6 +43,31 @@ async function showCoverage(validatedInput){
   throw Error('작성 가능 항목 목록과 계산된 제공 범위가 일치하지 않습니다.');
  const selected=estimate.chapters.filter(x=>x.includedInPlan);
  const omitted=estimate.chapters.filter(x=>!x.includedInPlan);
+ if(!Number.isInteger(catalog.historicalDefinitionShortfall)||
+    catalog.historicalDefinitionShortfall!==
+      Math.max(0,catalog.originallyPlannedTopics-catalog.topicDefinitions)||
+    selected.some(x=>!Array.isArray(x.excludedTopics)||
+      x.eligibleTopicUpperBound+x.excludedTopics.length!==x.definedTopicSlots||
+      x.excludedTopics.some(t=>!t.title||!t.reason))||
+    omitted.some(x=>!Array.isArray(x.excludedTopics)||x.excludedTopics.length>0)||
+    estimate.excludedDefinedTopicsWithinPlannedChapters!==
+      selected.reduce((n,x)=>n+x.excludedTopics.length,0)||
+    estimate.topicsUnavailableBecauseChaptersOmitted!==
+      omitted.reduce((n,x)=>n+x.definedTopicSlots,0)||
+    catalog.topicDefinitions!==estimate.evidenceEligibleTopicUpperBound+
+      estimate.excludedDefinedTopicsWithinPlannedChapters+
+      estimate.topicsUnavailableBecauseChaptersOmitted||
+    estimate.topicUpperBoundGapToTarget!==catalog.historicalDefinitionShortfall+
+      estimate.excludedDefinedTopicsWithinPlannedChapters+
+      estimate.topicsUnavailableBecauseChaptersOmitted)
+  throw Error('작성 가능한 항목과 제외한 항목의 합계가 실제 상품 정의와 다릅니다.');
+ const excludedQuestions=selected.flatMap(chapter=>
+  chapter.excludedTopics.map(topic=>({...topic,chapterName:chapter.name})));
+ const excludedHtml=excludedQuestions.length?
+   '<h3>선택된 장에서 작성하지 않는 질문</h3><ul>'+
+    excludedQuestions.map(x=>'<li><strong>'+esc(x.chapterName)+
+      ' · '+esc(x.title)+'</strong>: '+esc(x.reason)+'</li>').join('')+'</ul>':
+   '<p class="meta">선택된 장에는 근거 부족으로 제외된 질문이 없습니다.</p>';
  const proposal=out.productProposal;
  if(proposal?.kind!=='chart-specific-evidence-scoped-product-proposal-v1'||
     proposal.status!=='draft-not-for-sale'||proposal.paymentEnabled!==false||
@@ -95,11 +120,13 @@ async function showCoverage(validatedInput){
  <p><strong>기본 해석 ${proposal.mainChapterCount}개 장 + 2027년 추가 분야 ${proposal.conditionalChapterCount}개 장</strong>을 계산 근거에 따라 선택했습니다.</p>
  <p>전체 <strong>${proposal.plannedChapterCount}개 장 · 최대 ${proposal.topicCandidateUpperBound}개 세부 항목</strong>이 작성 후보입니다.</p>
  <p>이는 출생정보로 계산한 <strong>작성 가능 상한</strong>입니다. 실제 완성된 문단 수나 제공 보장은 아닙니다.</p>
+ <p class="meta">현재 정의된 ${catalog.topicDefinitions}개 질문 중 ${estimate.evidenceEligibleTopicUpperBound}개가 작성 후보이며, ${estimate.excludedDefinedTopicsWithinPlannedChapters}개는 선택된 장에서 제외하고 ${estimate.topicsUnavailableBecauseChaptersOmitted}개는 장 자체가 제외됐습니다. 기존 목표 ${catalog.originallyPlannedTopics}개 중 아직 정의되지 않은 질문도 ${catalog.historicalDefinitionShortfall}개 있습니다.</p>
  <p class="meta">장마다 펼쳐 볼 수 있는 세부 질문은 실제 계산에서 작성 후보로 선택된 항목만 보여 줍니다. 이것만으로 개인별 풀이가 완성됐다는 뜻은 아닙니다.</p>
  <h3>기본 해석 구성</h3>
  <ul>${primary.map(x=>`<li><strong>${esc(x.name)} · 최대 ${x.eligibleTopicUpperBound}개 항목</strong><details><summary>작성 후보 질문 보기</summary><ul>${x.eligibleTopics.map(t=>`<li>${esc(t.title)}</li>`).join('')}</ul></details></li>`).join('')}</ul>
  ${conditional.length?`<h3>별도 계산 근거가 있는 2027년 추가 분야</h3><ul>${conditional.map(x=>`<li><strong>${esc(x.name)} · 최대 ${x.eligibleTopicUpperBound}개 항목</strong><details><summary>작성 후보 질문 보기</summary><ul>${x.eligibleTopics.map(t=>`<li>${esc(t.title)}</li>`).join('')}</ul></details></li>`).join('')}</ul>`:'<p class="meta">별도로 추가할 수 있는 2027년 금전·직업·관계 풀이가 확인되지 않았습니다.</p>'}
  ${omitted.length?`<h3>제외된 장</h3><ul>${omitted.map(x=>`<li>${esc(x.name)}: ${esc(x.omittedReason)}</li>`).join('')}</ul>`:''}
+ ${excludedHtml}
  <p class="meta">이 구성은 구매 상품의 확정 약속이 아닌 검토 초안입니다. 기존 12장·${catalog.originallyPlannedTopics}항목 고정 목표는 달성하지 못했습니다. 선택된 항목도 중복이나 근거 부족으로 실제 작성 시 생략될 수 있으며, 판매 가격과 정식 제공량은 결정되지 않았습니다.</p>
  <p><strong>현재 유료 구매와 정식 보고서 생성은 준비 중입니다.</strong> 결제나 유료 AI 생성 요청은 진행하지 않습니다.</p>
  <button class="btn primary" type="button" id="coverageBackToInput">입력 화면으로 돌아가기</button>
