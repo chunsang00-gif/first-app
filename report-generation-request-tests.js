@@ -180,7 +180,7 @@ const schema=require('./report-schema.json');
    'preflight focus cannot contradict the calculation-free comparison contract: '+id);
   for(const [topic,task] of Object.entries(chapter.topics)){
    if(task.mode==='state-limits')continue;
-   if(id==='mbti_contradiction'&&['information','judgment'].includes(topic)){
+   if(id==='mbti_contradiction'&&['information','judgment','energy','planning'].includes(topic)){
     const proof=require('./report-paid-mbti-dimension')
      .build(joinedPrompt.facts.person.mbti,topic);
     assert.deepEqual(task.sourceOwnedMbtiDimension,proof);
@@ -534,6 +534,28 @@ const schema=require('./report-schema.json');
   assert.deepEqual(focus('mbti_contradiction','agreement').preferences.map(x=>x.code),['S','F']);
   assert.deepEqual(focus('mbti_contradiction','difference').preferences.map(x=>x.code),['I','P']);
   assert.deepEqual(focus('integrated_judgment','insight').preferences.map(x=>x.code),['I','P']);
+ // All four input-specified MBTI preference axes have distinct questions.
+  const dim=require('./report-paid-mbti-dimension');
+  const axes=['energy','information','judgment','planning'];
+  for(const key of axes){
+   const task=actual.task.chapters.mbti_contradiction.topics[key];
+   assert.deepEqual(task.sourceOwnedMbtiDimension,dim.build('ISFP',key));
+   assert.deepEqual(task.citableFacts.map(row=>row.id),['person.mbti']);
+   assert.equal(task.mode,'use-primary');
+   assert.equal(task.sourceOwnedMbtiDimension.actualBehaviorObserved,false);
+   assert.equal(task.sourceOwnedMbtiDimension.sajuAgreementVerified,false);
+  }
+  assert.equal(new Set(axes.map(key=>dim.build('ISFP',key).dimension)).size,4);
+  assert.equal(dim.build('ISFP','energy').selectedCode,'I');
+  assert.equal(dim.build('ISFP','planning').selectedCode,'P');
+  assert.equal(dim.build('ESFJ','energy').selectedCode,'E');
+  assert.equal(dim.build('ESFJ','planning').selectedCode,'J');
+  assert.notEqual(dim.build('ISFP','energy').computedCondition,
+   dim.build('ESFP','energy').computedCondition);
+  assert.notEqual(dim.build('ISFP','planning').computedCondition,
+   dim.build('ISFJ','planning').computedCondition);
+  assert.equal(dim.build('모름','energy'),null);
+ 
   assert.equal(actual.task.comparisonContract.calculatedAgreement,false);
   assert.equal(actual.task.comparisonContract.calculatedContradiction,false);
   assert.equal(focus('mbti_contradiction','agreement').verdict,'not-computed');
@@ -597,6 +619,8 @@ const schema=require('./report-schema.json');
  const unknownSchema=generation.schema(unknownPrompt,wire.schemaFor(unknownPrompt,schema));
  const noMbtiSlots=unknownSchema.properties.chapters.properties.mbti_contradiction.properties.paragraphs.properties;
  assert.equal(noMbtiSlots.agreement.type,'null','do not manufacture an MBTI agreement without submitted type');
+ for(const key of ['energy','information','judgment','planning'])
+  assert.equal(noMbtiSlots[key].type,'null');
  assert.equal(noMbtiSlots.difference.type,'object','saju-only explanation can use the natal comparison question');
  assert(!noMbtiSlots.difference.properties.basis.properties.refs.items.enum.includes('person.mbti'));
  assert.equal(unknownPayload.task.chapters.mbti_contradiction.comparisonEvidence,null);
