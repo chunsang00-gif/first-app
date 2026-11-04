@@ -64,7 +64,7 @@ const CLASSICAL_COPY={
   scope:'exact-day-hour-with-winter-subclause',
   excerpt:'안온한 쪽으로 풀이합니다',
   label:'태어난 날과 시간에 해당하는 고전의 겨울 풀이',
-  text:"태어난 시간의 겉글자에는 표현을 나타내는 숨은 글자를 제약하는 전통 관계가 있습니다. 그런데 같은 고전의 다른 권은 바로 이 날과 시간의 배치에서, 시간 안에 있는 또 다른 글자가 그 제약을 다시 누를 수 있는 조건도 함께 설명합니다. 이 사주에는 그 세 글자가 모두 계산됩니다. 따라서 표현이 막힌다는 문구만 떼어 인용하거나, 반대로 제약이 완전히 사라진다고 판단할 수 없습니다. 정확한 날과 시간에 관한 고전 구절은 겨울 출생을 안온한 쪽으로 적지만, 이 조건들과 어떻게 종합할지는 별도의 명리 방법 검토가 필요합니다. 실제 성격이나 앞으로의 결과를 단정한 문장은 아닙니다."
+  text:"태어난 시간에는 표현에 해당하는 숨은 글자를 제약하는 겉글자가 있습니다. 그러나 같은 고전의 다른 권은 그 제약을 다시 누를 수 있는 조건도 설명합니다. 이 사주에는 그 세 글자가 모두 계산됩니다. 따라서 표현이 막힌다는 설명만 고르거나 반대로 제약이 풀렸다고 확정할 수 없습니다. 같은 날과 시간의 겨울 출생을 안온한 쪽으로 풀이한 구절도 있지만, 세 관계 중 어느 쪽이 우선인지는 아직 검증되지 않았습니다. 실제 성격이나 미래 결과를 확인한 내용은 아닙니다."
  },
  '20:20':{
   scope:'exact-day-hour-with-ambiguous-year-month-clause',
@@ -86,7 +86,7 @@ function counteractingTextualCondition(packet,rows,extra){
   secondCounter:'natal.month.hidden.己'
  };
  const values={
-  [exact.day]:['乙','비견'],[exact.visible]:['癸','편인'],
+  [exact.day]:['乙','일간'],[exact.visible]:['癸','편인'],
   [exact.affected]:['丁','식신'],[exact.counter]:['己','편재'],
   [exact.secondCounter]:['己','편재']
  };
