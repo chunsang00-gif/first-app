@@ -33,7 +33,7 @@ try{
   '35 available slots CANNOT override mathematically incompatible annual domains');
  assert(hypothetical.blockers.includes('twelve-chapters-impossible-under-exclusive-annual-stem-domains'));
 }finally{for(const id of extras)delete chapter[id]}
-assert.equal(readiness.assess().definedTopics,33);
+assert.equal(readiness.assess().definedTopics,35);
 const ALL=['비견','겁재','식신','상관','편재','정재','편관','정관','편인','정인'];
 for(const god of ALL){
  const natalRows=ALL.filter(x=>x!==god).map((x,i)=>({stem:'甲',tenGod:x}));
