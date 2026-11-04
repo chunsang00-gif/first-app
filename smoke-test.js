@@ -20,7 +20,9 @@ function mockReport(){
  const supplements={
   mbti_contradiction:{
    information:'입력한 성격 유형의 정보 선호는 구체적인 사실을 먼저 읽는 방식과 가능한 연결을 먼저 살피는 방식이라는 다른 질문을 가리킵니다. 실제 정보 처리 능력을 측정한 결과는 아닙니다.',
-   judgment:'선택지의 일관된 원칙과 사람에게 미치는 영향을 판단 기준으로 보는 선호는 구별해서 다룹니다. 이는 감정의 유무나 개인의 인품을 판정한 자료가 아닙니다.'
+   judgment:'선택지의 일관된 원칙과 사람에게 미치는 영향을 판단 기준으로 보는 선호는 구별해서 다룹니다. 이는 감정의 유무나 개인의 인품을 판정한 자료가 아닙니다.',
+   energy:'상호작용 선호를 질문할 때는 혼자 차분히 생각을 정리할지 대화하며 정리할지를 구분합니다. 이는 사회성이나 실제 말수에 대한 검사 결과를 뜻하지 않습니다.',
+   planning:'일정을 확정하는 선호를 질문할 때는 미리 마감일을 정할지 선택지를 열어 두고 조정할지를 구분합니다. 이는 부지런함이나 실제 마감 준수 여부를 측정하지 않습니다.'
   },
   career:{change:'장기간의 전통적 시기 분류와 출생 당시의 일 관련 분류는 서로 다른 시간 범위의 자료입니다. 실제 두 세부 종류가 다를 때만 이를 설명하며 이직·승진을 예고하지 않습니다.'},
   relationship:{coordination:'태어난 날과 다른 출생 자리의 짝 관계가 겹침 없이 계산되면 두 위치의 연결 조건만 풀이합니다. 그 짝을 현실의 인연이나 결혼이 성립한다는 약속으로 바꾸지 않습니다.'},
@@ -110,7 +112,7 @@ assert(estimated.readingSample.cards.length>=2);
 assert(estimated.readingSample.cards.some(x=>x.id==='birth-month'&&x.text.includes('태어난 달')));
 assert(estimated.readingSample.cards.some(x=>x.id==='annual-2027'&&x.text.includes('2027년')));
 assert.equal(estimated.catalog.chapterDefinitions,12);
-assert.equal(estimated.catalog.topicDefinitions,33);
+assert.equal(estimated.catalog.topicDefinitions,35);
 assert.equal(estimated.productProposal.kind,'chart-specific-evidence-scoped-product-proposal-v1');
 assert.equal(estimated.productProposal.plannedChapterCount,estimated.estimate.plannedChapters);
 assert.equal(estimated.productProposal.topicCandidateUpperBound,
