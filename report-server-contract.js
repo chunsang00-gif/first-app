@@ -97,6 +97,14 @@ function findRepeatedAdvice(sections){
 // The billable synthesis stage may only begin if EVERY known duplicate check
 // passes. In particular, lexical paraphrase rejection is not deferred until
 // after calling the provider, because that call cannot repair the body copy.
+// Preserve nullable optional questions; compare only paragraphs actually
+// returned for a source-owned MBTI dimension. No birth data or prose logged.
+function earlyMbtiReaderProblems(sections,mbti){
+ if(!/^[EI][SN][TF][JP]$/.test(mbti||''))return [];
+ return [...new Set((sections||[])
+  .filter(s=>s?.id==='mbti_contradiction')
+  .flatMap(s=>require('./report-paid-mbti-reader-substance').inspect(s,mbti)))];
+}
 function preSynthesisDuplicateErrors(sections){
  return [...findRepeatedSubstantiveSentences(sections),
   ...findParaphrasedTopicContent(sections),
@@ -437,6 +445,15 @@ async function generate(input,callModel,onProgress=()=>{},onValidatedBatch=()=>{
    console.error('[Report batch reader quality mismatch]',{requestedIds:ids,errors:earlyEditorial});
    throw Error('AI report service returned reader-facing editorial defects');
   }
+  // Check MBTI reader meaning in the FIRST body batch, before any further
+  // billable chapter calls. This was previously only checked after synthesis.
+  const mbtiProblems=earlyMbtiReaderProblems(result.sections,packet.person?.mbti);
+  if(mbtiProblems.length){
+   console.error('[Paid MBTI reader copy rejected before next provider call]',{
+    requestedIds:ids,codes:mbtiProblems
+   });
+   throw Error('AI report service returned MBTI preference reader-quality defects');
+  }
   // Reusing a substantive evidence sentence across chapters is report padding.
   // Catch it before buying the next batch instead of waiting for final QA.
   const priorEvidence=new Map();
@@ -524,6 +541,6 @@ async function generate(input,callModel,onProgress=()=>{},onValidatedBatch=()=>{
  qa=require('./report-release-gate').finalize({report,qa,packet,coverage});
  return qa.pass?{status:'ready',report,qa,headingRepairs,coverage}:{status:'rejected',report,qa,headingRepairs,coverage};
 }
-module.exports={findReusedEvidenceConclusions,enforceAnnualEvidenceLimits,narrativeMotifLedger,IDS,validateShape,buildPrompt,generate,findRepeatedTopicContent,findRecycledThemes,findParaphrasedTopicContent,findRepeatedAdvice,findRepeatedSubstantiveSentences,preSynthesisDuplicateErrors};
+module.exports={earlyMbtiReaderProblems,findReusedEvidenceConclusions,enforceAnnualEvidenceLimits,narrativeMotifLedger,IDS,validateShape,buildPrompt,generate,findRepeatedTopicContent,findRecycledThemes,findParaphrasedTopicContent,findRepeatedAdvice,findRepeatedSubstantiveSentences,preSynthesisDuplicateErrors};
 
 
