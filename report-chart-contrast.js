@@ -476,4 +476,11 @@ function forProvider(contrast,topic,allowedIds,includeMonthStemVisibility=true){
  return {...focus,readerReasoning:{...focus.readerReasoning,
   readerValuePlan:{...plan,first,second}}};
 }
-module.exports={build,forTopic,forProvider,firstChapterClaimOwnership,TOPIC_POINTS,monthHypothetical,TEN_GOD_SCENE};
+// Existing chart-specific traditional question, reused only by a VERIFIED
+// normal paid first-chapter plan. Not an observed preference or life event.
+function monthDecisionQuestion(tenGod){
+ const question=TEN_GOD_DECISION[tenGod];
+ if(!question)throw Error('CORE_MONTH_READER_QUESTION_UNKNOWN_ROLE');
+ return question;
+}
+module.exports={build,forTopic,forProvider,firstChapterClaimOwnership,TOPIC_POINTS,monthHypothetical,TEN_GOD_SCENE,monthDecisionQuestion};
