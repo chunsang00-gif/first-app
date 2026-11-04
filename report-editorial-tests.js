@@ -674,7 +674,7 @@ assert.equal(comparisonSlots.agreement.type,'object');
 assert(comparisonSlots.difference.anyOf.some(x=>x.type==='null'));
 assert(comparisonSlots.difference.anyOf[0].properties.text.description.includes(outline.topics.mbti_contradiction.difference));
 assert(comparisonSlots.difference.anyOf[0].description.includes('같은 응답 안에서 이미 답한 내용'));
-const singleComparison=comparisonWire.decode({chapters:{mbti_contradiction:{title:'비교',keyJudgment:'판단',evidence:[],mood:'reflective',paragraphs:{agreement:{label:'선호와 이유',text:'첫 문단에서 상황과 이유를 충분히 설명합니다.'},difference:null,information:null,judgment:null,energy:null,planning:null}}},cover:null,finalJudgment:null},comparisonPrompt);
+const singleComparison=comparisonWire.decode({chapters:{mbti_contradiction:{title:'비교',keyJudgment:'판단',evidence:[],mood:'reflective',paragraphs:{agreement:{label:'선호와 이유',text:'첫 문단에서 상황과 이유를 충분히 설명합니다.'},difference:null,information:null,judgment:null,energy:null,planning:null,energy:null,planning:null}}},cover:null,finalJudgment:null},comparisonPrompt);
 assert.deepEqual(singleComparison.sections[0].bodyTopics,['agreement']);
 const forcedComparison={stage:'body',rules:{hanjaPolicy:reader.instruction,topicPlan:{integrated_judgment:{insight:'같은 선택에서 서로 다른 결론을 제시하는 조건'}}}};
 assert(require('./report-instruction-audit').inspect(forcedComparison).includes('forced contrast in writing plan'));
