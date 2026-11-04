@@ -261,7 +261,7 @@ function validate(r,packet){
  if(orderedIds.some(id=>!IDS.includes(id))||JSON.stringify(orderedIds)!==JSON.stringify(IDS.filter(id=>orderedIds.includes(id))))errors.push('section id/order mismatch');
  r.sections.forEach((s,i)=>{
   if(!s||typeof s!=='object'){errors.push(`section ${i+1} invalid`);return}
-  if(['depth-v2','concise-v1','concise-v2','concise-v3','concise-v4','concise-v5','concise-v6','concise-v7'].includes(r.meta?.versions?.schema)){
+  if(['depth-v2','concise-v1','concise-v2','concise-v3','concise-v4','concise-v5','concise-v6','concise-v7','concise-v8'].includes(r.meta?.versions?.schema)){
    const keys=Object.keys(require('./report-outline').topics[s.id]||{});
    if(!Array.isArray(s.bodyTopics)||!s.bodyTopics.length||s.bodyTopics.some(t=>!keys.includes(t))||JSON.stringify(s.bodyTopics)!==JSON.stringify(keys.filter(t=>s.bodyTopics.includes(t))))errors.push(s.id+': topics unknown or reordered');
    if(s.body?.length!==s.bodyTopics?.length||s.bodyLabels?.length!==s.bodyTopics?.length)errors.push(s.id+': topic explanations incomplete');
@@ -306,6 +306,14 @@ function validate(r,packet){
    warnings.push(s.id+': evidence has no identifiable saju element');
 
  });
+ // The new 35-topic catalog must not confuse filled structural slots with
+ // four meaningfully different user-reported MBTI preference analyses.
+ if(r.meta?.versions?.schema==='concise-v8'){
+  const section=r.sections.find(x=>x?.id==='mbti_contradiction');
+  const type=packet?.status==='ready'?packet.person?.mbti:r.meta?.mbti;
+  if(section)errors.push(...require('./report-paid-mbti-reader-substance')
+   .inspect(section,type));
+ }
  // A paid report must be bound to the exact calculation it was generated for.
  // Otherwise a valid-looking report from another customer can pass prose checks.
  if(packet?.status==='ready'){
