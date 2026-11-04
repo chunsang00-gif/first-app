@@ -12,7 +12,7 @@ const outline=require('./report-outline');
 const commercial=require('./report-commercial-readiness');
 const names=Object.entries(outline.topics).flatMap(([c,ts])=>
  Object.keys(ts).map(t=>c+'.'+t));
-assert.equal(names.length,33);
+assert.equal(names.length,35);
 const chapters=Object.fromEntries(Object.keys(outline.topics).map(x=>[x,0]));
 const eligible=Object.fromEntries(names.map(x=>[x,0]));
 const examples=[],omittedReasons={},counts=[],sourceOverlap=[];
@@ -35,7 +35,7 @@ for(const day of days)for(const birthTime of times){
  const shown=coverage.calculate(input);
  assert.equal(shown.status,'ready');
  assert.equal(shown.catalog.chapterDefinitions,12);
- assert.equal(shown.catalog.topicDefinitions,33);
+ assert.equal(shown.catalog.topicDefinitions,35);
  assert.equal(shown.purchaseEnabled,false);
  assert.equal(shown.modelCalls,0);
  assert.deepEqual(shown.estimate.chapters.filter(x=>x.includedInPlan).map(x=>x.id),
@@ -73,7 +73,7 @@ for(const day of days)for(const birthTime of times){
  assert(shown.notice.includes('최대 '+valid+'개가 작성 후보'));
  assert(!shown.notice.includes(date),'private birth date cannot leak into preview');
  assert(!shown.notice.includes(birthTime),'private birth time cannot leak into preview');
- assert(valid<=30);
+ assert(valid<=32);
  const signed=chosen.plannedIds.join('/');
  allSeen.add(signed);
  const snapshot={chapters:chosen.plannedIds.length,eligible:valid,
@@ -98,7 +98,7 @@ assert.equal(generated,128);
 assert.equal(allSeen.size>1,true,'real charts must produce different chapter eligibility');
 const structural=commercial.assess();
 assert.equal(structural.canAcceptNewPayment,false);
-assert.equal(structural.structuralUpperBound,30);
+assert.equal(structural.structuralUpperBound,32);
 const sorted=counts.map(x=>x.eligible).sort((a,b)=>a-b);
 const sortedChapters=counts.map(x=>x.chapters).sort((a,b)=>a-b);
 const metrics={kind:'qa15-real-chart-128-scope-distribution-v1',
