@@ -30,4 +30,34 @@ const server=fs.readFileSync(require.resolve('./report-quality-node'),'utf8');
 const client=fs.readFileSync(require.resolve('./report-validator'),'utf8');
 assert(server.includes("'concise-v7','concise-v8'"));
 assert(client.includes("'concise-v7','concise-v8'"));
+// Probe the REAL customer-report validator, not just the isolated helper.
+const quality=require('./report-quality-node');
+const full={
+ meta:{mbti:'ISFP',versions:{schema:'concise-v8'}},
+ sections:[
+  {id:'saju_core',title:'출생 자료',keyJudgment:'출생 자료의 뜻을 구별합니다.',
+   bodyTopics:['temperament'],bodyLabels:['태어난 달'],body:['태어난 달의 글자는 전통 풀이에서 서로 다른 내용을 설명합니다.'],
+   evidence:['월지와 원국의 출생 위치를 확인했습니다.']},
+  {id:'mbti_contradiction',title:'입력한 선호 차원',keyJudgment:'입력한 네 가지 선호는 서로 다른 질문입니다.',
+   bodyTopics:['information','judgment','energy','planning'],
+   bodyLabels:['정보를 읽는 방법','선택의 판단','생각을 정리하는 대화','일정의 조정'],
+   body:[genuine[1],genuine[2],genuine[0],genuine[3]],
+   evidence:['사용자가 직접 입력한 성격 선호입니다.']}
+ ],
+ finalJudgment:{body:['각 선호의 해석 경계를 나눠 살핍니다.'],
+  closingQuestion:'입력한 선호와 실제 생활 행동은 서로 구별해야 합니다.'}
+};
+assert(!quality.validate(full).errors.some(x=>/mbti_contradiction: (?:topics unknown|.*preference|.*explanation|repeated independent)/.test(x)));
+const badOrder=structuredClone(full);
+badOrder.sections[1].bodyTopics[0]='planning';
+assert(quality.validate(badOrder).errors.includes('mbti_contradiction: topics unknown or reordered'),
+ 'concise-v8 must enforce canonical topic keys and order');
+const noContent=structuredClone(full);
+noContent.sections[1].body.pop();
+assert(quality.validate(noContent).errors.includes('mbti_contradiction: topic explanations incomplete'),
+ 'concise-v8 must reject omitted filled paragraph');
+const detached=structuredClone(full);
+detached.sections[1].body[2]=genuine[1];
+assert(quality.validate(detached).errors.some(x=>x.includes('mbti_contradiction: energy selected preference meaning missing')),
+ 'the actual release validator must reject a swapped or generic I-E explanation');
 console.log('PASS 4 MBTI source-specific reader checks, near-duplicate blocking, and concise-v8 server/client parity; no paid calls');
