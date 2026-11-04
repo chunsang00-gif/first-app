@@ -428,7 +428,7 @@ assert.equal(p.stage,'body');assert.equal(p.priorSections.length,expectedBatches
  let duplicatedEvidenceCalls=0;
  await assert.rejects(contract.generate({calendar:'solar',birthDate:'1990-06-15',unknownBirthTime:true,gender:'male',mbti:'INFP'},async prompt=>{
   duplicatedEvidenceCalls++;
-  return {sections:prompt.requestedSections.map(id=>({id,title:'본문 증거 검증',keyJudgment:'설명한 내용을 검토합니다.',bodyTopics:activeKeys(prompt,id),bodyLabels:activeKeys(prompt,id).map((_,i)=>'검증 항목 '+i),body:activeKeys(prompt,id).map(topic=> '서로 다른 질문에 답하는 검증 문장입니다.'+(id==='saju_core'&&topic==='strength'?' '+require('./qa/core-meaning-mock').body(prompt):'')),evidence:['사주 계산값을 살펴보고 명리학의 위치를 확인한 검증용 근거 문장입니다.']}))};
+  return {sections:prompt.requestedSections.map(id=>({id,title:'본문 증거 검증',keyJudgment:'설명한 내용을 검토합니다.',bodyTopics:activeKeys(prompt,id),bodyLabels:activeKeys(prompt,id).map((_,i)=>'검증 항목 '+i),body:activeKeys(prompt,id).map(topic=>(id==='mbti_contradiction'&&mockMbtiPreferenceCopy[topic])||('서로 다른 질문에 답하는 검증 문장입니다.'+(id==='saju_core'&&topic==='strength'?' '+require('./qa/core-meaning-mock').body(prompt):''))),evidence:['사주 계산값을 살펴보고 명리학의 위치를 확인한 검증용 근거 문장입니다.']}))};
  }),/repeated chapter evidence/);
  assert.equal(duplicatedEvidenceCalls,expectedBatches[0].length===1?2:1,
   'cross-chapter duplicate must be detected at earliest possible second batch for isolated first chapter');
