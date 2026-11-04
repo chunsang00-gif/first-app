@@ -164,7 +164,7 @@ function verify(packet,plan){
    errors.push('chapter-fallback-drift:'+chapterId);
   for(const [topic,task] of Object.entries(chapter?.topicTasks||{})){
    const ownMbti=chapterId==='mbti_contradiction'&&
-    ['information','judgment'].includes(topic);
+    ['information','judgment','energy','planning'].includes(topic);
    if(ownMbti){
     const truth=require('./report-paid-mbti-dimension')
      .build(packet.person?.mbti,topic);
