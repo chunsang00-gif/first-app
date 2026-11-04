@@ -12,8 +12,8 @@ const policy=require('./report-reader-policy');
 const method=require('./report-core-paid-1982-question-scoped-method-decision');
 const branches=require('./report-branch-relations');
 const BASE=hour.BASE;
-const MONTH_LABEL='출생월에서 먼저 확인되는 두 가지 뜻';
-const MONTH_TEXT='태어난 달의 겉글자는 낯선 정보를 자기 방식으로 이해하는 뜻으로, 달 안쪽의 대표 글자는 필요한 자원을 찾아 활용하는 뜻으로 읽힙니다. 두 자리에 적힌 뜻은 서로 다릅니다. 새로운 정보를 이해하는 것과 필요한 자원을 확보하는 것을 같은 능력으로 묶거나 둘 중 하나가 더 강하다고 단정할 수 없습니다. 지금까지의 풀이는 달의 두 위치가 각각 무엇을 상징하는지까지만 설명합니다. 실제로 어떤 능력이 뛰어나거나 어떤 일을 겪었는지를 관찰한 결과가 아닙니다.';
+const MONTH_LABEL='같은 출생월에서 출발하는 두 뜻';
+const MONTH_TEXT="태어난 달의 겉글자는 낯선 내용을 자신만의 방식으로 받아들이는 뜻이고, 달 안쪽에서 기준이 되는 글자는 필요한 물건이나 도움을 마련하는 뜻으로 나뉩니다. 두 뜻을 하나의 성격으로 합치면 무엇을 어떻게 이해하는지와 그 이해에 필요한 것을 어떻게 구하는지가 구별되지 않습니다. 이 차이는 출생월에 적힌 전통적 분류입니다. 따라서 여기까지는 달에서 서로 다른 뜻이 나온다는 사실을 설명할 뿐, 어느 뜻이 앞서는지는 태어난 날과 시간의 구성까지 살펴야 합니다.";
 // Chart-scoped integration of an existing calculated month/day/hour contrast.
 // These are source-limited research paragraphs, not customer-approved claims.
 const HOUR_CONTEXT={
@@ -21,13 +21,13 @@ const HOUR_CONTEXT={
   label:'태어난 달의 뜻이 시간에도 반복되는 경우',
   hourRole:'편인',monthHourRelations:['충','형'],
   exposedAt:['natal.month.stem','natal.hour.stem'],
-  text:'이 사주의 출생월 겉글자에는 낯선 내용을 자기 방식으로 익히는 뜻이 기록됩니다. 같은 글자가 태어난 시간 겉에도 있어, 이 뜻이 서로 다른 두 자리에 반복됩니다. 그렇지만 같은 뜻이 두 곳에서 발견된다고 두 배 강하거나 실제로 잘 배운다고 판단할 수는 없습니다. 아래 글자의 관계를 보면 태어난 달과 날, 달과 시간 사이 모두 서로 마주 보는 관계가 기록됩니다. 둘은 각각 다른 자리의 연결이지만, 두 번 싸우거나 두 가지 문제가 생겼다는 말이 아닙니다. 따라서 이 출생시간에서는 달과 시간에 같은 분류가 반복된 사실과, 달이 날과 시간에 각각 연결되는 배치를 함께 보아야 합니다. 어떤 성격이나 성취로 이어지는지는 고전 해석 방법을 정하기 전에는 판단하지 않습니다.'
+  text:"태어난 시간을 함께 보면 달의 겉글자와 시간의 겉글자에 같은 글자가 나타납니다. 달 안쪽의 다른 숨은 글자 하나가 겉으로 드러난 자리도 달과 시간, 두 곳입니다. 그러나 서로 다른 뜻이 둘 생긴 것은 아닙니다. 달과 날에는 맞서는 관계가 있으며 달과 시간 사이에도 맞서는 관계와 다른 관계가 함께 기록됩니다. 같은 관계표의 이름이 둘 있다고 사건이 두 번 일어난다는 뜻은 아닙니다. 이 시간의 특징은 달에 있던 뜻의 반복과 달·시간 연결이 함께 확인된다는 점입니다."
  },
  '20:20':{
   label:'태어난 달과 시간에 서로 다른 뜻이 나타나는 경우',
   hourRole:'상관',monthHourRelations:['형'],
   exposedAt:['natal.month.stem'],
-  text:'이 사주의 출생월 겉글자에는 낯선 내용을 자기 방식으로 익히는 뜻이 기록됩니다. 반면 태어난 시간의 겉글자는 자기 생각을 밖으로 표현하는 뜻으로 따로 분류됩니다. 달의 뜻이 시간에 다시 등장한 것이 아니라 새로운 분류가 추가된 것입니다. 아래 글자에서는 태어난 달과 날 사이의 마주 보는 관계가 여전히 기록됩니다. 하지만 달과 시간 사이에는 같은 마주 보는 관계가 없고 별도의 관계 이름만 기록됩니다. 즉 출생시간의 변화는 뜻의 종류와 달·시간의 연결을 함께 바꾸지만, 태어난 달과 날의 관계까지 바꾸지는 않습니다. 이 차이는 계산으로 확인할 수 있지만 실제 말솜씨나 갈등, 미래의 성과가 달라진다고 예측하는 근거는 아닙니다.'
+  text:"태어난 시간을 함께 보면 달의 겉글자와 달리 시간의 겉글자는 생각을 밖으로 표현하는 뜻으로 분류됩니다. 출생월 안쪽의 숨은 글자 가운데 이와 같은 글자가 겉으로 드러난 자리는 달 한 곳이며, 시간에서는 별개의 뜻이 나타납니다. 달과 날 사이의 맞서는 관계는 그대로 있지만 달과 시간 사이에는 같은 맞서는 관계가 없고 별도의 관계 이름만 기록됩니다. 출생시각의 차이는 의미의 종류와 자리 사이 관계를 바꾸지만 태어난 달과 날까지 바꾸지는 않습니다."
  }
 };
 function calculatedHourContext(packet,rows){
@@ -54,6 +54,35 @@ function calculatedHourContext(packet,rows){
   text:spec.text,refs:['natal.month.stem','natal.month.hidden.癸',
    'natal.hour.stem','facts.natalBranchRelations'],
   method:'verified-symbol-and-position-table-only-no-life-outcome'};
+}
+// The historical passages remain the validated source in the standalone
+// reader. This abbreviated editorial copy is restricted to those same exact
+// source conditions, never passed to the paid writer or used as a life claim.
+const CLASSICAL_COPY={
+ '14:20':{
+  scope:'exact-day-hour-with-winter-subclause',
+  excerpt:'안온한 쪽으로 풀이합니다',
+  label:'태어난 날과 시간에 해당하는 고전의 겨울 풀이',
+  text:"태어난 날과 시간이 맞는 옛 사주책의 구절에는 겨울에 태어난 경우를 안온한 쪽으로 읽는 설명이 있습니다. 이는 출생월의 분류만으로 고를 수 없고 정확한 날과 시간, 계절 조건이 함께 맞아야 인용할 수 있는 문장입니다. 앞서 확인한 달과 날·시간의 관계까지 어느 순서로 종합할지는 아직 판단되지 않았습니다. 여기서 '안온'은 고전이 붙인 전통적 표현이지, 본인이 실제로 평온한 성격이거나 앞으로 어려움이 없을 거라는 예측이 아닙니다."
+ },
+ '20:20':{
+  scope:'exact-day-hour-with-ambiguous-year-month-clause',
+  excerpt:'해에 있는 글자는 그 목록에 있지만',
+  label:'해와 달의 조건을 확인해야 하는 고전 풀이',
+  text:"태어난 날과 시간에 해당하는 별도의 옛 사주책 구절에는 특정 해와 달의 조건에 따라 높은 지위를 언급하는 대목이 있습니다. 해에 있는 글자는 그 목록에 있지만 달에 있는 글자는 목록에 없습니다. 그 문구가 해와 달의 조건을 어떤 방식으로 묶는지도 아직 해결되지 않아 좋은 결과가 나온다고 읽을 수 없습니다. 앞서 확인한 시간의 다른 분류와 달·시간 관계만으로 그 조건을 채웠다고 할 수도 없습니다. 따라서 이 구절은 해당 출생 기록에서 찾아볼 고전 문장이지, 실제 직업이나 지위, 미래를 예측한 결과가 아닙니다."
+ }
+};
+function verifiedClassicalCopy(packet,extra){
+ const spec=CLASSICAL_COPY[packet.calculationInput?.birthTime];
+ if(!spec||extra.source.sourceScope!==spec.scope||
+    !extra.text.includes(spec.excerpt)||
+    extra.humanExpertReviewComplete!==false||
+    extra.customerValueValidated!==false||
+    extra.includedInPaidWriter!==false||
+    extra.saleApproved!==false)
+  throw Error('QA_INTEGRATED_FIRST_CHAPTER_CLASSICAL_EDITORIAL_SOURCE_DRIFT');
+ return {kind:'exact-day-hour-classical-text',label:spec.label,text:spec.text,
+  refs:extra.exactDayHourReferences.slice(),method:extra.source.sourceScope};
 }
 function build(packet){
  const extra=hour.build(packet);
@@ -90,12 +119,13 @@ function build(packet){
   throw Error('QA_INTEGRATED_FIRST_CHAPTER_NOT_AN_INDEPENDENT_HOUR_SOURCE');
  const hourContext=calculatedHourContext(packet,rows);
  if(!hourContext)throw Error('QA_INTEGRATED_FIRST_CHAPTER_HOUR_CONTEXT_MISSING');
+ // Begin with the shared month meaning, then the time-sensitive
+ // structure, and conclude with the exact historical source boundary.
  const paragraphs=[
   {kind:'month-basis',label:MONTH_LABEL,text:MONTH_TEXT,
    refs:monthRefs,method:'traditional-symbol-meaning-not-personal-trait'},
-  {kind:'exact-day-hour-classical-text',label:extra.label,text:extra.text,
-   refs:extra.exactDayHourReferences.slice(),method:extra.source.sourceScope},
-  hourContext
+  hourContext,
+  verifiedClassicalCopy(packet,extra)
  ];
  const display=paragraphs.map(p=>p.label+'\n'+p.text).join('\n\n');
  if(policy.errors(paragraphs.flatMap(p=>[p.label,p.text])).length||
@@ -111,7 +141,7 @@ function build(packet){
      id==='facts.seasonalEvidence'&&!packet.facts.seasonalEvidence))
   throw Error('QA_INTEGRATED_FIRST_CHAPTER_PROVENANCE_DRIFT');
  return {
-  kind:'qa-composed-two-paragraph-first-chapter-for-human-review-v1',
+  kind:'qa-composed-three-paragraph-first-chapter-for-human-review-v1',
   chartFingerprint:chart,sourceScope:extra.source.sourceScope,
   paragraphs,readerText:display,
   baseChapterMonthEvidence:monthRefs,
@@ -147,6 +177,7 @@ function compare(){
   cases:[a,z],sharedMonthParagraphVerified:true,
   separateDayHourHistoricalInterpretationVerified:true,
   verifiedPositionAndRoleContrastIncluded:true,
+  oneSourceScopedEditorialCaveatAtEnd:true,
   differentPersonalityOrFuturePredicted:false,
   normalPaidWriterChanged:false,readyForCustomer:false,
   releaseVerdict:'not-approved',providerCalls:0};
@@ -154,7 +185,7 @@ function compare(){
 function markdown(){
  const c=compare();
  const lines=['# 1982년 동일 생년월일 — 두 출생시간의 사주 첫 장 비교',
-  '','**비판매·전문 검수 대기.** 각 원고는 출생월 설명, 별도 일·시의 고전 구절, 확인된 달·날·시간의 관계를 연결한 연구용 첫 장입니다.',
+  '','**비판매·전문 검수 대기.** 각 원고는 출생월 설명에서 출발해 시간에 따른 관계 차이를 읽고, 해당 날과 시간의 고전 구절로 마무리하는 연구용 첫 장입니다.',
   '','**주의:** 과거 실제 유료 AI 원문이 아닙니다. 기존 정상 유료 요청은 출생월 중심이며 본 문단들을 전달하지 않습니다.'];
  for(const [i,doc] of c.cases.entries()){
   lines.push('','## '+(i===0?'14:20':'20:20')+' / '+doc.chartFingerprint,'');
