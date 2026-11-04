@@ -1,6 +1,7 @@
 'use strict';
 const assert=require('node:assert/strict');
 const {compare,inspect,CASES}=require('./report-qa35-three-profile-reader-review');
+const CONDITIONAL=require('./report-reading-sample').CONDITIONS;
 const names=['NODE_ENV','RENDER'];
 const old=Object.fromEntries(names.map(k=>[k,process.env[k]]));
 try{
@@ -23,6 +24,16 @@ try{
   assert.equal(x.counts.definition,35);
   assert.equal(x.counts.definition,
    x.counts.eligible+x.counts.excludedInside+x.counts.excludedChapter);
+  const outside=CONDITIONAL[x.monthRoles[0]];
+  const inside=CONDITIONAL[x.monthRoles[1]];
+  assert(outside&&inside);
+  assert(x.firstChapterFreePassage.includes(outside.focus));
+  assert(x.firstChapterFreePassage.includes(inside.focus));
+  if(x.monthRoles[0]!==x.monthRoles[1]){
+   assert(x.firstChapterFreePassage.includes(outside.missing));
+   assert(x.firstChapterFreePassage.includes(inside.missing));
+   assert(x.firstChapterFreePassage.includes('가상의 선택'));
+  }
   assert.equal(x.modelWrittenPaidParagraphs,0);
   assert.equal(x.completePaidManuscript,false);
   assert.equal(x.customerValueProfessionallyVerified,false);
