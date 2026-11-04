@@ -67,6 +67,30 @@ const names=['NODE_ENV','RENDER','PAID_CORE_DEPTH_V2',
    assert.equal(result.catalog.chapterDefinitions,12);
    assert.equal(result.catalog.topicDefinitions,33);
    assert.equal(result.catalog.originallyPlannedTopics,35);
+   assert.equal(result.catalog.historicalDefinitionShortfall,2);
+   const selectedCoverage=result.estimate.chapters.filter(x=>x.includedInPlan);
+   const unselectedCoverage=result.estimate.chapters.filter(x=>!x.includedInPlan);
+   const omittedWithin=selectedCoverage.reduce((n,x)=>n+x.excludedTopics.length,0);
+   const excludedChapters=unselectedCoverage.reduce((n,x)=>n+x.definedTopicSlots,0);
+   assert.equal(result.estimate.excludedDefinedTopicsWithinPlannedChapters,
+    omittedWithin);
+   assert.equal(result.estimate.topicsUnavailableBecauseChaptersOmitted,
+    excludedChapters);
+   assert.equal(result.estimate.totalDefinedTopicsNotEligible,
+    omittedWithin+excludedChapters);
+   assert.equal(33,eligible+omittedWithin+excludedChapters);
+   assert.equal(35-eligible,2+omittedWithin+excludedChapters);
+   for(const c of result.estimate.chapters){
+    assert(Array.isArray(c.excludedTopics));
+    if(!c.includedInPlan){assert.deepEqual(c.excludedTopics,[]);continue;}
+    assert.equal(c.eligibleTopicUpperBound+c.excludedTopics.length,c.definedTopicSlots);
+    const present=new Set(c.eligibleTopics.map(x=>x.id));
+    const missing=new Set(c.excludedTopics.map(x=>x.id));
+    assert.equal(present.size+missing.size,c.definedTopicSlots);
+    assert([...missing].every(id=>!present.has(id)));
+    assert(c.excludedTopics.every(t=>t.title&&t.reason&&
+     !/natal\\.|person\\.|facts\\.|TEST_DO_NOT_EXPOSE/.test(t.reason)));
+   }
    assert.equal(result.estimate.plannedChapters,chapters);
    assert.equal(result.estimate.evidenceEligibleTopicUpperBound,eligible);
    assert.equal(result.estimate.targetChapterCount,12);
@@ -220,6 +244,15 @@ const names=['NODE_ENV','RENDER','PAID_CORE_DEPTH_V2',
    gender:'male',mbti:'모름'};
   const noMBTI=coverage.calculate(input);
   assert.equal(noMBTI.catalog.topicDefinitions,33);
+  assert.equal(noMBTI.catalog.historicalDefinitionShortfall,2);
+  const mbti=noMBTI.estimate.chapters.find(x=>x.id==='mbti_contradiction');
+  assert(mbti.excludedTopics.some(x=>x.id==='information'&&x.reason.includes('MBTI')));
+  assert(mbti.excludedTopics.some(x=>x.id==='judgment'&&x.reason.includes('MBTI')));
+  const visibleUI=require('node:fs').readFileSync(
+   require('node:path').join(__dirname,'live-report-ui.js'),'utf8');
+  assert(visibleUI.includes('선택된 장에서 작성하지 않는 질문'));
+  assert(visibleUI.includes('excludedHtml'));
+  assert(visibleUI.includes('historicalDefinitionShortfall'));
   assert.equal(noMBTI.customerSaleApproved,false);
   const fake={...input,chart:{year:'甲子',month:'甲子',day:'甲子',hour:'甲子'},
    facts:{tenGods:{year:{stemTenGod:'정재'}}},purchaseEnabled:true};
