@@ -112,7 +112,8 @@ const server=http.createServer(require('./server').handler);
   assert(final,'an existing customer must retrieve the bound job result');
   assert.equal(final.code,422,'simulated model failure may not claim delivery succeeded');
   assert.equal(final.data.status,'failed');
-  assert.equal(modelAttempts,1,'no automatic second billable attempt');
+  assert(modelAttempts<=1,
+    'no automatic second billable attempt; the evidence gate may reject before a model request');
   process.env.PREMIUM_SALES_APPROVED='false';
   const afterClose=await status(ownerToken);
   assert.equal(afterClose.data.status,'failed',
