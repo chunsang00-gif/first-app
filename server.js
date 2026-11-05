@@ -8,6 +8,13 @@ const reportStore=require('./report-job-store').create(process.env.REPORT_STORAG
 const checkpointIdentity=require('./report-checkpoint-identity');
 const jobAccess=require('./report-job-access');
 const commercialReadiness=require('./report-commercial-readiness');
+// Fixed 12×35 has never been deliverable. A chart-scoped adaptive offer is
+// a SEPARATE checkout mode and requires a separate explicit launch switch.
+// No default, legacy, or single environment flag can silently enable sales.
+const adaptiveProductAuthorized=()=>
+ process.env.PREMIUM_PRODUCT_MODE==='adaptive-v1'&&
+ process.env.PREMIUM_ADAPTIVE_CONTRACT_APPROVED==='true'&&
+ commercialReadiness.assessAdaptive().canPrepareScopeBoundOrder===true;
 // One verified merchant order may authorize ONE report job. Sales remain
 // disabled unless both separate business and editorial approvals are set.
 const paymentLedger=reportStore.enabled&&path.isAbsolute(process.env.REPORT_STORAGE_DIR||'')?require('./report-purchase-ledger').create({
@@ -15,11 +22,11 @@ const paymentLedger=reportStore.enabled&&path.isAbsolute(process.env.REPORT_STOR
  priceKRW:Number(process.env.PREMIUM_REPORT_PRICE_KRW),
  salesApproved:process.env.PREMIUM_SALES_APPROVED==='true'&&
   process.env.PREMIUM_EDITORIAL_REVIEW_APPROVED==='true'&&
-  commercialReadiness.assess().canAcceptNewPayment,
+  adaptiveProductAuthorized(),
  secretKey:process.env.TOSS_SECRET_KEY
 }):null;
 const paymentSalesReady=()=>Boolean(paymentLedger&&
- commercialReadiness.assess().canAcceptNewPayment&&
+ adaptiveProductAuthorized()&&
  process.env.PREMIUM_SALES_APPROVED==='true'&&
  process.env.PREMIUM_EDITORIAL_REVIEW_APPROVED==='true'&&
  Number.isSafeInteger(Number(process.env.PREMIUM_REPORT_PRICE_KRW))&&
@@ -173,7 +180,15 @@ async function qaHandler(req,res){
 
 async function handler(req,res){try{if(req.url.split('?')[0]==='/api/internal/report-qa')return await qaHandler(req,res);if(req.method==='GET'&&req.url.split('?')[0]==='/api/health'){const c=diagnostics.configuration();return json(res,200,{status:'ok',reportServiceConfigured:c.configured,premiumSalesReady:paymentSalesReady(),reportGenerationEnabled:(localMockEnabled(req)||paymentSalesReady())&&c.configured,configurationIssues:c.issues,deployCommit:process.env.RENDER_GIT_COMMIT||process.env.GIT_COMMIT||null})}if(req.method==='POST'&&req.url==='/api/checkout/start'){
  if(!paymentSalesReady())return json(res,403,{status:'blocked',code:'PREMIUM_SALES_NOT_APPROVED'});
- try{return json(res,201,{status:'pending',...paymentLedger.reserve()})}
+ // Never accept browser-supplied chart, topic count, amount or price.
+ // Compute the exact preview contract again on the server before reserving.
+ const payload=await body(req);
+ const sourceInput=payload?.analysisInput?.calculationInput;
+ if(!sourceInput)return json(res,422,{status:'blocked',code:'ADAPTIVE_OFFER_INPUT_REQUIRED'});
+ let offer;
+ try{offer=require('./report-checkout-offer').build(sourceInput)}
+ catch{return json(res,422,{status:'blocked',code:'ADAPTIVE_OFFER_NOT_VERIFIABLE'})}
+ try{return json(res,201,{status:'pending',...paymentLedger.reserve({offer})})}
  catch{return json(res,409,{status:'blocked',code:'PAYMENT_RESERVATION_FAILED'})}
 }
 if(req.method==='POST'&&req.url==='/api/checkout/confirm'){
@@ -202,7 +217,18 @@ if(req.method==='POST'&&req.url==='/api/calculate'){const input=await body(req),
  if(paid?.state==='delivery-bound')return json(res,409,{status:'blocked',
   code:'PAYMENT_ALREADY_USED_FOR_ANOTHER_REPORT',jobId:paid.jobId,
   message:'기존 주문이 보고서 한 건에 이미 연결되었습니다. 주문 상태에서 기존 결과를 조회하세요.'});
- const a=payload.analysisInput;if(a?.status!=='ready'||!a.calculationInput)return json(res,422,{status:'blocked',errors:['validated calculation input is missing']});const errors=validateInput(a.calculationInput);if(errors.length)return json(res,422,{status:'blocked',errors});if(a.calculationInput.unknownBirthTime)a.calculationInput.birthTime='12:00';const config=diagnostics.configuration();if(!config.configured)return json(res,503,{status:'failed',code:config.issues[0],message:diagnostics.messageFor(config.issues[0])});cleanupJobs();const requestId=payload.requestId;if((paid&&!requestId)||(requestId!==undefined&&(typeof requestId!=='string'||!/^[a-zA-Z0-9-]{16,100}$/.test(requestId))))return json(res,422,{status:'blocked',errors:['invalid request id']});const fingerprint=require('crypto').createHash('sha256').update(JSON.stringify(a.calculationInput)).digest('hex');const previous=requestId&&(REQUESTS.get(requestId)||reportStore.loadRequest(requestId));if(previous){if(previous.fingerprint!==fingerprint)return json(res,409,{status:'blocked',errors:['request id already used for different input']});const existing=JOBS.get(previous.id)||reportStore.load(previous.id);if(!existing)return json(res,409,{status:'blocked',code:'REPORT_REQUEST_ALREADY_USED',message:'기존 요청 기록이 있으나 생성 상태를 확인할 수 없습니다. 자동 재생성을 막았습니다.'});
+ const a=payload.analysisInput;if(a?.status!=='ready'||!a.calculationInput)return json(res,422,{status:'blocked',errors:['validated calculation input is missing']});const errors=validateInput(a.calculationInput);if(errors.length)return json(res,422,{status:'blocked',errors});if(a.calculationInput.unknownBirthTime)a.calculationInput.birthTime='12:00';if(paid){
+  // A verified charge is not permission to generate a DIFFERENT report.
+  // Check this before binding the one-use paid entitlement or any API call.
+  let scope;
+  try{scope=require('./report-checkout-offer').build(a.calculationInput)}
+  catch{return json(res,422,{status:'blocked',code:'ADAPTIVE_OFFER_RECALCULATION_FAILED'})}
+  try{paymentLedger.verifyOffer({
+   orderId:payload.purchase.orderId,ownerToken:payload.purchase.ownerToken,offer:scope
+  })}
+  catch{return json(res,409,{status:'blocked',code:'PAYMENT_ORDER_REPORT_SCOPE_MISMATCH'})}
+ }
+const config=diagnostics.configuration();if(!config.configured)return json(res,503,{status:'failed',code:config.issues[0],message:diagnostics.messageFor(config.issues[0])});cleanupJobs();const requestId=payload.requestId;if((paid&&!requestId)||(requestId!==undefined&&(typeof requestId!=='string'||!/^[a-zA-Z0-9-]{16,100}$/.test(requestId))))return json(res,422,{status:'blocked',errors:['invalid request id']});const fingerprint=require('crypto').createHash('sha256').update(JSON.stringify(a.calculationInput)).digest('hex');const previous=requestId&&(REQUESTS.get(requestId)||reportStore.loadRequest(requestId));if(previous){if(previous.fingerprint!==fingerprint)return json(res,409,{status:'blocked',errors:['request id already used for different input']});const existing=JOBS.get(previous.id)||reportStore.load(previous.id);if(!existing)return json(res,409,{status:'blocked',code:'REPORT_REQUEST_ALREADY_USED',message:'기존 요청 기록이 있으나 생성 상태를 확인할 수 없습니다. 자동 재생성을 막았습니다.'});
 // A duplicate idempotency key is NOT proof of ownership. Only the browser
 // holding the original unguessable credential may resume the same job.
 if(!localMock&&existing.paidOrderId!==payload.purchase?.orderId)

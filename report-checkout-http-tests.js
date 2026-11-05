@@ -7,6 +7,7 @@ const nativeFetch=global.fetch;
 const dir=fs.mkdtempSync(path.join(os.tmpdir(),'saju-paid-order-http-'));
 const env={REPORT_STORAGE_DIR:dir,PREMIUM_REPORT_PRICE_KRW:'9900',
  PREMIUM_SALES_APPROVED:'true',PREMIUM_EDITORIAL_REVIEW_APPROVED:'true',
+ PREMIUM_PRODUCT_MODE:'adaptive-v1',PREMIUM_ADAPTIVE_CONTRACT_APPROVED:'true',
  TOSS_SECRET_KEY:'offline-test-secret-not-a-merchant',RENDER:'true',
  REPORT_MODEL_URL:'https://offline-model.invalid/report'};
 const prior=Object.fromEntries(Object.keys(env).map(k=>[k,process.env[k]]));
@@ -30,10 +31,9 @@ global.fetch=async(url,opts={})=>{
  }
  return nativeFetch(url,opts);
 };
-// Keep testing the previously working one-payment/one-report HTTP flow
-// with a synthetic fully eligible catalog. This is ONLY require-cache test
-// injection into this offline process, not an environment flag that an
-// operator could accidentally enable in production.
+// Exercise the REAL, existing adaptive product readiness and chart-scoped
+// order. All approval flags and payment providers are isolated in THIS
+// offline test process. No live deployment or provider request occurs.
 const realReadiness=require('./report-commercial-readiness');
 const actual=realReadiness.assess();
 assert.equal(actual.canAcceptNewPayment,false);
@@ -41,9 +41,7 @@ assert.equal(actual.targetTopics,35);
 assert.equal(actual.definedTopics,35);
 assert.equal(actual.structuralUpperBound,32);
 assert.equal(actual.minimumShortfall,3);
-require.cache[require.resolve('./report-commercial-readiness')].exports={
- assess:()=>({canAcceptNewPayment:true})
-};
+assert.equal(realReadiness.assessAdaptive().canPrepareScopeBoundOrder,true);
 const server=http.createServer(require('./server').handler);
 (async()=>{
  try{
@@ -55,12 +53,23 @@ const server=http.createServer(require('./server').handler);
     body:JSON.stringify(value||{})});
    return {code:r.status,data:await r.json()};
   };
-  const request=await post('/api/checkout/start',{});
+  const input={calendar:'solar',birthDate:'1994-07-15',
+   birthTime:'14:20',gender:'male',mbti:'ISFP',name:'testing'};
+  const startPayload={analysisInput:{status:'ready',calculationInput:input}};
+  const missingOffer=await post('/api/checkout/start',{});
+  assert.equal(missingOffer.code,422);
+  assert.equal(chargeAttempts,0);
+  const request=await post('/api/checkout/start',startPayload);
   assert.equal(request.code,201);
   const {orderId,ownerToken,amount}=request.data;
   assert.match(orderId,/^[a-f0-9-]{36}$/);
   assert.match(ownerToken,/^[a-f0-9]{64}$/);
   assert.equal(amount,9900);
+  assert.equal(request.data.scope.productMode,'adaptive-v1');
+  assert.equal(request.data.scope.countsAreUpperBounds,true);
+  assert.equal(request.data.scope.fixed12ChaptersPromised,false);
+  assert.equal(request.data.scope.fixed35TopicsPromised,false);
+  assert(request.data.scope.plannedChapters>=8);
   const wrongAmount=await post('/api/checkout/confirm',{
    orderId,ownerToken,paymentKey:'fake-payment-key',amount:1});
   assert.equal(wrongAmount.code,409);
@@ -73,8 +82,12 @@ const server=http.createServer(require('./server').handler);
   const falseOwner=await post('/api/checkout/status',{
    orderId,ownerToken:'f'.repeat(64)});
   assert.equal(falseOwner.code,403);
-  const input={calendar:'solar',birthDate:'1994-07-15',
-   birthTime:'14:20',gender:'male',mbti:'ISFP',name:'testing'};
+  const mismatched=await post('/api/report',{
+   purchase:{orderId,ownerToken},requestId:'test-paid-offer-mismatch-01',
+   analysisInput:{status:'ready',calculationInput:{...input,birthTime:'20:20'}}});
+  assert.equal(mismatched.code,409,'paid offer MUST match birth hour + actual chart');
+  assert.equal(mismatched.data.code,'PAYMENT_ORDER_REPORT_SCOPE_MISMATCH');
+  assert.equal(modelAttempts,0);
   const invalidOwner=await post('/api/report',{
    purchase:{orderId,ownerToken:'f'.repeat(64)},
    requestId:'test-unauthorized-uuid-01',
@@ -94,6 +107,7 @@ const server=http.createServer(require('./server').handler);
   assert.equal(recover.code,200);
   assert.equal(recover.data.state,'delivery-bound');
   assert.equal(recover.data.jobId,jobId);
+  assert.deepEqual(recover.data.scope,request.data.scope);
   const status=async token=>{const r=await nativeFetch(base+'/api/report-status?id='+jobId,{
    headers:token?{'x-report-access-token':token}:{}});return {code:r.status,data:await r.json()}};
   const anon=await status(null),wrong=await status('f'.repeat(64));
@@ -124,7 +138,7 @@ const server=http.createServer(require('./server').handler);
    .map(file=>fs.readFileSync(path.join(dir,'purchases',file),'utf8')));
   assert(!receiptDisk.includes(ownerToken),'purchase credential is stored as hash only');
   assert.equal(chargeAttempts,1);
-  console.log('PASS offline HTTP checkout with synthetic scope: exact amount, one Toss confirmation, one report entitlement, owner-only recovery, sales-off access, failure without auto recharging; zero external requests');
+  console.log('PASS real adaptive offer checkout offline: server-calculated chapters, persisted order scope, changed birth hour rejected before paid model, single charge, owner-only recovery, closed sales; zero external requests');
  }finally{
   await new Promise(resolve=>server.close(resolve));
   global.fetch=nativeFetch;
