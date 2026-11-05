@@ -146,12 +146,67 @@ const server=http.createServer(require('./server').handler);
   assert.equal(final.data.status,'failed');
   assert(modelAttempts<=1,
     'no automatic second billable attempt; the evidence gate may reject before a model request');
+  // The second buyer pays before new sales are deliberately paused, but
+  // chooses to start delivery only after the switch has been turned off.
+  const prepaid=await post('/api/checkout/start',startPayload);
+  assert.equal(prepaid.code,201);
+  const prepaidInfo=prepaid.data;
+  const prepaidApproval=await post('/api/checkout/confirm',{
+   orderId:prepaidInfo.orderId,ownerToken:prepaidInfo.ownerToken,
+   paymentKey:'offline-prepaid-before-pause',amount:prepaidInfo.amount});
+  assert.equal(prepaidApproval.code,200);
+  assert.equal(chargeAttempts,2);
   process.env.PREMIUM_SALES_APPROVED='false';
   const afterClose=await status(ownerToken);
   assert.equal(afterClose.data.status,'failed',
    'previous purchase owner remains authorized after sales are disabled');
   const blockedNew=await post('/api/checkout/start',{});
   assert.equal(blockedNew.code,403);
+  const preSalePaidStatus=await post('/api/checkout/status',{
+   orderId:prepaidInfo.orderId,ownerToken:prepaidInfo.ownerToken});
+  assert.equal(preSalePaidStatus.code,200);
+  assert.equal(preSalePaidStatus.data.state,'verified-paid');
+  const pausedSalesMismatch=await post('/api/report',{
+   purchase:{orderId:prepaidInfo.orderId,ownerToken:prepaidInfo.ownerToken},
+   requestId:'test-paused-sales-wrong-chart-001',
+   analysisInput:{status:'ready',calculationInput:{...input,birthTime:'20:20'}}});
+  assert.equal(pausedSalesMismatch.code,409);
+  assert.equal(pausedSalesMismatch.data.code,'PAYMENT_ORDER_REPORT_SCOPE_MISMATCH');
+  const pausedSalesNoOwner=await post('/api/report',{
+   purchase:{orderId:prepaidInfo.orderId,ownerToken:'f'.repeat(64)},
+   requestId:'test-paused-sales-invalid-owner-01',
+   analysisInput:{status:'ready',calculationInput:input}});
+  assert.equal(pausedSalesNoOwner.code,403);
+  const paidFulfillment=await post('/api/report',{
+   purchase:{orderId:prepaidInfo.orderId,ownerToken:prepaidInfo.ownerToken},
+   requestId:'test-paid-fulfillment-after-pause',
+   analysisInput:{status:'ready',calculationInput:input}});
+  assert.equal(paidFulfillment.code,202,
+   'closing new checkout must not strand a verified-paid customer');
+  assert.equal(paidFulfillment.data.accessToken,prepaidInfo.ownerToken);
+  const existingAfterPause=await post('/api/checkout/status',{
+   orderId:prepaidInfo.orderId,ownerToken:prepaidInfo.ownerToken});
+  assert.equal(existingAfterPause.data.state,'delivery-bound');
+  assert.equal(existingAfterPause.data.jobId,paidFulfillment.data.jobId);
+  const noSecondJobAfterPause=await post('/api/report',{
+   purchase:{orderId:prepaidInfo.orderId,ownerToken:prepaidInfo.ownerToken},
+   requestId:'test-paid-fulfillment-after-pause-2',
+   analysisInput:{status:'ready',calculationInput:input}});
+  assert.equal(noSecondJobAfterPause.code,409,
+   'previously paid order still buys only one report after sales stop');
+  let fulfillmentOutcome=null;
+  for(let i=0;i<80;i++){
+   const r=await nativeFetch(base+'/api/report-status?id='+paidFulfillment.data.jobId,{
+    headers:{'x-report-access-token':prepaidInfo.ownerToken}});
+   const data=await r.json();
+   if(data.status!=='processing'){fulfillmentOutcome={code:r.status,data};break}
+   await new Promise(resolve=>setTimeout(resolve,35));
+  }
+  assert(fulfillmentOutcome,'paused-sales paid fulfillment must have a retrievable outcome');
+  assert.equal(fulfillmentOutcome.code,422,
+   'offline model failure is not a completed report or grounds for another charge');
+  assert.equal(fulfillmentOutcome.data.status,'failed');
+  assert(modelAttempts<=2,'no automatic provider retry after paused-sales fulfillment');
   // The owner must retain refund/uncertain-state visibility after closing sales.
   const refundFile=path.join(dir,'purchases','purchase-'+orderId+'.refunded.json');
   fs.writeFileSync(refundFile,JSON.stringify({
@@ -185,8 +240,8 @@ const server=http.createServer(require('./server').handler);
   const receiptDisk=JSON.stringify(fs.readdirSync(path.join(dir,'purchases'))
    .map(file=>fs.readFileSync(path.join(dir,'purchases',file),'utf8')));
   assert(!receiptDisk.includes(ownerToken),'purchase credential is stored as hash only');
-  assert.equal(chargeAttempts,2);
-  console.log('PASS real adaptive offer checkout offline: server-calculated chapters, persisted order scope, changed birth hour rejected before paid model, single charge, owner-only recovery, closed sales; zero external requests');
+  assert.equal(chargeAttempts,3);
+  console.log('PASS real adaptive offer checkout offline: server-calculated chapters, persisted order scope, changed birth hour rejected before paid model, one charge per order, owner-only recovery, fulfill already-paid order after closing new sales; zero external requests');
  }finally{
   await new Promise(resolve=>server.close(resolve));
   global.fetch=nativeFetch;
