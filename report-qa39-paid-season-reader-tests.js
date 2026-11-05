@@ -1,69 +1,61 @@
 'use strict';
-// Real paid first-batch provider request, no paid model call.
+// Work39: actual paid output schema, original calculated facts only.
+// Historical QA manuscript is never treated as a commercial-quality report.
 const assert=require('node:assert/strict');
 const cases=require('./report-qa35-three-profile-reader-review').CASES;
 const capture=require('./report-core-paid-full-prompt-capture').capture;
 const writer=require('./report-generation-request');
 const wire=require('./report-wire'),schema=require('./report-schema.json');
-const planModule=require('./report-paid-core-season-reader-plan');
-const previousFetch=global.fetch;
-let http=0;
-global.fetch=()=>{http++;throw Error('QA39_NETWORK_FORBIDDEN')};
+const reader=require('./report-paid-core-season-reader-plan');
+const oldFetch=global.fetch;
+let calls=0;
+global.fetch=()=>{calls++;throw Error('QA39_HTTP_FORBIDDEN')};
 (async()=>{
- const scopes=[],rows=[];
+ const details=[];
  for(const input of cases){
-  const current=await capture(input);
-  assert.equal(current.providerCalls,0);
-  const request=current.prompt,packet=request.facts;
-  const compiled=writer.compile(request);
-  const topic=compiled.task.chapters.saju_core.topics.temperament;
-  const active=topic.mode!=='state-limits';
-  if(!active){
-   assert(!topic.sourceOwnedCoreSeasonReaderValue);
-   continue;
-  }
-  const selected=topic.sourceOwnedCoreSeasonReaderValue;
-  const fullPlan=planModule.build(packet,topic.citableFacts.map(x=>x.id),compiled.source);
-  assert(selected,'eligible real paid temperament topic missing source-owned season question');
-  assert.equal(selected.kind,'paid-core-verified-season-vs-visible-question-v1');
-  assert.equal(fullPlan.extraPaidTopic,false);
-  assert.equal(fullPlan.humanInterpretiveMethodApproved,false);
-  assert.equal(fullPlan.customerPremiumValueApproved,false);
-  assert.equal(fullPlan.realizedRelationship,false);
-  assert.equal(fullPlan.strengthEstablished,false);
-  assert.deepEqual(selected,planModule.forProvider(fullPlan),
-   'model task carries only compact verified source signature');
-  assert(fullPlan.readerWritingGoal.includes('실제 성격'));
-  assert(fullPlan.readerWritingGoal.includes('출생월 두 십성 뜻풀이'));
-  assert(!selected.refs.some(x=>x.includes('hour')||x.includes('root')));
-  const field=writer.schema(request,wire.schemaFor(request,schema))
+  const request=(await capture(input)).prompt;
+  const packet=request.facts,transport=writer.compile(request);
+  const topic=transport.task.chapters.saju_core.topics.temperament;
+  assert(!Object.hasOwn(topic,'sourceOwnedCoreSeasonReaderValue'),
+   'source-specific question belongs in the actual JSON field, not duplicated in compact task');
+  if(topic.mode==='state-limits')continue;
+  const plan=reader.build(packet,topic.citableFacts.map(x=>x.id),transport.source);
+  assert.equal(plan.kind,'paid-core-verified-season-vs-visible-question-v1');
+  assert.equal(plan.extraPaidTopic,false);
+  assert.equal(plan.realizedRelationship,false);
+  assert.equal(plan.strengthEstablished,false);
+  assert.equal(plan.humanInterpretiveMethodApproved,false);
+  assert.equal(plan.customerPremiumValueApproved,false);
+  assert.equal(plan.refs.length,3);
+  assert(plan.readerWritingGoal.includes('출생월 두 십성 뜻풀이'));
+  assert(plan.readerWritingGoal.includes('실제 성격'));
+  const description=writer.schema(request,wire.schemaFor(request,schema))
    .properties.chapters.properties.saju_core.properties.paragraphs
    .properties.temperament.anyOf.find(x=>x.type==='object').properties.text.description;
-  assert(field.includes(fullPlan.readerWritingGoal),
-   'actual strict provider text field must receive separate season interpretation');
-  scopes.push(selected.scope);
-  rows.push({case:input.id,mode:selected.scope,
-   season:selected.seasonalRelation,visible:selected.visibleRelation});
+  assert(description.includes(plan.readerWritingGoal),
+   'actual strict provider text field must carry the computed separate season question');
+  details.push({case:input.id,contrast:plan.scope,
+   seasonal:plan.seasonalRelation,visible:plan.visibleRelation});
  }
- assert(rows.length>=2);
- const original=await capture(cases[0]);
- const hour=await capture({...cases[0],birthTime:'20:20'});
- const a=writer.compile(original.prompt).task.chapters.saju_core.topics.temperament;
- const b=writer.compile(hour.prompt).task.chapters.saju_core.topics.temperament;
- assert.deepEqual(a.sourceOwnedCoreSeasonReaderValue,
-  b.sourceOwnedCoreSeasonReaderValue,
-  'different birth hour must not change source-scoped month/season question');
- // QA-only previously frozen first chapter must not acquire a production
- // source-specific clause or broaden its citable JSON refs.
- const packet=original.prompt.facts;
- const legacy=require('./report-core-paid-natal-depth-preview').prepare(packet);
+ assert(details.length>=2);
+ const same=(await capture(cases[0])).prompt;
+ const other=(await capture({...cases[0],birthTime:'20:20'})).prompt;
+ assert.notDeepEqual(same.facts.chart,other.facts.chart);
+ const x=writer.compile(same),y=writer.compile(other);
+ const sx=reader.build(same.facts,
+  x.task.chapters.saju_core.topics.temperament.citableFacts.map(r=>r.id),x.source);
+ const sy=reader.build(other.facts,
+  y.task.chapters.saju_core.topics.temperament.citableFacts.map(r=>r.id),y.source);
+ assert.deepEqual(sx,sy,'hour change may not fabricate new month-season claims');
+ const legacy=require('./report-core-paid-natal-depth-preview').prepare(same.facts);
  if(legacy){
   const qa=writer.compile(legacy.prompt).task.chapters.saju_core.topics.temperament;
   assert(!Object.hasOwn(qa,'sourceOwnedCoreSeasonReaderValue'));
  }
- assert.equal(http,0);
- console.log('QA39_PAID_SEASON_SCOPE='+JSON.stringify({cases:rows,
-  addedPaidTopics:0,realPaidSchemaVerified:true,paidApiCalls:0,
-  editorialApproval:false,operatingDeployment:false}));
- console.log('PASS actual first paid optional season/day question stays independent from month role meanings');
-})().catch(e=>{console.error(e);process.exitCode=1}).finally(()=>{global.fetch=previousFetch});
+ assert.equal(calls,0);
+ console.log('QA39_SEASON_READER='+JSON.stringify({
+  cases:details,realPaidOutputFieldChecked:true,extraTopics:0,
+  apiCalls:0,methodApproved:false,paidManuscriptReviewed:false
+ }));
+ console.log('PASS separate season/day comparison in normal paid output field; no provider calls');
+})().catch(e=>{console.error(e);process.exitCode=1}).finally(()=>{global.fetch=oldFetch});

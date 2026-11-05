@@ -318,20 +318,6 @@ function compile(prompt){
     // QA payloads and development-only V2 requests remain byte-untouched.
     // Replace the forced stock-life-scene prompt with the verified original
     // month interpretation: what the second real category adds to the first.
-    // NORMAL paid OPTIONAL temperament only: the independently computed
-    // season/day and visible-month/day questions must not become generic
-    // "the two sides balance" copy or repeat the month two-role reading.
-    if(chapterId==='saju_core'&&topicId==='temperament'&&
-       topic.mode!=='state-limits'&&
-       prompt.paidCoreDepthV2!==true&&
-       prompt.qaNatalDepthPreview!==true&&
-       prompt.qaAdditiveDepthPreview!==true&&
-       prompt.qaOfflineEditorialResearchPreview!==true){
-     const seasonPlan=require('./report-paid-core-season-reader-plan')
-      .build(prompt.facts,permitted,source);
-     if(!seasonPlan)throw Error('PAID_CORE_SEASON_READER_PLAN_UNAVAILABLE');
-     topic.sourceOwnedCoreSeasonReaderValue=require('./report-paid-core-season-reader-plan').forProvider(seasonPlan);
-    }
     if(chapterId==='saju_core'&&topicId==='strength'&&
        prompt.paidCoreDepthV2!==true&&
        prompt.qaNatalDepthPreview!==true&&
@@ -656,19 +642,22 @@ function schema(prompt,transport){
       '선택 문단은 null로 두고, 필수 문단은 근거의 한계만 정확히 밝힌다.';
     }
    }
-   if(task.sourceOwnedCoreSeasonReaderValue){
-    const planned=task.sourceOwnedCoreSeasonReaderValue;
-    const verified=require('./report-paid-core-season-reader-plan')
+   // The actual strict model output field can carry the chart-specific
+   // seasonal interpretation without inflating the compact task payload.
+   if(chapterId==='saju_core'&&topic==='temperament'&&
+      task.mode!=='state-limits'&&prompt.paidCoreDepthV2!==true&&
+      prompt.qaNatalDepthPreview!==true&&
+      prompt.qaAdditiveDepthPreview!==true&&
+      prompt.qaOfflineEditorialResearchPreview!==true){
+    const checked=require('./report-paid-core-season-reader-plan')
      .build(prompt.facts,permitted,payload.source);
-    if(chapterId!=='saju_core'||topic!=='temperament'||!verified||
-       JSON.stringify(planned)!==JSON.stringify(require('./report-paid-core-season-reader-plan').forProvider(verified))||
-       planned.refs.some(id=>!permitted.includes(id))||
-       verified.humanInterpretiveMethodApproved!==false||
-       verified.customerPremiumValueApproved!==false||
-       verified.extraPaidTopic!==false)
+    if(!checked||checked.refs.some(id=>!permitted.includes(id))||
+       checked.humanInterpretiveMethodApproved!==false||
+       checked.customerPremiumValueApproved!==false||
+       checked.extraPaidTopic!==false)
      throw Error('PAID_CORE_SEASON_READER_WRITER_SOURCE_DRIFT');
-    p.properties.text.description+=' 이 명식의 선택 계절 문단에서 검토할 별도 근거: '+
-     verified.readerWritingGoal;
+    p.properties.text.description+=' 해당 출생월에서 별도로 검토할 계절과 겉글자 근거: '+
+     checked.readerWritingGoal;
    }
    if(task.sourceOwnedCoreReaderValue){
     const plan=task.sourceOwnedCoreReaderValue;
