@@ -8,7 +8,8 @@ const dir=fs.mkdtempSync(path.join(os.tmpdir(),'saju-paid-order-http-'));
 const env={REPORT_STORAGE_DIR:dir,PREMIUM_REPORT_PRICE_KRW:'9900',
  PREMIUM_SALES_APPROVED:'true',PREMIUM_EDITORIAL_REVIEW_APPROVED:'true',
  PREMIUM_PRODUCT_MODE:'adaptive-v1',PREMIUM_ADAPTIVE_CONTRACT_APPROVED:'true',
- TOSS_SECRET_KEY:'offline-test-secret-not-a-merchant',RENDER:'true',
+ TOSS_SECRET_KEY:'offline-test-secret-not-a-merchant',
+ TOSS_CLIENT_KEY:'test_ck_offline_checkout_123456',RENDER:'true',
  REPORT_MODEL_URL:'https://offline-model.invalid/report'};
 const prior=Object.fromEntries(Object.keys(env).map(k=>[k,process.env[k]]));
 Object.assign(process.env,env);
@@ -59,6 +60,11 @@ const server=http.createServer(require('./server').handler);
   const missingOffer=await post('/api/checkout/start',{});
   assert.equal(missingOffer.code,422);
   assert.equal(chargeAttempts,0);
+  const liveConfig=await nativeFetch(base+'/api/checkout/config').then(r=>r.json());
+  assert.equal(liveConfig.enabled,true);
+  assert.equal(liveConfig.clientKey,env.TOSS_CLIENT_KEY);
+  assert.equal(liveConfig.amount,9900);
+  assert(!JSON.stringify(liveConfig).includes(env.TOSS_SECRET_KEY));
   const request=await post('/api/checkout/start',startPayload);
   assert.equal(request.code,201);
   const {orderId,ownerToken,amount}=request.data;

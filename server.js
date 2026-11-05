@@ -31,6 +31,8 @@ const paymentSalesReady=()=>Boolean(paymentLedger&&
  process.env.PREMIUM_EDITORIAL_REVIEW_APPROVED==='true'&&
  Number.isSafeInteger(Number(process.env.PREMIUM_REPORT_PRICE_KRW))&&
  Number(process.env.PREMIUM_REPORT_PRICE_KRW)>0&&
+ typeof process.env.TOSS_CLIENT_KEY==='string'&&
+ /^(test|live)_ck_[A-Za-z0-9_-]{8,}$/.test(process.env.TOSS_CLIENT_KEY)&&
  typeof process.env.TOSS_SECRET_KEY==='string'&&
  process.env.TOSS_SECRET_KEY.length>=16&&
  diagnostics.configuration().configured);
@@ -178,7 +180,16 @@ async function qaHandler(req,res){
  return json(res,202,{status:'processing',message:'One QA attempt started; no automatic retry'});
 }
 
-async function handler(req,res){try{if(req.url.split('?')[0]==='/api/internal/report-qa')return await qaHandler(req,res);if(req.method==='GET'&&req.url.split('?')[0]==='/api/health'){const c=diagnostics.configuration();return json(res,200,{status:'ok',reportServiceConfigured:c.configured,premiumSalesReady:paymentSalesReady(),reportGenerationEnabled:(localMockEnabled(req)||paymentSalesReady())&&c.configured,configurationIssues:c.issues,deployCommit:process.env.RENDER_GIT_COMMIT||process.env.GIT_COMMIT||null})}if(req.method==='POST'&&req.url==='/api/checkout/start'){
+async function handler(req,res){try{if(req.url.split('?')[0]==='/api/internal/report-qa')return await qaHandler(req,res);if(req.method==='GET'&&req.url.split('?')[0]==='/api/health'){const c=diagnostics.configuration();return json(res,200,{status:'ok',reportServiceConfigured:c.configured,premiumSalesReady:paymentSalesReady(),reportGenerationEnabled:(localMockEnabled(req)||paymentSalesReady())&&c.configured,configurationIssues:c.issues,deployCommit:process.env.RENDER_GIT_COMMIT||process.env.GIT_COMMIT||null})}if(req.method==='GET'&&req.url==='/api/checkout/config'){
+ // Client key is publishable. Merchant secret and API tokens stay server-only.
+ // Never advertise an active checkout unless every existing approval passes.
+ if(!paymentSalesReady())return json(res,200,{enabled:false,productMode:'adaptive-v1'});
+ return json(res,200,{enabled:true,productMode:'adaptive-v1',
+  clientKey:process.env.TOSS_CLIENT_KEY,
+  amount:Number(process.env.PREMIUM_REPORT_PRICE_KRW),currency:'KRW',
+  scopeMustMatchOrder:true,fixed12x35Promised:false});
+}
+if(req.method==='POST'&&req.url==='/api/checkout/start'){
  if(!paymentSalesReady())return json(res,403,{status:'blocked',code:'PREMIUM_SALES_NOT_APPROVED'});
  // Never accept browser-supplied chart, topic count, amount or price.
  // Compute the exact preview contract again on the server before reserving.
