@@ -65,6 +65,7 @@ const server=http.createServer(require('./server').handler);
   assert.match(orderId,/^[a-f0-9-]{36}$/);
   assert.match(ownerToken,/^[a-f0-9]{64}$/);
   assert.equal(amount,9900);
+  assert.equal(request.data.productId,'saju-mbti-adaptive-report-v1');
   assert.equal(request.data.scope.productMode,'adaptive-v1');
   assert.equal(request.data.scope.countsAreUpperBounds,true);
   assert.equal(request.data.scope.fixed12ChaptersPromised,false);

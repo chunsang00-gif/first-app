@@ -7,6 +7,7 @@ const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypt
 const access=require('./report-job-access');
 const toss=require('./report-toss-payment');
 const PRODUCT='saju-mbti-premium-report-v1';
+const ADAPTIVE_PRODUCT='saju-mbti-adaptive-report-v1';
 const UUID=/^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/;
 function create({dir,priceKRW,salesApproved=false,secretKey,transport}={}){
  if(!dir||!path.isAbsolute(dir))throw Error('PAYMENT_DURABLE_STORAGE_REQUIRED');
@@ -30,7 +31,12 @@ function create({dir,priceKRW,salesApproved=false,secretKey,transport}={}){
   const root=base(orderId),order=read(root+'.json');
   if(!order||!access.valid(ownerToken,order.ownerHash))
    throw Error('PAYMENT_ORDER_OWNER_DENIED');
-  if(order.productId!==PRODUCT||order.currency!=='KRW')throw Error('PAYMENT_ORDER_CORRUPTED');
+  if(order.currency!=='KRW'||!(
+    (order.productId===PRODUCT&&!order.offer)||
+    (order.productId===ADAPTIVE_PRODUCT&&
+     order.offer?.kind===require('./report-checkout-offer').KIND&&
+     order.offer?.productMode==='adaptive-v1')))
+   throw Error('PAYMENT_ORDER_CORRUPTED');
   return {root,order};
  }
  function ensureSalesReady(){
@@ -57,11 +63,11 @@ function create({dir,priceKRW,salesApproved=false,secretKey,transport}={}){
       offer.actualProseNotYetGenerated!==true))
     throw Error('PAYMENT_UNVERIFIED_ADAPTIVE_OFFER');
    const orderId=crypto.randomUUID(),ownerToken=access.issue();
-   const order={orderId,productId:PRODUCT,currency:'KRW',amount:priceKRW,
+   const order={orderId,productId:offer?ADAPTIVE_PRODUCT:PRODUCT,currency:'KRW',amount:priceKRW,
     ownerHash:access.digest(ownerToken),createdAt:new Date().toISOString(),
     ...(offer?{offer:structuredClone(offer)}:{})};
    createOnce(base(orderId)+'.json',order);
-   return {orderId,ownerToken,amount:order.amount,currency:'KRW',productId:PRODUCT,
+   return {orderId,ownerToken,amount:order.amount,currency:'KRW',productId:order.productId,
     ...(offer?{scope:require('./report-checkout-offer').customerSummary(offer)}:{})};
   },
   status({orderId,ownerToken}){
@@ -131,4 +137,4 @@ function create({dir,priceKRW,salesApproved=false,secretKey,transport}={}){
   }
  };
 }
-module.exports={create,PRODUCT};
+module.exports={create,PRODUCT,ADAPTIVE_PRODUCT};

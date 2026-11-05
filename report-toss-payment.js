@@ -10,7 +10,13 @@ const ORDER_ID=/^[A-Za-z0-9_=-]{6,64}$/;
 function checkOrder(order){
  if(!order||!ORDER_ID.test(order.orderId||'')||
     !Number.isSafeInteger(order.amount)||order.amount<=0||
-    order.currency!=='KRW'||order.productId!=='saju-mbti-premium-report-v1')
+    order.currency!=='KRW'||!(
+      (order.productId==='saju-mbti-premium-report-v1'&&!order.offer)||
+      (order.productId==='saju-mbti-adaptive-report-v1'&&
+       order.offer?.kind==='source-bound-adaptive-checkout-offer-v1'&&
+       order.offer?.productMode==='adaptive-v1'&&
+       /^[a-f0-9]{64}$/.test(order.offer.digest||''))
+    ))
   throw Error('PAYMENT_ORDER_NOT_SERVER_VERIFIED');
 }
 function assertPaid(payment,{orderId,amount,paymentKey}){
