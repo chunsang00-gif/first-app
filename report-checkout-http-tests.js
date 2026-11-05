@@ -20,6 +20,8 @@ global.fetch=async(url,opts={})=>{
  if(u==='https://api.tosspayments.com/v1/payments/confirm'){
   chargeAttempts++;
   const p=JSON.parse(opts.body);
+  if(p.paymentKey==='offline-uncertain-test')
+   throw Error('OFFLINE_SIMULATED_PROVIDER_RESPONSE_LOST');
   assert(opts.headers.authorization?.startsWith('Basic '));
   return {ok:true,json:async()=>({orderId:p.orderId,paymentKey:p.paymentKey,
    totalAmount:p.amount,balanceAmount:p.amount,currency:'KRW',
@@ -78,6 +80,14 @@ const server=http.createServer(require('./server').handler);
   assert.equal(request.data.scope.fixed12ChaptersPromised,false);
   assert.equal(request.data.scope.fixed35TopicsPromised,false);
   assert(request.data.scope.plannedChapters>=8);
+  const pending=await post('/api/checkout/status',{orderId,ownerToken});
+  assert.equal(pending.code,200);
+  assert.equal(pending.data.state,'awaiting-provider-confirmation',
+   'owner must see an unconfirmed reserved order without provider approval');
+  const pendingImpostor=await post('/api/checkout/status',{
+   orderId,ownerToken:'f'.repeat(64)});
+  assert.equal(pendingImpostor.code,403,
+   'an order ID alone must not disclose pending payment state');
   const wrongAmount=await post('/api/checkout/confirm',{
    orderId,ownerToken,paymentKey:'fake-payment-key',amount:1});
   assert.equal(wrongAmount.code,409);
@@ -142,10 +152,40 @@ const server=http.createServer(require('./server').handler);
    'previous purchase owner remains authorized after sales are disabled');
   const blockedNew=await post('/api/checkout/start',{});
   assert.equal(blockedNew.code,403);
+  // The owner must retain refund/uncertain-state visibility after closing sales.
+  const refundFile=path.join(dir,'purchases','purchase-'+orderId+'.refunded.json');
+  fs.writeFileSync(refundFile,JSON.stringify({
+   orderId,status:'refund-verified',amount}));
+  const refunded=await post('/api/checkout/status',{orderId,ownerToken});
+  assert.equal(refunded.code,200);
+  assert.equal(refunded.data.state,'refunded');
+  const refundedDelivery=await status(ownerToken);
+  assert.equal(refundedDelivery.code,403,
+   'a refunded order must not expose a report even with the right owner token');
+  process.env.PREMIUM_SALES_APPROVED='true';
+  const uncertainOrder=await post('/api/checkout/start',startPayload);
+  assert.equal(uncertainOrder.code,201);
+  const uncertainArgs={orderId:uncertainOrder.data.orderId,
+   ownerToken:uncertainOrder.data.ownerToken,
+   paymentKey:'offline-uncertain-test',amount:9900};
+  const uncertainResult=await post('/api/checkout/confirm',uncertainArgs);
+  assert.equal(uncertainResult.code,409);
+  const uncertainStatus=await post('/api/checkout/status',uncertainArgs);
+  assert.equal(uncertainStatus.code,200);
+  assert.equal(uncertainStatus.data.state,'confirmation-uncertain');
+  const callsBeforeRetry=chargeAttempts;
+  const uncertainRepeat=await post('/api/checkout/confirm',uncertainArgs);
+  assert.equal(uncertainRepeat.code,409);
+  assert.equal(chargeAttempts,callsBeforeRetry,
+   'no second provider confirmation after a lost response');
+  process.env.PREMIUM_SALES_APPROVED='false';
+  const uncertainAfterClose=await post('/api/checkout/status',uncertainArgs);
+  assert.equal(uncertainAfterClose.code,200);
+  assert.equal(uncertainAfterClose.data.state,'confirmation-uncertain');
   const receiptDisk=JSON.stringify(fs.readdirSync(path.join(dir,'purchases'))
    .map(file=>fs.readFileSync(path.join(dir,'purchases',file),'utf8')));
   assert(!receiptDisk.includes(ownerToken),'purchase credential is stored as hash only');
-  assert.equal(chargeAttempts,1);
+  assert.equal(chargeAttempts,2);
   console.log('PASS real adaptive offer checkout offline: server-calculated chapters, persisted order scope, changed birth hour rejected before paid model, single charge, owner-only recovery, closed sales; zero external requests');
  }finally{
   await new Promise(resolve=>server.close(resolve));
