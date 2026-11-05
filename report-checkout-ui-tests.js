@@ -43,7 +43,7 @@ function scenario({kind='success',amount='9900',confirm='ok',state='verified-pai
   LIVE_REPORT_UI:{openResult(){},resume(){}},
   TossPayments:undefined};
  const sessionStorage={getItem:k=>entries.get(k)||null,
-  setItem(k,v){entries.set(k,v)}};
+  setItem(k,v){entries.set(k,v)},removeItem(k){entries.delete(k)}};
  const sandbox={window,document,sessionStorage,fetch,URL,console};
  vm.runInNewContext(source,sandbox,{filename:'report-checkout-ui.js'});
  return {ui:window.REPORT_CHECKOUT_UI,calls,entries,body,history,window};
