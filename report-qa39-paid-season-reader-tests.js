@@ -2,7 +2,13 @@
 // Work39: actual paid output schema, original calculated facts only.
 // Historical QA manuscript is never treated as a commercial-quality report.
 const assert=require('node:assert/strict');
-const cases=require('./report-qa35-three-profile-reader-review').CASES;
+const cases=[
+ ...require('./report-qa35-three-profile-reader-review').CASES,
+ {id:'D',calendar:'solar',birthDate:'1982-06-15',birthTime:'14:20',
+  gender:'male',mbti:'ISFP'},
+ {id:'E',calendar:'solar',birthDate:'1989-02-10',birthTime:'14:20',
+  gender:'male',mbti:'ISFP'}
+];
 const capture=require('./report-core-paid-full-prompt-capture').capture;
 const writer=require('./report-generation-request');
 const wire=require('./report-wire'),schema=require('./report-schema.json');
@@ -37,7 +43,13 @@ global.fetch=()=>{calls++;throw Error('QA39_HTTP_FORBIDDEN')};
   details.push({case:input.id,contrast:plan.scope,
    seasonal:plan.seasonalRelation,visible:plan.visibleRelation});
  }
- assert(details.length>=2);
+ assert(details.length===5);
+ assert(details.some(x=>x.contrast==='same-relationship-no-extra-effect'),
+  'a core-season example should not falsely multiply matching element arrows');
+ assert(details.some(x=>x.contrast==='distinct-season-vs-visible-relationship'),
+  'a core-season example should preserve two genuinely different calculated directions');
+ assert(details.filter(x=>x.contrast==='not-resolved-seasonal-contrast').length===3,
+  'transition-month examples must not infer operative season strength');
  const same=(await capture(cases[0])).prompt;
  const other=(await capture({...cases[0],birthTime:'20:20'})).prompt;
  assert.notDeepEqual(same.facts.chart,other.facts.chart);
