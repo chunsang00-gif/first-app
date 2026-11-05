@@ -23,22 +23,23 @@ global.fetch=()=>{http++;throw Error('QA39_NETWORK_FORBIDDEN')};
    continue;
   }
   const selected=topic.sourceOwnedCoreSeasonReaderValue;
+  const fullPlan=planModule.build(packet,topic.citableFacts.map(x=>x.id),compiled.source);
   assert(selected,'eligible real paid temperament topic missing source-owned season question');
   assert.equal(selected.kind,'paid-core-verified-season-vs-visible-question-v1');
-  assert.equal(selected.extraPaidTopic,false);
-  assert.equal(selected.humanInterpretiveMethodApproved,false);
-  assert.equal(selected.customerPremiumValueApproved,false);
-  assert.equal(selected.realizedRelationship,false);
-  assert.equal(selected.strengthEstablished,false);
-  const expected=planModule.build(packet,topic.citableFacts.map(x=>x.id),compiled.source);
-  assert.deepEqual(selected,expected,'schema and real source-owned reading must be identical');
-  assert(selected.readerWritingGoal.includes('실제 성격'));
-  assert(selected.readerWritingGoal.includes('출생월 두 십성 뜻풀이'));
+  assert.equal(fullPlan.extraPaidTopic,false);
+  assert.equal(fullPlan.humanInterpretiveMethodApproved,false);
+  assert.equal(fullPlan.customerPremiumValueApproved,false);
+  assert.equal(fullPlan.realizedRelationship,false);
+  assert.equal(fullPlan.strengthEstablished,false);
+  assert.deepEqual(selected,planModule.forProvider(fullPlan),
+   'model task carries only compact verified source signature');
+  assert(fullPlan.readerWritingGoal.includes('실제 성격'));
+  assert(fullPlan.readerWritingGoal.includes('출생월 두 십성 뜻풀이'));
   assert(!selected.refs.some(x=>x.includes('hour')||x.includes('root')));
   const field=writer.schema(request,wire.schemaFor(request,schema))
    .properties.chapters.properties.saju_core.properties.paragraphs
    .properties.temperament.anyOf.find(x=>x.type==='object').properties.text.description;
-  assert(field.includes(selected.readerWritingGoal),
+  assert(field.includes(fullPlan.readerWritingGoal),
    'actual strict provider text field must receive separate season interpretation');
   scopes.push(selected.scope);
   rows.push({case:input.id,mode:selected.scope,

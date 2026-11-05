@@ -330,7 +330,7 @@ function compile(prompt){
      const seasonPlan=require('./report-paid-core-season-reader-plan')
       .build(prompt.facts,permitted,source);
      if(!seasonPlan)throw Error('PAID_CORE_SEASON_READER_PLAN_UNAVAILABLE');
-     topic.sourceOwnedCoreSeasonReaderValue=seasonPlan;
+     topic.sourceOwnedCoreSeasonReaderValue=require('./report-paid-core-season-reader-plan').forProvider(seasonPlan);
     }
     if(chapterId==='saju_core'&&topicId==='strength'&&
        prompt.paidCoreDepthV2!==true&&
@@ -661,14 +661,14 @@ function schema(prompt,transport){
     const verified=require('./report-paid-core-season-reader-plan')
      .build(prompt.facts,permitted,payload.source);
     if(chapterId!=='saju_core'||topic!=='temperament'||!verified||
-       JSON.stringify(planned)!==JSON.stringify(verified)||
+       JSON.stringify(planned)!==JSON.stringify(require('./report-paid-core-season-reader-plan').forProvider(verified))||
        planned.refs.some(id=>!permitted.includes(id))||
-       planned.humanInterpretiveMethodApproved!==false||
-       planned.customerPremiumValueApproved!==false||
-       planned.extraPaidTopic!==false)
+       verified.humanInterpretiveMethodApproved!==false||
+       verified.customerPremiumValueApproved!==false||
+       verified.extraPaidTopic!==false)
      throw Error('PAID_CORE_SEASON_READER_WRITER_SOURCE_DRIFT');
     p.properties.text.description+=' 이 명식의 선택 계절 문단에서 검토할 별도 근거: '+
-     planned.readerWritingGoal;
+     verified.readerWritingGoal;
    }
    if(task.sourceOwnedCoreReaderValue){
     const plan=task.sourceOwnedCoreReaderValue;

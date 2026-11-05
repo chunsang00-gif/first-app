@@ -75,4 +75,16 @@ function build(packet,allowed,source){
   extraPaidTopic:false
  });
 }
-module.exports={build};
+// The paid task carries only a small, verified source signature.
+// Full reader directions are recomputed for the strict response schema,
+// so the compact provider payload does not repeat lengthy instructions.
+function forProvider(p){
+ if(!p||p.kind!=='paid-core-verified-season-vs-visible-question-v1')
+  throw Error('PAID_CORE_SEASON_PROJECTION_MISSING');
+ return Object.freeze({
+  kind:p.kind,refs:p.refs,scope:p.scope,monthPhase:p.monthPhase,
+  seasonalRelation:p.seasonalRelation,visibleRelation:p.visibleRelation,
+  addsDifferentCalculatedQuestion:p.addsDifferentCalculatedQuestion
+ });
+}
+module.exports={build,forProvider};
