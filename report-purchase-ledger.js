@@ -40,22 +40,51 @@ function create({dir,priceKRW,salesApproved=false,secretKey,transport}={}){
    throw Error('PREMIUM_SALES_NOT_APPROVED');
  }
  return {
-  reserve(){
+  reserve({offer=null}={}){
    ensureSalesReady();
+   if(offer!==null&&(
+      offer.kind!==require('./report-checkout-offer').KIND||
+      offer.productMode!=='adaptive-v1'||
+      !/^[a-f0-9]{64}$/.test(offer.digest||'')||
+      !/^[a-f0-9]{64}$/.test(offer.inputFingerprint||'')||
+      !Array.isArray(offer.plannedChapterIds)||
+      offer.plannedChapterIds.length<3||
+      new Set(offer.plannedChapterIds).size!==offer.plannedChapterIds.length||
+      !Number.isInteger(offer.candidateTopicUpperBound)||
+      offer.candidateTopicUpperBound<3||
+      offer.fixed12ChaptersPromised!==false||
+      offer.fixed35TopicsPromised!==false||
+      offer.actualProseNotYetGenerated!==true))
+    throw Error('PAYMENT_UNVERIFIED_ADAPTIVE_OFFER');
    const orderId=crypto.randomUUID(),ownerToken=access.issue();
    const order={orderId,productId:PRODUCT,currency:'KRW',amount:priceKRW,
-    ownerHash:access.digest(ownerToken),createdAt:new Date().toISOString()};
+    ownerHash:access.digest(ownerToken),createdAt:new Date().toISOString(),
+    ...(offer?{offer:structuredClone(offer)}:{})};
    createOnce(base(orderId)+'.json',order);
-   return {orderId,ownerToken,amount:order.amount,currency:'KRW',productId:PRODUCT};
+   return {orderId,ownerToken,amount:order.amount,currency:'KRW',productId:PRODUCT,
+    ...(offer?{scope:require('./report-checkout-offer').customerSummary(offer)}:{})};
   },
   status({orderId,ownerToken}){
    const {root,order}=authorized(orderId,ownerToken);
    const paid=read(root+'.paid.json'),started=read(root+'.confirming.json');
    const bound=read(root+'.delivery.json');
    return {orderId,amount:order.amount,currency:order.currency,
+    ...(order.offer?{scope:require('./report-checkout-offer')
+     .customerSummary(order.offer)}:{}),
     state:paid?(bound?'delivery-bound':'verified-paid'):
      started?'confirmation-uncertain':'awaiting-provider-confirmation',
     jobId:bound?.jobId||null};
+  },
+  verifyOffer({orderId,ownerToken,offer}={}){
+   const {order}=authorized(orderId,ownerToken);
+   if(!order.offer||!offer||order.offer.kind!==offer.kind||
+      order.offer.digest!==offer.digest||
+      order.offer.inputFingerprint!==offer.inputFingerprint||
+      JSON.stringify(order.offer.plannedChapterIds)!==
+       JSON.stringify(offer.plannedChapterIds)||
+      order.offer.candidateTopicUpperBound!==offer.candidateTopicUpperBound)
+    throw Error('PAYMENT_ORDER_REPORT_SCOPE_MISMATCH');
+   return require('./report-checkout-offer').customerSummary(offer);
   },
   async confirm({orderId,ownerToken,paymentKey,claimedAmount}={}){
    ensureSalesReady();

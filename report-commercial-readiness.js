@@ -56,4 +56,29 @@ function assess(){
   editorialReviewStillRequired:true
  });
 }
-module.exports={assess,TARGET};
+// The old fixed-size SKU remains unsellable. The alternative can create
+// an exact chart-bound offer, but ONLY a later, separately approved launch
+// configuration may charge anyone. Nothing here certifies customer prose.
+function assessAdaptive(){
+ const fixed=assess();
+ const order=require('./report-quality-node').IDS;
+ const proposal=require('./report-adaptive-product-proposal');
+ const structurallyPossible=
+  order.length===12&&fixed.definedTopics===TARGET&&
+  fixed.structuralUpperBound>0&&
+  proposal.GENERAL.every(id=>order.includes(id))&&
+  proposal.CONDITIONAL.every(id=>order.includes(id))&&
+  proposal.GENERAL.length+proposal.CONDITIONAL.length===order.length;
+ return Object.freeze({
+  kind:'adaptive-premium-product-structural-readiness-v1',
+  productMode:'adaptive-v1',
+  canPrepareScopeBoundOrder:structurallyPossible,
+  fixed12x35Disallowed:true,
+  individuallyQuotedScopeRequired:true,
+  independentlyReviewedPaidManuscript:false,
+  humanEditorialReviewStillRequired:true,
+  priceOrMerchantApproved:false,
+  paymentEnabledByThisAssessment:false
+ });
+}
+module.exports={assess,assessAdaptive,TARGET};
