@@ -36,8 +36,9 @@ function scenario({kind='success',amount='9900',confirm='ok',state='verified-pai
    return {ok:true,status:200,json:async()=>({state,orderId:ORDER})};
   throw Error('UNEXPECTED_NETWORK_PATH:'+url);
  };
- const params=new URLSearchParams({checkout:kind,orderId:ORDER,
-  paymentKey:'opaque-payment-key',amount});
+ const params=kind==='no-redirect'?new URLSearchParams():
+  new URLSearchParams({checkout:kind,orderId:ORDER,
+   paymentKey:'opaque-payment-key',amount});
  const window={location:{href:'https://test.example/?'+params.toString()},
   history:{replaceState(...args){history.push(args)}},
   LIVE_REPORT_UI:{openResult(){},resume(){}},
@@ -70,6 +71,31 @@ function scenario({kind='success',amount='9900',confirm='ok',state='verified-pai
  assert.equal(await s.ui.restore(),true);
  assert.equal(s.calls.filter(c=>c.url==='/api/checkout/confirm').length,1,
   'ambiguous payment outcome must NEVER auto-retry a charge');
+ s=scenario({confirm:'uncertain',state:'verified-paid'});
+ assert.equal(await s.ui.restore(),true);
+ assert.equal(s.calls.filter(c=>c.url==='/api/checkout/confirm').length,1);
+ assert.equal(JSON.parse(s.entries.get('sajuAdaptiveCheckoutPendingV1')).confirmed,true,
+  'lost confirm HTTP response can recover a server-persisted verified payment by status only');
+ s=scenario({kind:'no-redirect',state:'confirmation-uncertain'});
+ let retained=JSON.parse(s.entries.get('sajuAdaptiveCheckoutPendingV1'));
+ retained.confirmAttempted=true;
+ s.entries.set('sajuAdaptiveCheckoutPendingV1',JSON.stringify(retained));
+ assert.equal(await s.ui.restore(),true);
+ assert.equal(s.calls.filter(c=>c.url==='/api/checkout/status').length,1);
+ assert.equal(s.calls.filter(c=>c.url==='/api/checkout/confirm').length,0,
+  'refresh after uncertain payment must only query status, never re-confirm');
+ assert(s.body.children[0].children[1].textContent.includes('결제 승인 결과'));
+ s=scenario({kind:'no-redirect',state:'refunded'});
+ retained=JSON.parse(s.entries.get('sajuAdaptiveCheckoutPendingV1'));
+ retained.confirmed=true;
+ s.entries.set('sajuAdaptiveCheckoutPendingV1',JSON.stringify(retained));
+ assert.equal(await s.ui.restore(),true);
+ assert(s.body.children[0].children[1].textContent.includes('환불'));
+ assert.equal(s.calls.filter(c=>c.url==='/api/checkout/confirm').length,0);
+ s=scenario({kind:'no-redirect',state:'awaiting-provider-confirmation'});
+ assert.equal(await s.ui.restore(),true);
+ assert(s.body.children[0].children[1].textContent.includes('아직 요청되지'));
+ assert.equal(s.calls.filter(c=>c.url==='/api/checkout/confirm').length,0);
  s=scenario({kind:'failed'});
  assert.equal(await s.ui.restore(),true);
  assert.equal(s.calls.length,0,'failed authentication must not trigger confirmation');
@@ -87,5 +113,5 @@ function scenario({kind='success',amount='9900',confirm='ok',state='verified-pai
   proposal:{status:'draft-not-for-sale',plannedChapterCount:9,topicCandidateUpperBound:24}});
  assert.equal(container.children.length,0,
   'default disabled sales flag must not create a payment button');
- console.log('PASS buyer redirect: server-only confirmation, amount/owner matching, no double charge on timeout/reload, disabled purchase hidden');
+ console.log('PASS buyer redirect and refresh: owner-only pending, uncertain, verified and refunded recovery; no double charge; checkout disabled by default');
 })().catch(e=>{console.error(e);process.exitCode=1});
