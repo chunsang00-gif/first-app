@@ -9,6 +9,7 @@ const wire=require('./report-wire');
 const baseSchema=require('./report-schema.json');
 const chartQuestions=require('./report-chart-contrast');
 const season=require('./report-seasonal-evidence');
+const directionalQuestion=require('./report-paid-core-reader-value-plan').directionalQuestion;
 const previous=global.fetch;
 let networkAttempts=0;
 global.fetch=()=>{networkAttempts++;throw Error('QA37_NETWORK_PROHIBITED')};
@@ -42,6 +43,14 @@ global.fetch=()=>{networkAttempts++;throw Error('QA37_NETWORK_PROHIBITED')};
    season.ELEMENTS[month.stem]);
   assert.equal(plan.twoSidedScope.elementDirection,expectedDirection);
   assert.equal(plan.twoSidedScope.sameQuestion,plan.sameClassification);
+  const directional=directionalQuestion(expectedDirection,
+   plan.twoSidedScope.visibleQuestion,plan.twoSidedScope.centralQuestion);
+  assert.equal(plan.directionalReadingQuestion,directional);
+  assert.equal(plan.twoSidedScope.directionalReadingQuestion,directional);
+  assert(plan.script.includes('이 명식의 오행 방향에만 대응하는 추가 해석 질문: '+directional));
+  assert.equal(plan.actualElementRelationIsSymbolicOnly,true);
+  assert.equal(plan.conditionalScenarioNotObserved,true);
+  assert(!/성격이 원래|실제로 도움을 받았|제약을 경험했다/.test(directional));
   assert.equal(plan.twoSidedScope.canAssertObservedBehavior,false);
   assert.equal(plan.twoSidedScope.canRankWhichRoleDominates,false);
   assert.equal(plan.notAnAdditionalPaidParagraph,true);
@@ -77,6 +86,25 @@ global.fetch=()=>{networkAttempts++;throw Error('QA37_NETWORK_PROHIBITED')};
  assert.equal(results.length,3);
  assert.equal(pairs.size,3,'three birth charts should have different verified month pairs');
  assert.equal(scripts.size,3,'the real paid first-chapter writer must vary the factual explanation');
+ // Cover all five mathematically verified arrow types, including equal
+ // elements, without making up another paid paragraph or a personal fact.
+ const distinct=new Set();
+ const samplesByDirection={
+  resource:'달의 중심 쪽',output:'겉쪽',
+  'control-on-day':'달 중심의','day-controls':'달 겉의',
+  'same-element':'두 위치의 오행이 같을 때'
+ };
+ for(const [direction,anchor] of Object.entries(samplesByDirection)){
+  const copy=directionalQuestion(direction,'겉쪽의 실제 질문','중심의 실제 질문');
+  assert(copy.includes(anchor),'direction-specific source ordering: '+direction);
+  assert(copy.includes('겉쪽의 실제 질문')||copy.includes('겉의 실제 질문')||
+   copy.includes('겉쪽의 실제 질문'));
+  assert(copy.includes('중심의 실제 질문'));
+  distinct.add(copy);
+ }
+ assert.equal(distinct.size,5,'five arrow meanings must not collapse to one generic instruction');
+ assert.throws(()=>directionalQuestion('invented','a','b'),
+  /PAID_CORE_UNKNOWN_VERIFIED_ELEMENT_RELATION/);
  const hourChanged={...samples[0],birthTime:'20:20'};
  const first=(await capture(samples[0])).prompt;
  const late=(await capture(hourChanged)).prompt;
@@ -89,9 +117,11 @@ global.fetch=()=>{networkAttempts++;throw Error('QA37_NETWORK_PROHIBITED')};
  assert.deepEqual(firstPlan.twoSidedScope,latePlan.twoSidedScope,
   'changing the birth hour cannot invent a new MONTH-only reader comparison');
  assert.equal(firstPlan.actualTwoSidedReading,latePlan.actualTwoSidedReading);
+ assert.equal(firstPlan.directionalReadingQuestion,latePlan.directionalReadingQuestion);
  assert.equal(networkAttempts,0);
  console.log('QA37_PAID_CORE_REAL_PROMPT='+JSON.stringify({
   testedBirthCharts:results.length,distinctSourceOwnedReadings:scripts.size,
+  distinctVerifiedElementDirectionPrompts:5,
   hourChangeCorrectlyMonthStable:true,actualLivePaidPromptSchemaChecked:true,
   paidProviderRequests:0,operatingDeployment:false,humanReviewApproved:false,
   cases:results

@@ -12,6 +12,36 @@ const KIND=Object.freeze({
  'control-on-day':'달의 중심 글자가 겉글자를 극함',
  'day-controls':'달의 겉글자가 중심 글자를 극함'
 });
+// A calculated Five Element arrow is not a realized cause, observed
+// reaction, seasonal strength or a license to select a governing pattern.
+// Give the paid writer ONE source-specific conditional question. Different
+// arrows must not collapse into the old generic "consider both" advice.
+function directionalQuestion(direction,visibleQuestion,centralQuestion){
+ const outside='‘'+visibleQuestion+'’',inside='‘'+centralQuestion+'’';
+ switch(direction){
+  case 'resource':
+   return '달의 중심 쪽 '+inside+'라는 조건을 가정했을 때 겉쪽 '+
+    outside+'이라는 질문을 어떻게 뒷받침한다고 풀이할 수 있는가? '+
+    '중심 조건이 성립하지 않는 가정에서는 무엇을 더 이상 해석할 수 없는가?';
+  case 'output':
+   return '겉쪽 '+outside+'라는 조건을 가정했을 때 달의 중심 쪽 '+
+    inside+'이라는 질문을 어떻게 뒷받침한다고 풀이할 수 있는가? '+
+    '겉쪽 조건이 성립하지 않는 가정에서는 무엇을 더 이상 해석할 수 없는가?';
+  case 'control-on-day':
+   return '달 중심의 '+inside+'가 겉의 '+outside+
+    '에 제약을 주는 경우를 가정하면, 겉의 의미만 따로 읽을 때 놓치는 것은 무엇인가? '+
+    '그 제약이 실제 발생했다고 단정할 근거는 무엇이 부족한가?';
+  case 'day-controls':
+   return '달 겉의 '+outside+'가 중심의 '+inside+
+    '에 제약을 주는 경우를 가정하면, 중심의 의미만 따로 읽을 때 놓치는 것은 무엇인가? '+
+    '그 제약이 실제 발생했다고 단정할 근거는 무엇이 부족한가?';
+  case 'same-element':
+   return '두 위치의 오행이 같을 때 '+outside+'와 '+inside+
+    '가 같은 질문인지 다른 질문인지부터 구별한다. '+
+    '계산되지 않은 상호 도움·제약이나 두 배의 영향력을 가정하지 않고 어떤 의미까지만 읽을 수 있는가?';
+  default:throw Error('PAID_CORE_UNKNOWN_VERIFIED_ELEMENT_RELATION');
+ }
+}
 function build(packet,focus,allowed,source){
  const m=focus?.tenGodFocus,reading=focus?.readerReasoning?.readerValuePlan?.traditionalReading;
  const top=m?.monthStem,bottom=m?.monthMainHidden,link=m?.elementLink;
@@ -50,8 +80,10 @@ function build(packet,focus,allowed,source){
  // These are not observations of customer decisions or proof of outcomes.
  const visibleQuestion=questionFor(top.tenGod);
  const centralQuestion=questionFor(bottom.tenGod);
+ const directionalReadingQuestion=directionalQuestion(expected,visibleQuestion,centralQuestion);
  const twoSidedScope=Object.freeze({
   visibleRole:top.tenGod,mainRole:bottom.tenGod,
+  directionalReadingQuestion,
   visibleQuestion,centralQuestion,
   ifOnlyVisible:same?
    null:'겉자리의 '+top.tenGod+'만 보면 달 중심의 '+bottom.tenGod+
@@ -83,6 +115,9 @@ function build(packet,focus,allowed,source){
   sameClassification:same,
   twoSidedScope,
   actualTwoSidedReading,
+  directionalReadingQuestion,
+  actualElementRelationIsSymbolicOnly:true,
+  conditionalScenarioNotObserved:true,
   notAnAdditionalPaidParagraph:true,
   freePreviewCopyDisallowed:true,
   readerTakeaway:actualTwoSidedReading,
@@ -92,6 +127,10 @@ function build(packet,focus,allowed,source){
    '겉글자: '+reading.first.reading+'. 중심 속글자: '+reading.second.reading+
    '. 두 글자의 실제 관계: '+KIND[expected]+'. '+
    '원고에서 답할 서로 다른 질문과 구분할 위치: '+actualTwoSidedReading+' '+
+   '이 명식의 오행 방향에만 대응하는 추가 해석 질문: '+directionalReadingQuestion+' '+
+   '이것은 실제로 일어난 도움이나 제약이 아니라 전통 분류를 연결해 보는 가정이다. '+
+   '결론은 위 질문에 해당하는 근거가 허용할 때만 쓰며, '+
+   '조건의 차이와 그 때문에 한쪽 해석만으로는 말할 수 없는 것을 한 문맥으로 연결한다. '+
    (same?'동일한 의미를 반대 성향 두 개나 두 배의 영향력으로 나누지 않는다. ':
      '첫 질문만 답하면 무엇이 빠지고 반대로 두 번째 질문만 답하면 무엇이 빠지는지 각각 계산 분류와 연결해 풀이한다. 질문 목록이나 범용 조언으로 끝내지 않고, 입력 명식에 속하는 차이를 한 번의 조건부 상황에서 묶는다. 둘을 나열하거나 무조건 둘 다 중요하다는 결론으로 끝내지 않는다. ')+
    '어떤 직장에 다녔는지, 어떤 일을 실제로 수행했는지 출생정보에 없으므로 장비 운영·납품·인수인계·몇 달짜리 사업 같은 고정 가상 사례를 만들지 않는다. '+
@@ -103,4 +142,4 @@ function build(packet,focus,allowed,source){
   additionalTopic:false,professionalReviewComplete:false
  });
 }
-module.exports={build};
+module.exports={build,directionalQuestion};
