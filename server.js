@@ -229,8 +229,11 @@ if(req.method==='POST'&&req.url==='/api/checkout/status'){
 if(req.method==='POST'&&req.url==='/api/calculate'){const input=await body(req),errors=validateInput(input);if(errors.length)return json(res,422,{status:'blocked',errors});if(input.unknownBirthTime)input.birthTime='12:00';const packet=facts.build(input,2027);return json(res,packet.status==='ready'?200:422,packet)}if(req.method==='POST'&&req.url==='/api/report-coverage'){const input=await body(req),errors=validateInput(input);if(errors.length)return json(res,422,{status:'blocked',errors});if(input.unknownBirthTime)input.birthTime='12:00';const summary=require('./report-product-coverage').calculate(input);return json(res,summary.status==='ready'?200:422,summary)}if(req.method==='POST'&&req.url==='/api/report'){
  const localMock=localMockEnabled(req);
  const payload=await body(req);
- const paid= !localMock&&paymentSalesReady()?verifiedPurchase(payload.purchase):null;
- if(!localMock&&!paid)return json(res,403,{status:'blocked',code:'PAYMENT_NOT_CONFIGURED',message:'판매 승인 또는 본인 명의의 결제 검증을 확인할 수 없습니다. 비용 발생 없이 중단했습니다.'});
+ // Closing NEW sales must not revoke a previously verified customer's
+ // entitlement. New order creation still requires paymentSalesReady().
+ // Refunds, wrong owners, and unconfirmed orders remain ineligible.
+ const paid=!localMock?verifiedPurchase(payload.purchase):null;
+ if(!localMock&&!paid)return json(res,403,{status:'blocked',code:'PAYMENT_NOT_CONFIGURED',message:'본인 명의의 결제 완료 주문이 확인되지 않았습니다. 비용 발생 없이 중단했습니다.'});
  if(paid?.state==='delivery-bound')return json(res,409,{status:'blocked',
   code:'PAYMENT_ALREADY_USED_FOR_ANOTHER_REPORT',jobId:paid.jobId,
   message:'기존 주문이 보고서 한 건에 이미 연결되었습니다. 주문 상태에서 기존 결과를 조회하세요.'});
