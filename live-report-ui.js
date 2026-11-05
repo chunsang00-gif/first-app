@@ -155,5 +155,9 @@ async function generatePurchased(analysisInput,purchase){
  openResult();
  return generate(analysisInput,purchase);
 }
-window.LIVE_REPORT_UI={input,run,resume,generatePurchased,openResult};document.addEventListener('click',e=>{if(e.target.closest('[data-choice="gender"]'))updateGuides()});document.addEventListener('DOMContentLoaded',updateGuides);document.addEventListener('DOMContentLoaded',()=>{resume().catch(()=>{})});})();
+window.LIVE_REPORT_UI={input,run,resume,generatePurchased,openResult};document.addEventListener('click',e=>{if(e.target.closest('[data-choice="gender"]'))updateGuides()});document.addEventListener('DOMContentLoaded',updateGuides);document.addEventListener('DOMContentLoaded',()=>{
+ Promise.resolve(window.REPORT_CHECKOUT_UI?.restore?.()).then(restored=>{
+  if(!restored)return resume();
+ }).catch(()=>{});
+});})();
 
