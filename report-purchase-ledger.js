@@ -74,10 +74,12 @@ function create({dir,priceKRW,salesApproved=false,secretKey,transport}={}){
    const {root,order}=authorized(orderId,ownerToken);
    const paid=read(root+'.paid.json'),started=read(root+'.confirming.json');
    const bound=read(root+'.delivery.json');
+   const refund=read(root+'.refunded.json');
    return {orderId,amount:order.amount,currency:order.currency,
     ...(order.offer?{scope:require('./report-checkout-offer')
      .customerSummary(order.offer)}:{}),
-    state:paid?(bound?'delivery-bound':'verified-paid'):
+    state:refund?.status==='refund-verified'?'refunded':
+     paid?(bound?'delivery-bound':'verified-paid'):
      started?'confirmation-uncertain':'awaiting-provider-confirmation',
     jobId:bound?.jobId||null};
   },

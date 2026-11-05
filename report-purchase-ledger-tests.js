@@ -107,6 +107,10 @@ const approved=(orderId,amount)=>({
   ]) assert.throws(()=>toss.assertPaid(p,{orderId:badOrder.orderId,amount:9900,paymentKey:key}),
    /PAYMENT_CONFIRMATION_MISMATCH_OR_NOT_PAID/);
   assert.equal(providerCalls,3);
+  fs.writeFileSync(path.join(root,'purchase-'+first.orderId+'.refunded.json'),
+   JSON.stringify({orderId:first.orderId,status:'refund-verified',amount:9900}));
+  assert.equal(ledger.status(first).state,'refunded',
+   'order owner must see verified full cancellation, not active paid entitlement');
   console.log('PASS offline Toss proof: server-set price, owner verification, one approval/one delivery, uncertain network no retry, refunds blocked; 0 real payments');
  }finally{fs.rmSync(root,{recursive:true,force:true})}
 })().catch(e=>{console.error(e);process.exitCode=1});

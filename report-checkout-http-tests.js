@@ -9,7 +9,8 @@ const env={REPORT_STORAGE_DIR:dir,PREMIUM_REPORT_PRICE_KRW:'9900',
  PREMIUM_SALES_APPROVED:'true',PREMIUM_EDITORIAL_REVIEW_APPROVED:'true',
  PREMIUM_PRODUCT_MODE:'adaptive-v1',PREMIUM_ADAPTIVE_CONTRACT_APPROVED:'true',
  TOSS_SECRET_KEY:'offline-test-secret-not-a-merchant',
- TOSS_CLIENT_KEY:'test_ck_offline_checkout_123456',RENDER:'true',
+ TOSS_CLIENT_KEY:'test_ck_offline_checkout_123456',
+ TOSS_LOOKUP_SECRET_KEY:'test_sk_offline_lookup_123456',RENDER:'true',
  REPORT_MODEL_URL:'https://offline-model.invalid/report'};
 const prior=Object.fromEntries(Object.keys(env).map(k=>[k,process.env[k]]));
 Object.assign(process.env,env);

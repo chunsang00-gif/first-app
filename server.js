@@ -31,6 +31,7 @@ const paymentSalesReady=()=>Boolean(paymentLedger&&
  process.env.PREMIUM_EDITORIAL_REVIEW_APPROVED==='true'&&
  Number.isSafeInteger(Number(process.env.PREMIUM_REPORT_PRICE_KRW))&&
  Number(process.env.PREMIUM_REPORT_PRICE_KRW)>0&&
+ /^(test|live)_sk_[A-Za-z0-9_-]{8,}$/.test(process.env.TOSS_LOOKUP_SECRET_KEY||'')&&
  typeof process.env.TOSS_CLIENT_KEY==='string'&&
  /^(test|live)_ck_[A-Za-z0-9_-]{8,}$/.test(process.env.TOSS_CLIENT_KEY)&&
  typeof process.env.TOSS_SECRET_KEY==='string'&&
