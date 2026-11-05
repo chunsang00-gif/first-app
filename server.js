@@ -214,17 +214,36 @@ if(req.method==='POST'&&req.url==='/api/checkout/confirm'){
   /^PAYMENT_[A-Z_]+$/.test(e?.message||'')?e.message:'PAYMENT_CONFIRMATION_UNCERTAIN'})}
 }
 if(req.method==='POST'&&req.url==='/api/checkout/status'){
-  // The owner can inspect pending, uncertain, paid or refunded orders even
-  // after sales close. Entitlement checks elsewhere remain paid-only.
-  if(!paymentLedger)return json(res,503,{status:'blocked',code:'PAYMENT_ORDER_STORAGE_UNAVAILABLE'});
-  const p=await body(req);
-  try{
-   const info=paymentLedger.status({orderId:p?.orderId,ownerToken:p?.ownerToken});
-   return json(res,200,{status:'ready',...info});
-  }catch{
-   // No distinction between a missing order and a wrong owner token.
-   return json(res,403,{status:'blocked',code:'PAYMENT_ORDER_OWNER_DENIED'});
-  }
+ // The owner can inspect pending, uncertain, paid and refunded orders even
+ // after sales close. Entitlement checks elsewhere remain paid-only.
+ if(!paymentLedger)return json(res,503,{status:'blocked',code:'PAYMENT_ORDER_STORAGE_UNAVAILABLE'});
+ const p=await body(req);
+ try{
+  const info=paymentLedger.status({orderId:p?.orderId,ownerToken:p?.ownerToken});
+  return json(res,200,{status:'ready',...info});
+ }catch{
+  // Avoid distinguishing a missing order from an invalid owner token.
+  return json(res,403,{status:'blocked',code:'PAYMENT_ORDER_OWNER_DENIED'});
+ }
+}
+if(req.method==='POST'&&req.url==='/api/calculate'){const input=await body(req),errors=validateInput(input);if(errors.length)return json(res,422,{status:'blocked',errors});if(input.unknownBirthTime)input.birthTime='12:00';const packet=facts.build(input,2027);return json(res,packet.status==='ready'?200:422,packet)}if(req.method==='POST'&&req.url==='/api/report-coverage'){const input=await body(req),errors=validateInput(input);if(errors.length)return json(res,422,{status:'blocked',errors});if(input.unknownBirthTime)input.birthTime='12:00';const summary=require('./report-product-coverage').calculate(input);return json(res,summary.status==='ready'?200:422,summary)}if(req.method==='POST'&&req.url==='/api/report'){
+ const localMock=localMockEnabled(req);
+ const payload=await body(req);
+ const paid= !localMock&&paymentSalesReady()?verifiedPurchase(payload.purchase):null;
+ if(!localMock&&!paid)return json(res,403,{status:'blocked',code:'PAYMENT_NOT_CONFIGURED',message:'판매 승인 또는 본인 명의의 결제 검증을 확인할 수 없습니다. 비용 발생 없이 중단했습니다.'});
+ if(paid?.state==='delivery-bound')return json(res,409,{status:'blocked',
+  code:'PAYMENT_ALREADY_USED_FOR_ANOTHER_REPORT',jobId:paid.jobId,
+  message:'기존 주문이 보고서 한 건에 이미 연결되었습니다. 주문 상태에서 기존 결과를 조회하세요.'});
+ const a=payload.analysisInput;if(a?.status!=='ready'||!a.calculationInput)return json(res,422,{status:'blocked',errors:['validated calculation input is missing']});const errors=validateInput(a.calculationInput);if(errors.length)return json(res,422,{status:'blocked',errors});if(a.calculationInput.unknownBirthTime)a.calculationInput.birthTime='12:00';if(paid){
+  // A verified charge is not permission to generate a DIFFERENT report.
+  // Check this before binding the one-use paid entitlement or any API call.
+  let scope;
+  try{scope=require('./report-checkout-offer').build(a.calculationInput)}
+  catch{return json(res,422,{status:'blocked',code:'ADAPTIVE_OFFER_RECALCULATION_FAILED'})}
+  try{paymentLedger.verifyOffer({
+   orderId:payload.purchase.orderId,ownerToken:payload.purchase.ownerToken,offer:scope
+  })}
+  catch{return json(res,409,{status:'blocked',code:'PAYMENT_ORDER_REPORT_SCOPE_MISMATCH'})}
  }
 const config=diagnostics.configuration();if(!config.configured)return json(res,503,{status:'failed',code:config.issues[0],message:diagnostics.messageFor(config.issues[0])});cleanupJobs();const requestId=payload.requestId;if((paid&&!requestId)||(requestId!==undefined&&(typeof requestId!=='string'||!/^[a-zA-Z0-9-]{16,100}$/.test(requestId))))return json(res,422,{status:'blocked',errors:['invalid request id']});const fingerprint=require('crypto').createHash('sha256').update(JSON.stringify(a.calculationInput)).digest('hex');const previous=requestId&&(REQUESTS.get(requestId)||reportStore.loadRequest(requestId));if(previous){if(previous.fingerprint!==fingerprint)return json(res,409,{status:'blocked',errors:['request id already used for different input']});const existing=JOBS.get(previous.id)||reportStore.load(previous.id);if(!existing)return json(res,409,{status:'blocked',code:'REPORT_REQUEST_ALREADY_USED',message:'기존 요청 기록이 있으나 생성 상태를 확인할 수 없습니다. 자동 재생성을 막았습니다.'});
 // A duplicate idempotency key is NOT proof of ownership. Only the browser
