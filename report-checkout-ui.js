@@ -172,14 +172,24 @@ async function mount({container,analysisInput,proposal}={}){
  const price=document.createElement('p');price.className='meta';
  price.textContent='결제 금액: '+cfg.amount.toLocaleString('ko-KR')+
   '원 · 실제 생성 후 보고서가 기대에 미달하면 별도 검토가 필요합니다.';
+ const ack=document.createElement('label');ack.className='meta';
+ const checked=document.createElement('input');
+ checked.type='checkbox';checked.id='adaptiveScopeAcknowledged';
+ ack.append(checked,document.createTextNode(
+  ' 실제 보고서 장 수와 항목 수는 출생정보 및 근거에 따라 달라지고, 결제 후 작성 실패 시 자동 재결제·재생성이 없음을 확인했습니다.'));
  const start=document.createElement('button');start.className='btn primary';
  start.textContent='결제수단 확인하기';
  const message=document.createElement('p');message.className='meta';
  message.setAttribute('aria-live','polite');
- panel.append(heading,description,price,start,message);
+ panel.append(heading,description,price,ack,start,message);
  container.append(panel);
  start.addEventListener('click',async()=>{
-  if(opening)return;opening=true;start.disabled=true;
+  if(opening)return;
+  if(!checked.checked){
+   safeText(message,'맞춤형 제공 범위와 생성 실패 시 처리 방식을 확인해 주세요.');
+   return;
+  }
+  opening=true;start.disabled=true;
   try{
    const order=await json('/api/checkout/start',{analysisInput});
    const data=order.data;

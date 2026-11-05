@@ -4,6 +4,10 @@
 const assert=require('node:assert/strict');
 const fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
 const source=fs.readFileSync(path.join(__dirname,'report-checkout-ui.js'),'utf8');
+assert(source.includes('adaptiveScopeAcknowledged'));
+assert(source.includes('if(!checked.checked)'));
+assert(source.includes('결제수단 확인하기'));
+
 const OWNER='a'.repeat(64),ORDER='12345678-1234-1234-1234-123456789012';
 const input={status:'ready',calculationInput:{calendar:'solar',
  birthDate:'1994-07-15',birthTime:'14:20',gender:'male',mbti:'ISFP'}};
