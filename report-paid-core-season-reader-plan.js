@@ -30,7 +30,7 @@ function build(packet,allowed,source){
     current.position!=='month'||current.stem!==packet.chart.month[0]||
     current.relation!==calendar.relation(calendar.ELEMENTS[current.stem],s.dayElement)||
     JSON.stringify(current)!==JSON.stringify(outgoing)||
-    monthRow?.stem!==current.stem||monthRow?.position!=='month'||
+    monthRow?.stem!==current.stem||monthRow?.position!=='월간'||
     current.observed!=='calculated-symbol'||
     paidQ?.strengthVerdict!=='not-assessed')
   throw Error('PAID_CORE_SEASONAL_WRITER_SOURCE_DRIFT');
