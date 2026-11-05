@@ -73,6 +73,8 @@ function scenario({kind='success',amount='9900',confirm='ok',state='verified-pai
  s=scenario({kind:'failed'});
  assert.equal(await s.ui.restore(),true);
  assert.equal(s.calls.length,0,'failed authentication must not trigger confirmation');
+ assert.equal(s.entries.get('sajuAdaptiveCheckoutPendingV1'),undefined,
+  'canceled authorization can start a NEW checkout, without automatically charging');
  const blocked=new Map();
  const noSdk={location:{href:'https://test.example/'},
   history:{replaceState(){}},LIVE_REPORT_UI:{}};

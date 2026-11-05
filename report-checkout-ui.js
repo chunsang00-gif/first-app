@@ -111,6 +111,7 @@ async function restore(){
  if(result)cleanupUrl();
  const p=read();
  if(result==='failed'){
+  if(p&&!p.confirmed&&!p.confirmAttempted)sessionStorage.removeItem(KEY);
   showIssue('결제 인증이 취소되거나 실패했습니다 ('+
    String(errorCode||'사용자 취소').slice(0,80)+'). 결제 승인은 요청하지 않았습니다.',p);
   return true;
@@ -162,6 +163,8 @@ async function mount({container,analysisInput,proposal}={}){
  if(state?.confirmed||state?.confirmAttempted||state?.orderId)return;
  const cfg=await config().catch(()=>null);
  if(!cfg||!container.isConnected)return;
+ const notice=find('coverageSalesNotice');
+ if(notice)notice.textContent='판매 준비 검증이 완료된 구성입니다. 제시한 최대 항목 수는 실제 완성 문단 수가 아닙니다. 아래 내용을 확인한 뒤 결제를 진행할 수 있습니다.';
  const panel=document.createElement('section');panel.className='section report-checkout';
  panel.id='reportCheckoutSection';
  const heading=document.createElement('h2');

@@ -138,7 +138,7 @@ async function showCoverage(validatedInput){
  ${omitted.length?`<h3>제외된 장</h3><ul>${omitted.map(x=>`<li>${esc(x.name)}: ${esc(x.omittedReason)}</li>`).join('')}</ul>`:''}
  ${excludedHtml}
  <p class="meta">이 구성은 구매 상품의 확정 약속이 아닌 검토 초안입니다. 기존 12장·${catalog.originallyPlannedTopics}항목 고정 목표는 달성하지 못했습니다. 선택된 항목도 중복이나 근거 부족으로 실제 작성 시 생략될 수 있으며, 판매 가격과 정식 제공량은 결정되지 않았습니다.</p>
- <p><strong>현재 유료 구매와 정식 보고서 생성은 준비 중입니다.</strong> 결제나 유료 AI 생성 요청은 진행하지 않습니다.</p>
+ <p id="coverageSalesNotice"><strong>현재 유료 구매와 정식 보고서 생성은 준비 중입니다.</strong> 결제나 유료 AI 생성 요청은 진행하지 않습니다.</p>
  <button class="btn primary" type="button" id="coverageBackToInput">입력 화면으로 돌아가기</button>
  </section>`;
  $('#coverageBackToInput')?.addEventListener('click',backToInput);
