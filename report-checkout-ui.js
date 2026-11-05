@@ -102,6 +102,21 @@ function showIssue(message,p){
 async function status(p){
  return json('/api/checkout/status',{orderId:p.orderId,ownerToken:p.ownerToken});
 }
+function showOrderState(p,response){
+ const state=response?.ok?response.data?.state:null;
+ if(state==='verified-paid'||state==='delivery-bound'){
+  if(!p.confirmed){p.confirmed=true;save(p)}
+  showPaidState(p,response.data);
+ }else if(state==='refunded'){
+  showIssue('해당 주문은 환불 처리되었습니다. 이 결제로 보고서를 새로 생성할 수 없습니다.',p);
+ }else if(state==='confirmation-uncertain'){
+  showIssue('결제 승인 결과가 아직 확인되지 않았습니다. 자동 재승인이나 재결제를 진행하지 말고 주문 번호로 상태를 확인해 주세요.',p);
+ }else if(state==='awaiting-provider-confirmation'){
+  showIssue('이 주문에 대한 결제 승인이 아직 요청되지 않았습니다. 중복 결제에 주의해 주세요.',p);
+ }else{
+  showIssue('주문 상태를 확인할 수 없습니다. 새로운 결제를 진행하지 말고 주문 번호로 문의해 주세요.',p);
+ }
+}
 async function restore(){
  const u=new URL(window.location.href),result=u.searchParams.get('checkout');
  const key=u.searchParams.get('paymentKey');
@@ -123,18 +138,9 @@ async function restore(){
    showIssue('이 브라우저에 보관된 주문과 결제 인증 정보가 다릅니다. 결제를 다시 시도하지 말고 주문을 확인해 주세요.',p);
    return true;
   }
-  if(p.confirmed){
-   const checked=await status(p);
-   if(checked.ok&&['verified-paid','delivery-bound'].includes(checked.data?.state))
-    showPaidState(p,checked.data);
-   else showIssue('이전에 확인한 결제의 현재 상태를 조회할 수 없습니다.',p);
-   return true;
-  }
-  if(p.confirmAttempted){
-   const checked=await status(p);
-   if(checked.ok&&['verified-paid','delivery-bound'].includes(checked.data?.state)){
-    p.confirmed=true;save(p);showPaidState(p,checked.data);
-   }else showIssue('승인 요청이 이미 전송됐을 수 있습니다. 중복 승인을 시도하지 말고 주문 확인이 필요합니다.',p);
+  if(p.confirmed||p.confirmAttempted){
+   // Query only: a previous unknown outcome must NEVER repeat confirmation.
+   showOrderState(p,await status(p).catch(()=>null));
    return true;
   }
   // Save BEFORE the network request; after an unknown response never
@@ -145,14 +151,17 @@ async function restore(){
   }).catch(()=>null);
   if(result?.ok&&result.data?.status==='verified-paid'){
    p.confirmed=true;save(p);showPaidState(p);
-  }else showIssue('서버 결제 승인이 확인되지 않았습니다. 카드 결제 여부를 먼저 확인하고 주문 번호로 문의해 주세요. 자동 재승인은 하지 않습니다.',p);
+  }else{
+   // A lost confirmation response may still be a successful payment.
+   // Query the stored result without a second provider confirmation.
+   showOrderState(p,await status(p).catch(()=>null));
+  }
   return true;
  }
- if(p?.confirmed){
-  const check=await status(p).catch(()=>null);
-  if(check?.ok&&['verified-paid','delivery-bound'].includes(check.data?.state)){
-   showPaidState(p,check.data);return true;
-  }
+ if(p?.orderId){
+  // Refresh or network loss must not silently hide an unresolved order.
+  showOrderState(p,await status(p).catch(()=>null));
+  return true;
  }
  return false;
 }
