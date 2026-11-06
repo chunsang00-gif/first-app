@@ -48,6 +48,48 @@ function unsupportedSymbolicInference(report){
  return [...new Set(findings)];
 }
 
+
+// Customer inputs contain no employment, investment, income or marriage
+// history. A fluent report must not turn a calculated chart into a past
+// achievement or life event. Check reader-visible text only, not evidence
+// metadata; hypothetical examples and explicit non-claims remain allowed.
+// This is a narrow safety check, not a proof that all prose is accurate.
+function unsupportedCustomerHistory(report){
+ const claims=[
+  /(?:회사|직장|동료|상사|조직|고객).{0,40}(?:인정(?:을)?\s*받(?:았|아\s*왔)|신뢰(?:를)?\s*받(?:았|아\s*왔)|칭찬(?:을)?\s*받(?:았|아\s*왔))/,
+  /(?:연봉|월급|소득|매출|자산|재산)(?:은|이|가|도)?\s*(?:꾸준히\s*|이미\s*)?(?:올랐|늘었|증가했|불어났)/,
+  /(?:투자|사업|창업).{0,40}(?:성공했|수익(?:을|이)\s*(?:냈|났)|돈을\s*벌었)/,
+  /(?:승진|이직|취업|퇴사|결혼|이혼)(?:을|를)?\s*(?:했(?:습니다|다)|한\s*경험이\s*있(?:습니다|다)|한\s*적이\s*있(?:습니다|다))/
+ ];
+ const nonAssertion=/(?:예를\s*들어|가정(?:하|해|하면)|만약|했다고\s*가정|했다면|했을\s*경우|일\s*수\s*있|확인할\s*수\s*없|단정할\s*수\s*없|알\s*수\s*없|증명(?:되지|할\s*수\s*없)|(?:사실|성과|결과)이\s*아닙니다)/;
+ const sections=[
+  ...(report?.sections||[]),
+  ...(report?.cover?[{id:'cover',title:report.cover.headline,
+   body:[report.cover.description,...(report.cover.highlights||[])
+    .flatMap(h=>[h?.title,h?.description])]}]:[]),
+  ...(report?.finalJudgment?[{id:'finalJudgment',
+   title:report.finalJudgment.headline,
+   body:[...(report.finalJudgment.body||[]),
+    ...(report.finalJudgment.strengths||[]),
+    ...(report.finalJudgment.watchouts||[]),
+    ...(report.finalJudgment.routines||[]).flatMap(x=>[x?.trigger,x?.action,x?.reason]),
+    report.finalJudgment.closingQuestion]}]:[])
+ ];
+ const errors=[];
+ for(const section of sections){
+  for(const field of [section?.title,section?.keyJudgment,...(section?.body||[])]){
+   for(const sentence of String(field||'').split(/[.!?。！？\n]+/).map(x=>x.trim()).filter(Boolean)){
+    if(nonAssertion.test(sentence))continue;
+    if(claims.some(re=>re.test(sentence))){
+     errors.push((section.id||'unknown')+': unsupported customer biographical history');
+     break;
+    }
+   }
+  }
+ }
+ return [...new Set(errors)];
+}
+
 function verifyEvidenceAgainstFacts(report,packet){
  const errors=[],warnings=[];
  const tenGods=packet?.facts?.tenGods;
@@ -56,7 +98,7 @@ function verifyEvidenceAgainstFacts(report,packet){
  // Missing ten-god data must not disable independent branch fact checks.
  // The paid entry blocks such packets, but offline replay must still reject
  // fabricated branch precedence and transformation.
- if(!tenGods)return {errors:[...unsupportedSymbolicInference(report),...require('./report-branch-claims').check(report,packet),...require('./report-seasonal-claims').check(report,packet)],warnings};
+ if(!tenGods)return {errors:[...unsupportedSymbolicInference(report),...unsupportedCustomerHistory(report),...require('./report-branch-claims').check(report,packet),...require('./report-seasonal-claims').check(report,packet)],warnings};
  for(const section of sections){
   for(const evidence of [...(section.evidence||[]),section.title,section.keyJudgment,...(section.body||[])]){
    const text=norm(evidence);
@@ -251,7 +293,7 @@ function verifyEvidenceAgainstFacts(report,packet){
  }
  for(const error of require('./report-branch-claims').check(report,packet))errors.push(error);
  for(const error of require('./report-seasonal-claims').check(report,packet))errors.push(error);
-  return {errors:[...new Set([...errors,...unsupportedSymbolicInference(report)])],warnings:[...new Set(warnings)]};
+  return {errors:[...new Set([...errors,...unsupportedSymbolicInference(report),...unsupportedCustomerHistory(report)])],warnings:[...new Set(warnings)]};
 }
 function validate(r,packet){
  const errors=[],warnings=[];
