@@ -74,4 +74,42 @@ assert(factualQA({sections:[],cover:{headline:'정재가 있으니 돈을 잘 �
 assert(factualQA({sections:[],finalJudgment:{headline:'핵심',body:['정관이 있으니 직장에서 인정받습니다.']}},calculated)
  .errors.some(x=>x.startsWith('finalJudgment: unsupported real-world inference')),
  'final synthesis must not launder unsourced real-world achievements');
+
+ // Stage 5: the paid writer knows only calculation inputs. A convincing
+ // invented work/income/life history must fail a report even when it makes
+ // no explicit 'because of a ten-god' claim.
+ const inventedHistory=[
+  ['career','그동안 직장에서 인정받아 왔습니다.'],
+  ['money','연봉이 꾸준히 올랐습니다.'],
+  ['money','투자에 성공했습니다.'],
+  ['career','승진한 경험이 있습니다.'],
+  ['relationship','이미 결혼했습니다.']
+ ];
+ for(const [id,text] of inventedHistory){
+  const got=factualQA({sections:[{id,keyJudgment:text,body:[]}]},calculated).errors;
+  assert(got.some(x=>x===id+': unsupported customer biographical history'),
+   'customer birth/MBTI inputs cannot establish a past achievement: '+text);
+ }
+ const coverPast=factualQA({sections:[],cover:{
+  headline:'그동안 회사에서 신뢰받아 왔습니다.',highlights:[]}},calculated).errors;
+ assert(coverPast.includes('cover: unsupported customer biographical history'),
+  'cover may not disguise invented life achievements');
+ const finalPast=factualQA({sections:[],finalJudgment:{
+  headline:'정리',body:['사업에서 수익을 냈습니다.']}},calculated).errors;
+ assert(finalPast.includes('finalJudgment: unsupported customer biographical history'),
+  'final judgment must have the same biography guard');
+ const historyNonAssertions=[
+  '직장에서 인정받아 왔는지는 확인할 수 없습니다.',
+  '만약 연봉이 올랐다고 가정하면 지출 계획도 달라질 수 있습니다.',
+  '실제로 투자에서 성공했는지는 알 수 없습니다.',
+  '승진한 경험이 있다고 단정할 수 없습니다.',
+  '명리학의 정관은 직업 역할을 묻는 전통적 용어입니다.'
+ ];
+ for(const text of historyNonAssertions){
+  const found=factualQA({sections:[{
+   id:'career',keyJudgment:text,body:[]}]},calculated).errors;
+  assert(!found.some(x=>x.includes('unsupported customer biographical history')),
+   'a transparent limitation or hypothetical is not a reported life event: '+text);
+ }
+
 console.log('PASS historical premium semantic review leads and negation controls; no paid API calls');
