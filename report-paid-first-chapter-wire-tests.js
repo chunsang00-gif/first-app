@@ -180,7 +180,7 @@ let fetches=0,rawRequest=null,upstreamPrompt=null;
     'actual output field must not resurrect two-question internal checklist');
   assert(secondText.includes('한 가지 조건부 기질 해석'));
   assert(secondText.includes('독자에게 필요한 것은 두 글자의 정의가 아니라')&&
-   secondText.includes('같은 장면에서 한 의미만 따르면 놓치는 실제 선택 조건')&&
+   secondText.includes('월간의 전통적 뜻만 읽는 경우와 월지 중심 글자의 뜻까지 읽는 경우')&&
    secondText.includes('정리 문장이나 반복되는 해석 한계 문장을 보태지 않고 끝낸다'),
    'actual provider text description must prioritize applied interpretation, not glossary enumeration');
   assert(firstText.includes('상징 소개만 남으면 소제목과 본문을 모두 null로 반환한다'),
