@@ -113,5 +113,97 @@ function scenario({kind='success',amount='9900',confirm='ok',state='verified-pai
   proposal:{status:'draft-not-for-sale',plannedChapterCount:9,topicCandidateUpperBound:24}});
  assert.equal(container.children.length,0,
   'default disabled sales flag must not create a payment button');
+
+ // A server response with the SAME number of chapters but a different
+ // chapter ID is NOT the product the buyer was shown. Do not open Toss.
+ async function checkoutWithIds(serverIds){
+  const entries=new Map(),requests=[],sdkCalls=[];
+  const el=(tag)=>({
+   tagName:tag,children:[],isConnected:true,handlers:{},
+   append(...items){this.children.push(...items)},
+   addEventListener(event,callback){this.handlers[event]=callback},
+   setAttribute(){},textContent:'',hidden:false,disabled:false
+  });
+  const container=el('div'),notice=el('p');
+  const proposal={
+   status:'draft-not-for-sale',
+   mainChapterIds:['saju_core','decision','year_2027'],
+   conditional2027ChapterIds:[],
+   mainChapterCount:3,conditionalChapterCount:0,
+   plannedChapterCount:3,topicCandidateUpperBound:5
+  };
+  const window={
+   location:{href:'https://test.example/',origin:'https://test.example'},
+   history:{replaceState(){}},
+   TossPayments:()=>({
+    widgets:()=>({
+     setAmount:async()=>sdkCalls.push('setAmount'),
+     renderPaymentMethods:async()=>sdkCalls.push('methods'),
+     renderAgreement:async()=>sdkCalls.push('agreement')
+    })
+   })
+  };
+  const document={
+   getElementById:id=>id==='coverageSalesNotice'?notice:null,
+   createElement:el,createTextNode:value=>({textContent:value})
+  };
+  const fetch=async(url,init)=>{
+   requests.push({url,body:init?.body?JSON.parse(init.body):null});
+   if(url==='/api/checkout/config')return{
+    ok:true,json:async()=>({
+     enabled:true,productMode:'adaptive-v1',
+     clientKey:'test_ck_offline_checkout_123456',
+     amount:9900,currency:'KRW',scopeMustMatchOrder:true,
+     fixed12x35Promised:false
+    })
+   };
+   if(url==='/api/checkout/start')return{
+    ok:true,json:async()=>({
+     status:'pending',orderId:ORDER,ownerToken:OWNER,
+     amount:9900,currency:'KRW',
+     scope:{
+      productMode:'adaptive-v1',plannedChapters:3,
+      plannedChapterIds:serverIds,candidateTopicUpperBound:5,
+      countsAreUpperBounds:true,fixed12ChaptersPromised:false,
+      fixed35TopicsPromised:false
+     }
+    })
+   };
+   throw Error('UNEXPECTED_CHECKOUT_NETWORK:'+url);
+  };
+  const sessionStorage={
+   getItem:k=>entries.get(k)||null,
+   setItem(k,v){entries.set(k,v)},
+   removeItem(k){entries.delete(k)}
+  };
+  vm.runInNewContext(source,{window,document,fetch,sessionStorage,URL,console},
+   {filename:'report-checkout-ui.js'});
+  await window.REPORT_CHECKOUT_UI.mount({container,analysisInput:input,proposal});
+  assert.equal(container.children.length,1);
+  const panel=container.children[0];
+  const list=panel.children.find(x=>x.tagName==='ul');
+  assert.deepEqual(list.children.map(x=>x.textContent),[
+   '사주 기본 풀이','선택과 결정','2027년 기본 해석'
+  ]);
+  const checkbox=panel.children.find(x=>x.tagName==='label').children[0];
+  const start=panel.children.find(x=>x.tagName==='button');
+  checkbox.checked=true;
+  await start.handlers.click();
+  return {entries,requests,sdkCalls,panel};
+ }
+ let bought=await checkoutWithIds(['saju_core','money','year_2027']);
+ assert.equal(bought.requests.filter(x=>x.url==='/api/checkout/start').length,1);
+ assert.equal(bought.sdkCalls.length,0,
+  'same chapter count cannot hide a different product from the buyer');
+ assert.equal(bought.entries.has('sajuAdaptiveCheckoutPendingV1'),false,
+  'mismatched scope must not become a stored payment entitlement');
+ assert(bought.panel.children.find(x=>x.tagName==='p'&&
+  x.textContent.includes('일치하지 않습니다')));
+ bought=await checkoutWithIds(['saju_core','decision','year_2027']);
+ assert.equal(bought.sdkCalls.length,3,
+  'only exact chapter scope can prepare client-side payment methods');
+ assert.equal(JSON.parse(bought.entries.get('sajuAdaptiveCheckoutPendingV1')).confirmed,false);
+ assert.equal(bought.requests.filter(x=>x.url==='/api/checkout/start').length,1);
+
  console.log('PASS buyer redirect and refresh: owner-only pending, uncertain, verified and refunded recovery; no double charge; checkout disabled by default');
 })().catch(e=>{console.error(e);process.exitCode=1});
