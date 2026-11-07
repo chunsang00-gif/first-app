@@ -1,0 +1,43 @@
+name: Offline replay of already-paid 2026-11-07 first chapter (no provider)
+on:
+  push:
+    branches: [fix-paid-qa-fact-bindings-20261014]
+    paths: [.github/workflows/qa-current-core-original-free-replay.yml]
+permissions:
+  contents: read
+  actions: read
+jobs:
+  review-original-once:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      REPORT_MODEL_URL: ''
+      REPORT_QA_CONFIRM: ''
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-audit --no-fund
+      - name: Download PREVIOUS run's encrypted model response; absolutely no new provider call
+        uses: actions/download-artifact@v4
+        with:
+          repository: chunsang00-gif/first-app
+          run-id: 42369675176
+          name: qa-current-normal-core-20261107-encrypted
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/encrypted
+      - name: Decrypt and inspect ONLY in temporary runner; never print or upload original report
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          trap 'rm -rf "$RUNNER_TEMP/encrypted" "$RUNNER_TEMP/decrypted"' EXIT
+          test -z "${REPORT_MODEL_URL}"
+          test -z "${REPORT_QA_CONFIRM}"
+          node report-qa-secure-archive.js decrypt \
+            "$RUNNER_TEMP/encrypted/premium-first-chapter-qa.enc" \
+            "$RUNNER_TEMP/decrypted"
+          OPENAI_API_KEY='' node qa-current-first-chapter-original-replay.js "$RUNNER_TEMP/decrypted"
