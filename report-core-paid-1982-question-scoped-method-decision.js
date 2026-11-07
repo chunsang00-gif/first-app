@@ -6,6 +6,7 @@ const month=require('./report-core-paid-month-ch16-application');
 const ledger=require('./report-fact-bindings');
 const CHART={year:'壬戌',month:'癸丑',day:'乙未'};
 const SOURCE='https://zh.wikisource.org/zh-hant/%E4%B8%89%E5%91%BD%E9%80%9A%E6%9C%83/%E5%8D%B7%E5%85%AB';
+const VOLUME_SIX='https://zh.wikisource.org/zh-hant/%E4%B8%89%E5%91%BD%E9%80%9A%E6%9C%83/%E5%8D%B7%E5%85%AD';
 function inspect(packet){
  const input=packet?.calculationInput;
  if(packet?.status!=='ready'||input?.calendar!=='lunar'||
@@ -63,6 +64,40 @@ function inspect(packet){
     historical.listedContainsMonthBranch!==false||
     historical.cannotBorrowGuiWeiWinterClause!==true))
   throw Error('QA_1982_OTHER_HOUR_CLAUSE_QUALIFIER_INVALID');
+ // The general 卷八 hour warning is not the only relevant textual condition.
+ // 卷六·論倒食 explicitly lists 乙日見癸未、癸丑 and hidden 己.
+ // A month 癸丑 match exists for BOTH hours; 癸未 adds an hour match only
+ // at 14:20. Matching the texts never establishes a favorable outcome.
+ if(l['natal.month.stem']?.stem!=='癸'||
+    l['natal.month.stem']?.tenGod!=='편인'||
+    l['natal.month.hidden.己']?.stem!=='己'||
+    l['natal.month.hidden.己']?.tenGod!=='편재'||
+    l['natal.month.hidden.己']?.observedBehavior!==false||
+    (early&&(l['natal.hour.stem']?.stem!=='癸'||
+      l['natal.hour.hidden.己']?.stem!=='己'||
+      l['natal.hour.hidden.己']?.tenGod!=='편재'||
+      l['natal.hour.hidden.己']?.observedBehavior!==false)))
+   throw Error('QA_1982_VOLUME_SIX_COUNTERCONDITION_SOURCE_DRIFT');
+ const classicalCompetingRules={
+  broadHourRestriction:{
+   sourceUrl:SOURCE,chapter:'卷八·六乙日癸未時斷',
+   applicableToThisHour:early,
+   sourceStatement:early?'癸-restricts-hidden-丁':'not-this-hour'
+  },
+  separatelyDocumentedCountercondition:{
+   sourceUrl:VOLUME_SIX,chapter:'卷六·論倒食',
+   exactListedExamples:['癸未','癸丑'],
+   exactMatchedPillars:early?['癸丑','癸未']:['癸丑'],
+   monthMatchInBothHours:true,
+   additionalHourMatchOnlyAt1420:early,
+   textualMatchDoesNotProveEffect:true
+  },
+  sourceQuestionScopeResolved:true,
+  relativeInterpretiveDominanceDecided:false,
+  customerLifeOutcomeInferred:false,
+  eligibleForPaidWriter:false
+ };
+
  return {
   kind:'qa-1982-classical-question-specificity-decision-v1',
   chartFingerprint:[packet.chart.year,packet.chart.month,packet.chart.day,packet.chart.hour].join('/'),
@@ -88,6 +123,7 @@ function inspect(packet){
      'climate-rule-overrides-different-historical-question']}
   ],
   generalHourSymbolicRelation:general,
+  classicalCompetingRules,
   referencePreferenceScope:'more-specific-source-for-the-same-question-only',
   natalMonthMethodCandidate:'natal.month.hidden.癸',
   candidateExposurePositions:m.verified.candidateExposedAt.slice(),
