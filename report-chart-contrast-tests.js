@@ -247,8 +247,9 @@ for(const input of cases){
   !pairedText.includes('두 질문에 각각 답해야 하는 이유'),
   'actual provider output schema must not override claim ownership by printing internal questions');
  assert(pairedText.includes('사전적 의미나 내부 질문을 고객용 글로 나열하지 않는다')&&
-  pairedText.includes('가상의 한 선택 상황'),
-  'paid writer must treat symbol names as brief supporting evidence, never as final value');
+  pairedText.includes('계산된 관계 자체를 쉬운 말로 설명할 수 있다면 가상 상황을 넣을 필요가 없다')&&
+  pairedText.includes('오행 관계를 실제 생활의 원인·결과나 행동 관찰로 확정하지 않는다'),
+  'paid writer must explain verified symbolic relationships without forcing invented scenes or observed behavior');
 
  const moonPlan=contrasts.forTopic(contrast,'strength',[])?.readerReasoning?.readerValuePlan;
  assert(pairedText.includes(moonPlan.traditionalReading.first.reading)&&
