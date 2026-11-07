@@ -13,7 +13,7 @@ const BRANCH='fix-paid-qa-fact-bindings-20261014';
 const WORKFLOW='.github/workflows/paid-report-qa.yml';
 const APPROVAL_PREFIX='QA_CURRENT_CORE_20261107_ONE_PAID_CALL_';
 const BEFORE_LATEST_DISPATCH=40633333735;
-const FROZEN_REQUEST_SHA256='NOT_YET_FROZEN';
+const FROZEN_REQUEST_SHA256='dd5c1a38775aaab052363a41c2ddab7ea7336d8db456140442bc0bb78eda6170';
 const SUCCESS='CURRENT_CORE_FIRST_CHAPTER_VALIDATED_STOP_NOW';
 const deny=code=>{throw Error('CURRENT_CORE_ONE_CALL_DENIED:'+code)};
 function approval(env=process.env){
