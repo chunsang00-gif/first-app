@@ -87,7 +87,8 @@ function inspect(prompt){
        (month.sameClassification?
         !text.includes('두 출생 위치의 십성 분류와 전통적 뜻이 같으므로')||
          text.includes('두 출처의 서로 다른 뜻'):
-        !text.includes('두 의미를 별도 질문 두 개나 누구에게나 해당하는 준비 조언으로 바꾸지 않는다')))
+        !text.includes('실제 의미 차이가 하나의 선택 장면에 분명히 연결되지 않으면 가상의 장면을 만들지 않는다')||
+         !text.includes('월간의 전통적 뜻만 읽는 경우와 월지 중심 글자의 뜻까지 읽는 경우')))
      errors.push('core-month-pair-writing-branch-disagrees-with-facts');
    }
    for(const [topic,task] of Object.entries(plan.topicTasks||{})){
