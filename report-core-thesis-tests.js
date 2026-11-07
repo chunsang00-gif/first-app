@@ -158,6 +158,17 @@ const paidStyleBase=synonymousFirst+'과 '+synonymousSecond+
 const missingMeaningCode='saju_core:month-pair-meaning-missing-from-main-paragraph';
 assert(!postReview.inspect(paidStyleDraft(paidStyleBase),actualDistinct).blockingErrors.includes(missingMeaningCode),
  'natural equivalents of BOTH verified month interpretations must not be treated as omission');
+// The actual paid first chapter used natural "surrounding resources ... use
+// when needed" wording. Its older lexical regex rejected a genuinely stated
+// 편재 meaning; this fixture prevents a second charged false rejection.
+const archivedEquivalent=paidStyleDraft(
+ '새로운 정보를 접할 때 자기만의 방식으로 해석하고 받아들이려고 하는 태도와, 주변의 여러 자원과 수단을 유심히 살펴 필요할 때 활용하는 접근이 함께 나타납니다. 겉으로 드러난 정보만 살피면 필요한 물건을 어떻게 마련할지 놓칠 수 있다는 조건입니다.');
+assert(!postReview.inspect(archivedEquivalent,actualDistinct).blockingErrors.includes(missingMeaningCode),
+ 'paid first-chapter prose containing the natural surrounding-resource-use meaning is not omitted');
+const genericResourceOnly=paidStyleDraft(
+ '새로운 정보를 자기 나름대로 해석하고 이해합니다. 주변에 많은 자원이 있을 수 있지만 결과는 알 수 없습니다.');
+assert(postReview.inspect(genericResourceOnly,actualDistinct).blockingErrors.includes(missingMeaningCode),
+ 'a vague mention of resources without actual sourcing or use is still insufficient');
 const onlyLearning=synonymousFirst+
  '을 전통적으로 풀이합니다. 예를 들어 새로운 자료를 고를 때 그 뜻을 이해해야 내용을 활용할 수 있습니다.';
 const onlyResources=synonymousSecond+
