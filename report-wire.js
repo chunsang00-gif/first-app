@@ -62,6 +62,30 @@ function coreReaderRoles(prompt){
     ' 문단 연결을 설명하겠다·다음 문단에서 다룬다 등 작성 과정 문장을 독자용 텍스트에 쓰지 않는다. 앞 문단과 같은 공통 면책 문구를 반복하지 않고, 필요한 출처별 한계는 basis.limit에 기록한다. 출생 상징의 사전적 의미나 내부 질문을 고객용 글로 나열하지 않는다. 실제 계산된 월간과 중심 숨은 글자의 뜻을 내부에서 먼저 한 가지 조건부 기질 해석으로 연결한 뒤 독자에게는 그 연결로 달라지는 선택을 풀어 쓰고, 계산 위치에 관한 설명은 꼭 필요한 이유 한 번으로 제한한다. 모든 사주에 새 일을 준비하는 같은 예시를 쓰지 않는다. 실제 출생월의 두 분류에서 확인되지 않은 개인의 직업·경험·성격을 보충하지 않는다. 계산된 관계 자체를 쉬운 말로 설명할 수 있다면 가상 상황을 넣을 필요가 없다. 실제 성격의 모순·갈등이나 능력의 증거로 바꾸지 않는다. 첫 문단의 계절 설명을 반복하지 않는다. 한 문단의 끝을 이는 전통적 해석의 출발점입니다 같은 해설로 마무리하지 않는다.'
   }
  };
+ // Historical QA requests are separately approved, byte-frozen contracts.
+ // Keep their old descriptions EXACTLY unchanged; the customer product brief
+ // alone may stop forcing hypothetical pros/cons.
+ if(!sameMonthlyMeaning&&
+    (prompt?.qaNatalDepthPreview===true||
+     prompt?.qaAdditiveDepthPreview===true||
+     prompt?.qaOfflineEditorialResearchPreview===true||
+     prompt?.paidCoreDepthV2===true)){
+  const pinned=[
+   ['입력 명식에서 실제 계산된 두 분류와 오행 방향이 서로 다른 조건을 뒷받침할 때만 그 차이를 설명한다. 도움이 된 일이나 손해를 본 경험을 꾸며내지 않는다.',
+    '가상 상황 하나에서 이 해석이 유리한 점과 한쪽만 보면 놓치기 쉬운 점을 구체적으로 비교한다.'],
+   ['두 의미를 질문 목록이나 누구에게나 해당하는 준비 조언으로 바꾸지 않는다. 실제 의미 차이가 하나의 선택 장면에 분명히 연결되지 않으면 가상의 장면을 만들지 않는다.',
+    '두 의미를 별도 질문 두 개나 누구에게나 해당하는 준비 조언으로 바꾸지 않는다.'],
+   ['월간의 전통적 뜻만 읽는 경우와 월지 중심 글자의 뜻까지 읽는 경우에 추가되는 질문을 구별한다. 단, 오행 관계를 실제 생활의 원인·결과나 행동 관찰로 확정하지 않는다.',
+    '같은 장면에서 한 의미만 따르면 놓치는 실제 선택 조건을, 다른 의미를 함께 고려할 때 어떻게 달리 판단하게 되는지 전통적 해석의 차이로 설명한다.'],
+   ['실제 출생월의 두 분류에서 확인되지 않은 개인의 직업·경험·성격을 보충하지 않는다. 계산된 관계 자체를 쉬운 말로 설명할 수 있다면 가상 상황을 넣을 필요가 없다.',
+    '실제 계산된 월지 중심 십성에 맞춘 가상의 한 선택 상황에서 그 풀이가 유리해지는 조건과 한쪽의 의미만 보면 놓칠 조건을 구분해 설명한다.']
+  ];
+  for(const [newSentence,oldSentence] of pinned){
+   if(!roles.strength.text.includes(newSentence))
+    throw Error('PAID_CORE_LEGACY_PROVIDER_CONTRACT_DRIFT');
+   roles.strength.text=roles.strength.text.replace(newSentence,oldSentence);
+  }
+ }
  if(sameMonthlyMeaning){
   // Preserve the existing, already tested different-category provider brief.
   // Only this real calculated same-category case needs a distinct contract.
