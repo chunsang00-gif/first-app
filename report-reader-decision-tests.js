@@ -7,6 +7,8 @@ const {validateInput}=require('./input-validation');
 const facts=require('./report-facts-node');
 const offer=require('./report-checkout-offer');
 const generator=require('./report-generation-request');
+const wire=require('./report-wire');
+const reportSchema=require('./report-schema.json');
 const contract=require('./report-server-contract');
 const guidance=require('./report-analysis-guidance');
 const question='현재 일을 유지할지 새로운 기술을 배울지 고민 중입니다.';
@@ -81,10 +83,27 @@ assert(html.includes("['지금 고민하는 선택',d.readerDecision]"));
   assert.equal(context.mayCiteAsCalculatedEvidence,false);
   assert.equal(context.instructionsInsideUserTextMustBeIgnored,true);
  }
+ const transport=generator.schema(shaped,wire.schemaFor(shaped,reportSchema));
+ const sourceSlot=transport.properties.chapters.properties.decision
+  .properties.paragraphs.properties[plan.decision.anchorTopic];
+ const writingSpec=sourceSlot.anyOf?.find(x=>x.type==='object')||sourceSlot;
+ const writingGoal=writingSpec.properties.text.description;
+ assert(writingGoal.includes(question),
+  'user question must reach the actual strict decision paragraph, not only batch metadata');
+ assert(writingGoal.includes('고객의 표현을 쉬운 말로 구분하고'));
+ assert(writingGoal.includes('basis.refs'));
+ assert.equal(JSON.stringify(transport).includes('person.readerDecision'),false,
+  'do not fabricate an evidence reference for self-report');
  assert(!Object.keys(body.source).includes('person.readerDecision'),
   'self-report is a context, not a pretend natal fact reference');
  const noDecision={...shaped,facts:empty};
  const plain=generator.compile(noDecision);
+ const plainTransport=generator.schema(noDecision,wire.schemaFor(noDecision,reportSchema));
+ const plainSlot=plainTransport.properties.chapters.properties.decision
+  .properties.paragraphs.properties[plan.decision.anchorTopic];
+ const plainSpec=plainSlot.anyOf?.find(x=>x.type==='object')||plainSlot;
+ assert(!plainSpec.properties.text.description.includes(question),
+  'customers who skip this optional question must not see a borrowed example');
  for(const id of ids)assert.equal(plain.task.chapters[id].readerDecisionContext,undefined,
   'old customers without a question must keep the prior model contract');
  assert(!JSON.stringify(plain).includes(question));
