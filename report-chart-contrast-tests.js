@@ -247,7 +247,7 @@ for(const input of cases){
   !pairedText.includes('두 질문에 각각 답해야 하는 이유'),
   'actual provider output schema must not override claim ownership by printing internal questions');
  assert(pairedText.includes('사전적 의미나 내부 질문을 고객용 글로 나열하지 않는다')&&
-  (mc.sameClassification?
+  (month.stemTenGod===mc.mainHiddenStemTenGod?
     pairedText.includes('두 출생 위치의 십성 분류와 전통적 뜻이 같으므로')&&
     pairedText.includes('거짓 차이, 반대되는 기질, 성격의 강약을 만들지 않는다'):
     pairedText.includes('계산된 관계 자체를 쉬운 말로 설명할 수 있다면 가상 상황을 넣을 필요가 없다')&&
