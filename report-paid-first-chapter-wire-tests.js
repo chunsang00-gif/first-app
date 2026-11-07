@@ -153,9 +153,9 @@ let fetches=0,rawRequest=null,upstreamPrompt=null;
   assert(readerValue.script.includes('둘을 나열하거나 무조건 둘 다 중요하다는 결론으로 끝내지 않는다')&&
    readerValue.script.includes('본문 자체로 비교가 이해되면 가상 상황은 생략한다'),
    'one source-bound interpretation must replace a forced generic two-conditions checklist');
-  assert(secondText.includes('두 의미를 별도 질문 두 개나 누구에게나 해당하는 준비 조언으로 바꾸지 않는다')&&
-   secondText.includes('전통적 해석의 차이로 설명한다'),
-   'actual model response field must prefer source-bound interpretation over advice');
+  assert(secondText.includes('실제 의미 차이가 하나의 선택 장면에 분명히 연결되지 않으면 가상의 장면을 만들지 않는다')&&
+   secondText.includes('월간의 전통적 뜻만 읽는 경우와 월지 중심 글자의 뜻까지 읽는 경우'),
+   'actual normal paid paragraph must explain verified source distinctions without forced invented scenes');
   const heading=coreSchema.title.description,summary=coreSchema.keyJudgment.description;
   const fixed=require('./report-core-thesis').forPrompt(upstreamPrompt);
   assert.deepEqual(coreSchema.title.enum,[fixed.title]);
