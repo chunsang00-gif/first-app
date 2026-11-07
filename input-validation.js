@@ -19,6 +19,16 @@ function validateInput(input){
  if(!input.unknownBirthTime&&(typeof input.birthTime!=='string'||!/^([01]\d|2[0-3]):[0-5]\d$/.test(input.birthTime)))errors.push('출생시간을 입력하거나 모름을 선택해 주세요.');
  if(input.leapMonth!==undefined&&typeof input.leapMonth!=='boolean')errors.push('윤달 여부를 확인해 주세요.');
  if(input.calendar==='solar'&&input.leapMonth===true)errors.push('윤달은 음력에서만 선택할 수 있습니다.');
+ // Optional current decision is the user's own question, not an observed
+ // trait. Keep it brief and reject instructions/links/contact-like payloads
+ // instead of copying arbitrary long text into a paid model request.
+ if(input.readerDecision!==undefined){
+  const v=input.readerDecision;
+  if(typeof v!=='string'||v.length>140||
+     /[\r\n<>\u0000-\u001f\u007f]/.test(v)||
+     /(?:https?:\/\/|www\.|@|\b01[016789][- ]?\d{3,4}[- ]?\d{4}\b)/i.test(v))
+   errors.push('선택 고민은 연락처·주소 링크 없이 한 줄 140자 이내로 입력해 주세요.');
+ }
  for(const key of ['name','birthplace'])if(input[key]!==undefined&&(typeof input[key]!=='string'||input[key].length>100))errors.push('이름과 출생지는 각각 100자 이내로 입력해 주세요.');
  return [...new Set(errors)];
 }
