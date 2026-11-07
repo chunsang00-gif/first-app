@@ -25,6 +25,11 @@ jobs:
           REPORT_MODEL_URL: ''
           REPORT_QA_CONFIRM: ''
         run: node qa-current-core-preflight.js
+      - name: Verify new one-call manual approval and no-billing safety offline
+        env:
+          OPENAI_API_KEY: ''
+          REPORT_QA_CONFIRM: ''
+        run: node qa-current-core-one-shot-safety-tests.js
       # CI success on a feature branch only means its code passed tests.
       # Feature branches are never assumed to be deployed on Render.
       - name: Explain feature-branch deployment boundary
