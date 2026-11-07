@@ -11,8 +11,8 @@ for(const key of ["calendar:choice('calendar')","leapMonth:$('#leapMonth').check
 assert(html.includes("fetch('/api/calculate'"),'step one must be checked with free server calculation');
 assert(html.includes("checked.status!=='ready'"),'invalid or ambiguous calendar results must block navigation');
 assert(html.includes("if(!response.ok||checked.status!=='ready')"),'HTTP failures must not enter report flow');
-assert(html.includes("['calendar','birthDate','birthTime','leapMonth','unknownBirthTime']"),
- 'changes to calendar identity during calculation must force revalidation');
+assert(html.includes("['calendar','birthDate','birthTime','leapMonth','unknownBirthTime','readerDecision']"),
+ 'changes to calendar or customer decision during calculation must force revalidation');
 assert(html.includes('step=2;show();return;'),'navigate only after the free calculation succeeded');
 assert(ui.includes("calendar:calendar==='lunar'||calendar==='음력'?'lunar':'solar'"));
 assert(ui.includes('catalog.chapterDefinitions')&&ui.includes('catalog.topicDefinitions'),'visible scope count must use verified server catalog, not stale promises');
