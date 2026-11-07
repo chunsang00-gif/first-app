@@ -69,13 +69,15 @@ function reviewOne(){
   optionalParagraphPresent:!!other.trim(),
   fixedThesisRepeatedInMain:main.includes(fixed.keyJudgment),
   categories,readerMeaningSignals:tracked,
-  originalGroundingBlocked:judgement.blockingErrors,
-  result:'requires-human-editorial-review',
+  historicalPaidBlock:'saju_core:month-pair-meaning-missing-from-main-paragraph',
+  currentGroundingBlocked:judgement.blockingErrors,
+  oldLexicalFalseNegativeResolved:!judgement.blockingErrors.includes(
+   'saju_core:month-pair-meaning-missing-from-main-paragraph'),
+  result:'wording-matched-but-editorial-depth-not-approved',
   qualityApproved:false,releaseVerdict:'not-approved'
  };
- if(!judgement.blockingErrors.includes(
-  'saju_core:month-pair-meaning-missing-from-main-paragraph'))
-  throw Error('ARCHIVE_REPLAY_DID_NOT_REPRODUCE_ORIGINAL_FAILURE');
+ if(!summary.oldLexicalFalseNegativeResolved)
+  throw Error('ARCHIVED_LEXICAL_FALSE_NEGATIVE_REMAINS');
  if(summary.mainCharacters<20)throw Error('ARCHIVED_FIRST_CHAPTER_TOO_SHORT_FOR_REVIEW');
  return summary;
 }
