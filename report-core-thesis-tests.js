@@ -162,7 +162,7 @@ assert(!postReview.inspect(paidStyleDraft(paidStyleBase),actualDistinct).blockin
 // when needed" wording. Its older lexical regex rejected a genuinely stated
 // 편재 meaning; this fixture prevents a second charged false rejection.
 const archivedEquivalent=paidStyleDraft(
- '새로운 정보를 접할 때 자기만의 방식으로 해석하고 받아들이려고 하는 태도와, 주변의 여러 자원과 수단을 유심히 살펴 필요할 때 활용하는 접근이 함께 나타납니다. 겉으로 드러난 정보만 살피면 필요한 물건을 어떻게 마련할지 놓칠 수 있다는 조건입니다.');
+ '새로운 정보를 자기 나름대로 해석하고 이해하는 태도와, 주변의 여러 자원과 수단을 유심히 살펴 필요할 때 활용하는 접근이 함께 나타납니다. 겉으로 드러난 정보만 살피면 필요한 물건을 어떻게 마련할지 놓칠 수 있다는 조건입니다.');
 assert(!postReview.inspect(archivedEquivalent,actualDistinct).blockingErrors.includes(missingMeaningCode),
  'paid first-chapter prose containing the natural surrounding-resource-use meaning is not omitted');
 const genericResourceOnly=paidStyleDraft(
