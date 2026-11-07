@@ -244,3 +244,68 @@ jobs:
           path: premium-first-chapter-qa.enc
           if-no-files-found: ignore
           retention-days: 30
+
+  current-normal-core-one-call:
+    # PREPARED BUT DORMANT. A plain push, old approval, or "next" CANNOT
+    # invoke this job. First matching workflow_dispatch consumes the one slot.
+    if: ${{ github.ref_name == 'fix-paid-qa-fact-bindings-20261014' && startsWith(inputs.paid_qa_confirmation, 'QA_CURRENT_CORE_20261107_ONE_PAID_CALL_') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    concurrency:
+      group: current-normal-core-single-authorized-attempt-20261107
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      actions: read
+    env:
+      REPORT_MODEL: gpt-4.1
+      REPORT_QA_CONFIRM: ${{ inputs.paid_qa_confirmation }}
+      REPORT_QA_OUTPUT: ${{ github.workspace }}/private-qa-first-chapter.json
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-audit --no-fund
+      - name: Verify all local tests and current first-chapter request WITHOUT keys
+        env:
+          NODE_ENV: test
+          OPENAI_API_KEY: ''
+          REPORT_MODEL_URL: ''
+        run: npm test && npm run smoke && node qa-current-core-preflight.js
+      - name: Guard ONE fresh explicit approval, exact commit, fixed request and paid attempt history
+        env:
+          NODE_ENV: test
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          node - <<'NODE'
+          const qa=require('./qa-current-core-one-shot');
+          (async()=>{
+            qa.approval();
+            await qa.guardFirstDispatch();
+            const p=await require('./qa-current-core-preflight').prepare();
+            if(p.sha256!==qa.FROZEN_REQUEST_SHA256||p.providerCalls!==0)
+              throw Error('REQUEST_SHA256_NOT_FROZEN_NO_PROVIDER_CALL');
+            console.log('PASS FRESH_ONE_CALL_PREBILL_GUARD');
+          })().catch(e=>{console.error('PREBILL_BLOCK:'+e.message);process.exitCode=1});
+          NODE
+      - name: Exactly ONE real normal first-chapter response, no rewrite or paid retry
+        env:
+          NODE_ENV: test
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node qa-current-core-one-shot.js
+      - name: Encrypt private original and first-chapter review evidence
+        if: always()
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: node report-qa-secure-archive.js encrypt
+      - name: Store encrypted evidence only, even after a rejected provider response
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa-current-normal-core-20261107-encrypted
+          path: premium-first-chapter-qa.enc
+          if-no-files-found: ignore
+          retention-days: 30
