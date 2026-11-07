@@ -46,12 +46,12 @@ function reviewOne(){
  // and BROADER, review-only alternatives. None automatically overrides
  // the real guard or approves a premium first chapter.
  const wordFamilies={
-  편인:/(?:낯선\\s*(?:내용|정보|자료)|정보를\\s*(?:이해|해석)|자료를\\s*해석|배움의\\s*방식|자기\\s*방식으로\\s*(?:이해|읽)|다른\\s*관점에서\\s*이해|정보\\s*이해|(?:새로운\\s*)?정보를\\s*(?:자기|자신)\\s*나름대로\\s*(?:해석|이해|파악))/,
-  편재:/(?:필요한\\s*자원|자원을\\s*(?:찾|활용|확보)|자금|돈과\\s*재료|재료를\\s*마련|여러\\s*곳에서|기회와\\s*자원|자원\\s*활용|여러\\s*곳의\\s*자원을\\s*(?:파악|살피|찾).{0,28}(?:활용|사용|마련))/
+  편인:/(?:낯선\s*(?:내용|정보|자료)|정보를\s*(?:이해|해석)|자료를\s*해석|배움의\s*방식|자기\s*방식으로\s*(?:이해|읽)|다른\s*관점에서\s*이해|정보\s*이해|(?:새로운\s*)?정보를\s*(?:자기|자신)\s*나름대로\s*(?:해석|이해|파악))/,
+  편재:/(?:필요한\s*자원|자원을\s*(?:찾|활용|확보)|자금|돈과\s*재료|재료를\s*마련|여러\s*곳에서|기회와\s*자원|자원\s*활용|여러\s*곳의\s*자원을\s*(?:파악|살피|찾).{0,28}(?:활용|사용|마련))/
  };
  const extraSignals={
   편인:/(?:새로운|낯선|모르는|처음).{0,32}(?:이해|해석|판단|풀어|읽어|익히)|(?:스스로|자기|자신|독자적).{0,35}(?:이해|해석|판단|익히|배우)/,
-  편재:/(?:자원|기회|재료|물건|도구|예산|외부|바깥).{0,40}(?:활용|확보|찾|모으|조달|마련|연결)|(?:여러\\s*곳|다른\\s*곳).{0,30}(?:살피|활용|찾|고르)/
+  편재:/(?:자원|기회|재료|물건|도구|예산|외부|바깥).{0,40}(?:활용|확보|찾|모으|조달|마련|연결)|(?:여러\s*곳|다른\s*곳).{0,30}(?:살피|활용|찾|고르)/
  };
  const tracked=Object.fromEntries(categories.map(key=>[key,{
    strictMain:wordFamilies[key].test(main),
@@ -59,8 +59,8 @@ function reviewOne(){
    strictOther:wordFamilies[key].test(other),
    strictJudgment:wordFamilies[key].test(String(generated.keyJudgment))
  }]));
- const sentences=main.split(/[.!?。！？\\n]+/).map(s=>s.trim()).filter(Boolean);
- const clean=s=>String(s).replace(/[\\s\\p{P}\\p{S}]/gu,'');
+ const sentences=main.split(/[.!?。！？\n]+/).map(s=>s.trim()).filter(Boolean);
+ const clean=s=>String(s).replace(/[\s\p{P}\p{S}]/gu,'');
  const summary={
   kind:'archived-current-core-first-chapter-diagnostic-only',
   archiveRun:42369675176,
