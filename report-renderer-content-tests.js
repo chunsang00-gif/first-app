@@ -59,9 +59,12 @@ assert(!free.html.includes('사주 × MBTI 종합'));
 assert(free.html.includes('별도의 핵심 결론 saju_core'));
 assert(free.html.includes('별도의 핵심 결론 mbti_contradiction'));
 assert(free.html.includes('별도의 핵심 결론 integrated_judgment'));
-assert(free.html.includes('이 장의 핵심 풀이'));
-assert.equal((free.html.match(/이 장의 핵심 풀이/g)||[]).length,5,
- 'equal title and judgment must not duplicate the same sentence');
+assert.equal((free.html.match(/<h2>별도의 핵심 결론 /g)||[]).length,5,
+ 'unique judgments must become chapter headlines, not additional summaries');
+assert(free.html.includes('<h2>각 장의 고유한 제목 2</h2>'),
+ 'identical title and judgment must be displayed only once');
+assert(!free.html.includes('detail-verdict'),
+ 'do not reintroduce the duplicate-verdict block');
 assert(free.html.includes('이 장에 실제로 제공되는 서로 다른 내용 relationship'));
 assert.deepEqual(free.details,
  ['saju_core','relationship','integrated_judgment','year_2027'],
