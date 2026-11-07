@@ -3,6 +3,7 @@ const assert=require('node:assert/strict');
 const facts=require('./report-facts-node');
 const hour=require('./report-core-paid-1982-standalone-day-hour-reader');
 const chapter=require('./report-core-paid-1982-integrated-first-chapter');
+const method=require('./report-core-paid-1982-question-scoped-method-decision');
 const gap=require('./report-core-paid-depth-gap-audit');
 const reader=require('./report-reader-policy');
 const base=hour.BASE;
@@ -24,6 +25,26 @@ assert.equal(comparison.releaseVerdict,'not-approved');
 const [a,z]=comparison.cases;
 assert.deepEqual([a,z],[chapter.build(early),chapter.build(late)]);
 assert.notEqual(a.chartFingerprint,z.chartFingerprint);
+ // The source-selection decision must not hide the COMPETING clause from
+ // 卷六 when it quotes the general 卷八 hour warning.
+ const earlyDecision=method.inspect(early),lateDecision=method.inspect(late);
+ const c1=earlyDecision.classicalCompetingRules;
+ const c2=lateDecision.classicalCompetingRules;
+ assert.equal(c1.broadHourRestriction.applicableToThisHour,true);
+ assert.equal(c2.broadHourRestriction.applicableToThisHour,false);
+ assert.deepEqual(c1.separatelyDocumentedCountercondition.exactMatchedPillars,
+  ['癸丑','癸未']);
+ assert.deepEqual(c2.separatelyDocumentedCountercondition.exactMatchedPillars,
+  ['癸丑']);
+ assert.equal(c1.separatelyDocumentedCountercondition.sourceUrl,
+  a.paragraphs[2].conditionalRelationAudit.volumeSix.url);
+ assert.equal(c2.separatelyDocumentedCountercondition.sourceUrl,
+  z.paragraphs[2].conditionalRelationAudit.volumeSix.url);
+ assert.equal(c1.relativeInterpretiveDominanceDecided,false);
+ assert.equal(c2.relativeInterpretiveDominanceDecided,false);
+ assert.equal(c1.eligibleForPaidWriter,false);
+ assert.equal(c2.eligibleForPaidWriter,false);
+
 assert.equal(a.sourceScope,'exact-day-hour-with-winter-subclause');
 assert.equal(z.sourceScope,'exact-day-hour-with-ambiguous-year-month-clause');
 assert.deepEqual(a.paragraphs[0],z.paragraphs[0],
