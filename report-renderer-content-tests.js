@@ -3,7 +3,7 @@
 const assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
 const source=fs.readFileSync(path.join(__dirname,'report-renderer.js'),'utf8');
-function run(mbti){
+function run(mbti,readerDecision){
  const details=[];
  const window={
   CHARACTER_ASSETS:{
@@ -34,7 +34,7 @@ function run(mbti){
   evidence:['계산된 근거를 설명하는 자료입니다.']
  }));
  const report={
-  meta:{mbti,name:'검증 사용자',chart:{year:'甲子',month:'乙丑',day:'丙寅',hour:'丁卯'}},
+  meta:{mbti,name:'검증 사용자',...(readerDecision?{readerDecision}:{}),chart:{year:'甲子',month:'乙丑',day:'丙寅',hour:'丁卯'}},
   cover:{headline:'원고를 보여 주는 검증',description:'본문 확인',keywords:[],
    highlights:[
     {sectionId:'saju_core',title:'첫 번째 요점',description:'기본 풀이 요약'},
@@ -75,3 +75,19 @@ assert(paid.html.includes('사주 × MBTI 종합'));
 assert(paid.html.includes('성격 · 의외의 차이'));
 assert.deepEqual(paid.details,free.details);
 console.log('PASS premium reader displays unique chapter judgments, truthful no-MBTI labels and ID-bound art across omitted chapters');
+const question='현재 일을 유지할지 새로운 기술을 배울지 고민 중입니다.';
+const personalized=run('ISFP',question);
+assert(personalized.html.includes('<small>내가 직접 입력한 고민</small>'));
+assert(personalized.html.includes(question));
+assert(personalized.html.includes('사주로 알아낸 사실은 아닙니다.'));
+assert(personalized.html.includes('직접 입력한 고민도 포함됩니다.'),
+ 'full sharing must disclose the additional personal context');
+assert.equal(personalized.html.split(question).length-1,1,
+ 'the customer question must appear only in the decision chapter, not repeat across all chapters');
+assert(!paid.html.includes('reader-decision-note'),
+ 'omitted customer input must not create an empty or copied question');
+const unsafeQuestion=run('ISFP','<img src=x onerror=alert(1)>');
+assert(!unsafeQuestion.html.includes('<img src=x onerror=alert(1)>'),
+ 'uploaded user text must always remain escaped in rendered HTML');
+console.log('PASS self-reported choice appears only once in decision chapter, remains escaped and is disclosed in full sharing');
+
