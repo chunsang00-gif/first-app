@@ -2,7 +2,11 @@ name: Offline replay of already-paid 2026-11-07 first chapter (no provider)
 on:
   push:
     branches: [fix-paid-qa-fact-bindings-20261014]
-    paths: [.github/workflows/qa-current-core-original-free-replay.yml]
+    paths:
+      - .github/workflows/qa-current-core-original-free-replay.yml
+      - report-grounding-review.js
+      - report-core-thesis-tests.js
+      - qa-current-first-chapter-original-replay.js
 permissions:
   contents: read
   actions: read
