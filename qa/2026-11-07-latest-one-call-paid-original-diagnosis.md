@@ -28,3 +28,38 @@
 4. Explicitly prohibit old-run workflow reruns or using previously consumed approvals. Next provider call, if ever warranted, needs a new request SHA and separate explicit user approval.
 
 **Current release verdict: NOT APPROVED.** Production branch unchanged, customer sales still blocked.
+
+## Actual editorial read of the private ORIGINAL (2026-11-08 KST)
+
+- The first chapter was read directly from the original encrypted archive via a one-time
+  RSA-OAEP + AES-GCM encrypted reviewer transfer, without printing original Korean
+  content to public GitHub logs. All private original text remains outside this repository.
+- The required paragraph DOES express both verified monthly meanings, including the
+  resource side as a natural sentence meaning "surrounding resources and means considered
+  for use when needed." The prior word-family regex rejected this synonym.
+- **Editorial judgment: HOLD / unsuitable for paid release.** The reader-facing heading
+  is effectively two keyword labels. The five-sentence body describes the two symbolic
+  categories, then repeats a generic two-sided caution ("if only information, miss
+  resources; if only resources, miss information"). It supplies no concrete chart-specific
+  applied decision, and ends in an explanatory limitation about symbolism rather than a
+  distinctive customer insight. The optional independent paragraph was null.
+- Separately note the specific test error and the customer-value error: the former is a
+  lexical false negative; the latter is genuine lack of premium narrative depth.
+- This is an assistant editorial inspection, **not** traditional-myeongri professional
+  certification or an approved original-personality assessment. No real customer case
+  was evaluated: the input was the existing synthetic sample.
+- The correct remediation is to accept equivalent resource-use language **without**
+  waiving source provenance, generic-advice and contradiction guards. Machine-pass
+  after that change does NOT imply the report is ready to sell.
+- **Do NOT authorize a second provider call or deploy.** First decide the
+  interpretation method and a case-specific, evidence-owned reason beyond a month-pair
+  dictionary summary. Stop constructing generic mirror sentences.
+
+## Implementation and replay status
+
+- Source: `report-grounding-review.js` includes a narrow, context-dependent
+  equivalent for surrounding/multiple resources actually used when needed.
+- Positive regression: archive-derived natural paraphrase; negative regression:
+  generic statement that resources exist but without sourcing or use.
+- Re-run the existing encrypted original through the ZERO-cost decoder and
+  grounding checker; its historical lexical block is not a quality verdict.
