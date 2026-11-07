@@ -10,6 +10,37 @@ const find=id=>document.getElementById(id);
 const read=()=>{try{return JSON.parse(sessionStorage.getItem(KEY)||'null')}catch{return null}};
 const save=v=>sessionStorage.setItem(KEY,JSON.stringify(v));
 const safeText=(node,message)=>{if(node)node.textContent=String(message)};
+
+// A buyer must see the same chapters the server later reserves. Counts
+// alone are not a binding description of a chart-scoped paid product.
+const CHAPTER_LABELS=Object.freeze({
+ saju_core:'사주 기본 풀이',mbti_contradiction:'사주와 MBTI 비교',
+ decision:'선택과 결정',money:'금전',career:'직업과 일',
+ relationship:'인간관계',stress:'압박과 대처',
+ integrated_judgment:'종합 풀이',year_2027:'2027년 기본 해석',
+ year_2027_money:'2027년 금전',year_2027_career:'2027년 직업',
+ year_2027_relationship:'2027년 관계'
+});
+const CANONICAL_IDS=Object.freeze(Object.keys(CHAPTER_LABELS));
+function displayedChapterIds(proposal){
+ const main=proposal?.mainChapterIds,extra=proposal?.conditional2027ChapterIds;
+ if(!Array.isArray(main)||!Array.isArray(extra)||
+    !Number.isInteger(proposal.plannedChapterCount)||
+    !Number.isInteger(proposal.topicCandidateUpperBound)||
+    main.length!==proposal.mainChapterCount||
+    extra.length!==proposal.conditionalChapterCount)return null;
+ const ids=[...main,...extra];
+ if(ids.length!==proposal.plannedChapterCount||
+    ids.length<3||!main.includes('saju_core')||
+    !main.includes('year_2027')||
+    new Set(ids).size!==ids.length||
+    main.some(id=>!Object.hasOwn(CHAPTER_LABELS,id)||id.startsWith('year_2027_'))||
+    extra.some(id=>!Object.hasOwn(CHAPTER_LABELS,id)||!id.startsWith('year_2027_'))||
+    JSON.stringify(ids)!==JSON.stringify(CANONICAL_IDS.filter(id=>ids.includes(id))))
+  return null;
+ return ids;
+}
+
 const cleanupUrl=()=>{
  const u=new URL(window.location.href);
  for(const p of ['checkout','paymentKey','orderId','amount','paymentType','code','message'])
@@ -170,6 +201,8 @@ async function mount({container,analysisInput,proposal}={}){
     proposal?.status!=='draft-not-for-sale')return;
  const state=read();
  if(state?.confirmed||state?.confirmAttempted||state?.orderId)return;
+ const displayedIds=displayedChapterIds(proposal);
+ if(!displayedIds)return;
  const cfg=await config().catch(()=>null);
  if(!cfg||!container.isConnected)return;
  const notice=find('coverageSalesNotice');
@@ -181,6 +214,15 @@ async function mount({container,analysisInput,proposal}={}){
  const description=document.createElement('p');
  description.textContent=proposal.plannedChapterCount+'개 장, 최대 '+
   proposal.topicCandidateUpperBound+'개 후보 항목을 계산했습니다. 실제 작성 결과는 검수 중 일부 문단이 생략될 수 있습니다. 12장·35항목 고정 제공 상품이 아닙니다.';
+ const chapterTitle=document.createElement('p');
+ chapterTitle.textContent='결제 전에 확인할 실제 작성 후보 장 목록';
+ const chapterList=document.createElement('ul');
+ for(const id of displayedIds){
+  const item=document.createElement('li');
+  item.textContent=CHAPTER_LABELS[id]+
+   (id.startsWith('year_2027_')?' (별도 근거가 있을 때만)':'');
+  chapterList.append(item);
+ }
  const price=document.createElement('p');price.className='meta';
  price.textContent='결제 금액: '+cfg.amount.toLocaleString('ko-KR')+
   '원 · 실제 생성 후 보고서가 기대에 미달하면 별도 검토가 필요합니다.';
@@ -193,7 +235,7 @@ async function mount({container,analysisInput,proposal}={}){
  start.textContent='결제수단 확인하기';
  const message=document.createElement('p');message.className='meta';
  message.setAttribute('aria-live','polite');
- panel.append(heading,description,price,ack,start,message);
+ panel.append(heading,description,chapterTitle,chapterList,price,ack,start,message);
  container.append(panel);
  start.addEventListener('click',async()=>{
   if(opening)return;
@@ -210,7 +252,11 @@ async function mount({container,analysisInput,proposal}={}){
       data.amount!==cfg.amount||data.currency!=='KRW'||
       data.scope?.productMode!=='adaptive-v1'||
       data.scope?.plannedChapters!==proposal.plannedChapterCount||
-      data.scope?.candidateTopicUpperBound!==proposal.topicCandidateUpperBound)
+      data.scope?.candidateTopicUpperBound!==proposal.topicCandidateUpperBound||
+       data.scope?.countsAreUpperBounds!==true||
+       data.scope?.fixed12ChaptersPromised!==false||
+       data.scope?.fixed35TopicsPromised!==false||
+       JSON.stringify(data.scope?.plannedChapterIds)!==JSON.stringify(displayedIds))
     throw Error('서버가 확인한 상품 범위 또는 가격과 화면의 정보가 일치하지 않습니다.');
    const pending={orderId:data.orderId,ownerToken:data.ownerToken,
     amount:data.amount,analysisInput,confirmed:false,
