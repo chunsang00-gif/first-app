@@ -18,6 +18,8 @@ jobs:
       - run: node character-assets-test.js
       - run: npm test
       - run: npm run smoke
+      - name: Check a DIFFERENT evidence-based first-chapter reading order without paid calls
+        run: node report-core-month-exposure-reading-order-tests.js
       - name: Freeze the current first-chapter provider envelope OFFLINE (no keys, no network)
         env:
           NODE_ENV: test
