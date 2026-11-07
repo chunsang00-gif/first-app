@@ -9,7 +9,7 @@ const season=require('./report-seasonal-evidence');
 const review=require('./report-core-paid-natal-month-method-review');
 const SOURCE=Object.freeze({
  title:'子平真詮 · 論雜氣如何取用',
- url:'https://caipu.donglishuzhai.net/chapter/3729.html',
+ url:'https://changxianyi.com/guji/ziping/wz-20260914/chapter-017/',
  excerptSummary:'사묘고월은 여러 글자를 감추며, 겉으로 드러남과 지지 회합에 따라 무엇을 해석할지 검토한다',
  literalRuleOnly:true
 });
