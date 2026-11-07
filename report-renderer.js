@@ -23,12 +23,12 @@ function section(s,hasMbti,report){
  const category=!hasMbti&&s.id==='mbti_contradiction'?'성격 · 서로 다른 해석 관점':group[s.id]||theme[0];
  // The server writes a distinct, chart-bound key judgment for each chapter.
  // Do not hide it merely because the chapter also has a short display title.
- const verdict=String(s.keyJudgment||'').trim();
- const showVerdict=Boolean(verdict&&verdict!==String(s.title||'').trim()&&
-  !list(s.body).some(text=>String(text||'').trim()===verdict));
- const verdictHtml=showVerdict?`<div class="detail-verdict"><small>이 장의 핵심 풀이</small><strong>${esc(verdict)}</strong></div>`:'';
+ const chapterTitle=String(s.title||'').trim();
+ const headline=String(s.keyJudgment||'').trim()||chapterTitle;
+ const categoryText=chapterTitle&&chapterTitle!==headline?
+  category+' · '+chapterTitle:category;
 
- return `<section class="section detail-section ${theme[2]}" id="detail-${esc(s.id)}" data-report-id="${esc(s.id)}"><header class="detail-head"><div><div class="detail-category">${esc(category)}</div><h2>${esc(s.title||s.keyJudgment)}</h2></div>${character?`<div class="detail-symbol" aria-hidden="true">${character}</div>`:''}</header>${verdictHtml}${labels.length>=2&&labels.length===list(s.body).filter(Boolean).length?`<nav class="topic-nav" aria-label="이 장의 세부 내용" data-share-exclude>${labels.map((label,j)=>`<a href="#topic-${esc(s.id)}-${j}">${esc(label)}</a>`).join('')}</nav>`:''}<div class="detail-copy">${list(s.body).filter(Boolean).map((text,j)=>`<div class="copy-block" id="topic-${esc(s.id)}-${j}"><h3>${esc(labels[j]||['핵심 해석','실제 선택에서 드러나는 모습','주의점과 개선 방향','바꿔볼 행동'][Math.min(j,3)])}</h3>${paragraph(text)}</div>`).join('')}</div></section>`;
+ return `<section class="section detail-section ${theme[2]}" id="detail-${esc(s.id)}" data-report-id="${esc(s.id)}"><header class="detail-head"><div><div class="detail-category">${esc(categoryText)}</div><h2>${esc(headline)}</h2></div>${character?`<div class="detail-symbol" aria-hidden="true">${character}</div>`:''}</header>${labels.length>=2&&labels.length===list(s.body).filter(Boolean).length?`<nav class="topic-nav" aria-label="이 장의 세부 내용" data-share-exclude>${labels.map((label,j)=>`<a href="#topic-${esc(s.id)}-${j}">${esc(label)}</a>`).join('')}</nav>`:''}<div class="detail-copy">${list(s.body).filter(Boolean).map((text,j)=>`<div class="copy-block" id="topic-${esc(s.id)}-${j}"><h3>${esc(labels[j]||['핵심 해석','실제 선택에서 드러나는 모습','주의점과 개선 방향','바꿔볼 행동'][Math.min(j,3)])}</h3>${paragraph(text)}</div>`).join('')}</div></section>`;
 }
 function shareText(report,name,mbti,animal){const core=(report.sections||[]).find(s=>s.id==='saju_core')?.keyJudgment||'';const hasMbti=mbti!=='모름';return `${name}님의 ${hasMbti?'사주 × MBTI':'사주'} 결과\n${hasMbti?mbti+' · ':''}${animal}\n${core}`}
 function restart(){sessionStorage.removeItem('reportJobId');location.href=location.pathname}
