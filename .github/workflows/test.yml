@@ -18,6 +18,13 @@ jobs:
       - run: node character-assets-test.js
       - run: npm test
       - run: npm run smoke
+      - name: Freeze the current first-chapter provider envelope OFFLINE (no keys, no network)
+        env:
+          NODE_ENV: test
+          OPENAI_API_KEY: ''
+          REPORT_MODEL_URL: ''
+          REPORT_QA_CONFIRM: ''
+        run: node qa-current-core-preflight.js
       # CI success on a feature branch only means its code passed tests.
       # Feature branches are never assumed to be deployed on Render.
       - name: Explain feature-branch deployment boundary
