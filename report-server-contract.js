@@ -499,7 +499,7 @@ async function generate(input,callModel,onProgress=()=>{},onValidatedBatch=()=>{
   await onValidatedBatch({ids:ids.slice(),sections:result.sections,completedSections:priorSections.length});
   onProgress({stage:'body',completed:done+=ids.length,total:plannedIds.length});return result;
  })];
- const meta={calculationNote:'입력한 출생 시각을 그대로 사용하며 출생지에 따른 시간 차이는 보정하지 않습니다. 밤 11시대도 입력한 날짜로 계산합니다. 2027년 풀이는 전통적인 사주 계산에 따른 참고 해석이며, 실제 사건을 예측한 결과는 아닙니다. 여러 해에 걸친 변화는 연도별로 비교하며 바뀌는 정확한 날짜까지 구분하지 않습니다.',characterGender:input.gender||'male',name:input.name||'',mbti:input.mbti||'모름',chart:packet.chart,profileBalance:packet.profileBalance,targetYear:2027,versions:{ruleset:'premium-v2',prompt:'reader-depth-v2',schema:outline.version}};
+ const meta={calculationNote:'입력한 출생 시각을 그대로 사용하며 출생지에 따른 시간 차이는 보정하지 않습니다. 밤 11시대도 입력한 날짜로 계산합니다. 2027년 풀이는 전통적인 사주 계산에 따른 참고 해석이며, 실제 사건을 예측한 결과는 아닙니다. 여러 해에 걸친 변화는 연도별로 비교하며 바뀌는 정확한 날짜까지 구분하지 않습니다.',characterGender:input.gender||'male',name:input.name||'',mbti:input.mbti||'모름',...(packet.person.readerDecision?{readerDecision:packet.person.readerDecision}:{}),chart:packet.chart,profileBalance:packet.profileBalance,targetYear:2027,versions:{ruleset:'premium-v2',prompt:'reader-depth-v2',schema:outline.version}};
  const drafted=new Map(drafts.flatMap(p=>p.sections||[]).map(section=>[section.id,section]));
  const sections=plannedIds.map(id=>drafted.get(id));
  if(sections.some(section=>!section))throw Error('AI report service omitted a planned chapter after validated batches');
