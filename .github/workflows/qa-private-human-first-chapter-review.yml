@@ -51,8 +51,8 @@ jobs:
              record?.model!=='gpt-4.1')
            throw Error('ARCHIVE_BILLABLE_ORIGINAL_IDENTITY_MISMATCH');
           const chapter=record.response.chapters.saju_core;
-          const plain=Buffer.from(JSON.stringify({runId:42369675176,
-           firstChapter:chapter}),'utf8');
+          const plain=require('node:zlib').gzipSync(Buffer.from(JSON.stringify({runId:42369675176,
+           firstChapter:chapter}),'utf8'));
           if(plain.length>45000)throw Error('SINGLE_CHAPTER_TOO_LARGE');
           const key=crypto.randomBytes(32),nonce=crypto.randomBytes(12);
           const cipher=crypto.createCipheriv('aes-256-gcm',key,nonce);
@@ -61,7 +61,7 @@ jobs:
           const publicKey=Buffer.from(process.env.REVIEW_PUBLIC_KEY_B64,'base64').toString('utf8');
           const sealedKey=crypto.publicEncrypt({key:publicKey,
            padding:crypto.constants.RSA_PKCS1_OAEP_PADDING,oaepHash:'sha256'},key);
-          const packet={kind:'one-time-first-chapter-editorial-cipher-v1',
+          const packet={kind:'one-time-first-chapter-editorial-cipher-v1',gzip:true,
            sealedKey:sealedKey.toString('base64'),nonce:nonce.toString('base64'),
            tag:tag.toString('base64'),data:ciphertext.toString('base64')};
           console.log('PRIVATE_EDITORIAL_CIPHER='+Buffer.from(JSON.stringify(packet),'utf8').toString('base64'));
