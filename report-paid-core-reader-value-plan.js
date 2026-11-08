@@ -81,30 +81,37 @@ function build(packet,focus,allowed,source){
  const visibleQuestion=questionFor(top.tenGod);
  const centralQuestion=questionFor(bottom.tenGod);
  const directionalReadingQuestion=directionalQuestion(expected,visibleQuestion,centralQuestion);
+ // The previous writer prompt manufactured two mirror sentences: "if only
+ // visible you miss hidden" and vice versa. The archived paid first chapter
+ // reproduced those sentences without a case-specific reader insight.
+ // The actual calculated direction is one asymmetric interpretive QUESTION;
+ // it never proves an observed temperament, conflict or material outcome.
+ const directed={
+  resource:'달의 중심 글자가 나타내는 ‘'+centralQuestion+
+   '’이 겉글자의 ‘'+visibleQuestion+
+   '’을 뒷받침하는 오행 방향으로 연결된다. 도움을 실제로 받았거나 두 능력이 발휘됐다는 뜻은 아니다.',
+  output:'겉글자의 ‘'+visibleQuestion+
+   '’에서 달 중심의 ‘'+centralQuestion+
+   '’으로 이어지는 오행 방향을 읽는다. 실제 행동이 이어졌다는 뜻은 아니다.',
+  'control-on-day':'달 중심의 ‘'+centralQuestion+
+   '’이 겉글자의 ‘'+visibleQuestion+
+   '’을 제약하는 오행 방향이 확인된다. 두 성격이 실제로 충돌했다는 뜻은 아니다.',
+  'day-controls':'겉글자의 ‘'+visibleQuestion+
+   '’이 달 중심의 ‘'+centralQuestion+
+   '’을 제약하는 오행 방향이 확인된다. 실제 행동이나 손해가 일어났다는 뜻은 아니다.',
+  'same-element':'두 출생 위치에서 ‘'+visibleQuestion+
+   '’과 ‘'+centralQuestion+
+   '’이 같은 오행에 속한다. 도움·제약 방향이나 두 배의 성향을 새로 만들 수는 없다.'
+ };
+ const actualTwoSidedReading=directed[expected];
+ if(!actualTwoSidedReading)throw Error('PAID_CORE_READER_DIRECTION_MISSING');
  const twoSidedScope=Object.freeze({
   visibleRole:top.tenGod,mainRole:bottom.tenGod,
-  directionalReadingQuestion,
-  visibleQuestion,centralQuestion,
-  ifOnlyVisible:same?
-   null:'겉자리의 '+top.tenGod+'만 보면 달 중심의 '+bottom.tenGod+
-    '에서 묻는 ‘'+centralQuestion+'’이라는 질문을 빠뜨린다.',
-  ifOnlyMain:same?
-   null:'달 중심의 '+bottom.tenGod+'만 보면 겉자리의 '+top.tenGod+
-    '에서 묻는 ‘'+visibleQuestion+'’이라는 질문을 빠뜨린다.',
-  elementDirection:expected,
-  sameQuestion:same,
-  canAssertObservedBehavior:false,
-  canRankWhichRoleDominates:false
+  directionalReadingQuestion,visibleQuestion,centralQuestion,
+  elementDirection:expected,sameQuestion:same,
+  mirrorAdviceRequired:false,notObservedBehavior:true,
+  canAssertObservedBehavior:false,canRankWhichRoleDominates:false
  });
- const actualTwoSidedReading=same?
-  '두 출생 위치 모두 ‘'+visibleQuestion+'’이라는 한 가지 전통 질문과 연결된다. '+
-  '둘을 억지로 대립시켜 다른 두 성격으로 만들지 않는다.':
-  '겉자리에서 다룰 질문은 ‘'+visibleQuestion+'’이다. '+
-  '달 중심에서 다룰 질문은 ‘'+centralQuestion+'’이다. '+
-  '겉자리만 읽으면 달 중심의 질문을 놓치고, 달 중심만 읽으면 겉자리의 질문을 놓친다. '+
-  '두 차이가 한 번의 가상 선택에 어떤 서로 다른 확인 항목을 더하는지 설명한다. '+
-  '이때 '+KIND[expected]+'이라는 실제 오행 방향은 출처 사이의 상징적 관계이며 '+
-  '두 행동이 실제로 일어났거나 어느 역할이 우세하다는 판정이 아니다.';
  return Object.freeze({
   kind:'grounded-paid-core-reader-takeaway-v1',
   topic:'saju_core.strength',
@@ -123,21 +130,17 @@ function build(packet,focus,allowed,source){
   readerTakeaway:actualTwoSidedReading,
   semanticDifferenceRequired:!same,
   script:
-   '본문 첫 부분에 입력 명식의 두 전통적 뜻을 묶어 한 가지 조건부 해석을 쉽고 구체적인 한국어로 제시한다. '+
-   '겉글자: '+reading.first.reading+'. 중심 속글자: '+reading.second.reading+
-   '. 두 글자의 실제 관계: '+KIND[expected]+'. '+
-   '원고에서 답할 서로 다른 질문과 구분할 위치: '+actualTwoSidedReading+' '+
-   '이 명식의 오행 방향에만 대응하는 추가 해석 질문: '+directionalReadingQuestion+' '+
-   '이것은 실제로 일어난 도움이나 제약이 아니라 전통 분류를 연결해 보는 가정이다. '+
-   '결론은 위 질문에 해당하는 근거가 허용할 때만 쓰며, '+
-   '조건의 차이와 그 때문에 한쪽 해석만으로는 말할 수 없는 것을 한 문맥으로 연결한다. '+
-   (same?'동일한 의미를 반대 성향 두 개나 두 배의 영향력으로 나누지 않는다. ':
-     '첫 질문만 답하면 무엇이 빠지고 반대로 두 번째 질문만 답하면 무엇이 빠지는지 각각 계산 분류와 연결해 풀이한다. 질문 목록이나 범용 조언으로 끝내지 않고, 입력 명식에 속하는 차이를 한 번의 조건부 상황에서 묶는다. 둘을 나열하거나 무조건 둘 다 중요하다는 결론으로 끝내지 않는다. ')+
-   '어떤 직장에 다녔는지, 어떤 일을 실제로 수행했는지 출생정보에 없으므로 장비 운영·납품·인수인계·몇 달짜리 사업 같은 고정 가상 사례를 만들지 않는다. '+
-   '무료 풀이에서 출생월의 분류 둘을 소개하는 문장을 다시 길게 반복하지 않는다. 유료 첫 장에서는 두 분류의 실제 관계로부터 추가로 이해할 수 있는 하나의 조건부 판단을 제시한다. 단순 재서술과 문장 순서 변경은 별도 유료 통찰이 아니다. '+
-   '본문 자체로 비교가 이해되면 가상 상황은 생략한다. 예시가 꼭 필요해도 생활 범주를 임의로 특정하지 않고, 계산한 두 의미가 서로 다른 질문에 답하는 경우에만 짧게 든다. '+
-   '오행의 생·극 관계를 실제 능력이나 인격의 우열, 두 의미의 우선순위, 실현된 갈등으로 바꾸지 않는다. '+
-   '독자가 새롭게 알 수 있는 것은 이 출생 자료에서 확인된 전통 질문의 차이이며 실제 삶의 관찰이나 미래 사건이 아니다.',
+   '유료 첫 장은 두 분류 이름을 나열하거나 양쪽 모두 중요하다는 말로 끝내지 않는다. '+
+   '먼저 이 명식에서 계산된 오행 방향이 독자에게 어떤 서로 다른 전통적 질문을 허용하는지 하나의 이해 가능한 문장으로 쓴다. '+
+   '이 명식의 실제 질문: '+actualTwoSidedReading+' '+
+   '겉에 드러난 분류의 뜻: '+reading.first.reading+
+   '. 달 중심 숨은 글자의 뜻: '+reading.second.reading+'. '+
+   '이 둘이 같거나 다른 이유는 실제 출생 위치와 위에서 검증한 관계만으로 설명한다. '+
+   '계산된 상징의 도움·표현·제약을 실제 고객의 능력, 손해, 내면 갈등, 직업이나 인생 사건으로 바꾸지 않는다. '+
+   '한쪽만 보면 놓치고 반대로 다른 쪽만 보면 놓친다는 대칭 문장을 두 개 나열하지 않는다. '+
+   '추가 해석이 불가능하면 장점·약점·예시를 발명하지 않으며 내부 근거와 한계를 설명하되 고객에게 기술 목록을 읽히지 않는다. '+
+   '실제 고객의 일·사업·학교·소득을 가정해서 지어내지 않고, 꼭 필요하지 않으면 고정된 가상 장면도 만들지 않는다. '+
+   '같은 말의 재요약과 작성 과정 해설을 붙이지 않는다. 이 관계의 원인과 결과가 실제 삶에서 성립한 것처럼 말하지 않는다.',
   noInventedHistory:true,noUnverifiedPersonalTrait:true,
   additionalTopic:false,professionalReviewComplete:false
  });
