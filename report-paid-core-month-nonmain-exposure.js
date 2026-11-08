@@ -3,7 +3,7 @@
 // This is an independent, computable positional fact, NOT governing-stem
 // selection, personality measurement, classical-method approval or fate.
 // Old authorized QA request envelopes MUST NEVER use this extension.
-function inspect(source){
+function inspect(source,{priorGraphVerified=false}={}){
  const month=source?.['natal.month.stem'];
  const command=source?.['facts.structuralEvidence.monthCommand'];
  const monthStem=month?.stem,main=command?.mainHiddenStem;
@@ -22,12 +22,21 @@ function inspect(source){
  // Verify this is a literal match in the independently calculated exposure
  // graph. Do not infer other-pillar matching, season command or actual role
  // dominance from it.
- const matches=source['facts.stemConnections']?.exposure?.filter(
-  x=>x.hiddenId===otherId&&x.position==='month');
- if(!matches||matches.length!==1||
-    !matches[0].exactVisibleMatches?.some(x=>x.id===visibleId&&
-      x.position==='month'))
+ const graph=source['facts.stemConnections'];
+ // The core-only provider payload deliberately trims the graph AFTER the
+ // independently verified third-source choice is already pinned in task.
+ // Permit validation of the copied immutable choice against its three
+ // source records on that second pass; initial selection REQUIRES graph.
+ if(!graph&&!priorGraphVerified)
   throw Error('PAID_CORE_NONMAIN_EXPOSURE_GRAPH_UNVERIFIED');
+ if(graph){
+  const matches=graph.exposure?.filter(
+   x=>x.hiddenId===otherId&&x.position==='month');
+  if(!matches||matches.length!==1||
+     !matches[0].exactVisibleMatches?.some(x=>x.id===visibleId&&
+       x.position==='month'))
+   throw Error('PAID_CORE_NONMAIN_EXPOSURE_GRAPH_UNVERIFIED');
+ }
  const refIds=[visibleId,mainId,otherId];
  const newEvidence='태어난 달의 겉글자는 달의 중심 숨은 글자와 다르지만, 같은 달의 다른 숨은 글자와 정확히 일치한다.';
  const readerGoal='이 사주에서는 '+newEvidence+
