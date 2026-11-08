@@ -18,6 +18,8 @@ jobs:
       - run: node character-assets-test.js
       - run: npm test
       - run: npm run smoke
+      - name: Verify additional normal-paid monthly evidence without API charges
+        run: node report-paid-core-month-nonmain-exposure-tests.js
       - name: Verify paid delivery failure is visible without a new charge or refund promise
         run: node report-paid-delivery-state-tests.js
       - name: Check a DIFFERENT evidence-based first-chapter reading order without paid calls
