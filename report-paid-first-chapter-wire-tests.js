@@ -150,9 +150,10 @@ let fetches=0,rawRequest=null,upstreamPrompt=null;
    'actual provider response field must lead with this calculated symbolic meaning');
   assert(secondText.includes('모든 사주에 새 일을 준비하는 같은 예시를 쓰지 않는다'),
    'real provider schema must forbid the universal job-preparation example');
-  assert(readerValue.script.includes('둘을 나열하거나 무조건 둘 다 중요하다는 결론으로 끝내지 않는다')&&
-   readerValue.script.includes('본문 자체로 비교가 이해되면 가상 상황은 생략한다'),
-   'one source-bound interpretation must replace a forced generic two-conditions checklist');
+  assert(readerValue.script.includes('양쪽 모두 중요하다는 말로 끝내지 않는다')&&
+   readerValue.script.includes('한쪽만 보면 놓치고 반대로 다른 쪽만 보면 놓친다는 대칭 문장을 두 개 나열하지 않는다')&&
+   readerValue.twoSidedScope.mirrorAdviceRequired===false,
+   'the required normal paid chapter must focus on a verified direction, not mirror advice');
   assert(secondText.includes('실제 의미 차이가 하나의 선택 장면에 분명히 연결되지 않으면 가상의 장면을 만들지 않는다')&&
    secondText.includes('월간의 전통적 뜻만 읽는 경우와 월지 중심 글자의 뜻까지 읽는 경우'),
    'actual normal paid paragraph must explain verified source distinctions without forced invented scenes');
