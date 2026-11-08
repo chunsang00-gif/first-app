@@ -9,21 +9,22 @@ assert(source.includes('if(!checked.checked)'));
 assert(source.includes('결제수단 확인하기'));
 
 const OWNER='a'.repeat(64),ORDER='12345678-1234-1234-1234-123456789012';
+const JOB='af12bc34-1234-4123-8123-123456789abc';
 const input={status:'ready',calculationInput:{calendar:'solar',
  birthDate:'1994-07-15',birthTime:'14:20',gender:'male',mbti:'ISFP'}};
-function scenario({kind='success',amount='9900',confirm='ok',state='verified-paid',deliveryStatus=null}={}){
+function scenario({kind='success',amount='9900',confirm='ok',state='verified-paid',deliveryStatus=null,jobId=null,generationStarted=false}={}){
  const entries=new Map();
  entries.set('sajuAdaptiveCheckoutPendingV1',JSON.stringify({
   orderId:ORDER,ownerToken:OWNER,amount:9900,analysisInput:input,
-  confirmed:false,confirmAttempted:false,generationStarted:false
+  confirmed:false,confirmAttempted:false,generationStarted
  }));
  const body={children:[],replaceChildren(){this.children=[]},
   append(...args){this.children.push(...args)}};
  const document={
   getElementById(id){return id==='reportBody'?body:null},
-  createElement(tag){return {tagName:tag,children:[],
+  createElement(tag){return {tagName:tag,children:[],handlers:{},
    append(...parts){this.children.push(...parts)},
-   setAttribute(){},addEventListener(){},textContent:''}}
+   setAttribute(){},addEventListener(event,cb){this.handlers[event]=cb},textContent:''}}
  };
  const calls=[],history=[];
  const fetch=async(url,init)=>{
@@ -34,21 +35,22 @@ function scenario({kind='success',amount='9900',confirm='ok',state='verified-pai
      {status:'blocked',code:'PAYMENT_CONFIRMATION_UNCERTAIN'}};
   if(url==='/api/checkout/status')
    return {ok:true,status:200,json:async()=>({state,orderId:ORDER,
-    ...(deliveryStatus?{deliveryStatus}: {})})};
+    ...(deliveryStatus?{deliveryStatus}: {}),...(jobId?{jobId}:{})})};
   throw Error('UNEXPECTED_NETWORK_PATH:'+url);
  };
  const params=kind==='no-redirect'?new URLSearchParams():
   new URLSearchParams({checkout:kind,orderId:ORDER,
    paymentKey:'opaque-payment-key',amount});
+ let resumes=0;
  const window={location:{href:'https://test.example/?'+params.toString()},
   history:{replaceState(...args){history.push(args)}},
-  LIVE_REPORT_UI:{openResult(){},resume(){}},
+  LIVE_REPORT_UI:{openResult(){},resume(){resumes++}},
   TossPayments:undefined};
  const sessionStorage={getItem:k=>entries.get(k)||null,
   setItem(k,v){entries.set(k,v)},removeItem(k){entries.delete(k)}};
  const sandbox={window,document,sessionStorage,fetch,URL,console};
  vm.runInNewContext(source,sandbox,{filename:'report-checkout-ui.js'});
- return {ui:window.REPORT_CHECKOUT_UI,calls,entries,body,history,window};
+ return {ui:window.REPORT_CHECKOUT_UI,calls,entries,body,history,window,getResumes:()=>resumes};
 }
 (async()=>{
  let s=scenario();
@@ -100,6 +102,40 @@ function scenario({kind='success',amount='9900',confirm='ok',state='verified-pai
   assert.equal(panel.children.filter(x=>x.tagName==='button').length,0);
   assert.equal(s.calls.filter(x=>x.url==='/api/checkout/confirm').length,0);
  }
+ // Real owner-only order lookup supplies its bound job ID. Session loss
+ // must restore it without paying again, and stale results must not leak.
+ s=scenario({kind:'no-redirect',state:'delivery-bound',jobId:JOB});
+ retained=JSON.parse(s.entries.get('sajuAdaptiveCheckoutPendingV1'));
+ retained.confirmed=true;
+ s.entries.set('sajuAdaptiveCheckoutPendingV1',JSON.stringify(retained));
+ s.entries.set('reportCompleted',JSON.stringify({status:'ready',report:'wrong older job'}));
+ assert.equal(await s.ui.restore(),true);
+ assert.equal(s.entries.get('reportJobId'),JOB);
+ assert.equal(s.entries.get('reportJobAccessToken'),OWNER);
+ assert.equal(s.entries.get('reportCompleted'),undefined,
+  'the previously cached report must not be displayed for another paid order');
+ let panel=s.body.children[0],resumeButton=panel.children.find(x=>x.tagName==='button');
+ assert.equal(resumeButton?.textContent,'기존 보고서 조회');
+ resumeButton.handlers.click();
+ assert.equal(s.getResumes(),1,'buyer can resume the server-bound job');
+ assert.equal(s.calls.filter(c=>c.url==='/api/checkout/confirm').length,0);
+ assert.equal(s.calls.filter(c=>c.url==='/api/report').length,0,
+  'recovering paid order must never create another provider call');
+ // A missing job ID or an uncertain started request is support-only.
+ s=scenario({kind:'no-redirect',state:'delivery-bound'});
+ retained=JSON.parse(s.entries.get('sajuAdaptiveCheckoutPendingV1'));
+ retained.confirmed=true;
+ s.entries.set('sajuAdaptiveCheckoutPendingV1',JSON.stringify(retained));
+ assert.equal(await s.ui.restore(),true);
+ panel=s.body.children[0];
+ assert(!panel.children.some(x=>x.tagName==='button'));
+ assert(panel.children.some(x=>String(x.textContent).includes('운영자에게')));
+ s=scenario({kind:'no-redirect',state:'verified-paid',generationStarted:true});
+ retained=JSON.parse(s.entries.get('sajuAdaptiveCheckoutPendingV1'));
+ retained.confirmed=true;
+ s.entries.set('sajuAdaptiveCheckoutPendingV1',JSON.stringify(retained));
+ assert.equal(await s.ui.restore(),true);
+ assert(!s.body.children[0].children.some(x=>x.tagName==='button'));
  s=scenario({kind:'no-redirect',state:'refunded'});
  retained=JSON.parse(s.entries.get('sajuAdaptiveCheckoutPendingV1'));
  retained.confirmed=true;
