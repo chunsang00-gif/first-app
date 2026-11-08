@@ -105,6 +105,17 @@ function recoveryCode(p){
   throw Error('ORDER_RECOVERY_SOURCE_INVALID');
  return RECOVERY_PREFIX+':'+p.orderId+':'+p.ownerToken;
 }
+function recoveryDetails(p){
+ const box=document.createElement('details');
+ const heading=document.createElement('summary');
+ heading.textContent='기존 보고서 복구 코드 확인';
+ const warning=document.createElement('p');
+ warning.textContent='이 코드는 주문과 보고서를 조회하는 비밀 정보입니다. 본인만 안전하게 보관하고 다른 사람에게 보내지 마세요.';
+ const value=document.createElement('textarea');
+ value.readOnly=true;value.rows=3;value.value=recoveryCode(p);
+ box.append(heading,warning,value);
+ return box;
+}
 function parseRecoveryCode(code){
  const parts=String(code||'').trim().split(':');
  if(parts.length!==3||parts[0]!==RECOVERY_PREFIX||
@@ -184,7 +195,7 @@ function showPaidState(p,info){
  const status=document.createElement('p');status.className='meta';
  status.textContent='주문 번호: '+p.orderId+
   ' · 결제 금액: '+Number(p.amount).toLocaleString('ko-KR')+'원';
- section.append(title,text,status);
+ section.append(title,text,status,recoveryDetails(p));
  if(info?.state==='delivery-bound'){
   if(restoreOwnerJob(p,info)){
    const report=document.createElement('p');
@@ -385,16 +396,7 @@ async function mount({container,analysisInput,proposal}={}){
    save(pending);
    // Show a user-controlled backup BEFORE invoking any payment provider.
    // This contains the secret owner token: no analytics or sharing.
-   const recovery=document.createElement('details');
-   const recoverySummary=document.createElement('summary');
-   recoverySummary.textContent='기존 결제 복구 코드 보관 (권장)';
-   const recoveryWarning=document.createElement('p');
-   recoveryWarning.textContent='다른 기기에서 보고서를 다시 찾으려면 아래 코드를 안전하게 따로 보관하세요. 이 코드를 아는 사람은 주문을 조회할 수 있으므로 공유하지 마세요.';
-   const recoveryField=document.createElement('textarea');
-   recoveryField.readOnly=true;recoveryField.rows=3;
-   recoveryField.value=recoveryCode(pending);
-   recovery.append(recoverySummary,recoveryWarning,recoveryField);
-   panel.append(recovery);
+   panel.append(recoveryDetails(pending));
    const toss=(await sdk())(cfg.clientKey);
    const widgets=toss.widgets({customerKey:'ANONYMOUS'});
    await widgets.setAmount({currency:'KRW',value:data.amount});
