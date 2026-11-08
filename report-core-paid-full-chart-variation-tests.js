@@ -87,6 +87,19 @@ const fixed=require('./report-core-paid-full-prompt-capture').FIXTURE;
    assert.equal(Object.hasOwn(qaStrength,'sourceOwnedCoreReaderValue'),false,
     'previously frozen QA envelope must not inherit a later production-only brief');
    delete copied.sourceOwnedCoreReaderValue;
+   // The ordinary reader may now see a separately graph-verified THIRD
+   // monthly hidden stem. Historical QA remains its original two-source
+   // exact envelope and cannot silently inherit new citations.
+   const qualified=copied.sourceOwnedMonthNonmainExposure;
+   delete copied.sourceOwnedMonthNonmainExposure;
+   if(qualified){
+    assert.equal(qualified.approvedAsPremiumValue,false);
+    assert.equal(qualified.additionalInterpretivePrioritySelected,false);
+    assert(coreStrength.citableFacts.some(row=>row.id===qualified.nonmainSourceId));
+    assert(!qaStrength.citableFacts.some(row=>row.id===qualified.nonmainSourceId));
+    copied.citableFacts=copied.citableFacts.filter(row=>
+     row.id!==qualified.nonmainSourceId);
+   }
    const originalScope=require('./report-chart-contrast').forProvider(
     require('./report-chart-contrast').build(packet),'strength',
     qaStrength.citableFacts.map(row=>row.id),false);
