@@ -35,7 +35,7 @@ const normalPaidMonthMethodBoundary="달의 겉글자가 기본 숨은 글자가
 // takes precedence over obsolete fixed "one workplace scene" requests.
 // QA5/QA6, QA natal-depth and explicitly authorized development V2 keep
 // their pinned writer policy and source schemas unchanged.
-const normalCoreMeaningPriority='일반 유료 첫 장의 필수 strength 작성에서는 task.chapters.saju_core.topics.strength.sourceOwnedCoreReaderValue가 가장 구체적인 독자용 작성 지침이다. 기존 상위 문구의 가상 직장 사례·두 조건의 기계적 장단점 요구보다 이 명식의 월간과 달의 중심 속글자에서 확인한 실제 두 전통 분류의 뜻·오행 관계를 우선한다. 서로 다른 뜻이면 한쪽 뜻만 읽을 때 빠지는 해석 범위를 직접 말하고, 같으면 같은 뜻이 두 출처에 있는 이유만 설명한다. 글자 이름을 나열하거나 직업·부품·납품·인수인계 등의 고정 사례를 만들지 않는다. 실제로 검증된 독립 해석 없이 가상의 도움·손해·성취를 억지로 채우지 않는다. 가상 상황은 독자가 이 구분을 이해하는 데 필요할 때만 짧게 사용한다. 상위 정책의 실제 성격·능력·사건 금지, 인용 출처·월 중심 우선순위 미확정 원칙은 그대로 지킨다.';
+const normalCoreMeaningPriority='일반 유료 첫 장의 필수 strength 작성에서는 task.chapters.saju_core.topics.strength.sourceOwnedCoreReaderValue가 가장 구체적인 독자용 작성 지침이다. 기존 상위 문구의 가상 직장 사례·두 조건의 기계적 장단점 요구보다 이 명식의 월간과 달의 중심 속글자에서 확인한 실제 두 전통 분류의 뜻·오행 관계를 우선한다. 서로 다른 뜻이면 검증된 오행 관계의 실제 방향 하나가 두 전통 분류를 어떻게 연결하는지 먼저 설명하고, 서로 대칭인 두 누락 경고 문장을 만들지 않는다. 같은 뜻이면 관계를 억지로 대비하지 말고 같은 분류가 두 출처에 있다는 의미만 설명한다. 글자 이름을 나열하거나 직업·부품·납품·인수인계 등의 고정 사례를 만들지 않는다. 실제로 검증된 독립 해석 없이 가상의 도움·손해·성취를 억지로 채우지 않는다. 가상 상황은 독자가 이 구분을 이해하는 데 필요할 때만 짧게 사용한다. 상위 정책의 실제 성격·능력·사건 금지, 인용 출처·월 중심 우선순위 미확정 원칙은 그대로 지킨다.';
 const additivePolicy='선택형 QA: temperament는 일반 유료 첫 장처럼 독립적 근거가 있을 때만 작성하고 strength는 필수로 유지한다. natal_depth는 선택 항목이며 새로운 개인별 판단 근거가 없으면 null로 반환한다. 고전이나 계산 정보의 일치 자체를 실제 성격 또는 미래 결과로 단정하지 않는다.';
 function policyFor(prompt){
  if(prompt?.stage==='body'&&
