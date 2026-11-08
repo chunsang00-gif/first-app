@@ -355,8 +355,15 @@ for(const input of cases){
   'first paragraph must not cite a hidden-stem interpretation owned by second');
  assert(secondAllowed.includes('natal.month.stem')&&
   secondAllowed.includes(mainMonthId));
+ const extraMonth=core.topics.strength.sourceOwnedMonthNonmainExposure;
  assert.deepEqual(secondAllowed.filter(x=>x.startsWith('natal.month.hidden.')),
-  [mainMonthId], 'second paragraph must not borrow secondary hidden-stem meanings');
+  extraMonth?[mainMonthId,extraMonth.nonmainSourceId]:[mainMonthId],
+  'only the canonical month main, plus a graph-verified exact visible nonmain where genuinely present');
+ if(extraMonth){
+  assert(extraMonth.mainSourceId===mainMonthId&&
+   extraMonth.nonmainSourceId!=='natal.month.stem'&&
+   extraMonth.approvedAsPremiumValue===false);
+ }
  assert(!firstAllowed.some(x=>x.startsWith('facts.rootConditions')||
   x.startsWith('facts.stemConnections')));
  assert(!secondAllowed.some(x=>x.startsWith('facts.rootConditions')||
