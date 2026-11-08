@@ -4,6 +4,9 @@
 // No automatic duplicate confirmation, charge, or paid report retry.
 (()=>{
 const KEY='sajuAdaptiveCheckoutPendingV1';
+const RECOVERY_PREFIX='SMB1';
+const ORDER_ID=/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i;
+const OWNER_SECRET=/^[a-f0-9]{64}$/;
 const SDK='https://js.tosspayments.com/v2/standard';
 let loadingSDK=null,opening=false;
 const find=id=>document.getElementById(id);
@@ -94,8 +97,83 @@ function restoreOwnerJob(p,info){
  sessionStorage.setItem('reportJobId',id);
  return true;
 }
+// A recovery code is the same bearer credential as the order owner token.
+// It is shown ONLY in the buyer's browser. Never put it in a URL, report,
+// server log, telemetry or a public share action.
+function recoveryCode(p){
+ if(!ORDER_ID.test(p?.orderId||'')||!OWNER_SECRET.test(p?.ownerToken||''))
+  throw Error('ORDER_RECOVERY_SOURCE_INVALID');
+ return RECOVERY_PREFIX+':'+p.orderId+':'+p.ownerToken;
+}
+function parseRecoveryCode(code){
+ const parts=String(code||'').trim().split(':');
+ if(parts.length!==3||parts[0]!==RECOVERY_PREFIX||
+    !ORDER_ID.test(parts[1])||!OWNER_SECRET.test(parts[2]))
+  return null;
+ return {orderId:parts[1],ownerToken:parts[2]};
+}
+async function recoverWithCode(code){
+ const secret=parseRecoveryCode(code);
+ if(!secret)return {ok:false,reason:'invalid-code'};
+ // A successful owner-only server lookup is required BEFORE persisting any
+ // session entitlement. No payment confirm, new order, or report generate.
+ const response=await status(secret).catch(()=>null);
+ if(!response?.ok||response.data?.status!=='ready'||
+    response.data.orderId!==secret.orderId)
+  return {ok:false,reason:'verification-failed'};
+ const info=response.data;
+ if(info.state!=='delivery-bound'){
+  return {ok:false,reason:info.state==='refunded'?'refunded':
+    'no-existing-report'};
+ }
+ if(!ORDER_ID.test(info.jobId||''))
+  return {ok:false,reason:'missing-server-job'};
+ const p={...secret,amount:info.amount,
+  // Original birth input deliberately does not travel in the recovery code.
+  analysisInput:null,confirmed:true,confirmAttempted:true,
+  generationStarted:true};
+ save(p);
+ showOrderState(p,response);
+ return {ok:true,state:info.state};
+}
+function renderRecoveryEntry(){
+ const home=document.querySelector?.('.screen[data-step="1"]');
+ if(!home||document.getElementById('reportOrderRecovery'))return;
+ const panel=document.createElement('section');
+ panel.className='section';panel.id='reportOrderRecovery';
+ const button=document.createElement('button');button.type='button';
+ button.className='btn ghost';button.textContent='기존 유료 보고서 복구';
+ const form=document.createElement('div');form.hidden=true;
+ const instruction=document.createElement('p');
+ instruction.textContent='결제 전에 따로 보관한 복구 코드를 입력하세요. 이 코드는 보고서 조회 권한이 있으므로 다른 사람에게 알려주지 마세요.';
+ const secret=document.createElement('input');secret.type='password';
+ secret.autocomplete='off';secret.placeholder='복구 코드 입력';
+ const findOrder=document.createElement('button');findOrder.type='button';
+ findOrder.className='btn primary';findOrder.textContent='기존 주문 조회';
+ const notice=document.createElement('p');notice.className='meta';
+ notice.setAttribute('aria-live','polite');
+ findOrder.addEventListener('click',async()=>{
+  if(findOrder.disabled)return;
+  findOrder.disabled=true;
+  try{
+   const result=await recoverWithCode(secret.value);
+   secret.value='';
+   if(result.ok){form.hidden=true;return}
+   safeText(notice,result.reason==='refunded'?
+    '해당 주문은 환불 처리됐습니다. 새 보고서를 생성할 수 없습니다.':
+    result.reason==='no-existing-report'?
+    '주문은 확인됐지만 연결된 기존 보고서가 없습니다. 다시 결제하지 말고 운영자에게 문의해 주세요.':
+    '주문 조회에 실패했습니다. 복구 코드가 정확한지 확인하고, 반복 결제하지 마세요.');
+  }finally{findOrder.disabled=false}
+ });
+ button.addEventListener('click',()=>{form.hidden=!form.hidden});
+ form.append(instruction,secret,findOrder,notice);
+ panel.append(button,form);
+ home.append(panel);
+}
 function showPaidState(p,info){
- if(!p||!p.confirmed||!p.orderId||!p.ownerToken||!p.analysisInput)return;
+ if(!p||!p.confirmed||!p.orderId||!p.ownerToken||
+   (!p.analysisInput&&info?.state!=='delivery-bound'))return;
  window.LIVE_REPORT_UI?.openResult?.();
  const body=find('reportBody');if(!body)return;
  body.replaceChildren();
@@ -305,6 +383,18 @@ async function mount({container,analysisInput,proposal}={}){
     amount:data.amount,analysisInput,confirmed:false,
     confirmAttempted:false,generationStarted:false};
    save(pending);
+   // Show a user-controlled backup BEFORE invoking any payment provider.
+   // This contains the secret owner token: no analytics or sharing.
+   const recovery=document.createElement('details');
+   const recoverySummary=document.createElement('summary');
+   recoverySummary.textContent='기존 결제 복구 코드 보관 (권장)';
+   const recoveryWarning=document.createElement('p');
+   recoveryWarning.textContent='다른 기기에서 보고서를 다시 찾으려면 아래 코드를 안전하게 따로 보관하세요. 이 코드를 아는 사람은 주문을 조회할 수 있으므로 공유하지 마세요.';
+   const recoveryField=document.createElement('textarea');
+   recoveryField.readOnly=true;recoveryField.rows=3;
+   recoveryField.value=recoveryCode(pending);
+   recovery.append(recoverySummary,recoveryWarning,recoveryField);
+   panel.append(recovery);
    const toss=(await sdk())(cfg.clientKey);
    const widgets=toss.widgets({customerKey:'ANONYMOUS'});
    await widgets.setAmount({currency:'KRW',value:data.amount});
@@ -336,5 +426,7 @@ async function mount({container,analysisInput,proposal}={}){
   }finally{opening=false}
  });
 }
-window.REPORT_CHECKOUT_UI={mount,restore};
+window.REPORT_CHECKOUT_UI={mount,restore,recoverWithCode};
+if(typeof document.addEventListener==='function')
+ document.addEventListener('DOMContentLoaded',renderRecoveryEntry);
 })();
