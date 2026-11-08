@@ -288,6 +288,17 @@ function compile(prompt){
    for(const [topicId,topic] of Object.entries(chapter.topics)){
     if(prompt.paidCoreDepthV2===true&&chapterId==='saju_core'&&topicId==='temperament')
      topic.paidCoreDepthV2=require('./report-paid-core-depth-v2').build(prompt.facts);
+    // No historical one-call QA, development V2 or other paid chapter
+    // may gain this extra source without an independently approved request.
+    if(chapterId==='saju_core'&&topicId==='strength'&&
+       prompt.paidCoreDepthV2!==true&&
+       prompt.qaNatalDepthPreview!==true&&
+       prompt.qaAdditiveDepthPreview!==true&&
+       prompt.qaOfflineEditorialResearchPreview!==true){
+      const qualified=require('./report-paid-core-month-nonmain-exposure')
+       .inspect(source);
+      if(qualified)topic.normalPaidMonthNonmainExposure=qualified;
+    }
     const permitted=[...allowedRefs(payload,topic,chapterId,topicId)];
     topic.citableFacts=permitted.map(id=>{
      const fact=source[id]||{};
@@ -348,6 +359,15 @@ function compile(prompt){
       .build(prompt.facts,topic.evidenceFocus,permitted,source);
      if(!plan)throw Error('PAID_CORE_READER_VALUE_PLAN_UNAVAILABLE');
      topic.sourceOwnedCoreReaderValue=plan;
+     if(topic.normalPaidMonthNonmainExposure){
+      const m=topic.normalPaidMonthNonmainExposure;
+      if(!m.sourceRefs.every(id=>permitted.includes(id))||
+         m.approvedAsPremiumValue!==false||
+         m.additionalInterpretivePrioritySelected!==false)
+       throw Error('PAID_CORE_THIRD_MONTH_EXPOSURE_NOT_VERIFIED');
+      topic.sourceOwnedMonthNonmainExposure=m;
+      delete topic.normalPaidMonthNonmainExposure;
+     }
      topic.evidenceFocus.readerReasoning.hypotheticalQuestion=
       '가상의 업무 장면을 의무적으로 만들지 않는다. '+plan.readerTakeaway+
       ' 실제 출생월의 두 의미와 오행 관계를 독자 자신의 삶을 관찰한 사실처럼 말하지 않는다.';
@@ -717,6 +737,20 @@ function schema(prompt,transport){
      '정해진 가상 업무 이야기는 작성 의무가 아니다. ';
     basis.properties.refs.description+=' 이 명식의 필수 실제 두 출처: '+
      plan.refs.join(' / ')+'.';
+   }
+   if(task.sourceOwnedMonthNonmainExposure){
+    const m=task.sourceOwnedMonthNonmainExposure;
+    const actual=require('./report-paid-core-month-nonmain-exposure')
+     .inspect(payload.source);
+    if(chapterId!=='saju_core'||topic!=='strength'||!actual||
+       JSON.stringify(actual)!==JSON.stringify(m)||
+       !m.sourceRefs.every(id=>permitted.includes(id))||
+       m.approvedAsPremiumValue!==false||
+       m.additionalInterpretivePrioritySelected!==false)
+     throw Error('PAID_CORE_THIRD_MONTH_EXPOSURE_SCHEMA_DRIFT');
+    p.properties.text.description+=' 이 출생월에만 추가로 계산된 다른 속글자의 노출: '+m.readerGoal;
+    basis.properties.refs.description+=' 이 차이를 본문에서 설명한다면 '+
+     m.nonmainSourceId+'를 월간과 중심 글자 출처와 함께 인용하고, 우세를 주장하지 않는다.';
    }
    if(task.sourceOwnedMbtiDimension){
     const proof=task.sourceOwnedMbtiDimension;
@@ -1446,6 +1480,17 @@ function allowedRefs(payload,task,chapterId,topic){
     const mainId=main?'natal.month.hidden.'+main:null;
     if(Object.hasOwn(payload.source,visible))ids.add(visible);
     if(mainId&&Object.hasOwn(payload.source,mainId))ids.add(mainId);
+    // Ordinary first chapter only: a different month-hidden stem that
+    // exactly matches the visible monthly stem can be cited separately.
+    const qualified=task?.normalPaidMonthNonmainExposure||
+     task?.sourceOwnedMonthNonmainExposure;
+    if(qualified){
+     const extra=require('./report-paid-core-month-nonmain-exposure')
+      .inspect(payload.source);
+     if(!extra||JSON.stringify(qualified)!==JSON.stringify(extra))
+      throw Error('PAID_CORE_THIRD_MONTH_EXPOSURE_REF_DRIFT');
+     ids.add(extra.nonmainSourceId);
+    }
    }else{
     for(const id of Object.keys(payload.source)){
      if(match[2]?id.startsWith('natal.'+match[1]+'.hidden.'):
@@ -1722,6 +1767,13 @@ function restoreEvidence(value,prompt){
        task.paidCoreDepthV2);
      require('./report-paid-core-v2-closed-claim-schema')
       .assertClosed(prompt,task,p);
+    }
+    if(id==='saju_core'&&topic==='strength'&&
+       task.sourceOwnedMonthNonmainExposure){
+     const x=task.sourceOwnedMonthNonmainExposure;
+     if(!b.refs.includes(x.nonmainSourceId)||
+        !b.refs.includes(x.mainSourceId))
+      throw Error('PAID_CORE_THIRD_MONTH_EVIDENCE_MISSING_IN_ORIGINAL');
     }
     if(id==='saju_core'&&topic==='strength'){
      // Month-position traditional ten-god meanings are now the required
