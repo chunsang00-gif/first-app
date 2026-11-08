@@ -11,7 +11,7 @@ assert(source.includes('결제수단 확인하기'));
 const OWNER='a'.repeat(64),ORDER='12345678-1234-1234-1234-123456789012';
 const input={status:'ready',calculationInput:{calendar:'solar',
  birthDate:'1994-07-15',birthTime:'14:20',gender:'male',mbti:'ISFP'}};
-function scenario({kind='success',amount='9900',confirm='ok',state='verified-paid'}={}){
+function scenario({kind='success',amount='9900',confirm='ok',state='verified-paid',deliveryStatus=null}={}){
  const entries=new Map();
  entries.set('sajuAdaptiveCheckoutPendingV1',JSON.stringify({
   orderId:ORDER,ownerToken:OWNER,amount:9900,analysisInput:input,
@@ -33,7 +33,8 @@ function scenario({kind='success',amount='9900',confirm='ok',state='verified-pai
     json:async()=>confirm==='ok'?{status:'verified-paid'}:
      {status:'blocked',code:'PAYMENT_CONFIRMATION_UNCERTAIN'}};
   if(url==='/api/checkout/status')
-   return {ok:true,status:200,json:async()=>({state,orderId:ORDER})};
+   return {ok:true,status:200,json:async()=>({state,orderId:ORDER,
+    ...(deliveryStatus?{deliveryStatus}: {})})};
   throw Error('UNEXPECTED_NETWORK_PATH:'+url);
  };
  const params=kind==='no-redirect'?new URLSearchParams():
@@ -85,6 +86,20 @@ function scenario({kind='success',amount='9900',confirm='ok',state='verified-pai
  assert.equal(s.calls.filter(c=>c.url==='/api/checkout/confirm').length,0,
   'refresh after uncertain payment must only query status, never re-confirm');
  assert(s.body.children[0].children[1].textContent.includes('결제 승인 결과'));
+ // Paid report failure is not payment failure and must not show a
+ // "retry generation" CTA or falsely claim the customer was refunded.
+ for(const delivery of ['failed','rejected','interrupted','missing','review-required']){
+  s=scenario({kind:'no-redirect',state:'delivery-bound',deliveryStatus:delivery});
+  retained=JSON.parse(s.entries.get('sajuAdaptiveCheckoutPendingV1'));
+  retained.confirmed=true;
+  s.entries.set('sajuAdaptiveCheckoutPendingV1',JSON.stringify(retained));
+  assert.equal(await s.ui.restore(),true);
+  const panel=s.body.children[0];
+  assert(panel.children[1].textContent.includes('환불 처리를 요청'));
+  assert(panel.children[1].textContent.includes('자동 환불된 상태가 아닙니다'));
+  assert.equal(panel.children.filter(x=>x.tagName==='button').length,0);
+  assert.equal(s.calls.filter(x=>x.url==='/api/checkout/confirm').length,0);
+ }
  s=scenario({kind:'no-redirect',state:'refunded'});
  retained=JSON.parse(s.entries.get('sajuAdaptiveCheckoutPendingV1'));
  retained.confirmed=true;
