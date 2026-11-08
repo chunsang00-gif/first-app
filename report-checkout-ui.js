@@ -77,6 +77,23 @@ async function config(){
     x.fixed12x35Promised!==false)return null;
  return x;
 }
+// Recover an existing OWNER-BOUND order from server state, never from a URL.
+// Browser storage loss must not require a second payment or AI generation.
+function restoreOwnerJob(p,info){
+ if(info?.state!=='delivery-bound'||!p?.confirmed||
+    !/^[a-f0-9]{64}$/.test(p.ownerToken||'')||
+    !/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i.test(info.jobId||''))
+  return false;
+ const id=info.jobId;
+ if(sessionStorage.getItem('reportJobId')!==id||
+    sessionStorage.getItem('reportJobAccessToken')!==p.ownerToken){
+  sessionStorage.removeItem('reportCompleted');
+  sessionStorage.removeItem('reportQualityDraft');
+ }
+ sessionStorage.setItem('reportJobAccessToken',p.ownerToken);
+ sessionStorage.setItem('reportJobId',id);
+ return true;
+}
 function showPaidState(p,info){
  if(!p||!p.confirmed||!p.orderId||!p.ownerToken||!p.analysisInput)return;
  window.LIVE_REPORT_UI?.openResult?.();
@@ -90,14 +107,24 @@ function showPaidState(p,info){
  status.textContent='주문 번호: '+p.orderId+
   ' · 결제 금액: '+Number(p.amount).toLocaleString('ko-KR')+'원';
  section.append(title,text,status);
- if(info?.state==='delivery-bound'||p.generationStarted){
-  const report=document.createElement('p');
-  report.textContent='이미 연결된 보고서가 있습니다. 중복 생성하지 않고 기존 작업을 조회합니다.';
-  section.append(report);
-  const resume=document.createElement('button');
-  resume.className='btn primary';resume.textContent='기존 보고서 조회';
-  resume.addEventListener('click',()=>window.LIVE_REPORT_UI?.resume?.());
-  section.append(resume);
+ if(info?.state==='delivery-bound'){
+  if(restoreOwnerJob(p,info)){
+   const report=document.createElement('p');
+   report.textContent='이미 연결된 보고서가 있습니다. 중복 생성하지 않고 기존 작업을 조회합니다.';
+   section.append(report);
+   const resume=document.createElement('button');
+   resume.className='btn primary';resume.textContent='기존 보고서 조회';
+   resume.addEventListener('click',()=>window.LIVE_REPORT_UI?.resume?.());
+   section.append(resume);
+  }else{
+   const notice=document.createElement('p');
+   notice.textContent='결제된 주문의 기존 작업 번호를 확인하지 못했습니다. 재결제하거나 재생성하지 말고 주문 번호로 운영자에게 문의해 주세요.';
+   section.append(notice);
+  }
+ }else if(p.generationStarted){
+  const notice=document.createElement('p');
+  notice.textContent='보고서 생성 요청의 완료 여부가 불확실합니다. 중복 생성하지 말고 주문 번호로 운영자에게 확인해 주세요.';
+  section.append(notice);
  }else{
   const button=document.createElement('button');
   button.className='btn primary';button.textContent='내 유료 보고서 작성 시작';
