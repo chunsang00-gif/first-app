@@ -135,7 +135,23 @@ async function status(p){
 }
 function showOrderState(p,response){
  const state=response?.ok?response.data?.state:null;
- if(state==='verified-paid'||state==='delivery-bound'){
+ const delivery=response?.ok?response.data?.deliveryStatus:null;
+ if(state==='delivery-bound'&&
+    ['failed','rejected','interrupted','missing','review-required'].includes(delivery)){
+  if(!p.confirmed){p.confirmed=true;save(p)}
+  // Never imply an automatic refund or offer a fresh charge/retry.
+  const explanation=delivery==='rejected'?
+   '보고서가 품질 검증을 통과하지 못했습니다.':
+   delivery==='interrupted'?
+   '보고서 작성이 중단되어 완료 여부를 다시 확인해야 합니다.':
+   delivery==='missing'?
+   '주문에 연결된 보고서 기록을 확인할 수 없습니다.':
+   delivery==='review-required'?
+   '보고서의 완료 검증이 확인되지 않았습니다.':
+   '보고서 작성에 실패했습니다.';
+  showIssue(explanation+
+   ' 결제는 자동 환불된 상태가 아닙니다. 다시 결제하거나 자동 재생성하지 마세요. 주문 번호를 보관하고 운영자에게 확인 및 환불 처리를 요청해 주세요.',p);
+ }else if(state==='verified-paid'||state==='delivery-bound'){
   if(!p.confirmed){p.confirmed=true;save(p)}
   showPaidState(p,response.data);
  }else if(state==='refunded'){
