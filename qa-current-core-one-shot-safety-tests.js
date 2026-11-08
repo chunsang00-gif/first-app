@@ -49,8 +49,13 @@ const reply=runs=>async()=>({ok:true,json:async()=>({
  await assert.rejects(qa.guardFirstDispatch(environment,async()=>({ok:false})),
   /CURRENT_CORE_ONE_CALL_DENIED/);
  const frozen=await preflight.prepare();
- assert.equal(frozen.sha256,qa.FROZEN_REQUEST_SHA256,
-  'paid runner must reject any modified real request envelope');
+ // The November 7 one-shot already consumed its sole authorization.
+ // The product writer has now changed; NEVER repin that historical approval
+ // to a new prompt or allow another paid call with the old consent token.
+ assert.equal(qa.FROZEN_REQUEST_SHA256,
+  'dd5c1a38775aaab052363a41c2ddab7ea7336d8db456140442bc0bb78eda6170');
+ assert.notEqual(frozen.sha256,qa.FROZEN_REQUEST_SHA256,
+  'retired one-shot request cannot match a changed first-chapter writer');
  assert.equal(frozen.providerCalls,0);
  assert.equal(frozen.approvalToCharge,false);
  assert.deepEqual(frozen.sections,['saju_core']);
