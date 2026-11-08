@@ -13,7 +13,8 @@ function inspect(source){
  const mainRow=source[mainId],other=source[otherId];
  if(!other)return null; // visible monthly stem not in other hidden slots
  if(mainRow?.stem!==main||other.stem!==monthStem||
-    other.position!=='month'||mainRow.position!=='month'||
+    other.position!=='월지'||mainRow.position!=='월지'||
+    month.position!=='월간'||
     !other.tenGod||!mainRow.tenGod||other.tenGod!==month.tenGod||
     other.observedBehavior!==false||month.observedBehavior!==false||
     mainRow.observedBehavior!==false)
