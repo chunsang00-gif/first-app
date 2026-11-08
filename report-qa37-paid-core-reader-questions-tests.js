@@ -47,7 +47,11 @@ global.fetch=()=>{networkAttempts++;throw Error('QA37_NETWORK_PROHIBITED')};
    plan.twoSidedScope.visibleQuestion,plan.twoSidedScope.centralQuestion);
   assert.equal(plan.directionalReadingQuestion,directional);
   assert.equal(plan.twoSidedScope.directionalReadingQuestion,directional);
-  assert(plan.script.includes('이 명식의 오행 방향에만 대응하는 추가 해석 질문: '+directional));
+  assert(plan.script.includes('이 명식의 실제 질문: '+plan.actualTwoSidedReading));
+  assert(!plan.script.includes('첫 질문만 답하면 무엇이 빠지고'));
+  assert.equal(plan.twoSidedScope.mirrorAdviceRequired,false);
+  assert.equal(Object.hasOwn(plan.twoSidedScope,'ifOnlyVisible'),false);
+  assert.equal(Object.hasOwn(plan.twoSidedScope,'ifOnlyMain'),false);
   assert.equal(plan.actualElementRelationIsSymbolicOnly,true);
   assert.equal(plan.conditionalScenarioNotObserved,true);
   assert(!/성격이 원래|실제로 도움을 받았|제약을 경험했다/.test(directional));
@@ -55,22 +59,14 @@ global.fetch=()=>{networkAttempts++;throw Error('QA37_NETWORK_PROHIBITED')};
   assert.equal(plan.twoSidedScope.canRankWhichRoleDominates,false);
   assert.equal(plan.notAnAdditionalPaidParagraph,true);
   assert.equal(plan.freePreviewCopyDisallowed,true);
-  if(!plan.sameClassification){
-   assert(plan.twoSidedScope.ifOnlyVisible.includes(plan.twoSidedScope.centralQuestion));
-   assert(plan.twoSidedScope.ifOnlyMain.includes(plan.twoSidedScope.visibleQuestion));
-   assert.notEqual(plan.twoSidedScope.ifOnlyVisible,plan.twoSidedScope.ifOnlyMain);
-   assert(plan.actualTwoSidedReading.includes(plan.twoSidedScope.centralQuestion));
-   assert(plan.actualTwoSidedReading.includes(plan.twoSidedScope.visibleQuestion));
-   assert(plan.script.includes('첫 질문만 답하면 무엇이 빠지고'));
-  }else{
-   assert.equal(plan.twoSidedScope.ifOnlyVisible,null);
-   assert.equal(plan.twoSidedScope.ifOnlyMain,null);
-   assert(plan.script.includes('반대 성향 두 개나 두 배의 영향력'));
-  }
+  assert(plan.actualTwoSidedReading.includes(plan.twoSidedScope.centralQuestion));
+  assert(plan.actualTwoSidedReading.includes(plan.twoSidedScope.visibleQuestion));
+  assert(!plan.actualTwoSidedReading.includes('겉자리만 읽으면'));
+  assert(!plan.actualTwoSidedReading.includes('달 중심만 읽으면'));
   assert(plan.script.includes(plan.actualTwoSidedReading));
   assert(plan.script.includes(plan.monthVisibleTraditionalMeaning));
   assert(plan.script.includes(plan.monthMainTraditionalMeaning));
-  assert(plan.script.includes(plan.actualElementRelation));
+  assert(plan.actualElementRelation.length>7);
   assert(!/(?:고객님은 반드시|당신은 원래|승진합니다|소득이 늘어납니다)/.test(plan.script));
   const schema=writer.schema(request.prompt,wire.schemaFor(request.prompt,baseSchema));
   const words=schema.properties.chapters.properties.saju_core.properties
@@ -81,7 +77,7 @@ global.fetch=()=>{networkAttempts++;throw Error('QA37_NETWORK_PROHIBITED')};
   pairs.add([month.stemTenGod,hidden.tenGod].join('/'));
   results.push({id:input.id,monthVisible:month.stemTenGod,
    monthCentral:hidden.tenGod,direction:expectedDirection,
-   questionCount:plan.sameClassification?1:2});
+   distinctiveDirectionalReading:true});
  }
  assert.equal(results.length,3);
  assert.equal(pairs.size,3,'three birth charts should have different verified month pairs');
@@ -126,7 +122,7 @@ global.fetch=()=>{networkAttempts++;throw Error('QA37_NETWORK_PROHIBITED')};
   paidProviderRequests:0,operatingDeployment:false,humanReviewApproved:false,
   cases:results
  }));
- console.log('PASS three chart-owned bidirectional month questions in real paid first-batch prompt; no provider calls');
+ console.log('PASS three chart-owned asymmetric month relations in real paid first-batch prompt; no provider calls');
 })().catch(e=>{console.error(e);process.exitCode=1}).finally(()=>{
  global.fetch=previous;
 });
