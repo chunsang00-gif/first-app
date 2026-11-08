@@ -67,10 +67,21 @@ function forPrompt(prompt){
  if(direction?.visibleSourceId!==first.sourceId||
     direction?.hiddenSourceId!==second.sourceId)
   throw Error('CORE_READER_ELEMENT_PROVENANCE_DRIFT');
+ const historicalPinnedQA=prompt.qaNatalDepthPreview===true||
+  prompt.qaAdditiveDepthPreview===true||
+  prompt.qaOfflineEditorialResearchPreview===true||
+  prompt.paidCoreDepthV2===true;
+ // Approved historical QA envelopes must stay byte-identical and unbillable
+ // if somebody reuses their consumed run code. Only the normal live core
+ // chapter receives the more informative source-direction headline.
  const relationalTitle=relationReaderLine(direction.kind,first.tenGod,second.tenGod);
- const title=same?a.title:relationalTitle;
- const keyJudgment='사주에서는 '+(same?a.last+' 기질로 풀이합니다.':
-  a.first+' '+b.last+' 기질을, '+relationalTitle+'로 풀이합니다.');
+ const title=same||historicalPinnedQA?
+  (same?a.title:shortTitle[first.tenGod]+' · '+shortTitle[second.tenGod]):
+  relationalTitle;
+ const original='사주에서는 '+(same?a.last:a.first+' '+b.last)+' 기질로 풀이합니다.';
+ const keyJudgment=same||historicalPinnedQA?original:
+  '사주에서는 '+a.first+' '+b.last+
+  ' 기질을, '+relationalTitle+'로 풀이합니다.';
  if(!title||title.length>30||
     keyJudgment.split(/(?<=[.!?。！？])\\s+|\\n+/).filter(Boolean).length!==1||
     !keyJudgment.endsWith('풀이합니다.'))
