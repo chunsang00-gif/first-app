@@ -223,8 +223,16 @@ let fetches=0,rawRequest=null,upstreamPrompt=null;
   const verifiedMain=second.evidenceFocus.tenGodFocus.monthMainHidden.sourceId;
   assert(second.citableFacts.some(x=>x.id==='natal.month.stem'));
   assert(second.citableFacts.some(x=>x.id===verifiedMain));
+  const optionalMonth=second.sourceOwnedMonthNonmainExposure;
   assert.deepEqual(second.citableFacts.filter(x=>x.id.startsWith('natal.month.hidden.'))
-    .map(x=>x.id),[verifiedMain]);
+    .map(x=>x.id),optionalMonth?
+     [verifiedMain,optionalMonth.nonmainSourceId]:[verifiedMain]);
+  if(optionalMonth){
+   assert(optionalMonth.mainSourceId===verifiedMain&&
+    secondText.includes(optionalMonth.readerGoal)&&
+    optionalMonth.additionalInterpretivePrioritySelected===false,
+    'only the real third monthly source may supply the new reader observation');
+  }
   const refs1=firstSlot.properties.basis.properties.refs.items.enum;
   const refs2=secondSlot.properties.basis.properties.refs.items.enum;
   assert.deepEqual(refs1,first.citableFacts.map(x=>x.id));
