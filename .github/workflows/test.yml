@@ -18,6 +18,8 @@ jobs:
       - run: node character-assets-test.js
       - run: npm test
       - run: npm run smoke
+      - name: Verify paid delivery failure is visible without a new charge or refund promise
+        run: node report-paid-delivery-state-tests.js
       - name: Check a DIFFERENT evidence-based first-chapter reading order without paid calls
         run: node report-core-month-exposure-reading-order-tests.js
       - name: Freeze the current first-chapter provider envelope OFFLINE (no keys, no network)
