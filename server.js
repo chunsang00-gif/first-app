@@ -220,7 +220,14 @@ if(req.method==='POST'&&req.url==='/api/checkout/status'){
  const p=await body(req);
  try{
   const info=paymentLedger.status({orderId:p?.orderId,ownerToken:p?.ownerToken});
-  return json(res,200,{status:'ready',...info});
+  // This is a financial status plus an OWNER-ONLY delivery outcome.
+  // A paid but FAILED report must not masquerade as a completed delivery.
+  // The underlying payment stays verified until an operator checks/refunds it.
+  const delivery=info.state==='delivery-bound'&&info.jobId?
+   require('./report-paid-delivery-state').assess(
+    JOBS.get(info.jobId)||reportStore.load(info.jobId),
+    {inActiveMemory:JOBS.has(info.jobId)}):null;
+  return json(res,200,{status:'ready',...info,...(delivery||{})});
  }catch{
   // Avoid distinguishing a missing order from an invalid owner token.
   return json(res,403,{status:'blocked',code:'PAYMENT_ORDER_OWNER_DENIED'});
