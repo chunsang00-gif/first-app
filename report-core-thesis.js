@@ -25,6 +25,33 @@ const shortTitle={
  정관:'규칙과 역할',편관:'요구와 책임',
  정인:'배움과 조언',편인:'낯선 정보 이해'
 };
+// Short reader-facing meanings, never a second ten-god dictionary in prose.
+const readerNoun={
+ 비견:'자기 몫',겁재:'공동 자원',식신:'결과물',상관:'새 방식',
+ 정재:'지속 관리',편재:'자원 활용',정관:'규칙과 역할',
+ 편관:'요구와 책임',정인:'배움과 조언',편인:'정보 이해'
+};
+function josa(s,final,open){
+ const v=s.charCodeAt(s.length-1);
+ if(v<0xAC00||v>0xD7A3)throw Error('CORE_READER_NON_KOREAN_NOUN');
+ return (v-0xAC00)%28?final:open;
+}
+// The calculated month-hidden -> month-visible five-element link belongs to
+// these two source positions only. It does not prove anyone's behavior.
+function relationReaderLine(kind,visible,hidden){
+ if(!readerNoun[visible]||!readerNoun[hidden])
+  throw Error('CORE_READER_UNKNOWN_CALCULATED_MEANING');
+ const a=readerNoun[visible],b=readerNoun[hidden];
+ const from=kind==='hidden-generates-visible'||kind==='hidden-controls-visible'?b:a;
+ const to=from===b?a:b;
+ const verb=kind==='hidden-generates-visible'||kind==='visible-generates-hidden'?
+  '뒷받침하는':kind==='hidden-controls-visible'||kind==='visible-controls-hidden'?
+  '제약하는':null;
+ if(kind==='same-element')
+  return a+josa(a,'과','와')+' '+b+'의 서로 다른 뜻';
+ if(!verb)throw Error('CORE_READER_UNKNOWN_ELEMENT_DIRECTION');
+ return from+josa(from,'이','가')+' '+to+josa(to,'을','를')+' '+verb+' 관계';
+}
 function forPrompt(prompt){
  if(prompt?.stage!=='body'||!prompt.requestedSections?.includes('saju_core'))return null;
  const calculated=contrast.build(prompt.facts)?.monthTenGodContext;
@@ -36,8 +63,14 @@ function forPrompt(prompt){
  const a=actions[first.tenGod],b=actions[second.tenGod];
  if(!a||!b)throw Error('UNKNOWN_MONTH_TEN_GOD_FOR_CORE_THESIS');
  const same=first.tenGod===second.tenGod;
- const title=same?a.title:shortTitle[first.tenGod]+' · '+shortTitle[second.tenGod];
- const keyJudgment='사주에서는 '+(same?a.last:a.first+' '+b.last)+' 기질로 풀이합니다.';
+ const direction=calculated.elementLink;
+ if(direction?.visibleSourceId!==first.sourceId||
+    direction?.hiddenSourceId!==second.sourceId)
+  throw Error('CORE_READER_ELEMENT_PROVENANCE_DRIFT');
+ const relationalTitle=relationReaderLine(direction.kind,first.tenGod,second.tenGod);
+ const title=same?a.title:relationalTitle;
+ const keyJudgment='사주에서는 '+(same?a.last+' 기질로 풀이합니다.':
+  a.first+' '+b.last+' 기질을, '+relationalTitle+'로 풀이합니다.');
  if(!title||title.length>30||
     keyJudgment.split(/(?<=[.!?。！？])\\s+|\\n+/).filter(Boolean).length!==1||
     !keyJudgment.endsWith('풀이합니다.'))
