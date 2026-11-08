@@ -1769,13 +1769,6 @@ function restoreEvidence(value,prompt){
      require('./report-paid-core-v2-closed-claim-schema')
       .assertClosed(prompt,task,p);
     }
-    if(id==='saju_core'&&topic==='strength'&&
-       task.sourceOwnedMonthNonmainExposure){
-     const x=task.sourceOwnedMonthNonmainExposure;
-     if(!b.refs.includes(x.nonmainSourceId)||
-        !b.refs.includes(x.mainSourceId))
-      throw Error('PAID_CORE_THIRD_MONTH_EVIDENCE_MISSING_IN_ORIGINAL');
-    }
     if(id==='saju_core'&&topic==='strength'){
      // Month-position traditional ten-god meanings are now the required
      // interpretation, roots and clash claims are no longer compulsory.
