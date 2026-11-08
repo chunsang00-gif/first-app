@@ -59,10 +59,17 @@ async function inspect(input){
   slots.temperament.type!=='null'&&
   (slots.temperament.anyOf||[]).some(x=>x.type==='null'),
   'HIDDEN_NON_ADDITIVE_SLOT_REPLACEMENT');
+ // Historical QA is pinned to its original first-chapter title.
+ // The real normal paid headline can improve independently, but the
+ // proposed additive prototype MUST copy the current normal core unchanged.
+ const fixed=require('./report-core-thesis');
+ const currentTitle=fixed.forPrompt(prompt);
+ const historicalTitle=fixed.forPrompt(candidate.prompt);
  truth(qaSlots.strength.type==='object'&&slots.strength.type==='object'&&
-  same(qaChapter.properties.title.enum,normalChapter.properties.title.enum)&&
-  same(qaChapter.properties.keyJudgment.enum,
-   normalChapter.properties.keyJudgment.enum),
+  same(normalChapter.properties.title.enum,[currentTitle.title])&&
+  same(normalChapter.properties.keyJudgment.enum,[currentTitle.keyJudgment])&&
+  same(qaChapter.properties.title.enum,[historicalTitle.title])&&
+  same(qaChapter.properties.keyJudgment.enum,[historicalTitle.keyJudgment]),
   'MANDATORY_BASELINE_REPLACEMENT');
  const natalRefs=qaTask.topics.natal_depth.citableFacts.map(x=>x.id);
  truth(['natal.year.stem','natal.month.stem','natal.day.stem',
