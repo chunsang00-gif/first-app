@@ -12,7 +12,7 @@ const OWNER='a'.repeat(64),ORDER='12345678-1234-1234-1234-123456789012';
 const JOB='af12bc34-1234-4123-8123-123456789abc';
 const input={status:'ready',calculationInput:{calendar:'solar',
  birthDate:'1994-07-15',birthTime:'14:20',gender:'male',mbti:'ISFP'}};
-function scenario({kind='success',amount='9900',confirm='ok',state='verified-paid',deliveryStatus=null,jobId=null,generationStarted=false}={}){
+function scenario({kind='success',amount='9900',confirm='ok',state='verified-paid',deliveryStatus=null,jobId=null,generationStarted=false,statusOk=true}={}){
  const entries=new Map();
  entries.set('sajuAdaptiveCheckoutPendingV1',JSON.stringify({
   orderId:ORDER,ownerToken:OWNER,amount:9900,analysisInput:input,
@@ -34,7 +34,9 @@ function scenario({kind='success',amount='9900',confirm='ok',state='verified-pai
     json:async()=>confirm==='ok'?{status:'verified-paid'}:
      {status:'blocked',code:'PAYMENT_CONFIRMATION_UNCERTAIN'}};
   if(url==='/api/checkout/status')
-   return {ok:true,status:200,json:async()=>({state,orderId:ORDER,
+   return {ok:statusOk&&JSON.parse(init.body).ownerToken===OWNER&&
+     JSON.parse(init.body).orderId===ORDER,status:statusOk?200:403,
+    json:async()=>({status:'ready',amount:9900,state,orderId:ORDER,
     ...(deliveryStatus?{deliveryStatus}: {}),...(jobId?{jobId}:{})})};
   throw Error('UNEXPECTED_NETWORK_PATH:'+url);
  };
@@ -136,6 +138,43 @@ function scenario({kind='success',amount='9900',confirm='ok',state='verified-pai
  s.entries.set('sajuAdaptiveCheckoutPendingV1',JSON.stringify(retained));
  assert.equal(await s.ui.restore(),true);
  assert(!s.body.children[0].children.some(x=>x.tagName==='button'));
+ // Recovery via an explicitly saved bearer code works with NO local
+ // checkout session and NEVER initiates a new report or payment.
+ const code='SMB1:'+ORDER+':'+OWNER;
+ s=scenario({kind:'no-redirect',state:'delivery-bound',jobId:JOB});
+ s.entries.clear();
+ let recovered=await s.ui.recoverWithCode(code);
+ assert.equal(recovered.ok,true);
+ assert.equal(s.entries.get('reportJobAccessToken'),OWNER);
+ assert.equal(s.entries.get('reportJobId'),JOB);
+ assert.equal(JSON.parse(s.entries.get('sajuAdaptiveCheckoutPendingV1')).analysisInput,null,
+  'recovery code never contains private natal input');
+ assert.equal(s.calls.filter(c=>c.url==='/api/checkout/status').length,1);
+ assert.equal(s.calls.filter(c=>c.url==='/api/checkout/confirm').length,0);
+ assert.equal(s.calls.filter(c=>c.url==='/api/report').length,0);
+ s=scenario({kind:'no-redirect',state:'delivery-bound',jobId:JOB});
+ s.entries.clear();
+ recovered=await s.ui.recoverWithCode('SMB1:'+ORDER+':'+'b'.repeat(64));
+ assert.equal(recovered.ok,false);
+ assert.equal(s.entries.size,0,'wrong owner code cannot create a local entitlement');
+ s=scenario({kind:'no-redirect',state:'delivery-bound',jobId:JOB});
+ s.entries.clear();
+ recovered=await s.ui.recoverWithCode('SMB1:'+ORDER+':invalid');
+ assert.equal(recovered.ok,false);
+ assert.equal(s.calls.length,0,'malformed code is rejected without HTTP');
+ s=scenario({kind:'no-redirect',state:'verified-paid'});
+ s.entries.clear();
+ recovered=await s.ui.recoverWithCode(code);
+ assert.equal(recovered.ok,false);
+ assert.equal(recovered.reason,'no-existing-report');
+ assert.equal(s.entries.size,0,
+  'unbound paid order without original birth input must NOT regenerate');
+ s=scenario({kind:'no-redirect',state:'refunded'});
+ s.entries.clear();
+ recovered=await s.ui.recoverWithCode(code);
+ assert.equal(recovered.ok,false);
+ assert.equal(recovered.reason,'refunded');
+ assert.equal(s.entries.size,0,'refunded order cannot be restored');
  s=scenario({kind:'no-redirect',state:'refunded'});
  retained=JSON.parse(s.entries.get('sajuAdaptiveCheckoutPendingV1'));
  retained.confirmed=true;
@@ -255,6 +294,12 @@ function scenario({kind='success',amount='9900',confirm='ok',state='verified-pai
   'only exact chapter scope can prepare client-side payment methods');
  assert.equal(JSON.parse(bought.entries.get('sajuAdaptiveCheckoutPendingV1')).confirmed,false);
  assert.equal(bought.requests.filter(x=>x.url==='/api/checkout/start').length,1);
+ const storedRecovery=bought.panel.children.find(x=>x.tagName==='details');
+ assert(storedRecovery,'buyer must be offered recovery code before payment');
+ assert(storedRecovery.children.some(x=>x.tagName==='textarea'&&
+  x.value==='SMB1:'+ORDER+':'+OWNER));
+ assert(!bought.requests.some(x=>JSON.stringify(x).includes('SMB1:')),
+  'owner recovery code must not be sent to payment or model routes');
 
  console.log('PASS buyer redirect and refresh: owner-only pending, uncertain, verified and refunded recovery; no double charge; checkout disabled by default');
 })().catch(e=>{console.error(e);process.exitCode=1});
