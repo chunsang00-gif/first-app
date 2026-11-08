@@ -155,8 +155,12 @@ async function run(){
   assert.equal(normalWinter.task.chapters.saju_core.topics.temperament
    .paidCoreDepthV2,undefined);
   const oldSource=coreWinter.topics.strength.citableFacts;
-  assert.deepEqual(normalWinter.task.chapters.saju_core.topics.strength.citableFacts,
-   oldSource);
+  const normalStrength=normalWinter.task.chapters.saju_core.topics.strength;
+  const novel=normalStrength.sourceOwnedMonthNonmainExposure;
+  assert(novel&&novel.approvedAsPremiumValue===false,
+   'the NORMAL reader may have one extra exact month source, V2 remains pinned');
+  assert.deepEqual(normalStrength.citableFacts.filter(
+   row=>row.id!==novel.nonmainSourceId),oldSource);
   const historical=require('./report-core-paid-yi-guiwei-output-reading')
    .build(winterCapture.prompt.facts);
   assert(historical&&historical.approvedForCustomer===false);
