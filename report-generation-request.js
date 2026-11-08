@@ -741,7 +741,7 @@ function schema(prompt,transport){
    if(task.sourceOwnedMonthNonmainExposure){
     const m=task.sourceOwnedMonthNonmainExposure;
     const actual=require('./report-paid-core-month-nonmain-exposure')
-     .inspect(payload.source);
+     .inspect(payload.source,{priorGraphVerified:true});
     if(chapterId!=='saju_core'||topic!=='strength'||!actual||
        JSON.stringify(actual)!==JSON.stringify(m)||
        !m.sourceRefs.every(id=>permitted.includes(id))||
@@ -1486,7 +1486,8 @@ function allowedRefs(payload,task,chapterId,topic){
      task?.sourceOwnedMonthNonmainExposure;
     if(qualified){
      const extra=require('./report-paid-core-month-nonmain-exposure')
-      .inspect(payload.source);
+      .inspect(payload.source,{priorGraphVerified:
+       !Object.hasOwn(payload.source,'facts.stemConnections')});
      if(!extra||JSON.stringify(qualified)!==JSON.stringify(extra))
       throw Error('PAID_CORE_THIRD_MONTH_EXPOSURE_REF_DRIFT');
      ids.add(extra.nonmainSourceId);
