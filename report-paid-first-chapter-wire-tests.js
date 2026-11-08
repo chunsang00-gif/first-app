@@ -190,7 +190,7 @@ let fetches=0,rawRequest=null,upstreamPrompt=null;
    system.includes('결론의 재요약을 붙이지 않는다'),
    'actual system prompt must agree with the schema instructions');
   assert(readerValue.script.includes('양쪽 모두 중요하다는 말로 끝내지 않는다')&&
-   readerValue.script.includes('명식의 실제 질문: ')==false&&
+   !readerValue.script.includes('첫 질문만 답하면 무엇이 빠지고')&&
    readerValue.script.includes('이 명식의 실제 질문: '+readerValue.actualTwoSidedReading),
    'actual source-owned interpretation must explain one calculated direction, not two glossary definitions');
   assert(secondText.includes('사전적 정의 두 문장 다음에 일반적인 준비·확인 조언')&&
