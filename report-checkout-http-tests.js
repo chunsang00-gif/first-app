@@ -144,6 +144,20 @@ const server=http.createServer(require('./server').handler);
   assert(final,'an existing customer must retrieve the bound job result');
   assert.equal(final.code,422,'simulated model failure may not claim delivery succeeded');
   assert.equal(final.data.status,'failed');
+  // One paid order can be delivery-bound while its model report FAILED.
+  // Buyer-facing status must never claim successful delivery or refund.
+  const failedOrder=await post('/api/checkout/status',{orderId,ownerToken});
+  assert.equal(failedOrder.code,200);
+  assert.equal(failedOrder.data.state,'delivery-bound');
+  assert.equal(failedOrder.data.deliveryStatus,'failed');
+  assert.equal(failedOrder.data.humanSupportRequired,true);
+  assert.equal(failedOrder.data.automaticRetryAllowed,false);
+  assert.equal(failedOrder.data.refundCompleted,false);
+  assert(!JSON.stringify(failedOrder.data).includes(env.TOSS_SECRET_KEY));
+  const failedOtherOwner=await post('/api/checkout/status',{
+   orderId,ownerToken:'f'.repeat(64)});
+  assert.equal(failedOtherOwner.code,403);
+  assert.equal(failedOtherOwner.data.deliveryStatus,undefined);
   assert(modelAttempts<=1,
     'no automatic second billable attempt; the evidence gate may reject before a model request');
   // The second buyer pays before new sales are deliberately paused, but
@@ -206,6 +220,12 @@ const server=http.createServer(require('./server').handler);
   assert.equal(fulfillmentOutcome.code,422,
    'offline model failure is not a completed report or grounds for another charge');
   assert.equal(fulfillmentOutcome.data.status,'failed');
+  const failedAfterSalesClose=await post('/api/checkout/status',{
+   orderId:prepaidInfo.orderId,ownerToken:prepaidInfo.ownerToken});
+  assert.equal(failedAfterSalesClose.data.state,'delivery-bound');
+  assert.equal(failedAfterSalesClose.data.deliveryStatus,'failed');
+  assert.equal(failedAfterSalesClose.data.humanSupportRequired,true,
+   'buyers still need operator help after new checkout closes');
   assert(modelAttempts<=2,'no automatic provider retry after paused-sales fulfillment');
   // The owner must retain refund/uncertain-state visibility after closing sales.
   const refundFile=path.join(dir,'purchases','purchase-'+orderId+'.refunded.json');
@@ -214,6 +234,8 @@ const server=http.createServer(require('./server').handler);
   const refunded=await post('/api/checkout/status',{orderId,ownerToken});
   assert.equal(refunded.code,200);
   assert.equal(refunded.data.state,'refunded');
+  assert.equal(refunded.data.deliveryStatus,undefined,
+   'refunded status must take priority over the previous failed delivery');
   const refundedDelivery=await status(ownerToken);
   assert.equal(refundedDelivery.code,403,
    'a refunded order must not expose a report even with the right owner token');
