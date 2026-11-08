@@ -189,8 +189,10 @@ let fetches=0,rawRequest=null,upstreamPrompt=null;
   assert(system.includes('독자에게 출처·상징·검증 과정 자체를 강의하지 않는다')&&
    system.includes('결론의 재요약을 붙이지 않는다'),
    'actual system prompt must agree with the schema instructions');
-  assert(readerValue.script.includes('둘을 나열하거나 무조건 둘 다 중요하다는 결론으로 끝내지 않는다'),
-   'actual source-owned interpretation must not be reduced to two glossary definitions');
+  assert(readerValue.script.includes('양쪽 모두 중요하다는 말로 끝내지 않는다')&&
+   readerValue.script.includes('명식의 실제 질문: ')==false&&
+   readerValue.script.includes('이 명식의 실제 질문: '+readerValue.actualTwoSidedReading),
+   'actual source-owned interpretation must explain one calculated direction, not two glossary definitions');
   assert(secondText.includes('사전적 정의 두 문장 다음에 일반적인 준비·확인 조언')&&
    secondText.includes('같은 가상 상황의 선택에 어떤 차이를 만드는지 출처와 조건을 연결해 설명한다'),
    'paid provider must see the source-to-scene interpretation boundary');
