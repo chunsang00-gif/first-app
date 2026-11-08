@@ -63,6 +63,10 @@ function scenario({kind='success',amount='9900',confirm='ok',state='verified-pai
  });
  assert.equal(JSON.parse(s.entries.get('sajuAdaptiveCheckoutPendingV1')).confirmed,true);
  assert.equal(s.body.children[0].children[0].textContent,'결제가 확인됐습니다');
+ assert(s.body.children[0].children.some(x=>x.tagName==='details'&&
+  x.children.some(y=>y.tagName==='textarea'&&
+   y.value==='SMB1:'+ORDER+':'+OWNER)),
+  'verified buyer still has access to recovery code after payment redirect');
  assert(s.history[0][2].indexOf('paymentKey')<0,
   'remove payment key and returned auth values from address bar');
  assert.equal(await s.ui.restore(),true);
