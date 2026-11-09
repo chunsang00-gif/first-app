@@ -34,9 +34,13 @@ assert(entered.text.includes('명리 근거 아님'));
 assert(!empty.payload.task.chapters.saju_core.coreReaderChoiceContext);
 assert(!empty.text.includes('고객이 직접 입력한 현재 질문'));
 assert.notEqual(entered.text,other.text);
-assert.deepEqual(Object.keys(entered.payload.source).sort(),
- Object.keys(empty.payload.source).sort(),
- 'the buyer question must not create any new astrological citation');
+const added=Object.keys(entered.payload.source).filter(k=>
+ !Object.hasOwn(empty.payload.source,k));
+assert(added.every(k=>/^natal\.hour\.(?:stem|hidden\.[甲乙丙丁戊己庚辛壬癸])$/.test(k)));
+assert(added.length===0||
+ entered.payload.task.chapters.saju_core.topics.temperament
+  .sourceOwnedHourExtension?.sourceRefs.every(k=>added.includes(k)),
+ 'user question may only activate independently verified hour citations');
 assert(!Object.keys(entered.payload.source).some(k=>/readerDecision/.test(k)));
 assert(!ch.topics.strength.citableFacts.some(x=>/readerDecision/.test(x.id)));
 assert.equal(entered.payload.task.chapters.saju_core.coreReaderChoiceContext.source,

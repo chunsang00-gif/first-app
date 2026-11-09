@@ -314,6 +314,14 @@ function compile(prompt){
        .inspect(source);
       if(qualified)topic.normalPaidMonthNonmainExposure=qualified;
     }
+    if(chapterId==='saju_core'&&topicId==='temperament'&&
+       topic.mode!=='state-limits'&&prompt.paidCoreDepthV2!==true&&
+       prompt.qaNatalDepthPreview!==true&&prompt.qaAdditiveDepthPreview!==true&&
+       prompt.qaOfflineEditorialResearchPreview!==true){
+     const ext=require('./report-paid-core-hour-extension')
+      .build(prompt.facts,source);
+     if(ext)topic.sourceOwnedHourExtension=ext;
+    }
     const permitted=[...allowedRefs(payload,topic,chapterId,topicId)];
     topic.citableFacts=permitted.map(id=>{
      const fact=source[id]||{};
@@ -734,6 +742,20 @@ function schema(prompt,transport){
      throw Error('PAID_CORE_SEASON_READER_WRITER_SOURCE_DRIFT');
     p.properties.text.description+=' 해당 출생월에서 별도로 검토할 계절과 겉글자 근거: '+
      checked.readerWritingGoal;
+   }
+   if(chapterId==='saju_core'&&topic==='temperament'&&
+      task.sourceOwnedHourExtension){
+    const ext=task.sourceOwnedHourExtension;
+    const verified=require('./report-paid-core-hour-extension')
+     .build(prompt.facts,payload.source);
+    if(!verified||JSON.stringify(ext)!==JSON.stringify(verified)||
+       ext.sourceRefs.some(ref=>!permitted.includes(ref))||
+       ext.classicalPriorityApproved!==false||
+       ext.realAbilityObserved!==false||ext.premiumValueApproved!==false)
+     throw Error('CORE_HOUR_EXTENSION_SCHEMA_DRIFT');
+    p.properties.text.description+=' 이 사람의 별도 출생시간에서 확인되는 내용: '+ext.readerGoal;
+    basis.properties.refs.description+=' 출생시간의 추가 뜻을 쓸 경우 실제 두 출처를 같이 인용: '+
+     ext.sourceRefs.join(' / ')+'.';
    }
    if(task.sourceOwnedCoreReaderValue){
     const plan=task.sourceOwnedCoreReaderValue;
@@ -1451,6 +1473,14 @@ function allowedRefs(payload,task,chapterId,topic){
  // Returning early here used to make the paid domain-MBTI bridge impossible.
  const paths=explicit?[]:task?.mode==='use-primary'?[task.sourcePath]:task?.mode==='use-verified-fallback'?task.fallbackPaths||[]:[];
  const ids=new Set(explicit?task.allowedSourceRefs.filter(id=>Object.hasOwn(payload.source,id)):[]);
+ if(chapterId==='saju_core'&&topic==='temperament'&&task?.sourceOwnedHourExtension){
+  const ext=task.sourceOwnedHourExtension;
+  if(ext.kind!=='buyer-choice-hour-symbolic-extension-v1'||
+     ext.realAbilityObserved!==false||ext.premiumValueApproved!==false||
+     ext.sourceRefs.some(ref=>!Object.hasOwn(payload.source,ref)))
+   throw Error('CORE_HOUR_EXTENSION_REF_DRIFT');
+  for(const ref of ext.sourceRefs)ids.add(ref);
+ }
  if(chapterId==='saju_core'&&topic==='temperament'&&task?.paidCoreDepthV2){
   const extra=task.paidCoreDepthV2;
   if(extra.kind!=='first-chapter-optional-full-chart-source-v1'||
@@ -1781,6 +1811,13 @@ function restoreEvidence(value,prompt){
     if(omittedMeaning)
      throw Error('AI report service paid source-owned reader substance missing: '+
       id+':'+topic+':'+omittedMeaning);
+    if(id==='saju_core'&&topic==='temperament'&&
+       task.sourceOwnedHourExtension){
+     const ext=task.sourceOwnedHourExtension;
+     if(b.refs.some(ref=>ext.sourceRefs.includes(ref))&&
+        !ext.sourceRefs.every(ref=>b.refs.includes(ref)))
+      throw Error('CORE_HOUR_EXTENSION_PARTIAL_CITATION');
+    }
     if(id==='saju_core'&&topic==='temperament'&&prompt.paidCoreDepthV2===true){
      const contrast=task.paidCoreDepthV2.readerClassicalScope||
       task.paidCoreDepthV2.readerContrast||
