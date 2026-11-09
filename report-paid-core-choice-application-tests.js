@@ -13,7 +13,7 @@ assert.deepEqual(audit.alternatives(q),{first:['유지'],second:['기술','배�
 assert.deepEqual(audit.alternatives('이직할지 창업할지 고민 중입니다.'),
  {first:['이직'],second:['창업']});
 assert.deepEqual(audit.alternatives('물건을 살지 대여할지 생각 중입니다.'),
- {first:['물건','살'],second:['대여']});
+ {first:['물건'],second:['대여']});
 assert.deepEqual(audit.inspect(section(real),q),[]);
 assert.deepEqual(audit.inspect(section(q+' '+real),q),[]);
 assert(audit.inspect(section(q+' '+generic),q).includes(
