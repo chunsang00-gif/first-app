@@ -20,7 +20,7 @@ jobs:
         with:
           node-version: '22'
       - name: Install pinned offline calculation dependency
-        run: npm ci --ignore-scripts --no-audit --no-fund
+        run: npm install --ignore-scripts --no-audit --no-fund
       - name: Retrieve original paid QA encrypted artifact, NOT a new AI request
         uses: actions/download-artifact@v4
         with:
