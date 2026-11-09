@@ -14,9 +14,12 @@ function tokens(s){
 }
 function alternatives(question){
  if(typeof question!=='string'||question.length>140)return null;
- const m=question.match(/(.{2,70}?)할지\s+(.{2,70}?)할지/);
+ const m=question.match(/(.{2,70}?)([가-힣]지)\s+(.{2,70}?)([가-힣]지)/);
  if(!m)return null;
- const a=tokens(m[1]),b=tokens(m[2]);
+ // Korean alternatives include 유지할지, 배울지, 고를지, 이직할지.
+ // Reattach the end of verbs other than auxiliary '할지'.
+ const restore=(stem,suffix)=>stem+(suffix==='할지'?'':suffix.slice(0,-1));
+ const a=tokens(restore(m[1],m[2])),b=tokens(restore(m[3],m[4]));
  const first=a.filter(v=>!b.includes(v)),second=b.filter(v=>!a.includes(v));
  return first.length&&second.length?{first,second}:null;
 }

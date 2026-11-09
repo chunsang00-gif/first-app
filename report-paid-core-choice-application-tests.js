@@ -10,6 +10,10 @@ const real='이미 하던 일을 유지한다면 기존에 익힌 방법을 살�
 const generic='새로운 정보를 자기 방식으로 이해하고 필요한 자원을 찾아 활용하는 뜻을 봅니다. '+
  '어느 한 가지만 보면 놓치는 조건이 있으므로 두 가지 뜻을 함께 살펴봅니다.';
 assert.deepEqual(audit.alternatives(q),{first:['유지'],second:['기술','배울']});
+assert.deepEqual(audit.alternatives('이직할지 창업할지 고민 중입니다.'),
+ {first:['이직'],second:['창업']});
+assert.deepEqual(audit.alternatives('물건을 살지 대여할지 생각 중입니다.'),
+ {first:['물건','살'],second:['대여']});
 assert.deepEqual(audit.inspect(section(real),q),[]);
 assert.deepEqual(audit.inspect(section(q+' '+real),q),[]);
 assert(audit.inspect(section(q+' '+generic),q).includes(
