@@ -1,12 +1,9 @@
 name: Offline replay of already-paid 2026-11-07 first chapter (no provider)
+# Archived, already-paid specimen is not a live regression fixture.
+# Its one-time diagnostic relies on historical decryption and may fail
+# independently of today's source-based production tests. Run manually.
 on:
-  push:
-    branches: [fix-paid-qa-fact-bindings-20261014]
-    paths:
-      - .github/workflows/qa-current-core-original-free-replay.yml
-      - report-grounding-review.js
-      - report-core-thesis-tests.js
-      - qa-current-first-chapter-original-replay.js
+  workflow_dispatch:
 permissions:
   contents: read
   actions: read
