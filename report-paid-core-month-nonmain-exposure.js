@@ -39,16 +39,24 @@ function inspect(source,{priorGraphVerified=false}={}){
  }
  const refIds=[visibleId,mainId,otherId];
  const newEvidence='태어난 달의 겉글자는 달의 중심 숨은 글자와 다르지만, 같은 달의 다른 숨은 글자와 정확히 일치한다.';
- const readerGoal='이 사주에서는 '+newEvidence+
-  ' 겉의 뜻과 중심의 뜻을 단순히 동등한 두 성격처럼 나열하기 전에, 왜 겉에 드러난 뜻이 달의 다른 숨은 글자와도 연결되는지 쉽게 설명한다. '+
-  '이 관계만으로 어느 분류가 실제로 우세하거나 강한지, 최종 격국, 재물·직업·성격, 미래 사건을 확정하지 않는다. '+
-  '새 근거가 추가된 한 문장만 설명하고 앞의 십성 정의를 다시 반복하지 않는다.';
+ // A repeated exact stem has the SAME ten-god meaning. This is only
+ // additional PROVENANCE for the visible monthly role, not a new life insight.
+ // Do not inflate a source-count change into a billable trait or extra topic.
+ const readerGoal='이 출생월의 보충 계산 사실: '+newEvidence+
+  ' 같은 글자는 같은 전통 분류를 나타내므로 새 기질이 추가되거나 의미가 두 배로 강해진다는 뜻이 아니다. '+
+  '그 사실을 설명해야 독자가 겉글자와 중심 숨은 글자의 차이를 이해하는 경우에만 한 문장으로 덧붙이고, 그렇지 않다면 독자용 본문에서는 생략한다. '+
+  '다른 숨은 글자의 존재만으로 해석의 우선순위, 실제 성격·능력·재물·직업·미래를 확정하지 않는다. '+
+  '이 자료를 독립된 유료 통찰이나 세 번째 성격 분류처럼 설명하지 않는다.';
  return Object.freeze({
   kind:'normal-paid-first-chapter-third-month-source-v1',
   sourceRefs:Object.freeze(refIds),
   mainSourceId:mainId,nonmainSourceId:otherId,
   exactMonthlyHiddenMatch:true,
   mainIsNotTheMatchedHidden:true,
+  sameTraditionalRoleAsVisible:true,
+  distinctTraditionalRole:false,
+  additionalIndependentPaidInterpretation:false,
+  optionalSupportingSourceOnly:true,
   readerGoal,newEvidence,
   additionalInterpretivePrioritySelected:false,
   actualTraitObserved:false,lifeOutcomeConfirmed:false,
