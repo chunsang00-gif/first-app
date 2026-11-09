@@ -108,6 +108,10 @@ function earlyMbtiReaderProblems(sections,mbti){
 function earlyFreePreviewCopyProblems(sections,packet){
  return require('./report-paid-free-copy-gate').inspect(sections,packet);
 }
+function earlyPaidCoreChoiceProblems(sections,packet){
+ return require('./report-paid-core-choice-application')
+  .inspect(sections,packet?.person?.readerDecision);
+}
 function preSynthesisDuplicateErrors(sections){
  return [...findRepeatedSubstantiveSentences(sections),
   ...findParaphrasedTopicContent(sections),
@@ -394,6 +398,8 @@ async function generate(input,callModel,onProgress=()=>{},onValidatedBatch=()=>{
   }
   if(earlyFreePreviewCopyProblems(verified.sections,packet).length)
    throw Error('QA resume reused the free reader interpretation as paid prose');
+  if(earlyPaidCoreChoiceProblems(verified.sections,packet).length)
+   throw Error('QA resume first chapter failed buyer-choice application');
   const combined=[...priorSections.map(s=>({id:s.id,keyJudgment:s.keyJudgment,body:s.topicConclusions,bodyTopics:s.bodyTopics})),...verified.sections];
   if(findRepeatedTopicContent(combined).length)throw Error('QA resume repeated topic explanations');
   if(findRecycledThemes(combined).length||findReusedEvidenceConclusions(combined).length)throw Error('QA resume recycled chapter thesis');
@@ -458,6 +464,11 @@ async function generate(input,callModel,onProgress=()=>{},onValidatedBatch=()=>{
     requestedIds:ids,codes:mbtiProblems
    });
    throw Error('AI report service returned MBTI preference reader-quality defects');
+  }
+  const choiceProblems=earlyPaidCoreChoiceProblems(result.sections,packet);
+  if(choiceProblems.length){
+   console.error('[Paid buyer choice was not applied before next provider call]',{requestedIds:ids,codes:choiceProblems});
+   throw Error('AI report service did not apply both customer choice alternatives');
   }
   const previewCopyProblems=earlyFreePreviewCopyProblems(result.sections,packet);
   if(previewCopyProblems.length){
@@ -553,6 +564,6 @@ async function generate(input,callModel,onProgress=()=>{},onValidatedBatch=()=>{
  qa=require('./report-release-gate').finalize({report,qa,packet,coverage});
  return qa.pass?{status:'ready',report,qa,headingRepairs,coverage}:{status:'rejected',report,qa,headingRepairs,coverage};
 }
-module.exports={earlyFreePreviewCopyProblems,earlyMbtiReaderProblems,findReusedEvidenceConclusions,enforceAnnualEvidenceLimits,narrativeMotifLedger,IDS,validateShape,buildPrompt,generate,findRepeatedTopicContent,findRecycledThemes,findParaphrasedTopicContent,findRepeatedAdvice,findRepeatedSubstantiveSentences,preSynthesisDuplicateErrors};
+module.exports={earlyPaidCoreChoiceProblems,earlyFreePreviewCopyProblems,earlyMbtiReaderProblems,findReusedEvidenceConclusions,enforceAnnualEvidenceLimits,narrativeMotifLedger,IDS,validateShape,buildPrompt,generate,findRepeatedTopicContent,findRecycledThemes,findParaphrasedTopicContent,findRepeatedAdvice,findRepeatedSubstantiveSentences,preSynthesisDuplicateErrors};
 
 

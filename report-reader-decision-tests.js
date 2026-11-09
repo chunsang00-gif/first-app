@@ -52,6 +52,7 @@ const browser=fs.readFileSync(path.join(__dirname,'live-report-ui.js'),'utf8');
 assert(html.includes('id="readerDecision"'));
 assert(html.includes('maxlength="140"'));
 assert(html.includes('지금 고민하는 선택'));
+assert(html.includes('첫 장과 선택·결정 풀이에서 참고합니다.'));
 assert(browser.includes("value('readerDecision').trim()"));
 assert(html.includes("['지금 고민하는 선택',d.readerDecision]"));
 
