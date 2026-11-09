@@ -143,6 +143,36 @@ const normalDistinct={sections:[{
  evidence:['natal.month.stem: 편인으로 계산된 출처','natal.month.hidden: 편재로 계산된 출처']
 }]};
 allFirstChapterGuards(normalDistinct,actualDistinct,'different-category normal interpretation');
+
+// The actual verified month arrow for this 1982 chart constrains visible
+// information with the main hidden resource role, not the other way round.
+const monthDirection=require('./report-chart-contrast')
+ .build(actualDistinct).monthTenGodContext.elementLink;
+assert.equal(monthDirection.kind,'hidden-controls-visible');
+const directionalCode='saju_core:month-element-direction-contradicts-calculated-source';
+const directionalDraft=text=>({...normalDistinct,sections:[
+ {...normalDistinct.sections[0],body:[text]}
+]});
+const originalDirectionBody=normalDistinct.sections[0].body[0];
+assert(postReview.inspect(directionalDraft(originalDirectionBody+
+ ' 정보 이해가 자원 활용을 제약하는 오행 관계라고 풀이합니다.'),actualDistinct)
+ .blockingErrors.includes(directionalCode),
+ 'explicitly reversed source -> target arrow must be rejected');
+assert(postReview.inspect(directionalDraft(originalDirectionBody+
+ ' 자원 활용이 정보 이해를 뒷받침하는 오행 관계라고 풀이합니다.'),actualDistinct)
+ .blockingErrors.includes(directionalCode),
+ 'correct endpoints with wrong GENERATES vs CONTROLS relation must be rejected');
+assert(!postReview.inspect(directionalDraft(originalDirectionBody+
+ ' 자원 활용이 정보 이해를 제약하는 오행 방향으로 분류합니다.'),actualDistinct)
+ .blockingErrors.includes(directionalCode),
+ 'correctly computed symbolic direction must remain permitted');
+assert(!postReview.inspect(directionalDraft(originalDirectionBody+
+ ' 정보 이해가 자원 활용을 제약하는 관계라는 뜻은 아닙니다.'),actualDistinct)
+ .blockingErrors.includes(directionalCode),
+ 'denial of false arrow must remain permitted');
+assert(!postReview.inspect(normalSame,samePacket).blockingErrors.includes(directionalCode),
+ 'identical month categories cannot be forced into invented arrows');
+
  // Previously paid 39172323501 used indirect, natural Korean equivalents
  // of the verified 편인/편재 meanings. The ORIGINAL paid report is private;
  // these constructed prose examples test only the lexical recognition,

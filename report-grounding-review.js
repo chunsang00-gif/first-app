@@ -19,6 +19,38 @@ const coreMonthMeaningWords={
  정인:/(?:배움|배우|조언|도움|지원|보호|가르침|배운\s*내용)/,
  편인:/(?:낯선\s*(?:내용|정보|자료)|정보를\s*(?:이해|해석)|자료를\s*해석|배움의\s*방식|자기\s*방식으로\s*(?:이해|읽)|다른\s*관점에서\s*이해|정보\s*이해|(?:새로운\s*)?정보를\s*(?:자기|자신)\s*나름대로\s*(?:해석|이해|파악))/
 };
+
+// Reject only an explicit reversal of a SOURCE-LOCKED five-element arrow.
+// This is a narrow factual consistency check, not editorial approval.
+// It reads the short meaning nouns used in the locked reader headline.
+function monthDirectionConflict(text,verified){
+ const kind=verified?.elementLink?.kind;
+ if(!['hidden-generates-visible','visible-generates-hidden',
+  'hidden-controls-visible','visible-controls-hidden'].includes(kind))return false;
+ const noun=require('./report-core-thesis').readerNounFor;
+ const a=noun(verified.monthStem?.tenGod),b=noun(verified.monthMainHidden?.tenGod);
+ if(!a||!b||a===b)return false;
+ const hiddenFirst=kind.startsWith('hidden-');
+ const generating=kind.includes('generates');
+ const from=hiddenFirst?b:a,to=hiddenFirst?a:b;
+ const active=generating?'(?:뒷받침|돕|도와|지원하|생하)':
+  '(?:제약|제한|억제|가로막|막는)';
+ const opposite=generating?'(?:제약|제한|억제|가로막|막는)':
+  '(?:뒷받침|돕|도와|지원하|생하)';
+ const quoted=x=>x.replace(/[^가-힣0-9\s]/g,'\\const patterns=[').replace(/\s+/g,'\\s*');
+ const claim=(x,y,verb)=>new RegExp(
+  quoted(x)+'\\s*(?:이|가|은|는)\\s*'+quoted(y)+
+  '\\s*(?:을|를|에)\\s*(?:(?:더|오히려|직접)\\s*)?'+verb);
+ const reversed=claim(to,from,active),wrongVerb=claim(from,to,opposite);
+ return String(text||'').split(/[.!?。！？\n]+/).some(sentence=>{
+  const match=reversed.exec(sentence)||wrongVerb.exec(sentence);
+  if(!match)return false;
+  // "A가 B를 제약하는 뜻은 아닙니다" correctly denies a false arrow.
+  const tail=sentence.slice(match.index+match[0].length,match.index+match[0].length+55);
+  return !/(?:아니|않|못|없|단정할\s*수\s*없|확정할\s*수\s*없)/.test(tail);
+ });
+}
+
 const patterns=[
  /(?:다양한|여러|여러\s*가지).{0,36}(?:공존|병존|함께\s*(?:작용|나타나|드러)|특징이\s*함께)/,
  /(?:서로\s*다른|여러).{0,22}방향.{0,18}(?:공존|병존)/,
@@ -83,6 +115,8 @@ function inspect(report,packet=null){
    });
    if(explicitReversal)
     blockingErrors.push('saju_core:main-paragraph-explicitly-reverses-locked-judgment');
+   if(monthDirectionConflict(mainText,verified))
+    blockingErrors.push('saju_core:month-element-direction-contradicts-calculated-source');
    // A chart with the SAME verified ten-god in two month positions does
    // not encode two opposing personalities or a doubled trait. The source
    // and the claim must appear in the same sentence; this deliberately

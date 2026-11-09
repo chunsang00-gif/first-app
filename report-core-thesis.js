@@ -95,4 +95,5 @@ function assertDecoded(chapter,prompt){
  if(chapter?.title!==expected.title||chapter?.keyJudgment!==expected.keyJudgment)
   throw Error('AI report service violated grounded first-chapter title/judgment contract');
 }
-module.exports={forPrompt,assertDecoded};
+const readerNounFor=kind=>readerNoun[kind]||null;
+module.exports={forPrompt,assertDecoded,readerNounFor};
