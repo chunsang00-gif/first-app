@@ -113,7 +113,22 @@ function recoveryDetails(p){
  warning.textContent='이 코드는 주문과 보고서를 조회하는 비밀 정보입니다. 본인만 안전하게 보관하고 다른 사람에게 보내지 마세요.';
  const value=document.createElement('textarea');
  value.readOnly=true;value.rows=3;value.value=recoveryCode(p);
- box.append(heading,warning,value);
+ const copy=document.createElement('button');copy.type='button';
+ copy.className='btn ghost';copy.textContent='복구 코드 복사';
+ const feedback=document.createElement('p');feedback.className='meta';
+ feedback.setAttribute('aria-live','polite');
+ copy.addEventListener('click',async()=>{
+  if(copy.disabled)return;
+  copy.disabled=true;
+  try{
+   if(!navigator.clipboard?.writeText)throw Error('COPY_UNAVAILABLE');
+   await navigator.clipboard.writeText(value.value);
+   safeText(feedback,'복구 코드를 복사했습니다. 본인만 안전하게 보관하세요.');
+  }catch{
+   safeText(feedback,'자동 복사를 사용할 수 없습니다. 위 코드를 직접 선택해 복사하세요.');
+  }finally{copy.disabled=false}
+ });
+ box.append(heading,warning,value,copy,feedback);
  return box;
 }
 function parseRecoveryCode(code){
@@ -156,7 +171,7 @@ function renderRecoveryEntry(){
  button.className='btn ghost';button.textContent='기존 유료 보고서 복구';
  const form=document.createElement('div');form.hidden=true;
  const instruction=document.createElement('p');
- instruction.textContent='결제 전에 따로 보관한 복구 코드를 입력하세요. 이 코드는 보고서 조회 권한이 있으므로 다른 사람에게 알려주지 마세요.';
+ instruction.textContent='결제 과정에서 보관한 복구 코드를 입력하세요. 이 코드는 보고서 조회 권한이 있으므로 다른 사람에게 알려주지 마세요.';
  const secret=document.createElement('input');secret.type='password';
  secret.autocomplete='off';secret.placeholder='복구 코드 입력';
  const findOrder=document.createElement('button');findOrder.type='button';
@@ -338,7 +353,7 @@ async function mount({container,analysisInput,proposal}={}){
  const cfg=await config().catch(()=>null);
  if(!cfg||!container.isConnected)return;
  const notice=find('coverageSalesNotice');
- if(notice)notice.textContent='판매 준비 검증이 완료된 구성입니다. 제시한 최대 항목 수는 실제 완성 문단 수가 아닙니다. 아래 내용을 확인한 뒤 결제를 진행할 수 있습니다.';
+ if(notice)notice.textContent='이 출생정보로 작성할 수 있는 보고서의 후보 구성입니다. 표시한 최대 항목 수는 실제 완성 문단 수가 아닙니다. 결제 전 작성 후보를 확인해 주세요.';
  const panel=document.createElement('section');panel.className='section report-checkout';
  panel.id='reportCheckoutSection';
  const heading=document.createElement('h2');

@@ -211,7 +211,7 @@ function scenario({kind='success',amount='9900',confirm='ok',state='verified-pai
  // A server response with the SAME number of chapters but a different
  // chapter ID is NOT the product the buyer was shown. Do not open Toss.
  async function checkoutWithIds(serverIds){
-  const entries=new Map(),requests=[],sdkCalls=[];
+  const entries=new Map(),requests=[],sdkCalls=[],clipboardWrites=[];
   const el=(tag)=>({
    tagName:tag,children:[],isConnected:true,handlers:{},
    append(...items){this.children.push(...items)},
@@ -270,7 +270,8 @@ function scenario({kind='success',amount='9900',confirm='ok',state='verified-pai
    setItem(k,v){entries.set(k,v)},
    removeItem(k){entries.delete(k)}
   };
-  vm.runInNewContext(source,{window,document,fetch,sessionStorage,URL,console},
+  const navigator={clipboard:{writeText:async code=>{clipboardWrites.push(code)}}};
+  vm.runInNewContext(source,{window,document,fetch,sessionStorage,URL,console,navigator},
    {filename:'report-checkout-ui.js'});
   await window.REPORT_CHECKOUT_UI.mount({container,analysisInput:input,proposal});
   assert.equal(container.children.length,1);
@@ -283,7 +284,7 @@ function scenario({kind='success',amount='9900',confirm='ok',state='verified-pai
   const start=panel.children.find(x=>x.tagName==='button');
   checkbox.checked=true;
   await start.handlers.click();
-  return {entries,requests,sdkCalls,panel};
+  return {entries,requests,sdkCalls,panel,clipboardWrites,notice};
  }
  let bought=await checkoutWithIds(['saju_core','money','year_2027']);
  assert.equal(bought.requests.filter(x=>x.url==='/api/checkout/start').length,1);
@@ -302,6 +303,14 @@ function scenario({kind='success',amount='9900',confirm='ok',state='verified-pai
  assert(storedRecovery,'buyer must be offered recovery code before payment');
  assert(storedRecovery.children.some(x=>x.tagName==='textarea'&&
   x.value==='SMB1:'+ORDER+':'+OWNER));
+ const copy=storedRecovery.children.find(x=>x.tagName==='button'&&
+  x.textContent==='복구 코드 복사');
+ assert(copy,'backup code needs a direct user-controlled copy action');
+ await copy.handlers.click();
+ assert.deepEqual(bought.clipboardWrites,['SMB1:'+ORDER+':'+OWNER]);
+ assert(storedRecovery.children.some(x=>x.textContent?.includes('복사했습니다')));
+ assert(!bought.notice.textContent.includes('판매 준비 검증이 완료'),
+  'candidate chapter scope must not imply completed editorial certification');
  assert(!bought.requests.some(x=>JSON.stringify(x).includes('SMB1:')),
   'owner recovery code must not be sent to payment or model routes');
 
