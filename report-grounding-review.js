@@ -47,7 +47,7 @@ function monthDirectionConflict(text,verified){
   if(!match)return false;
   // "A가 B를 제약하는 뜻은 아닙니다" correctly denies a false arrow.
   const tail=sentence.slice(match.index+match[0].length,match.index+match[0].length+55);
-  return !/(?:아니|않|못|없|단정할\s*수\s*없|확정할\s*수\s*없)/.test(tail);
+  return !/(?:아니|아닙|않|못|없|단정할\s*수\s*없|확정할\s*수\s*없)/.test(tail);
  });
 }
 
