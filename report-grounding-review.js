@@ -49,6 +49,23 @@ function inspect(report,packet=null){
     blockingErrors.push('saju_core:month-pair-meaning-source-unavailable');
    else if([...new Set(kinds)].some(k=>!coreMonthMeaningWords[k].test(mainText)))
     blockingErrors.push('saju_core:month-pair-meaning-missing-from-main-paragraph');
+   // The original paid first-chapter specimen mirrored its only
+   // "application": read A alone and miss B; conversely read B alone and
+   // miss A. This describes no verified direction or chart-specific choice.
+   // Require BOTH contrasting one-sided warnings, not just "반대로" or
+   // a single legitimate conditional warning. Static rejection, never an
+   // editorial approval or another request to a billable model.
+   if(verified&&!verified.sameClassification){
+    const sentences=mainText.split(/[.!?。！？\n]+/)
+     .map(s=>s.trim()).filter(Boolean);
+    const exclusiveFocus=/(?:에만|쪽에만|것만|만)\s*(?:집중하|신경을\s*쓰|살피|고려하|읽|따지|의지하)/;
+    const missedMeaning=/(?:놓치|부족해지|부족할\s*수|불리할\s*수|빠뜨리)/;
+    const mirror=sentences.filter(x=>
+     exclusiveFocus.test(x)&&missedMeaning.test(x));
+    if(mirror.some(x=>/^(?:반대로|반면에?|거꾸로)/.test(x))&&
+       mirror.some(x=>!/^(?:반대로|반면에?|거꾸로)/.test(x)))
+     blockingErrors.push('saju_core:mirrored-two-role-warnings-without-new-reading');
+   }
    // Literal category words alone do not prove agreement with the locked
    // thesis. Catch only categorical negations of the same verified reading.
    // A hypothetical warning or denial of observed real-life behavior is OK.
