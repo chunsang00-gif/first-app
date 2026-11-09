@@ -25,6 +25,11 @@ assert.deepEqual(e.sourceRefs,['natal.month.stem',
 assert(e.newEvidence.includes('달의 다른 숨은 글자'));
 assert.equal(e.additionalInterpretivePrioritySelected,false);
 assert.equal(e.actualTraitObserved,false);
+assert.equal(e.sameTraditionalRoleAsVisible,true);
+assert.equal(e.distinctTraditionalRole,false);
+assert.equal(e.additionalIndependentPaidInterpretation,false);
+assert.equal(e.optionalSupportingSourceOnly,true);
+assert(e.readerGoal.includes('독립된 유료 통찰')&&e.readerGoal.includes('생략한다'));
 assert.equal(e.approvedAsPremiumValue,false);
 for(const hour of ['14:20','20:20']){
  const p=facts.build({...base,birthTime:hour},2027);
