@@ -165,6 +165,22 @@ const archivedEquivalent=paidStyleDraft(
  '새로운 정보를 자기 나름대로 해석하고 이해하는 태도와, 주변의 여러 자원과 수단을 유심히 살펴 필요할 때 활용하는 접근이 함께 나타납니다. 겉으로 드러난 정보만 살피면 필요한 물건을 어떻게 마련할지 놓칠 수 있다는 조건입니다.');
 assert(!postReview.inspect(archivedEquivalent,actualDistinct).blockingErrors.includes(missingMeaningCode),
  'paid first-chapter prose containing the natural surrounding-resource-use meaning is not omitted');
+// This is the previously observed paid-manuscript QUALITY failure: mirrored
+// sentences warning of "missing B if only A" and "missing A if only B".
+const mirroredPaidReading=paidStyleDraft(
+ '새로운 정보를 자기 나름대로 해석하고 이해하는 관점과 필요한 자원을 여러 곳에서 찾아 활용하는 관점을 함께 봅니다. '+
+ '겉으로 드러난 정보에만 집중하면 필요한 재료를 마련하는 준비를 놓칠 수 있습니다. '+
+ '반대로 자원 활용 쪽에만 신경을 쓴다면 정보를 자기 방식으로 이해하는 깊이가 부족해질 수 있습니다. '+
+ '이 두 뜻을 함께 살펴야 한다는 전통적 풀이입니다.');
+const mirrorCode='saju_core:mirrored-two-role-warnings-without-new-reading';
+assert(postReview.inspect(mirroredPaidReading,actualDistinct).blockingErrors.includes(mirrorCode),
+ 'mirrored A/B warning-only paid prose is not an actual distinct reading');
+assert(!postReview.inspect(paidStyleDraft(paidStyleBase),actualDistinct)
+ .blockingErrors.includes(mirrorCode),
+ 'a substantive one-sided limitation with a causal example must remain valid');
+assert(!postReview.inspect(archivedEquivalent,actualDistinct)
+ .blockingErrors.includes(mirrorCode),
+ 'one condition in otherwise natural prose must not count as two mirrored warnings');
 const genericResourceOnly=paidStyleDraft(
  '새로운 정보를 자기 나름대로 해석하고 이해합니다. 주변에 많은 자원이 있을 수 있지만 결과는 알 수 없습니다.');
 assert(postReview.inspect(genericResourceOnly,actualDistinct).blockingErrors.includes(missingMeaningCode),
