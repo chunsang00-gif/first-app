@@ -58,7 +58,7 @@ function inspect(report,packet=null){
    if(verified&&!verified.sameClassification){
     const sentences=mainText.split(/[.!?。！？\n]+/)
      .map(s=>s.trim()).filter(Boolean);
-    const exclusiveFocus=/(?:에만|쪽에만|것만|만)\s*(?:집중하|신경을\s*쓰|살피|고려하|읽|따지|의지하)/;
+    const exclusiveFocus=/(?:에만|쪽에만|것만|만)\s*(?:집중하|신경을\s*(?:쓰|쓴|썼)|살피|고려하|읽|따지|의지하)/;
     const missedMeaning=/(?:놓치|부족해지|부족할\s*수|불리할\s*수|빠뜨리)/;
     const mirror=sentences.filter(x=>
      exclusiveFocus.test(x)&&missedMeaning.test(x));
