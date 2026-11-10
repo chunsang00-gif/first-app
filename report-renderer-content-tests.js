@@ -70,6 +70,9 @@ assert.deepEqual(free.details,
  ['saju_core','relationship','integrated_judgment','year_2027'],
  'art must follow chapter ID even when other chapters are omitted');
 const paid=run('ISFP');
+assert(paid.html.includes('id="saveReadableReport"'));
+assert(paid.html.includes('읽기용 전체 보고서 저장'));
+assert(paid.html.includes('인터넷 없이 열 수 있는 HTML 파일'));
 assert(paid.html.includes('사주와 MBTI 비교'));
 assert(!paid.html.includes('MBTI와 다른 의외의 점'),
  'the report must not manufacture a contradiction simply because two lenses are compared');
