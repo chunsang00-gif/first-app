@@ -11,8 +11,8 @@ for(const key of ["calendar:choice('calendar')","leapMonth:$('#leapMonth').check
  assert(html.includes(key),'visible input flow must preserve '+key);
 }
 assert(html.includes("fetch('/api/calculate'"),'step one must be checked with free server calculation');
-assert(html.includes("checked.status!=='ready'"),'invalid or ambiguous calendar results must block navigation');
-assert(html.includes("if(!response.ok||checked.status!=='ready')"),'HTTP failures must not enter report flow');
+assert(html.includes("checked?.status!=='ready'"),'invalid or ambiguous calendar results must block navigation');
+assert(html.includes("if(!response.ok||checked?.status!=='ready')"),'HTTP failures must not enter report flow');
 assert(html.includes('FREE_CALCULATION_STATE.key(data())!==FREE_CALCULATION_STATE.key(d)'),
  'all changed personal inputs during calculation must force revalidation');
 assert(html.includes('FREE_CALCULATION_STATE.matchesReady(checked,d)'),
