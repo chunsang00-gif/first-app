@@ -24,7 +24,7 @@
   setTimeout(()=>{
    // A queued result callback must never open a page already left behind.
    if(step===3&&viewSeq===resultRenderSeq)
-    LIVE_REPORT_UI.run(receipt?.result,receipt?.submission);
+    return LIVE_REPORT_UI.run(receipt?.result,receipt?.submission);
   },0)
  }
  scrollTo(0,0)
