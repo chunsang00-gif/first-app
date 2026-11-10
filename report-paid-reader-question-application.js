@@ -64,4 +64,4 @@ function inspect(paragraph,assignment){
   return ['buyer-domain-no-concrete-conditional-application'];
  return [];
 }
-module.exports={inspect};
+module.exports={inspect,GROUPS};

@@ -538,8 +538,21 @@ async function generate(input,callModel,onProgress=()=>{},onValidatedBatch=()=>{
  // Semantic heuristics are human review leads, never release approval.
  // Never print private excerpts in automation logs or public QA status.
  const review=require('./report-semantic-review').review(report);
+ // The customer's optional choice must not vanish from the actual paid
+ // final synthesis. Only obvious nonanswers block delivery; free-form
+ // nuanced Korean remains a documented human editorial-review lead.
+ const choiceReview=require('./report-paid-final-choice-application')
+  .inspect(report,packet);
  qa={...qa,
-  warnings:[...(qa.warnings||[]),...adviceWarnings],
+  pass:Boolean(qa.pass)&&choiceReview.errors.length===0,
+  errors:[...(qa.errors||[]),...choiceReview.errors],
+  warnings:[...(qa.warnings||[]),...adviceWarnings,...choiceReview.warnings],
+  buyerChoiceFinalReview:{
+   applicable:choiceReview.applicable,humanReviewRequired:true,
+   semanticApproval:'not-assessed',
+   blockingCodes:choiceReview.errors.slice(),
+   reviewCodes:choiceReview.warnings.slice()
+  },
   semanticReview:{requiresHumanReview:true,releaseVerdict:'not-assessed',
    findings:review.findings.map(f=>({
     code:f.code,...(f.section?{section:f.section}:{}),
