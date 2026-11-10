@@ -143,7 +143,8 @@ const invalidScope=await invalidCoverage.json();
 assert.equal(invalidScope.status,'blocked');
 const servedUI=await(await fetch('http://127.0.0.1:3210/live-report-ui.js')).text();
 const servedApiClient=await(await fetch('http://127.0.0.1:3210/report-api-contract.js')).text();
-assert(servedUI.includes('showCoverage(lastAnalysis.calculationInput)'));
+assert(servedUI.includes('showCoverage(lastAnalysis.calculationInput,isCurrent)'),
+ 'free coverage must use the active-view guard to prevent stale screen updates');
 assert(servedUI.includes('현재 유료 구매와 정식 보고서 생성은 준비 중입니다'));
 assert(servedUI.includes('catalog.chapterDefinitions')&&servedUI.includes('catalog.topicDefinitions'),'HTTP UI must use actual scope counts');
 assert(!servedUI.includes('12개 장을 작성한 뒤'),'HTTP free-scope UI must not promise paid generation');
