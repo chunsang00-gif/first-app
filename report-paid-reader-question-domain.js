@@ -78,7 +78,12 @@ function evidence(topic,domain,key){
 }
 function route(question,chapters){
  const domain=chosenDomain(question);
- if(!domain||!chapters?.[domain]?.topics)return null;
+ const chapter=chapters?.[domain];
+ // A chapter excluded by evidence preflight is never a buyer deliverable,
+ // even if another topic happens to own some compatible symbol.
+ if(!domain||!chapter?.topics||!chapter.anchor||
+    chapter.topics[chapter.anchor]?.mode==='state-limits'||
+    !chapter.topics[chapter.anchor])return null;
  for(const key of preferences(domain,question)){
   const found=evidence(chapters[domain].topics[key],domain,key);
   if(!found)continue;

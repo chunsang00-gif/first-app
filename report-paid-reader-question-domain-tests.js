@@ -40,7 +40,7 @@ const proof=(domain,topic,two=true)=>({
   missingCounterpartInferred:false
  }})
 });
-const mock={career:{topics:{growth:proof('career','growth'),
+const mock={career:{anchor:'workstyle',topics:{growth:proof('career','growth'),
  workstyle:proof('career','workstyle')}}};
 const attached=scope.route(cases[0].input,mock);
 assert.equal(attached.chapterId,'career');
@@ -83,7 +83,15 @@ for(const profile of profiles)for(const row of cases){
  const brief=Object.values(payload.task.chapters[row.domain].topics)
   .filter(topic=>topic.buyerCurrentQuestion);
  const outgoing=writer.schema(prompt,wire.schemaFor(prompt,schema));
- assert.deepEqual(pre.inspect(prompt,payload,outgoing),[]);
+ if(blueprint[row.domain]?.hasGroundedTopic&&
+     blueprint[row.domain]?.anchorTopic&&
+     blueprint[row.domain].topicTasks[blueprint[row.domain].anchorTopic]?.mode!=='state-limits')
+  assert.deepEqual(pre.inspect(prompt,payload,outgoing),[]);
+ else{
+  assert.equal(actual,null,'unavailable chapter must not accept a paid customer question');
+  assert.equal(brief.length,0);
+  skipped++;continue;
+ }
  if(!actual){assert.equal(brief.length,0);skipped++;continue}
  applied++;
  assert.equal(brief.length,1,'one relevant reader question per domain batch');
