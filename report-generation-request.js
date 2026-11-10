@@ -1792,6 +1792,16 @@ function restoreEvidence(value,prompt){
         b.condition!==expected.computedCondition)
       throw Error('AI report service workstyle source-specific condition missing: '+id+':'+topic);
     }
+    // A customer-entered question is optional contextual DATA. If its
+    // relevant paid topic was actually authored, demand its verified
+    // citations and a separately written conditional explanation. If this
+    // optional topic is null, do not fabricate an extra paid paragraph.
+    if(task.buyerCurrentQuestion){
+     const errors=require('./report-paid-reader-question-application')
+      .inspect(p,task.buyerCurrentQuestion);
+     if(errors.length)throw Error('PAID_BUYER_DOMAIN_READER_APPLICATION_MISSING:'+
+      id+':'+topic+':'+errors.join('|'));
+    }
     if(task.sourceOwnedMbtiDimension){
      const proof=task.sourceOwnedMbtiDimension;
      if(id!=='mbti_contradiction'||proof.topic!==topic||
