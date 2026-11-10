@@ -36,6 +36,9 @@ assert.throws(()=>ext.build(packet,swapped),/CORE_HOUR_ADDITION_SOURCE_DRIFT/);
  const doc=writer.schema(captured.prompt,wire.schemaFor(captured.prompt,schema));
  const leaf=doc.properties.chapters.properties.saju_core.properties.paragraphs.properties.temperament;
  const opt=leaf.anyOf?.find(v=>v.type==='object')||leaf;
+ assert.equal(leaf.anyOf.length,1,
+  'buyer-triggered hour meaning must be present in paid first chapter');
+ assert(!leaf.anyOf.some(x=>x.type==='null'));
  assert(opt.properties.text.description.includes(v.readerGoal));
  assert(v.sourceRefs.every(id=>opt.properties.basis.properties.refs.items.enum.includes(id)));
  const older=await capture(input);
@@ -43,5 +46,8 @@ assert.throws(()=>ext.build(packet,swapped),/CORE_HOUR_ADDITION_SOURCE_DRIFT/);
  const old=writer.compile(older.prompt);
  assert(!old.task.chapters.saju_core.topics.temperament.sourceOwnedHourExtension);
  assert(!old.source['natal.hour.hidden.丁']);
+ const oldSchema=writer.schema(older.prompt,wire.schemaFor(older.prompt,schema));
+ assert(oldSchema.properties.chapters.properties.saju_core.properties
+  .paragraphs.properties.temperament.anyOf.some(x=>x.type==='null'));
  console.log('PASS: buyer skill question adds independently calculated birth-hour output symbol to actual optional paid writer slot, no provider call');
 })().catch(e=>{console.error(e);process.exitCode=1});
