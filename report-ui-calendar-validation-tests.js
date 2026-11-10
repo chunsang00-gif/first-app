@@ -13,8 +13,14 @@ for(const key of ["calendar:choice('calendar')","leapMonth:$('#leapMonth').check
 assert(html.includes("fetch('/api/calculate'"),'step one must be checked with free server calculation');
 assert(html.includes("checked.status!=='ready'"),'invalid or ambiguous calendar results must block navigation');
 assert(html.includes("if(!response.ok||checked.status!=='ready')"),'HTTP failures must not enter report flow');
-assert(html.includes("['calendar','birthDate','birthTime','leapMonth','unknownBirthTime','readerDecision']"),
- 'changes to calendar or customer decision during calculation must force revalidation');
+assert(html.includes('FREE_CALCULATION_STATE.key(data())!==FREE_CALCULATION_STATE.key(d)'),
+ 'all changed personal inputs during calculation must force revalidation');
+assert(html.includes('FREE_CALCULATION_STATE.matchesReady(checked,d)'),
+ 'step one must verify the actual ready packet returned by the server');
+assert(html.includes('LIVE_REPORT_UI.run(receipt?.result,receipt?.submission)'),
+ 'results must reuse free verified calculation instead of repeating it');
+assert(ui.includes('FREE_CALCULATION_STATE.key(input())!==FREE_CALCULATION_STATE.key(verifiedInput)'),
+ 'result view must reject stale or changed free calculation');
 assert(html.includes('step=2;show();return;'),'navigate only after the free calculation succeeded');
 assert(ui.includes("calendar:calendar==='lunar'||calendar==='음력'?'lunar':'solar'"));
 assert(ui.includes('catalog.chapterDefinitions')&&ui.includes('catalog.topicDefinitions'),'visible scope count must use verified server catalog, not stale promises');
