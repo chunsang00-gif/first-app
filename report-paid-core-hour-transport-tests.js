@@ -15,7 +15,19 @@ const oldFetch=global.fetch,oldKey=process.env.OPENAI_API_KEY,
   const c=await capture(input);
   assert.equal(c.status,'captured-full-paid-composition');
   const payload=writer.compile(c.prompt);
-  const transport=writer.schema(c.prompt,wire.schemaFor(c.prompt,schema));
+  // The provider strips unsupported JSON Schema validation bounds before
+  // wire.schemaFor/generation.schema; compare the TRUE outgoing transport,
+  // not the pre-normalized local report-schema.json.
+  const unsupported=new Set(['$schema','minLength','maxLength','minItems',
+   'maxItems','minimum','maximum','pattern','format']);
+  function strictOnly(value){
+   if(Array.isArray(value))return value.map(strictOnly);
+   if(!value||typeof value!=='object')return value;
+   return Object.fromEntries(Object.entries(value)
+    .filter(([key,val])=>!unsupported.has(key)&&!(key==='title'&&typeof val==='string'))
+    .map(([key,val])=>[key,strictOnly(val)]));
+  }
+  const transport=writer.schema(c.prompt,wire.schemaFor(c.prompt,strictOnly(schema)));
   assert.deepEqual(pre.inspect(c.prompt,payload,transport),[]);
   assert.equal(payload.task.editorialGoal,writer.editorialGoalFor(c.prompt));
   assert(payload.task.editorialGoal.includes('출생시간에서 독립적으로 확인된'));
