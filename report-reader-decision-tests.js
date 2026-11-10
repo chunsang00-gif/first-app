@@ -52,7 +52,8 @@ const browser=fs.readFileSync(path.join(__dirname,'live-report-ui.js'),'utf8');
 assert(html.includes('id="readerDecision"'));
 assert(html.includes('maxlength="140"'));
 assert(html.includes('지금 고민하는 선택'));
-assert(html.includes('첫 장과 선택·결정 풀이에서 참고합니다.'));
+assert(html.includes('첫 장·선택과 결정·근거가 있는 관련 분야 풀이에 참고할 수 있습니다.'),
+ 'form copy must describe only evidence-grounded buyer-question personalisation');
 assert(browser.includes("value('readerDecision').trim()"));
 assert(html.includes("['지금 고민하는 선택',d.readerDecision]"));
 
