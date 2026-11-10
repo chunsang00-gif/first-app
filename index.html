@@ -60,4 +60,6 @@ $('#next').onclick=async()=>{
  }
  if(step===2){step=3;show();return}
 };
+// The result page must update the REAL wizard step, not only visible DOM.
+window.REPORT_STEP_NAVIGATION=Object.freeze({returnToInput:()=>{step=1;show()}});
 $('#prev').onclick=()=>{if(step>1){step--;show()}};show()})();</script></body></html>
