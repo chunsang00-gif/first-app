@@ -9,16 +9,21 @@ const marker='<script>(()=>{let step=1,verifiedStepOne=null,resultRenderSeq=0;',
 assert(start>0);const end=html.indexOf('</script>',start);assert(end>start);
 const wizard=html.slice(start+'<script>'.length,end);
 function el(id,value=''){
- const classes=new Set(),listeners={};
+ const classes=new Set(),listeners={},attrs={};
  return {id,value,checked:false,disabled:false,innerHTML:'',textContent:'',
   style:{},dataset:{},listeners,
   classList:{contains:k=>classes.has(k),add:k=>classes.add(k),
    remove:k=>classes.delete(k),toggle(k,on){if(on===undefined?!classes.has(k):on)
     classes.add(k);else classes.delete(k);return classes.has(k)}},
   addEventListener(k,f){listeners[k]=f},
+  setAttribute(k,v){attrs[k]=String(v)},
+  removeAttribute(k){delete attrs[k]},
+  getAttribute(k){return attrs[k]??null},
+  focus(){this.focused=true},
+  scrollIntoView(){this.scrolled=true},
   querySelector(){return null},querySelectorAll(){return []}};
 }
-const ids=['birthYear','birthMonth','birthDay','time','city','name',
+const ids=['inputError','birthYear','birthMonth','birthDay','time','city','name',
  'mbti','unknownTime','leapMonth','readerDecision','bar','prev','next',
  'actions','reportTitle','reportMeta','reportBody','summary',
  'returnFromCoverageError','coverageBackToInput','returnToInput'];
@@ -66,6 +71,26 @@ vm.runInContext(wizard,ctx,{filename:'index-html-wizard.js'});
 const active=n=>screens[n-1].classList.contains('active');
 (async()=>{
  assert(active(1),'first page must be open');
+ assert(els.birthYear.innerHTML.includes('1900년'),
+  'picker must support the server-wide birth year 1900 lower bound');
+ for(const [id,msg] of [
+  ['birthYear','출생연도를'],['birthMonth','출생월을'],
+  ['birthDay','출생일을'],['city','출생도시를'],
+  ['time','출생시간을'],['name','이름을']
+ ]){
+  const old=els[id].value;
+  els[id].value='';
+  if(id==='time')els.unknownTime.checked=false;
+  await els.next.onclick();
+  assert(active(1),'missing '+id+' must not advance the wizard');
+  assert(els.inputError.textContent.includes(msg),
+   'tell a mobile visitor the specific missing field '+id);
+  assert(els[id].focused,'focus missing input '+id);
+  assert(els[id].scrolled,'scroll the omitted input into view '+id);
+  assert.equal(els[id].getAttribute('aria-invalid'),'true');
+  assert.equal(calls.length,0,'do not hit the free API with missing inputs');
+  els[id].value=old;
+ }
  // A mobile network failure should keep every entered field and button.
  network.dropNext=true;
  await els.next.onclick();

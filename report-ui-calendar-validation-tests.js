@@ -22,6 +22,14 @@ assert(html.includes('LIVE_REPORT_UI.run(receipt?.result,receipt?.submission)'),
 assert(ui.includes('FREE_CALCULATION_STATE.key(input())!==FREE_CALCULATION_STATE.key(verifiedInput)'),
  'result view must reject stale or changed free calculation');
 assert(html.includes('step=2;show();return;'),'navigate only after the free calculation succeeded');
+for(const [id,label] of [['birthYear','생년월일'],['time','출생시간'],['city','출생도시'],['name','이름'],['mbti','MBTI']]){
+ assert(html.includes('for="'+id+'">'+label+'</label>'),
+  'tapping the visible label should focus '+id);
+}
+assert(html.includes('id="inputError"')&&html.includes('role="alert"'),
+ 'missing fields must be announced in a screen-reader-accessible message');
+assert(html.includes("target.focus?.({preventScroll:true})"),
+ 'focus should move to the first missing mobile form field');
 assert(ui.includes("calendar:calendar==='lunar'||calendar==='음력'?'lunar':'solar'"));
 assert(ui.includes('catalog.chapterDefinitions')&&ui.includes('catalog.topicDefinitions'),'visible scope count must use verified server catalog, not stale promises');
 assert(!ui.includes('12개 장을 작성한 뒤'),'free scope loading must not pretend a paid report is being generated');
