@@ -1,5 +1,5 @@
 /* Live report UI v1.3 */
-(()=>{const $=s=>document.querySelector(s);let lastAnalysis=null,timer=null;function value(id){return document.getElementById(id)?.value||''}function choice(name){return document.querySelector(`[data-choice="${name}"] .chip.on`)?.dataset.v||''}function input(){const gender=choice('gender'),calendar=choice('calendar');const y=value('birthYear'),m=value('birthMonth'),d=value('birthDay');const birthDate=y&&m&&d?`${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`:value('birth');return {gender:gender==='female'||gender==='여성'?'female':'male',calendar:calendar==='lunar'||calendar==='음력'?'lunar':'solar',birthDate,birthTime:value('time'),birthplace:value('city').trim(),unknownBirthTime:Boolean($('#unknownTime')?.checked),leapMonth:Boolean($('#leapMonth')?.checked),name:value('name').trim(),mbti:value('mbti')||'모름',...(value('readerDecision').trim()?{readerDecision:value('readerDecision').trim()}:{})}}async function message(res,fallback){let detail='';try{const x=await res.json();detail=x?.errors?.join(' / ')||x?.error||x?.status||''}catch{}return detail?`${fallback} (${detail})`:fallback}function esc(s){return String(s??'').replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]))}function openResult(){document.querySelectorAll('.screen').forEach(x=>x.classList.toggle('active',x.dataset.step==='3'));$('#actions')?.classList.add('hidden');const bar=$('#bar');if(bar)bar.style.width='100%'}
+(()=>{const $=s=>document.querySelector(s);let lastAnalysis=null,timer=null,freeViewEpoch=0;function value(id){return document.getElementById(id)?.value||''}function choice(name){return document.querySelector(`[data-choice="${name}"] .chip.on`)?.dataset.v||''}function input(){const gender=choice('gender'),calendar=choice('calendar');const y=value('birthYear'),m=value('birthMonth'),d=value('birthDay');const birthDate=y&&m&&d?`${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`:value('birth');return {gender:gender==='female'||gender==='여성'?'female':'male',calendar:calendar==='lunar'||calendar==='음력'?'lunar':'solar',birthDate,birthTime:value('time'),birthplace:value('city').trim(),unknownBirthTime:Boolean($('#unknownTime')?.checked),leapMonth:Boolean($('#leapMonth')?.checked),name:value('name').trim(),mbti:value('mbti')||'모름',...(value('readerDecision').trim()?{readerDecision:value('readerDecision').trim()}:{})}}async function message(res,fallback){let detail='';try{const x=await res.json();detail=x?.errors?.join(' / ')||x?.error||x?.status||''}catch{}return detail?`${fallback} (${detail})`:fallback}function esc(s){return String(s??'').replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]))}function openResult(){document.querySelectorAll('.screen').forEach(x=>x.classList.toggle('active',x.dataset.step==='3'));$('#actions')?.classList.add('hidden');const bar=$('#bar');if(bar)bar.style.width='100%'}
 function showReview(out){const body=$('#reportBody');openResult();const issues=out.qa?.issues||[];const items=issues.length?issues.map(x=>`<li><strong>${esc(x.path)}</strong><p>${esc(x.text)}</p></li>`).join(''):(out.qa?.errors||[]).map(x=>`<li>${esc(x)}</li>`).join('');body.innerHTML=`<section class="section analysis-error">${window.CHARACTER_ASSETS.state('error')}<h2>풀이에서 수정할 문장이 발견됐습니다.</h2><p>원문은 이 탭에 임시 보관합니다. 탭을 닫기 전에 아래 파일을 저장해 주세요. 저장에는 추가 생성 비용이 들지 않습니다.</p><details><summary>검사에 걸린 문구 확인</summary><ul>${items}</ul></details><button class="btn primary" id="saveReviewDraft">검토용 원문과 오류 저장</button><p class="meta">검사를 통과한 최종 결과가 아닙니다. 파일에는 입력 정보와 풀이가 포함됩니다.</p></section>`;$('#saveReviewDraft')?.addEventListener('click',()=>{const blob=new Blob([JSON.stringify({status:'needs_review',report:out.report,qa:out.qa,headingRepairs:out.headingRepairs||[]},null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='saju-report-review.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)});}
 function loading(sec=0,mode='scope'){
  sec=window.REPORT_API?.elapsedSeconds?.(sec)??sec;
@@ -22,6 +22,9 @@ function loading(sec=0,mode='scope'){
 function renderFallback(report){const body=$('#reportBody');const sections=Array.isArray(report?.sections)?report.sections:[];body.innerHTML=sections.map(s=>`<section class="section"><h2>${esc(s.title||'분석 결과')}</h2>${(Array.isArray(s.body)?s.body:[]).map(p=>`<p>${esc(p)}</p>`).join('')}</section>`).join('')+(report?.finalJudgment?`<section class="section"><h2>최종 정리</h2>${(report.finalJudgment.body||[]).map(p=>`<p>${esc(p)}</p>`).join('')}<p class="quote">${esc(report.finalJudgment.closingQuestion||'')}</p></section>`:'')}async function generate(analysisInput,purchase=null){if(sessionStorage.getItem('reportJobId'))return resume();window.REPORT_API.progress=null;let sec=0;loading(sec,'paid');clearInterval(timer);timer=setInterval(()=>loading(++sec,'paid'),1000);try{const out=await REPORT_API.generate({analysisInput,purchase});clearInterval(timer);if(out.status==='rejected'){showReview(out);return}if(out.status!=='ready')throw Error(out?.errors?.join(' / ')||out?.message||'분석 결과를 만드는 중 문제가 생겼습니다. 다시 시도해 주세요.');window.REPORT_RENDERER?.render ? window.REPORT_RENDERER.render(out.report,$('#reportBody')) : renderFallback(out.report)}catch(e){clearInterval(timer);$('#reportBody').innerHTML=`<section class="section analysis-error">${window.CHARACTER_ASSETS.state('error')}<h2>분석을 완료하지 못했습니다.</h2><p>${esc(e.message||e)}</p>${purchase?'':`<button class="btn primary" id="retryReport" style="width:100%;margin-top:12px">입력 정보 그대로 다시 생성</button>`}</section>`;if(!purchase)$('#retryReport')?.addEventListener('click',()=>generate(lastAnalysis))}}function backToInput(){
  const navigate=window.REPORT_STEP_NAVIGATION?.returnToInput;
  if(typeof navigate==='function'){navigate();return}
+ // The older host fallback must still invalidate outstanding free requests.
+ freeViewEpoch++;
+ clearInterval(timer);
  // Older host pages without the step controller retain the visual fallback.
  document.querySelectorAll('.screen').forEach(x=>x.classList.toggle('active',x.dataset.step==='1'));
  $('#actions')?.classList.remove('hidden');
@@ -33,8 +36,11 @@ function showScopeError(e){
  body.innerHTML=`<section class="section analysis-error">${window.CHARACTER_ASSETS.state('error')}<h2>제공 가능 범위를 확인하지 못했습니다.</h2><p>${esc(e?.message||String(e))}</p><button class="btn primary" type="button" id="returnFromCoverageError">입력 화면으로 돌아가기</button></section>`;
  $('#returnFromCoverageError')?.addEventListener('click',backToInput);
 }
-async function showCoverage(validatedInput){
+async function showCoverage(validatedInput,isCurrent=()=>true){
  const out=await window.REPORT_API.coverage(validatedInput);
+ // Even a successful old response can arrive AFTER the buyer returned
+ // to the form or started a different query. Never render stale data.
+ if(!isCurrent())return;
  if(out?.status!=='ready')throw Error(out?.errors?.join(' / ')||'제공 가능 범위를 확인하지 못했습니다.');
  clearInterval(timer);openResult();
  const body=$('#reportBody'),estimate=out.estimate,catalog=out.catalog;
@@ -147,10 +153,23 @@ async function showCoverage(validatedInput){
  $('#coverageBackToInput')?.addEventListener('click',backToInput);
  await window.REPORT_CHECKOUT_UI?.mount?.({
   container:body,analysisInput:{status:'ready',calculationInput:validatedInput},
-  proposal:out.productProposal
+  proposal:out.productProposal,
+  // The checkout config fetch is also asynchronous. Its result must not
+  // attach an outdated purchase offer after the current view was left.
+  isCurrent
  });
 }
-async function run(verifiedResult,verifiedInput){const body=$('#reportBody');if(!body)return;loading(0);try{
+async function run(verifiedResult,verifiedInput){
+ const body=$('#reportBody');if(!body)return;
+ const visible=window.REPORT_STEP_NAVIGATION?.isResultVisible;
+ if(typeof visible==='function'&&!visible())return;
+ const epoch=++freeViewEpoch;
+ const snapshot=verifiedInput||input();
+ const isCurrent=()=>epoch===freeViewEpoch&&
+  (typeof window.REPORT_STEP_NAVIGATION?.isResultVisible!=='function'||
+   window.REPORT_STEP_NAVIGATION.isResultVisible())&&
+  FREE_CALCULATION_STATE.key(input())===FREE_CALCULATION_STATE.key(snapshot);
+ loading(0);try{
   if(verifiedResult!==undefined){
    // The wizard already called /api/calculate. A stale or different
    // receipt must NEVER enter the paid coverage or checkout path.
@@ -162,19 +181,27 @@ async function run(verifiedResult,verifiedInput){const body=$('#reportBody');if(
    // Preserve compatibility with a standalone older page calling run().
    const c=await fetch('/api/calculate',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(input())});
    if(!c.ok)throw Error(await message(c,'사주 계산을 완료하지 못했습니다.'));
-   lastAnalysis=await c.json();
-   if(lastAnalysis.status!=='ready')throw Error('검증된 계산값이 준비되지 않았습니다.');
+   const fresh=await c.json();
+   if(!isCurrent())return;
+   if(fresh.status!=='ready')throw Error('검증된 계산값이 준비되지 않았습니다.');
+   lastAnalysis=fresh;
   }
-  await showCoverage(lastAnalysis.calculationInput);
- }catch(e){clearInterval(timer);showScopeError(e)}}async function resume(){const body=$('#reportBody');if(!body)return false;const id=sessionStorage.getItem('reportJobId');if(!id&&!sessionStorage.getItem('reportQualityDraft')&&!sessionStorage.getItem('reportCompleted'))return false;let sec=0;loading(sec,'paid');clearInterval(timer);timer=setInterval(()=>loading(++sec,'paid'),1000);const out=await REPORT_API.resume();clearInterval(timer);if(out?.status==='rejected'){showReview(out);return true}if(out?.status==='ready'){openResult();window.REPORT_RENDERER?.render?window.REPORT_RENDERER.render(out.report,body):renderFallback(out.report);return true}if(out?.status==='missing'){body.innerHTML=`<section class="section analysis-error">${window.CHARACTER_ASSETS.state('error')}<h2>이전 분석 작업이 만료됐습니다.</h2><p>입력 화면에서 정보를 확인한 뒤 다시 분석해주세요.</p><button class="btn primary" id="returnToInput" style="width:100%">입력 화면으로 돌아가기</button></section>`;$('#returnToInput').addEventListener('click',backToInput);return true}body.innerHTML=`<section class="section analysis-error">${window.CHARACTER_ASSETS.state('error')}<h2>분석을 완료하지 못했습니다.</h2><p>${esc(out?.message||'분석 결과를 만드는 중 문제가 생겼습니다. 다시 시도해 주세요.')}</p></section>`;return true}
+  if(!isCurrent())return;
+  await showCoverage(lastAnalysis.calculationInput,isCurrent);
+ }catch(e){
+  if(!isCurrent())return;
+  clearInterval(timer);showScopeError(e);
+ }}async function resume(){const body=$('#reportBody');if(!body)return false;const id=sessionStorage.getItem('reportJobId');if(!id&&!sessionStorage.getItem('reportQualityDraft')&&!sessionStorage.getItem('reportCompleted'))return false;let sec=0;loading(sec,'paid');clearInterval(timer);timer=setInterval(()=>loading(++sec,'paid'),1000);const out=await REPORT_API.resume();clearInterval(timer);if(out?.status==='rejected'){showReview(out);return true}if(out?.status==='ready'){openResult();window.REPORT_RENDERER?.render?window.REPORT_RENDERER.render(out.report,body):renderFallback(out.report);return true}if(out?.status==='missing'){body.innerHTML=`<section class="section analysis-error">${window.CHARACTER_ASSETS.state('error')}<h2>이전 분석 작업이 만료됐습니다.</h2><p>입력 화면에서 정보를 확인한 뒤 다시 분석해주세요.</p><button class="btn primary" id="returnToInput" style="width:100%">입력 화면으로 돌아가기</button></section>`;$('#returnToInput').addEventListener('click',backToInput);return true}body.innerHTML=`<section class="section analysis-error">${window.CHARACTER_ASSETS.state('error')}<h2>분석을 완료하지 못했습니다.</h2><p>${esc(out?.message||'분석 결과를 만드는 중 문제가 생겼습니다. 다시 시도해 주세요.')}</p></section>`;return true}
 function updateGuides(){document.querySelectorAll('[data-character-guide]').forEach(el=>{el.innerHTML=window.CHARACTER_ASSETS.guide(input(),el.dataset.characterGuide==='confirm')})}
 async function generatePurchased(analysisInput,purchase){
  if(!purchase||!purchase.orderId||!purchase.ownerToken)
   throw Error('PAYMENT_ORDER_OWNER_DENIED');
+ freeViewEpoch++;
  openResult();
  return generate(analysisInput,purchase);
 }
-window.LIVE_REPORT_UI={input,run,resume,generatePurchased,openResult};document.addEventListener('click',e=>{if(e.target.closest('[data-choice="gender"]'))updateGuides()});document.addEventListener('DOMContentLoaded',updateGuides);document.addEventListener('DOMContentLoaded',()=>{
+window.LIVE_REPORT_UI={input,run,resume,generatePurchased,openResult,
+ invalidateFreeView:()=>{freeViewEpoch++;clearInterval(timer)}};document.addEventListener('click',e=>{if(e.target.closest('[data-choice="gender"]'))updateGuides()});document.addEventListener('DOMContentLoaded',updateGuides);document.addEventListener('DOMContentLoaded',()=>{
  Promise.resolve(window.REPORT_CHECKOUT_UI?.restore?.()).then(restored=>{
   if(!restored)return resume();
  }).catch(()=>{});

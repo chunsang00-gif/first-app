@@ -117,5 +117,29 @@ const active=n=>screens[n-1].classList.contains('active');
  await scheduled.shift()();
  assert.equal(coverage.count,3);
  assert.equal(calls.length,3);
+ // A late old FREE scope response must not replace a new form or result.
+ let resolveOld;
+ ctx.REPORT_API.coverage=()=>new Promise(resolve=>{resolveOld=resolve});
+ const validInput=calls.at(-1),receipt={status:'ready',calculationInput:validInput};
+ const staleRequest=ctx.LIVE_REPORT_UI.run(receipt,validInput);
+ assert.equal(typeof resolveOld,'function','the old scope request is pending');
+ ctx.REPORT_STEP_NAVIGATION.returnToInput();
+ assert(active(1),'leaving the result must invalidate its pending request');
+ const staleErrorText='이전 요청이 현재 화면을 덮어쓰면 안 됩니다';
+ resolveOld({status:'blocked',errors:[staleErrorText]});
+ await staleRequest;
+ assert(active(1),'late scope failure cannot reopen the old result');
+ assert(!els.reportBody.innerHTML.includes(staleErrorText),
+  'old scope response must not show a new error after leaving');
+ // Deferred callbacks queued for an abandoned result must also be dropped.
+ await els.next.onclick();assert(active(2));
+ await els.next.onclick();assert(active(3));
+ assert.equal(scheduled.length,1);
+ ctx.REPORT_STEP_NAVIGATION.returnToInput();
+ const beforeQueued=coverage.count;
+ await scheduled.shift()();
+ assert(active(1));
+ assert.equal(coverage.count,beforeQueued,'abandoned result callback must be a no-op');
+ assert.equal(calls.length,3,'no extra calculation during these races');
  console.log('PASS actual input-confirm-result browser flow: free calculation once per stable input, no second free API on results, retry coverage separately, offline retry retains inputs and new name forces verification; 0 paid calls');
 })().catch(e=>{console.error(e);process.exitCode=1});

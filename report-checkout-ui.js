@@ -343,7 +343,7 @@ async function restore(){
  }
  return false;
 }
-async function mount({container,analysisInput,proposal}={}){
+async function mount({container,analysisInput,proposal,isCurrent}={}){
  if(!container||!analysisInput?.calculationInput||
     proposal?.status!=='draft-not-for-sale')return;
  const state=read();
@@ -351,7 +351,8 @@ async function mount({container,analysisInput,proposal}={}){
  const displayedIds=displayedChapterIds(proposal);
  if(!displayedIds)return;
  const cfg=await config().catch(()=>null);
- if(!cfg||!container.isConnected)return;
+ if(!cfg||!container.isConnected||
+    (typeof isCurrent==='function'&&!isCurrent()))return;
  const notice=find('coverageSalesNotice');
  if(notice)notice.textContent='이 출생정보로 작성할 수 있는 보고서의 후보 구성입니다. 표시한 최대 항목 수는 실제 완성 문단 수가 아닙니다. 결제 전 작성 후보를 확인해 주세요.';
  const panel=document.createElement('section');panel.className='section report-checkout';
