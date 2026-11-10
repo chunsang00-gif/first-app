@@ -188,13 +188,37 @@ function sources(prompt){
 // instruction does not run in the one-call paid QA or customer-facing app.
 const offlineEditorialBenchmarkDirective=' 이 QA 오프라인 검증에서는 task.chapters.saju_core.topics.natal_depth.qaOfflineEditorialResearch.fullFirstChapterResearch를 품질 비교용 구형 초안으로만 참고한다. qaOfflineEditorialResearch.revisedSourceSpecificFirstChapter가 있으면 출생 날·시간에 정확히 맞는 고전 문구, 다른 겨울 문헌의 조건, 출생시각 반례를 분리한 수정 원고를 우선 비교한다. 이 수정 원고도 실제 성격이나 운을 입증하지 않았고 유료 출력 승인을 뜻하지 않는다. 각 문단의 계산 위치별 뜻, 상반되는 근거, 가상 상황의 유리한 조건과 놓칠 조건, 자연스러운 독자용 문장이 실제 허용된 출처와 맞는지 검토한다. qaOfflineEditorialResearch.exactWinterClassicalScope가 있으면 정확한 날·시간 고전 인용과 일반 겨울 조건을 서로 다른 범위로 읽고 하나가 다른 하나를 취소한다고 판단하지 않는다. 두 자료의 검증되지 않은 개인별 길흉·성격 판단은 작성하지 않는다. 원고를 실제 고객의 관찰된 성격처럼 복사하거나 다른 출생 정보에 재사용하지 않는다. 독자용 마지막 문장에서 업무·행사·매장 등의 상황 명사만 교체한 채 누구에게나 같은 조언을 반복하지 않는다. 서로 다른 계산 분류가 허용하는 차이가 없다면 억지 차별화 대신 그 한계를 내부 근거에만 기록한다. 가상 상황에서 도움이 되는 조건과 놓칠 조건은 각각 인용한 계산 분류의 전통적 뜻과 연결되어야 한다. 도입부의 분류 설명만 맞고 결론이 누구나 적용 가능한 조언이면 통과로 간주하지 않는다. 태어난 날의 중심 글자는 다른 위치의 전통 분류를 계산할 때 쓰는 기준이며, 그 기준만으로 별도 성격이나 행동을 만들어 고객용 본문에 억지로 넣지 않는다. 자료가 검수 미완료 상태이므로 품질 승인을 선언하거나 정식 유료 생성에 포함하지 않는다.';
 const coreEditorialGoal='이 응답은 결제 고객이 읽을 첫 번째 사주 기질 장의 최종 본문 원고다. 계산된 태어난 달의 두 전통 분류를 실제 인용 가능한 근거로 사용한다. 먼저 그래서 어떤 기질로 읽는지 독자가 한 번에 이해할 말로 풀고, 하나의 구체적인 가상 선택에서 두 의미를 함께 고려하면 어떤 조건에서 유리하고 한쪽만 따르면 무엇을 놓치는지 연결해 설명한다. 계산 위치와 두 분류의 사전 뜻을 차례로 소개하거나 누구에게나 맞는 확인·준비 조언으로 채우지 않는다. 같은 분류가 두 위치에서 나왔다면 반대 성향이나 기질의 강도 증가를 만들어내지 않는다. 계절 보충 문단은 핵심 풀이와 다른 해석 근거가 실제로 있을 때만 작성하고 중복이라면 null로 둔다. 내부 basis에는 실제 두 출처·해석·적용 조건·한계를 기록하되 독자용 제목과 본문에는 전문용어·출처 ID·검증 순서를 나열하지 않는다. 확인하지 않은 실제 성격·능력·경험·성공이나 사건을 단정하지 않는다. 한국어 조사와 서술어를 자연스럽게 고치고 추상적인 수식·반복되는 한계 안내·마지막 요약으로 분량을 늘리지 않는다.';
+// Resolve the normal paid first-chapter editorial contract only when
+// the customer's current learning choice and computed birth-hour provenance
+// give an independently citable third symbolic question. All other charts,
+// consumed QA envelopes and non-first-chapter requests stay byte-identical.
+const optionalSeasonOnly='계절 보충 문단은 핵심 풀이와 다른 해석 근거가 실제로 있을 때만 작성하고 중복이라면 null로 둔다.';
+function paidCoreHourGoal(prompt){
+ if(prompt?.stage!=='body'||JSON.stringify(prompt.requestedSections)!=='["saju_core"]'||
+    prompt.paidCoreDepthV2===true||prompt.qaNatalDepthPreview===true||
+    prompt.qaAdditiveDepthPreview===true||
+    prompt.qaOfflineEditorialResearchPreview===true)return null;
+ const rows=require('./report-fact-bindings').build(prompt.facts);
+ const sources=Object.fromEntries(rows.map(row=>[row.id,row]));
+ const hour=require('./report-paid-core-hour-extension').build(prompt.facts,sources);
+ if(!hour)return null;
+ if(hour.classicalPriorityApproved!==false||hour.premiumValueApproved!==false||
+    hour.realAbilityObserved!==false||hour.extraPaidTopic!==false)
+  throw Error('PAID_CORE_HOUR_GOAL_UNVERIFIED');
+ return '선택 문단은 출생월의 계절 풀이 대신 이 명식의 정확한 출생시간에서 독립적으로 확인된 전통적 표현 분류를 설명한다. '+
+  '고객이 직접 입력한 배움·기술 관련 고민을 구체적인 가상의 선택으로 사용하되 두 개의 삶의 결과를 예언하지 않는다. '+
+  '시간의 숨은 글자 분류는 '+hour.hourHiddenRole+'이며 출생시간 겉글자와 숨은 글자의 정확한 두 출처를 내부 근거로 연결한다. '+
+  '필수 출생월 문단에서 설명한 두 의미를 다시 나열하지 않고, 그 고민에 출생시간의 별도 표현·결과물 질문이 추가되는 이유를 이해하기 쉬운 한국어로 설명한다. '+
+  '독자의 실제 성취·성격·과거 직무 경험·미래 취업을 판정하지 않는다. 제목과 본문에 십성 이름·출처 ID를 쓰지 않는다. '+
+  '출생월 필수 strength 문단은 기존 근거와 고정 핵심 판단을 그대로 지킨다.';
+}
 const additiveGoal=' 선택형 QA에서는 temperament의 기존 선택 기준과 strength 필수 판정을 유지한다. natal_depth는 독립적으로 증명 가능한 새 개인별 해석이 없으면 null이다. 계산상 새로운 분류와 고전 사례만으로 실제 능력, 성격, 운세를 새로 만들어 쓰지 않는다. 다른 두 문단의 내용을 복제하거나 일반적인 조언으로 심화를 채우지 않는다.';
 function editorialGoalFor(prompt){
  const original=typeof prompt?.editorialTask==='string'?prompt.editorialTask:null;
  if(original&&prompt.stage==='body'&&
     Array.isArray(prompt.requestedSections)&&
     prompt.requestedSections.length===1&&prompt.requestedSections[0]==='saju_core')
-  return coreEditorialGoal+(prompt.qaAdditiveDepthPreview===true?additiveGoal:prompt.qaNatalDepthPreview===true?
+  return (paidCoreHourGoal(prompt)?coreEditorialGoal.replace(optionalSeasonOnly,paidCoreHourGoal(prompt)):coreEditorialGoal)+(prompt.qaAdditiveDepthPreview===true?additiveGoal:prompt.qaNatalDepthPreview===true?
    ' QA 전용 검증 응답이다. temperament는 반드시 null로 둔다. strength는 기존 월 중심 핵심 판단과 두 분류의 의미를 유지한다. 세 번째 natal_depth는 검증된 출생 해·날·시간의 독립된 뜻이 월 중심 풀이에 더하는 새로운 판단을 검토하는 필수 원고다. 새 제안을 선택하는 등 한 가지 현실적인 가상 상황을 잡고, 해와 시간의 전통적 분류가 서로 다른 선택 기준에 연결되는 이유와 어떤 조건에서 유리하고 불리한지 구별한다. 실제로 계산된 분류가 같으면 거짓 반전을 만들지 않는다. 단순 계산 위치 소개·사전적인 뜻 두 문장·누구에게나 통하는 준비 조언·면책 반복으로 원고를 대신하지 않는다. 기준이 되는 출생 근거가 충분하지 않다면 임의로 생성하지 말고 QA 실패로 남긴다. 이 요청은 사전 근거 선별이 끝난 1회 검증 원고이며, natal_depth를 null로 제출하거나 필수 인용 없이 작성하는 것은 실패다. 실제 성격·능력·신강약·충의 결과·합화·미래 사건은 단정하지 않는다. 이 문단은 출시 미승인 후보이므로 사람의 문장 감수가 따로 필요하다.':'')+
    (prompt.qaOfflineEditorialResearchPreview===true?offlineEditorialBenchmarkDirective:'')+
    (prompt.paidCoreDepthV2===true?' 개발용 첫 장의 temperament에는 출생 해·날·시간의 별도 계산 출처가 검증된 경우에만 추가된다. 출생월 중심 strength에서 알 수 없는 관계가 실제로 확인될 때, 그 관계로 무엇이 달라지는지 먼저 설명한다. 근거마다 배움·재물·규칙 같은 상징을 나열하거나 직업·생활 일반 조언으로 분량을 채우지 않는다. 일부 계산 사실만으로 해석 우선순위나 인생의 결과를 확정하지 않는다. readerContrast가 있을 때에는 해당 독립 출처에서 비롯된 두 상황 조건이 어떻게 달라지는지, 왜 기본 출생월 풀이만으로 알 수 없는지를 한 장면으로 설명한다. 사주를 개인의 실제 성격이나 미래로 확정하지 않고 전통적인 해석의 가정 조건을 비교한다. 출생 해·날·시간의 관계가 서로 맞물리는 경우에도 글자만 나열하지 말고 한 조건이 빠진 상황을 비교한다. readerContrast와 readerAlternative, readerClassicalScope 모두 없거나 별도 근거를 이해하기 쉬운 조건부 풀이로 연결할 수 없다면 temperament는 null이다. readerAlternative에서는 출생 해 또는 시간의 다른 겉글자 분류만 비교하고 정확한 속글자 일치를 주장하지 않는다.':'');

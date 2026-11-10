@@ -25,6 +25,15 @@ assert.throws(()=>ext.build(packet,swapped),/CORE_HOUR_ADDITION_SOURCE_DRIFT/);
  const captured=await capture({...input,readerDecision:q});
  assert.equal(captured.status,'captured-full-paid-composition');
  assert.equal(captured.providerCalls,0);
+ const newGoal=writer.editorialGoalFor(captured.prompt);
+ assert(newGoal.includes('선택 문단은 출생월의 계절 풀이 대신'));
+ assert(newGoal.includes(v.hourHiddenRole));
+ assert(!newGoal.includes('계절 보충 문단은 핵심 풀이'));
+ const currentPayload=writer.compile(captured.prompt);
+ assert.equal(currentPayload.task.editorialGoal,newGoal);
+ const outgoingSchema=writer.schema(captured.prompt,wire.schemaFor(captured.prompt,schema));
+ assert.deepEqual(require('./report-provider-preflight')
+  .inspect(captured.prompt,currentPayload,outgoingSchema),[]);
  const payload=writer.compile(captured.prompt);
  const first=payload.task.chapters.saju_core.topics.temperament;
  assert.deepEqual(first.sourceOwnedHourExtension,v);
@@ -46,6 +55,7 @@ assert.throws(()=>ext.build(packet,swapped),/CORE_HOUR_ADDITION_SOURCE_DRIFT/);
  const old=writer.compile(older.prompt);
  assert(!old.task.chapters.saju_core.topics.temperament.sourceOwnedHourExtension);
  assert(!old.source['natal.hour.hidden.丁']);
+ assert(writer.editorialGoalFor(older.prompt).includes('계절 보충 문단은 핵심 풀이'));
  const oldSchema=writer.schema(older.prompt,wire.schemaFor(older.prompt,schema));
  assert(oldSchema.properties.chapters.properties.saju_core.properties
   .paragraphs.properties.temperament.anyOf.some(x=>x.type==='null'));
