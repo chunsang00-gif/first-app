@@ -248,6 +248,33 @@ function compile(prompt){
   throw Error('USER_DECISION_NOT_VALIDATED');
  const decision=typeof rawDecision==='string'&&rawDecision.trim()?
   rawDecision.trim():null;
+ // The buyer's voluntary present concern must not vanish from the final
+ // conclusion. Bind it only to previously delivered actual reader prose.
+ const finalCustomerChoice=prompt.stage==='synthesis'&&decision?(()=>{
+  const completed=prompt.completedReport||{},sections=completed.sections||[];
+  if(completed.meta?.readerDecision!==decision)
+   throw Error('PAID_FINAL_CHOICE_INPUT_MISMATCH');
+  if(!Array.isArray(sections)||new Set(sections.map(s=>s?.id)).size!==sections.length)
+   throw Error('PAID_FINAL_CHOICE_BAD_DELIVERED_SECTIONS');
+  const d=sections.find(s=>s.id==='decision');
+  if(!d||!Array.isArray(d.body)||!d.body.some(s=>typeof s==='string'&&s.trim()))
+   return null;
+  const choiceDomain=require('./report-paid-reader-question-domain');
+  const domain=choiceDomain.chosenDomain(decision);
+  const related=domain?sections.find(s=>s.id===domain):null;
+  const relevant=related&&Array.isArray(related.bodyTopics)&&
+   Array.isArray(related.body)?
+   choiceDomain.preferences(domain,decision).find(topic=>{
+    const ix=related.bodyTopics.indexOf(topic);
+    return ix>=0&&typeof related.body[ix]==='string'&&related.body[ix].trim();
+   })||null:null;
+  return {kind:'delivered-only-buyer-choice-final-v1',question:decision,
+   inputAsCalculatedEvidence:false,observedCustomerOutcome:false,
+   supportChapter:'decision',
+   relatedChapter:relevant?domain:null,relatedTopic:relevant,
+   relatedParagraphWasDelivered:Boolean(relevant),newPaidParagraph:false,
+   extraProviderCall:false,professionalReviewComplete:false};
+ })():null;
  const task=prompt.stage==='body'?{
   chapters:Object.fromEntries(prompt.requestedSections.map(id=>{
    const p=prompt.analysisGuidance.editorialBlueprint[id];
@@ -314,6 +341,7 @@ function compile(prompt){
   mbti:prompt.analysisGuidance.mbtiReference||null,
   comparisonContract:prompt.analysisGuidance.comparisonContract||null
  }:{completedReport:prompt.completedReport,
+  ...(finalCustomerChoice?{finalCustomerChoice}:{}),
   // Bring the final editorial task through the real provider boundary.
   editorialGoal:prompt.rules?.finalEditingTask||null};
  const payload={version:'evidence-first-v1',stage:prompt.stage,targetYear:prompt.facts.targetYear,source,task};
@@ -651,6 +679,32 @@ function schema(prompt,transport){
   if(ids.length<3)throw Error('Insufficient supported chapters for a three-card premium cover');
   const result=structuredClone(transport);
   result.properties.cover.properties.highlights.items.properties.sectionId.enum=ids;
+  const choice=payload.task.finalCustomerChoice;
+  if(choice){
+   if(choice.kind!=='delivered-only-buyer-choice-final-v1'||
+      choice.question!==prompt.facts.person.readerDecision?.trim()||
+      choice.inputAsCalculatedEvidence!==false||
+      choice.observedCustomerOutcome!==false||
+      choice.newPaidParagraph!==false||
+      choice.extraProviderCall!==false||
+      choice.professionalReviewComplete!==false||
+      !payload.task.completedReport.sections.some(s=>s.id==='decision'))
+    throw Error('PAID_FINAL_CHOICE_SOURCE_DRIFT');
+   const final=result.properties.finalJudgment.properties;
+   final.body.description=(final.body.description||'')+
+    ' 입력된 고객의 현재 선택 고민(고객 입력, 명리 계산 근거 아님): '+
+    JSON.stringify(choice.question)+'. '+
+    '실제로 완성된 선택·결정 장에서 이미 답한 서로 다른 판단 조건 중 하나를 종합 본문 한 문장에 자연스럽게 적용한다. '+
+    (choice.relatedParagraphWasDelivered?
+      '실제로 완성된 '+choice.relatedChapter+'.'+choice.relatedTopic+
+      ' 분야의 질문을 보조로 활용할 수 있다. ':
+      '별도 관련 분야의 해당 문단은 실제로 완성되지 않았으므로 있다고 주장하지 않는다. ')+
+    '고객 질문을 그대로 복사하거나 앞 장의 같은 결론을 재요약해 분량을 늘리지 않는다. '+
+    '기존 본문의 구체적인 해석 근거가 없어 새롭게 말할 조건이 없다면 억지로 답을 만들지 않는다. '+
+    '실제 선택을 완료했다고 가정하거나 어느 쪽이 성공할지 예언하지 않는다.';
+   final.closingQuestion.description=(final.closingQuestion.description||'')+
+    ' 앞의 실제 풀이에서 확인된 내용만으로 평서형 결론을 쓰고, 고객 질문에 무리하게 정답을 붙이거나 다시 질문으로 끝내지 않는다.';
+  }
   return result;
  }
  const result=structuredClone(transport),ids=Object.keys(payload.source);
