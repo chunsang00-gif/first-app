@@ -64,7 +64,10 @@ assert.equal(createTiming().snapshot().sampleCount,0);
  // generation; loading still displays timing while calculation is pending.
  let resolveCoverage,charged=0;
  const body={innerHTML:'',querySelector(){return null}};
- const ui={window:{REPORT_API:{...api.window.REPORT_API,
+ // Match the production index.html ordering: the free input-key module
+ // loads before live-report-ui.js and exists on the global browser object.
+ const ui={FREE_CALCULATION_STATE:require('./free-calculation-state'),
+  window:{REPORT_API:{...api.window.REPORT_API,
   coverage:()=>new Promise(resolve=>{resolveCoverage=resolve;})},
   CHARACTER_ASSETS:{state:()=>''},REPORT_RENDERER:{render(){}}},
   REPORT_API:{generate:async()=>{charged++;throw Error('Paid report must not be invoked');}},
