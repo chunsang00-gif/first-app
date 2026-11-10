@@ -70,9 +70,12 @@ assert.deepEqual(free.details,
  ['saju_core','relationship','integrated_judgment','year_2027'],
  'art must follow chapter ID even when other chapters are omitted');
 const paid=run('ISFP');
-assert(paid.html.includes('MBTI와 다른 의외의 점'));
+assert(paid.html.includes('사주와 MBTI 비교'));
+assert(!paid.html.includes('MBTI와 다른 의외의 점'),
+ 'the report must not manufacture a contradiction simply because two lenses are compared');
 assert(paid.html.includes('사주 × MBTI 종합'));
-assert(paid.html.includes('성격 · 의외의 차이'));
+assert(paid.html.includes('성격 · 두 풀이 비교'));
+assert(!paid.html.includes('성격 · 의외의 차이'));
 assert.deepEqual(paid.details,free.details);
 console.log('PASS premium reader displays unique chapter judgments, truthful no-MBTI labels and ID-bound art across omitted chapters');
 const question='현재 일을 유지할지 새로운 기술을 배울지 고민 중입니다.';

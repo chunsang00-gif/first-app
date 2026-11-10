@@ -14,6 +14,12 @@ assert(first.includes('id="saveReportForReview"'),'completed report must offer r
 assert(!first.includes('detail-verdict'),'chapter titles must not be followed by repeated verdict summaries');
 assert(!first.includes('이 해석의 근거'));assert(!first.includes('사주 계산값 확인'));
 assert(first.includes('MBTI를 정해진 규칙으로 표시한'));assert(!first.includes('MBTI을'));
+assert(first.includes('사주 계산값과 직접 입력한 MBTI를 정해진 규칙으로 표시한 참고 지표'));
+assert(first.includes('실제 성격·능력이나 행동 빈도를 측정한 점수가 아닙니다.'));
+assert(first.includes('class="meta balance-source-note"'),
+ 'the dashboard must disclose its non-measurement status WITHOUT opening an info button');
+assert(!first.includes('MBTI와 다른 의외의 점'));
+assert(!first.includes('성격 · 의외의 차이'));
 assert(first.includes('검증 남성'));assert(second.includes('검증 여성'));assert(!second.includes('검증 남성'));
 assert.notEqual(characters.select(a).zodiac,characters.select(b).zodiac);
 assert(first.includes('portrait-male-'));assert(second.includes('portrait-female-'));
@@ -22,6 +28,9 @@ for(const r of [a,b]){const html=render(r),values=Object.values(r.meta.profileBa
 const modified=structuredClone(a);modified.meta.profileBalance.axes.relationship=35;
 assert.notEqual(first.match(/class="radar-data"[^>]+/)[0],render(modified).match(/class="radar-data"[^>]+/)[0]);
 const unknown=structuredClone(b);unknown.meta.mbti='모름';const unknownHtml=render(unknown);assert(!unknownHtml.includes('mbti-badge'));assert(unknownHtml.includes('사주 성향 지도'));assert(!unknownHtml.includes('사주 × MBTI 성향 지도'));
+assert(unknownHtml.includes('사주 계산값을 정해진 규칙으로 표시한 참고 지표'));
+assert(!unknownHtml.includes('직접 입력한 MBTI를 정해진'));
+assert(unknownHtml.includes('실제 성격·능력이나 행동 빈도를 측정한 점수가 아닙니다.'));
 const unsafe=structuredClone(a);unsafe.meta.name='<script>alert(1)</script>';assert(!render(unsafe).includes('<script>alert(1)</script>'));
 const partial=structuredClone(a);delete partial.meta.profileBalance.axes.emotion;assert(!render(partial).includes('radar-svg'));
 const extreme=structuredClone(a);extreme.meta.profileBalance.axes.relationship=150;assert(render(extreme).includes('data-values="100,'));assert(!render(extreme).includes('width:150%'));
