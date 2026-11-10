@@ -5,7 +5,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),
 path=require('node:path'),vm=require('node:vm');
 const html=fs.readFileSync(path.join(__dirname,'index.html'),'utf8');
 const live=fs.readFileSync(path.join(__dirname,'live-report-ui.js'),'utf8');
-const marker='<script>(()=>{let step=1,verifiedStepOne=null;',start=html.lastIndexOf(marker);
+const marker='<script>(()=>{let step=1,verifiedStepOne=null,resultRenderSeq=0;',start=html.lastIndexOf(marker);
 assert(start>0);const end=html.indexOf('</script>',start);assert(end>start);
 const wizard=html.slice(start+'<script>'.length,end);
 function el(id,value=''){
