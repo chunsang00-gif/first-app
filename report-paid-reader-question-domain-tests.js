@@ -152,6 +152,11 @@ assert.equal(scope.locateDelivered(wrongTopicLengths).related,null);
 const ambiguous=structuredClone(delivered);
 ambiguous.meta.readerDecision='이직해서 돈을 더 벌지 고민입니다.';
 assert.equal(scope.locateDelivered(ambiguous).related,null);
+assert.equal(scope.chosenDomain('돈을 모을지 고민입니다.'),'money',
+ 'Korean accusative particle must not defeat the money classifier');
+assert.equal(scope.chosenDomain('돈벌이를 늘릴지 고민입니다.'),'money');
+assert.equal(scope.chosenDomain('직장을 옮겨 돈을 더 벌지 고민입니다.'),null,
+ 'multi-domain buyer decision must never imply a guaranteed career answer');
 const missingDecisionChapter=structuredClone(delivered);
 missingDecisionChapter.sections.splice(1,1);
 assert.equal(scope.locateDelivered(missingDecisionChapter),null);
