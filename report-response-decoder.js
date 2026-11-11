@@ -50,6 +50,23 @@ function decode(value,prompt){
  const restored=generation.restoreEvidence(readerValue,prompt);
  if(prompt?.qaNatalDepthPreview===true)
   require('./report-core-paid-natal-depth-response-gate').assert(value,prompt);
- return reader.normalizeVisible(wire.decode(restored,prompt));
+ const decoded=reader.normalizeVisible(wire.decode(restored,prompt));
+ // The last paid synthesis must respect the same verified birth-year
+ // boundary as the earlier chapters. Do not let a late cover or conclusion
+ // introduce a fabricated adult life after the paid body was verified.
+ if(prompt?.stage==='synthesis'){
+  const age=require('./report-reader-age-boundary');
+  if(age.forPrompt(prompt)){
+   const f=decoded.finalJudgment||{},cover=decoded.cover||{};
+   const visible=[cover.headline,cover.description,
+    ...(cover.highlights||[]).flatMap(h=>[h.title,h.description]),
+    f.headline,...(f.body||[]),...(f.strengths||[]),...(f.watchouts||[]),
+    ...(f.routines||[]).flatMap(r=>[r.trigger,r.action,r.reason]),
+    f.closingQuestion];
+   if(visible.some(line=>age.inspect(line,prompt).length))
+    throw Error('AI report service underage adult-history assumption: synthesis');
+  }
+ }
+ return decoded;
 }
 module.exports={decode};

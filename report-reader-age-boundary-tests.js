@@ -48,4 +48,26 @@ assert.deepEqual(life.inspect('당신은 현재 회사에서 일하고 있습니
 assert(fs.readFileSync('report-generation-request.js','utf8')
  .includes("require('./report-reader-age-boundary').inspect(p?.text,prompt)"),
  'live paid decoder must fail before another model batch');
-console.log('PASS real paid young-reader writer, summary and early response rejection: no adult history assumptions, no extra AI calls');
+const decode=require('./report-response-decoder').decode;
+const baseFinal={chapters:{},cover:{headline:'일상에 관한 전통 풀이',description:'자원을 바라보는 질문',
+ highlights:[]},finalJudgment:{headline:'종합 정리',
+ body:['출생 정보만으로 실제 선택이나 재산은 확인할 수 없습니다.'],
+ closingQuestion:'전통적 두 의미를 구별해 읽습니다.',strengths:[],watchouts:[],routines:[]}};
+assert.equal(decode(baseFinal,summary).sections.length,0);
+assert.equal(decode(baseFinal,prompt(packet('1994-07-15'),'synthesis')).sections.length,0);
+for(const [where,text] of [
+ ['cover','당신은 현재 회사에서 일하고 있습니다.'],
+ ['final','당신은 이미 결혼했고 배우자와 살고 있습니다.'],
+ ['closing','본인은 지금 연봉을 협상하고 있습니다.']
+]){
+ const value=structuredClone(baseFinal);
+ if(where==='cover')value.cover.description=text;
+ else if(where==='final')value.finalJudgment.body[0]=text;
+ else value.finalJudgment.closingQuestion=text;
+ assert.throws(()=>decode(value,summary),
+  /underage adult-history assumption: synthesis/,
+  'final synthesis should never reintroduce adult life after clean paid body: '+where);
+ assert.doesNotThrow(()=>decode(value,prompt(packet('1994-07-15'),'synthesis')),
+  'existing adult manuscripts are unaffected');
+}
+console.log('PASS real paid young-reader writer, body+final decoder safeguards and offline regression; no paid API calls');
