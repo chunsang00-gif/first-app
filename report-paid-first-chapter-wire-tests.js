@@ -71,10 +71,11 @@ let fetches=0,rawRequest=null,upstreamPrompt=null;
    assert(!user.task.editorialGoal.includes(phrase),
     'unrelated full-report editorial instructions must not reach the Saju-only batch: '+phrase);
   }
-  assert(user.task.editorialGoal.includes('한쪽만 따르면 무엇을 놓치는지')&&
-   user.task.editorialGoal.includes('계절 보충 문단은')&&
-   user.task.editorialGoal.includes('추상적인 수식·반복되는 한계 안내'),
-   'core-only editorialGoal must guide useful grounded reading rather than glossary/summary');
+  assert(user.task.editorialGoal.includes('첫 사주 장의 실제 결제 원고')&&
+   user.task.editorialGoal.includes('두 계산 위치가 그 관계를 이루는 이유')&&
+   user.task.editorialGoal.includes('계절의 독립적 해석을 확인할 수 없으면')&&
+   !user.task.editorialGoal.includes('한쪽만 따르면 무엇을 놓치는지'),
+   'core-only real buyer goal must explain verified source relations without forcing invented life outcomes');
   const altered=structuredClone(user);
   altered.task.editorialGoal=upstreamPrompt.editorialTask;
   assert(require('./report-instruction-audit').inspectTransport(upstreamPrompt,altered)
