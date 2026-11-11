@@ -152,9 +152,9 @@ assert.equal(scope.locateDelivered(wrongTopicLengths).related,null);
 const ambiguous=structuredClone(delivered);
 ambiguous.meta.readerDecision='이직해서 돈을 더 벌지 고민입니다.';
 assert.equal(scope.locateDelivered(ambiguous).related,null);
-const absent=structuredClone(delivered);
-absent.sections.splice(1,1);
-assert.equal(scope.locateDelivered(absent),null);
+const missingDecisionChapter=structuredClone(delivered);
+missingDecisionChapter.sections.splice(1,1);
+assert.equal(scope.locateDelivered(missingDecisionChapter),null);
 assert.equal(scope.locateDelivered({meta:{readerDecision:'<script>evil</script>'},sections:delivered.sections}),null);
 assert.equal(JSON.stringify(links),JSON.stringify(browserLinks.window.REPORT_BUYER_QUESTION_LINKS.locateDelivered(delivered)),
  'server and browser must point to the same actually delivered customer answer');
