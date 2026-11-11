@@ -230,11 +230,10 @@ for(const input of cases){
  const seasonText=season.properties.text.description;
  const paired=paragraphs.strength;
  const pairedText=paired.properties.text.description;
- assert(chapterSchema.title.description.includes('조건부 기질 해석의 핵심'));
- assert(chapterSchema.keyJudgment.description.includes('자연스러운 한국어 한 문장'));
+  assert(chapterSchema.title.description.includes('실제 출생월 두 출처'));
+  assert(chapterSchema.keyJudgment.description.includes('실제 고객의 선택 경향'));
  assert(season.properties.label.description.includes('독립적인 계절·겉글자 조건'));
- assert(paired.properties.label.description.includes('필수 핵심 풀이')&&
-  paired.properties.label.description.includes(month.stemTenGod===mc.mainHiddenStemTenGod?'같은 전통 분류':'두 의미를 결합'));
+  assert(paired.properties.label.description.includes('태어난 달의 두 실제 출처'));
  assert(seasonText.includes('기술 강의')&&
   seasonText.includes('가상 장면')&&
   seasonText.includes('null로 반환한다')&&
@@ -246,13 +245,12 @@ for(const input of cases){
   !pairedText.includes('둘째 출처의 실제 질문은')&&
   !pairedText.includes('두 질문에 각각 답해야 하는 이유'),
   'actual provider output schema must not override claim ownership by printing internal questions');
- assert(pairedText.includes('사전적 의미나 내부 질문을 고객용 글로 나열하지 않는다')&&
-  (month.stemTenGod===mc.mainHiddenStemTenGod?
-    pairedText.includes('두 출생 위치의 십성 분류와 전통적 뜻이 같으므로')&&
-    pairedText.includes('거짓 차이, 반대되는 기질, 성격의 강약을 만들지 않는다'):
-    pairedText.includes('계산된 관계 자체를 쉬운 말로 설명할 수 있다면 가상 상황을 넣을 필요가 없다')&&
-    pairedText.includes('오행 관계를 실제 생활의 원인·결과나 행동 관찰로 확정하지 않는다')),
-  'paid writer must explain verified categories without forced scenes, real-world predictions or same-category contrasts');
+  assert(pairedText.includes('대칭 주의문을 작성하지 않는다')&&
+   (month.stemTenGod===mc.mainHiddenStemTenGod?
+    pairedText.includes('같은 전통 분류가 두 위치에서 확인되어'):
+    pairedText.includes('두 전통 분류가 다르면 정확히 계산된 오행 방향 하나만 설명한다'))&&
+   pairedText.includes('명리 전문가가 확정하지 않은 추가 해석의 우선순위'),
+   'normal paid chapter must keep computed meaning scope and not invent favorable life conditions');
 
  const moonPlan=contrasts.forTopic(contrast,'strength',[])?.readerReasoning?.readerValuePlan;
  assert(pairedText.includes(moonPlan.traditionalReading.first.reading)&&
@@ -260,8 +258,8 @@ for(const input of cases){
   !pairedText.includes(moonPlan.first.question)&&
   !pairedText.includes(moonPlan.second.question),
   'real first-chapter schema must use THIS chart meanings, not internal two-question prompts');
- assert(!pairedText.includes('실제로 학습 능력이 높')&&
-  pairedText.includes('실제 성격의 모순·갈등이나 능력의 증거로 바꾸지 않는다'));
+  assert(!pairedText.includes('실제로 학습 능력이 높')&&
+   pairedText.includes('확인하지 못한 실제 선택 경향'));
  assert.deepEqual(Object.keys(chapterSchema),['title','keyJudgment','evidence','mood','paragraphs'],
   'quality instructions must not alter the provider JSON field contract');
  if(input.calendar==='lunar'&&input.birthDate==='1982-11-24'){
