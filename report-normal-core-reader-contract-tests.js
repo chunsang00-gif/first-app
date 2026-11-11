@@ -40,9 +40,32 @@ for(const input of inputs){
  const allowed=[...new Set(Object.values(request.task.chapters.saju_core.topics)
  .flatMap(x=>x.citableFacts.map(y=>y.id)))].sort();
  assert.deepEqual(Object.keys(request.source).sort(),allowed);
+ const payload=request;
+
+ // Both policy and strict text-field schema reach the provider. Previously
+ // high-level policy still demanded invented real-life advantages.
+ assert(payload.policy.includes('출생월 겉글자와 중심 숨은 글자의 전통적 뜻'));
+ assert(!payload.policy.includes('한쪽만 따르면 놓치는 조건을 설명하고'),
+  'regular paid high-level policy must not contradict source-only body field');
+ assert(!payload.policy.includes('가상의 한 선택에서 언제 도움이 되고 어느 조건에서 손해가 생기는지'));
+ assert(payload.task.chapters.saju_core.analysisGoal.includes('첫 사주 장의 실제 결제 원고'));
  normal.push(judgment.keyJudgment);
 }
 assert(new Set(normal).size>=2,'month-specific judgments cannot all be identical');
 assert(normal[0].includes('제약하는'),'1982 verified direction must not reverse');
 assert(normal[1].includes('한 가지 전통적 뜻'),'identical category must stay one interpretation');
+
+const base=prompt(inputs[0]);
+const packet=base.facts;
+const mixed={...base,requestedSections:['saju_core','decision'],
+ analysisGuidance:{...base.analysisGuidance,
+  editorialBlueprint:{...base.analysisGuidance.editorialBlueprint,
+   decision:guide.preflight(packet).decision}}};
+const mixedWritten=writer.compile(mixed);
+assert(mixedWritten.policy.includes('출생월 겉글자와 중심 숨은 글자의 전통적 뜻'));
+assert(!mixedWritten.policy.includes('한쪽만 따르면 놓치는 조건을 설명하고'));
+assert(mixedWritten.task.chapters.saju_core.analysisGoal.includes('첫 사주 장의 실제 결제 원고'));
+const historic=writer.compile(prompt(inputs[0],{paidCoreDepthV2:true}));
+assert(historic.policy.includes('한쪽만 따르면 놓치는 조건을 설명하고'),
+ 'the explicit development-only old paid QA policy remains unchanged');
 console.log('PASS normal first chapter no longer forces observed temperament or invented outcomes, historical QA remains immutable, 0 paid calls');

@@ -37,6 +37,30 @@ const normalPaidMonthMethodBoundary="달의 겉글자가 기본 숨은 글자가
 // their pinned writer policy and source schemas unchanged.
 const normalCoreMeaningPriority='일반 유료 첫 장의 필수 strength 작성에서는 task.chapters.saju_core.topics.strength.sourceOwnedCoreReaderValue가 가장 구체적인 독자용 작성 지침이다. 기존 상위 문구의 가상 직장 사례·두 조건의 기계적 장단점 요구보다 이 명식의 월간과 달의 중심 속글자에서 확인한 실제 두 전통 분류의 뜻·오행 관계를 우선한다. 서로 다른 뜻이면 검증된 오행 관계의 실제 방향 하나가 두 전통 분류를 어떻게 연결하는지 먼저 설명하고, 서로 대칭인 두 누락 경고 문장을 만들지 않는다. 같은 뜻이면 관계를 억지로 대비하지 말고 같은 분류가 두 출처에 있다는 의미만 설명한다. 글자 이름을 나열하거나 직업·부품·납품·인수인계 등의 고정 사례를 만들지 않는다. 실제로 검증된 독립 해석 없이 가상의 도움·손해·성취를 억지로 채우지 않는다. 가상 상황은 독자가 이 구분을 이해하는 데 필요할 때만 짧게 사용한다. 상위 정책의 실제 성격·능력·사건 금지, 인용 출처·월 중심 우선순위 미확정 원칙은 그대로 지킨다.';
 const additivePolicy='선택형 QA: temperament는 일반 유료 첫 장처럼 독립적 근거가 있을 때만 작성하고 strength는 필수로 유지한다. natal_depth는 선택 항목이며 새로운 개인별 판단 근거가 없으면 null로 반환한다. 고전이나 계산 정보의 일치 자체를 실제 성격 또는 미래 결과로 단정하지 않는다.';
+// Exactly the regular paid customer's first-chapter request, including a
+// mixed body batch. Historical paid QA envelopes and V2 remain untouched.
+const normalPaidCore=p=>p?.stage==='body'&&
+ Array.isArray(p.requestedSections)&&p.requestedSections.includes('saju_core')&&
+ p.qaNatalDepthPreview!==true&&p.qaAdditiveDepthPreview!==true&&
+ p.qaOfflineEditorialResearchPreview!==true&&p.paidCoreDepthV2!==true;
+function normalizeNormalCorePolicyPart(i,raw){
+ const once=(a,z)=>{if(raw.split(a).length!==2)
+  throw Error('PAID_CORE_HIGHER_POLICY_DRIFT:'+i);
+  raw=raw.replace(a,z)};
+ if(i===4){
+  once('saju_core는 독자가 자신의 기본 기질과 해석에 영향을 주는 조건을 이해할 수 있게 풀어 쓰는 장이다.',
+   'saju_core는 계산된 출생월의 전통적 뜻과 관계를 읽는 장이지 관찰된 성격을 판정하는 장이 아니다.');
+  once('strength는 고정된 핵심 판단이 한 가지 가상 선택에서 뜻하는 기질을 독자가 이해하게 먼저 풀어 쓴다. 그다음 실제 계산된 월간·월지 본기 두 뜻이 왜 그 선택에 연결되는지 이유만 밝힌다. 두 분류가 다르면 둘을 합쳐 얻는 판단과 한쪽만 따르면 놓치는 조건을 설명하고, 같으면 차이를 억지로 만들지 말고 같은 관점이 적용되는 조건을 설명한다.',
+   'strength는 출생월 겉글자와 중심 숨은 글자의 전통적 뜻을 구별하고 계산된 오행의 정확한 방향을 설명한다. 같은 분류면 한 가지 의미로 읽고 다른 분류면 임의로 실제 기질이나 행동 결과를 추가하지 않는다. 고정 핵심 판단은 출처와 관계의 설명으로만 펼친다.');
+  once('계산이 허용하는 범위에서만 유리한 조건·주의할 조건을 전통적으로 설명하며 구체적인 일상 가정을 붙인다.',
+   '추가적인 개인 해석을 계산으로 정당화할 수 없다면 가상의 유불리·직장 상황을 만들어내지 않고 확인된 의미와 한계만 설명한다.');
+ }
+ if(i===6){
+  once('이후 label과 text에는 고정된 핵심 판단을 먼저 구체적인 조건부 풀이로 설명한다. 가상의 한 선택에서 언제 도움이 되고 어느 조건에서 손해가 생기는지 두 출생 위치의 전통적 의미와 연결해 밝힌다.',
+   '이후 label과 text에서는 고정 핵심 판단을 반복하지 않고 검증된 출생월 두 위치의 전통적 뜻과 관계를 쉬운 문장으로 설명한다. 고객의 실제 선택 이득·손해를 계산하지 않았다면 단정하거나 가상으로 보충하지 않는다.');
+ }
+ return raw;
+}
 function policyFor(prompt){
  if(prompt?.stage==='body'&&
     JSON.stringify(prompt.requestedSections)===JSON.stringify(['saju_core'])){
@@ -44,7 +68,7 @@ function policyFor(prompt){
   const parts=corePolicyPartIndexes
    .filter(i=>prompt.qaAdditiveDepthPreview===true||
     prompt.qaNatalDepthPreview!==true||i!==1)
-   .map(i=>policyParts[i]);
+   .map(i=>normalPaidCore(prompt)?normalizeNormalCorePolicyPart(i,policyParts[i]):policyParts[i]);
   if(prompt.qaAdditiveDepthPreview===true)
    return parts.join('\n')+'\n'+additivePolicy;
   if(prompt.qaNatalDepthPreview===true)parts.push(
@@ -70,7 +94,7 @@ function policyFor(prompt){
   prompt.paidCoreDepthV2!==true&&
   prompt.qaAdditiveDepthPreview!==true&&
   prompt.qaOfflineEditorialResearchPreview!==true;
- return policy+(prompt?.stage==='body'&&prompt?.requestedSections?.includes('saju_core')&&
+ return (normalPaidCore(prompt)?policyParts.map((v,i)=>normalizeNormalCorePolicyPart(i,v)).join('\n'):policy)+(prompt?.stage==='body'&&prompt?.requestedSections?.includes('saju_core')&&
   prompt.qaNatalDepthPreview!==true?'\n'+normalPaidMonthMethodBoundary:'')+
   (isNormalCore?'\n'+normalCoreMeaningPriority:'');
 }
@@ -193,6 +217,18 @@ const coreEditorialGoal='이 응답은 결제 고객이 읽을 첫 번째 사주
 // give an independently citable third symbolic question. All other charts,
 // consumed QA envelopes and non-first-chapter requests stay byte-identical.
 const optionalSeasonOnly='계절 보충 문단은 핵심 풀이와 다른 해석 근거가 실제로 있을 때만 작성하고 중복이라면 null로 둔다.';
+// Only the regular paid core has this scoped editorial assignment.
+// The earlier goal stays intact for previously paid QA envelopes.
+const normalCoreEditorialGoal=
+ '첫 사주 장의 실제 결제 원고는 태어난 달의 두 계산 출처와 전통적 분류, 정확한 오행 관계를 독자에게 알기 쉽게 설명한다. '+
+ '개인의 실제 기질·행동·이익·손해를 출생 정보만으로 관찰한 듯이 쓰지 않는다. '+
+ '두 분류가 같으면 의미를 둘로 나누거나 강도를 높이지 않고, 다르면 실제 계산된 관계의 방향을 바꾸지 않는다. '+
+ '고정 핵심 판단의 문장을 본문에 복제하지 말고 두 계산 위치가 그 관계를 이루는 이유를 설명한다. '+
+ '전통적 뜻의 설명을 누구에게나 할 수 있는 일·학업 조언으로 대체하지 않는다. '+
+ '구체적인 가상 상황이 꼭 필요하면 가정임을 분명히 하며 선택의 성공이나 실손익을 예언하지 않는다. '+
+ '추가 근거가 없는 심화 판단, 격국·용신의 우선순위, 개인의 경험을 만들어내지 않는다. '+
+ '계절의 독립적 해석을 확인할 수 없으면 선택 문단을 null로 둔다. '+
+ '고객이 직접 적은 고민은 계산 근거가 아니고 독자 문맥이며, 증거 출처는 내부 basis에만 기록한다.';
 function paidCoreHourGoal(prompt){
  if(prompt?.stage!=='body'||JSON.stringify(prompt.requestedSections)!=='["saju_core"]'||
     prompt.paidCoreDepthV2===true||prompt.qaNatalDepthPreview===true||
@@ -218,7 +254,7 @@ function editorialGoalFor(prompt){
  if(original&&prompt.stage==='body'&&
     Array.isArray(prompt.requestedSections)&&
     prompt.requestedSections.length===1&&prompt.requestedSections[0]==='saju_core')
-  return (paidCoreHourGoal(prompt)?coreEditorialGoal.replace(optionalSeasonOnly,paidCoreHourGoal(prompt)):coreEditorialGoal)+(prompt.qaAdditiveDepthPreview===true?additiveGoal:prompt.qaNatalDepthPreview===true?
+  return (normalPaidCore(prompt)?(normalCoreEditorialGoal+(paidCoreHourGoal(prompt)?' '+paidCoreHourGoal(prompt):'')):(paidCoreHourGoal(prompt)?coreEditorialGoal.replace(optionalSeasonOnly,paidCoreHourGoal(prompt)):coreEditorialGoal))+(prompt.qaAdditiveDepthPreview===true?additiveGoal:prompt.qaNatalDepthPreview===true?
    ' QA 전용 검증 응답이다. temperament는 반드시 null로 둔다. strength는 기존 월 중심 핵심 판단과 두 분류의 의미를 유지한다. 세 번째 natal_depth는 검증된 출생 해·날·시간의 독립된 뜻이 월 중심 풀이에 더하는 새로운 판단을 검토하는 필수 원고다. 새 제안을 선택하는 등 한 가지 현실적인 가상 상황을 잡고, 해와 시간의 전통적 분류가 서로 다른 선택 기준에 연결되는 이유와 어떤 조건에서 유리하고 불리한지 구별한다. 실제로 계산된 분류가 같으면 거짓 반전을 만들지 않는다. 단순 계산 위치 소개·사전적인 뜻 두 문장·누구에게나 통하는 준비 조언·면책 반복으로 원고를 대신하지 않는다. 기준이 되는 출생 근거가 충분하지 않다면 임의로 생성하지 말고 QA 실패로 남긴다. 이 요청은 사전 근거 선별이 끝난 1회 검증 원고이며, natal_depth를 null로 제출하거나 필수 인용 없이 작성하는 것은 실패다. 실제 성격·능력·신강약·충의 결과·합화·미래 사건은 단정하지 않는다. 이 문단은 출시 미승인 후보이므로 사람의 문장 감수가 따로 필요하다.':'')+
    (prompt.qaOfflineEditorialResearchPreview===true?offlineEditorialBenchmarkDirective:'')+
    (prompt.paidCoreDepthV2===true?' 개발용 첫 장의 temperament에는 출생 해·날·시간의 별도 계산 출처가 검증된 경우에만 추가된다. 출생월 중심 strength에서 알 수 없는 관계가 실제로 확인될 때, 그 관계로 무엇이 달라지는지 먼저 설명한다. 근거마다 배움·재물·규칙 같은 상징을 나열하거나 직업·생활 일반 조언으로 분량을 채우지 않는다. 일부 계산 사실만으로 해석 우선순위나 인생의 결과를 확정하지 않는다. readerContrast가 있을 때에는 해당 독립 출처에서 비롯된 두 상황 조건이 어떻게 달라지는지, 왜 기본 출생월 풀이만으로 알 수 없는지를 한 장면으로 설명한다. 사주를 개인의 실제 성격이나 미래로 확정하지 않고 전통적인 해석의 가정 조건을 비교한다. 출생 해·날·시간의 관계가 서로 맞물리는 경우에도 글자만 나열하지 말고 한 조건이 빠진 상황을 비교한다. readerContrast와 readerAlternative, readerClassicalScope 모두 없거나 별도 근거를 이해하기 쉬운 조건부 풀이로 연결할 수 없다면 temperament는 null이다. readerAlternative에서는 출생 해 또는 시간의 다른 겉글자 분류만 비교하고 정확한 속글자 일치를 주장하지 않는다.':'');
@@ -281,7 +317,7 @@ function compile(prompt){
    return [id,{question:p.question,anchor:p.anchorTopic,
     // Preserve one authoritative scoped goal in the compact provider payload.
     // The original rules are NOT sent to the provider.
-    analysisGoal:prompt.rules?.sectionGoals?.[id]||null,
+    analysisGoal:id==='saju_core'&&normalPaidCore(prompt)?normalCoreEditorialGoal:prompt.rules?.sectionGoals?.[id]||null,
     ...(decision&&['decision','integrated_judgment'].includes(id)?{
      readerDecisionContext:{
       source:'user-entered-current-choice-question',
