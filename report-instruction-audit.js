@@ -176,7 +176,7 @@ function inspectTransport(prompt,actual){
    const upstream=prompt.analysisGuidance?.chapterTasks?.[id]||{};
    const chapter=task.chapters?.[id];
    if(!chapter){errors.push('provider-chapter-missing:'+id);continue}
-   if(chapter.analysisGoal!==(prompt.rules?.sectionGoals?.[id]||null))
+   if(chapter.analysisGoal!==require('./report-generation-request').scopedAnalysisGoal(prompt,id))
     errors.push('chapter-depth-goal-dropped:'+id);
    // The first-chapter V2 instruction must survive actual writer transport.
    // A mixed first batch must NEVER lend it to MBTI.

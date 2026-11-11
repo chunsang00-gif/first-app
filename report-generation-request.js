@@ -229,6 +229,11 @@ const normalCoreEditorialGoal=
  '추가 근거가 없는 심화 판단, 격국·용신의 우선순위, 개인의 경험을 만들어내지 않는다. '+
  '계절의 독립적 해석을 확인할 수 없으면 선택 문단을 null로 둔다. '+
  '고객이 직접 적은 고민은 계산 근거가 아니고 독자 문맥이며, 증거 출처는 내부 basis에만 기록한다.';
+// Shared source of truth for the actual mixed or isolated provider chapter.
+function scopedAnalysisGoal(prompt,id){
+ return id==='saju_core'&&normalPaidCore(prompt)?
+  normalCoreEditorialGoal:prompt.rules?.sectionGoals?.[id]||null;
+}
 function paidCoreHourGoal(prompt){
  if(prompt?.stage!=='body'||JSON.stringify(prompt.requestedSections)!=='["saju_core"]'||
     prompt.paidCoreDepthV2===true||prompt.qaNatalDepthPreview===true||
@@ -317,7 +322,7 @@ function compile(prompt){
    return [id,{question:p.question,anchor:p.anchorTopic,
     // Preserve one authoritative scoped goal in the compact provider payload.
     // The original rules are NOT sent to the provider.
-    analysisGoal:id==='saju_core'&&normalPaidCore(prompt)?normalCoreEditorialGoal:prompt.rules?.sectionGoals?.[id]||null,
+    analysisGoal:scopedAnalysisGoal(prompt,id),
     ...(decision&&['decision','integrated_judgment'].includes(id)?{
      readerDecisionContext:{
       source:'user-entered-current-choice-question',
@@ -2081,4 +2086,4 @@ function restoreEvidence(value,prompt){
  }
  return result;
 }
-module.exports={policy,policyFor,editorialGoalFor,compile,schema,restoreEvidence,allowedRefs,completeRootSummaryCitation};
+module.exports={policy,policyFor,editorialGoalFor,scopedAnalysisGoal,compile,schema,restoreEvidence,allowedRefs,completeRootSummaryCitation};
