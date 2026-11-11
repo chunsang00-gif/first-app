@@ -91,7 +91,7 @@ badUrl.answers[1].citationUrl='http://example.com';
 assert(subject.screen(record,badUrl).errors.includes(
  'missing-https-citation:resolve-month'));
 const fantasy=structuredClone(submitted);
-fantasy.answers[0].conclusion='당신은 반드시 성공합니다. '+rationale;
+fantasy.answers[0].conclusion='당신은 반드시 성공합니다. '+answers[0].conclusion;
 assert(subject.screen(record,fantasy).errors.includes(
  'unsupported-life-outcome-promise:choose-school'));
 console.log('PASS offline first-chapter hour counterfactual intake: exact classical rule differences, five questions, copied boilerplate and forged approvals stay blocked; 0 AI calls');
