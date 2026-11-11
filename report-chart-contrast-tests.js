@@ -422,9 +422,9 @@ for(const input of cases){
  assert(!/작성 목적:|해석의 범위:/.test(coreStrength.properties.text.description),
   'response schema must not include a draft editorial plan or repeated disclaimer');
  assert(coreWire.properties.chapters.properties.saju_core.properties.keyJudgment.description
-  .includes('생활 조언이나 자료 분석 계획만으로 대체하지 않는다'));
+  .includes('실제 고객의 선택 경향'));
  assert(coreWire.properties.chapters.properties.saju_core.properties.keyJudgment.description
-  .includes('자연스러운 한국어 한 문장'));
+  .includes('출생월 두 계산 출처'));
  assert(!coreWire.properties.chapters.properties.saju_core.properties.title.description
   .includes('하나의 생활 질문'));
  assert(p.analysisGuidance.chapterTasks.saju_core.focus.includes('조건부 기질 해석을 제시한다'));
@@ -441,9 +441,9 @@ for(const input of cases){
   .includes('두 질문의 의미를 서로 다른 계산 위치에 연결'));
  // Validate both the actual compact task AND the exact provider schema:
  // a returned text paragraph is an interpretation, not two editorial answers.
- assert(pairedText.includes('한 가지 조건부 기질 해석으로 연결'));
+ assert(pairedText.includes('두 출처를 함께 읽을 때 생기는 하나의 전통적 질문'));
  assert(!pairedText.includes('두 질문에 각각 답해야 하는 이유'));
- assert(chapterSchema.keyJudgment.description.includes('자연스러운 한국어 한 문장'));
+ assert(chapterSchema.keyJudgment.description.includes('출생월 두 계산 출처'));
  if(input.calendar==='lunar'&&input.birthDate==='1982-11-24'){
   assert.equal(traditional.first.tenGod,'편인');
   assert.equal(traditional.second.tenGod,'편재');
