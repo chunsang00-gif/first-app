@@ -679,6 +679,13 @@ function schema(prompt,transport){
   if(ids.length<3)throw Error('Insufficient supported chapters for a three-card premium cover');
   const result=structuredClone(transport);
   result.properties.cover.properties.highlights.items.properties.sectionId.enum=ids;
+  const younger=require('./report-reader-age-boundary').forPrompt(prompt);
+  if(younger){
+   const summary=result.properties.finalJudgment.properties;
+   summary.body.description=(summary.body.description||'')+' '+younger.rule;
+   summary.closingQuestion.description=(summary.closingQuestion.description||'')+
+    ' 성인 생활을 이미 경험한 것으로 꾸며 결론을 끝내지 않는다.';
+  }
   const choice=payload.task.finalCustomerChoice;
   if(choice){
    if(choice.kind!=='delivered-only-buyer-choice-final-v1'||
@@ -1589,6 +1596,11 @@ function schema(prompt,transport){
       '. 필요한 계절·기운 출처도 유지한다. 근거가 실제 문단 주장과 일치하지 않으면 문단은 null로 반환한다.';
     }
    }
+   // The strict JSON schema is the actual provider writing contract.
+   // No age is inferred from an astrological trait or a personal history.
+   const younger=require('./report-reader-age-boundary').forPrompt(prompt);
+   if(younger)p.properties.text.description=
+    (p.properties.text.description||'')+' '+younger.rule;
    p.properties={basis,...p.properties};p.required=['basis',...p.required];
    // QA6 is a new, separately gated FREE research contract. It must not
    // modify the frozen QA5 request hash or the normal paid optional slot.
@@ -1765,6 +1777,10 @@ function restoreEvidence(value,prompt){
   if(!chapter?.paragraphs)throw Error('AI report service missing grounded chapter');
   chapter.evidence=[];
   for(const [topic,p] of Object.entries(chapter.paragraphs)){
+   // Prevent clearly invented adult history from a younger reader's draft
+   // BEFORE paying for another batch or final synthesis.
+   if(p!==null&&require('./report-reader-age-boundary').inspect(p?.text,prompt).length)
+    throw Error('AI report service underage adult-history assumption: '+id+':'+topic);
    const task=payload.task.chapters?.[id]?.topics?.[topic];
    if(p===null&&id==='saju_core'&&topic==='temperament'&&task?.sourceOwnedHourExtension)
     throw Error('CORE_HOUR_EXTENSION_REQUIRED_READER_PARAGRAPH_MISSING');
