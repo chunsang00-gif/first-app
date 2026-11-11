@@ -100,4 +100,41 @@ function route(question,chapters){
  }
  return null;
 }
-module.exports={route,chosenDomain,preferences};
+// Share the exact conservative domain rules between the server writer and
+// the browser reader. Neither is allowed to infer an un-delivered analysis.
+function locateDelivered(report){
+ const question=report?.meta?.readerDecision;
+ if(typeof question!=='string'||!question.trim()||question.length>140||
+    /[\r\n<>\u0000-\u001f\u007f]/.test(question))return null;
+ const chapters=report.sections;
+ if(!Array.isArray(chapters)||new Set(chapters.map(x=>x?.id)).size!==chapters.length)
+  return null;
+ const decisionIndex=chapters.findIndex(s=>s.id==='decision'&&
+  Array.isArray(s.body)&&s.body.some(text=>typeof text==='string'&&text.trim()));
+ if(decisionIndex<0)return null;
+ const domain=chosenDomain(question),chapterIndex=domain?
+  chapters.findIndex(s=>s?.id===domain):-1;
+ let related=null;
+ if(chapterIndex>=0){
+  const section=chapters[chapterIndex],body=section.body,topics=section.bodyTopics;
+  if(Array.isArray(body)&&Array.isArray(topics)&&body.length===topics.length&&
+     body.every(text=>typeof text==='string'&&text.trim())&&
+     new Set(topics).size===topics.length){
+   for(const topicId of preferences(domain,question)){
+    const topicIndex=topics.indexOf(topicId);
+    if(topicIndex<0)continue;
+    related={chapterId:domain,chapterIndex,topicId,topicIndex};
+    break;
+   }
+  }
+ }
+ return {
+  kind:'reader-navigation-to-delivered-choice-v1',
+  decisionChapterId:'decision',decisionIndex,related,
+  questionsAreUserInputNotProof:true,deliveredProseNotSemanticallyApproved:true
+ };
+}
+const readerLinks=Object.freeze({chosenDomain,preferences,locateDelivered});
+if(typeof window==='object')window.REPORT_BUYER_QUESTION_LINKS=readerLinks;
+if(typeof module==='object'&&module.exports)
+ module.exports={route,chosenDomain,preferences,locateDelivered};

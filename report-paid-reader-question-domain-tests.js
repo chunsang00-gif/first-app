@@ -122,3 +122,40 @@ const noContext=writer.compile(neutralPrompt);
 assert(Object.values(noContext.task.chapters.career.topics).every(
  t=>!t.buyerCurrentQuestion));
 console.log('PASS grounded voluntary choice reaches one paid career/money/relationship/stress writing slot only when real source roles exist; across '+applied+' sourced samples, '+skipped+' correctly omitted; no model/merchant calls');
+
+const fsLinks=require('node:fs'),vmLinks=require('node:vm');
+const browserLinks={window:{}};
+vmLinks.runInNewContext(fsLinks.readFileSync('report-paid-reader-question-domain.js','utf8'),
+ browserLinks);
+assert.equal(typeof browserLinks.window.REPORT_BUYER_QUESTION_LINKS.locateDelivered,'function');
+const deliveredQuestion='기존 일을 유지할지 새로운 기술을 배울지 고민 중입니다.';
+const delivered={meta:{readerDecision:deliveredQuestion},sections:[
+ {id:'saju_core',body:['기본 내용'],bodyTopics:['strength']},
+ {id:'decision',body:['실제 선택 풀이'],bodyTopics:['choice']},
+ {id:'career',body:['학습 조건 풀이','실무 조건 풀이'],bodyTopics:['growth','workstyle']}
+]};
+const links=scope.locateDelivered(delivered);
+assert.equal(links.decisionIndex,1);
+assert.equal(links.related.chapterId,'career');
+assert.equal(links.related.topicIndex,0);
+assert.equal(links.questionsAreUserInputNotProof,true);
+assert.equal(links.deliveredProseNotSemanticallyApproved,true);
+const onlyDecision=structuredClone(delivered);
+onlyDecision.sections=onlyDecision.sections.slice(0,2);
+assert.equal(scope.locateDelivered(onlyDecision).related,null);
+const noMatchingTopic=structuredClone(delivered);
+noMatchingTopic.sections[2].bodyTopics=['other','more'];
+assert.equal(scope.locateDelivered(noMatchingTopic).related,null);
+const wrongTopicLengths=structuredClone(delivered);
+wrongTopicLengths.sections[2].bodyTopics=['growth'];
+assert.equal(scope.locateDelivered(wrongTopicLengths).related,null);
+const ambiguous=structuredClone(delivered);
+ambiguous.meta.readerDecision='이직해서 돈을 더 벌지 고민입니다.';
+assert.equal(scope.locateDelivered(ambiguous).related,null);
+const absent=structuredClone(delivered);
+absent.sections.splice(1,1);
+assert.equal(scope.locateDelivered(absent),null);
+assert.equal(scope.locateDelivered({meta:{readerDecision:'<script>evil</script>'},sections:delivered.sections}),null);
+assert.equal(JSON.stringify(links),JSON.stringify(browserLinks.window.REPORT_BUYER_QUESTION_LINKS.locateDelivered(delivered)),
+ 'server and browser must point to the same actually delivered customer answer');
+console.log('PASS buyer question links map only a delivered decision and exact domain paragraph; omitted and ambiguous topics remain unlinked');

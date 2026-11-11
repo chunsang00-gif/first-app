@@ -26,6 +26,7 @@ const style=[
  '.judgment{font-weight:650;background:#f1f5fb;border-left:4px solid #5078aa;padding:12px 15px;border-radius:2px 8px 8px 2px}',
  '.topic{margin:20px 0;break-inside:avoid-page}.topic h3{margin-top:18px}.topic p{white-space:pre-wrap}',
  'ul{padding-left:24px}.reader-question{background:#fffaed;padding:12px 14px;border-radius:10px}',
+ ' .choice-shortcut{background:#f0f5fc;padding:18px 20px;border-radius:12px;border:1px solid #d7e3f1;margin:22px 0}.choice-shortcut p{margin:5px 0 10px;font-size:13px}.choice-shortcut-links a{display:inline-block;margin:5px 10px 5px 0;padding:7px 12px;border-radius:8px;background:white;border:1px solid #b6cbe8;font-size:13px;font-weight:650}',
  '.final{background:#fafbfd;margin-top:24px;padding:26px 28px;border-radius:14px;border:1px solid #e4eaf0}',
  '.keywords{margin-top:18px;color:#425e80}.keywords span{display:inline-block;padding:5px 10px;background:#edf4fd;border-radius:24px;margin:4px}',
  '.chart{border-collapse:collapse;margin-top:22px;width:100%}.chart th,.chart td{padding:8px;border:1px solid #dce5ef;text-align:left;font-size:13px}',
@@ -54,6 +55,12 @@ function build(report){
   new Set(s.bodyTopics).size===s.bodyTopics.length);
  const actualTopics=accurate?sections.reduce((n,s)=>n+s.body.length,0):null;
  const ids=new Map(sections.map(s=>[s.id,s.position]));
+ const buyerChoice=root.REPORT_BUYER_QUESTION_LINKS?.locateDelivered(report)||null;
+ const choiceShortcuts=buyerChoice?
+  '<aside class="choice-shortcut" aria-label="고민과 관련된 실제 풀이"><strong>내가 적은 고민, 관련 풀이 바로가기</strong><p>실제로 제공된 장과 문단만 안내합니다.</p><div class="choice-shortcut-links"><a href="#part-'+(buyerChoice.decisionIndex+1)+'">선택·결정 풀이</a>'+
+  (buyerChoice.related?'<a href="#part-'+(buyerChoice.related.chapterIndex+1)+'-topic-'+(buyerChoice.related.topicIndex+1)+'">관련 분야의 세부 풀이</a>':'')+
+  '</div><small>고객의 입력은 출생사실의 증거가 아니며 풀이가 정답을 보장하지 않습니다.</small></aside>':'';
+
  const name=String(report?.meta?.name||'독자').trim();
  const mbti=String(report?.meta?.mbti||'모름');
  const title=mbti==='모름'?'사주 보고서':'사주 × MBTI 보고서';
@@ -84,7 +91,7 @@ function build(report){
    report.meta.readerDecision.trim()?
    '<div class="reader-question"><strong>내가 직접 적은 고민</strong><p>'+
    esc(report.meta.readerDecision.trim())+'</p><small>사용자가 입력한 문장이며 출생정보로 확인된 사실은 아닙니다.</small></div>':'';
-  const paragraphs=s.body.map((text,i)=>'<section class="topic">'+
+  const paragraphs=s.body.map((text,i)=>'<section class="topic" id="part-'+s.position+'-topic-'+(i+1)+'">'+
     '<h3>'+esc(s.validLabels[i]||'세부 풀이 '+(i+1))+'</h3>'+
     '<p>'+esc(text)+'</p></section>').join('');
   return '<article id="part-'+s.position+'"><div class="chapter-label">'+
@@ -118,7 +125,7 @@ function build(report){
   (cover.description?'<p>'+esc(cover.description)+'</p>':'')+
   '<div class="scope">실제로 작성된 내용: '+summary+'</div>'+
   (keys.length?'<div class="keywords">'+keys.map(k=>'<span>#'+esc(k.replace(/^#+/,''))+'</span>').join('')+'</div>':'')+
-  table+'</header>'+intro+
+  table+'</header>'+intro+choiceShortcuts+
   '<nav aria-label="실제 작성된 장 목록"><strong>내 보고서 목차</strong><ol>'+
   sections.map(s=>'<li><a href="#part-'+s.position+'">'+esc(s.label)+'</a> <small>('+
    s.body.length+'개 세부 풀이)</small></li>').join('')+

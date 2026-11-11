@@ -3,7 +3,7 @@
 const assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
 const source=fs.readFileSync(path.join(__dirname,'report-renderer.js'),'utf8');
-function run(mbti,readerDecision){
+function run(mbti,readerDecision,withCareer=false){
  const details=[];
  const window={
   CHARACTER_ASSETS:{
@@ -25,12 +25,13 @@ function run(mbti,readerDecision){
  };
  const ids=['saju_core','mbti_contradiction','decision',
   'relationship','integrated_judgment','year_2027'];
+ if(withCareer)ids.splice(3,0,'career');
  const sections=ids.map((id,i)=>({
   id,title:'각 장의 고유한 제목 '+i,
   keyJudgment:id==='decision'?'각 장의 고유한 제목 '+i:
    '별도의 핵심 결론 '+id,
   body:['이 장에 실제로 제공되는 서로 다른 내용 '+id],
-  bodyTopics:['topic'],bodyLabels:['실제 작성된 질문'],
+  bodyTopics:[id==='career'?'growth':'topic'],bodyLabels:['실제 작성된 질문'],
   evidence:['계산된 근거를 설명하는 자료입니다.']
  }));
  const report={
@@ -45,6 +46,7 @@ function run(mbti,readerDecision){
   finalJudgment:{headline:'종합 총평',body:['마지막 본문'],closingQuestion:'마지막 결론'}
  };
  const sandbox={window,document,console,requestAnimationFrame:fn=>fn()};
+ vm.runInNewContext(fs.readFileSync(path.join(__dirname,'report-paid-reader-question-domain.js'),'utf8'),sandbox,{filename:'report-paid-reader-question-domain.js'});
  vm.runInNewContext(source,sandbox,{filename:'report-renderer.js'});
  const qa=window.REPORT_RENDERER.render(report,target);
  assert.equal(qa.pass,true);
@@ -90,6 +92,18 @@ assert(personalized.html.includes('직접 입력한 고민도 포함됩니다.')
  'full sharing must disclose the additional personal context');
 assert.equal(personalized.html.split(question).length-1,1,
  'the customer question must appear only in the decision chapter, not repeat across all chapters');
+assert(personalized.html.includes('href="#detail-decision"'),
+ 'personal question shortcut must take the buyer to delivered decision chapter');
+assert(!personalized.html.includes('href="#topic-career-'),
+ 'do not invent absent career questions just because input mentions work');
+const withCareer=run('ISFP',question,true);
+assert(withCareer.html.includes('href="#topic-career-0"'),
+ 'target a delivered career paragraph, not a guessed report section');
+assert(withCareer.html.includes('id="topic-career-0"'),
+ 'the exact target should exist in rendered paid prose');
+assert(!paid.html.includes('report-question-guide'),
+ 'no volunteered buyer question means no personalized navigation');
+
 assert(!paid.html.includes('reader-decision-note'),
  'omitted customer input must not create an empty or copied question');
 const unsafeQuestion=run('ISFP','<img src=x onerror=alert(1)>');

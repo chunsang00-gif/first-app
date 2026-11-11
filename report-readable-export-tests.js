@@ -1,7 +1,9 @@
 'use strict';
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const source=fs.readFileSync('report-readable-export.js','utf8');
-const context={window:{},console};vm.runInNewContext(source,context);
+const context={window:{},console};
+vm.runInNewContext(fs.readFileSync('report-paid-reader-question-domain.js','utf8'),context);
+vm.runInNewContext(source,context);
 const exp=context.window.REPORT_READER_EXPORT;
 assert.equal(typeof exp.build,'function');
 const ids=['saju_core','mbti_contradiction','decision','money','career',
@@ -23,6 +25,27 @@ const report={meta:{name:'테스트 독자',mbti:'ISFP',readerDecision:'새 일�
   routines:[{trigger:'결정하기 전에',action:'정보를 한 번 확인',reason:'설명하기 위해'}],
   closingQuestion:'이번에 선택할 일은 무엇입니까?'}};
 const html=exp.build(report);
+assert(!html.includes('class="choice-shortcut"'),
+ 'invalid legacy buyer question must not create an unsupported topic shortcut');
+const buyer=structuredClone(report);
+buyer.meta.readerDecision='기존 일을 유지할지 새로운 기술을 배울지 고민 중입니다.';
+buyer.sections.find(s=>s.id==='career').bodyTopics=['growth','workstyle'];
+const choiceHtml=exp.build(buyer);
+assert(choiceHtml.includes('class="choice-shortcut"'));
+assert(choiceHtml.includes('href="#part-3"'),
+ 'the decision chapter actually exists in the exported manuscript');
+assert(choiceHtml.includes('href="#part-5-topic-1"'),
+ 'career chapter has a delivered growth paragraph');
+assert(choiceHtml.includes('id="part-5-topic-1"'));
+assert.equal(choiceHtml.split(buyer.meta.readerDecision).length-1,1,
+ 'do not repeat buyer question in both navigation and decision paragraph');
+const excluded=structuredClone(buyer);
+excluded.sections.find(s=>s.id==='career').bodyTopics=['first','second'];
+const omitted=exp.build(excluded);
+assert(omitted.includes('href="#part-3"'));
+assert(!omitted.includes('href="#part-5-topic-1"'),
+ 'do not link an unrelated career paragraph as the answer');
+
 assert(html.startsWith('<!doctype html><html lang="ko">'));
 assert(html.includes('<html lang="ko">')&&html.includes('<style>'));
 assert(html.includes('Content-Security-Policy'));
