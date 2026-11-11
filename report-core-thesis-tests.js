@@ -57,10 +57,10 @@ assert.deepEqual(Object.keys(samePayload.source).sort(),
 const sameSchema=wire.schemaFor(samePrompt,schema).properties.chapters.properties.saju_core.properties;
 const sameRole=sameSchema.paragraphs.properties.strength;
 const sameText=sameRole.properties.text.description;
-assert(sameText.includes('한 가지 생활 선택에서 뜻하는 기질을 쉬운 말로 풀고')&&
- sameText.includes('두 출생 위치의 십성 분류와 전통적 뜻이 같으므로')&&
- sameText.includes('고정된 핵심 판단을 한 가지 가상 선택에 적용한다')&&
- sameRole.properties.label.description.includes('같은 전통 분류'),
+assert(sameText.includes('같은 전통 분류가 두 위치에서 확인되어')&&
+ sameText.includes('출생월의 두 출처를 연결하는 이유')&&
+ sameText.includes('basis.refs')&&
+ sameRole.properties.label.description.includes('태어난 달의 두 실제 출처'),
  'same-category paid reader must be instructed to interpret ONE traditional lens from TWO provenance locations');
 assert(!sameText.includes('서로 다른 뜻을 한 가지 조건부 기질 해석으로 연결')&&
  !sameText.includes('두 선택의 뜻이 한 상황에 연결되는 이유')&&
