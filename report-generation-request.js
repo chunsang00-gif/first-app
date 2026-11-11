@@ -220,7 +220,7 @@ const optionalSeasonOnly='계절 보충 문단은 핵심 풀이와 다른 해석
 // Only the regular paid core has this scoped editorial assignment.
 // The earlier goal stays intact for previously paid QA envelopes.
 const normalCoreEditorialGoal=
- '첫 사주 장의 실제 결제 원고는 태어난 달의 두 계산 출처와 전통적 분류, 정확한 오행 관계를 독자에게 알기 쉽게 설명한다. '+
+ '결제 고객에게 제공하는 보고서입니다. 첫 사주 장의 실제 결제 원고는 태어난 달의 두 계산 출처와 전통적 분류, 정확한 오행 관계를 독자에게 알기 쉽게 설명한다. '+
  '개인의 실제 기질·행동·이익·손해를 출생 정보만으로 관찰한 듯이 쓰지 않는다. '+
  '두 분류가 같으면 의미를 둘로 나누거나 강도를 높이지 않고, 다르면 실제 계산된 관계의 방향을 바꾸지 않는다. '+
  '고정 핵심 판단의 문장을 본문에 복제하지 말고 두 계산 위치가 그 관계를 이루는 이유를 설명한다. '+
