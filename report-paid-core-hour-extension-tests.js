@@ -55,7 +55,8 @@ assert.throws(()=>ext.build(packet,swapped),/CORE_HOUR_ADDITION_SOURCE_DRIFT/);
  const old=writer.compile(older.prompt);
  assert(!old.task.chapters.saju_core.topics.temperament.sourceOwnedHourExtension);
  assert(!old.source['natal.hour.hidden.丁']);
- assert(writer.editorialGoalFor(older.prompt).includes('계절 보충 문단은 핵심 풀이'));
+ assert(writer.editorialGoalFor(older.prompt).includes('계절의 독립적 해석을 확인할 수 없으면'),
+   'without a supported hour extension the core goal must keep the optional seasonal paragraph nullable');
  const oldSchema=writer.schema(older.prompt,wire.schemaFor(older.prompt,schema));
  assert(oldSchema.properties.chapters.properties.saju_core.properties
   .paragraphs.properties.temperament.anyOf.some(x=>x.type==='null'));
