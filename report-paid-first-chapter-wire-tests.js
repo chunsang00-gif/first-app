@@ -148,29 +148,29 @@ let fetches=0,rawRequest=null,upstreamPrompt=null;
    'real paid writer must not receive the rejected forced adult-workplace scene');
   assert(secondText.includes(readerValue.script),
    'actual provider response field must lead with this calculated symbolic meaning');
-  assert(secondText.includes('모든 사주에 새 일을 준비하는 같은 예시를 쓰지 않는다'),
+  assert(secondText.includes('보편적 실무 조언, 가상 성패나 교훈을 만들지 않고'),
    'real provider schema must forbid the universal job-preparation example');
   assert(readerValue.script.includes('양쪽 모두 중요하다는 말로 끝내지 않는다')&&
    readerValue.script.includes('한쪽만 보면 놓치고 반대로 다른 쪽만 보면 놓친다는 대칭 문장을 두 개 나열하지 않는다')&&
    readerValue.twoSidedScope.mirrorAdviceRequired===false,
    'the required normal paid chapter must focus on a verified direction, not mirror advice');
-  assert(secondText.includes('실제 의미 차이가 하나의 선택 장면에 분명히 연결되지 않으면 가상의 장면을 만들지 않는다')&&
-   secondText.includes('월간의 전통적 뜻만 읽는 경우와 월지 중심 글자의 뜻까지 읽는 경우'),
-   'actual normal paid paragraph must explain verified source distinctions without forced invented scenes');
-  const heading=coreSchema.title.description,summary=coreSchema.keyJudgment.description;
+  assert(secondText.includes('두 전통 분류가 다르면 정확히 계산된 오행 방향 하나만 설명한다')&&
+    secondText.includes('대칭 주의문을 작성하지 않는다'),
+    'real provider uses one verified relation, not a forced generic workplace scene');
+   const heading=coreSchema.title.description,summary=coreSchema.keyJudgment.description;
   const fixed=require('./report-core-thesis').forPrompt(upstreamPrompt);
   assert.deepEqual(coreSchema.title.enum,[fixed.title]);
   assert.deepEqual(coreSchema.keyJudgment.enum,[fixed.keyJudgment]);
-  assert(secondText.includes('이미 고정된 핵심 판단: '+fixed.keyJudgment)&&
-   secondText.includes('고정 판단의 어느 쪽도 본문에서 부정하거나'),
-   'the actual paid writer must receive the exact judgment it must explain');
-  assert(secondText.split(fixed.keyJudgment).length===2,
+  assert(secondText.includes('출처에서 직접 계산된 핵심 판단: '+fixed.keyJudgment)&&
+    secondText.includes('고정 판단을 본문에 그대로 다시 적지 말고'),
+    'normal paid writer must elaborate the exact source-bound thesis only once');
+   assert(secondText.split(fixed.keyJudgment).length===2,
    'repeat the exact judgment only once in the required body field');
   assert(fixed.keyJudgment.length<120);
   assert(!/전통적 풀이와 해석의 조건/.test(fixed.title));
-  assert(summary.includes('자연스러운 한국어 한 문장'),
+  assert(summary.includes('출생월 두 계산 출처'),
    'paid response must ask for exactly one main interpretation sentence');
-  assert(heading.includes('조건부 기질 해석의 핵심'));
+  assert(heading.includes('실제 출생월 두 출처'));
   assert(firstText.includes(claim1.readerConclusion)&&
     !firstText.includes(claim2.readerConclusion));
   assert(secondText.includes(claim2.readerConclusion)&&
@@ -179,12 +179,11 @@ let fetches=0,rawRequest=null,upstreamPrompt=null;
     !secondText.includes('둘째 출처의 실제 질문은')&&
     !secondText.includes('두 질문에 각각 답해야'),
     'actual output field must not resurrect two-question internal checklist');
-  assert(secondText.includes('한 가지 조건부 기질 해석'));
-  assert(secondText.includes('독자에게 필요한 것은 두 글자의 정의가 아니라')&&
-   secondText.includes('월간의 전통적 뜻만 읽는 경우와 월지 중심 글자의 뜻까지 읽는 경우')&&
-   secondText.includes('정리 문장이나 반복되는 해석 한계 문장을 보태지 않고 끝낸다'),
-   'actual provider text description must prioritize applied interpretation, not glossary enumeration');
-  assert(firstText.includes('상징 소개만 남으면 소제목과 본문을 모두 null로 반환한다'),
+  assert(secondText.includes('하나의 전통적 질문'));
+  assert(secondText.includes('뜻을 한 줄씩 나열하거나')&&
+    secondText.includes('현재 해석 범위를 밝힌다'),
+    'paid reader body must not substitute glossary and generic advice for chart meaning');
+   assert(firstText.includes('상징 소개만 남으면 소제목과 본문을 모두 null로 반환한다'),
    'optional seasonal paragraph should not inflate the chapter');
   assert(system.includes('독자에게 출처·상징·검증 과정 자체를 강의하지 않는다')&&
    system.includes('결론의 재요약을 붙이지 않는다'),
@@ -193,15 +192,15 @@ let fetches=0,rawRequest=null,upstreamPrompt=null;
    !readerValue.script.includes('첫 질문만 답하면 무엇이 빠지고')&&
    readerValue.script.includes('이 명식의 실제 질문: '+readerValue.actualTwoSidedReading),
    'actual source-owned interpretation must explain one calculated direction, not two glossary definitions');
-  assert(secondText.includes('사전적 정의 두 문장 다음에 일반적인 준비·확인 조언')&&
-   secondText.includes('같은 가상 상황의 선택에 어떤 차이를 만드는지 출처와 조건을 연결해 설명한다'),
-   'paid provider must see the source-to-scene interpretation boundary');
-  assert(firstText.includes('편집 순서를 말하지 않는다')&&
-   firstText.includes('내부 basis.limit에 기록한다')&&
-   secondText.includes('작성 과정 문장을 독자용 텍스트에 쓰지 않는다')&&
-   secondText.includes('앞 문단과 같은 공통 면책 문구를 반복하지 않고'),
-   'paid first-chapter response schema must prevent meta-writing and repeated disclaimers');
-  const valuePlan=second.evidenceFocus.readerReasoning.readerValuePlan;
+  assert(secondText.includes('별도의 개인 해석 근거가 없으면')&&
+    secondText.includes('basis.refs'),
+    'no generic advantage examples are required from unverified life facts');
+   assert(firstText.includes('편집 순서를 말하지 않는다')&&
+    firstText.includes('내부 basis.limit에 기록한다')&&
+    secondText.includes('고정 판단을 본문에 그대로 다시 적지 말고')&&
+    secondText.includes('계산 근거 ID나 용어 목록을 본문에 넣지 않으며'),
+    'reader text stays separate from private source ledger and drafting commentary');
+   const valuePlan=second.evidenceFocus.readerReasoning.readerValuePlan;
   assert(valuePlan.customerSequence.startsWith('고정 핵심 판단'),
    'first-chapter writing order must begin with interpretation, not glossary');
   assert(!Object.hasOwn(valuePlan.first,'question')&&!Object.hasOwn(valuePlan.second,'question')&&
