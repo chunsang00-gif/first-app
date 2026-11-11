@@ -646,7 +646,8 @@ const schema=require('./report-schema.json');
   global.fetch=async(url,options)=>{
    calls++;const body=JSON.parse(options.body);
    assert.deepEqual(JSON.parse(body.input[1].content),payload);
-   assert(body.input[0].content.includes(generation.policy));
+   assert(body.input[0].content.includes(generation.policyFor(prompt)),
+     'the real provider system instruction must contain the scoped first-chapter policy');
    const optional=body.text.format.schema.properties.chapters.properties.saju_core.properties.paragraphs.properties.temperament;
    assert(optional.anyOf.find(x=>x.type==='object').properties.basis);
    return {ok:true,json:async()=>({output_text:JSON.stringify(raw)})};
