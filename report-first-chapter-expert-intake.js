@@ -75,6 +75,8 @@ function screen(intake,submission){
     intake.questions.some((x,i)=>x.id!==IDS[i]))
   throw Error('EXPERT_REVIEW_UNTRUSTED_HANDOFF');
  const errors=[];
+ const seenAnswerSignatures=new Set();
+ const canonicalText=value=>typeof value==='string'?value.replace(/\s+/gu,' ').trim():'';
  if(submission?.kind!=='qa-proposed-method-decisions-v1'||
     submission.chartBinding!==intake.chartBinding||
     submission.authorizesSale!==false||
@@ -92,6 +94,16 @@ function screen(intake,submission){
   if(!substantive(answer.conclusion)||!substantive(answer.applicationRule)||
      !substantive(answer.counterexample))
    errors.push('missing-conclusion-rule-or-counterexample:'+answer.id);
+  // A copied answer is not even a complete intake, regardless of length.
+  // This is only a structural duplicate check: it never approves a method.
+  const sections=['conclusion','applicationRule','counterexample']
+   .map(k=>canonicalText(answer[k]));
+  if(new Set(sections).size!==sections.length)
+   errors.push('recycled-field-content:'+answer.id);
+  const signature=JSON.stringify(sections);
+  if(seenAnswerSignatures.has(signature))
+   errors.push('recycled-answer-across-questions:'+answer.id);
+  seenAnswerSignatures.add(signature);
   let validUrl=false;
   try{
    const u=new URL(answer.citationUrl);

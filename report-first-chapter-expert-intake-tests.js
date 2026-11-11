@@ -34,11 +34,12 @@ const unknown=facts.build({calendar:'lunar',birthDate:'1982-11-24',
  unknownBirthTime:true,birthTime:'12:00',gender:'male',mbti:'ISFP'},2027);
 assert.throws(()=>subject.compare(early,unknown),
  /REQUIRES_VERIFIED_KNOWN_BIRTH_HOUR/);
-const rationale='이 고전 원문에 적힌 정확한 출생 글자와 해당 시간의 조건을 확인하고 두 시간의 차이를 별도 검토합니다.';
-const answers=record.questions.map(q=>({
- id:q.id,conclusion:rationale,
+const answers=record.questions.map((q,i)=>({
+ id:q.id,
+ conclusion:q.question+' 이 문헌 적용 문제는 아직 전문적으로 확정되지 않았습니다. 정확한 출전과 적용 범위를 질문별로 검토합니다.',
  citationUrl:'https://zh.wikisource.org/zh-hant/三命通會/卷八',
- applicationRule:rationale,counterexample:rationale
+ applicationRule:'질문 '+(i+1)+'에 대해 14:20의 癸未時와 20:20의 丙戌時를 혼합하지 않고, 해당 시각의 고전 원문 조건을 별도로 확인합니다.',
+ counterexample:'검토 항목 '+q.id+'에서 두 출생시간 중 한쪽의 원문 조건을 다른 시간에 복사하면 안 됩니다. 독립적인 제외 조건을 먼저 대조합니다.'
 }));
 const submitted={
  kind:'qa-proposed-method-decisions-v1',
@@ -65,6 +66,22 @@ assert.equal(subject.screen(record,{...submitted,comparedHourPillars:['癸未','
  'incomplete-or-contradictory');
 assert.equal(subject.screen(record,{...submitted,answers:answers.slice(1)}).status,
  'incomplete-or-contradictory');
+const recycledField=structuredClone(submitted);
+recycledField.answers[0].applicationRule=recycledField.answers[0].conclusion;
+assert(subject.screen(record,recycledField).errors.includes(
+ 'recycled-field-content:choose-school'));
+const recycledAnswer=structuredClone(submitted);
+recycledAnswer.answers[1]={...recycledAnswer.answers[0],id:'resolve-month'};
+assert(subject.screen(record,recycledAnswer).errors.includes(
+ 'recycled-answer-across-questions:resolve-month'));
+const copiedBoilerplate=structuredClone(submitted);
+const boilerplate='원문에 적힌 출생 글자와 시간 조건을 비교하고 정확한 차이를 확인한 뒤 적용 가능한 규칙을 검토합니다.';
+copiedBoilerplate.answers=copiedBoilerplate.answers.map(answer=>({
+ ...answer,conclusion:boilerplate,applicationRule:boilerplate,
+ counterexample:boilerplate
+}));
+assert.equal(subject.screen(record,copiedBoilerplate).status,
+ 'incomplete-or-contradictory');
 const insufficient=structuredClone(submitted);
 insufficient.answers[0].conclusion='그냥 이 방법으로';
 assert(subject.screen(record,insufficient).errors.includes(
@@ -77,4 +94,4 @@ const fantasy=structuredClone(submitted);
 fantasy.answers[0].conclusion='당신은 반드시 성공합니다. '+rationale;
 assert(subject.screen(record,fantasy).errors.includes(
  'unsupported-life-outcome-promise:choose-school'));
-console.log('PASS offline first-chapter hour counterfactual intake: exact classical rule differences, five grounded expert questions, invalid and forged approvals stay blocked; 0 AI calls');
+console.log('PASS offline first-chapter hour counterfactual intake: exact classical rule differences, five questions, copied boilerplate and forged approvals stay blocked; 0 AI calls');
