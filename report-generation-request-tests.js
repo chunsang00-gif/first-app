@@ -108,12 +108,12 @@ const schema=require('./report-schema.json');
  // The upstream premium depth brief must reach the actual provider JSON.
  // Otherwise the writer sees only topic titles despite the validated rules.
  for(const [id,chapter] of Object.entries(payload.task.chapters)){
-  assert.equal(chapter.analysisGoal,prompt.rules.sectionGoals[id],
+  assert.equal(chapter.analysisGoal,generation.scopedAnalysisGoal(prompt,id),
    'premium depth guidance lost in provider compression: '+id);
   assert(chapter.analysisGoal.length>70,'missing substantive guidance: '+id);
  }
- assert(payload.task.chapters.saju_core.analysisGoal.includes('태어난 달 겉글자')&&
-  payload.task.chapters.saju_core.analysisGoal.includes('중심 숨은 글자에서 실제 확인된 십성'),
+ assert(payload.task.chapters.saju_core.analysisGoal.includes('태어난 달의 두 계산 출처')&&
+  payload.task.chapters.saju_core.analysisGoal.includes('정확한 오행 관계'),
   'the actual transported depth goal must prioritize both calculated month ten-god meanings');
  assert(!payload.task.chapters.saju_core.analysisGoal.includes('둘째는 같은 오행의 실제 뿌리'),
   'obsolete root-first depth instruction must not override the evidence plan');
