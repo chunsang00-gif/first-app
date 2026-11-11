@@ -65,6 +65,14 @@ function build(){
      c.finalPatternSelected!==false||m.canApproveDeepSajuInterpretation!==false||
      narrow?.eligibleForPaidWriter===true)
    throw Error('METHOD_HANDOFF_UNAPPROVED_CLAIM_PROMOTED:'+item.id);
+  const twoVolumes=narrow?.classicalCompetingRules||null;
+  if(twoVolumes&&(twoVolumes.sourceQuestionScopeResolved!==true||
+     twoVolumes.relativeInterpretiveDominanceDecided!==false||
+     twoVolumes.customerLifeOutcomeInferred!==false||
+     twoVolumes.broadHourRestriction.applicableToThisHour!==
+      (item.input.birthTime==='14:20')||
+     twoVolumes.separatelyDocumentedCountercondition.monthMatchInBothHours!==true))
+   throw Error('METHOD_HANDOFF_CLASSICAL_COUNTERCONDITION_MISMATCH');
   return {
    id:item.id,chart:[packet.chart.year,packet.chart.month,
     packet.chart.day,packet.chart.hour].join('/'),
@@ -79,6 +87,16 @@ function build(){
     .nonDayExposedHiddenStemIds.slice(),
    monthMain:m.observed.mainHiddenStemSourceId,
    exactTextualCondition,sourceUrls:[...new Set(sources)],
+   competingVolumeEvidence:twoVolumes?{
+    generalHourTextApplies:twoVolumes.broadHourRestriction.applicableToThisHour,
+    hourTextSourceUrl:twoVolumes.broadHourRestriction.sourceUrl,
+    volumeSixSourceUrl:twoVolumes.separatelyDocumentedCountercondition.sourceUrl,
+    volumeSixMatchingPillars:twoVolumes.separatelyDocumentedCountercondition.exactMatchedPillars.slice(),
+    monthMatchInBothHours:twoVolumes.separatelyDocumentedCountercondition.monthMatchInBothHours,
+    additionalHourMatchOnlyAt1420:twoVolumes.separatelyDocumentedCountercondition.additionalHourMatchOnlyAt1420,
+    interpretivePrecedenceApproved:false,
+    personalPredictionApproved:false
+   }:null,
    cannotApplyOtherHourWinterRule:narrow?.birthTime==='20:20',
    comparableExactTextUnapproved:Boolean(narrow||single||dual),
    methodPrioritySelected:false,readerBenefitIndependentlyApproved:false,
@@ -131,6 +149,32 @@ function markdown(doc){
   '| --- | --- | --- | --- |',
   ...doc.cases.map(x=>'| '+x.id+' | '+x.chart+' | '+x.exactTextualCondition+
    ' | '+x.monthExposureCategory+' |'),
+  '',
+  '## 우선 해결할 실제 고전 적용 문제 — 두 권의 문구 비교',
+  '',
+  '다섯 질문에 추상적인 답을 추가하기보다 **같은 사주에 동시에 대응하는 두 문헌 규칙의 적용 순위**부터 결정해야 합니다. 아래는 코드의 검증된 계산과 문헌 일치 여부이며, 길흉이나 성격 결론이 아닙니다.',
+  '',
+  '| 출생 시각 | 권8의 癸未 시각 제약 규칙 | 권6의 癸丑·癸未 예외 관련 사례 일치 | 독립 검토할 차이 |',
+  '| --- | --- | --- | --- |',
+  ...doc.cases.slice(0,2).map(c=>{
+   const x=c.competingVolumeEvidence;
+   if(!x||!x.monthMatchInBothHours||x.interpretivePrecedenceApproved!==false)
+    throw Error('METHOD_HANDOFF_MISSING_REAL_VOLUME_CONTRAST');
+   return '| '+(x.generalHourTextApplies?'14:20':'20:20')+' | '+
+    (x.generalHourTextApplies?'해당':'해당 없음')+' | '+
+    x.volumeSixMatchingPillars.join(' + ')+' | '+
+    (x.additionalHourMatchOnlyAt1420?
+     '월·시 양쪽이 권6 예시와 일치, 권8 시각 규칙도 일치':
+     '월 사례만 남고 권8 癸未 시각 규칙은 적용되지 않음')+' |';
+  }),
+  '',
+  '- 권8 「六乙日癸未時斷」은 癸와 未 속 丁의 제한 관계를 논하며 乙未日의 겨울 조건을 별도로 적습니다: '+doc.cases[0].competingVolumeEvidence.hourTextSourceUrl,
+  '- 권6 「論倒食」은 乙日에서 癸未·癸丑을 다룰 때 未·丑 속 己를 대조하는 예외 조건을 설명합니다: '+doc.cases[0].competingVolumeEvidence.volumeSixSourceUrl,
+  '- 20:20에는 권8 「六乙日丙戌時斷」의 **별도** 乙未日 조항이 있습니다. 그 조항의 연·월 한정 구문을 출생 해의 한 글자만으로 확정 판정하지 않습니다.',
+  '',
+  '**전문가에게 필요한 한 가지 실질 판정:** 14:20에서 두 권의 제한/예외가 함께 언급될 때 어느 해석 질문에 어느 조항을 우선 적용하고, 20:20에서는 시각 근거가 바뀌므로 *서로 다른 고객용 해석 문장*을 어떤 원문 근거로 정당화할 수 있습니까? 적용 제외 조건까지 직접 기재해야 하며, 근거가 없다면 두 경우 모두 새로운 개인별 결론을 보류합니다.',
+  '',
+  '**판정 전 상태:** 적용 순위 미선정 · 개인 생활 결과 미검증 · 유료 첫 장 자동 확장 불가. 문헌의 겉보기 충돌이 실제로 어떻게 해소되는지는 전문가의 원문 검토가 필요합니다.',
   '',
   '## 실제 독자용 짧은 원고 — 두 출생시간별 비판매 연구 후보',
   '',
