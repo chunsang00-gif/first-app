@@ -96,6 +96,29 @@ function coreReaderRoles(prompt){
    claimBrief(secondClaim)+
    '독자용 문장에서 문단 작성 순서를 설명하거나 앞 문단의 일반적 면책 안내를 반복하지 않는다. 관련 한계는 basis.limit에 기록한다. 실제 성격·능력·과거 행동을 관찰한 것으로 단정하지 않는다. 명리 계산만으로 두 배로 강한 기질, 양면성 또는 성공을 보장하지 않는다. 계절에 관한 선택적 첫 문단의 해석은 반복하지 않는다.';
  }
+ // Historical paid requests have consumed authorizations and retain their
+ // exact provider briefs. Only normal paid first-chapter authoring changes.
+ const frozen=prompt?.qaNatalDepthPreview===true||
+  prompt?.qaAdditiveDepthPreview===true||
+  prompt?.qaOfflineEditorialResearchPreview===true||
+  prompt?.paidCoreDepthV2===true;
+ if(!frozen&&lockedJudgment){
+  roles.strength.label='태어난 달의 두 실제 출처가 허용하는 전통적 뜻과 오행의 계산 관계를 설명한다. 실생활의 선택 성패나 성격 점수로 이름 붙이지 않는다.';
+  roles.strength.text='이 유료 첫 장에서는 출생월의 겉글자와 중심 속글자의 전통적 뜻만 인용할 수 있다. '+
+   '출처에서 직접 계산된 핵심 판단: '+lockedJudgment+' '+
+   (sameMonthlyMeaning?
+     '같은 전통 분류가 두 위치에서 확인되어 두 기질·강도의 증폭·성격 반전으로 읽지 않는다. ':
+     '두 전통 분류가 다르면 정확히 계산된 오행 방향 하나만 설명한다. 두 분류가 실제 고객의 능력에 작용하거나 성공과 손해를 일으킨다고 쓰지 않는다. ')+
+   '두 출처를 함께 읽을 때 생기는 하나의 전통적 질문을 누구나 읽을 수 있는 한국어로 전달한다. '+
+   '뜻을 한 줄씩 나열하거나 한쪽만 보면 놓치고 반대로 다른 쪽만 보면 놓친다는 대칭 주의문을 작성하지 않는다. '+
+   '이 명식만으로 확인하지 못한 실제 선택 경향, 이익·손해, 일·학교·가족의 경험을 가정하여 채우지 않는다. '+
+   '고객이 직접 입력한 질문은 실제 생활에 관한 증거가 아니며 가능한 검토 조건으로만 연결한다. '+
+   '별도의 개인 해석 근거가 없으면 보편적 실무 조언, 가상 성패나 교훈을 만들지 않고 현재 해석 범위를 밝힌다. '+
+   '계산 근거 ID나 용어 목록을 본문에 넣지 않으며 내부 basis.refs에만 정확히 인용한다. '+
+   (reading?'실제 두 전통적 뜻: '+reading.first.reading+' / '+reading.second.reading+'. ':'')+
+   claimBrief(secondClaim)+
+   '명리 전문가가 확정하지 않은 추가 해석의 우선순위나 실제 행동을 발명하지 않는다.';
+ }
  return roles;
 }
 const object=properties=>({type:'object',additionalProperties:false,required:Object.keys(properties),properties});
@@ -126,8 +149,17 @@ function schemaFor(prompt,reportSchema){
    // glossary headlines BEFORE a billable model response is accepted.
    title.enum=[fixed.title];
    judgment.enum=[fixed.keyJudgment];
-   title.description+=' 첫 장 제목은 두 문단의 근거에 따라 제시한 한 가지 조건부 기질 해석의 핵심을 가리킨다. 출생 구조·기질의 조건·계산 근거라는 교재 제목이나, 본문에서 검증하지 않은 인물 평가를 피한다.';
-   judgment.description+=' 첫 장 핵심 판단은 제목의 조건부 기질 해석을 자연스러운 한국어 한 문장으로 제시한다. 먼저 검증된 두 출생 위치가 뒷받침하는 전통적 기질 해석을 조건부로 말하고, 생활 조언이나 자료 분석 계획만으로 대체하지 않는다. 계산 과정·근거 목록·검토하겠다는 작성 계획이 아니다. 본문 두 문단의 조건부 전통 해석을 넘어 실제 성격·과거 행동을 확인했다고 단정하지 않는다.';
+   const frozen=prompt.qaNatalDepthPreview===true||
+    prompt.qaAdditiveDepthPreview===true||
+    prompt.qaOfflineEditorialResearchPreview===true||
+    prompt.paidCoreDepthV2===true;
+   if(frozen){
+    title.description+=' 첫 장 제목은 두 문단의 근거에 따라 제시한 한 가지 조건부 기질 해석의 핵심을 가리킨다. 출생 구조·기질의 조건·계산 근거라는 교재 제목이나, 본문에서 검증하지 않은 인물 평가를 피한다.';
+    judgment.description+=' 첫 장 핵심 판단은 제목의 조건부 기질 해석을 자연스러운 한국어 한 문장으로 제시한다. 먼저 검증된 두 출생 위치가 뒷받침하는 전통적 기질 해석을 조건부로 말하고, 생활 조언이나 자료 분석 계획만으로 대체하지 않는다. 계산 과정·근거 목록·검토하겠다는 작성 계획이 아니다. 본문 두 문단의 조건부 전통 해석을 넘어 실제 성격·과거 행동을 확인했다고 단정하지 않는다.';
+   }else{
+    title.description+=' 실제 출생월 두 출처와 오행의 계산 관계가 허용하는 전통적 질문을 표시한다. 실제 성격 평가가 아니다.';
+    judgment.description+=' 핵심 판단은 출생월 두 계산 출처와 뜻을 설명하는 한 문장이다. 실제 고객의 선택 경향, 이익·손해, 명리 해석의 미검증 우선순위를 확정하지 않는다.';
+   }
   }
   return [id,object({title,keyJudgment:judgment,evidence:reader.describe(section.evidence,reader.evidenceField),mood:section.mood,
    paragraphs:object(Object.fromEntries(keys.map(topic=>{

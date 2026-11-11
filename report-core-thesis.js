@@ -79,9 +79,15 @@ function forPrompt(prompt){
   (same?a.title:shortTitle[first.tenGod]+' · '+shortTitle[second.tenGod]):
   relationalTitle;
  const original='사주에서는 '+(same?a.last:a.first+' '+b.last)+' 기질로 풀이합니다.';
- const keyJudgment=same||historicalPinnedQA?original:
-  '사주에서는 '+a.first+' '+b.last+
-  ' 기질을, '+relationalTitle+'로 풀이합니다.';
+ // Preserve frozen historical paid QA. Normal first chapters cannot
+ // claim an observed disposition from the two symbolic month sources.
+ const keyJudgment=historicalPinnedQA?original:same?
+  '사주에서는 태어난 달의 서로 다른 두 위치에서 '+readerNoun[first.tenGod]+
+  '의 한 가지 전통적 뜻을 확인하며, 이를 두 가지 성격으로 나누지 않고 풀이합니다.':
+  '사주에서는 태어난 달의 '+readerNoun[first.tenGod]+
+  josa(readerNoun[first.tenGod],'과','와')+' '+
+  readerNoun[second.tenGod]+'의 뜻을 구별하고, '+
+  relationalTitle+'로 풀이합니다.';
  if(!title||title.length>30||
     keyJudgment.split(/(?<=[.!?。！？])\\s+|\\n+/).filter(Boolean).length!==1||
     !keyJudgment.endsWith('풀이합니다.'))
