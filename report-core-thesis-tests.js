@@ -282,8 +282,8 @@ const actual=facts.build(inputs[0],2027);
 const prompt={stage:'body',facts:actual,requestedSections:['saju_core']};
 const case0=core.forPrompt(prompt);
 assert.deepEqual(case0.categories,['편인','편재']);
-assert(case0.keyJudgment.includes('낯선 내용을 자기 방식으로 이해하고'));
-assert(case0.keyJudgment.includes('필요한 자원을 여러 곳에서 찾아 활용하려는'));
+assert(case0.keyJudgment.includes('정보 이해'));
+assert(case0.keyJudgment.includes('자원 활용')&&case0.keyJudgment.includes('제약하는'));
 assert(!case0.keyJudgment.includes('상징')&&!case0.keyJudgment.includes('한계'));
 const grounding=require('./report-grounding-review');
 const draft=body=>({sections:[{id:'saju_core',title:case0.title,
