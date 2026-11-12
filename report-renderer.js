@@ -62,7 +62,7 @@ function render(report,target){
  const chapters=(report.sections||[]).filter(s=>s?.id&&Array.isArray(s.body)&&s.body.some(x=>typeof x==='string'&&x.trim()));
  const choiceLinks=window.REPORT_BUYER_QUESTION_LINKS?.locateDelivered(report)||null;
  const choiceShortcut=choiceLinks?
-  `<aside class="report-question-guide" data-share-exclude><strong>내가 적은 고민, 관련 풀이 바로가기</strong><p>실제로 작성된 내용 중 선택과 직접 연결된 부분을 찾아볼 수 있습니다.</p><div class="report-question-guide-links"><a href="#detail-decision">선택·결정 풀이</a>${choiceLinks.related?`<a href="#topic-${esc(choiceLinks.related.chapterId)}-${choiceLinks.related.topicIndex}">관련 분야의 세부 풀이</a>`:''}</div><small>내가 입력한 질문은 출생자료가 아니며, 이동한 풀이가 어느 선택의 성공을 보장한다는 뜻도 아닙니다.</small></aside>`:'';
+  `<aside class="report-question-guide" data-share-exclude><strong>내가 적은 고민, 관련 풀이 바로가기</strong><p>입력한 고민과 실제 문장의 조건이 연결된 경우에만 관련 분야 바로가기를 표시합니다.</p><div class="report-question-guide-links"><a href="#detail-decision">선택·결정 풀이</a>${choiceLinks.related?`<a href="#topic-${esc(choiceLinks.related.chapterId)}-${choiceLinks.related.topicIndex}">관련 분야의 세부 풀이</a>`:''}</div><small>내가 입력한 질문은 출생자료가 아니며, 이동한 풀이가 어느 선택의 성공을 보장한다는 뜻도 아닙니다.</small></aside>`:'';
  const quickLinks=[['saju_core','⌂','기본'],['mbti_contradiction','♙','성격'],['relationship','♡','관계'],['career','▣','일·직업'],['money','◎','재물'],['stress','◇','스트레스'],['year_2027','▥','2027년']]
   .filter(([id])=>chapters.some(s=>s.id===id));
  const integrated=(report.sections||[]).find(s=>s.id==='integrated_judgment');

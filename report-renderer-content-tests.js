@@ -34,6 +34,9 @@ function run(mbti,readerDecision,withCareer=false){
   bodyTopics:[id==='career'?'growth':'topic'],bodyLabels:['실제 작성된 질문'],
   evidence:['계산된 근거를 설명하는 자료입니다.']
  }));
+ if(withCareer&&withCareer!=='generic'){
+  sections.find(x=>x.id==='career').body[0]="기존 일을 유지할 때에는 이미 익힌 방법을 계속 활용할 수 있는 조건을 확인합니다. 새로운 기술을 배울 경우에는 익히는 시간과 준비할 도구를 따로 확보해야 하는지 설명합니다.";
+ }
  const report={
   meta:{mbti,name:'검증 사용자',...(readerDecision?{readerDecision}:{}),chart:{year:'甲子',month:'乙丑',day:'丙寅',hour:'丁卯'}},
   cover:{headline:'원고를 보여 주는 검증',description:'본문 확인',keywords:[],
@@ -101,6 +104,10 @@ assert(withCareer.html.includes('href="#topic-career-0"'),
  'target a delivered career paragraph, not a guessed report section');
 assert(withCareer.html.includes('id="topic-career-0"'),
  'the exact target should exist in rendered paid prose');
+const genericCareer=run('ISFP',question,'generic');
+assert(genericCareer.html.includes('id="topic-career-0"'));
+assert(!genericCareer.html.includes('href="#topic-career-0"'),
+ 'an existing but unresponsive topic cannot be presented as the buyer answer');
 assert(!paid.html.includes('report-question-guide'),
  'no volunteered buyer question means no personalized navigation');
 

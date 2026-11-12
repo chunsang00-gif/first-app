@@ -13,6 +13,7 @@ const make=(id,topics)=>({id,title:id,keyJudgment:id+'의 실제 판단',
  evidence:['기존 본문 근거']});
 const core=make('saju_core',['strength']),decision=make('decision',['choice']),
  career=make('career',['growth','workstyle']);
+career.body[0]="기존 일을 유지할 때에는 이미 익힌 방법을 계속 활용할 수 있는 조건을 확인합니다. 새로운 기술을 배울 경우에는 익히는 시간과 준비할 도구를 따로 확보해야 하는지 설명합니다.";
 const prompt={stage:'synthesis',facts:packet,includeCover:true,includeFinal:true,
  requestedSections:[],completedReport:{meta:{readerDecision:question},
  sections:[core,decision,career]},rules:{finalEditingTask:'기존 본문만 종합한다.'}};
@@ -25,6 +26,18 @@ assert.equal(routed.relatedChapter,'career');
 assert.equal(routed.relatedTopic,'growth');
 assert.equal(routed.relatedParagraphWasDelivered,true);
 assert.equal(routed.inputAsCalculatedEvidence,false);
+const noRealAnswer={...prompt,completedReport:{
+ ...prompt.completedReport,sections:[core,decision,{
+  ...career,body:['학습 조건 풀이','실무 조건 풀이']}]}
+};
+const absentAnswer=compile.compile(noRealAnswer).task.finalCustomerChoice;
+assert(absentAnswer&&!absentAnswer.relatedParagraphWasDelivered,
+ 'topic presence is not proof that the buyer concern was answered');
+assert.equal(absentAnswer.relatedChapter,null);
+assert.equal(absentAnswer.relatedTopic,null);
+assert(compile.schema(noRealAnswer,wire.schemaFor(noRealAnswer,schema))
+ .properties.finalJudgment.properties.body.description.includes(
+  '해당 문단은 실제로 완성되지 않았으므로'));
 assert.equal(routed.newPaidParagraph,false);
 assert.equal(routed.extraProviderCall,false);
 assert.equal(routed.professionalReviewComplete,false);

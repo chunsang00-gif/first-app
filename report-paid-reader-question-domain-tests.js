@@ -132,12 +132,20 @@ const deliveredQuestion='기존 일을 유지할지 새로운 기술을 배울�
 const delivered={meta:{readerDecision:deliveredQuestion},sections:[
  {id:'saju_core',body:['기본 내용'],bodyTopics:['strength']},
  {id:'decision',body:['실제 선택 풀이'],bodyTopics:['choice']},
- {id:'career',body:['학습 조건 풀이','실무 조건 풀이'],bodyTopics:['growth','workstyle']}
+ {id:'career',body:["기존 일을 유지할 때에는 이미 익힌 방법을 계속 활용할 수 있는 조건을 확인합니다. 새로운 기술을 배울 경우에는 익히는 시간과 준비할 도구를 따로 확보해야 하는지 설명합니다.",'실무 조건 풀이'],bodyTopics:['growth','workstyle']}
 ]};
 const links=scope.locateDelivered(delivered);
 assert.equal(links.decisionIndex,1);
 assert.equal(links.related.chapterId,'career');
 assert.equal(links.related.topicIndex,0);
+const unresponsive=structuredClone(delivered);
+unresponsive.sections[2].body[0]='학습 조건 풀이';
+assert.equal(scope.locateDelivered(unresponsive).related,null,
+ 'the topic exists but its prose does not address the buyer');
+assert.equal(scope.addressesDeliveredQuestion(deliveredQuestion,'career',
+ '기존 일을 유지할 때와 새로운 기술을 배울 때에는 언제나 조건과 정보를 잘 검토해야 합니다. 개인의 성향을 확인하는 것은 누구에게나 유익한 일입니다.'),false,
+ 'both options mentioned in one boilerplate clause do not count');
+assert.equal(scope.addressesDeliveredQuestion(deliveredQuestion,'career',"기존 일을 유지할 때에는 이미 익힌 방법을 계속 활용할 수 있는 조건을 확인합니다. 새로운 기술을 배울 경우에는 익히는 시간과 준비할 도구를 따로 확보해야 하는지 설명합니다."),true);
 assert.equal(links.questionsAreUserInputNotProof,true);
 assert.equal(links.deliveredProseNotSemanticallyApproved,true);
 const onlyDecision=structuredClone(delivered);
