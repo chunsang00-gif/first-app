@@ -30,6 +30,13 @@ assert(!html.includes('class="choice-shortcut"'),
 const buyer=structuredClone(report);
 buyer.meta.readerDecision='기존 일을 유지할지 새로운 기술을 배울지 고민 중입니다.';
 buyer.sections.find(s=>s.id==='career').bodyTopics=['growth','workstyle'];
+const genericHtml=exp.build(buyer);
+assert(genericHtml.includes('href="#part-3"'));
+assert(!genericHtml.includes('href="#part-5-topic-1"'),
+ 'an actually delivered but irrelevant growth paragraph must not be advertised as the answer');
+buyer.sections.find(s=>s.id==='career').body[0]=
+ '기존 일을 유지할 때에는 익숙한 작업을 이어갈 수 있는 조건을 확인합니다. '+
+ '새로운 기술을 배울 경우에는 설명을 이해할 시간과 준비할 도구를 별도로 확보해야 하는지 비교합니다.';
 const choiceHtml=exp.build(buyer);
 assert(choiceHtml.includes('class="choice-shortcut"'));
 assert(choiceHtml.includes('href="#part-3"'),
