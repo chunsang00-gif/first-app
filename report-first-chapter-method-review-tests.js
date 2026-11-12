@@ -70,7 +70,7 @@ assert(md.includes('우선 해결할 실제 고전 적용 문제'));
 assert(md.includes('권6'));
 assert(md.includes('월·시 양쪽이 권6 예시와 일치'));
 assert(md.includes('월 사례만 남고 권8 癸未 시각 규칙은 적용되지 않음'));
-assert(md.includes('적용 순위 미선정'));
+assert(md.includes('방법론 우선순위 미선정'));
 assert(md.includes('권8도 이미 己의 제한 완화 가능성'));
 assert(md.includes('「通土氣月則吉」'));
 assert(md.includes('달 기운 조건의 충족 여부는 아직'));
