@@ -64,8 +64,9 @@ function inspect(packet){
     historical.listedContainsMonthBranch!==false||
     historical.cannotBorrowGuiWeiWinterClause!==true))
   throw Error('QA_1982_OTHER_HOUR_CLAUSE_QUALIFIER_INVALID');
- // The general 卷八 hour warning is not the only relevant textual condition.
- // 卷六·論倒食 explicitly lists 乙日見癸未、癸丑 and hidden 己.
+ // 卷八's general 癸未 hour passage itself mentions 未's 己 and
+ // 通土氣月則吉. 卷六·論倒食 separately lists 乙日見癸未、癸丑.
+ // These are complementary textual qualifiers, NOT one-sided opposing verdicts.
  // A month 癸丑 match exists for BOTH hours; 癸未 adds an hour match only
  // at 14:20. Matching the texts never establishes a favorable outcome.
  if(l['natal.month.stem']?.stem!=='癸'||
@@ -82,7 +83,13 @@ function inspect(packet){
   broadHourRestriction:{
    sourceUrl:SOURCE,chapter:'卷八·六乙日癸未時斷',
    applicableToThisHour:early,
-   sourceStatement:early?'癸-restricts-hidden-丁':'not-this-hour'
+   sourceStatement:early?'癸-restricts-hidden-丁':'not-this-hour',
+   // The SAME general hour passage also mentions 己 as counteracting
+   // 癸, followed by 通土氣月則吉. It is not a bare, one-sided rule.
+   hiddenJiCounteractionMentionedInSamePassage:early,
+   earthQiMonthOriginalClause:early?'通土氣月則吉':null,
+   earthQiMonthConditionAssessed:false,
+   standaloneRestrictionAutomaticallyDecisive:false
   },
   separatelyDocumentedCountercondition:{
    sourceUrl:VOLUME_SIX,chapter:'卷六·論倒食',
@@ -92,6 +99,7 @@ function inspect(packet){
    additionalHourMatchOnlyAt1420:early,
    textualMatchDoesNotProveEffect:true
   },
+  ruleRelationship:'same-book-complementary-qualifications-not-independent-opposing-verdicts',
   sourceQuestionScopeResolved:true,
   relativeInterpretiveDominanceDecided:false,
   customerLifeOutcomeInferred:false,

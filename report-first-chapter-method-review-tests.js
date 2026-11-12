@@ -36,6 +36,13 @@ assert.deepEqual(other.competingVolumeEvidence.volumeSixMatchingPillars,['癸丑
 assert.equal(yi.competingVolumeEvidence.additionalHourMatchOnlyAt1420,true);
 assert.equal(other.competingVolumeEvidence.additionalHourMatchOnlyAt1420,false);
 assert.equal(yi.competingVolumeEvidence.interpretivePrecedenceApproved,false);
+assert.equal(yi.competingVolumeEvidence.volumeEightAlsoMentionsHiddenJi,true);
+assert.equal(other.competingVolumeEvidence.volumeEightAlsoMentionsHiddenJi,false);
+assert.equal(yi.competingVolumeEvidence.volumeEightEarthQiMonthClause,'通土氣月則吉');
+assert.equal(other.competingVolumeEvidence.volumeEightEarthQiMonthClause,null);
+assert.equal(yi.competingVolumeEvidence.volumeEightEarthQiMonthConditionAssessed,false);
+assert.equal(yi.competingVolumeEvidence.ruleRelationship,
+ 'same-book-complementary-qualifications-not-independent-opposing-verdicts');
 assert.equal(other.competingVolumeEvidence.personalPredictionApproved,false);
 assert.equal(single.competingVolumeEvidence,null);
 for(const row of report.cases){
@@ -64,6 +71,10 @@ assert(md.includes('권6'));
 assert(md.includes('월·시 양쪽이 권6 예시와 일치'));
 assert(md.includes('월 사례만 남고 권8 癸未 시각 규칙은 적용되지 않음'));
 assert(md.includes('적용 순위 미선정'));
+assert(md.includes('권8도 이미 己의 제한 완화 가능성'));
+assert(md.includes('「通土氣月則吉」'));
+assert(md.includes('달 기운 조건의 충족 여부는 아직'));
+assert(!md.includes('문헌의 겉보기 충돌'));
 assert(md.includes('甲·丙이 함께 드러난'));
 assert(md.includes('전통적 방법의 원문 근거'));
 assert(!md.includes('유료 보고서를 판매할 수 있습니다'));

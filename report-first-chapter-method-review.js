@@ -71,6 +71,11 @@ function build(){
      twoVolumes.customerLifeOutcomeInferred!==false||
      twoVolumes.broadHourRestriction.applicableToThisHour!==
       (item.input.birthTime==='14:20')||
+     twoVolumes.broadHourRestriction.hiddenJiCounteractionMentionedInSamePassage!==
+      (item.input.birthTime==='14:20')||
+     twoVolumes.broadHourRestriction.earthQiMonthConditionAssessed!==false||
+     twoVolumes.ruleRelationship!==
+      'same-book-complementary-qualifications-not-independent-opposing-verdicts'||
      twoVolumes.separatelyDocumentedCountercondition.monthMatchInBothHours!==true))
    throw Error('METHOD_HANDOFF_CLASSICAL_COUNTERCONDITION_MISMATCH');
   return {
@@ -91,6 +96,10 @@ function build(){
     generalHourTextApplies:twoVolumes.broadHourRestriction.applicableToThisHour,
     hourTextSourceUrl:twoVolumes.broadHourRestriction.sourceUrl,
     volumeSixSourceUrl:twoVolumes.separatelyDocumentedCountercondition.sourceUrl,
+    volumeEightAlsoMentionsHiddenJi:twoVolumes.broadHourRestriction.hiddenJiCounteractionMentionedInSamePassage,
+    volumeEightEarthQiMonthClause:twoVolumes.broadHourRestriction.earthQiMonthOriginalClause,
+    volumeEightEarthQiMonthConditionAssessed:false,
+    ruleRelationship:twoVolumes.ruleRelationship,
     volumeSixMatchingPillars:twoVolumes.separatelyDocumentedCountercondition.exactMatchedPillars.slice(),
     monthMatchInBothHours:twoVolumes.separatelyDocumentedCountercondition.monthMatchInBothHours,
     additionalHourMatchOnlyAt1420:twoVolumes.separatelyDocumentedCountercondition.additionalHourMatchOnlyAt1420,
@@ -152,7 +161,7 @@ function markdown(doc){
   '',
   '## 우선 해결할 실제 고전 적용 문제 — 두 권의 문구 비교',
   '',
-  '다섯 질문에 추상적인 답을 추가하기보다 **같은 사주에 동시에 대응하는 두 문헌 규칙의 적용 순위**부터 결정해야 합니다. 아래는 코드의 검증된 계산과 문헌 일치 여부이며, 길흉이나 성격 결론이 아닙니다.',
+  '두 권의 구절은 별개의 상반된 운명 판정이 아닙니다. 권8도 이미 己의 제한 완화 가능성을 언급하고 권6은 그에 관한 구체적 글자 조합을 제시합니다. **실제 어느 조건까지 충족하는지**를 먼저 결정해야 합니다. 아래 대응표는 계산된 글자와 원문 조건의 일치만 나타냅니다.',
   '',
   '| 출생 시각 | 권8의 癸未 시각 제약 규칙 | 권6의 癸丑·癸未 예외 관련 사례 일치 | 독립 검토할 차이 |',
   '| --- | --- | --- | --- |',
@@ -168,13 +177,13 @@ function markdown(doc){
      '월 사례만 남고 권8 癸未 시각 규칙은 적용되지 않음')+' |';
   }),
   '',
-  '- 권8 「六乙日癸未時斷」은 癸와 未 속 丁의 제한 관계를 논하며 乙未日의 겨울 조건을 별도로 적습니다: '+doc.cases[0].competingVolumeEvidence.hourTextSourceUrl,
+  '- 권8 「六乙日癸未時斷」은 癸가 未 안쪽 丁을 제약한다는 설명뿐 아니라 己의 제어 가능성, 「通土氣月則吉」 조건도 같은 조항에서 다룹니다. 이 달 기운 조건의 충족 여부는 아직 별도 판정하지 않았습니다: '+doc.cases[0].competingVolumeEvidence.hourTextSourceUrl,
   '- 권6 「論倒食」은 乙日에서 癸未·癸丑을 다룰 때 未·丑 속 己를 대조하는 예외 조건을 설명합니다: '+doc.cases[0].competingVolumeEvidence.volumeSixSourceUrl,
   '- 20:20에는 권8 「六乙日丙戌時斷」의 **별도** 乙未日 조항이 있습니다. 그 조항의 연·월 한정 구문을 출생 해의 한 글자만으로 확정 판정하지 않습니다.',
   '',
-  '**전문가에게 필요한 한 가지 실질 판정:** 14:20에서 두 권의 제한/예외가 함께 언급될 때 어느 해석 질문에 어느 조항을 우선 적용하고, 20:20에서는 시각 근거가 바뀌므로 *서로 다른 고객용 해석 문장*을 어떤 원문 근거로 정당화할 수 있습니까? 적용 제외 조건까지 직접 기재해야 하며, 근거가 없다면 두 경우 모두 새로운 개인별 결론을 보류합니다.',
+  '**전문가에게 필요한 한 가지 실질 판정:** 14:20에서 권8의 제약·제어와 달 기운 조건, 권6의 사례 조건을 각각 어디까지 적용할 수 있습니까? 20:20에서는 癸未시 일반 규칙은 빠지지만 출생월 癸丑 근거는 남습니다. *서로 다른 고객용 해석 문장*을 어떤 조건으로 정당화할지 제외 조건까지 제시해야 하며, 새 개인별 결론을 뒷받침하지 못하면 보류합니다.',
   '',
-  '**판정 전 상태:** 적용 순위 미선정 · 개인 생활 결과 미검증 · 유료 첫 장 자동 확장 불가. 문헌의 겉보기 충돌이 실제로 어떻게 해소되는지는 전문가의 원문 검토가 필요합니다.',
+  '**판정 전 상태:** 「通土氣月」 포함 개별 조건 미판정 · 방법론 우선순위 미선정 · 개인 생활 결과 미검증 · 유료 첫 장 자동 확장 불가. 텍스트상 조건이 일치한다는 사실만으로 실제 영향이 입증되는 것은 아닙니다.',
   '',
   '## 실제 독자용 짧은 원고 — 두 출생시간별 비판매 연구 후보',
   '',
