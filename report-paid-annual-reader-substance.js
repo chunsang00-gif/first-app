@@ -24,8 +24,44 @@ function nonLimit(text){
  return String(text||'').split(/[.!?。！？\n]+/)
   .map(x=>x.trim()).filter(x=>x.length>8&&!NOT_MEANING.test(x)).join(' ');
 }
+// Annual money/career premium paragraphs are not a second generic yearly
+// summary. Only an independently sourced DIFFERENT subtype can be sold;
+// this checks that both meanings and the difference reach reader prose.
+const SUBTYPES=Object.freeze({
+ '정재':/(?:꾸준히\s*관리|반복(?:되는)?\s*비용|예산|지출|유지할\s*비용)/,
+ '편재':/(?:외부\s*(?:자원|기회|거래)|여러\s*곳|확보|거래|자원을\s*활용)/,
+ '식신':/(?:결과물|완성|만들|제작|생산|표현한\s*결과)/,
+ '상관':/(?:바꾸|개선|제안|다른\s*(?:방법|절차)|기존\s*(?:방식|규칙))/,
+ '정관':/(?:규칙|규정|정해진\s*(?:역할|절차)|승인|맡은\s*역할)/,
+ '편관':/(?:압박|긴급|갑작스러운\s*요구|예상\s*밖|외부\s*요구)/,
+ '정인':/(?:배우|배움|학습|조언|도움|지원|가르침)/,
+ '편인':/(?:낯선\s*(?:정보|내용|자료|방법)|자기\s*방식으로\s*이해|스스로\s*이해|다른\s*관점)/
+});
+const NATAL_CONTEXT=/(?:태어난|출생|당시|기존|이전|원래)/;
+const COMPARISON=/(?:다르|차이|비교|구별|달리|반면|반대로|한편|이에\s*비해)/;
 function inspect(paragraph,chapterId,topicId,task){
- if(chapterId!=='year_2027'||!paragraph||typeof paragraph.text!=='string')return null;
+ if(!paragraph||typeof paragraph.text!=='string')return null;
+ if(['year_2027_money','year_2027_career'].includes(chapterId)&&
+    topicId==='change'&&task?.sourceOwnedAnnualReading){
+  const owned=task.sourceOwnedAnnualReading;
+  if(owned.kind!=='source-owned-annual-domain-reading-v1'||
+     owned.chapter!==chapterId||owned.topic!==topicId||
+     owned.noEventPrediction!==true||
+     owned.relativeStrengthAssessed!==false||
+     owned.annualSource?.tenGod===owned.natalSource?.tenGod||
+     !SUBTYPES[owned.annualSource?.tenGod]||
+     !SUBTYPES[owned.natalSource?.tenGod])
+   throw Error('PAID_ANNUAL_SUBTYPE_SOURCE_UNVERIFIED');
+  const content=nonLimit(paragraph.text);
+  if(!SUBTYPES[owned.annualSource.tenGod].test(content)||
+     !SUBTYPES[owned.natalSource.tenGod].test(content))
+   return 'annual-vs-birth-role-meanings-missing-from-paid-reader';
+  if(!contextYear.test(content)||!NATAL_CONTEXT.test(content)||
+     !COMPARISON.test(content))
+   return 'annual-vs-birth-subtype-difference-not-explained';
+  return null;
+ }
+ if(chapterId!=='year_2027')return null;
  const text=paragraph.text,content=nonLimit(text);
  if(topicId==='change'&&task?.sourceOwnedAnnualIntegratedScope){
   const god=task.sourceOwnedAnnualIntegratedScope.annualGod;

@@ -1933,6 +1933,17 @@ function restoreEvidence(value,prompt){
         !b.refs.includes(actual.sourceRef))
       throw Error('AI report service general annual meaning lacks original yearly source: '+id+':'+topic);
     }
+    // A distinct 2027 money/career subtype reading must cite BOTH the
+    // annual source and its independently verified birth-chart counterpart.
+    // Do not charge for a one-source generic yearly summary as a comparison.
+    if(task.sourceOwnedAnnualReading){
+     const proof=task.sourceOwnedAnnualReading;
+     if(proof.kind!=='source-owned-annual-domain-reading-v1'||
+        proof.chapter!==id||proof.topic!==topic||
+        proof.sourceRefs.length!==2||
+        !proof.sourceRefs.every(ref=>allowed.has(ref)&&b.refs.includes(ref)))
+      throw Error('AI report service paid annual comparison source citation missing: '+id+':'+topic);
+    }
     // A verified JSON basis is necessary but not sufficient for paid prose:
     // reject annual paragraphs which explain neither the computed role nor
     // the precise optional day-pair table they cite.

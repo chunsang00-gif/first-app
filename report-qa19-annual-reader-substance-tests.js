@@ -60,3 +60,52 @@ assert.equal(readable.inspect({text:'2027년 지지와 태어난 날의 지지 �
 assert.equal(readable.inspect(base,'year_2027','impact',
  {sourceOwnedAnnualDayContext:{mode:'separate-chapter'}}),null);
 console.log('PASS QA19 annual paid prose meaning gate for 32 real charts and secondary day pair; zero paid API calls');
+
+const annualExamples=[
+ {date:'1994-07-15',time:'14:20',domain:'year_2027_money'},
+ {date:'1994-05-15',time:'20:20',domain:'year_2027_career'}
+];
+const meaningFor={
+ '정재':'반복되는 비용을 꾸준히 관리','편재':'외부 자원을 확보해 활용',
+ '식신':'결과물을 완성','상관':'기존 방법을 바꾸어 제안',
+ '정관':'규칙과 맡은 역할','편관':'갑작스러운 요구와 압박',
+ '정인':'배우고 주변 조언을 활용','편인':'낯선 자료를 자기 방식으로 이해'
+};
+for(const {date,time,domain} of annualExamples){
+ const packet=facts.build({calendar:'solar',birthDate:date,birthTime:time,
+  gender:'male',mbti:'ISFP'},2027);
+ const guidanceMap=guidance.preflight(packet);
+ const prompt={stage:'body',facts:packet,requestedSections:[domain],
+  analysisGuidance:{...guidance.forRequest([domain],packet.person.mbti),
+   editorialBlueprint:guidanceMap},rules:{sectionGoals:require('./report-prompt').sectionGoals}};
+ const topic=writer.compile(prompt).task.chapters[domain].topics.change;
+ const proof=topic.sourceOwnedAnnualReading;
+ assert(proof,'real chart requires domain-specific yearly sources '+domain);
+ const birth=meaningFor[proof.natalSource.tenGod],
+  year=meaningFor[proof.annualSource.tenGod];
+ assert(birth&&year&&birth!==year);
+ const valid='출생 당시에는 '+birth+'이라는 질문으로 풀이하지만, 2027년에는 '+
+  year+'이라는 서로 다른 전통적 질문을 함께 비교합니다. 이는 계산된 분류의 구별이지 실제 소득이나 취업 사건에 관한 예측은 아닙니다.';
+ const make=(txt,refs)=>({chapters:{[domain]:{paragraphs:{
+  change:{label:'2027년 비교 풀이',text:txt,basis:{
+   refs,interpretation:'정확한 전통 분류 차이',condition:'연도와 출생의 실제 계산 결과가 다른 경우',
+   limit:'실제 개인 생활 결과나 미래 사건이 확인되지는 않았습니다.'}}
+ }}}});
+ assert.equal(readable.inspect({text:valid},domain,'change',topic),null);
+ assert.doesNotThrow(()=>writer.restoreEvidence(make(valid,proof.sourceRefs),prompt));
+ const generic='2027년에는 '+year+'을 살펴봅니다. 출생 당시에는 다른 뜻입니다. 구체적인 선택 기준을 확인해 보세요.';
+ assert.equal(readable.inspect({text:generic},domain,'change',topic),
+  'annual-vs-birth-role-meanings-missing-from-paid-reader');
+ assert.throws(()=>writer.restoreEvidence(make(generic,proof.sourceRefs),prompt),
+  /paid annual reader meaning missing/);
+ assert.throws(()=>writer.restoreEvidence(make(valid,[proof.sourceRefs[0]]),prompt),
+  /paid annual comparison source citation missing/);
+ const separate='출생 당시에는 '+birth+'을 생각합니다. 2027년에는 '+year+
+  '을 생각합니다. 정확한 기록과 계획을 확인해야 합니다.';
+ assert.equal(readable.inspect({text:separate},domain,'change',topic),
+  'annual-vs-birth-subtype-difference-not-explained');
+ assert.throws(()=>writer.restoreEvidence(make(separate,proof.sourceRefs),prompt),
+  /paid annual reader meaning missing/);
+}
+console.log('PASS 2027 annual money/career customer prose uses both actual annual and birth source roles; generic summary rejected before new paid calls');
+
