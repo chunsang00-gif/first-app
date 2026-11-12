@@ -297,23 +297,15 @@ function compile(prompt){
    throw Error('PAID_FINAL_CHOICE_INPUT_MISMATCH');
   if(!Array.isArray(sections)||new Set(sections.map(s=>s?.id)).size!==sections.length)
    throw Error('PAID_FINAL_CHOICE_BAD_DELIVERED_SECTIONS');
-  const d=sections.find(s=>s.id==='decision');
-  if(!d||!Array.isArray(d.body)||!d.body.some(s=>typeof s==='string'&&s.trim()))
-   return null;
   const choiceDomain=require('./report-paid-reader-question-domain');
-  const domain=choiceDomain.chosenDomain(decision);
-  const related=domain?sections.find(s=>s.id===domain):null;
-  const relevant=related&&Array.isArray(related.bodyTopics)&&
-   Array.isArray(related.body)?
-   choiceDomain.preferences(domain,decision).find(topic=>{
-    const ix=related.bodyTopics.indexOf(topic);
-    return ix>=0&&typeof related.body[ix]==='string'&&related.body[ix].trim();
-   })||null:null;
+  const delivered=choiceDomain.locateDelivered(completed);
+  if(!delivered)return null;
+  const related=delivered.related;
   return {kind:'delivered-only-buyer-choice-final-v1',question:decision,
    inputAsCalculatedEvidence:false,observedCustomerOutcome:false,
    supportChapter:'decision',
-   relatedChapter:relevant?domain:null,relatedTopic:relevant,
-   relatedParagraphWasDelivered:Boolean(relevant),newPaidParagraph:false,
+   relatedChapter:related?.chapterId||null,relatedTopic:related?.topicId||null,
+   relatedParagraphWasDelivered:Boolean(related),newPaidParagraph:false,
    extraProviderCall:false,professionalReviewComplete:false};
  })():null;
  const task=prompt.stage==='body'?{
