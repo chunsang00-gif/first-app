@@ -39,7 +39,26 @@ function inspect(sections,question){
  const meaning=/(?:배우|익히|이해|정보|자원|마련|비용|도구|준비|지원|조건|선택|검토|의미|분류|설명|방법|활용|필요)/;
  const applies=keywords=>sentences.some(s=>meaning.test(s)&&
   keywords.some(word=>s.includes(word)));
- return applies(options.first)&&applies(options.second)?[]:
-  ['saju_core:buyer-choice-not-applied-to-both-options'];
+ if(!applies(options.first)||!applies(options.second))
+  return ['saju_core:buyer-choice-not-applied-to-both-options'];
+ // Two buyer alternatives in ONE vague sentence are not two explanations.
+ // Check independently written conditional clauses rather than merely
+ // finding the option words beside a generic "information/choice" gloss.
+ // Commas, semicolons, sentence endings and explicit comparison pivots may
+ // separate equally valid Korean prose. Never claim to judge semantic truth.
+ const passages=authored.split(/[.!?。！？\n;,，；]+|\s+(?:반면|반대로|한편|이에\s*비해|그에\s*비해)\s+/)
+  .map(s=>s.trim()).filter(Boolean);
+ const evidence=/(?:익힌|익히|배운|배우|이해|정보|설명|원리|방법|자원|마련|비용|도구|준비|지원|확보|관리|기준|조건|검토)/;
+ const conditional=/(?:한다면|한다|하면|경우|할\s*때|라면|때는|하려면|위해서|때에는|때라면|달리|따로|구별)/;
+ const anchored=keywords=>passages.map((text,i)=>({text,i})).filter(p=>
+  p.text.length>=26&&conditional.test(p.text)&&evidence.test(p.text)&&
+  keywords.some(word=>p.text.includes(word)));
+ const first=anchored(options.first),second=anchored(options.second);
+ // A genuinely contrasted passage for each option is required. A single
+ // compound sentence with two alternatives but no distinguishable clauses
+ // remains a HUMAN-review problem and must not silently pass a paid gate.
+ if(!first.some(a=>second.some(b=>a.i!==b.i)))
+  return ['saju_core:buyer-choice-both-options-not-independently-explained'];
+ return [];
 }
 module.exports={inspect,alternatives};

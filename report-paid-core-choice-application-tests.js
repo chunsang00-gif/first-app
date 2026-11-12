@@ -15,6 +15,16 @@ assert.deepEqual(audit.alternatives('이직할지 창업할지 고민 중입니�
 assert.deepEqual(audit.alternatives('물건을 살지 대여할지 생각 중입니다.'),
  {first:['물건'],second:['대여']});
 assert.deepEqual(audit.inspect(section(real),q),[]);
+// Regression: an otherwise long answer that names both alternatives in
+// one generic clause is not a personalized paid analysis.
+const genericBothInOne='기존 일을 유지할 때와 새로운 기술을 배울 때 모두 정보를 충분히 확인하고 조건에 따라 선택을 검토해야 한다는 설명입니다. 누구나 새로운 선택을 하기 전에는 필요한 준비와 정보가 무엇인지 살펴봐야 합니다.';
+assert(audit.inspect(section(genericBothInOne),q).includes(
+ 'saju_core:buyer-choice-both-options-not-independently-explained'),
+ 'the paid path must not accept both buyer option words in a single boilerplate clause');
+// Distinct Korean clauses, even in one grammatically complete sentence,
+// remain valid when both apply a different condition to the actual question.
+const conciseContrast='기존 일을 유지한다면 이미 익힌 방법을 검토하고, 새로운 기술을 배울 경우에는 설명을 이해하는 시간과 필요한 도구를 따로 마련해야 하는지 살펴보는 전통적 선택 질문입니다.';
+assert.deepEqual(audit.inspect(section(conciseContrast),q),[]);
 assert.deepEqual(audit.inspect(section(q+' '+real),q),[]);
 assert(audit.inspect(section(q+' '+generic),q).includes(
  'saju_core:buyer-choice-not-applied-to-both-options'),
