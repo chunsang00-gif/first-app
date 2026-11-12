@@ -29,12 +29,21 @@ function inspect(report,packet){
  if(!matched.length)return empty();
  const present=matched.filter(x=>x.p.test(authored));
  const errors=[],warnings=[];
+ // If a real delivered related paragraph ALREADY contrasted both options,
+ // do not silently lose half of the customer's dilemma in the synthesis.
+ // This only verifies conservative written coverage, NOT semantic validity.
+ const related=report?.meta?.readerDecision===normalized?
+  domain.locateDelivered(report)?.related:null;
+ const fullContrastExpected=Boolean(related&&matched.length>=2);
  if(authored.length<48)
   errors.push('paid-final-buyer-question-echo-without-independent-conclusion');
  else if(present.length===0)
   errors.push('paid-final-buyer-question-not-applied-to-delivered-summary');
  else {
-  if(matched.length>=2&&present.length<2)
+  if(fullContrastExpected&&
+     !domain.addressesDeliveredQuestion(normalized,topic,authored))
+   errors.push('paid-final-delivered-two-choice-contrast-not-explained');
+  else if(matched.length>=2&&present.length<2)
    warnings.push('paid-final-buyer-choice-both-aspects-need-human-review');
   if(!CONDITIONAL.test(authored))
    warnings.push('paid-final-buyer-choice-condition-needs-human-review');

@@ -731,10 +731,17 @@ function schema(prompt,transport){
       !payload.task.completedReport.sections.some(s=>s.id==='decision'))
     throw Error('PAID_FINAL_CHOICE_SOURCE_DRIFT');
    const final=result.properties.finalJudgment.properties;
+   const readerScope=require('./report-paid-reader-question-domain');
+   const concernDomain=readerScope.chosenDomain(choice.question);
+   const groups=readerScope.GROUPS[concernDomain]||[];
+   const mustContrastTwo=choice.relatedParagraphWasDelivered&&
+    groups.filter(g=>g.q.test(choice.question)).length>=2;
    final.body.description=(final.body.description||'')+
     ' 입력된 고객의 현재 선택 고민(고객 입력, 명리 계산 근거 아님): '+
     JSON.stringify(choice.question)+'. '+
-    '실제로 완성된 선택·결정 장에서 이미 답한 서로 다른 판단 조건 중 하나를 종합 본문 한 문장에 자연스럽게 적용한다. '+
+    (mustContrastTwo?
+      '관련 분야의 실제 본문이 고객의 두 선택지를 구분했습니다. 최종 정리에도 두 선택지 각각의 다른 조건을 간결하게 대조해 답하고, 한쪽만 언급하거나 두 이름만 나열하며 상투적인 조언을 하지 않는다. ':
+      '실제로 완성된 선택·결정 장에서 이미 답한 서로 다른 판단 조건 중 하나를 종합 본문 한 문장에 자연스럽게 적용한다. ')+
     (choice.relatedParagraphWasDelivered?
       '실제로 완성된 '+choice.relatedChapter+'.'+choice.relatedTopic+
       ' 분야의 질문을 보조로 활용할 수 있다. ':

@@ -32,6 +32,23 @@ for(const [q,summary] of otherDomains){
  assert.deepEqual(result.errors,[],q+' must accept a topic-specific conditional summary');
  assert.equal(result.applicable,true);
 }
+// A grounded related paragraph about both choices must not be narrowed
+// to just one option in the paid final synthesis.
+const grounded=body=>({
+ ...report(body),meta:{readerDecision:question},
+ sections:[decision,{
+  id:'career',bodyTopics:['growth'],body:["기존 일을 계속 유지할 때는 이미 익힌 방법을 활용해 필요한 시간을 줄이는 조건을 살펴봅니다. 새로운 기술을 배울 경우에는 그 기술을 이해할 시간과 준비할 도구를 별도로 확보하는 조건을 비교합니다."]
+ }]
+});
+const oneSided=inspect(grounded(
+ '새로운 기술을 배울 경우에는 먼저 시간을 확보하고 낯선 내용을 이해할 도구를 준비해야 합니다. 준비할 조건을 확인한 다음에 그 선택을 검토할 수 있습니다.'),packet);
+assert(oneSided.errors.includes('paid-final-delivered-two-choice-contrast-not-explained'));
+const both=inspect(grounded("기존 일을 계속 유지할 때는 이미 익힌 방법을 활용해 필요한 시간을 줄이는 조건을 살펴봅니다. 새로운 기술을 배울 경우에는 그 기술을 이해할 시간과 준비할 도구를 별도로 확보하는 조건을 비교합니다."),packet);
+assert.deepEqual(both.errors,[],'a real, distinct two-choice comparison is kept');
+const boilerplate=inspect(grounded(
+ '기존 일을 유지할 때와 새로운 기술을 배울 때에는 누구나 정보를 확인하고 계획을 검토해야 합니다. 중요한 선택에는 언제나 여러 조건을 비교하는 것이 좋습니다.'),packet);
+assert(boilerplate.errors.includes('paid-final-delivered-two-choice-contrast-not-explained'),
+ 'the two labels in one generic clause are not a paid conclusion');
 assert.equal(inspect(report('기술을 배우는 선택의 조건을 구별합니다.'),{person:{}}).applicable,false);
 assert.equal(inspect({sections:[career],finalJudgment:report('일을 배울 때 생각할 조건이 있습니다.').finalJudgment},packet).applicable,false);
 assert.equal(inspect(report('기술을 배우는 선택의 조건을 구별합니다.'),

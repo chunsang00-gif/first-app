@@ -23,7 +23,7 @@ const report={meta:{name:'테스트 독자',mbti:'ISFP',readerDecision:'새 일�
  sections,finalJudgment:{headline:'종합 결론',body:['마지막 정리입니다.'],
   strengths:['검증된 장점'],watchouts:['주의해야 할 점'],
   routines:[{trigger:'결정하기 전에',action:'정보를 한 번 확인',reason:'설명하기 위해'}],
-  closingQuestion:'이번에 선택할 일은 무엇입니까?'}};
+  closingQuestion:'선택에 앞서 두 조건을 구분하는 것이 이 해석의 핵심입니다.'}};
 const html=exp.build(report);
 assert(!html.includes('class="choice-shortcut"'),
  'invalid legacy buyer question must not create an unsupported topic shortcut');
@@ -66,6 +66,9 @@ for(let i=1;i<=9;i++)assert(html.includes('href="#part-'+i+'"'));
 assert(html.includes('진로에서 볼 핵심')&&html.includes('직업 본문에 있는 내용'));
 assert(html.includes('이번 해석에서 확인할 일'));
 assert(html.includes('종합 결론')&&html.includes('정보를 한 번 확인'));
+assert(html.includes('<h3>가장 중요한 결론</h3>'),
+ 'the saved report must label a conclusion as a conclusion, matching the live app');
+assert(!html.includes('<h3>마지막 질문</h3>'));
 assert(html.includes('&#39;none&#39;'), 'offline document must block active resources');
 assert(!html.includes('natal.hour.stem'),'internal source IDs must never leak to reader document');
 assert(!html.includes('내부 근거만 이곳에 있습니다'));

@@ -33,6 +33,9 @@ const noRealAnswer={...prompt,completedReport:{
 const absentAnswer=compile.compile(noRealAnswer).task.finalCustomerChoice;
 assert(absentAnswer&&!absentAnswer.relatedParagraphWasDelivered,
  'topic presence is not proof that the buyer concern was answered');
+assert(!compile.schema(noRealAnswer,wire.schemaFor(noRealAnswer,schema))
+ .properties.finalJudgment.properties.body.description.includes('두 선택지 각각의 다른 조건'),
+ 'an unresponsive related domain cannot demand invented two-option evidence');
 assert.equal(absentAnswer.relatedChapter,null);
 assert.equal(absentAnswer.relatedTopic,null);
 assert(compile.schema(noRealAnswer,wire.schemaFor(noRealAnswer,schema))
@@ -45,6 +48,8 @@ const tr=compile.schema(prompt,wire.schemaFor(prompt,schema));
 const final=tr.properties.finalJudgment.properties;
 assert(final.body.description.includes(question));
 assert(final.body.description.includes('career.growth'));
+assert(final.body.description.includes('두 선택지 각각의 다른 조건'),
+ 'the real synthesis writing instruction must require both supported buyer alternatives');
 assert(final.body.description.includes('고객 질문을 그대로 복사'));
 assert(final.closingQuestion.description.includes('평서형 결론'));
 assert.deepEqual(tr.properties.cover.properties.highlights.items.properties.sectionId.enum,['saju_core','decision','career']);

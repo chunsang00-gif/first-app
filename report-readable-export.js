@@ -111,7 +111,7 @@ function build(report){
   (array(final.routines).length?'<h3>다음 상황에서 시도할 일</h3><ol>'+
    array(final.routines).map(r=>'<li><strong>'+esc(r.trigger)+'</strong> — '+
     esc(r.action)+' <span class="subtle">'+esc(r.reason)+'</span></li>').join('')+'</ol>':'')+
-  (final.closingQuestion?'<h3>마지막 질문</h3><p>'+esc(final.closingQuestion)+'</p>':'')+
+  (final.closingQuestion?'<h3>가장 중요한 결론</h3><p>'+esc(final.closingQuestion)+'</p>':'')+
   '</section>'):'';
  return '<!doctype html><html lang="ko"><head><meta charset="utf-8">'+
   '<meta name="viewport" content="width=device-width,initial-scale=1">'+
