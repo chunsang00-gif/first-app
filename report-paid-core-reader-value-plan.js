@@ -110,13 +110,23 @@ function build(packet,focus,allowed,source){
  // Neither the scenario nor the choices are an observed customer history.
  const visibleScene=contrast.TEN_GOD_SCENE[top.tenGod];
  if(!visibleScene)throw Error('PAID_CORE_READER_SCENE_UNVERIFIED');
+ const directionInScene={
+  resource:'안쪽의 ‘'+centralQuestion+'’이라는 관점이 겉의 ‘'+visibleQuestion+
+   '’을 뒷받침하는 전통적 방향으로만 연결한다.',
+  output:'겉의 ‘'+visibleQuestion+'’이라는 관점이 안쪽의 ‘'+centralQuestion+
+   '’을 뒷받침하는 전통적 방향으로만 연결한다.',
+  'control-on-day':'안쪽의 ‘'+centralQuestion+'’이라는 관점이 겉의 ‘'+visibleQuestion+
+   '’을 제약하는 전통적 방향으로만 연결한다.',
+  'day-controls':'겉의 ‘'+visibleQuestion+'’이라는 관점이 안쪽의 ‘'+centralQuestion+
+   '’을 제약하는 전통적 방향으로만 연결한다.',
+  'same-element':'겉의 ‘'+visibleQuestion+'’과 안쪽의 ‘'+centralQuestion+
+   '’이 같은 기운에 속하지만 질문의 뜻은 구별한다.'
+ };
  const illustrativeScene=same?
   '가상 예시: '+visibleScene+' 때 ‘'+visibleQuestion+
   '’이라는 한 가지 질문으로 읽는다. 두 위치를 별개의 성격으로 나누지 않는다.':
-  '가상 예시: '+visibleScene+' 때 ‘'+visibleQuestion+
-  '’을 묻는 상황에 ‘'+centralQuestion+
-  '’이라는 별도 질문을 연결한다. 이 질문의 관계는 계산된 오행 방향만 허용하며, '+
-  '선택의 실익이나 고객의 실제 행동을 주장하지 않는다.';
+  '가상 예시: '+visibleScene+' 때 '+directionInScene[expected]+
+  ' 이 장면은 두 계산 출처의 뜻을 이해하기 위한 가정일 뿐, 실제 선택이나 결과의 설명이 아니다.';
  const twoSidedScope=Object.freeze({
   visibleRole:top.tenGod,mainRole:bottom.tenGod,
   directionalReadingQuestion,visibleQuestion,centralQuestion,

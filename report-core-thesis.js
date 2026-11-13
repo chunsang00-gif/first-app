@@ -52,6 +52,27 @@ function relationReaderLine(kind,visible,hidden){
  if(!verb)throw Error('CORE_READER_UNKNOWN_ELEMENT_DIRECTION');
  return from+josa(from,'이','가')+' '+to+josa(to,'을','를')+' '+verb+' 관계';
 }
+// Explain the REAL direction between the two calculated positions in
+// ordinary Korean. In particular, "the inner role restricts the outer"
+ // must not be flattened into two unlocated dictionary labels.
+function locatedReaderJudgment(kind,visible,hidden){
+ const a=readerNoun[visible],b=readerNoun[hidden];
+ if(!a||!b)throw Error('CORE_READER_UNKNOWN_CALCULATED_MEANING');
+ if(kind==='same-element')
+  return '사주에서는 태어난 달의 겉에서 읽는 '+a+
+   '와 안쪽에서 읽는 '+b+
+   '가 같은 기운에 속하지만 서로 다른 질문으로 풀이합니다.';
+ const hiddenFirst=kind==='hidden-generates-visible'||kind==='hidden-controls-visible';
+ const visibleFirst=kind==='visible-generates-hidden'||kind==='visible-controls-hidden';
+ if(!hiddenFirst&&!visibleFirst)throw Error('CORE_READER_UNKNOWN_ELEMENT_DIRECTION');
+ const from=hiddenFirst?b:a,to=hiddenFirst?a:b;
+ const fromPosition=hiddenFirst?'안쪽':'겉',toPosition=hiddenFirst?'겉':'안쪽';
+ const verb=kind.endsWith('generates-visible')||kind.endsWith('generates-hidden')?
+  '뒷받침하는':'제약하는';
+ return '사주에서는 태어난 달의 '+fromPosition+'에서 읽는 '+from+
+  josa(from,'이','가')+' '+toPosition+'에서 읽는 '+to+
+  josa(to,'을','를')+' '+verb+' 전통적 관계로 풀이합니다.';
+}
 function forPrompt(prompt){
  if(prompt?.stage!=='body'||!prompt.requestedSections?.includes('saju_core'))return null;
  const calculated=contrast.build(prompt.facts)?.monthTenGodContext;
@@ -84,10 +105,7 @@ function forPrompt(prompt){
  const keyJudgment=historicalPinnedQA?original:same?
   '사주에서는 태어난 달의 서로 다른 두 위치에서 '+readerNoun[first.tenGod]+
   '의 한 가지 전통적 뜻을 확인하며, 이를 두 가지 성격으로 나누지 않고 풀이합니다.':
-  '사주에서는 태어난 달의 '+readerNoun[first.tenGod]+
-  josa(readerNoun[first.tenGod],'과','와')+' '+
-  readerNoun[second.tenGod]+'의 뜻을 구별하고, '+
-  relationalTitle+'로 풀이합니다.';
+  locatedReaderJudgment(direction.kind,first.tenGod,second.tenGod);
  if(!title||title.length>30||
     keyJudgment.split(/(?<=[.!?。！？])\\s+|\\n+/).filter(Boolean).length!==1||
     !keyJudgment.endsWith('풀이합니다.'))

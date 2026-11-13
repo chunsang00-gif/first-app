@@ -53,6 +53,14 @@ for(const input of inputs){
  assert(plan?.illustrativeScene?.includes('가상 예시:'));
  assert.equal(plan.illustrativeSceneIsCustomerHistory,false);
  assert(plan.script.includes(plan.illustrativeScene));
+ const actualRelation=plan.twoSidedScope.elementDirection;
+ if(!plan.sameClassification){
+  const relevantDirection=['resource','output'].includes(actualRelation)?
+   '뒷받침하는':actualRelation==='same-element'?'같은 기운에 속하지만':'제약하는';
+  assert(plan.illustrativeScene.includes(relevantDirection),
+   'the optional customer scene must carry the actual computed direction, not a list of dictionary meanings');
+  assert(plan.illustrativeScene.includes('가정일 뿐'));
+ }
  assert(plan.script.includes('무료 화면에 이미 제공된'),
   'premium first-chapter text must not repackage the free preview');
  assert(text.includes(plan.illustrativeScene),

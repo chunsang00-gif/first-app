@@ -28,6 +28,23 @@ for(const input of inputs){
  assert(fixed.keyJudgment.startsWith('사주에서는 '));
  assert.equal(fixed.keyJudgment.split(/(?<=[.!?。！？])\\s+|\\n+/).length,1);
  assert(!/(?:冬|癸|己|乙|원국|월지|십성|본기|실제 성격이 확정)/.test(fixed.keyJudgment));
+ // Consumer judgment must identify WHICH actual month position supplies
+ // each part of the calculated relation, not just list two labels.
+ const monthPair=require('./report-chart-contrast').build(packet).monthTenGodContext;
+ if(!monthPair.sameClassification){
+  assert(fixed.keyJudgment.includes('안쪽에서 읽는'));
+  assert(fixed.keyJudgment.includes('겉에서 읽는'));
+  if(monthPair.elementLink.kind==='same-element')
+   assert(fixed.keyJudgment.includes('같은 기운에 속하지만'));
+  else{
+   assert(fixed.keyJudgment.includes('전통적 관계로 풀이합니다.'));
+   const hiddenFirst=/^hidden-/.test(monthPair.elementLink.kind);
+   const from=hiddenFirst?'안쪽':'겉',to=hiddenFirst?'겉':'안쪽';
+   assert(fixed.keyJudgment.indexOf(from+'에서 읽는')<
+    fixed.keyJudgment.indexOf(to+'에서 읽는'),
+    'the model-facing judgment must retain the EXACT arrow direction');
+  }
+ }
  assert.deepEqual(wire.schemaFor(prompt,schema).properties.chapters.properties.saju_core.properties.keyJudgment.enum,[fixed.keyJudgment]);
  assert.deepEqual(wire.schemaFor(prompt,schema).properties.chapters.properties.saju_core.properties.title.enum,[fixed.title]);
  const mandatory=wire.schemaFor(prompt,schema).properties.chapters.properties.saju_core.properties.paragraphs.properties.strength;
