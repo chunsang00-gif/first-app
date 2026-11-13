@@ -143,7 +143,7 @@ function build(packet){
   '’을 따지는 가상의 선택에서는 ‘'+central.focus+
   '’도 답해야 할 별도의 질문으로 남습니다. 이 둘은 실제로 경험한 갈등이나 '+
   '어느 쪽이 더 강한 성격인지 보여 주는 결과가 아니라, 서로 다른 전통적 분류를 '+
-  '한 명식에서 확인한 계산 예시입니다.';
+  '한 사주에서 확인한 계산 예시입니다.';
  const cards=[card('birth-month','태어난 달에서 확인되는 두 근거',monthText)];
  const monthLink=monthToVisibleLink(packet);
  if(monthLink)cards.push(monthLink);
