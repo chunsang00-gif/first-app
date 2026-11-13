@@ -60,8 +60,8 @@ function locatedReaderJudgment(kind,visible,hidden){
  if(!a||!b)throw Error('CORE_READER_UNKNOWN_CALCULATED_MEANING');
  if(kind==='same-element')
   return '사주에서는 태어난 달의 겉에서 읽는 '+a+
-   '와 안쪽에서 읽는 '+b+
-   '가 같은 기운에 속하지만 서로 다른 질문으로 풀이합니다.';
+   josa(a,'과','와')+' 안쪽에서 읽는 '+b+
+   josa(b,'이','가')+' 같은 기운에 속하지만 서로 다른 질문으로 풀이합니다.';
  const hiddenFirst=kind==='hidden-generates-visible'||kind==='hidden-controls-visible';
  const visibleFirst=kind==='visible-generates-hidden'||kind==='visible-controls-hidden';
  if(!hiddenFirst&&!visibleFirst)throw Error('CORE_READER_UNKNOWN_ELEMENT_DIRECTION');
