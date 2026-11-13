@@ -47,6 +47,9 @@ const names=['NODE_ENV','RENDER','PAID_CORE_DEPTH_V2',
    assert([3,4].includes(result.readingSample.cards.length),
     'known-hour chart may add a fourth card only for a verified month-to-visible-stem link');
    assert(result.readingSample.cards[0].text.includes('태어난 달'));
+   assert(!result.readingSample.cards[0].text.includes('반대로 안쪽'),
+    'the free intro must not use the old mirror-condition boilerplate');
+   assert(!result.readingSample.cards[0].text.includes('둘 다 중요합니다'));
    assert(result.readingSample.cards.at(-1).text.includes('2027년'));
    assert(!/TEST_DO_NOT_EXPOSE|TEST_ADDRESS_DO_NOT_EXPOSE/.test(JSON.stringify(result.readingSample)));
    assert(Array.isArray(result.interpretivePreviews));

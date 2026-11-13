@@ -4,7 +4,8 @@
 // This is a writer plan, NOT an authored customer paragraph, expert approval,
 // claim about observed temperament, or new paid report topic.
 const season=require('./report-seasonal-evidence');
-const questionFor=require('./report-chart-contrast').monthDecisionQuestion;
+const contrast=require('./report-chart-contrast');
+const questionFor=contrast.monthDecisionQuestion;
 const KIND=Object.freeze({
  'same-element':'두 글자의 오행이 같음',
  resource:'달의 중심 글자가 겉글자를 생함',
@@ -105,6 +106,17 @@ function build(packet,focus,allowed,source){
  };
  const actualTwoSidedReading=directed[expected];
  if(!actualTwoSidedReading)throw Error('PAID_CORE_READER_DIRECTION_MISSING');
+ // Optional, source-specific example for the actual consumer writer.
+ // Neither the scenario nor the choices are an observed customer history.
+ const visibleScene=contrast.TEN_GOD_SCENE[top.tenGod];
+ if(!visibleScene)throw Error('PAID_CORE_READER_SCENE_UNVERIFIED');
+ const illustrativeScene=same?
+  '가상 예시: '+visibleScene+' 때 ‘'+visibleQuestion+
+  '’이라는 한 가지 질문으로 읽는다. 두 위치를 별개의 성격으로 나누지 않는다.':
+  '가상 예시: '+visibleScene+' 때 ‘'+visibleQuestion+
+  '’을 묻는 상황에 ‘'+centralQuestion+
+  '’이라는 별도 질문을 연결한다. 이 질문의 관계는 계산된 오행 방향만 허용하며, '+
+  '선택의 실익이나 고객의 실제 행동을 주장하지 않는다.';
  const twoSidedScope=Object.freeze({
   visibleRole:top.tenGod,mainRole:bottom.tenGod,
   directionalReadingQuestion,visibleQuestion,centralQuestion,
@@ -128,6 +140,8 @@ function build(packet,focus,allowed,source){
   notAnAdditionalPaidParagraph:true,
   freePreviewCopyDisallowed:true,
   readerTakeaway:actualTwoSidedReading,
+  illustrativeScene,
+  illustrativeSceneIsCustomerHistory:false,
   semanticDifferenceRequired:!same,
   script:
    '유료 첫 장은 두 분류 이름을 나열하거나 양쪽 모두 중요하다는 말로 끝내지 않는다. '+
@@ -136,6 +150,10 @@ function build(packet,focus,allowed,source){
    '겉에 드러난 분류의 뜻: '+reading.first.reading+
    '. 달 중심 숨은 글자의 뜻: '+reading.second.reading+'. '+
    '이 둘이 같거나 다른 이유는 실제 출생 위치와 위에서 검증한 관계만으로 설명한다. '+
+   '두 의미가 단순 사전 나열로 남는다면 이 명식별 짧은 가정을 선택적으로 사용할 수 있다: '+
+   illustrativeScene+' 두 뜻이 자연스럽게 연결되지 않는다면 예시는 생략한다. '+
+   '무료 화면에 이미 제공된 겉·안쪽 두 질문을 복사해 유료 문단을 채우지 않는다. '+
+   '유료 본문은 오행의 정확한 계산 방향이 그 해석을 어떤 범위에서 허용하는지 더 풀어 쓴다. '+
    '계산된 상징의 도움·표현·제약을 실제 고객의 능력, 손해, 내면 갈등, 직업이나 인생 사건으로 바꾸지 않는다. '+
    '한쪽만 보면 놓치고 반대로 다른 쪽만 보면 놓친다는 대칭 문장을 두 개 나열하지 않는다. '+
    '추가 해석이 불가능하면 장점·약점·예시를 발명하지 않으며 내부 근거와 한계를 설명하되 고객에게 기술 목록을 읽히지 않는다. '+

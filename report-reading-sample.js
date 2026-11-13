@@ -130,23 +130,20 @@ function build(packet){
  if(!hidden||hidden.tenGod!==root.mainHiddenStemTenGod)
   throw Error('SAMPLE_MONTH_CALCULATION_MISMATCH');
  const upper=phrase(month.stemTenGod),lower=phrase(hidden.tenGod);
+ const visible=CONDITIONS[month.stemTenGod],central=CONDITIONS[hidden.tenGod];
+ if(!visible||!central)
+  throw Error('SAMPLE_MONTH_TWO_SOURCE_CONDITIONS_MISSING');
  const monthText=month.stemTenGod===hidden.tenGod?
-  '태어난 달의 겉에 나타난 글자와 그 달 안쪽의 중심 글자가 모두 ‘'+upper+'’에 연결됩니다. 같은 종류의 뜻이 두 자리에 있다는 계산 사실이며, 성격이 두 배로 강하거나 실제로 그렇게 행동한다고 말할 수는 없습니다.':
-  (()=>{
-   const visible=CONDITIONS[month.stemTenGod],central=CONDITIONS[hidden.tenGod];
-   if(!visible||!central)
-    throw Error('SAMPLE_MONTH_TWO_SOURCE_CONDITIONS_MISSING');
-   // The precise missing condition changes with the two natal roles.
-   // A hypothetical question is NOT evidence of actual behavior or skill.
-   return '태어난 달의 겉에 나타난 글자는 ‘'+upper+
-    '’에, 그 달 안쪽의 중심 글자는 ‘'+lower+
-    '’에 연결됩니다. 가상의 선택을 설명할 때 겉글자의 ‘'+
-    visible.focus+'’만 살피면 '+central.missing+
-    '. 반대로 안쪽 중심 글자의 ‘'+central.focus+
-    '’만 살피면 '+visible.missing+
-    '. 이 두 출처를 같이 읽는 목적은 빠지는 질문을 구별하는 것이지, '+
-    '실제 개인이 그렇게 행동하거나 어느 쪽이 더 강하다고 확인하는 것이 아닙니다.';
-  })();
+  '태어난 달의 겉과 안쪽 중심에서 모두 ‘'+upper+
+  '’이라는 같은 전통 분류가 확인됩니다. 가령 ‘'+visible.focus+
+  '’을 생각하는 상황에서 두 출처는 한 가지 질문을 되풀이하며, '+
+  '성격이 두 배 강하거나 실제로 그 선택을 했다는 뜻은 아닙니다.':
+  '태어난 달의 겉글자는 ‘'+upper+'’에, 안쪽 중심 글자는 ‘'+lower+
+  '’에 연결됩니다. 예를 들어 ‘'+visible.focus+
+  '’을 따지는 가상의 선택에서는 ‘'+central.focus+
+  '’도 답해야 할 별도의 질문으로 남습니다. 이 둘은 실제로 경험한 갈등이나 '+
+  '어느 쪽이 더 강한 성격인지 보여 주는 결과가 아니라, 서로 다른 전통적 분류를 '+
+  '한 명식에서 확인한 계산 예시입니다.';
  const cards=[card('birth-month','태어난 달에서 확인되는 두 근거',monthText)];
  const monthLink=monthToVisibleLink(packet);
  if(monthLink)cards.push(monthLink);

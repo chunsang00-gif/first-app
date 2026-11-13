@@ -49,9 +49,22 @@ for(const input of inputs){
   'regular paid high-level policy must not contradict source-only body field');
  assert(!writer.policyFor(p).includes('가상의 한 선택에서 언제 도움이 되고 어느 조건에서 손해가 생기는지'));
  assert(payload.task.chapters.saju_core.analysisGoal.includes('첫 사주 장의 실제 결제 원고'));
+ const plan=payload.task.chapters.saju_core.topics.strength.sourceOwnedCoreReaderValue;
+ assert(plan?.illustrativeScene?.includes('가상 예시:'));
+ assert.equal(plan.illustrativeSceneIsCustomerHistory,false);
+ assert(plan.script.includes(plan.illustrativeScene));
+ assert(plan.script.includes('무료 화면에 이미 제공된'),
+  'premium first-chapter text must not repackage the free preview');
+ assert(text.includes(plan.illustrativeScene),
+  'the source-specific scene must reach the real paid paragraph writing schema');
  normal.push(judgment.keyJudgment);
 }
 assert(new Set(normal).size>=2,'month-specific judgments cannot all be identical');
+const scenes=inputs.map(input=>writer.compile(prompt(input)).task.chapters
+ .saju_core.topics.strength.sourceOwnedCoreReaderValue.illustrativeScene);
+assert(new Set(scenes).size>=2);
+assert(scenes[0].includes('필요한 물건과 재료를 여러 곳에서 마련할'),
+ 'the 1982 month resource role must select its own verified scenario');
 assert(normal[0].includes('제약하는'),'1982 verified direction must not reverse');
 assert(normal[1].includes('한 가지 전통적 뜻'),'identical category must stay one interpretation');
 
