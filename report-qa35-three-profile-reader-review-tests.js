@@ -30,9 +30,14 @@ try{
   assert(x.firstChapterFreePassage.includes(outside.focus));
   assert(x.firstChapterFreePassage.includes(inside.focus));
   if(x.monthRoles[0]!==x.monthRoles[1]){
-   assert(x.firstChapterFreePassage.includes(outside.missing));
-   assert(x.firstChapterFreePassage.includes(inside.missing));
-   assert(x.firstChapterFreePassage.includes('가상의 선택'));
+   assert(x.firstChapterFreePassage.includes('예를 들어'));
+   assert(x.firstChapterFreePassage.includes('답해야 할 별도의 질문'),
+    'the free chapter must now frame one chart-specific conditional situation');
+   assert(!x.firstChapterFreePassage.includes(outside.missing)&&
+    !x.firstChapterFreePassage.includes(inside.missing),
+    'do not return to the old two mirrored missing-condition sentences');
+   assert(!x.firstChapterFreePassage.includes('반대로 안쪽 중심'),
+    'one grounded example replaces two generic warning paragraphs');
   }
   assert.equal(x.modelWrittenPaidParagraphs,0);
   assert.equal(x.completePaidManuscript,false);
