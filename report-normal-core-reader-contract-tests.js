@@ -63,8 +63,12 @@ assert(new Set(normal).size>=2,'month-specific judgments cannot all be identical
 const scenes=inputs.map(input=>writer.compile(prompt(input)).task.chapters
  .saju_core.topics.strength.sourceOwnedCoreReaderValue.illustrativeScene);
 assert(new Set(scenes).size>=2);
-assert(scenes[0].includes('필요한 물건과 재료를 여러 곳에서 마련할'),
- 'the 1982 month resource role must select its own verified scenario');
+const verifiedMonth=require('./report-chart-contrast')
+ .build(prompt(inputs[0]).facts).monthTenGodContext;
+const expectedScene=require('./report-chart-contrast')
+ .TEN_GOD_SCENE[verifiedMonth.monthStem.tenGod];
+assert(scenes[0].includes(expectedScene),
+ 'the source-verified visible month role must choose the actual paid illustration');
 assert(normal[0].includes('제약하는'),'1982 verified direction must not reverse');
 assert(normal[1].includes('한 가지 전통적 뜻'),'identical category must stay one interpretation');
 
