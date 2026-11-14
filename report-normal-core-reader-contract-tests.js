@@ -53,6 +53,13 @@ for(const input of inputs){
  assert(plan?.illustrativeScene?.includes('가상 예시:'));
  assert.equal(plan.illustrativeSceneIsCustomerHistory,false);
  assert(plan.script.includes(plan.illustrativeScene));
+ assert(plan.script.includes('고정된 핵심 판단은 이미 첫 장의 큰 글씨에 있으니'));
+ assert(Array.isArray(plan.sceneMeaningChecks));
+ assert.equal(plan.sceneMeaningChecks.length,plan.sameClassification?1:2);
+ assert(plan.sceneMeaningChecks.every(check=>plan.illustrativeScene.includes(check)),
+  'paid reader scene must distinguish category-bound concerns beyond the headline');
+ assert(text.includes('같은 방향을 동의어로 다시 말하거나'),
+  'the actual first-chapter writing field must demand progress past the headline');
  const actualRelation=plan.twoSidedScope.elementDirection;
  if(!plan.sameClassification){
   const relevantDirection=['resource','output'].includes(actualRelation)?
@@ -65,6 +72,9 @@ for(const input of inputs){
   'premium first-chapter text must not repackage the free preview');
  assert(text.includes(plan.illustrativeScene),
   'the source-specific scene must reach the real paid paragraph writing schema');
+ if(judgment.categories[0]!==judgment.categories[1])
+  assert(!judgment.title.includes('제약하는')&&!judgment.title.includes('뒷받침하는'),
+   'short subject label must not repeat the full headline');
  normal.push(judgment.keyJudgment);
 }
 assert(new Set(normal).size>=2,'month-specific judgments cannot all be identical');

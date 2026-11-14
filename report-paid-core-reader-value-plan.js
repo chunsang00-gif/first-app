@@ -13,6 +13,21 @@ const KIND=Object.freeze({
  'control-on-day':'달의 중심 글자가 겉글자를 극함',
  'day-controls':'달의 겉글자가 중심 글자를 극함'
 });
+// Real-world checking points for a hypothetical ONE-scene explanation.
+// The labels come only from the verified traditional role, never a customer's
+// observed past or promised outcome.
+const SCENE_CHECK=Object.freeze({
+ 비견:'함께할 사람 사이에서 직접 맡을 일의 범위',
+ 겁재:'공동 자원과 물품을 나눌 몫',
+ 식신:'완성해서 전달할 결과물과 그 순서',
+ 상관:'기존 방식에서 바꾸어 제안할 부분',
+ 정재:'반복해서 들어갈 비용과 관리할 범위',
+ 편재:'필요한 물건이나 도움을 얻을 경로',
+ 정관:'따라야 할 절차와 맡을 역할의 범위',
+ 편관:'갑작스러운 요구에 답할 책임의 범위',
+ 정인:'누구에게 무엇을 배우고 어떤 도움을 받을지',
+ 편인:'낯선 자료의 어떤 뜻을 어떻게 이해할지'
+});
 // A calculated Five Element arrow is not a realized cause, observed
 // reaction, seasonal strength or a license to select a governing pattern.
 // Give the paid writer ONE source-specific conditional question. Different
@@ -109,7 +124,9 @@ function build(packet,focus,allowed,source){
  // Optional, source-specific example for the actual consumer writer.
  // Neither the scenario nor the choices are an observed customer history.
  const visibleScene=contrast.TEN_GOD_SCENE[top.tenGod];
- if(!visibleScene)throw Error('PAID_CORE_READER_SCENE_UNVERIFIED');
+ const visibleCheck=SCENE_CHECK[top.tenGod],centralCheck=SCENE_CHECK[bottom.tenGod];
+ if(!visibleScene||!visibleCheck||!centralCheck)
+  throw Error('PAID_CORE_READER_SCENE_UNVERIFIED');
  const directionInScene={
   resource:'안쪽의 ‘'+centralQuestion+'’이라는 관점이 겉의 ‘'+visibleQuestion+
    '’을 뒷받침하는 전통적 방향으로만 연결한다.',
@@ -123,10 +140,12 @@ function build(packet,focus,allowed,source){
    '’이 같은 기운에 속하지만 질문의 뜻은 구별한다.'
  };
  const illustrativeScene=same?
-  '가상 예시: '+visibleScene+' 때 ‘'+visibleQuestion+
-  '’이라는 한 가지 질문으로 읽는다. 두 위치를 별개의 성격으로 나누지 않는다.':
-  '가상 예시: '+visibleScene+' 때 '+directionInScene[expected]+
-  ' 이 장면은 두 계산 출처의 뜻을 이해하기 위한 가정일 뿐, 실제 선택이나 결과의 설명이 아니다.';
+  '가상 예시: '+visibleScene+' 때 살필 것은 ‘'+visibleCheck+
+  '’이라는 한 가지 질문이다. 같은 분류가 두 위치에 있어도 이를 서로 다른 성격이나 두 배의 영향력으로 나누지 않는다.':
+  '가상 예시: '+visibleScene+' 때 겉에서 읽는 뜻은 ‘'+visibleCheck+
+  '’를 묻고, 안쪽에서 읽는 뜻은 ‘'+centralCheck+
+  '’를 묻는다. '+directionInScene[expected]+
+  ' 두 질문은 실제 선택의 원인·성공이나 고객이 겪은 일을 확인한 결과가 아니라, 계산된 전통 분류를 이해하기 위한 가정일 뿐이다.';
  const twoSidedScope=Object.freeze({
   visibleRole:top.tenGod,mainRole:bottom.tenGod,
   directionalReadingQuestion,visibleQuestion,centralQuestion,
@@ -151,24 +170,25 @@ function build(packet,focus,allowed,source){
   freePreviewCopyDisallowed:true,
   readerTakeaway:actualTwoSidedReading,
   illustrativeScene,
+  sceneMeaningChecks:Object.freeze(same?[visibleCheck]:[visibleCheck,centralCheck]),
   illustrativeSceneIsCustomerHistory:false,
   semanticDifferenceRequired:!same,
   script:
    '유료 첫 장은 두 분류 이름을 나열하거나 양쪽 모두 중요하다는 말로 끝내지 않는다. '+
-   '먼저 이 명식에서 계산된 오행 방향이 독자에게 어떤 서로 다른 전통적 질문을 허용하는지 하나의 이해 가능한 문장으로 쓴다. '+
-   '이 명식의 실제 질문: '+actualTwoSidedReading+' '+
+   '고정된 핵심 판단은 이미 첫 장의 큰 글씨에 있으니 그 관계를 동의어로 다시 시작하지 않는다. 본문에서는 이 명식의 두 뜻이 같은 가상 장면에서 무엇을 각각 살피는지 구별하고, 그 차이를 낳는 실제 계산 방향 하나만 필요한 만큼 설명한다. '+
+   '내부 근거로 확인된 방향(독자에게 기계적으로 복사하지 않음): '+actualTwoSidedReading+' '+
    '겉에 드러난 분류의 뜻: '+reading.first.reading+
    '. 달 중심 숨은 글자의 뜻: '+reading.second.reading+'. '+
    '이 둘이 같거나 다른 이유는 실제 출생 위치와 위에서 검증한 관계만으로 설명한다. '+
-   '두 의미가 단순 사전 나열로 남는다면 이 명식별 짧은 가정을 선택적으로 사용할 수 있다: '+
-   illustrativeScene+' 두 뜻이 자연스럽게 연결되지 않는다면 예시는 생략한다. '+
+   '일상 예시가 독자의 이해를 분명히 더할 때만 다음 명식별 짧은 가정을 참고한다: '+
+   illustrativeScene+' 이 가정이 두 뜻의 차이를 보여주지 못하면 예시는 생략하고 계산 근거가 허용하는 차이만 서술한다. '+
    '무료 화면에 이미 제공된 겉·안쪽 두 질문을 복사해 유료 문단을 채우지 않는다. '+
    '유료 본문은 오행의 정확한 계산 방향이 그 해석을 어떤 범위에서 허용하는지 더 풀어 쓴다. '+
    '계산된 상징의 도움·표현·제약을 실제 고객의 능력, 손해, 내면 갈등, 직업이나 인생 사건으로 바꾸지 않는다. '+
    '한쪽만 보면 놓치고 반대로 다른 쪽만 보면 놓친다는 대칭 문장을 두 개 나열하지 않는다. '+
    '추가 해석이 불가능하면 장점·약점·예시를 발명하지 않으며 내부 근거와 한계를 설명하되 고객에게 기술 목록을 읽히지 않는다. '+
    '실제 고객의 일·사업·학교·소득을 가정해서 지어내지 않고, 꼭 필요하지 않으면 고정된 가상 장면도 만들지 않는다. '+
-   '같은 말의 재요약과 작성 과정 해설을 붙이지 않는다. 이 관계의 원인과 결과가 실제 삶에서 성립한 것처럼 말하지 않는다.',
+   '완성한 설명이 핵심 판단을 다시 바꿔 말하거나 같은 정의를 세 번 소개한 것뿐이라면 문장을 늘리지 않고 고정 판단에 없는 차이만 남긴다. 같은 말의 재요약과 작성 과정 해설을 붙이지 않는다. 이 관계의 원인과 결과가 실제 삶에서 성립한 것처럼 말하지 않는다.',
   noInventedHistory:true,noUnverifiedPersonalTrait:true,
   additionalTopic:false,professionalReviewComplete:false
  });

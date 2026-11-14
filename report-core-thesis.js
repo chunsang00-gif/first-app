@@ -96,9 +96,9 @@ function forPrompt(prompt){
  // if somebody reuses their consumed run code. Only the normal live core
  // chapter receives the more informative source-direction headline.
  const relationalTitle=relationReaderLine(direction.kind,first.tenGod,second.tenGod);
- const title=same||historicalPinnedQA?
-  (same?a.title:shortTitle[first.tenGod]+' · '+shortTitle[second.tenGod]):
-  relationalTitle;
+ // The detailed judgment already names which month role affects the other.
+ // Use the shorter subject label to avoid repeating that arrow twice.
+ const title=same?a.title:shortTitle[first.tenGod]+' · '+shortTitle[second.tenGod];
  const original='사주에서는 '+(same?a.last:a.first+' '+b.last)+' 기질로 풀이합니다.';
  // Preserve frozen historical paid QA. Normal first chapters cannot
  // claim an observed disposition from the two symbolic month sources.

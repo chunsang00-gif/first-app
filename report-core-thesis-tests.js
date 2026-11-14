@@ -24,6 +24,8 @@ for(const input of inputs){
   'first-chapter provider must not receive non-citable calculated rows');
  assert.equal(fixed.status,'traditional-reading-not-observed-trait');
  assert(fixed.title.length>=8&&fixed.title.length<=30);
+ assert(!fixed.title.includes('제약하는')&&!fixed.title.includes('뒷받침하는'),
+  'the heading must not echo the detailed direction repeated in keyJudgment');
  assert(fixed.keyJudgment.length>=35&&fixed.keyJudgment.length<120);
  assert(fixed.keyJudgment.startsWith('사주에서는 '));
  assert.equal(fixed.keyJudgment.split(/(?<=[.!?。！？])\\s+|\\n+/).length,1);
