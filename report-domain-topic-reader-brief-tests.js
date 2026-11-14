@@ -286,6 +286,29 @@ for(const [calendar,birthDate,birthTime] of cases){
  assert.deepEqual(actualPrior.map(x=>x.sourceRef),[known.id],
   'reused conclusions must belong to an actual previously cited source');
  assert.equal(actualPrior[0].previousConclusion,cited.topicConclusions[0]);
+  // A third paid chapter must compare the MOST RECENT real answer, not only
+  // the oldest chapter that happened to cite the same natal source.
+  const recentlyWritten={id:'decision',bodyTopics:['choice'],
+   topicConclusions:['새로운 선택을 가정하면 계산 근거를 검토하고 결정을 내리는 조건을 비교합니다. 이미 입력된 사주만으로 성공 여부를 확정하지 않습니다.'],
+   evidence:['choice: '+known.id+' (전통 분류) / 해석: 실제 계산값 / 조건: 가정 / 한계: 관찰 사실 아님']};
+  const latestPrior=editorial.priorComparisons(overlapped.readerDistinction,
+   [cited,recentlyWritten]);
+  assert.equal(latestPrior.length,2);
+  assert.equal(latestPrior[0].priorChapter,'decision',
+   'latest paid interpretation must be the first comparison even with an older shared source');
+  assert.equal(latestPrior[0].previousConclusion,recentlyWritten.topicConclusions[0]);
+  assert.equal(latestPrior[1].priorChapter,'saju_core',
+   'when one fact was cited in two chapters, retain both comparisons within two-item cap');
+  const latestRequest={...next,priorSections:[cited,recentlyWritten]};
+  const latestWire=generator.schema(latestRequest,wire.schemaFor(latestRequest,schema));
+  const latestSlot=latestWire.properties.chapters.properties[firstId]
+   .properties.paragraphs.properties[Object.entries(nextTask.topics)
+    .find(([,t])=>t===overlapped)?.[0]];
+  const latestLeaf=latestSlot.anyOf?.find(x=>x.type==='object')||latestSlot;
+  assert(latestLeaf.properties.text.description.includes(JSON.stringify(latestPrior[0].previousConclusion)),
+   'the REAL next-batch provider field must see the recent written conclusion');
+  assert(latestLeaf.properties.text.description.includes(JSON.stringify(latestPrior[1].previousConclusion)),
+   'earlier distinct topic remains available to prevent re-selling the first answer');
  const overlapId=Object.entries(nextTask.topics).find(([,topic])=>
   topic===overlapped)?.[0];
  assert(overlapId);

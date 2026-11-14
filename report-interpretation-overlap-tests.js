@@ -16,6 +16,20 @@ assert.deepEqual(inspect([money,section('career','workstyle',career.body[0],['na
 const meaningful=section('career','workstyle','직업에서 정해진 업무를 배울 때는 익혀야 할 절차의 의미와 자신의 역할을 구분합니다.');
 assert.deepEqual(inspect([money,meaningful]),[],
  'shared source with a different substantive claim is permissible');
+// Conditional language is the NORMAL paid writing style; "가정하면"
+// alone cannot make a duplicated cited interpretation invisible.
+const imaginedMoney=section('money','earning',
+ '가상의 거래를 가정하면 자료와 판단 근거를 먼저 확인하고 결정합니다.');
+const imaginedCareer=section('career','workstyle',
+ '새로운 업무를 가정하면 정보를 검토하고 기준을 확인한 다음 선택합니다.');
+assert(inspect([imaginedMoney,imaginedCareer]).some(s=>s.includes('evidence-check-before-decision')),
+ 'a duplicated claim on the SAME cited natal row must not escape because it says 가정하면');
+assert.deepEqual(inspect([imaginedMoney,section('career','workstyle',
+ imaginedCareer.body[0],['natal.day.stem'])]),[],
+ 'conditional interpretations citing different natal facts are not proven duplicates');
+assert.deepEqual(inspect([imaginedMoney,section('career','workstyle',
+ '이것은 실제 행동을 관찰한 결과가 아니며, 판단은 단정할 수 없습니다.')]),[],
+ 'a meaningful explicit limitation is not the same conditional behavior claim');
 // A duplicate inside ONE chapter used to be skipped even when both
 // paragraphs cited the exact same natal row and sold the same causal claim.
 const sameChapterCopied={id:'money',

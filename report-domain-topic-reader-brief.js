@@ -212,8 +212,8 @@ function exactRoleLens(rows,illustratedGroups){
 // Previous report text is untrusted DATA, never new birth evidence or orders.
 function priorComparisons(brief,priorSections){
  const allowed=new Set(brief?.sourceRefs||[]);
- const seen=new Set(),result=[];
- if(!allowed.size)return result;
+ if(!allowed.size)return [];
+ const candidates=[];
  for(const section of priorSections||[]){
   if(!section||!Array.isArray(section.bodyTopics))continue;
   for(let i=0;i<section.bodyTopics.length;i++){
@@ -221,19 +221,34 @@ function priorComparisons(brief,priorSections){
    const text=String(section.topicConclusions?.[i]||'')
     .replace(/\s+/g,' ').trim();
    if(text.length<24)continue;
-   const actual=usedPaths(section,topic);
-   for(const ref of actual){
-    if(!allowed.has(ref)||seen.has(ref))continue;
-    seen.add(ref);
-    result.push(Object.freeze({
+   for(const ref of usedPaths(section,topic)){
+    if(!allowed.has(ref))continue;
+    candidates.push(Object.freeze({
      sourceRef:ref,priorChapter:section.id,priorTopic:topic,
-     previousConclusion:text.slice(0,160)
+     previousConclusion:text.slice(0,240)
     }));
-    if(result.length>=2)return result;
    }
   }
  }
- return result;
+ // Prior paid chapters arrive in delivery order. The oldest matching
+ // source previously hid the most recent actual answer, making the writer
+ // re-sell the SAME conclusion in the following career/money/relationship
+ // chapter. Compare the latest delivered claim for each cited source first.
+ // If only one source overlaps, use the preceding separate topic as well.
+ // Maximum TWO excerpts: prevent a second long prompt or invented evidence.
+ const recent=candidates.reverse(),selected=[],seenRefs=new Set();
+ for(const row of recent){
+  if(seenRefs.has(row.sourceRef))continue;
+  seenRefs.add(row.sourceRef);selected.push(row);
+  if(selected.length===2)return selected;
+ }
+ for(const row of recent){
+  if(selected.some(x=>x.sourceRef===row.sourceRef&&
+   x.priorChapter===row.priorChapter&&x.priorTopic===row.priorTopic))continue;
+  selected.push(row);
+  if(selected.length===2)break;
+ }
+ return selected;
 }
 // A real two-role paid interpretation can cite the correct sources yet
 // deliver only a dictionary of symbols. Fail closed ONLY for unmistakable
