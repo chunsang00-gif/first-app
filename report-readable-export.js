@@ -62,8 +62,14 @@ function build(report){
   '</div><small>고객의 입력은 출생사실의 증거가 아니며 풀이가 정답을 보장하지 않습니다.</small></aside>':'';
 
  const name=String(report?.meta?.name||'독자').trim();
- const mbti=String(report?.meta?.mbti||'모름');
- const title=mbti==='모름'?'사주 보고서':'사주 × MBTI 보고서';
+ const mbti=String(report?.meta?.mbti||'모름').trim()||'모름';
+ const hasMbti=mbti!=='모름';
+ const title=hasMbti?'사주 × MBTI 보고서':'사주 보고서';
+ // Match the actual live-reader labels for a Saju-only report. Never
+ // imply that MBTI preferences were analyzed when the user entered 모름.
+ const chapterLabel=id=>!hasMbti&&id==='mbti_contradiction'?
+  '성격 풀이의 다른 관점':!hasMbti&&id==='integrated_judgment'?
+  '사주 종합':named[id];
  const cover=report?.cover||{};
  const keys=array(cover.keywords).filter(v=>typeof v==='string'&&v.trim()).slice(0,8);
  const nameText=name?esc(name):'독자';
@@ -71,9 +77,13 @@ function build(report){
  const chart=report?.meta?.chart||{};
  const chartRows=[['연주',chart.year],['월주',chart.month],['일주',chart.day],['시주',chart.hour]]
   .filter(row=>typeof row[1]==='string'&&row[1].trim());
+ const hourUnknown=!chartRows.some(row=>row[0]==='시주');
  const table=chartRows.length?
-  '<table class="chart"><caption class="subtle">출생정보에서 계산된 네 자리</caption><tbody>'+
+  '<table class="chart"><caption class="subtle">'+
+  (hourUnknown?'출생정보에서 계산된 자리와 시간 미상 안내':'출생정보에서 계산된 네 자리')+
+  '</caption><tbody>'+
   chartRows.map(([key,v])=>'<tr><th scope="row">'+esc(key)+'</th><td>'+esc(v)+'</td></tr>').join('')+
+  (hourUnknown?'<tr><th scope="row">시주</th><td>시간 모름 — 출생시간을 입력하지 않아 계산하지 않음</td></tr>':'')+
   '</tbody></table>':'';
  const highlights=array(cover.highlights).filter(h=>h&&ids.has(h.sectionId)&&
   typeof h.description==='string'&&h.description.trim());
@@ -95,8 +105,8 @@ function build(report){
     '<h3>'+esc(s.validLabels[i]||'세부 풀이 '+(i+1))+'</h3>'+
     '<p>'+esc(text)+'</p></section>').join('');
   return '<article id="part-'+s.position+'"><div class="chapter-label">'+
-   String(s.position).padStart(2,'0')+' · '+esc(s.label)+'</div>'+
-   '<h2>'+esc(judgment||heading||s.label)+'</h2>'+titleText+
+   String(s.position).padStart(2,'0')+' · '+esc(chapterLabel(s.id))+'</div>'+
+   '<h2>'+esc(judgment||heading||chapterLabel(s.id))+'</h2>'+titleText+
    customerQuestion+paragraphs+'</article>';
  }).join('');
  const final=report?.finalJudgment;
@@ -117,7 +127,7 @@ function build(report){
   '<meta name="viewport" content="width=device-width,initial-scale=1">'+
   '<meta http-equiv="Content-Security-Policy" content="default-src &#39;none&#39;; style-src &#39;unsafe-inline&#39;; base-uri &#39;none&#39;; form-action &#39;none&#39;">'+
   '<title>'+esc(title)+'</title><style>'+style+'</style></head><body><main>'+
-  '<header><div class="eyebrow">SAJU × MBTI · 개인 보관용</div>'+
+  '<header><div class="eyebrow">'+(hasMbti?'SAJU × MBTI':'SAJU')+' · 개인 보관용</div>'+
   '<h1>'+nameText+'님의 '+esc(title)+'</h1>'+
   '<p class="subtle">완성된 보고서를 읽고 인쇄할 수 있도록 저장한 문서입니다. 인터넷 연결이 필요하지 않습니다.'+
   (mbti==='모름'?'':' · 직접 입력한 MBTI: '+esc(mbti))+'</p>'+
@@ -127,7 +137,7 @@ function build(report){
   (keys.length?'<div class="keywords">'+keys.map(k=>'<span>#'+esc(k.replace(/^#+/,''))+'</span>').join('')+'</div>':'')+
   table+'</header>'+intro+choiceShortcuts+
   '<nav aria-label="실제 작성된 장 목록"><strong>내 보고서 목차</strong><ol>'+
-  sections.map(s=>'<li><a href="#part-'+s.position+'">'+esc(s.label)+'</a> <small>('+
+  sections.map(s=>'<li><a href="#part-'+s.position+'">'+esc(chapterLabel(s.id))+'</a> <small>('+
    s.body.length+'개 세부 풀이)</small></li>').join('')+
   (finalContent?'<li><a href="#final">종합 정리</a></li>':'')+
   '</ol></nav>'+body+finalContent+

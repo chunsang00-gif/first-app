@@ -77,7 +77,26 @@ assert.equal(html.split('새 일로 &lt;script&gt;alert(9)&lt;/script&gt; 갈까
 assert(!html.includes('<script>alert(9)</script>'));
 assert(html.includes('인쇄')&&html.includes('@media print'));
 const withoutMbti=structuredClone(report);withoutMbti.meta.mbti='모름';
-assert(!exp.build(withoutMbti).includes('직접 입력한 MBTI:'));
+const withoutMbtiHtml=exp.build(withoutMbti);
+assert(!withoutMbtiHtml.includes('직접 입력한 MBTI:'));
+assert(withoutMbtiHtml.includes('<div class="eyebrow">SAJU · 개인 보관용</div>'));
+assert(!withoutMbtiHtml.includes('사주와 MBTI 비교'),
+ 'do not advertise a missing MBTI preference as a delivered interpretation');
+assert(!withoutMbtiHtml.includes('사주 × MBTI 보고서'));
+assert(withoutMbtiHtml.includes('<a href="#part-2">성격 풀이의 다른 관점</a>'));
+assert(withoutMbtiHtml.includes('<a href="#part-8">사주 종합</a>'));
+assert(withoutMbtiHtml.includes('02 · 성격 풀이의 다른 관점'));
+assert(withoutMbtiHtml.includes('08 · 사주 종합'));
+const withoutHour=structuredClone(withoutMbti);
+delete withoutHour.meta.chart.hour;
+const withoutHourHtml=exp.build(withoutHour);
+assert(withoutHourHtml.includes('<th scope="row">시주</th><td>시간 모름 — 출생시간을 입력하지 않아 계산하지 않음</td>'),
+ 'offline reading must disclose the fourth pillar is uncalculated, as the live app does');
+assert(withoutHourHtml.includes('출생정보에서 계산된 자리와 시간 미상 안내'));
+assert(!withoutHourHtml.includes('丁卯'),
+ 'an unknown time must never be replaced with a guessed pillar');
+assert(!html.includes('시간 모름 — 출생시간을 입력하지 않아 계산하지 않음'),
+ 'the known-time sample must not be misrepresented as unknown');
 const narrow=structuredClone(report);narrow.sections=narrow.sections.slice(0,3);
 const narrowHtml=exp.build(narrow);
 assert(narrowHtml.includes('실제로 작성된 내용: 3개 장 · 실제 작성된 6개 세부 풀이'));
