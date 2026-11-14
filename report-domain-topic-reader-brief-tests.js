@@ -342,6 +342,44 @@ for(const [calendar,birthDate,birthTime] of cases){
   'uncited previous text must never leak into the next scoped writer prompt');
 }
 
+// An actual one-role birth day previously had no source-owned closeness
+// analysis. Every traditional category must remain bound to DAY hidden rows.
+const closeBridge=require('./report-paid-interpretive-bridge');
+const closeRoles=["비견","겁재","식신","상관","정재","편재","정관","편관","정인","편인"];
+const closeStems=['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
+for(let i=0;i<closeRoles.length;i++){
+ const row={id:'natal.day.hidden.'+closeStems[i],position:'day',layer:'지장간',
+  stem:closeStems[i],tenGod:closeRoles[i],traditionalMeaning:'전통적 뜻 '+closeRoles[i]};
+ const answer=closeBridge.buildSingle({chapterId:'relationship',topicId:'closeness',
+  topic:{mode:'use-primary',citableFacts:[row]}});
+ assert(answer&&answer.source.ref===row.id);
+ assert(answer.question.length>=20&&answer.explanation.length>=45);
+ assert.equal(answer.claimedRealWorldOutcome,false);
+ assert.equal(closeBridge.buildSingle({chapterId:'relationship',topicId:'closeness',
+  topic:{mode:'use-primary',citableFacts:[{...row,
+   id:'natal.month.hidden.'+closeStems[i],position:'month'}]}}),null,
+  'month-only role must never become a birth-day relationship conclusion');
+}
+const oneDay=Array.from({length:29},(_,i)=>'1994-07-'+String(i+1).padStart(2,'0'))
+ .map(birthDate=>facts.build({calendar:'solar',birthDate,birthTime:'14:20',
+  gender:'male',mbti:'ISFP'},2027))
+ .find(packet=>packet.status==='ready'&&
+  new Set((packet.facts?.tenGods?.day?.hiddenStems||[]).map(x=>x.tenGod)).size===1);
+assert(oneDay,'find a real one-hidden-role day, without inventing a chart');
+const onePlan=guidance.preflight(oneDay);
+const onePrompt={facts:oneDay,stage:'body',requestedSections:['relationship'],
+ rules:{sectionGoals:require('./report-prompt').sectionGoals},priorSections:[],
+ analysisGuidance:{...guidance.forRequest(['relationship'],oneDay.person.mbti),
+ editorialBlueprint:onePlan}};
+const oneReading=generator.compile(onePrompt).task.chapters.relationship.topics.closeness.sourceOwnedSingleReading;
+assert(oneReading&&oneReading.source.ref.startsWith('natal.day.hidden.'),
+ 'actual paid request must carry an original day-hidden source');
+const oneSchema=generator.schema(onePrompt,wire.schemaFor(onePrompt,schema));
+const oneSlot=oneSchema.properties.chapters.properties.relationship.properties.paragraphs.properties.closeness;
+const oneObject=oneSlot.anyOf?.find(x=>x.type==='object')||oneSlot;
+assert(oneObject.properties.text.description.includes(oneReading.question));
+assert(oneObject.properties.text.description.includes(oneReading.explanation));
+assert(oneObject.properties.text.description.includes('이미 제공한 금전·직업 결론을 관계라는 말로 바꾸지 않는다'));
 // Controlled "prior/general promise" vs CURRENT real-source scenario:
 // these synthetic inputs are category facts, NOT fabricated people.
 const editor=require('./report-domain-topic-reader-brief');

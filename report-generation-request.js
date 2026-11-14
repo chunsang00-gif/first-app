@@ -1346,6 +1346,7 @@ function schema(prompt,transport){
     const questions=paidBridge.SINGLE_QUESTIONS[chapterId+'.'+topic]||{};
     const eligible=(task.citableFacts||[]).filter(row=>
      /^natal\.(?:year|month|day|hour)\.(?:stem|hidden\.[甲乙丙丁戊己庚辛壬癸])$/.test(row.id)&&
+     (chapterId!=='relationship'||topic!=='closeness'||/^natal\.day\.hidden\./.test(row.id))&&
      questions[row.tenGod]&&row.position&&row.layer&&row.stem&&row.traditionalMeaning);
     const orig=one&&payload.source[one.ref];
     if(single.kind!=='paid-single-source-reader-thesis-v1'||
@@ -1381,6 +1382,13 @@ function schema(prompt,transport){
         single.placementContrast.measuredPersonalityStrength!==false||
         single.placementContrast.relativePositionPriority!=='not-assessed'))
      throw Error('PAID_SINGLE_SOURCE_THESIS_MISMATCH:'+chapterId+':'+topic);
+    // A relationship answer cannot borrow a symbol from another natal position.
+    if(chapterId==='relationship'&&topic==='closeness'){
+     if(single.sourcePlacements.some(row=>!/^natal\.day\.hidden\./.test(row.ref)))
+      throw Error('PAID_DAY_CLOSENESS_BORROWED_OTHER_NATAL_POSITION');
+     p.properties.text.description+=
+      ' 출생일 안쪽의 실제 한 분류가 허용하는 관계 질문을 가상의 친구·가족 대화에서 설명한다. 이미 제공한 금전·직업 결론을 관계라는 말로 바꾸지 않는다. 실제 관계 경험이나 상대방 성격은 확인되지 않았다. ';
+    }
     // A question tied to an actual position and category, not an invented
     // two-sided personality, and never a second paid paragraph.
     p.properties.text.description+=
