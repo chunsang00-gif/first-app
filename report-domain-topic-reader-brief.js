@@ -130,9 +130,14 @@ const MINOR_SCENES=Object.freeze({
 // symbolic interpretation and repeatedly produced the same paid manuscript.
 // Keep the category eligibility check, but NEVER send stock life scenes to
 // the paid writer. A hypothetical example is optional, not a source of facts.
-function groundedScene(chapterId,topicId,groups,ageBand='unknown'){
+function groundedScene(chapterId,topicId,groups,ageBand='unknown',selectedGroups=null){
  const available=(ageBand==='minor'?MINOR_SCENES:CATEGORY_SCENES)[chapterId]?.[topicId]||{};
- const supported=groups.filter(g=>available[g]);
+ // A selected source-owned pair is the ONLY basis of a two-role reader
+ // contrast. Never substitute convenient first rows from the whole chart.
+ if(selectedGroups&&(!selectedGroups.length||selectedGroups.length>2||
+    selectedGroups.some(g=>!groups.includes(g)||!available[g])))
+  throw Error('PAID_DOMAIN_READER_PAIR_GROUP_DRIFT');
+ const supported=selectedGroups||groups.filter(g=>available[g]);
  if(!supported.length)return {
   text:'이 항목의 질문에 직접 해당하는 계산 분류가 확인되지 않았다. 가상의 직업·금전·관계 경험이나 두 번째 성격을 만들어 빈칸을 채우지 않는다.',
   included:[],unavailable:groups,categorySupported:false,
@@ -154,7 +159,7 @@ function groundedScene(chapterId,topicId,groups,ageBand='unknown'){
 // The two roles within ONE traditional group can answer different reader
 // questions. Use only original source rows with their canonical glossary.
 // Do not mistake the existence of a hidden stem for its strength/priority.
-function exactRoleLens(rows,illustratedGroups){
+function exactRoleLens(rows,illustratedGroups,selectedRoles=null){
  const eligible=rows.filter(row=>row?.id?.startsWith('natal.')&&
   GROUPS[row.tenGod]&&row.position&&row.layer&&row.stem&&
   typeof row.traditionalMeaning==='string'&&row.traditionalMeaning.trim());
@@ -165,7 +170,18 @@ function exactRoleLens(rows,illustratedGroups){
  // not by first source row or presumed favorable traditional priority.
  const chosenRows=[];
  const preferred=(illustratedGroups||[]).filter((g,i,a)=>a.indexOf(g)===i);
- for(const group of preferred){
+ if(selectedRoles){
+  if(selectedRoles.length!==2||selectedRoles[0].ref===selectedRoles[1].ref)
+   throw Error('PAID_DOMAIN_READER_PAIR_SOURCE_DRIFT');
+  for(const role of selectedRoles){
+   const row=eligible.find(x=>x.id===role.ref&&x.stem===role.stem&&
+    x.tenGod===role.tenGod&&x.position===role.position&&
+    x.layer===role.layer&&x.traditionalMeaning===role.traditionalMeaning&&
+    preferred.includes(GROUPS[x.tenGod]));
+   if(!row)throw Error('PAID_DOMAIN_READER_PAIR_SOURCE_DRIFT');
+   chosenRows.push(row);
+  }
+ }else for(const group of preferred){
   const found=eligible.find(row=>GROUPS[row.tenGod]===group&&
    !chosenRows.some(x=>x.id===row.id));
   if(found)chosenRows.push(found);
@@ -173,7 +189,7 @@ function exactRoleLens(rows,illustratedGroups){
  }
  // A one-category explanation may distinguish its two genuinely different
  // ten-gods; never count multiple placements of the SAME god as two roles.
- if(chosenRows.length===1&&preferred.length===1){
+ if(!selectedRoles&&chosenRows.length===1&&preferred.length===1){
   const another=eligible.find(row=>GROUPS[row.tenGod]===preferred[0]&&
    row.tenGod!==chosenRows[0].tenGod);
   if(another)chosenRows.push(another);
@@ -203,7 +219,8 @@ function exactRoleLens(rows,illustratedGroups){
   sameTraditionalGroupDifferentRoles:sameGroup,
   illustratedGroupRolesAligned:chosen.every(x=>preferred.includes(x.group)),
   contrastedGroups:[...new Set(chosen.map(x=>x.group))],
-  selectionMethod:'match-verified-scene-categories-no-traditional-priority',
+  selectionMethod:selectedRoles?'selected-paid-thesis-exact-source-pair':
+   'match-verified-scene-categories-no-traditional-priority',
   independentLifeProof:false,priorityAssessed:false,
   internalWritingContrast:text});
 }
@@ -282,7 +299,7 @@ function citedRoleCoverage(brief,refs,source){
  return {required:true,pass:assigned.some(g=>citedGroups.includes(g)),
   citedGroups};
 }
-function build({chapterId,topicId,topic,priorSections,readerAgeBand:ageBand='unknown'}={}){
+function build({chapterId,topicId,topic,priorSections,readerAgeBand:ageBand='unknown',selectedPaidThesis=null}={}){
  const spec=EDITORIAL[chapterId]?.[topicId];
  if(!spec||!topic||topic.mode==='state-limits')return null;
  const rows=topic.citableFacts||[];
@@ -297,8 +314,13 @@ function build({chapterId,topicId,topic,priorSections,readerAgeBand:ageBand='unk
  const groups=[...new Set(rows.map(x=>GROUPS[x.tenGod]).filter(Boolean))];
  const distinctPositions=[...new Set(rows.map(x=>x.position).filter(Boolean))];
  const separateSymbolGroups=groups.length>=2;
- const scene=groundedScene(chapterId,topicId,groups,ageBand);
- const roleLens=exactRoleLens(rows,scene.included);
+ const selectedRoles=selectedPaidThesis?.sourceRoles||null;
+ if(selectedRoles&&(selectedPaidThesis.kind!=='paid-source-owned-interpretive-thesis-v1'||
+    selectedPaidThesis.topic!==chapterId+'.'+topicId))
+  throw Error('PAID_DOMAIN_READER_TOPIC_PAIR_DRIFT');
+ const selectedGroups=selectedRoles?[...new Set(selectedRoles.map(r=>GROUPS[r.tenGod]))]:null;
+ const scene=groundedScene(chapterId,topicId,groups,ageBand,selectedGroups);
+ const roleLens=exactRoleLens(rows,scene.included,selectedRoles);
  return Object.freeze({
   kind:'per-topic-source-grounded-reader-question-v1',
   readerQuestion:(ageBand==='minor'?MINOR_QUESTIONS[chapterId]?.[topicId]:null)||spec[0],

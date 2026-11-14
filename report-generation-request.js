@@ -516,19 +516,9 @@ function compile(prompt){
     topic.mbtiFocus=topic.mode!=='state-limits'&&permitted.includes('person.mbti')&&
      permitted.some(ref=>ref.startsWith('natal.'))?
      topicMbtiLens(chapterId,topicId,source['person.mbti']):null;
-    // Send an exact-source per-domain reader question to the actual provider.
-    // No new model calls, unverified source facts, or user history.
-    const readerBriefs=require('./report-domain-topic-reader-brief');
-    const scopedReaderBrief=readerBriefs.build({
-     chapterId,topicId,topic,priorSections:prompt.priorSections||[],
-     readerAgeBand:readerBriefs.readerAgeBand(prompt.facts)
-    });
-    // A frozen first-chapter/natal-depth paid QA request is byte-pinned:
-    // NEVER add even a null field to its provider envelope.
-    if(scopedReaderBrief)topic.readerDistinction=scopedReaderBrief;
-    // REAL paid batch: compile a chart-owned INTERPRETIVE PROPOSITION,
-    // not an optional QA screenshot or a stock scenario. No extra model
-    // calls; do not attach it to the frozen Saju-core QA contracts.
+    // Choose the REAL chart-specific source pair FIRST. The earlier
+    // reader brief chose its own arbitrary first role, often different
+    // from the interpretation provided in the same paid text field.
     const bridge=require('./report-paid-interpretive-bridge');
     const thesis=bridge.build({chapterId,topicId,topic,packet:prompt.facts});
     if(thesis)topic.sourceOwnedInterpretiveThesis=thesis;
@@ -536,6 +526,15 @@ function compile(prompt){
      const single=bridge.buildSingle({chapterId,topicId,topic});
      if(single)topic.sourceOwnedSingleReading=single;
     }
+    // A source-aligned editorial question is an instruction, never a
+    // newly inferred fact. No calls added and first-chapter QA unchanged.
+    const readerBriefs=require('./report-domain-topic-reader-brief');
+    const scopedReaderBrief=readerBriefs.build({
+     chapterId,topicId,topic,priorSections:prompt.priorSections||[],
+     readerAgeBand:readerBriefs.readerAgeBand(prompt.facts),
+     selectedPaidThesis:thesis
+    });
+    if(scopedReaderBrief)topic.readerDistinction=scopedReaderBrief;
     // Independently sourced, user-reported MBTI dimensions never borrow
     // natal evidence merely to pad the paid cross-framework comparison.
     if(chapterId==='mbti_contradiction'&&

@@ -128,6 +128,13 @@ for(const [calendar,birthDate,birthTime] of cases){
     assert.equal(thesis.claimedRealWorldOutcome,false);
     assert.equal(thesis.traditionalPriorityAssessed,false);
     assert.equal(thesis.sourceRoles.length,2);
+    assert.deepEqual(brief.exactRoleLens.sourceRoles.map(row=>row.sourceId),
+     thesis.sourceRoles.map(row=>row.ref),
+     'the writer must use the SAME exact birth roles in its explanation as in the selected paid interpretation');
+    assert.equal(brief.exactRoleLens.selectionMethod,'selected-paid-thesis-exact-source-pair');
+    assert.deepEqual(brief.illustratedSourceGroups,
+     [...new Set(brief.exactRoleLens.sourceRoles.map(row=>row.group))],
+     'the example cannot cite another role category than its actual source-bound paid pair');
     for(const role of thesis.sourceRoles){
      const original=topic.citableFacts.find(row=>row.id===role.ref);
      assert(original,'both thesis roles must be in this actual paid topic');
@@ -953,6 +960,30 @@ assert(!mixedThree.exactRoleLens.internalWritingContrast.includes(words['편재'
  'third source is not a selected independent role and must not be falsely treated as the contrasted example');
 // If a second category is present but lacks a canonical traditional meaning,
 // do not fill the missing role with another unrelated classification.
+// Regression: alphabetical/source ordering should never displace the
+// actually chosen pair of natal interpretations in the writer's example.
+const syntheticRow=(id,position,layer,stem,tenGod)=>({id,position,layer,stem,
+ tenGod,traditionalMeaning:words[tenGod]});
+const sourceOrder=[
+ syntheticRow('natal.year.stem','연간','천간','己','정재'),
+ syntheticRow('natal.month.hidden.戊','월지','지장간','戊','편재'),
+ syntheticRow('natal.hour.stem','시간','천간','丁','식신')
+];
+const pairedThesis=require('./report-paid-interpretive-bridge').build({
+ chapterId:'money',topicId:'earning',topic:{mode:'use-primary',citableFacts:sourceOrder}});
+assert.deepEqual(pairedThesis.sourceRoles.map(x=>x.ref),
+ ['natal.hour.stem','natal.year.stem']);
+const sourceAligned=editor.build({chapterId:'money',topicId:'earning',
+ topic:{mode:'use-primary',citableFacts:sourceOrder},
+ selectedPaidThesis:pairedThesis});
+assert.deepEqual(sourceAligned.exactRoleLens.sourceRoles.map(x=>x.sourceId),
+ pairedThesis.sourceRoles.map(x=>x.ref));
+assert.deepEqual(sourceAligned.illustratedSourceGroups,['식상','재성']);
+assert(!sourceAligned.exactRoleLens.internalWritingContrast.includes('natal.month.hidden.戊'),
+ 'unselected third birth row must not masquerade as the two-source paid interpretation');
+assert.throws(()=>editor.build({chapterId:'career',topicId:'workstyle',
+ topic:{mode:'use-primary',citableFacts:sourceOrder},selectedPaidThesis:pairedThesis}),
+ /PAID_DOMAIN_READER_TOPIC_PAIR_DRIFT/);
 const missingGlossary=structuredClone(mixedThree);
 const noMeaning=editor.build({chapterId:'money',topicId:'earning',
  topic:{mode:'use-primary',citableFacts:[
