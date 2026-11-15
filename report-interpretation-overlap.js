@@ -8,6 +8,15 @@ const TAGS=[
  {id:'evidence-check-before-decision',terms:[/기준|근거|자료|정보|논리/,/확인|검토|점검|따져|살펴/,/결정|판단|선택/] },
  {id:'rules-and-duty-before-action',terms:[/책임|역할|규칙|절차/,/확인|검토|지키|따르|준수|분담|구분|정하/] },
  {id:'boundaries-before-agreement',terms:[/책임|역할|부담|몫/,/범위|경계|구분|나누|정하/,/합의|결정|선택|수용|동의/] },
+ // Historical paid-reader rejection: the same month-source understanding
+ // versus required resources contrast was retold in decision and stress.
+ // Require all three semantic facets IN ONE sentence plus shared actual
+ // citation. This does not equate different chart facts or general wording.
+ {id:'understanding-vs-resources',terms:[
+  /이해|배우|설명|정보|내용/,
+  /자원|예산|비용|준비물|도구|여건|수단/,
+  /구분|다르|따로|부족|분리|나누|마련/
+ ]},
  // These are separate traditional structural propositions, not general
  // optimistic claims about relationships or fate. A reused exact ledger
  // PLUS the same proposition is required for any duplicate verdict.
