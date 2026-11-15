@@ -1,7 +1,7 @@
 name: saju-mbti-tests
 on:
   push:
-    branches: [saju-mbti-app, fix-saju-tone-20261010, fix-paid-qa-fact-bindings-20261014]
+    branches: [saju-mbti-app, fix-saju-tone-20261010, fix-paid-qa-fact-bindings-20261014, release-candidate-adaptive-20261116]
   pull_request:
     branches: [saju-mbti-app]
   workflow_dispatch:
