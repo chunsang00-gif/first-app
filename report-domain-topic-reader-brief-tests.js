@@ -236,7 +236,7 @@ for(const [calendar,birthDate,birthTime] of cases){
      const onlyOne={label:'검증용 한 분류 설명',
       text:'실제 계산된 출생 분류가 어디서 확인되는지 구분하는 가상 풀이입니다.',
       basis:{refs:[actualRefs[0]],interpretation:'하나의 분류가 두 위치에 있는 점을 해석합니다.',
-       condition:'같은 전통 뜻을 두 번 말하지 않는 가정입니다.',
+       condition:topic.sourceOwnedStressReading?.computedCondition||'같은 전통 뜻을 두 번 말하지 않는 가정입니다.',
        limit:'개인 경험이나 강약을 확정하지 않습니다.'}};
      const allChapters=Object.fromEntries(prompt.requestedSections.map(id=>[
       id,{paragraphs:id===chapterId?{[topicId]:onlyOne}:{}}
