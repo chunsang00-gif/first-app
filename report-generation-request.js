@@ -526,6 +526,12 @@ function compile(prompt){
      const single=bridge.buildSingle({chapterId,topicId,topic});
      if(single)topic.sourceOwnedSingleReading=single;
     }
+    // Only verified stress-role questions can add a new applied paid reading.
+    if(chapterId==='stress'){
+     const stress=require('./report-paid-stress-application')
+      .build(chapterId,topicId,topic);
+     if(stress)topic.sourceOwnedStressReading=stress;
+    }
     // A source-aligned editorial question is an instruction, never a
     // newly inferred fact. No calls added and first-chapter QA unchanged.
     const readerBriefs=require('./report-domain-topic-reader-brief');
@@ -1434,6 +1440,26 @@ function schema(prompt,transport){
      '출처와 설명을 한 가지 조건부 생활 풀이로 바꾸되 실제 행동·능력·소득·관계 경험을 확정하지 않는다. '+
      '같은 출처의 이미 제공된 결론을 다시 쓰는 것뿐이면 선택 문단은 null로 둔다.';
    }
+   if(task.sourceOwnedStressReading){
+    const s=task.sourceOwnedStressReading;
+    const checked=require('./report-paid-stress-application')
+     .build(chapterId,topic,task);
+    if(chapterId!=='stress'||!checked||
+       JSON.stringify(checked)!==JSON.stringify(s)||
+       s.sourceRefs.some(ref=>!permitted.includes(ref)||!payload.source[ref])||
+       s.observedStress!==false||s.diagnosedHealth!==false||
+       s.predictedRecovery!==false)
+     throw Error('PAID_STRESS_READING_SOURCE_DRIFT');
+    basis.properties.condition.enum=[s.computedCondition];
+    basis.properties.condition.description=
+     '출생의 실제 십성 위치에 묶인 질문과 계산 관계를 정확히 기록한다. '+
+     '실제 스트레스·질병·회복 경험에 관한 판정은 아니다.';
+    p.properties.text.description+=
+     ' 독자에게 새롭게 전달할 압박·대처 장만의 구체적 적용: '+s.writerGoal+
+     ' 원래 계산 출처의 실제 질문: '+s.readerQuestions.join(' / ')+
+     '. 기준과 누락된 조건을 쉽게 설명하고, '+
+     'basis.condition의 검증용 문장을 고객 본문에 복사하지 않는다.';
+   }
    if(task.sourceOwnedAnnualDayContext){
     const day=task.sourceOwnedAnnualDayContext;
     const recalculated=require('./report-paid-annual-day-context')
@@ -1946,6 +1972,13 @@ function restoreEvidence(value,prompt){
          !allowed.has(ref)||!b.refs.includes(ref))||
         b.condition!==expected.computedCondition)
       throw Error('AI report service day-closeness two-question condition missing: '+id+':'+topic);
+    }
+    if(task.sourceOwnedStressReading){
+     const s=task.sourceOwnedStressReading;
+     if(id!=='stress'||s.kind!=='source-owned-stress-reading-v1'||
+        s.sourceRefs.some(ref=>!allowed.has(ref)||!b.refs.includes(ref))||
+        b.condition!==s.computedCondition)
+      throw Error('AI report service stress applied condition missing: '+id+':'+topic);
     }
     // A customer-entered question is optional contextual DATA. If its
     // relevant paid topic was actually authored, demand its verified
