@@ -584,24 +584,52 @@ const schema=require('./report-schema.json');
    editorialBlueprint:{[integratedId]:allPlans[integratedId]}}};
  const integratedPayload=generation.compile(integratedPrompt);
  assert(integratedPayload.task.chapters[integratedId].comparisonEvidence.includes('MBTI'));
+ const integratedReading=integratedPayload.task.chapters[integratedId].topics.insight
+  .sourceOwnedIntegratedInsight;
+ assert(integratedReading,'actual paid integrated insight must use one day-hidden source and real input preferences');
+ assert(integratedReading.daySourceRef.startsWith('natal.day.hidden.'));
+ assert.equal(integratedReading.preparationCode,'I');
+ assert.equal(integratedReading.commitmentCode,'P');
+ assert.equal(integratedReading.verifiedAgreement,false);
+ assert.equal(integratedReading.observedBehavior,false);
  const integratedSchema=generation.schema(integratedPrompt,wire.schemaFor(integratedPrompt,schema));
  const integrationAnchor=allPlans[integratedId].anchorTopic;
  assert(integrationAnchor);
  const integrationRefs=integratedSchema.properties.chapters.properties[integratedId].properties.paragraphs.properties[integrationAnchor].properties.basis.properties.refs.items.enum;
  assert(integrationRefs.includes('person.mbti')&&integrationRefs.includes('natal.month.stem'),
   'model schema must permit MBTI and actual natal source together');
+ const integratedLeaf=integratedSchema.properties.chapters.properties[integratedId]
+  .properties.paragraphs.properties.insight;
+ const integratedText=integratedLeaf.properties.text.description;
+ assert(integratedText.includes(integratedReading.natalQuestion));
+ assert(integratedText.includes(integratedReading.preparationPreference));
+ assert(integratedText.includes(integratedReading.commitmentPreference));
+ assert.deepEqual(integratedLeaf.properties.basis.properties.condition.enum,
+  [integratedReading.computedCondition]);
  const integrationRaw={chapters:{[integratedId]:{
   title:'선택의 두 설명',keyJudgment:'각 관점의 서로 다른 질문을 구분합니다.',mood:'reflective',
   paragraphs:Object.fromEntries(Object.keys(allPlans[integratedId].topicTasks).map(topic=>
    [topic,topic===integrationAnchor?{
     label:'입력한 선호와 계산한 위치',
     text:'성격 선호와 계산된 출생 위치를 서로 다른 해석의 관점으로 읽습니다.',
-    basis:{refs:['person.mbti','natal.month.stem'],
-     interpretation:'입력 선호와 계산 위치의 해석 범위를 따로 확인했습니다.',
-     condition:'가정한 업무 선택 상황',
+    basis:{refs:['person.mbti','natal.month.stem',integratedReading.daySourceRef],
+     interpretation:'입력 선호와 출생일 안쪽의 전통 분류를 별도로 확인했습니다.',
+     condition:integratedReading.computedCondition,
      limit:'실제 행동을 확인한 것은 아닙니다.'}
    }:null]))}},cover:null,finalJudgment:null};
  assert.doesNotThrow(()=>generation.restoreEvidence(integrationRaw,integratedPrompt));
+ const missingDay=structuredClone(integrationRaw);
+ missingDay.chapters[integratedId].paragraphs[integrationAnchor].basis.refs=
+  ['person.mbti','natal.month.stem'];
+ assert.throws(()=>generation.restoreEvidence(missingDay,integratedPrompt),
+  /integrated day and preferences missing/,
+  'a generic month-stem citation must not replace the independent day-hidden insight');
+ const genericCondition=structuredClone(integrationRaw);
+ genericCondition.chapters[integratedId].paragraphs[integrationAnchor].basis.condition=
+  '사주와 MBTI가 같으므로 조화로운 성격입니다.';
+ assert.throws(()=>generation.restoreEvidence(genericCondition,integratedPrompt),
+  /integrated day and preferences missing/,
+  'unverified personality matching cannot replace the computed integration condition');
  for(const only of [['person.mbti'],['natal.month.stem']]){
   const invalid=structuredClone(integrationRaw);
   invalid.chapters[integratedId].paragraphs[integrationAnchor].basis.refs=only;
@@ -637,6 +665,9 @@ const schema=require('./report-schema.json');
  const unknownRefs=unknownIntegratedSchema.properties.chapters.properties[integratedId].properties.paragraphs.properties[unknownAnchor].properties.basis.properties.refs.items.enum;
  assert(!unknownRefs.includes('person.mbti'),
   'no MBTI should still allow a Saju-only integration');
+ assert.equal(unknownIntegratedPayload.task.chapters[integratedId].topics.insight
+  .sourceOwnedIntegratedInsight,undefined,
+  'unknown MBTI cannot be silently assigned a personality preference');
 
 
  const oldFetch=global.fetch,oldKey=process.env.OPENAI_API_KEY,oldModel=process.env.REPORT_MODEL;

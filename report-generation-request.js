@@ -541,6 +541,13 @@ function compile(prompt){
      selectedPaidThesis:thesis
     });
     if(scopedReaderBrief)topic.readerDistinction=scopedReaderBrief;
+    // Real paid integrated insight: one exact DAY-hidden question and two
+    // independently entered preferences. No month-pair copy or model calls.
+    if(chapterId==='integrated_judgment'&&topicId==='insight'){
+     const built=require('./report-paid-integrated-reader-insight')
+      .build({chapterId,topicId,topic,source});
+     if(built)topic.sourceOwnedIntegratedInsight=built;
+    }
     // Independently sourced, user-reported MBTI dimensions never borrow
     // natal evidence merely to pad the paid cross-framework comparison.
     if(chapterId==='mbti_contradiction'&&
@@ -1980,6 +1987,14 @@ function restoreEvidence(value,prompt){
         b.condition!==s.computedCondition)
       throw Error('AI report service stress applied condition missing: '+id+':'+topic);
     }
+    if(task.sourceOwnedIntegratedInsight){
+     const proof=task.sourceOwnedIntegratedInsight;
+     if(id!=='integrated_judgment'||topic!=='insight'||
+        proof.kind!=='integrated-day-question-and-independent-input-preferences-v1'||
+        proof.sourceRefs.some(ref=>!allowed.has(ref)||!b.refs.includes(ref))||
+        b.condition!==proof.computedCondition)
+      throw Error('AI report service integrated day and preferences missing: '+id+':'+topic);
+    }
     // A customer-entered question is optional contextual DATA. If its
     // relevant paid topic was actually authored, demand its verified
     // citations and a separately written conditional explanation. If this
@@ -2063,6 +2078,32 @@ function restoreEvidence(value,prompt){
         JSON.stringify(b.refs)!=='["facts.natalBranchRelations"]'||
         b.condition!==proof.computedCondition)
       throw Error('AI report service day harmony evidence missing: '+id+':'+topic);
+    }
+    if(task.sourceOwnedIntegratedInsight){
+     const expected=task.sourceOwnedIntegratedInsight;
+     const verified=require('./report-paid-integrated-reader-insight')
+      .build({chapterId,topicId:topic,topic:task,source:payload.source});
+     if(chapterId!=='integrated_judgment'||topic!=='insight'||!verified||
+        JSON.stringify(expected)!==JSON.stringify(verified)||
+        expected.sourceRefs.some(ref=>!permitted.includes(ref))||
+        expected.observedBehavior!==false||
+        expected.verifiedAgreement!==false||
+        expected.predictionKnown!==false||expected.salesApproved!==false)
+      throw Error('PAID_INTEGRATED_SOURCE_BOUND_CONDITION_DRIFT');
+     basis.properties.refs.description+=
+      ' 앞 장의 월간·월지 근거를 재활용하지 않고 출생일 안쪽의 정확한 글자와 입력한 MBTI 선호를 함께 인용한다: '+
+      expected.sourceRefs.join(' / ')+'.';
+     basis.properties.condition.enum=[expected.computedCondition];
+     basis.properties.condition.description=
+      '실제로 계산된 출생일 분류와 입력한 두 MBTI 선호의 뜻을 구분하는 고정 조건. '+
+      '실제 선택 결과·성격·능력을 확인한 것은 아니다.';
+     p.properties.text.description+=
+      ' 종합 장의 이 명식만의 새로운 해석 목표: '+expected.writingGoal+
+      ' 확인된 질문: '+expected.natalQuestion+'. '+
+      '두 입력 선호: '+expected.preparationPreference+' / '+
+      expected.commitmentPreference+'. '+
+      '서로 다른 세 조건을 가상의 한 선택에 적용해 자연스럽게 설명한다. '+
+      'basis.condition과 출처 ID를 고객 본문에 그대로 복사하지 않는다.';
     }
     if(task.sourceOwnedWealthClash){
      const proof=task.sourceOwnedWealthClash;
