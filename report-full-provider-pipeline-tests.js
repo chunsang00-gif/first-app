@@ -225,6 +225,9 @@ function synthesisResponse(p,strict){
 async function runScenario(kind){
  const previousFetch=global.fetch,prevKey=process.env.OPENAI_API_KEY,prevModel=process.env.REPORT_MODEL;
  let calls=0,archived=0;const stages=[],requests=[],snapshots=[];
+ // Capacity-only USD estimate from real outgoing request envelopes and
+ // SYNTHETIC prior chapters; no genuine provider or customer data.
+ const offlineCapacity=[];
  process.env.OPENAI_API_KEY='offline-only-not-a-real-key';
  process.env.REPORT_MODEL='gpt-4.1';
  global.fetch=async(url,options)=>{
@@ -237,6 +240,14 @@ async function runScenario(kind){
   assert(['body','synthesis'].includes(p.stage));
   calls++;requests.push(p);
   stages.push(p.stage);
+  if(kind==='complete'){
+   // Byte length plus framing reserve is an input TOKEN proxy, not a
+   // tokenizer measurement or billable maximum for real customer output.
+   offlineCapacity.push({stage:p.stage,
+    sections:Object.keys(p.task.chapters||{}),
+    inputByteProxy:Buffer.byteLength(options.body,'utf8')+2048,
+    outputTokenCapacity:body.max_output_tokens});
+  }
   if(calls===1&&kind==='provider-limit')
    return {ok:true,json:async()=>({status:'incomplete',incomplete_details:{reason:'max_output_tokens'},
      usage:{output_tokens:body.max_output_tokens},output:[]})};
@@ -382,6 +393,34 @@ async function runScenario(kind){
   assert.deepEqual(new Set(checks.flatMap(x=>x.ids)),new Set(output.report.sections.map(s=>s.id)));
   assert.equal(checks.flatMap(x=>x.ids).length,output.report.sections.length,'each chapter checked once');
   assert.equal(output.qa?.releaseGate?.releaseVerdict,'not-approved','no synthetic report can approve release');
+  if(kind==='complete'){
+   assert.equal(offlineCapacity.length,calls);
+   assert.equal(offlineCapacity.at(-1)?.stage,'synthesis');
+   assert.equal(offlineCapacity[0]?.outputTokenCapacity,18000);
+   assert(offlineCapacity.every(x=>x.inputByteProxy>2048&&
+      x.outputTokenCapacity>0));
+   const totalInputByteProxy=offlineCapacity.reduce((n,x)=>n+x.inputByteProxy,0);
+   const totalOutputTokenCapacity=offlineCapacity.reduce(
+    (n,x)=>n+x.outputTokenCapacity,0);
+   const ratesUSDPerMillion={input:2,output:8}; // GPT-4.1 Standard public rates.
+   const scenarioUSD=Number(((totalInputByteProxy*ratesUSDPerMillion.input+
+    totalOutputTokenCapacity*ratesUSDPerMillion.output)/1e6).toFixed(6));
+   // Actual charges vary with real generated prose, tokenization and rates.
+   // This synthetic scenario is NOT an enforceable monetary spending cap.
+   assert(Number.isFinite(scenarioUSD)&&scenarioUSD>0);
+   console.log('LAUNCH_CANDIDATE_OFFLINE_BUDGET_SCENARIO='+JSON.stringify({
+    kind:'nonbillable-synthetic-report-input-byte-capacity-scenario-v1',
+    model:'gpt-4.1',modelStatus:'deprecated',
+    providerCalls:0,syntheticRequestCount:calls,
+    capacityByCall:offlineCapacity,
+    inputBytesPlusReserveNotMeasuredTokens:totalInputByteProxy,
+    configuredOutputTokenCapacityNotActualOutput:totalOutputTokenCapacity,
+    publishedRatesUSDPerMillion:ratesUSDPerMillion,
+    capacityScenarioUSD:scenarioUSD,
+    guaranteedBillingMaximum:false,realCustomerProseApproved:false,
+    authorizationToCharge:false,operatorDeployment:false
+   }));
+  }
   console.log('PASS offline full STRICT Responses JSON -> provider decode -> facts -> all body batches -> synthesis -> cover/final -> quality decision; synthetic result: '+output.status+'; calls: '+calls+'; chapters: '+output.report.sections.length);
  }finally{
   global.fetch=previousFetch;
