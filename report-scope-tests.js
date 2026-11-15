@@ -22,18 +22,18 @@ assert(dated('2027~2036년 丙戌 대운의 편재를 살핀다.').length);
 assert(dated('2000~2009년 乙酉 대운의 편재를 살핀다.').length);
 console.log('PASS dated previous period, wrong historical/current facts, unknown period');
 
-// Reader-visible calculations are mandatory for a paid-ready result, even when hidden evidence exists.
+// Exact calculations stay internal; visible copy is plain Korean.
 const quality=require('./report-quality-node');
 const sample={sections:quality.IDS.map(id=>({id,title:'분석',keyJudgment:'개인별 해석',evidence:['월간 상관은 계산된 십성입니다.'],body:['각 항목의 해석을 담습니다.']})),finalJudgment:{body:['종합합니다.'],closingQuestion:'계산 결과를 바탕으로 여러 선택을 이해합니다.'}};
 const paidPacket={status:'ready',facts:packet.facts};
+sample.sections[8].body=['2027년의 계산 결과를 평소의 풀이와 비교합니다.'];
 let judged=quality.validate(sample,paidPacket);
-assert(judged.errors.some(x=>x.includes('reader-facing natal')));
-assert(judged.errors.some(x=>x.includes('reader-facing fortune')));
-sample.sections[0].body=['월간 상관(생각을 표현하고 기존 규칙에 반응하는 성질)이라는 계산 근거를 풀이합니다.'];
-sample.sections[8].body=['2027년 세운은 계산된 원국과 대운을 함께 비교합니다.'];
-judged=quality.validate(sample,paidPacket);
-assert(!judged.errors.some(x=>x.includes('reader-facing natal')||x.includes('reader-facing fortune')));
-console.log('PASS paid-report body visibly explains natal and 2027 calculations');
+assert(!judged.errors.some(x=>x.startsWith('reader jargon:')),'internal evidence must retain exact terminology');
+sample.sections[0].body=['월간 상관(생각을 표현하는 성질)을 풀이합니다.'];
+assert(quality.validate(sample,paidPacket).errors.includes('reader jargon: 상관'),'parentheses must not excuse visible jargon');
+sample.sections[0].body=['직접 해 보고 고르는 상황과 다른 사람의 설명을 듣고 고르는 상황을 나눠 설명합니다.'];
+assert(!quality.validate(sample,paidPacket).errors.some(x=>x.startsWith('reader jargon:')));
+console.log('PASS plain reader copy with exact internal facts preserved');
 
 // One specific uncertainty is acceptable; the same broad caveat in many domains is not.
 const repeated=structuredClone(sample);

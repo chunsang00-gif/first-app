@@ -14,12 +14,91 @@ const norm=s=>String(s||'').replace(/\s+/g,' ').trim();
 // More nuanced traditional interpretations still require human review.
 const positionKeys={연간:'year',월간:'month',일간:'day',시간:'hour'};
 const godTerms='비견|겁재|식신|상관|편재|정재|편관|정관|편인|정인';
+// Stage 4: narrow fact -> observed-outcome guard. A calculated symbol can
+// support a traditional question but not a measured behavior, ability or
+// real-life result. Match a causal assertion INSIDE ONE sentence; mere use
+// of a ten-god term, a hypothetical example or an explicit denial is valid.
+// This rejects known high-confidence leaps, not all semantic hallucinations.
+function unsupportedSymbolicInference(report){
+ const findings=[];
+ const symbol=/(?:비견|겁재|식신|상관|정재|편재|정관|편관|정인|편인|재성|식상|관성|인성|비겁|통근|뿌리|오행|월령|전환월|계절|충(?:돌)?)/g;
+ const bridge=/(?:있으니|있으므로|있어서|있기\s*때문에|없으니|없어서|없기\s*때문에|이라는\s*이유로|기\s*때문에|이므로|라서|덕분에|많아서|많으니|적어서|적으니|따라서)/;
+ const outcome=/(?:돈(?:을|도)?\s*잘\s*(?:관리|모으|벌|불리)|돈\s*관리를\s*잘|(?:소비|지출)(?:를|을)?\s*(?:항상\s*)?(?:계획적으로|잘\s*관리)|(?:투자|사업)(?:에|에서)?\s*(?:성공|수익을\s*잘)|(?:학습|공부)(?:를)?\s*잘\s*(?:하|해)|배우는\s*속도(?:가|는)?\s*(?:빠르|빠릅)|(?:업무|직무|일처리)\s*능력(?:이|은)?\s*(?:뛰어나|뛰어납|탁월|높)|(?:일|업무)(?:을)?\s*잘\s*(?:하|해)|(?:직장|조직|회사)에서\s*(?:인정받|신뢰받)|(?:승진|합격|취업|결혼)(?:합|하|됩|하게\s*됩)|(?:연애|인간관계|관계)(?:가|는)?\s*(?:안정|좋아)|다투지\s*않|싸우지\s*않|갈등(?:이|을)?\s*없|변화에\s*(?:잘\s*)?적응|적응력(?:이|은)?\s*(?:좋|뛰어나|높)|마음(?:속|의).{0,20}두\s*(?:개|부분|중심))/;
+ const denied=/(?:단정(?:할\s*수\s*없|하지\s*않)|뜻(?:은|이)?\s*아니|의미하지\s*않|증명하지\s*않|말할\s*수\s*없|확인할\s*수\s*없|판단할\s*수\s*없|보장하지\s*않|확정할\s*수\s*없)/;
+ const hypothetical=/(?:가상(?:의|으로|\s*상황)|가정(?:하|하면|해서|해\s*보)|예를\s*들어|라는\s*가정)/;
+ const sections=[...(report?.sections||[]),
+  ...(report?.cover?[{id:'cover',title:report.cover.headline,body:[report.cover.description,...(report.cover.highlights||[]).flatMap(h=>[h.title,h.description])]}]:[]),
+  ...(report?.finalJudgment?[{id:'finalJudgment',title:report.finalJudgment.headline,body:[...(report.finalJudgment.body||[]),...(report.finalJudgment.strengths||[]),...(report.finalJudgment.watchouts||[]),report.finalJudgment.closingQuestion]}]:[])];
+ for(const section of sections){
+  const fields=[section.title,section.keyJudgment,...(section.body||[])];
+  for(const field of fields)for(const sentence of String(field||'').split(/[.!?。！？\n]+/).map(x=>x.trim()).filter(Boolean)){
+   if(hypothetical.test(sentence)||denied.test(sentence))continue;
+   for(const match of sentence.matchAll(symbol)){
+    // Require an explicitly stated causal path from this symbol to an
+    // asserted customer trait/outcome, not proximity anywhere in a paragraph.
+    const tail=sentence.slice(match.index+match[0].length);
+    const link=bridge.exec(tail.slice(0,65));
+    if(link&&outcome.test(tail.slice(link.index+link[0].length,link.index+link[0].length+90))){
+     findings.push(section.id+': unsupported real-world inference from calculated symbol');
+     break;
+    }
+   }
+  }
+ }
+ return [...new Set(findings)];
+}
+
+
+// Customer inputs contain no employment, investment, income or marriage
+// history. A fluent report must not turn a calculated chart into a past
+// achievement or life event. Check reader-visible text only, not evidence
+// metadata; hypothetical examples and explicit non-claims remain allowed.
+// This is a narrow safety check, not a proof that all prose is accurate.
+function unsupportedCustomerHistory(report){
+ const claims=[
+  /(?:회사|직장|동료|상사|조직|고객).{0,40}(?:인정(?:을)?\s*받(?:았|아\s*왔)|신뢰(?:를)?\s*받(?:았|아\s*왔)|칭찬(?:을)?\s*받(?:았|아\s*왔))/,
+  /(?:연봉|월급|소득|매출|자산|재산)(?:은|이|가|도)?\s*(?:꾸준히\s*|이미\s*)?(?:올랐|늘었|증가했|불어났)/,
+  /(?:투자|사업|창업).{0,40}(?:성공했|수익(?:을|이)\s*(?:냈|났)|돈을\s*벌었)/,
+  /(?:승진|이직|취업|퇴사|결혼|이혼)(?:을|를)?\s*(?:했(?:습니다|다)|한\s*경험이\s*있(?:습니다|다)|한\s*적이\s*있(?:습니다|다))/
+ ];
+ const nonAssertion=/(?:예를\s*들어|가정(?:하|해|하면)|만약|했다고\s*가정|했다면|했을\s*경우|일\s*수\s*있|확인할\s*수\s*없|단정할\s*수\s*없|알\s*수\s*없|증명(?:되지|할\s*수\s*없)|(?:사실|성과|결과)이\s*아닙니다)/;
+ const sections=[
+  ...(report?.sections||[]),
+  ...(report?.cover?[{id:'cover',title:report.cover.headline,
+   body:[report.cover.description,...(report.cover.highlights||[])
+    .flatMap(h=>[h?.title,h?.description])]}]:[]),
+  ...(report?.finalJudgment?[{id:'finalJudgment',
+   title:report.finalJudgment.headline,
+   body:[...(report.finalJudgment.body||[]),
+    ...(report.finalJudgment.strengths||[]),
+    ...(report.finalJudgment.watchouts||[]),
+    ...(report.finalJudgment.routines||[]).flatMap(x=>[x?.trigger,x?.action,x?.reason]),
+    report.finalJudgment.closingQuestion]}]:[])
+ ];
+ const errors=[];
+ for(const section of sections){
+  for(const field of [section?.title,section?.keyJudgment,...(section?.body||[])]){
+   for(const sentence of String(field||'').split(/[.!?。！？\n]+/).map(x=>x.trim()).filter(Boolean)){
+    if(nonAssertion.test(sentence))continue;
+    if(claims.some(re=>re.test(sentence))){
+     errors.push((section.id||'unknown')+': unsupported customer biographical history');
+     break;
+    }
+   }
+  }
+ }
+ return [...new Set(errors)];
+}
+
 function verifyEvidenceAgainstFacts(report,packet){
  const errors=[],warnings=[];
  const tenGods=packet?.facts?.tenGods;
  const extraSections=[{id:'cover',title:report.cover?.headline,body:[report.cover?.description,...(report.cover?.highlights||[]).flatMap(h=>[h.title,h.description])]},{id:'finalJudgment',title:report.finalJudgment?.headline,body:[...(report.finalJudgment?.body||[]),report.finalJudgment?.closingQuestion,...(report.finalJudgment?.strengths||[]),...(report.finalJudgment?.watchouts||[]),...(report.finalJudgment?.routines||[]).flatMap(r=>[r.trigger,r.action,r.reason])]}];
  const sections=[...(report.sections||[]),...extraSections];
- if(!tenGods)return {errors,warnings};
+ // Missing ten-god data must not disable independent branch fact checks.
+ // The paid entry blocks such packets, but offline replay must still reject
+ // fabricated branch precedence and transformation.
+ if(!tenGods)return {errors:[...unsupportedSymbolicInference(report),...unsupportedCustomerHistory(report),...require('./report-branch-claims').check(report,packet),...require('./report-seasonal-claims').check(report,packet)],warnings};
  for(const section of sections){
   for(const evidence of [...(section.evidence||[]),section.title,section.keyJudgment,...(section.body||[])]){
    const text=norm(evidence);
@@ -39,6 +118,21 @@ function verifyEvidenceAgainstFacts(report,packet){
      if(position==='hour')errors.push(section.id+': uncalculated hour-pillar ten-god claim');
      else warnings.push(section.id+': '+match[1]+' position unavailable to verify');
     }
+   }
+  }
+ }
+ // A coordinated phrase asserts the SAME ten-god at each named location.
+ // Checking only the last noun misses "월간과 월지의 편관".
+ const groupedPosition=/(연간|월간|일간|시간|연지|월지|일지|시지)(?:(?:\s*[·,/]\s*|\s*(?:과|와|및)\s*)(?:연간|월간|일간|시간|연지|월지|일지|시지))+(?:의|에는|에서|에|은|는|\s)*(?:지장간(?:의|에는|에)?\s*)?(비견|겁재|식신|상관|편재|정재|편관|정관|편인|정인)/g;
+ const branchKeys={연지:'year',월지:'month',일지:'day',시지:'hour'};
+ for(const section of sections)for(const passage of [...(section.evidence||[]),section.title,section.keyJudgment,...(section.body||[])]){
+  for(const match of norm(passage).matchAll(groupedPosition)){
+   for(const position of match[0].match(/연간|월간|일간|시간|연지|월지|일지|시지/g)||[]){
+    if(position==='연간'&&/^year_2027/.test(section.id))continue;
+    const stemKey=positionKeys[position],key=stemKey||branchKeys[position];
+    const value=tenGods[key];
+    const valid=stemKey?value?.stemTenGod===match[2]:value?.hiddenStems?.some(x=>x.tenGod===match[2]);
+    if(!valid)errors.push(section.id+': grouped '+position+' '+match[2]+' conflicts with calculated position');
    }
   }
  }
@@ -165,6 +259,14 @@ function verifyEvidenceAgainstFacts(report,packet){
    }
   }
  }
+ // Real-world future outcomes cannot be inferred from annual calculations,
+ // even when the text avoids legacy expressions such as "수입이 늘어".
+ // Check each sentence, including cover and synthesis, before the next API call.
+ for(const finding of require('./report-annual-outcome-gate').check(report)){
+  const currentPrefix=finding.section+': ';
+  if(!errors.some(error=>error.startsWith(currentPrefix)&&error.includes('2027 domain outcome prediction')))
+   errors.push(currentPrefix+'deterministic 2027 real-world outcome ('+finding.category+')');
+ }
  const annualGod=packet?.facts?.annualTenGods?.stemTenGod;
  const relations=packet?.facts?.targetYearRelations;
  const branchPosition={연지:'year',월지:'month',일지:'day',시지:'hour'};
@@ -189,7 +291,9 @@ function verifyEvidenceAgainstFacts(report,packet){
    }
   }
  }
- return {errors:[...new Set(errors)],warnings:[...new Set(warnings)]};
+ for(const error of require('./report-branch-claims').check(report,packet))errors.push(error);
+ for(const error of require('./report-seasonal-claims').check(report,packet))errors.push(error);
+  return {errors:[...new Set([...errors,...unsupportedSymbolicInference(report),...unsupportedCustomerHistory(report)])],warnings:[...new Set(warnings)]};
 }
 function validate(r,packet){
  const errors=[],warnings=[];
@@ -199,7 +303,7 @@ function validate(r,packet){
  if(orderedIds.some(id=>!IDS.includes(id))||JSON.stringify(orderedIds)!==JSON.stringify(IDS.filter(id=>orderedIds.includes(id))))errors.push('section id/order mismatch');
  r.sections.forEach((s,i)=>{
   if(!s||typeof s!=='object'){errors.push(`section ${i+1} invalid`);return}
-  if(['depth-v2','concise-v1','concise-v2','concise-v3'].includes(r.meta?.versions?.schema)){
+  if(['depth-v2','concise-v1','concise-v2','concise-v3','concise-v4','concise-v5','concise-v6','concise-v7','concise-v8'].includes(r.meta?.versions?.schema)){
    const keys=Object.keys(require('./report-outline').topics[s.id]||{});
    if(!Array.isArray(s.bodyTopics)||!s.bodyTopics.length||s.bodyTopics.some(t=>!keys.includes(t))||JSON.stringify(s.bodyTopics)!==JSON.stringify(keys.filter(t=>s.bodyTopics.includes(t))))errors.push(s.id+': topics unknown or reordered');
    if(s.body?.length!==s.bodyTopics?.length||s.bodyLabels?.length!==s.bodyTopics?.length)errors.push(s.id+': topic explanations incomplete');
@@ -244,6 +348,19 @@ function validate(r,packet){
    warnings.push(s.id+': evidence has no identifiable saju element');
 
  });
+ // The new 35-topic catalog must not confuse filled structural slots with
+ // four meaningfully different user-reported MBTI preference analyses.
+ if(r.meta?.versions?.schema==='concise-v8'){
+  const section=r.sections.find(x=>x?.id==='mbti_contradiction');
+  const type=packet?.status==='ready'?packet.person?.mbti:r.meta?.mbti;
+  if(section)errors.push(...require('./report-paid-mbti-reader-substance')
+   .inspect(section,type));
+ }
+ // Free reader prose must never be repackaged as a paid first chapter.
+ if(packet?.status==='ready'&&packet.facts?.tenGods?.month&&
+    packet.facts?.structuralEvidence?.monthCommand&&
+    packet.facts?.annualTenGods?.stemTenGod)
+  errors.push(...require('./report-paid-free-copy-gate').inspect(r.sections,packet));
  // A paid report must be bound to the exact calculation it was generated for.
  // Otherwise a valid-looking report from another customer can pass prose checks.
  if(packet?.status==='ready'){
@@ -269,19 +386,11 @@ function validate(r,packet){
  }
  const readable=[r.cover?.headline,r.cover?.description,...(r.cover?.highlights||[]).flatMap(h=>[h.title,h.description]),...(r.cover?.keywords||[]),...r.sections.flatMap(s=>[s.title,s.keyJudgment,...(s.body||[]),...(s.bodyLabels||[]),...(s.evidence||[])]),...(r.finalJudgment?.body||[]),r.finalJudgment?.headline,...(r.finalJudgment?.strengths||[]),...(r.finalJudgment?.watchouts||[]),...(r.finalJudgment?.routines||[]).flatMap(x=>[x.trigger,x.action,x.reason]),r.finalJudgment?.closingQuestion].filter(Boolean);
  const all=norm(readable.join(' '));
- // Paid-report acceptance requires the reader-facing analysis, not only hidden evidence,
- // to explain why the calculated chart supports the interpretation.
+ // Facts remain checked in internal evidence; visible prose must not require jargon.
+ errors.push(...require('./report-reader-policy').errors(require('./report-reader-policy').visibleFields(r)));
  if(packet?.status==='ready'&&packet?.facts?.tenGods){
-  const core=r.sections.find(x=>x.id==='saju_core');
-  const coreText=norm((core?.body||[]).join(' '));
-  if(!/(?:일간|월지|월간|일지|십성|지장간|비견|겁재|식신|상관|편재|정재|편관|정관|편인|정인)/.test(coreText))
-   errors.push('saju_core: reader-facing natal analysis omits calculated Saju terms');
-  if(!/(?:일간|월지|일지|월간|십성|지장간|비견|겁재|식신|상관|편재|정재|편관|정관|편인|정인)\s*[（(][^)）]{3,}[)）]|(?:일간|월지|일지|월간|십성|지장간)(?:은|는|이란|란|의 뜻은)[^.!?]{0,100}(?:뜻|의미|가리키|말합니다|나타냅니다|일컬|글자|관계|기준)|(?:태어난 날|태어난 달|태어난 시각|계절을 나타내는|자신을 나타내는)[^.!?]{0,80}(?:글자|기둥|관계)/.test(coreText))
-   errors.push('saju_core: reader-facing natal analysis does not explain technical terms');
   const year=r.sections.find(x=>x.id==='year_2027');
-  const yearText=norm((year?.body||[]).join(' '));
-  if(!/(?:2027|정미|丁未)/.test(yearText)||!/(?:세운|대운|십성|편관|정관|식신|상관|원국)/.test(yearText))
-   errors.push('year_2027: reader-facing fortune omits calculated annual context');
+  if(!/2027/.test([year?.title,...(year?.body||[])].join(' ')))errors.push('year_2027: reader-facing fortune omits target year');
  }
  // A seasonal annual pillar must never be sold as a January-to-December guarantee.
  // Only reject explicit full-calendar-year claims; ordinary '2027년' wording remains valid.
@@ -313,7 +422,11 @@ function validate(r,packet){
  }
  const issues=require('./report-heading-review').issues(r);
  for(const issue of issues)if(issue.reason==='abstract headline without concrete meaning')errors.push(issue.reason);
- if(readable.some(x=>/(?:[A-Za-z]+_){1,}[A-Za-z]+|undefined|\[object Object\]/.test(x)))errors.push('internal field leaked into prose');
+ // Internal evidence legitimately contains canonical source paths and QA
+ // identifiers. Only reader-visible prose may fail for exposing those names;
+ // source facts are validated independently by verifyEvidenceAgainstFacts().
+ if(require('./report-reader-policy').visibleFields(r).some(x=>/(?:[A-Za-z]+_){1,}[A-Za-z]+|undefined|\[object Object\]/.test(String(x||''))))
+  errors.push('internal field leaked into prose');
  if(readable.some(x=>/([가-힣]{2,})\s+\1(?=[\s,.!?]|$)/.test(x)))errors.push('duplicated adjacent word');
  if(readable.some(x=>/\uFFFD/.test(x)))errors.push('invalid text encoding');
  // An individually cautious sentence is legitimate; a paid report dominated by the

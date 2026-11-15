@@ -1,0 +1,175 @@
+'use strict';
+const assert=require('node:assert/strict');
+const facts=require('./report-facts-node');
+const hour=require('./report-core-paid-1982-standalone-day-hour-reader');
+const chapter=require('./report-core-paid-1982-integrated-first-chapter');
+const method=require('./report-core-paid-1982-question-scoped-method-decision');
+const gap=require('./report-core-paid-depth-gap-audit');
+const reader=require('./report-reader-policy');
+const base=hour.BASE;
+const early=facts.build({...base,birthTime:'14:20'},2027);
+const late=facts.build({...base,birthTime:'20:20'},2027);
+const comparison=chapter.compare();
+assert.equal(comparison.kind,'qa-two-complete-first-chapters-source-limited-v1');
+assert.equal(comparison.cases.length,2);
+assert.equal(comparison.sharedMonthParagraphVerified,true);
+assert.equal(comparison.separateDayHourHistoricalInterpretationVerified,true);
+assert.equal(comparison.verifiedPositionAndRoleContrastIncluded,true);
+assert.equal(comparison.commonMonthHistoricalConditionPreservedAcrossHours,true);
+assert.equal(comparison.additionalHistoricalHourMatchRestrictedToEarly,true);
+assert.equal(comparison.oneSourceScopedEditorialCaveatAtEnd,true);
+assert.equal(comparison.normalPaidWriterChanged,false);
+assert.equal(comparison.readyForCustomer,false);
+assert.equal(comparison.providerCalls,0);
+assert.equal(comparison.releaseVerdict,'not-approved');
+const [a,z]=comparison.cases;
+assert.deepEqual([a,z],[chapter.build(early),chapter.build(late)]);
+assert.notEqual(a.chartFingerprint,z.chartFingerprint);
+ // The source-selection decision must not hide the COMPETING clause from
+ // 卷六 when it quotes the general 卷八 hour warning.
+ const earlyDecision=method.inspect(early),lateDecision=method.inspect(late);
+ const c1=earlyDecision.classicalCompetingRules;
+ const c2=lateDecision.classicalCompetingRules;
+ assert.equal(c1.broadHourRestriction.applicableToThisHour,true);
+ assert.equal(c2.broadHourRestriction.applicableToThisHour,false);
+ assert.deepEqual(c1.separatelyDocumentedCountercondition.exactMatchedPillars,
+  ['癸丑','癸未']);
+ assert.deepEqual(c2.separatelyDocumentedCountercondition.exactMatchedPillars,
+  ['癸丑']);
+ assert.equal(c1.separatelyDocumentedCountercondition.sourceUrl,
+  a.paragraphs[2].conditionalRelationAudit.volumeSix.url);
+ assert.equal(c2.separatelyDocumentedCountercondition.sourceUrl,
+  z.paragraphs[2].conditionalRelationAudit.volumeSix.url);
+ assert.equal(c1.relativeInterpretiveDominanceDecided,false);
+ assert.equal(c2.relativeInterpretiveDominanceDecided,false);
+ assert.equal(c1.eligibleForPaidWriter,false);
+ assert.equal(c2.eligibleForPaidWriter,false);
+
+assert.equal(a.sourceScope,'exact-day-hour-with-winter-subclause');
+assert.equal(z.sourceScope,'exact-day-hour-with-ambiguous-year-month-clause');
+assert.deepEqual(a.paragraphs[0],z.paragraphs[0],
+ 'unchanged birth date and month evidence must give unchanged shared first paragraph');
+assert.notDeepEqual(a.paragraphs[2],z.paragraphs[2]);
+assert.notDeepEqual(a.paragraphs[1],z.paragraphs[1],
+ 'the source-backed second paragraph must CHANGE with the hour');
+assert.equal(a.paragraphs[0].kind,'month-basis');
+assert.equal(a.paragraphs[1].kind,'verified-month-day-hour-positional-context');
+assert.equal(z.paragraphs[1].kind,a.paragraphs[1].kind);
+assert(a.paragraphs[1].refs.includes('facts.natalBranchRelations'));
+assert(z.paragraphs[1].refs.includes('natal.hour.stem'));
+assert.equal(a.paragraphs[2].kind,'exact-day-hour-classical-text');
+assert.equal(z.paragraphs[2].kind,'exact-day-hour-classical-text');
+assert(a.readerText.includes('안온한 쪽으로'));
+assert(a.readerText.includes('같은 조항에서 함께 설명'));
+assert(a.readerText.includes('별도 달 기운 조건도 충족 여부가 아직 확인되지'));
+assert(!a.readerText.includes('같은 책의 다른 장에는 그 제약을 누그러뜨릴'));
+assert(z.readerText.includes('출생시간이 달라져도 달의 조건은 공통으로 남는다'));
+assert(a.readerText.includes('태어난 달과 시간의 전체 글자 조합 모두'));
+assert(!z.readerText.includes('태어난 달과 시간의 전체 글자 조합 모두'));
+assert.equal(a.paragraphs[2].conditionalRelationAudit?.volumeSix.url,"https://zh.wikisource.org/zh-hant/%E4%B8%89%E5%91%BD%E9%80%9A%E6%9C%83/%E5%8D%B7%E5%85%AD");
+assert.equal(a.paragraphs[2].conditionalRelationAudit?.restrictionEffectProved,false);
+assert.equal(a.paragraphs[2].conditionalRelationAudit?.counteractionEffectProved,false);
+assert.equal(a.paragraphs[2].conditionalRelationAudit?.approvedForSale,false);
+assert.equal(z.paragraphs[2].conditionalRelationAudit?.volumeSix.url,
+ a.paragraphs[2].conditionalRelationAudit?.volumeSix.url);
+assert.equal(z.competingClassicalClause.url,a.competingClassicalClause.url);
+assert.deepEqual(a.paragraphs[2].conditionalRelationAudit.volumeSix.matches.map(x=>x.exactPillar),
+ ['癸丑','癸未']);
+assert.deepEqual(z.paragraphs[2].conditionalRelationAudit.volumeSix.matches.map(x=>x.exactPillar),
+ ['癸丑']);
+assert.equal(a.paragraphs[2].conditionalRelationAudit.additionalHourExactPillar,'癸未');
+assert.equal(z.paragraphs[2].conditionalRelationAudit.additionalHourExactPillar,null);
+assert.equal(a.paragraphs[2].conditionalRelationAudit.finalStrengthOrPriorityChosen,false);
+assert.equal(z.paragraphs[2].conditionalRelationAudit.finalStrengthOrPriorityChosen,false);
+assert.equal(z.paragraphs[2].conditionalRelationAudit.restrictionEffectProved,false);
+assert.equal(z.paragraphs[2].conditionalRelationAudit.counteractionEffectProved,false);
+assert(z.paragraphs[2].refs.includes('natal.month.hidden.己'));
+assert(a.paragraphs[2].refs.includes('natal.hour.hidden.丁'));
+assert(a.paragraphs[2].refs.includes('natal.hour.hidden.己'));
+assert(a.paragraphs[2].refs.includes('natal.month.hidden.己'));
+assert(!z.readerText.includes('안온한 쪽으로'));
+assert(z.readerText.includes('해에 있는 글자는 그 목록에 있지만'));
+assert(a.paragraphs[1].text.includes('달과 시간, 두 곳입니다'));
+assert(z.paragraphs[1].text.includes('밖으로 표현하는 뜻'));
+assert(a.paragraphs[1].text.includes('달과 시간 사이에도 맞서는 관계'));
+assert(z.paragraphs[1].text.includes('달과 시간 사이에는 같은 맞서는 관계가 없고'));
+assert(!z.paragraphs[1].text.includes('달과 시간, 두 곳입니다'));
+assert(!a.paragraphs[1].text.includes('밖으로 표현하는 뜻'));
+assert(!a.readerText.includes('해에 있는 글자는 그 목록에 있지만'));
+for(const [packet,c] of [[early,a],[late,z]]){
+ assert.equal(c.kind,'qa-composed-three-paragraph-first-chapter-for-human-review-v1');
+ assert.equal(c.paragraphs.length,3);
+ assert.equal(c.releaseVerdict,'not-approved');
+ assert.equal(c.methodProfessionallyApproved,false);
+ assert.equal(c.readerValueApproved,false);
+ assert.equal(c.personalConclusionValidated,false);
+ assert.equal(c.comparedAgainstPrivateActualPaidOutput,false);
+ assert.equal(c.normalPaidWriterUnchanged,true);
+ assert.equal(c.checkoutEnabled,false);
+ assert.equal(c.providerCalls,0);
+ assert.equal(c.humanReviewDecisionsPending.length,3);
+ assert(c.paragraphs.every(p=>p.text.length>=200));
+ assert.deepEqual(reader.errors(c.paragraphs.flatMap(p=>[p.label,p.text])),[]);
+ const actual=gap.reportOne(packet);
+ assert.deepEqual(c.actualPaidMonthEvidence,actual.paidCitableRefs);
+ assert.deepEqual(c.baseChapterMonthEvidence,[
+  'natal.month.stem','natal.month.hidden.己'
+ ]);
+ assert(!c.actualPaidMonthEvidence.includes('natal.hour.stem'));
+ assert(!c.actualPaidMonthEvidence.includes('natal.day.stem'));
+ assert(c.newlyIntroducedExactDayHourRefs.includes('natal.hour.stem'));
+ assert(c.newlyIntroducedExactDayHourRefs.includes('natal.day.stem'));
+ assert(c.newlyIntroducedExactDayHourRefs.every(id=>c.paragraphs[2].refs.includes(id)));
+ assert(c.paragraphs[2].refs.length>c.newlyIntroducedExactDayHourRefs.length);
+ assert.equal(c.paragraphs[2].conditionalRelationAudit.approvedForSale,false);
+ assert.equal(c.paragraphs[2].conditionalRelationAudit.volumeSix.matches[0].position,'month');
+ assert(c.paragraphs[0].refs.every(id=>c.baseChapterMonthEvidence.includes(id)));
+ assert(!/(?:동료|납품|가정해 보|기계 조작|장비)/.test(c.readerText));
+ assert(c.readerText.length<900,'the revised reader chapter must be concise');
+ assert(!/실제(?:로)?\s*(?:성격|능력|말솜씨|지위)/.test(c.paragraphs[0].text+c.paragraphs[1].text),
+  'reader caveats belong in the final historical-source paragraph');
+ assert(/실제|예측/.test(c.paragraphs[2].text));
+ assert(c.readerText.indexOf(c.paragraphs[1].text)<c.readerText.indexOf(c.paragraphs[2].text),
+  'positional context must lead to the historical conclusion');
+ assert(c.paragraphs[1].refs.includes('facts.natalBranchRelations'));
+ assert(c.paragraphs[2].refs.includes('natal.day.stem'));
+ assert.equal(c.normalPaidWriterUnchanged,true);
+}
+assert.deepEqual(chapter.compare(),comparison);
+assert.equal(chapter.build(facts.build({...base,birthTime:'10:20'},2027)),null);
+assert.equal(chapter.build(facts.build({...base,birthDate:'1982-11-23',birthTime:'14:20'},2027)),null);
+const wrong=structuredClone(early);
+wrong.facts.tenGods.month.stemTenGod='정재';
+assert.throws(()=>chapter.build(wrong),/CORE_KNOWLEDGE_CALCULATED_TEN_GOD_DIVERGED|SOURCE_OR_PAID_BOUNDARY_DRIFT|QA_/);
+const distorted=structuredClone(late);
+distorted.chart.hour='癸未';
+assert.equal(chapter.build(distorted),null);
+const forged=structuredClone(early);
+forged.facts.natalBranchRelations.pairs=[];
+assert.throws(()=>chapter.build(forged),/QA_|SOURCE_QUESTION_BRANCH_EVIDENCE_TAMPERED/);
+const inventedRole=structuredClone(late);
+inventedRole.facts.tenGods.hour.stemTenGod='편인';
+assert.throws(()=>chapter.build(inventedRole),/QA_|DIVERGED/);
+const hiddenCounterTamper=structuredClone(early);
+hiddenCounterTamper.facts.tenGods.hour.hiddenStems.find(x=>x.stem==='己').tenGod='편인';
+assert.throws(()=>chapter.build(hiddenCounterTamper),/QA_|DIVERGED/);
+const hiddenExpressionTamper=structuredClone(early);
+hiddenExpressionTamper.facts.tenGods.hour.hiddenStems.find(x=>x.stem==='丁').tenGod='편인';
+assert.throws(()=>chapter.build(hiddenExpressionTamper),/QA_|DIVERGED/);
+const forgedCommonMonth=structuredClone(late);
+forgedCommonMonth.facts.tenGods.month.hiddenStems.find(x=>x.stem==='己').tenGod='정인';
+assert.throws(()=>chapter.build(forgedCommonMonth),/QA_|DIVERGED/);
+const md=chapter.markdown();
+assert(md.includes('14:20')&&md.includes('20:20'));
+assert(md.includes('비판매·전문 검수 대기'));
+assert(md.includes('출시 불가'));
+assert(md.includes(a.paragraphs[0].text));
+assert(md.includes(a.paragraphs[1].text));
+assert(md.includes(z.paragraphs[1].text));
+assert(md.includes('https://zh.wikisource.org'));
+assert(md.includes("https://zh.wikisource.org/zh-hant/%E4%B8%89%E5%91%BD%E9%80%9A%E6%9C%83/%E5%8D%B7%E5%85%AD"));
+assert(md.includes('month=癸丑, hour=癸未'));
+assert(md.includes('정확한 해당 자리: month=癸丑'));
+assert(!md.includes('hour=丙戌'));
+assert(!md.includes('전문감수 통과'));
+console.log('PASS source-qualified volume-6 shared month exception and added early hour match; other time not stripped; paid writer unchanged');

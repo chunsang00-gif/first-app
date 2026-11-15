@@ -2,17 +2,17 @@
 // These are questions and interpretation limits, never precomputed personality claims.
 // Include only the current chapters, keeping the existing paid call count unchanged.
 const chapters={
- saju_core:{focus:'원국 한 장에서는 실제 계산된 네 기둥의 일간·월지·십성과 지장간을 구분하여 설명한다. 일간을 기준으로 월지의 계절적 맥락과 십성의 위치를 살펴보고, 근거가 확인되는 전통 해석만 선택한다. 핵심 명리 용어를 본문에 한번 제시한 뒤 바로 괄호 안에 쉬운 뜻을 풀어 쓴다. 그 근거에서 어떤 장점과 취약점이 도출되는지, 반대 근거는 없는지 설명한다. 월지나 십성 한 가지로 실제 성격을 확정하지 않는다.',avoid:'상관 하나만 보고 반항적이라고 결론내리거나 정재 하나로 성실함을 확정하지 않는다. 월지의 계절과 출현 횟수만으로 신강·신약·용신을 판정하지 않는다.'},
- mbti_contradiction:{focus:'MBTI는 독립된 심리적 선호 모형으로 먼저 읽는다. 에너지를 회복하며 주의를 향하는 방식(I/E), 정보의 구체성·가능성을 다루는 방식(S/N), 결정에서 논리·가치에 무게를 두는 방식(T/F), 외부 일정을 닫거나 열어 두는 방식(J/P)이 하나의 선택 과정에서 어떻게 결합되는지 설명한다. 다음으로 동일한 상황을 사주와 별도로 해석해 강화·충돌·보완 또는 근거 부족을 구분한다. MBTI 선호가 행동의 실제 빈도나 능력의 증거인 것처럼 쓰지 않는다.',avoid:'I는 조용함, F는 착함, P는 미루기라는 설명으로 끝내거나 반전을 억지로 만들지 않는다.'},
+ saju_core:{focus:'독자가 자신의 기본 기질을 전통적으로 어떻게 읽는지 알고, 그 해석에 유리하거나 불리한 조건도 이해하도록 쓰는 장이다. 계산된 십성의 두 위치가 뒷받침하는 독법을 한 문장으로 제시하고, 가상의 선택은 그 의미를 설명하는 예시로만 사용한다. 생활 팁만 나열하지 않는다. 첫 문단은 출생 계절과 겉글자의 계산된 관계를 한 가지 가상 상황에 연결하고, 둘째 문단은 월간 십성과 월지 본기 십성의 실제 출처·뜻을 연결해 첫 문단과 다른 한 가지 조건부 기질 해석을 제시한다. 내부 비교 질문은 고객에게 질문 목록으로 나열하지 않는다. 뿌리·충 계산은 다른 검증에 남기되 첫 장 두 문단의 본문·근거 인용에는 넣지 않는다. 반대 방향이 계산되지 않았으면 성격의 양면성이나 갈등을 만들지 않고 실제 성격·능력·적응력·사건을 단정하지 않는다.',avoid:'상관 하나만 보고 반항적이라고 결론내리거나 정재 하나로 성실함을 확정하지 않는다. 월지의 계절과 출현 횟수만으로 신강·신약·용신을 판정하지 않는다.'},
+ mbti_contradiction:{focus:'MBTI는 독립된 심리적 선호 모형으로 먼저 읽는다. 에너지를 회복하며 주의를 향하는 방식(I/E), 정보의 구체성·가능성을 다루는 방식(S/N), 결정에서 논리·가치에 무게를 두는 방식(T/F), 외부 일정을 닫거나 열어 두는 방식(J/P)이 하나의 선택 과정에서 어떻게 결합되는지 설명한다. 다음으로 동일한 가상 상황을 사주와 별도로 해석하되, 두 체계의 일치·반전을 계산으로 인증할 수 없음을 지킨다. 각각의 출처가 설명하는 질문과 실제 경험 없이는 알 수 없는 부분을 구분한다. MBTI 선호가 행동의 실제 빈도나 능력의 증거인 것처럼 쓰지 않는다.',avoid:'I는 조용함, F는 착함, P는 미루기라는 설명으로 끝내거나 반전을 억지로 만들지 않는다. MBTI에는 환경이나 압박이 포함되지 않고 사주는 실제 반응을 알 수 있다는 식으로 두 이론의 우열을 만들지 않는다. 두 풀이 모두 입력하지 않은 실제 행동을 확인할 수 없다. 이론의 설명 범위 자체를 제목이나 개인별 결론으로 대신하지 않는다.'},
  decision:{focus:'결정 장은 실제 선택 과정만 다룬다. 정보의 출처, 선택지 비교, 새로운 정보가 나왔을 때 판단을 수정하는 조건을 순서대로 구분한다. 사주 원국에서 다룬 타인의 요구에 반응하거나 이유를 설명하는 성향을 다시 풀이하지 않는다.',avoid:'자기 의견을 말한다는 원국 설명을 반복하거나 신중하다는 한마디로 대체하지 않는다.'},
  money:{focus:'돈을 버는 데 들이는 수고, 지출의 우선순위, 당장 쓸 돈과 남길 돈 사이의 선택을 구분한다. 소비 습관이나 소득은 실제 관측값이 아님을 전제로 해석한다.',avoid:'정재=절약, 겁재=금전 손실로 확정하지 않는다. 모든 사람에게 공동투자·계약서 확인을 주된 결론으로 붙이지 않는다. 재성·식상 직접 계산 근거 없이 일간의 자기주장이나 월지의 규칙·압박을 수입 선택, 보상 선호, 실제 소비 습관으로 바꾸어 쓰지 않는다. 충이 없다는 이유로 금전 손실 위험이 발견되지 않았다고 단정하지 않는다.'},
  career:{focus:'문제를 찾는 일·실행하는 일·조율하는 일 중 어떤 업무 조건을 설명할 근거가 있는지, 배우는 과정과 협업에서 어떻게 달라지는지 다룬다.',avoid:'의견을 낼 자유가 중요하다는 말로 네 항목을 채우지 않는다. 특정 직업의 성공이나 능력을 유형만으로 보장하지 않는다. 일간이나 오행의 개수만으로 일의 시작·마무리 방식, 완성도 집착, 조직 내 평가에 대한 실제 반응을 단정하지 않는다. 직업 분야에 실제로 연결되는 독립 계산 근거가 없다면 앞선 결정 장의 결론을 새 직업 통찰로 재판매하지 않는다.'},
  relationship:{focus:'가까워지는 과정, 애정을 표현하고 기대하는 방식, 서운함을 알리고 거절하는 방식의 차이를 설명한다. 친구·연인·가족이 실제로 있다는 전제는 두지 않는다.',avoid:'업무의 발언권·역할 분담 이야기를 관계에 그대로 옮기지 않는다. 헌신·질투·이별 경험을 만들어내지 않는다. 원국에 충이 없다는 계산 사실만으로 서운함을 늦게 표현하거나 차분하게 거절한다는 행동을 만들어내지 않는다. 일지의 지장간 여러 십성을 나열한 것만으로 실제 애정 표현, 친밀해지는 속도, 상대를 관찰하는 습관을 단정하지 않는다.'},
  stress:{focus:'스트레스 장은 압박의 촉발 조건, 압박을 받은 뒤 달라지는 반응, 회복 조건만 다룬다. 결정 장의 정보 비교나 원국 장의 요구에 이유를 묻는 태도를 반복하지 않는다. 평소에 도움이 되던 반응이 어떤 압박 아래에서 달라져 손해가 되는지 다룬다. 회복 방법은 그 반응과 직접 연결될 때만 짧게 쓴다.',avoid:'원국의 단점을 다시 나열하거나 누구에게나 통하는 휴식 조언으로 채우지 않는다. 정신건강을 진단하지 않는다. 스트레스 시 굳게 버티거나 타협을 거부하는 행동은 계산된 사주·입력 MBTI만으로 관찰할 수 없다. 가능한 전통 해석과 확인이 필요한 실제 반응을 구별한다.'},
  integrated_judgment:{focus:'이 장에서 사주와 MBTI 비교 장의 일치·충돌 판정을 다시 쓰지 않는다. 이미 나온 장점·약점도 재서술하지 않는다. 두 근거를 함께 놓았을 때만 도출되는 조건이 없으면 추가 성격 판단을 만들어내지 않는다. 앞 장들을 다시 요약하지 말고, 각각 따로 읽을 때 빠지는 단 하나의 조건부 통찰이 있을 때만 깊게 다룬다. 사주와 MBTI가 다른 이유를 설명하면 통합한 의미가 드러나야 한다. 근거가 부족하면 비교의 한계를 짧게 밝히며 새로운 성격을 창작하지 않는다.',avoid:'MBTI 비교 장의 조용하지만 의견을 말한다는 설명을 반복하지 않는다.'},
- year_2027:{focus:'계산된 원국·세운·대운의 차이를 내부에서 확인하고, 독자에게는 2027년 정미년 세운과 실제 계산된 대운의 관계를 필요한 명리 용어와 괄호 설명으로 풀어 쓴다. 그 근거가 평소와 비교해 어떤 판단 차이를 낳는지 설명한다. 차이를 말할 근거가 약하면 변화를 꾸미지 않는다.',avoid:'모든 원국에 책임과 평가가 늘어난다고 쓰지 않는다. 대운 교체일을 모르면 연초부터 바뀐다고 단정하지 않는다.'},
- year_2027_money:{focus:'2027년 계산 요소 중 금전 해석과 관련되는 근거를 먼저 고른다. 평소의 돈 풀이와 무엇이 달라지는지 설명하며 차이가 약하면 간결하게 끝낸다.',avoid:'계약·해지 비용·공동투자를 정해진 결론처럼 쓰지 않는다. 수입 증가나 손실을 예고하지 않는다.'},
- year_2027_career:{focus:'2027년 계산 요소를 업무·배움·역할 등 관련 있는 문제와 연결하고 평소 직업 풀이와 달라지는 점을 설명한다.',avoid:'항상 책임·결정 권한을 결론으로 삼거나 승진·이직을 확정하지 않는다.'},
+ year_2027:{focus:'계산된 원국·세운·대운의 차이를 내부에서 확인하고, 독자에게는 2027년 풀이와 계산된 장기간의 풀이가 어떻게 연결되는지 전문용어 없이 쉽게 설명한다. 그 근거로 출생 때의 자료와 2027년에 해당하는 계산값의 분류·위치를 구별한다. 삶의 실제 변화 정도는 계산하지 않았으며 직접 비교 근거가 없으면 변화를 꾸미지 않는다.',avoid:'모든 원국에 책임과 평가가 늘어난다고 쓰지 않는다. 대운 교체일을 모르면 연초부터 바뀐다고 단정하지 않는다.'},
+ year_2027_money:{focus:'2027년 계산 요소 중 금전 해석과 관련되는 근거를 먼저 고른다. 출생 때의 금전 관련 분류와 2027년의 실제 같은 분류군에 속한 계산 출처 두 곳을 대비한다. 동일 십성의 존재는 소득·지출의 강도 변화가 아니며, 기존 2027년 공통 풀이와 독립적으로 설명할 내용이 없다면 반복하지 않는다.',avoid:'계약·해지 비용·공동투자를 정해진 결론처럼 쓰지 않는다. 수입 증가나 손실을 예고하지 않는다.'},
+ year_2027_career:{focus:'2027년과 출생 때의 관성·인성 중 실제 함께 확인된 분류군의 두 출처를 구별한다. 직업·평판·책임이 커지는 실제 변화로 바꾸지 않고, 공통 2027년 장의 규칙·책임 설명을 독립적인 직업 결론처럼 반복하지 않는다.',avoid:'항상 책임·결정 권한을 결론으로 삼거나 승진·이직을 확정하지 않는다.'},
  year_2027_relationship:{focus:'2027년과 일지의 직접 관계가 계산된 경우에도 상대의 실제 감정, 만남, 거리감의 변화를 관찰한 것처럼 단정하지 않는다. 관계 변화의 전통적인 해석 범위와 알 수 없는 실제 사건을 구별한다.',avoid:'항상 바빠져 연락이 줄어든다고 가정하지 않는다. 만남·결혼·이별 사건을 예언하지 않는다.'}
 };
 const preferences={
@@ -22,8 +22,8 @@ const preferences={
  N:{dimension:'정보를 받아들이는 선호',meaning:'정보 사이의 연결과 가능한 해석을 우선해 이해하는 선호',notEvidenceOf:'창의적 재능·정확한 직감·현실 감각 부족'},
  T:{dimension:'판단에서 더 비중을 두는 선호',meaning:'논리적 일관성과 공통 원칙을 우선해 판단하는 선호',notEvidenceOf:'감정이 없음·공감 능력 부족·더 높은 지능'},
  F:{dimension:'판단에서 더 비중을 두는 선호',meaning:'중요하게 여기는 가치와 사람에게 미칠 영향을 우선해 판단하는 선호',notEvidenceOf:'친절함·헌신·감정 조절 실패·논리 부족'},
- J:{dimension:'외부 생활을 진행하는 선호',meaning:'계획과 결정을 정해 두고 일을 진행하는 쪽을 선호',notEvidenceOf:'성실함·완벽주의·높은 수행 능력'},
- P:{dimension:'외부 생활을 진행하는 선호',meaning:'정보와 선택의 여지를 열어 두고 상황에 맞춰 조정하는 쪽을 선호',notEvidenceOf:'게으름·마감 실패·결정 장애'}
+ J:{dimension:'외부 생활을 진행하는 선호',meaning:'계획과 결정을 정해 두고 일을 진행하는 쪽을 선호',notEvidenceOf:'성실함·완벽주의·높은 수행 능력·결정을 바꾸지 않음·타협하지 않음'},
+ P:{dimension:'외부 생활을 진행하는 선호',meaning:'정보와 선택의 여지를 열어 두고 상황에 맞춰 조정하는 쪽을 선호',notEvidenceOf:'게으름·마감 실패·결정 장애·항상 양보함'}
 };
 const sajuOnlyChapters={
  mbti_contradiction:{focus:'원국의 월지·일지·십성 가운데 실제 계산된 서로 다른 근거를 비교한다. 겉으로 드러나는 반응과 혼자 생각하고 결정할 때의 반응이 달라질 조건을 설명하되, 실제 성격을 관찰한 것처럼 단정하지 않는다.',avoid:'입력하지 않은 성격 유형을 추정하거나 서로 다른 해석을 억지로 반전시키지 않는다.'},
@@ -32,6 +32,18 @@ const sajuOnlyChapters={
 function forRequest(ids,mbti){
  const valid=typeof mbti==='string'&&/^[EI][NS][FT][JP]$/.test(mbti);
  return {
+  // No formula converts a self-reported MBTI preference into a verified
+  // relationship with traditional Saju symbols. The two can be discussed
+  // for the SAME hypothetical situation, but not declared proven agreement.
+  comparisonContract:{
+   version:'independent-frameworks-v1',
+   mode:valid?'conditional-side-by-side':'saju-only',
+   mbtiEvidence:valid?'user-entered-preferences':'absent',
+   sajuEvidence:'computed-traditional-symbols-not-observed-behavior',
+   calculatedAgreement:false,calculatedContradiction:false,
+   permissibleConclusions:valid?['different-questions','conditional-comparison','insufficient-evidence']:['saju-only','insufficient-evidence'],
+   limit:'명리 분류와 MBTI 선호는 서로를 검증하지 않는다. 동일한 가정 상황에서 각각 어떤 질문을 다루는지 설명할 뿐 실제 행동의 일치·충돌을 확인하거나 심리 특성을 측정한 결과로 주장하지 않는다.'
+  },
   chapterTasks:Object.fromEntries(ids.map(id=>{if(!chapters[id])throw Error('unknown report chapter: '+id);return [id,valid?chapters[id]:(sajuOnlyChapters[id]||chapters[id])];})),
   mbtiReference:valid?{type:mbti,source:'사용자가 입력한 유형에 대한 선호 설명. 실제 행동·능력의 측정 결과가 아니다.',preferences:[...mbti].map(code=>({code,...preferences[code]})),application:'한 가지 구체적인 선택 상황을 정한 뒤 (1) MBTI 네 글자 중 해당 상황에 관련된 정보 처리 선호와 결정 선호 두 가지를 이름과 뜻으로 구분하고 (2) 실제 계산된 사주 항목과 전통적 의미를 별도로 밝히고 (3) 두 해석이 서로 다른 질문에 답하거나 같은 결론을 뒷받침할 때의 조건을 설명한다. 일치 또는 반전을 억지로 선언하지 않는다. MBTI는 입력된 선호이지 실제 행동 빈도·능력·성격의 검증 결과가 아니다. 해당 상황의 계산 근거가 부족하면 비교 한계를 한 문장으로 밝히고 새 성격을 만들어내지 않는다.'}:null
  };
@@ -40,14 +52,14 @@ function forRequest(ids,mbti){
 // Deterministic editorial blueprint created BEFORE any paid writing call.
 // This is not a fabricated interpretation: fields refer only to calculated facts.
 const chapterBlueprint={
- saju_core:{question:'태어난 사주에서 서로 다른 성향을 설명하는 계산된 요소는 무엇인가?',primary:'facts.structuralEvidence.monthCommand',lens:'기본 명리 근거 설명'},
- mbti_contradiction:{question:'입력 MBTI가 선호하는 정보 처리와 사주 해석의 설명 범위는 어디서 다르나?',primary:'person.mbti',lens:'두 설명 체계의 차이'},
+ saju_core:{question:'기본 기질을 어떻게 풀이하며 어떤 조건이 그 전통적 해석을 달리하게 하는가?',primary:'facts.structuralEvidence.monthCommand',lens:'기본 기질과 해석을 뒷받침하는 조건'},
+ mbti_contradiction:{question:'새로운 일을 맡을지 결정하는 같은 선택 상황에서 입력 MBTI의 정보·판단 선호와 원국의 실제 상징은 각각 어떤 질문에 답하는가? 같은 행동이나 반대 행동을 입증했다고 결론 내리지 않는다.',primary:'person.mbti',lens:'같은 선택 상황에서 두 풀이 비교'},
  decision:{question:'선택지를 비교하는 선호와 결정을 고치는 조건을 어떻게 구분할까?',primary:'facts.tenGods.day',lens:'정보 탐색과 선택 변경'},
  money:{question:'돈을 얻는 활동과 쓰고 보유하는 판단은 어떻게 별도로 해석할까?',primary:'facts.tenGods.month',lens:'금전 관련 전통 해석의 범위'},
  career:{question:'배우기·수행하기·함께 일하기를 어떤 근거로 구별할까?',primary:'facts.structuralEvidence.visibleStems',lens:'과업과 협업'},
  relationship:{question:'가까워짐·애정 표현·의견 충돌의 서로 다른 조건은 무엇인가?',primary:'facts.tenGods.day.hiddenStems',lens:'사적인 관계'},
  stress:{question:'압박 시 바뀌는 반응은 평소 반응과 어떻게 다른가?',primary:'facts.natalClashes',lens:'갈등 상황과 해석의 한계'},
- integrated_judgment:{question:'앞서 서로 다르게 설명된 두 관점을 결합하면 무엇이 새로 남는가?',primary:'facts.tenGods',lens:'교차 해석과 근거 강도'},
+ integrated_judgment:{question:'이미 비교한 결론을 반복하지 않고 새로운 가상 선택 상황에서 두 관점을 함께 살펴보면 무엇을 알 수 있고 무엇은 확인이 필요한가?',primary:'facts.tenGods',lens:'교차 해석과 근거 강도'},
  year_2027:{question:'2027년의 실제 연간 십성과 원국 관계에서 계산된 차이는 무엇인가?',primary:'facts.annualTenGods',lens:'연간 계산과 해석 한계'},
  year_2027_money:{question:'연간 자료에서 금전 해석에 직접 연결할 수 있는 부분은 무엇인가?',primary:'facts.annualTenGods.hiddenStems',lens:'연간 금전 관련성'},
  year_2027_career:{question:'연간 자료에서 업무·배움 해석에 연결할 수 있는 부분은 무엇인가?',primary:'fortune.activeDecade',lens:'일과 시기 구별'},
@@ -56,15 +68,15 @@ const chapterBlueprint={
 // Topic ownership is a fixed editorial distinction, not a claim about a person.
 // This prevents the same topic answer being requested by multiple chapters.
 const topicEvidencePaths={
- saju_core:{temperament:'facts.structuralEvidence.monthCommand',strength:'facts.structuralEvidence.dayMasterRoots'},
- mbti_contradiction:{agreement:'person.mbti',difference:'facts.tenGods.month'},
+ saju_core:{temperament:'facts.structuralEvidence.monthCommand',strength:'facts.tenGods.month'},
+ mbti_contradiction:{agreement:'person.mbti',difference:'facts.tenGods.month',information:'person.mbti',judgment:'person.mbti',energy:'person.mbti',planning:'person.mbti'},
  decision:{approach:'facts.tenGods.day',followthrough:'facts.natalClashes'},
  money:{earning:'facts.tenGods.month',spending:'facts.tenGods.day',risk:'facts.natalClashes'},
  career:{workstyle:'facts.structuralEvidence.visibleStems',teamwork:'facts.tenGods.month',growth:'facts.structuralEvidence.monthCommand',change:'fortune.activeDecade'},
- relationship:{closeness:'facts.tenGods.day.hiddenStems',expression:'facts.tenGods.month',conflict:'facts.natalClashes'},
+ relationship:{closeness:'facts.tenGods.day.hiddenStems',expression:'facts.tenGods.month',conflict:'facts.natalClashes',coordination:'facts.natalBranchRelations'},
  stress:{trigger:'facts.natalClashes',response:'facts.tenGods.day'},
  integrated_judgment:{insight:'facts.tenGods',tradeoff:'facts.structuralEvidence.monthCommand'},
- year_2027:{change:'facts.annualTenGods',impact:'facts.targetYearRelations'},
+ year_2027:{change:'facts.annualTenGods',impact:'facts.targetYearRelations',new_triad:'facts.targetYearBranchRelations',root_contrast:'facts.rootConditions'},
  year_2027_money:{change:'facts.annualTenGods',action:'facts.tenGods.month'},
  year_2027_career:{change:'fortune.activeDecade',action:'facts.annualTenGods'},
  year_2027_relationship:{change:'facts.targetYearRelations',action:'facts.annualTenGods'}
@@ -118,76 +130,296 @@ function preflight(packet){
     interpretationBoundary:mode==='use-primary'?'전통적 해석의 연결 가능성만 설명하고 실제 행동으로 입증된 것처럼 단정하지 않는다.':mode==='use-verified-fallback'?'우선 계산값이 없으므로 실제 확인된 보조 근거만 사용한다. 보조 근거를 주된 근거처럼 말하거나 사건을 단정하지 않는다.':'다른 세부 항목의 성격 설명으로 채우지 말고 이 질문에서 판단할 수 없는 범위를 밝힌다.'}];
   }));
  }
- // Build an evidence-allocation ledger in actual model generation order.
- // One calculated fact may answer more than one question, but the same
- // interpretation is not a second paid insight. Every reuse gets a distinct
- // question and an explicit ban on recycling the first owner's conclusion.
- const writingOrder=['saju_core','mbti_contradiction','decision','stress','money','career','relationship','integrated_judgment','year_2027','year_2027_money','year_2027_career','year_2027_relationship'];
- const allocated=new Map();
- for(const id of writingOrder){
-  const tasks=plans[id]?.topicTasks||{};
-  for(const [topic,task] of Object.entries(tasks)){
-   // A missing primary fact must not claim ownership or create a false reuse boundary.
-   const paths=(task.mode==='use-primary'?[task.primaryEvidencePath]:task.mode==='use-verified-fallback'?task.verifiedFallbackPaths:[]).filter(Boolean);
-   const prior=paths.flatMap(path=>(allocated.get(path)||[]).map(owner=>({path,chapter:owner.chapter,topic:owner.topic,question:owner.question})));
-   task.evidenceReuseBoundary=prior.length?{
-    priorOwners:prior,
-    distinctQuestion:task.question,
-    rule:'이 계산값은 위 항목에서 이미 사용됐다. 앞 항목의 행동 결론을 다시 쓰지 말고, 현재 질문에 직접 연결되는 서로 다른 전통적 의미가 확인될 때만 설명한다. 새로운 의미가 없으면 이 질문에 대한 추가 판단 근거가 부족하다고 명확히 적는다.'
-   }:null;
-   for(const path of paths){
-    const owners=allocated.get(path)||[];
-    owners.push({chapter:id,topic,question:task.question});
-    allocated.set(path,owners);
-   }
+ // NEW paid MBTI dimensions use ONLY the exact user-entered preference.
+ // They do not borrow a Saju natal source to inflate paid-topic count.
+ const preferenceType=packet.person?.mbti;
+ for(const topic of ['information','judgment','energy','planning']){
+  const proof=require('./report-paid-mbti-dimension').build(preferenceType,topic);
+  const task=plans.mbti_contradiction.topicTasks[topic];
+  task.mode=proof?'use-primary':'state-limits';
+  task.evidencePresent=Boolean(proof);
+  task.allowedSourceRefs=proof?['person.mbti']:[];
+  task.primaryEvidencePath='person.mbti';
+  task.verifiedFallbackPaths=[];
+  task.sourceOwnedPreference=proof;
+  task.interpretationBoundary=proof?
+   '사용자가 직접 입력한 '+proof.selectedCode+
+   ' 선호의 실제 의미와 해당 판단 질문만 설명한다. '+proof.limit+
+   '. 사주 분류와 일치·충돌한다고 주장하거나 다른 MBTI 차원의 설명을 복제하지 않는다.':
+   '사용자가 유효한 MBTI를 입력하지 않아 이 차원의 선호를 개인에게 배정하지 않는다.';
+ }
+ // The second core topic starts from ACTUAL month-position ten-god
+ // relationships. Roots and natal clashes stay optional internal checks.
+ // A valid symbolic interpretation cannot require inventing a root.
+ if(plans.saju_core.topicTasks.strength.mode!=='state-limits')
+  plans.saju_core.topicTasks.strength.requiredSourceKinds=['month-ten-god'];
+ plans.saju_core.topicTasks.strength.interpretationBoundary=
+  '태어난 달의 겉글자 십성과 그 달의 실제 중심 숨은 글자 십성을 각각 확인한다. 두 출생 위치의 전통적 의미가 실제로 같은지 다른지 확인해 한 가지 조건부 기질 풀이로 연결하고, 같은 분류라면 거짓 차이·갈등·강도 증폭을 만들어내지 않는다. 내부 편집 질문을 독자용 질문 목록으로 전환하지 않는다. 두 출처 모두 실제 성격·재산·능력·경험을 증명하지 않는다. 뿌리·충은 이 첫 장 문단의 근거·해석에 끌어오지 않고 강약 점수·마음속 균형·행동의 두 중심을 만들지 않는다.';
+ // One deterministic eligibility planner for domain-specific writing.
+ // A ten-god classification is a traditional symbol, never a measurement
+ // of a person's actual wealth, work, relationships or stress responses.
+ const natalRows=[];
+ for(const position of ['year','month','day','hour']){
+  const group=packet.facts?.tenGods?.[position];
+  if(!group)continue;
+  if(group.stem&&group.stemTenGod)
+   natalRows.push({id:'natal.'+position+'.stem',position,tenGod:group.stemTenGod});
+  for(const row of group.hiddenStems||[])if(row.stem&&row.tenGod)
+   natalRows.push({id:'natal.'+position+'.hidden.'+row.stem,position,tenGod:row.tenGod});
+ }
+ const eligible={
+  money:{
+   earning:{kinds:['정재','편재','식신','상관'],boundary:'금전과 관련된 전통 분류의 뜻만 설명한다. 실제 소득·소비 습관·투자 성과는 확인되지 않았으며 미래 수익을 단정하지 않는다.'},
+   spending:{kinds:['정재','편재'],boundary:'금전 보유와 지출에 관한 전통적 상징만 해석한다. 실제 절약 여부·충동 구매·부채는 입력받지 않아 판단하지 않는다.'},
+   risk:{kinds:[],boundary:'원국의 충돌이나 글자 수로 금전 손실·채무·투자 위험을 판단하지 않는다.'}
+  },
+  career:{
+   workstyle:{kinds:['식신','상관','정인','편인'],boundary:'표현·학습의 전통적 의미만 다룬다. 실제 속도·정확성·완성도·직무 능력이나 성과를 단정하지 않는다.'},
+   teamwork:{kinds:['비견','겁재','정관','편관'],boundary:'협업·역할의 전통적 상징만 다룬다. 실제 동료 평가·승진·갈등 경험을 만들지 않는다.'},
+   growth:{kinds:['정인','편인'],boundary:'학습을 상징하는 전통 분류만 해석한다. 실제 학습 속도·자격·평판을 확인했다고 쓰지 않는다.'},
+   change:{kinds:[],boundary:'대운이나 출생 시 배치만으로 직업 변경·퇴사·독립 성공을 예측하지 않는다.'}
+  },
+  relationship:{
+   closeness:{filter:row=>row.position==='day'&&row.id.includes('.hidden.'),boundary:'태어난 날의 지지 내부 계산을 전통적인 관계 상징으로 설명한다. 실제 친밀감, 연애 경험, 관계의 지속 여부를 알아낸 것처럼 쓰지 않는다.'},
+   expression:{kinds:['식신','상관'],boundary:'표현과 관련된 전통적 상징만 설명한다. 실제 애정 표현·서운함·거절 방식은 확인할 수 없다.'},
+   conflict:{kinds:[],boundary:'충돌의 유무나 십성만으로 실제 다툼·이별·상대의 감정을 만들어내지 않는다.'},
+   coordination:{kinds:[],boundary:'육합 관계표만으로 실제 친밀감이나 혼인·합화가 확인되었다고 주장하지 않는다.'}
+  },
+  stress:{
+   trigger:{kinds:['정관','편관'],boundary:'의무와 압박의 전통적 상징을 가정 상황에 한정해 설명한다. 실제 스트레스 원인·강도·건강 증상은 측정되지 않았다.'},
+   response:{kinds:['정인','편인'],boundary:'회복과 학습의 전통적 상징을 가정 상황으로 설명한다. 실제 감정 조절·회복력·행동 이력은 추정하지 않는다.'}
+  }
+ };
+ for(const [chapterId,topics] of Object.entries(eligible)){
+  for(const [topic,rule] of Object.entries(topics)){
+   const task=plans[chapterId]?.topicTasks?.[topic];
+   if(!task)throw Error('Missing eligible domain topic: '+chapterId+':'+topic);
+   const allowed=natalRows.filter(row=>rule.filter?rule.filter(row):rule.kinds.includes(row.tenGod)).map(row=>row.id);
+   task.allowedSourceRefs=[...new Set(allowed)];
+   task.mode=allowed.length?'use-primary':'state-limits';
+   task.evidencePresent=allowed.length>0;
+   task.verifiedFallbackPaths=[];
+   task.interpretationBoundary=rule.boundary;
   }
  }
- // Annual domain gates are calculated facts, never predicted real-life events.
- // The annual stem is shared across domains, so it alone cannot justify
- // three independent predictions. Require a distinct supported connection.
+ // The previously disabled career.change slot can ask an independent
+ // traditional question ONLY with a computed active ten-year pillar AND
+ // a distinct natal subtype in the SAME career family. This is not an
+ // assertion that the person changes employers or should start a business.
+ const decadeReading=require('./report-paid-career-decade-reading').candidate(packet);
+ const careerChange=plans.career.topicTasks.change;
+ if(decadeReading){
+  careerChange.mode='use-primary';
+  careerChange.allowedSourceRefs=decadeReading.sourceRefs.slice();
+  careerChange.primaryEvidencePath='fortune.activeDecade';
+  careerChange.evidencePresent=true;
+  careerChange.verifiedFallbackPaths=[];
+  careerChange.sourceOwnedDecadeCareer=decadeReading;
+  careerChange.interpretationBoundary='출생 원국의 실제 직업 관련 십성 한 종류와 2027년을 포함하는 실제 대운의 다른 십성 종류를 같은 분류군 안에서 비교한다. 실제 이직·독립·승진 시기나 직업적 성공 여부는 판정할 수 없으며 다른 직업 장의 natal-only 결론을 되풀이하지 않는다.';
+ }
+ // Narrow classical counterexample to an unsupported "wealth warehouse
+ // opens" claim. Only verified MONTH storage-clash + genuine hidden wealth
+ // may create a separate money interpretation. No profit/loss inference.
+ const wealthClash=require('./report-paid-money-clash-reading').candidate(packet);
+ const moneyRisk=plans.money.topicTasks.risk;
+ if(wealthClash){
+  moneyRisk.mode='use-primary';
+  moneyRisk.allowedSourceRefs=wealthClash.sourceRefs.slice();
+  moneyRisk.primaryEvidencePath='facts.natalClashes';
+  moneyRisk.evidencePresent=true;
+  moneyRisk.verifiedFallbackPaths=[];
+  moneyRisk.sourceOwnedWealthClash=wealthClash;
+  moneyRisk.interpretationBoundary='출생월의 진·술 또는 축·미 충과 그 달에 실제로 숨은 재성 분류가 연결될 때만 고전의 성립 조건을 구분한다. 충을 재물 개방·손실·투자위험 등 미래 사건으로 읽지 않으며 수입·지출 습관 해석과 중복하지 않는다.';
+ }
+ // A distinct relationship conflict question requires a computed
+ // natal DAY-branch clash, not a generic ten-god label or another position.
+ const directDayClashes=require('./report-paid-natal-day-clash')
+  .matching(packet.chart,packet.facts?.natalClashes);
+ const conflictTask=plans.relationship.topicTasks.conflict;
+ conflictTask.mode=directDayClashes.length?'use-primary':'state-limits';
+ conflictTask.allowedSourceRefs=directDayClashes.length?['facts.natalClashes']:[];
+ conflictTask.evidencePresent=directDayClashes.length>0;
+ conflictTask.verifiedFallbackPaths=[];
+ conflictTask.interpretationBoundary=directDayClashes.length?
+  '출생일 지지와 다른 원국 지지가 직접 마주 보는 관계가 계산된 경우에만 풀이한다. 실제 다툼·이별·상대의 감정이나 갈등 빈도는 계산하지 않았으며, 친밀감과 표현 풀이의 숨은 글자를 재사용하지 않는다. 두 요구가 서로 다른 조건을 갖는 가상의 상황만 구별하고 강약이나 우열은 정하지 않는다.':
+  '출생일 지지와 직접 연결된 충이 없으므로 다른 출생 위치의 충으로 관계 갈등을 지어내지 않는다.';
+ // Isolated natal birth-day harmony, not a repeat of intimacy or conflicts.
+ const dayHarmony=require('./report-paid-natal-day-harmony').candidate(packet);
+ const coordination=plans.relationship.topicTasks.coordination;
+ coordination.mode=dayHarmony?'use-primary':'state-limits';
+ coordination.evidencePresent=Boolean(dayHarmony);
+ coordination.allowedSourceRefs=dayHarmony?dayHarmony.sourceRefs.slice():[];
+ coordination.primaryEvidencePath='facts.natalBranchRelations';
+ coordination.verifiedFallbackPaths=[];
+ coordination.sourceOwnedDayHarmony=dayHarmony;
+ coordination.interpretationBoundary=dayHarmony?
+  '출생일과 다른 출생 자리에서 계산된 단 한 쌍의 육합 관계만 전통적 질문으로 다룬다. 실제 사람의 조화·결혼·합화는 예측하지 않는다. 앞의 친밀감·표현·갈등 설명을 반복하지 않는다.':
+  '겹치는 관계나 별도의 직접 육합 근거가 없어 실제 관계의 조화를 만들어내지 않는다.';
+ // A single wealth classification does not prove TWO independent paid
+ // interpretations about earning and spending. Source positions alone
+ // repeat the same classification; require output-symbol evidence for an
+ // earning-activity lens, OR both distinct wealth subtypes (정재/편재).
+ // This is a SOURCE eligibility rule only; it does not prove observed
+ // financial behavior or force a second paragraph.
+ const wealthSourceRows=natalRows.filter(row=>row.tenGod==='정재'||row.tenGod==='편재');
+ const outputSourceRows=natalRows.filter(row=>row.tenGod==='식신'||row.tenGod==='상관');
+ const distinctWealthKinds=new Set(wealthSourceRows.map(row=>row.tenGod));
+ const separateMoneyQuestions=outputSourceRows.length>0||distinctWealthKinds.size>1;
+ const spendingTask=plans.money.topicTasks.spending;
+ if(spendingTask.mode!=='state-limits'&&!separateMoneyQuestions){
+  spendingTask.mode='state-limits';
+  spendingTask.evidencePresent=false;
+  spendingTask.allowedSourceRefs=[];
+  spendingTask.verifiedFallbackPaths=[];
+  spendingTask.interpretationBoundary='수입 풀이와 독립된 금전 분류가 확인되지 않아 같은 재성 근거 하나를 지출·보유 성향으로 다시 판매하지 않는다. 지출 기록은 계산되지 않았다.';
+ }
+ // Wealth (재성) is a valid traditional money symbol in BOTH earning
+ // and ownership discussions. Dropping it entirely from earning would erase
+ // meaningful calculation. Prevent duplication at the interpretation lens,
+ // not by silently denying legitimate natal evidence.
+ plans.money.topicTasks.earning.interpretationBoundary=
+  '재성은 재물·대가와 관계되는 전통 분류이고 식상은 생산·표현의 분류다. 실제 계산된 위치와 겉글자/숨은 글자 차이를 구별해 수입 활동이라는 질문에 연결하되 소득·수입 능력·생활 이력을 확정하지 않는다.';
+ plans.money.topicTasks.spending.interpretationBoundary=
+  '재성 근거가 수입 풀이에서도 쓰였다면 단지 돈을 쓴다·아낀다라는 다른 말로 다시 판매하지 않는다. 서로 다른 위치나 관계가 실제로 별도 전통적 의미를 뒷받침할 때만 지출·보유의 제한적 풀이를 작성하며 그렇지 않으면 이 문단을 null로 생략한다. 실제 지출 습관은 측정한 것이 아니다.';
+ // Annual domain relevance comes from the ONE deterministic interpretation
+ // core, not from chapter prompts or another guess inside the QA validator.
+ // A category comparison is traditional symbolism only; never an event,
+ // a physical relationship (충·합), an ability score or a prediction.
+ const annualCore=require('./report-interpretation-core').all(packet);
  const annual=packet.facts?.annualTenGods;
- // Assign a distinct calculated annual relationship to each domain.  A
- // generic official/responsibility ten-god is not evidence of relationship
- // events, and one annual keyword must not become three different forecasts.
- const domains={
-  year_2027_money:{related:/^(?:재성|식상|정재|편재|식신|상관)$/,question:'금전'},
-  year_2027_career:{related:/^(?:관성|인성|정관|편관|정인|편인)$/,question:'일'},
-  year_2027_relationship:{related:/^(?:비견|겁재)$/,question:'관계'}
+ const domainSpecs={
+  year_2027_money:{core:annualCore.money,related:/^(?:재성|식상|정재|편재|식신|상관)$/},
+  year_2027_career:{core:annualCore.career,related:/^(?:관성|인성|정관|편관|정인|편인)$/}
  };
  const annualLabels=[annual?.stemTenGod,...(annual?.hiddenStems||[]).map(x=>x.tenGod)].filter(Boolean);
- for(const [id,domain] of Object.entries(domains)){
-  const plan=plans[id];
-  const matches=[...new Set(annualLabels.filter(x=>domain.related.test(x)))];
-  const dayRelations=(packet.facts?.targetYearRelations||[]).filter(x=>x.between==='day');
-  const directDayRelation=id==='year_2027_relationship'&&dayRelations.length>0;
-  // An annual stem or a hidden-stem label, by itself, is SHARED context
-  // already covered in the yearly overview. Its mere presence cannot justify
-  // charging for a separate domain forecast or a behavioural claim.
-  // A distinct domain-specific relation must be computed first.
-  const verifiedDomainRelation=directDayRelation;
-  const relevant=verifiedDomainRelation;
-  const source=directDayRelation?'facts.targetYearRelations:day':'none';
-  plan.annualDomainEvidence={relevant,source,matchedTenGods:matches,
-   directDayRelation,
-   interpretationFocus:id==='year_2027_money'?'원국과 비교한 금전 관련 계산 관계만 설명한다. 관성의 규칙·책임을 돈의 변화로 바꾸지 않는다.':id==='year_2027_career'?'직업·공적 역할과 직접 관련된 계산 관계만 설명한다. 재성만으로 직업 변화나 승진을 예측하지 않는다.':'일지와 2027년 지지의 직접 관계 또는 비견·겁재의 한정된 전통적 의미만 설명한다. 정관·정재를 근거로 상대의 마음·관계 변화를 예측하지 않는다.',
-   rule:relevant?'표시된 계산 관계의 의미만 설명하고 다른 분야의 동일한 규칙·책임 결론을 다시 쓰지 않으며 실제 사건이나 시기를 단정하지 않는다.':'해당 분야의 직접적인 연간 근거가 확인되지 않았다. 공통 책임·관리 성격 설명을 그 분야만의 새 운세로 쓰지 않는다.'};
-  if(!relevant)for(const task of Object.values(plan.topicTasks)){
-   // A shared annual pillar or natal fallback is NOT evidence of a new
-   // domain-specific 2027 prediction. Previously the task still advertised
-   // use-primary/use-fallback, contradicting the chapter's evidence limit.
-   task.originalEvidenceMode=task.mode;
-   task.mode='state-limits';
-   task.annualDomainLimit='분야별 운세를 새로 예언하지 않고 계산상 직접 근거가 없음을 알린다.';
-   task.interpretationBoundary='이 항목의 기존 원국 정보나 다른 분야의 연간 십성을 새 금전·직업·관계 변화의 직접 근거로 사용하지 않는다.';
+ for(const [id,spec] of Object.entries(domainSpecs)){
+  const plan=plans[id],proof=spec.core;
+  plan.annualDomainEvidence={
+   relevant:proof.relevant,
+   source:proof.relevant?'annual-natal-symbolic-category-comparison':'none',
+   matchedTenGods:[...new Set(annualLabels.filter(x=>spec.related.test(x)))],
+   sourceIds:proof.sourceIds,
+   comparisons:proof.comparisons,
+   evidenceType:proof.evidenceType,
+   guaranteesRealWorldOutcome:false,
+   interpretationFocus:proof.rule,
+   rule:proof.rule
+  };
+  for(const [topic,task] of Object.entries(plan.topicTasks)){
+   // The sole anchor explains the calculated category comparison.
+   // A second paragraph cannot charge again for the same bare two rows.
+   const supported=proof.relevant&&topic==='change';
+   task.mode=supported?'use-primary':'state-limits';
+   task.evidencePresent=supported;
+   task.allowedSourceRefs=supported?proof.sourceIds:[];
+   task.requiredSourceKinds=supported?['annual','natal']:[];
+   task.annualDomainLimit=proof.rule;
+   task.interpretationBoundary=proof.rule;
+   task.verifiedFallbackPaths=[];
   }
  }
+ const relationship=plans.year_2027_relationship;
+ const dayRelations=(packet.facts?.targetYearRelations||[]).filter(x=>x.type==='충'&&x.between==='day');
+ const context=packet.facts?.targetYearBranchContext?.annualContext?.day||null;
+ const dayRelated=context?context.eligibleForLimitedDescription:dayRelations.length>0;
+ const relationshipMatches=[...new Set(annualLabels.filter(x=>/^(?:비견|겁재)$/.test(x)))];
+ const explanation=context
+  ?context.rule+' 경쟁 관계가 있어도 하나가 이겼다고 주장하지 않는다. 관계표의 존재만 설명하며 실제 사람 사이의 관계를 예언하지 않는다.'
+  :'계산된 일지의 충 관계와 전통적 의미만 구별해 설명하고 실제 만남·이별·결혼을 단정하지 않는다.';
+ relationship.annualDomainEvidence={
+  relevant:dayRelated,
+  source:dayRelated?(context?'facts.targetYearBranchContext.annualContext.day':'facts.targetYearRelations:day'):'none',
+  matchedTenGods:relationshipMatches,directDayRelation:dayRelated,
+  directRelationTypes:context?.directTypes||dayRelations.map(x=>x.type),
+  competingRelations:context?.hasCompetingClaims||false,
+  priority:'unresolved',transformation:'not-assessed',
+  guaranteesRealWorldOutcome:false,
+  interpretationFocus:explanation,
+  rule:dayRelated?explanation:'일지와 세운의 직접 충·육합 근거가 확인되지 않았다. 형·파·해의 후보만으로 실제 연애·결혼·이별이나 관계 운을 판정하지 않는다.'
+ };
+ if(dayRelated){
+  const task=relationship.topicTasks.change;
+  task.mode='use-primary';
+  task.primaryEvidencePath=context?'facts.targetYearBranchContext.annualContext.day':'facts.targetYearRelations';
+  task.allowedSourceRefs=[task.primaryEvidencePath];
+  task.evidencePresent=true;
+  task.verifiedFallbackPaths=[];
+  task.interpretationBoundary=explanation;
+  task.annualDomainLimit=explanation;
+  task.requiredSourceKinds=[];
+  const action=relationship.topicTasks.action;
+  action.mode='state-limits';
+  action.evidencePresent=false;
+  action.allowedSourceRefs=[];
+  action.verifiedFallbackPaths=[];
+  action.interpretationBoundary='같은 계산 관계를 다른 연애 조언으로 반복하지 않는다.';
+ }else if(!dayRelated)for(const task of Object.values(relationship.topicTasks)){
+  task.mode='state-limits';
+  task.evidencePresent=false;
+  task.allowedSourceRefs=[];
+  task.verifiedFallbackPaths=[];
+  task.annualDomainLimit=relationship.annualDomainEvidence.rule;
+  task.interpretationBoundary=relationship.annualDomainEvidence.rule;
+ }
+ // A 2027 newly completed three-branch membership is a different
+ // calculation from an annual ten-god comparison, never an event claim.
+ const annualTriad=require('./report-paid-annual-triad').candidate(packet);
+ const triadTask=plans.year_2027.topicTasks.new_triad;
+ triadTask.mode=annualTriad?'use-primary':'state-limits';
+ triadTask.evidencePresent=Boolean(annualTriad);
+ triadTask.allowedSourceRefs=annualTriad?annualTriad.sourceRefs.slice():[];
+ triadTask.primaryEvidencePath='facts.targetYearBranchRelations';
+ triadTask.verifiedFallbackPaths=[];
+ triadTask.sourceOwnedAnnualTriad=annualTriad;
+ triadTask.interpretationBoundary=annualTriad?
+  '출생 원국에 없던 세 글자 관계가 2027년으로 완성되는 정확한 배치만 설명한다. 합화·강약·길흉·사건은 판단하지 않는다. 일반 2027년 십성 풀이를 다시 쓰지 않는다.':
+  '2027년에 처음 완성되는 독립적인 삼합·방합 근거가 없어 새 사건이나 운세를 지어내지 않는다.';
+ // Two different day-master root positions can answer a distinct 2027
+ // question ONLY when one meets annual clash and another does not.
+ const rootContrast=require('./report-paid-annual-root-contrast').candidate(packet);
+ const rootTask=plans.year_2027.topicTasks.root_contrast;
+ rootTask.mode=rootContrast?'use-primary':'state-limits';
+ rootTask.evidencePresent=Boolean(rootContrast);
+ rootTask.allowedSourceRefs=rootContrast?rootContrast.sourceRefs.slice():[];
+ rootTask.primaryEvidencePath='facts.rootConditions';
+ rootTask.verifiedFallbackPaths=[];
+ rootTask.sourceOwnedAnnualRootContrast=rootContrast;
+ rootTask.interpretationBoundary=rootContrast?
+  '2027년의 직접 충과 관련된 한 뿌리 위치와 충을 맺지 않은 다른 위치의 존재를 독립적으로 구분한다. 뿌리의 소멸·강약·용신·미래 사건을 추정하지 않고 일반 2027년 십성 설명을 반복하지 않는다.':
+  '서로 다른 두 뿌리 중 하나만 충을 맺는 정확한 계산 근거가 없으므로 뿌리의 손실·약화·실제 결과를 만들어내지 않는다.';
+ // Do not pre-label a POSSIBLE future source as already cited in another
+ // chapter. Optional topics may correctly return null, and an unused plan is
+ // not evidence of a repeated interpretation. Once actual paragraphs exist,
+ // report-source-ledger.reusedBefore() traces their VERIFIED cited rows and
+ // conclusions into the next batch. Within a batch, the writer compares
+ // actual drafted paragraphs before selecting another optional topic.
+ // When a REAL seasonal observation exists, the core month interpretation
+ // must cite it directly, not merely infer season from a hidden-stem name.
+ if(packet.facts?.seasonalEvidence&&plans.saju_core?.topicTasks?.temperament?.mode!=='state-limits')
+  // This paragraph owns only season + visible qi observations. Root and
+  // original clash provenance belong to the DISTINCT strength paragraph.
+  plans.saju_core.topicTasks.temperament.requiredSourceKinds=['seasonal',...(packet.facts?.qiEvidence?['qi-ledger','natal-month-position']:[])];
  // One canonical writing plan is shared by schema, model instructions and validation.
  for(const [id,plan] of Object.entries(plans)){
   const entries=Object.entries(plan.topicTasks);
   const anchored=entries.find(([,t])=>t.mode==='use-primary')||entries.find(([,t])=>t.mode==='use-verified-fallback');
-  plan.anchorTopic=anchored?.[0]||null;
+  // A premium core must be anchored in its ACTUAL month-position ten-god
+  // interpretation, not the weaker seasonal background. If season adds no
+  // independent insight, its paragraph is nullable rather than paid filler.
+  const coreAnchor=id==='saju_core'&&plan.topicTasks.strength.mode==='use-primary'
+   ?['strength',plan.topicTasks.strength]:null;
+  plan.anchorTopic=coreAnchor?.[0]||anchored?.[0]||null;
   plan.activeTopicKeys=entries.filter(([,t])=>t.mode!=='state-limits').map(([key])=>key);
   plan.hasGroundedTopic=!!anchored;
+  // These chapter-level fields are DERIVED from final topic eligibility,
+  // never cached from the initial, broader evidence candidates.
+  plan.evidencePresent=plan.hasGroundedTopic;
+  plan.requiredMode=(coreAnchor||anchored)
+   ?((coreAnchor||anchored)[1].mode==='use-verified-fallback'?'use-fallback-with-limits':'explain-with-limits')
+   :'state-insufficient-evidence';
+  plan.fallbackEvidencePaths=[...new Set(entries
+   .filter(([,t])=>t.mode==='use-verified-fallback')
+   .flatMap(([,t])=>t.verifiedFallbackPaths||[]))];
  }
  const questions=Object.values(plans).map(x=>x.question);
  if(new Set(questions).size!==questions.length)throw Error('Report blueprint repeats an analysis question');

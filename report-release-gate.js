@@ -1,0 +1,64 @@
+'use strict';
+// Release gate for a premium written interpretation. Machine quality is only
+// technical eligibility; never treat it as proof of traditional/MBTI meaning,
+// natural Korean prose or user-observed behavior.
+const chapterSelection=require('./report-chapter-selection');
+const sources=require('./report-interpretation-overlap');
+function assess({report,qa,packet,coverage}={}){
+ const sections=Array.isArray(report?.sections)?report.sections:[];
+ const ids=sections.map(s=>s?.id).filter(Boolean);
+ const evidenceCoverage=sources.coverage(sections);
+ const deliveryScope=packet?.chart&&coverage?
+  require('./report-delivery-scope').inspect({report,packet,coverage}):null;
+ const reasons=[];
+ if(deliveryScope&&deliveryScope.status!=='verified-structural-counts')
+  reasons.push('inconsistent-delivered-topic-scope');
+ const hasFinal=Array.isArray(report?.finalJudgment?.body)&&report.finalJudgment.body.length>0;
+ const hasCover=Array.isArray(report?.cover?.highlights)&&report.cover.highlights.length>=3;
+ if(!hasFinal||!hasCover)reasons.push('incomplete-final-report');
+ const lifeDomains=new Set(['decision','money','career','relationship','stress']);
+ const supportedDomains=ids.filter(id=>lifeDomains.has(id));
+ if(!ids.includes('saju_core')||!ids.includes('year_2027')||
+    supportedDomains.length<chapterSelection.MINIMUM_PERSONAL_DOMAINS)
+  reasons.push('insufficient-premium-scope');
+ if(qa?.pass!==true)reasons.push('automated-quality-not-passed');
+ if(!packet?.facts?.tenGods||!packet?.facts?.annualTenGods)
+  reasons.push('calculation-packet-not-verified');
+ if(evidenceCoverage.status!=='canonical-source-data')
+  reasons.push('paragraph-citation-coverage-incomplete');
+ if(!coverage?.canGenerate||!Array.isArray(coverage.plannedIds)||
+    JSON.stringify(coverage.plannedIds)!==JSON.stringify(ids))
+  reasons.push('chapter-scope-not-confirmed');
+ const technicalPass=reasons.length===0;
+ return {
+  releaseVerdict:'not-approved',
+  technicalChecks:technicalPass?'passed':'incomplete',
+  humanReviewRequired:true,
+  manualChecks:[
+   'calculation-to-interpretation-meaning',
+   'distinct-interpretations-across-chapters',
+   'natural-Korean-and-jargon',
+   'depth-worth-paying-for',
+   '2027-limits-and-non-deterministic-events'
+  ],
+  failedTechnicalChecks:[...new Set(reasons)],
+  sourceCoverage:evidenceCoverage,
+  deliveryScope,
+  message:'자동 품질 검사는 유료 출시 승인이 아닙니다. 원문과 계산 근거를 대조한 사람의 독립적 심사가 필요합니다.'
+ };
+}
+// A passing schema/editorial check is only one prerequisite. The technical
+// release checks are independent: chapter scope or source-coverage may still
+// be incomplete even when qa.pass was true. Never advertise 'ready' then.
+function finalize({report,qa,packet,coverage}={}){
+ const base=qa&&typeof qa==='object'?qa:{pass:false,errors:['missing-automated-quality-result']};
+ const gate=assess({report,qa:base,packet,coverage});
+ const errors=Array.isArray(base.errors)?base.errors.slice():[];
+ if(base.pass===true&&gate.technicalChecks!=='passed'){
+  for(const code of gate.failedTechnicalChecks)
+   errors.push('technical-release-check:'+code);
+ }
+ return {...base,pass:base.pass===true&&gate.technicalChecks==='passed',
+  errors:[...new Set(errors)],releaseGate:gate};
+}
+module.exports={assess,finalize};

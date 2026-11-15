@@ -1,0 +1,197 @@
+name: QA3 existing encrypted failure - offline diagnosis only
+on:
+  push:
+    branches: [fix-paid-qa-fact-bindings-20261014]
+    paths: [.github/workflows/qa3-offline-diagnosis.yml]
+permissions:
+  contents: read
+  actions: read
+jobs:
+  inspect-prior-archive:
+    if: ${{ github.ref == 'refs/heads/fix-paid-qa-fact-bindings-20261014' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install local decoder dependencies only (no API calls)
+        run: npm install --no-audit --no-fund
+      - name: Download the already-created encrypted QA3 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: premium-first-chapter-v2-qa3-encrypted
+          run-id: 40633333735
+          github-token: ${{ github.token }}
+          path: qa3-ciphertext
+      - name: Diagnose existing evidence offline (NO provider call and NO raw text logging)
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          NODE_ENV: test
+          PAID_CORE_DEPTH_V2: offline-preview
+        run: |
+          set -euo pipefail
+          node report-qa-secure-archive.js decrypt qa3-ciphertext/premium-first-chapter-qa.enc qa3-private >/dev/null
+          node - <<'NODE'
+          'use strict';
+          const fs=require('node:fs');
+          const path=require('node:path');
+          const root='qa3-private';
+          const get=(name)=>{
+            const f=path.join(root,name);
+            return fs.existsSync(f)?JSON.parse(fs.readFileSync(f,'utf8')):null;
+          };
+          const result=get('private-qa-first-chapter.json');
+          const attempt=get('private-qa-first-chapter-attempt.json');
+          const provider=get('private-qa-first-chapter-provider-calls.json');
+          const review=get('private-qa-first-chapter-validated-first-chapter.json');
+          const response=provider?.response||null;
+          const para=response?.chapters?.saju_core?.paragraphs?.temperament;
+          const strength=response?.chapters?.saju_core?.paragraphs?.strength;
+          const rawStatus=response?.status;
+          const detail={
+            archivedRun:40633333735,
+            noApiRequestInDiagnostic:true,
+            resultStatus:result?.status||'missing-result',
+            resultErrorCode:result?.errorCode||'not-recorded',
+            resultOriginalArchived:result?.originalResponseArchived??null,
+            attemptRecorded:!!attempt,
+            originalProviderCallbackRecorded:!!provider,
+            rawProviderStatus:['incomplete','empty_output','invalid_json'].includes(rawStatus)?
+              rawStatus:response?'parsed-provider-json':'no-captured-provider-callback',
+            incompleteReason:['max_output_tokens','content_filter'].includes(response?.incomplete_details?.reason)?
+              response.incomplete_details.reason:'none-or-unavailable',
+            providerReportedOutputTokens:Number.isInteger(response?.usage?.output_tokens)?
+              response.usage.output_tokens:null,
+            rawFirstChapterPresent:!!response?.chapters?.saju_core,
+            rawTemperamentPresent:!!para,
+            rawTemperamentCitationCount:Array.isArray(para?.basis?.refs)?para.basis.refs.length:null,
+            rawStrengthPresent:!!strength,
+            decodedReviewRecorded:!!review,
+            rootCategory:provider?
+              (rawStatus==='incomplete'?'provider-incomplete':
+               rawStatus==='empty_output'?'provider-empty-output':
+               rawStatus==='invalid_json'?'provider-invalid-json':
+               'provider-json-captured-but-decode-or-validation-failed'):
+              'no-provider-callback-captured-cannot-distinguish-http-error-or-timeout'
+          };
+          console.log('QA3_ARCHIVED_OFFLINE_DIAGNOSIS='+JSON.stringify(detail));
+          (async()=>{
+            if(!response||!response.chapters?.saju_core)return;
+            const ready=await require('./report-paid-core-v2-billable-readiness')
+              .prepare({includePrompt:true});
+            const writer=require('./report-generation-request');
+            const task=writer.compile(ready.prompt)
+              .task.chapters.saju_core.topics.temperament;
+            const required=task.serverOwnedWritingContract?.evidenceRefs||[];
+            const present=Array.isArray(para?.basis?.refs)?para.basis.refs:[];
+            let replay='accepted', errorCode='none';
+            try{require('./report-response-decoder').decode(response,ready.prompt)}
+            catch(e){
+              replay='rejected';
+              const message=String(e.message||'');
+              const match=message.match(/\\b(?:PAID_CORE|REPORT|CORE_V2|QA3|AI_REPORT)[A-Z0-9_]{8,}\\b/);
+              errorCode=match?match[0]:'unclassified-decoder-rejection';
+            }
+            let binding='not-run',issues=[];
+            try{
+              const p=require('./report-paid-core-v2-source-provenance')
+                .bind(response,ready.prompt);
+              binding=p.reason||'unknown';
+              issues=Array.isArray(p.issueCodes)?p.issueCodes:[];
+            }catch{binding='binding-threw'}
+            let triageFindings=[];
+            try{
+              const scope=task.paidCoreDepthV2;
+              triageFindings=require('./report-paid-core-v2-editorial-triage')
+                .inspect(para,strength?.text,scope).findings;
+            }catch{triageFindings=['editorial-inspection-threw']}
+            console.log('QA3_ARCHIVED_DECODER_REPLAY='+JSON.stringify({
+              frozenRequestStillMatches:ready.requestHash===
+                '03f2b0c195706e5366466a6ea7781d1742b5f2651f201de8a0a1faf6148ad7f2',
+              replay,errorCode,
+              requiredCitationCount:required.length,
+              citedCount:present.length,
+              missingCitationIds:required.filter(id=>!present.includes(id)),
+              binding,issues,triageFindings,
+              rawProviderUnchanged:true,
+              noOpenAIApiCalls:true,
+              releaseApproved:false
+            }));
+            const reconstruction=require('./report-qa3-archived-first-chapter-reconstruction')
+              .inspect(ready.prompt,response,{requestHash:ready.requestHash});
+            console.log('QA3_ARCHIVED_SOURCE_OWNED_RECONSTRUCTION='+
+              JSON.stringify(reconstruction));
+            // Replay the ACTUAL archived weak model prose with the new server
+            // ref list. An exact ref list must not turn generic text into
+            // a fake premium approval. Nothing here contacts OpenAI.
+            const before=JSON.stringify(response);
+            process.env.PAID_CORE_V2_LOCK_REFS='offline-preview';
+            const closed=require('./report-generation-request').schema(
+              ready.prompt,
+              require('./report-wire').schemaFor(
+                ready.prompt,require('./report-schema.json')));
+            const leaf=closed.properties.chapters.properties.saju_core
+              .properties.paragraphs.properties.temperament.anyOf
+              .find(x=>x.type==='object');
+            const fixed=leaf.properties.basis.properties.refs.enum?.[0];
+            if(!Array.isArray(fixed)||fixed.length!==required.length||
+                !required.every((id,i)=>id===fixed[i]))
+              throw Error('QA3_LOCKED_REFS_MISMATCH_OFFLINE');
+            const patched=structuredClone(response);
+            patched.chapters.saju_core.paragraphs.temperament.basis.refs=
+              fixed.slice();
+            let updatedRejected=false,category='unknown';
+            try{
+              require('./report-response-decoder').decode(patched,ready.prompt);
+            }catch(e){
+              updatedRejected=true;
+              const reason=String(e.message||'');
+              category=reason.includes('PAID_CORE_V2_READER_REJECTED')?
+                'reader-meaning-invalid':
+                reason.includes('QA3_LOCKED_REF_PROSE_REJECTED')?
+                'editorial-meaning-invalid':
+                reason.includes('PAID_CORE_DEPTH_V2_MISSING_EXPLICIT')?
+                'citation-incomplete':'other-decoder-guard';
+            }
+            if(!updatedRejected||JSON.stringify(response)!==before)
+              throw Error('QA3_ARCHIVED_GENERIC_PROSE_WAS_WRONGLY_ACCEPTED');
+            delete process.env.PAID_CORE_V2_LOCK_REFS;
+            console.log('QA3_ARCHIVED_REF_LOCK_PROOF='+JSON.stringify({
+              originalMissingRefs:required.length-present.length,
+              schemaFixedIds:fixed.length,
+              originalRawUntouched:true,
+              genericProseStillRejected:true,
+              rejectedBy:category,
+              newProviderCalls:0,
+              humanQualityApproval:false
+            }));
+            // Research route can be used only for the exact reviewed
+            // chart-specific manuscript; the real previously paid model
+            // response must NEVER acquire approval by changing rubric.
+            const route=require('./report-paid-core-v2-editorial-method-router');
+            const classical=route.inspect({
+              route:route.ROUTES.CLASSICAL,
+              prompt:ready.prompt,
+              paragraph:para,
+              monthText:strength?.text||''
+            });
+            if(classical.mechanicallySupported||
+                !classical.findings.includes(
+                  'CLASSICAL_QA_UNREVIEWED_MANUSCRIPT_OR_CLAIM')||
+                JSON.stringify(response)!==before)
+              throw Error('QA3_ARCHIVED_CLASSICAL_ROUTE_FALSE_APPROVAL');
+            console.log('QA3_ARCHIVED_CLASSICAL_EDITORIAL_ROUTE='+JSON.stringify({
+              archivedProviderResponseStillRejected:true,
+              reasonCodes:classical.findings,
+              noRawPersonalProseLogged:true,
+              originalResponseImmutable:true,
+              modelCalls:0,
+              releaseApproved:false
+            }));
+          })().catch(e=>{const s=String(e?.message||''); const kind=/Cannot find module/.test(s)?'MISSING_LOCAL_MODULE':/PRECHECK|PREFLIGHT|SOURCE_CONTRACT|BILLING/.test(s)?'LOCAL_PREFLIGHT_FAILED':'UNCLASSIFIED_LOCAL_REPLAY_ERROR';console.error('QA3_OFFLINE_REPLAY_FAILED_NO_MODEL_CALL:'+kind);process.exitCode=1});
+          NODE
+      - name: Remove temporary private archive files
+        if: always()
+        run: rm -rf qa3-private qa3-ciphertext

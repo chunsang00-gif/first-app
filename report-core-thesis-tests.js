@@ -1,0 +1,370 @@
+'use strict';
+const assert=require('node:assert/strict');
+const guidance=require('./report-analysis-guidance'),facts=require('./report-facts-node');
+const core=require('./report-core-thesis'),wire=require('./report-wire');
+const schema=require('./report-schema.json');
+const inputs=[
+ {calendar:'lunar',birthDate:'1982-11-24',leapMonth:false,birthTime:'14:20',gender:'male',mbti:'ISFP'},
+ {calendar:'solar',birthDate:'1982-11-24',birthTime:'14:20',gender:'male',mbti:'ISFP'},
+ {calendar:'solar',birthDate:'1990-05-15',birthTime:'14:20',gender:'male',mbti:'ISFP'},
+ {calendar:'solar',birthDate:'1990-11-15',birthTime:'14:20',gender:'male',mbti:'ISFP'},
+ {calendar:'solar',birthDate:'2001-11-03',unknownBirthTime:true,gender:'male',mbti:'ISFP'}
+];
+for(const input of inputs){
+ const packet=facts.build(input,2027);assert.equal(packet.status,'ready');
+ const plan=guidance.preflight(packet);
+ const prompt={stage:'body',facts:packet,requestedSections:['saju_core'],
+  analysisGuidance:{...guidance.forRequest(['saju_core'],input.mbti),
+   editorialBlueprint:{saju_core:plan.saju_core}}};
+ const fixed=core.forPrompt(prompt);
+ const scoped=require('./report-generation-request').compile(prompt);
+ const referenced=new Set(Object.values(scoped.task.chapters.saju_core.topics)
+  .flatMap(t=>t.citableFacts.map(row=>row.id)));
+ assert.deepEqual(Object.keys(scoped.source).sort(),[...referenced].sort(),
+  'first-chapter provider must not receive non-citable calculated rows');
+ assert.equal(fixed.status,'traditional-reading-not-observed-trait');
+ assert(fixed.title.length>=8&&fixed.title.length<=30);
+ assert(!fixed.title.includes('제약하는')&&!fixed.title.includes('뒷받침하는'),
+  'the heading must not echo the detailed direction repeated in keyJudgment');
+ assert(fixed.keyJudgment.length>=35&&fixed.keyJudgment.length<120);
+ assert(fixed.keyJudgment.startsWith('사주에서는 '));
+ assert.equal(fixed.keyJudgment.split(/(?<=[.!?。！？])\\s+|\\n+/).length,1);
+ assert(!/(?:冬|癸|己|乙|원국|월지|십성|본기|실제 성격이 확정)/.test(fixed.keyJudgment));
+ // Consumer judgment must identify WHICH actual month position supplies
+ // each part of the calculated relation, not just list two labels.
+ const monthPair=require('./report-chart-contrast').build(packet).monthTenGodContext;
+ if(!monthPair.sameClassification){
+  assert(fixed.keyJudgment.includes('안쪽에서 읽는'));
+  assert(fixed.keyJudgment.includes('겉에서 읽는'));
+  if(monthPair.elementLink.kind==='same-element')
+   assert(fixed.keyJudgment.includes('같은 기운에 속하지만'));
+  else{
+   assert(fixed.keyJudgment.includes('전통적 관계로 풀이합니다.'));
+   const hiddenFirst=/^hidden-/.test(monthPair.elementLink.kind);
+   const from=hiddenFirst?'안쪽':'겉',to=hiddenFirst?'겉':'안쪽';
+   assert(fixed.keyJudgment.indexOf(from+'에서 읽는')<
+    fixed.keyJudgment.indexOf(to+'에서 읽는'),
+    'the model-facing judgment must retain the EXACT arrow direction');
+  }
+ }
+ assert.deepEqual(wire.schemaFor(prompt,schema).properties.chapters.properties.saju_core.properties.keyJudgment.enum,[fixed.keyJudgment]);
+ assert.deepEqual(wire.schemaFor(prompt,schema).properties.chapters.properties.saju_core.properties.title.enum,[fixed.title]);
+ const mandatory=wire.schemaFor(prompt,schema).properties.chapters.properties.saju_core.properties.paragraphs.properties.strength;
+ assert(mandatory.properties.text.description.includes(fixed.keyJudgment),
+  'every verified pair must bind the exact locked judgment to the mandatory writing field');
+ assert(mandatory.properties.text.description.includes('그대로 다시 적지 말고'),
+  'the body must explain the thesis, not copy it');
+ assert.doesNotThrow(()=>core.assertDecoded(fixed,prompt));
+ assert.throws(()=>core.assertDecoded({...fixed,keyJudgment:fixed.keyJudgment+' 이 장은 참고용입니다.'},prompt));
+}
+// Actual distinct-source/same-category case: in a 甲 year, April's
+// calculated 戊辰 month has 戊 as both visible and principal hidden stem.
+const sameInput={calendar:'solar',birthDate:'1994-04-15',birthTime:'14:20',gender:'male',mbti:'ISFP'};
+const samePacket=facts.build(sameInput,2027);
+assert.equal(samePacket.status,'ready');
+const sameContrast=require('./report-chart-contrast').build(samePacket);
+assert.equal(sameContrast.monthTenGodContext.sameClassification,true,
+ 'real birth date must exercise a SAME-classification month pair');
+const sameBlueprint=guidance.preflight(samePacket);
+const samePrompt={stage:'body',facts:samePacket,requestedSections:['saju_core'],
+ analysisGuidance:{...guidance.forRequest(['saju_core'],sameInput.mbti),editorialBlueprint:{saju_core:sameBlueprint.saju_core}}};
+const samePayload=require('./report-generation-request').compile(samePrompt);
+assert.deepEqual(Object.keys(samePayload.source).sort(),
+ [...new Set(Object.values(samePayload.task.chapters.saju_core.topics)
+  .flatMap(t=>t.citableFacts.map(x=>x.id)))].sort(),
+ 'same-category first-chapter request must not see unrelated calculations');
+const sameSchema=wire.schemaFor(samePrompt,schema).properties.chapters.properties.saju_core.properties;
+const sameRole=sameSchema.paragraphs.properties.strength;
+const sameText=sameRole.properties.text.description;
+assert(sameText.includes('같은 전통 분류가 두 위치에서 확인되어')&&
+ sameText.includes('출생월의 두 출처를 연결하는 이유')&&
+ sameText.includes('basis.refs')&&
+ sameRole.properties.label.description.includes('태어난 달의 두 실제 출처'),
+ 'same-category paid reader must be instructed to interpret ONE traditional lens from TWO provenance locations');
+assert(!sameText.includes('서로 다른 뜻을 한 가지 조건부 기질 해석으로 연결')&&
+ !sameText.includes('두 선택의 뜻이 한 상황에 연결되는 이유')&&
+ !sameText.includes('한쪽의 의미만 보면 놓칠 조건'),
+ 'the output schema must not force a fictional distinction between identical classifications');
+assert.deepEqual(sameSchema.keyJudgment.enum,[core.forPrompt(samePrompt).keyJudgment]);
+assert.equal(core.forPrompt(samePrompt).categories[0],core.forPrompt(samePrompt).categories[1]);
+assert(require('./report-generation-request').policy.includes('같은 전통 분류라면 거짓 의미 차이'));
+assert(sameBlueprint.saju_core.topicTasks.strength.interpretationBoundary.includes('거짓 차이·갈등·강도 증폭'));
+assert(require('./report-prompt').sectionGoals.saju_core.includes('같은 분류면 서로 다른 뜻'));
+// Post-generation guard: same ten-god at TWO actual month positions may
+// support ONE traditional reading; it never proves opposite personalities
+// or an amplified measured disposition. Only visible core prose is tested.
+const postReview=require('./report-grounding-review');
+const sameJudgment=core.forPrompt(samePrompt);
+const sameDraft=body=>({sections:[{id:'saju_core',title:sameJudgment.title,
+ keyJudgment:sameJudgment.keyJudgment,bodyTopics:['strength'],
+ bodyLabels:['한 가지 기질의 조건'],body:[body],evidence:[]} ]});
+const sameError='saju_core:invented-opposition-or-amplification-from-identical-month-classification';
+const oppositeFromSame=sameDraft('두 출생 위치에서 같은 분류가 확인되지만 서로 반대되는 기질이 충돌합니다.');
+assert(postReview.inspect(oppositeFromSame,samePacket).blockingErrors.includes(sameError),
+ 'a SAME verified month category cannot be marketed as two opposing traits');
+const doubledFromSame=sameDraft('두 출생 위치에서 같은 십성이 확인되므로 이 기질이 두 배 강합니다.');
+assert(postReview.inspect(doubledFromSame,samePacket).blockingErrors.includes(sameError),
+ 'two identical source labels are NOT a measure of twice the personality strength');
+const boundedFromSame=sameDraft('두 출생 위치에 같은 전통 분류가 확인되므로 스스로 맡을 일을 정하는 방식으로 풀이합니다. 예를 들어 공동 작업에서 맡을 역할을 정하는 상황에 적용할 수 있습니다. 같은 분류가 두 위치에 있다고 기질이 두 배 강하다는 뜻은 아닙니다.');
+assert(!postReview.inspect(boundedFromSame,samePacket).blockingErrors.includes(sameError),
+ 'clear denial of an unsupported doubling must remain permitted');
+const distinctDraft={...oppositeFromSame,sections:[{...oppositeFromSame.sections[0]}]};
+const actualDistinct=facts.build(inputs[0],2027);
+assert.equal(require('./report-chart-contrast').build(actualDistinct).monthTenGodContext.sameClassification,false);
+assert(!postReview.inspect(distinctDraft,actualDistinct).blockingErrors.includes(sameError),
+ 'the SAME-only false contrast guard must not reject actual differing ten-god categories');
+const privateMeaning=sameDraft('한 가지 해석을 가상 상황에서 다룹니다.');
+privateMeaning.sections[0].evidence=['두 출생 위치에서 같은 분류이므로 기질이 두 배 강합니다.'];
+assert(!postReview.inspect(privateMeaning,samePacket).blockingErrors.includes(sameError),
+ 'the private evidence field is not reader prose and must not trip a user-facing heuristic');
+// Positive CONTROL across *all* existing first-chapter post-generation
+// checks. The earlier tests asserted absence of only one error code and
+// could miss rejection by another guard. These are offline invented scenes,
+// NOT approved paid prose or claims about the actual reader's behavior.
+const readerPolicy=require('./report-reader-policy');
+const editorialReview=require('./report-editorial');
+const factualReview=require('./report-quality-node');
+const readerMeaning={
+ 비견:'스스로 맡을 역할을 정하는',겁재:'공동으로 쓰는 몫을 나누는',
+ 식신:'생각을 결과물로 만드는',상관:'익숙한 방식과 다른 방법을 제안하는',
+ 정재:'반복되는 비용을 꾸준히 관리하는',편재:'필요한 자원을 여러 곳에서 찾는',
+ 정관:'규칙과 맡은 역할을 지키는',편관:'갑작스러운 요구에 책임 범위를 살피는',
+ 정인:'배우고 조언을 참고하는',편인:'낯선 정보를 자기 방식으로 이해하는'
+};
+function allFirstChapterGuards(report,packet,name){
+ const section=report.sections[0];
+ const groundingErrors=postReview.inspect(report,packet).blockingErrors;
+ assert.deepEqual(groundingErrors,[],name+' incorrectly rejected by post-generation grounding');
+ const displayed=readerPolicy.visibleFields(report);
+ assert.deepEqual(readerPolicy.errors(displayed),[],name+' reader-facing jargon check');
+ assert.deepEqual(editorialReview.wordingErrors(displayed),[],name+' wording check');
+ assert.deepEqual(factualReview.verifyEvidenceAgainstFacts(report,packet).errors,[],
+  name+' calculated-fact consistency check');
+}
+const sameKind=sameContrast.monthTenGodContext.monthStem.tenGod;
+assert(readerMeaning[sameKind]);
+const sameScene=require('./report-chart-contrast').TEN_GOD_SCENE[sameKind];
+const normalSame=sameDraft(
+ '예를 들어 '+sameScene+' 때 '+readerMeaning[sameKind]+
+ ' 관점을 적용해 한 번의 선택을 풀이합니다. 같은 전통 분류가 실제 두 출생 위치에서 확인된 것은 서로 반대되는 기질 두 개가 아니라 한 가지 해석을 뒷받침하는 두 근거라는 뜻입니다. '+
+ '그렇다고 실제로 이런 선택을 해 왔다거나 기질이 두 배 강하다는 뜻은 아닙니다.');
+normalSame.sections[0].evidence=[
+ 'natal.month.stem: 계산된 분류 '+sameKind,
+ 'natal.month.hidden: 계산된 분류 '+sameKind
+];
+allFirstChapterGuards(normalSame,samePacket,'identical-category normal interpretation');
+const distinctCore=core.forPrompt({stage:'body',facts:actualDistinct,requestedSections:['saju_core']});
+assert.deepEqual(distinctCore.categories,['편인','편재']);
+const normalDistinct={sections:[{
+ id:'saju_core',title:distinctCore.title,keyJudgment:distinctCore.keyJudgment,
+ bodyTopics:['strength'],bodyLabels:['이해와 자원 마련의 연결'],
+ body:['낯선 자료를 자기 방식으로 이해하고 필요한 자원을 여러 곳에서 찾아 활용하는 관점을 함께 읽는 사주입니다. 예를 들어 재료를 고를 때 먼저 용도를 이해한 뒤 실제로 구할 수 있는 곳을 살피는 과정으로 풀이합니다. 용도를 살피지 않고 재료부터 마련하면 쓰임새가 맞지 않을 수 있고, 알아보는 데서 멈추면 필요한 물건을 제때 확보하지 못할 수 있다는 조건부 해석입니다.'],
+ evidence:['natal.month.stem: 편인으로 계산된 출처','natal.month.hidden: 편재로 계산된 출처']
+}]};
+allFirstChapterGuards(normalDistinct,actualDistinct,'different-category normal interpretation');
+
+// The actual verified month arrow for this 1982 chart constrains visible
+// information with the main hidden resource role, not the other way round.
+const monthDirection=require('./report-chart-contrast')
+ .build(actualDistinct).monthTenGodContext.elementLink;
+assert.equal(monthDirection.kind,'hidden-controls-visible');
+const directionalCode='saju_core:month-element-direction-contradicts-calculated-source';
+const directionalDraft=text=>({...normalDistinct,sections:[
+ {...normalDistinct.sections[0],body:[text]}
+]});
+const originalDirectionBody=normalDistinct.sections[0].body[0];
+assert(postReview.inspect(directionalDraft(originalDirectionBody+
+ ' 정보 이해가 자원 활용을 제약하는 오행 관계라고 풀이합니다.'),actualDistinct)
+ .blockingErrors.includes(directionalCode),
+ 'explicitly reversed source -> target arrow must be rejected');
+assert(postReview.inspect(directionalDraft(originalDirectionBody+
+ ' 자원 활용이 정보 이해를 뒷받침하는 오행 관계라고 풀이합니다.'),actualDistinct)
+ .blockingErrors.includes(directionalCode),
+ 'correct endpoints with wrong GENERATES vs CONTROLS relation must be rejected');
+assert(!postReview.inspect(directionalDraft(originalDirectionBody+
+ ' 자원 활용이 정보 이해를 제약하는 오행 방향으로 분류합니다.'),actualDistinct)
+ .blockingErrors.includes(directionalCode),
+ 'correctly computed symbolic direction must remain permitted');
+assert(!postReview.inspect(directionalDraft(originalDirectionBody+
+ ' 정보 이해가 자원 활용을 제약하는 관계라는 뜻은 아닙니다.'),actualDistinct)
+ .blockingErrors.includes(directionalCode),
+ 'denial of false arrow must remain permitted');
+assert(!postReview.inspect(normalSame,samePacket).blockingErrors.includes(directionalCode),
+ 'identical month categories cannot be forced into invented arrows');
+
+ // Previously paid 39172323501 used indirect, natural Korean equivalents
+ // of the verified 편인/편재 meanings. The ORIGINAL paid report is private;
+ // these constructed prose examples test only the lexical recognition,
+ // NOT its editorial adequacy or release quality.
+const synonymousFirst='새로운 정보를 자기 나름대로 해석하고 이해하는 관점';
+const synonymousSecond='여러 곳의 자원을 파악해 용도에 맞게 활용하는 관점';
+const paidStyleDraft=body=>({sections:[{
+ id:'saju_core',title:distinctCore.title,keyJudgment:distinctCore.keyJudgment,
+ bodyTopics:['strength'],bodyLabels:['정보 이해와 자원 활용'],body:[body],evidence:[]
+}]});
+const paidStyleBase=synonymousFirst+'과 '+synonymousSecond+
+ '을 함께 읽는 전통적 풀이입니다. 예를 들어 필요한 재료를 고를 때 그 재료의 쓰임새를 먼저 이해하면 적절한 공급처를 찾을 근거가 생깁니다. 반면 쓰임새만 알아보고 마련할 곳을 살피지 않으면 그 선택을 실제로 실행하기 어려운 조건이 됩니다.';
+const missingMeaningCode='saju_core:month-pair-meaning-missing-from-main-paragraph';
+assert(!postReview.inspect(paidStyleDraft(paidStyleBase),actualDistinct).blockingErrors.includes(missingMeaningCode),
+ 'natural equivalents of BOTH verified month interpretations must not be treated as omission');
+// The actual paid first chapter used natural "surrounding resources ... use
+// when needed" wording. Its older lexical regex rejected a genuinely stated
+// 편재 meaning; this fixture prevents a second charged false rejection.
+const archivedEquivalent=paidStyleDraft(
+ '새로운 정보를 자기 나름대로 해석하고 이해하는 태도와, 주변의 여러 자원과 수단을 유심히 살펴 필요할 때 활용하는 접근이 함께 나타납니다. 겉으로 드러난 정보만 살피면 필요한 물건을 어떻게 마련할지 놓칠 수 있다는 조건입니다.');
+assert(!postReview.inspect(archivedEquivalent,actualDistinct).blockingErrors.includes(missingMeaningCode),
+ 'paid first-chapter prose containing the natural surrounding-resource-use meaning is not omitted');
+// This is the previously observed paid-manuscript QUALITY failure: mirrored
+// sentences warning of "missing B if only A" and "missing A if only B".
+const mirroredPaidReading=paidStyleDraft(
+ '새로운 정보를 자기 나름대로 해석하고 이해하는 관점과 필요한 자원을 여러 곳에서 찾아 활용하는 관점을 함께 봅니다. '+
+ '겉으로 드러난 정보에만 집중하면 필요한 재료를 마련하는 준비를 놓칠 수 있습니다. '+
+ '반대로 자원 활용 쪽에만 신경을 쓴다면 정보를 자기 방식으로 이해하는 깊이가 부족해질 수 있습니다. '+
+ '이 두 뜻을 함께 살펴야 한다는 전통적 풀이입니다.');
+const mirrorCode='saju_core:mirrored-two-role-warnings-without-new-reading';
+assert(postReview.inspect(mirroredPaidReading,actualDistinct).blockingErrors.includes(mirrorCode),
+ 'mirrored A/B warning-only paid prose is not an actual distinct reading');
+assert(!postReview.inspect(paidStyleDraft(paidStyleBase),actualDistinct)
+ .blockingErrors.includes(mirrorCode),
+ 'a substantive one-sided limitation with a causal example must remain valid');
+assert(!postReview.inspect(archivedEquivalent,actualDistinct)
+ .blockingErrors.includes(mirrorCode),
+ 'one condition in otherwise natural prose must not count as two mirrored warnings');
+const genericResourceOnly=paidStyleDraft(
+ '새로운 정보를 자기 나름대로 해석하고 이해합니다. 주변에 많은 자원이 있을 수 있지만 결과는 알 수 없습니다.');
+assert(postReview.inspect(genericResourceOnly,actualDistinct).blockingErrors.includes(missingMeaningCode),
+ 'a vague mention of resources without actual sourcing or use is still insufficient');
+const onlyLearning=synonymousFirst+
+ '을 전통적으로 풀이합니다. 예를 들어 새로운 자료를 고를 때 그 뜻을 이해해야 내용을 활용할 수 있습니다.';
+const onlyResources=synonymousSecond+
+ '을 전통적으로 풀이합니다. 예를 들어 필요한 물건을 마련할 때 구입할 곳을 고르는 데 도움을 줍니다.';
+assert(postReview.inspect(paidStyleDraft(onlyLearning),actualDistinct).blockingErrors.includes(missingMeaningCode),
+ 'a mention of information must NOT cover the absent resource interpretation');
+assert(postReview.inspect(paidStyleDraft(onlyResources),actualDistinct).blockingErrors.includes(missingMeaningCode),
+ 'a mention of resources must NOT cover the absent information interpretation');
+const lexicalGlossary=paidStyleDraft(
+ '태어난 달의 겉글자는 '+synonymousFirst+'을 뜻합니다. 태어난 달의 중심 숨은 글자는 '+synonymousSecond+'을 의미합니다. 예를 들어 새로운 일을 시작할 때 필요한 내용을 확인하고 준비하는 것이 좋습니다.');
+const glossaryCodes=postReview.inspect(lexicalGlossary,actualDistinct).blockingErrors;
+assert(!glossaryCodes.includes(missingMeaningCode),
+ 'a definition containing both meanings must not be reported as meaning omission');
+assert(glossaryCodes.includes('saju_core:dictionary-plus-generic-advice-masquerading-as-reading'),
+ 'dictionary plus universal advice must STILL fail the separate depth-quality guard');
+const attemptedAutoRelease=require('./report-release-gate').assess({
+ report:paidStyleDraft(paidStyleBase),qa:{pass:true},packet:actualDistinct,
+ coverage:{canGenerate:true,plannedIds:['saju_core']}
+});
+assert.equal(attemptedAutoRelease.releaseVerdict,'not-approved',
+ 'recognizing the month meanings must never approve a paid release');
+assert.equal(attemptedAutoRelease.humanReviewRequired,true);
+assert(attemptedAutoRelease.failedTechnicalChecks.includes('incomplete-final-report'),
+ 'an automated first-chapter lexical pass does not constitute a complete premium report');
+
+assert(!normalSame.sections[0].body[0].includes(normalDistinct.sections[0].body[0]),
+ 'positive fixtures must exercise two genuinely distinct writing paths');
+// Prove the pre-API audit receives actual birth facts and the body's stage.
+const instructionAudit=require('./report-instruction-audit');
+const originalSchemaFor=wire.schemaFor;
+let observedSameSchema=false;
+try{
+ wire.schemaFor=(candidate,original)=>{
+  const result=originalSchemaFor(candidate,original);
+  if(candidate?.requestedSections?.length===1&&candidate.requestedSections[0]==='saju_core'&&
+     candidate?.stage==='body'&&candidate?.facts===samePacket){
+   observedSameSchema=true;
+   const text=result.properties.chapters.properties.saju_core.properties.paragraphs
+    .properties.strength.properties.text.description;
+   assert(text.includes('두 출생 위치의 십성 분류와 전통적 뜻이 같으므로'),
+    'audit must inspect the actual identical-category provider instructions');
+  }
+  return result;
+ };
+ const auditErrors=instructionAudit.inspect(samePrompt);
+ assert(observedSameSchema,'audit dropped calculation facts/stage while rebuilding schema');
+ assert(!auditErrors.includes('core-fixed-thesis-missing-from-audited-schema')&&
+  !auditErrors.includes('core-month-pair-writing-branch-disagrees-with-facts'),
+  'verified same-category facts, thesis and writing field must agree');
+}finally{wire.schemaFor=originalSchemaFor}
+// Negative control: a contradictory schema must fail before paid generation.
+try{
+ wire.schemaFor=(candidate,original)=>{
+  const result=originalSchemaFor(candidate,original);
+  if(candidate?.requestedSections?.length===1&&candidate.requestedSections[0]==='saju_core'&&
+     candidate?.stage==='body'&&candidate?.facts===samePacket)
+   result.properties.chapters.properties.saju_core.properties.paragraphs.properties
+    .strength.properties.text.description='두 분류가 반대되며 의미와 기질의 차이를 설명하라.';
+  return result;
+ };
+ assert(instructionAudit.inspect(samePrompt).includes('core-month-pair-writing-branch-disagrees-with-facts'),
+  'schema contradicting two identical calculated classifications must fail the pre-API audit');
+}finally{wire.schemaFor=originalSchemaFor}
+const actual=facts.build(inputs[0],2027);
+const prompt={stage:'body',facts:actual,requestedSections:['saju_core']};
+const case0=core.forPrompt(prompt);
+assert.deepEqual(case0.categories,['편인','편재']);
+assert(case0.keyJudgment.includes('정보 이해'));
+assert(case0.keyJudgment.includes('자원 활용')&&case0.keyJudgment.includes('제약하는'));
+assert(!case0.keyJudgment.includes('상징')&&!case0.keyJudgment.includes('한계'));
+const grounding=require('./report-grounding-review');
+const draft=body=>({sections:[{id:'saju_core',title:case0.title,
+ keyJudgment:case0.keyJudgment,bodyTopics:['strength'],
+ bodyLabels:['가상 선택의 조건'],body:[body],evidence:[]}]});
+const affirmative='낯선 정보를 자기 방식으로 이해하고 필요한 자원을 여러 곳에서 찾아 활용하는 두 관점을 연결합니다. 예를 들어 낯선 자료를 살핀 다음 필요한 재료를 찾아 선택할 때 두 조건이 중요하다는 전통적 풀이입니다.';
+assert(!grounding.inspect(draft(affirmative),actual).blockingErrors.includes(
+ 'saju_core:main-paragraph-explicitly-reverses-locked-judgment'),
+ 'a source-grounded conditional interpretation must not be falsely rejected');
+const reversed='낯선 정보를 자기 방식으로 이해하지 않는 기질입니다. 필요한 자원을 여러 곳에서 찾아 활용하지 않는 성향입니다.';
+assert(grounding.inspect(draft(reversed),actual).blockingErrors.includes(
+ 'saju_core:main-paragraph-explicitly-reverses-locked-judgment'),
+ 'repeated source vocabulary must not hide a categorical reversal of the locked thesis');
+const qualified='낯선 정보를 자기 방식으로 이해하고 필요한 자원을 여러 곳에서 활용하는 뜻으로 풀이합니다. 하지만 그런 행동을 실제로 해 왔다고 단정할 수는 없습니다. 예를 들어 자료를 받고 필요한 도구를 고르는 상황을 가정합니다.';
+assert(!grounding.inspect(draft(qualified),actual).blockingErrors.includes(
+ 'saju_core:main-paragraph-explicitly-reverses-locked-judgment'),
+ 'lack of observed behavioral evidence is NOT a contradictory traditional reading');
+// A stock example after two glossary definitions must not qualify as paid
+// interpretation merely because it contains the required meaning words.
+const dictionaryOnly=draft(
+ '태어난 달의 겉글자는 낯선 정보를 자기 방식으로 이해하는 뜻입니다. 그 달의 중심 숨은 글자는 필요한 자원을 여러 곳에서 찾아 활용하는 의미입니다. 예를 들어 새로운 일을 할 때는 자료를 확인하고 준비하는 것이 좋습니다.');
+assert(grounding.inspect(dictionaryOnly,actual).blockingErrors.includes(
+ 'saju_core:dictionary-plus-generic-advice-masquerading-as-reading'),
+ 'source-word coverage plus universal preparation advice is not an applied interpretation');
+const appliedDifference=draft(
+ '태어난 달의 겉글자는 낯선 정보를 자기 방식으로 이해하는 뜻입니다. 그 달의 중심 숨은 글자는 필요한 자원을 여러 곳에서 찾아 활용하는 의미입니다. 예를 들어 낯선 재료를 고를 때 정보의 쓰임새와 구할 곳을 함께 살피는 해석이 유리합니다. 정보 해석만 오래 하면 자원을 마련할 기회를 놓칠 수 있다는 조건도 설명합니다.');
+assert(!grounding.inspect(appliedDifference,actual).blockingErrors.includes(
+ 'saju_core:dictionary-plus-generic-advice-masquerading-as-reading'),
+ 'an actually related advantage and overlooked condition must not be penalized');
+const plainScene=draft(
+ '낯선 정보를 자기 방식으로 이해하고 필요한 자원을 여러 곳에서 찾아 활용하는 관점을 연결합니다. 예를 들어 재료를 선택할 때 쓰임새를 파악한 다음 공급처를 살피는 모습으로 풀이합니다.');
+assert(!grounding.inspect(plainScene,actual).blockingErrors.includes(
+ 'saju_core:dictionary-plus-generic-advice-masquerading-as-reading'),
+ 'source-grounded prose without two glossary definitions is not a false positive');
+const leaked=draft('낯선 정보를 살피는 모습으로 풀이합니다. 다음 문단에서는 자원을 활용하는 특징을 설명합니다.');
+assert(grounding.inspect(leaked,actual).blockingErrors.includes(
+ 'saju_core:editorial-outline-leaked-to-reader'),
+ 'paid core cannot expose the next-paragraph editorial outline');
+const withPrivateEvidence=draft(affirmative);
+withPrivateEvidence.sections[0].evidence=['다음 문단에서는 출처를 검증한다'];
+assert(!grounding.inspect(withPrivateEvidence,actual).blockingErrors.includes(
+ 'saju_core:editorial-outline-leaked-to-reader'),
+ 'private calculated provenance remains separate from visible copy');
+const corePair=(first,second)=>({sections:[{id:'saju_core',title:case0.title,
+ keyJudgment:case0.keyJudgment,bodyTopics:['temperament','strength'],
+ bodyLabels:['추가 계절 조건','한 가지 선택'],body:[first,second],evidence:[]}]});
+const repeated=corePair(
+ '계절과 겉글자에서는 가상의 선택에 도움이 되는 조건을 살핍니다. 실제 성격을 단정할 수 없습니다.',
+ '낯선 정보를 이해하고 필요한 자원을 여러 곳에서 살피는 사주로 풀이합니다. 실제 행동을 단정할 수 없습니다.');
+assert(grounding.inspect(repeated,actual).blockingErrors.includes(
+ 'saju_core:repeated-generic-observation-disclaimer'),
+ 'two separate core paragraphs must not repeat the same global disclaimer');
+const specific=corePair(
+ '계절 분류만으로 실제 적응력을 확정할 수는 없습니다. 가령 재료를 마련할 때 필요한 도움을 살피는 해석입니다.',
+ '낯선 정보를 이해한 뒤 여러 곳의 자원을 살피는 기질로 풀이합니다. 실제 성격을 단정할 수 없습니다.');
+assert(!grounding.inspect(specific,actual).blockingErrors.includes(
+ 'saju_core:repeated-generic-observation-disclaimer'),
+ 'source-specific limitation must not be mistaken for global repetition');
+const single=draft('낯선 정보와 필요한 자원을 함께 살피는 태도로 풀이합니다. 다만 실제 행동은 단정할 수 없습니다.');
+assert(!grounding.inspect(single,actual).blockingErrors.includes(
+ 'saju_core:repeated-generic-observation-disclaimer'),
+ 'one appropriately bounded disclaimer is allowed');
+assert.equal(core.forPrompt({stage:'synthesis',requestedSections:[],facts:actual}),null);
+assert.throws(()=>core.forPrompt({...prompt,facts:{}}),/NO_VERIFIED_MONTH_PAIR/);
+console.log('PASS deterministic single-sentence core thesis from real lunar/month stems for 5 cases, strict schema and decoding; 0 paid API');

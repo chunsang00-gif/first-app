@@ -10,8 +10,18 @@ function replay(payload){
  const chapterErrors=contract.findRecycledThemes(sections);
  const topicErrors=contract.findRepeatedTopicContent(sections);
  const adviceWarnings=contract.findRepeatedAdvice(sections);
- const result=quality.validate(report);
- return {status:payload.status||null,chapterCount:sections.length,topicCount:sections.reduce((n,s)=>n+(s.body||[]).length,0),originalErrors:payload?.qa?.errors||[],currentErrors:result.errors,themeErrors:chapterErrors,topicErrors,adviceWarnings};
+ const packet=payload?.packet?.facts?payload.packet:null;
+ const result=quality.validate(report,packet);
+ const overlap=require('./report-interpretation-overlap');
+ const duplicateInterpretations=overlap.inspect(sections);
+ const interpretationCoverage=overlap.coverage(sections);
+ const review=require('./report-semantic-review').review(report);
+ const codes={};
+ for(const finding of review.findings)codes[finding.code]=(codes[finding.code]||0)+1;
+ return {status:payload.status||null,chapterCount:sections.length,topicCount:sections.reduce((n,s)=>n+(s.body||[]).length,0),originalErrors:payload?.qa?.errors||[],currentErrors:result.errors,themeErrors:chapterErrors,topicErrors,adviceWarnings,
+  interpretationOverlap:{errors:duplicateInterpretations,coverage:interpretationCoverage},
+  semanticReview:{requiresHumanReview:true,releaseVerdict:'not-assessed',findingCounts:codes},
+  releaseGate:require('./report-release-gate').assess({report,qa:result,packet,coverage:payload?.coverage})};
 }
 if(require.main===module){
  const path=process.argv[2];

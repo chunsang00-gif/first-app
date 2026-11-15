@@ -1,0 +1,73 @@
+name: Verify revised reader depth without API billing
+on:
+  push:
+    branches:
+      - fix-paid-qa-fact-bindings-20261014
+    paths:
+      - .github/workflows/reader-depth-offline-audit.yml
+permissions:
+  contents: read
+  actions: read
+jobs:
+  audit-paid-first-chapter:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      OPENAI_API_KEY: ''
+      REPORT_MODEL_URL: ''
+      REPORT_MODEL: ${{ vars.REPORT_MODEL }}
+      QA_PROVIDER_ARCHIVE: ${{ github.workspace }}/.private-reader-qa/private-qa-report-provider-calls.json
+      QA_RECOVERY_CHECKPOINT: ${{ github.workspace }}/.private-reader-checkpoint/recovered-validated-batch.json
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-audit --no-fund
+      - name: Load the already-paid first provider response without showing private contents
+        uses: actions/download-artifact@v4
+        with:
+          name: premium-report-qa
+          run-id: 38833494716
+          github-token: ${{ github.token }}
+          path: .private-reader-qa
+      - name: Load latest paid first-chapter output privately (no paid call)
+        uses: actions/download-artifact@v4
+        with:
+          name: premium-first-chapter-qa
+          run-id: 38849907090
+          github-token: ${{ github.token }}
+          path: .private-latest-first-chapter
+      - name: Detect archived first-chapter strength and wording defects with updated quality gate
+        shell: bash
+        run: |
+          node - <<'NODE'
+          const fs=require('node:fs');
+          const assert=require('node:assert/strict');
+          const saved=JSON.parse(fs.readFileSync('.private-latest-first-chapter/private-qa-first-chapter-provider-calls.json','utf8'));
+          assert.equal(saved.calls?.length,1);
+          const raw=saved.calls[0].response.chapters?.saju_core;
+          assert(raw?.paragraphs?.temperament?.text&&raw?.paragraphs?.strength?.text);
+          const paragraphs=Object.values(raw.paragraphs).filter(Boolean);
+          const result=require('./report-grounding-review').inspect({sections:[{
+            id:'saju_core',title:raw.title,keyJudgment:raw.keyJudgment,
+            bodyLabels:paragraphs.map(x=>x.label),body:paragraphs.map(x=>x.text)
+          }]});
+          assert(result.blockingErrors.includes('saju_core:unmeasured-clash-strength-assertion'),
+            'Archived paid strong-clash error must be rejected');
+          assert(result.blockingErrors.includes('saju_core:unnatural-protagonist-address'),
+            'Archived paid unnatural protagonist wording must be rejected');
+          const title=require('./report-reader-policy').plainText('같은 오행 뿌리와 오행의 관계');
+          assert(title.includes('같은 기운')&&title.includes('기운 사이의 관계'));
+          assert(!title.includes('나무·불·흙·쇠·물의 다섯 기운'));
+          console.log('PASS old PAID first-chapter prose is now blocked for unsupported strength and unnatural Korean; original preserved; provider requests: 0');
+          NODE
+      - name: Load previously validated first-chapter checkpoint
+        uses: actions/download-artifact@v4
+        with:
+          name: first-batch-verified-checkpoint
+          run-id: 38835316163
+          github-token: ${{ github.token }}
+          path: .private-reader-checkpoint
+      - name: Verify new reader brief, original facts, and explicit incompatible-resume block
+        run: node audit-paid-core-reader-brief.js

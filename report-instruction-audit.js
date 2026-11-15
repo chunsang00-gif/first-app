@@ -13,9 +13,32 @@ function inspect(prompt){
  const body=prompt?.stage==='body';
  const rules=prompt?.rules||{};
  for(const [name,value] of Object.entries(rules))if(value==null)errors.push('missing rule: '+name);
+ if(rules.hanjaPolicy!==require('./report-reader-policy').instruction)errors.push('reader language policy replaced or missing');
  const prose=JSON.stringify({rules,planningInstruction:prompt.planningInstruction,editorialTask:prompt.editorialTask,analysisGuidance:prompt.analysisGuidance})||'';
+ for(const phrase of ['2027년 분석 네 장에서는','한 가지 뜻은 한 번만 쓰며 제목·핵심 판정·본문·총평에서','무엇을 얼마나 꼼꼼하게·빠르게·끈기 있게'])
+  if(prose.includes(phrase))errors.push('obsolete scope or unsupported precision instruction: '+phrase);
+ // Inspect the actual chapter plan as well as general rules: neutral rules
+ // cannot cancel a task that presupposes opposite conclusions.
+ const comparisonTasks=JSON.stringify({topicPlan:rules.topicPlan,chapterPlan:rules.chapterOwnershipPlan,analysisGuidance:prompt.analysisGuidance})||'';
+ for(const phrase of ['같은 선택에서 서로 다른 결론을 제시하는 조건','사주와 MBTI가 다른 판단을 낳는 구체적인 경계'])
+  if(comparisonTasks.includes(phrase))errors.push('forced contrast in writing plan');
+ for(const pattern of [/명리 용어를 지우지 말고/,/핵심 명리 용어를 본문에/,/십성 이름·위치를 본문에서도/,/명리 용어를 괄호로 풀어/,/명리 용어와 짧은 뜻을 본문에/])if(pattern.test(prose))errors.push('conflicting visible jargon instruction');
  for(const pattern of forbiddenFixedQuotas)if(pattern.test(prose))errors.push('obsolete forced quota: '+pattern.source);
  if(body){
+  // Compare only independent interpretation contracts to the input type,
+  // never to inferred personality. An omitted or overwritten comparison
+  // contract would silently re-enable unsupported MBTI/Saju contradictions.
+  if(prompt?.facts?.person&&prompt?.facts?.facts?.tenGods){
+   const expected=require('./report-analysis-guidance')
+    .forRequest(prompt.requestedSections||[],prompt.facts.person.mbti).comparisonContract;
+   if(JSON.stringify(prompt.analysisGuidance?.comparisonContract)!==JSON.stringify(expected))
+    errors.push('missing or altered independent MBTI-Saju comparison contract');
+  }
+  const bindings=require('./report-fact-bindings');
+  if(prompt.facts?.facts?.tenGods){
+   if(JSON.stringify(prompt.factBindings)!==JSON.stringify(bindings.build(prompt.facts)))errors.push('missing or altered positional fact bindings');
+   if(prompt.factBindingRule!==bindings.instruction)errors.push('missing positional fact writing policy');
+  }
   if(!Array.isArray(prompt.requestedSections)||!prompt.requestedSections.length)errors.push('no requested chapters');
   if(!/state-limits.{0,60}null/.test(String(prompt.planningInstruction)))errors.push('missing null-topic writing policy');
   if(!/state-limits.{0,70}null/.test(String(rules.paragraphGuide)))errors.push('paragraph instruction overrides null-topic policy');
@@ -33,6 +56,8 @@ function inspect(prompt){
    if(!writingTopics||typeof writingTopics!=='object')errors.push('missing model topic plan: '+id);
    else {
     const validTopicIds=Object.keys(require('./report-outline').topics[id]||{});
+    if(prompt.qaNatalDepthPreview===true&&id==='saju_core')
+     validTopicIds.push('natal_depth');
     for(const topic of Object.keys(writingTopics))if(!validTopicIds.includes(topic))errors.push('model topic not in transport schema: '+id+'/'+topic);
     for(const topic of validTopicIds)if(!Object.hasOwn(writingTopics,topic))errors.push('transport topic missing from model prompt: '+id+'/'+topic);
    }
@@ -41,15 +66,57 @@ function inspect(prompt){
    const reportSchema=require('./report-schema.json');
    const wire=require('./report-wire');
    let transport;
-   try{transport=wire.schemaFor({requestedSections:[id],includeFinal:false,includeCover:false,analysisGuidance:{editorialBlueprint:{[id]:plan}}},reportSchema)}
+   // Reconstruct the SAME source- and stage-bound writing schema used by
+   // the billable provider. The older audit silently omitted facts/stage,
+   // so it missed locked core conclusions and identical-category branches.
+   const schemaPrompt={...prompt,requestedSections:[id],includeFinal:false,includeCover:false,
+    analysisGuidance:{...prompt.analysisGuidance,editorialBlueprint:{[id]:plan}}};
+   try{transport=wire.schemaFor(schemaPrompt,reportSchema)}
    catch(err){errors.push('invalid transport plan: '+id+': '+err.message);continue}
    const slots=transport.properties.chapters.properties[id].properties.paragraphs.properties;
+   if(id==='saju_core'&&prompt.facts?.status==='ready'){
+    const thesis=require('./report-core-thesis').forPrompt(schemaPrompt);
+    const month=require('./report-chart-contrast').build(prompt.facts)?.monthTenGodContext;
+    const text=slots.strength?.properties?.text?.description||'';
+    const chapterSchema=transport.properties.chapters.properties.saju_core.properties;
+    if(!thesis||JSON.stringify(chapterSchema.title?.enum)!==JSON.stringify([thesis.title])||
+       JSON.stringify(chapterSchema.keyJudgment?.enum)!==JSON.stringify([thesis.keyJudgment]))
+     errors.push('core-fixed-thesis-missing-from-audited-schema');
+    if(!month?.monthStem?.sourceId||!month?.monthMainHidden?.sourceId||
+       !text.includes(thesis?.keyJudgment||'__missing_locked_thesis__')||
+       ((prompt.qaNatalDepthPreview===true||
+         prompt.qaAdditiveDepthPreview===true||
+         prompt.qaOfflineEditorialResearchPreview===true||
+         prompt.paidCoreDepthV2===true)?
+        (month.sameClassification?
+         !text.includes('두 출생 위치의 십성 분류와 전통적 뜻이 같으므로')||
+          text.includes('두 출처의 서로 다른 뜻'):
+         !text.includes('두 의미를 별도 질문 두 개나 누구에게나 해당하는 준비 조언으로 바꾸지 않는다')):
+        (month.sameClassification?
+         !text.includes('같은 전통 분류가 두 위치에서 확인되어')||
+          text.includes('두 출처의 서로 다른 뜻'):
+         !text.includes('두 전통 분류가 다르면 정확히 계산된 오행 방향 하나만 설명한다')||
+          !text.includes('대칭 주의문을 작성하지 않는다')||
+          text.includes('언제 이롭거나 불리한가'))) )
+     errors.push('core-month-pair-writing-branch-disagrees-with-facts');
+   }
    for(const [topic,task] of Object.entries(plan.topicTasks||{})){
     const slot=slots[topic];
     if(!slot){errors.push('missing transport slot: '+id+'/'+topic);continue}
     if(topic===plan.anchorTopic&&slot.type!=='object')errors.push('nullable mandatory anchor: '+id+'/'+topic);
     if(task.mode==='state-limits'&&topic!==plan.anchorTopic&&slot.type!=='null')errors.push('unsupported topic writable: '+id+'/'+topic);
-    if(task.mode!=='state-limits'&&topic!==plan.anchorTopic&&!slot.anyOf?.some(v=>v.type==='null'))errors.push('supported optional topic cannot be omitted: '+id+'/'+topic);
+    // QA-only natal-depth is a deliberate evidence-qualified writing
+    // diagnostic; null would leave the ONLY requested depth unwritten.
+    // All ordinary/production optional report topics remain nullable.
+    const requiredQaDepth=prompt.qaNatalDepthPreview===true&&
+      prompt.qaAdditiveDepthPreview!==true&&
+      id==='saju_core'&&topic==='natal_depth'&&task.mode==='use-primary';
+    if(requiredQaDepth){
+     if(slot.type!=='object'||slot.anyOf)
+      errors.push('qa-required-depth-not-structurally-present: '+id+'/'+topic);
+    }else if(task.mode!=='state-limits'&&topic!==plan.anchorTopic&&
+      !slot.anyOf?.some(v=>v.type==='null'))
+     errors.push('supported optional topic cannot be omitted: '+id+'/'+topic);
    }
    for(const [topic,t] of Object.entries(plan.topicTasks||{}))if(t.mode==='state-limits'&&active.has(topic))errors.push('unsupported active topic: '+id+'/'+topic);
    if(/^year_2027_(money|career|relationship)$/.test(id)&&!plan.annualDomainEvidence?.relevant)errors.push('ungrounded annual domain: '+id);
@@ -57,13 +124,19 @@ function inspect(prompt){
    // This catches disagreements before a paid provider can return an empty chapter.
    if(plan.anchorTopic&&plan.topicTasks){
     const expectedTopics=Object.keys(require('./report-outline').topics[id]||{});
+    if(prompt.qaNatalDepthPreview===true&&id==='saju_core')
+     expectedTopics.push('natal_depth');
     const taskTopics=Object.keys(plan.topicTasks);
     if(JSON.stringify(expectedTopics)!==JSON.stringify(taskTopics))errors.push('plan/outline topic mismatch: '+id);
     const activeExpected=taskTopics.filter(topic=>plan.topicTasks[topic].mode!=='state-limits');
     if(JSON.stringify(activeExpected)!==JSON.stringify(plan.activeTopicKeys))errors.push('active topic/order mismatch: '+id);
     const primary=taskTopics.find(t=>plan.topicTasks[t].mode==='use-primary');
     const fallback=taskTopics.find(t=>plan.topicTasks[t].mode==='use-verified-fallback');
-    if(plan.anchorTopic!==(primary||fallback||null))errors.push('noncanonical anchor selection: '+id);
+    // In the paid Saju core, the positional month ten-god reading is the
+    // substantive anchor; the seasonal/visible observation is optional.
+    const mandated=id==='saju_core'&&plan.topicTasks.strength?.mode==='use-primary'
+     ?'strength':primary||fallback||null;
+    if(plan.anchorTopic!==mandated)errors.push('noncanonical anchor selection: '+id);
    }
   }
  }
@@ -80,5 +153,192 @@ function inspect(prompt){
  }
  return errors;
 }
+// A full server prompt can be correct while the much smaller JSON sent to
+// the provider has silently lost the instructions. Audit THAT actual boundary
+// before any paid API request. A future edit to compile() must not reintroduce
+// the same "rules were written, but the model never received them" failure.
+function inspectTransport(prompt,actual){
+ const errors=[];
+ if(!actual||actual.version!=='evidence-first-v1'||actual.stage!==prompt?.stage)
+  return ['missing-or-invalid-paid-provider-payload'];
+ const task=actual.task||{};
+ if(prompt.stage==='body'){
+  const expectedBrief=require('./report-generation-request').editorialGoalFor(prompt);
+  if(task.editorialGoal!==expectedBrief)
+   errors.push('body-editorial-brief-dropped');
+  if(JSON.stringify(task.previousSections)!==JSON.stringify(prompt.priorSections||[]))
+   errors.push('previous-report-conclusions-dropped');
+  const expectedReusable=(prompt.rules?.reusedEvidenceWithPriorConclusions||[]);
+  if(JSON.stringify(task.reusedEvidence)!==JSON.stringify(expectedReusable.map(
+   ({path,chapter,topic,previousConclusion})=>({path,chapter,topic,previousConclusion}))))
+   errors.push('verified-prior-evidence-dropped');
+  for(const id of prompt.requestedSections||[]){
+   const upstream=prompt.analysisGuidance?.chapterTasks?.[id]||{};
+   const chapter=task.chapters?.[id];
+   if(!chapter){errors.push('provider-chapter-missing:'+id);continue}
+   if(chapter.analysisGoal!==require('./report-generation-request').scopedAnalysisGoal(prompt,id))
+    errors.push('chapter-depth-goal-dropped:'+id);
+   // The first-chapter V2 instruction must survive actual writer transport.
+   // A mixed first batch must NEVER lend it to MBTI.
+   if(id==='saju_core'&&prompt.paidCoreDepthV2===true){
+    const contract=chapter.topics?.temperament?.serverOwnedWritingContract;
+    if(contract){
+     if(!['server-owned-first-chapter-evidence-and-claim-contract-v1',
+         'server-owned-first-chapter-separate-visible-contract-v1'].includes(contract.kind)||
+        contract.humanEditorialApproval!==false||
+        contract.modelRole!=='Korean-prose-rendering-only'||
+        !chapter.coreV2ConditionalReadingBrief?.includes(
+         'temperament.serverOwnedWritingContract')||
+        !chapter.coreV2ConditionalReadingBrief.includes('출력 스키마')||
+        chapter.coreV2ConditionalReadingBrief.includes(contract.outline.originalOnly)||
+        !chapter.topics.temperament.sourceQualifiedWritingDecision.readerInstruction
+         .includes('temperament.serverOwnedWritingContract')||
+        chapter.topics.temperament.sourceQualifiedWritingDecision.readerInstruction
+         .length>300||
+        !contract.evidenceRefs.every(ref=>Object.hasOwn(actual.source,ref)))
+      errors.push('paid-core-v2-server-owned-brief-not-transported');
+    }else if(!chapter.coreV2ConditionalReadingBrief?.includes('readerContrast')||
+         !chapter.coreV2ConditionalReadingBrief.includes('MBTI 비교 장에는'))
+     errors.push('paid-core-v2-writing-brief-not-transported');
+   }else if(Object.hasOwn(chapter,'coreV2ConditionalReadingBrief')){
+    errors.push('paid-core-v2-brief-leaked-to-unrelated-chapter:'+id);
+   }
+   if(chapter.analysisFocus!==(upstream.focus||null))
+    errors.push('chapter-focus-dropped:'+id);
+   if(chapter.safety?.avoid!==(upstream.avoid||''))
+    errors.push('chapter-safety-dropped:'+id);
+   const plan=prompt.analysisGuidance?.editorialBlueprint?.[id];
+   if(chapter.anchor!==plan?.anchorTopic||
+     JSON.stringify(Object.keys(chapter.topics||{}))!==JSON.stringify(Object.keys(plan?.topicTasks||{})))
+    errors.push('grounded-topic-plan-dropped:'+id);
+   // Verify the actual evidence/meaning table before an API call. Without
+   // this, a topic can describe an unrelated symbol despite strict response
+   // IDs, or a future compiler edit can silently discard the chart meaning.
+   const writer=require('./report-generation-request');
+   for(const [topicId,topic] of Object.entries(chapter.topics||{})){
+    if(id==='saju_core'&&topicId==='temperament'){
+     const expected=prompt.paidCoreDepthV2===true?
+      require('./report-paid-core-depth-v2').build(prompt.facts):null;
+     if(expected?
+        JSON.stringify(topic.paidCoreDepthV2)!==JSON.stringify(expected):
+        Object.hasOwn(topic,'paidCoreDepthV2'))
+      errors.push('paid-core-depth-v2-source-context-drift');
+    }
+    const permitted=[...writer.allowedRefs(actual,topic,id,topicId)];
+    const candidates=topic.citableFacts;
+    if(!Array.isArray(candidates)||
+       JSON.stringify(candidates.map(x=>x.id))!==JSON.stringify(permitted)){
+     errors.push('topic-citable-sources-drift:'+id+'/'+topicId);
+     continue;
+    }
+    // Reconstruct BOTH the reader-facing question and the source audit from
+    // validated original calculations. A source list alone cannot prove the
+    // paid writer received the right interpretation goal.
+    if(id==='saju_core'){
+     if(topicId==='natal_depth'){
+      const correct=prompt.qaNatalDepthPreview===true&&
+       ['natal.year.stem','natal.month.stem','natal.day.stem',
+        'natal.hour.stem','facts.stemConnections'].every(x=>permitted.includes(x));
+      const independent=['year','month','day','hour'].map(position=>{
+       const sourceId='natal.'+position+'.stem';
+       const truth=actual.source?.[sourceId]||{};
+       return {position,sourceId,category:truth.tenGod,
+        traditionalMeaning:truth.traditionalMeaning||null,
+        observedBehavior:false};
+      });
+      const methodScreen=require('./report-core-paid-natal-month-first-screen').build(prompt.facts);
+      const expected={kind:'qa-verified-natal-interpretive-contrast',
+       sourceRefs:permitted.slice(),positions:independent,
+       verifiedLinks:require('./report-core-paid-natal-linkage-brief').select(prompt.facts),
+       verifiedElementDirections:require('./report-core-paid-natal-visible-relation-bridge').build(prompt.facts,actual.source),
+       monthFirstApplicability:methodScreen,
+       readerScope:'distinct-from-month-pair-core',
+       writingQuestion:require('./report-core-paid-natal-month-first-screen').writingQuestion(methodScreen),
+       requiredCitations:['natal.year.stem','natal.day.stem','natal.hour.stem','facts.stemConnections']};
+      if(!correct||independent.some(x=>!x.category)||
+         !independent[0].traditionalMeaning||!independent[3].traditionalMeaning||
+         JSON.stringify(topic.evidenceFocus)!==JSON.stringify(expected))
+       errors.push('qa-natal-depth-evidence-brief-drift');
+      // The QA-only editorial hypothesis is NOT a new fact, and cannot
+      // alter the exact canonical evidenceFocus required for the writer.
+      if(prompt.qaOfflineEditorialResearchPreview===true){
+       const reference=require('./report-core-paid-natal-qa-editorial-bridge')
+        .build(prompt.facts,permitted,actual.source);
+       if(JSON.stringify(topic.qaOfflineEditorialResearch)!==JSON.stringify(reference))
+        errors.push('qa-natal-depth-editorial-reference-drift');
+      }else if(Object.hasOwn(topic,'qaOfflineEditorialResearch')){
+       errors.push('qa-offline-reference-leaked-into-billable-envelope');
+      }
+     }else{
+      const contrast=require('./report-chart-contrast');
+      const original=contrast.build(prompt.facts);
+      const expected=original&&contrast.forProvider(original,topicId,permitted,
+       prompt.qaNatalDepthPreview!==true);
+      const paidOrdinary=topicId==='strength'&&
+       prompt.paidCoreDepthV2!==true&&
+       prompt.qaNatalDepthPreview!==true&&
+       prompt.qaAdditiveDepthPreview!==true&&
+       prompt.qaOfflineEditorialResearchPreview!==true;
+      if(paidOrdinary&&expected){
+       const planned=require('./report-paid-core-reader-value-plan')
+        .build(prompt.facts,expected,permitted,actual.source);
+       if(!planned||
+          JSON.stringify(topic.sourceOwnedCoreReaderValue)!==JSON.stringify(planned))
+        errors.push('core-paid-reader-value-contract-drift');
+       if(planned)expected.readerReasoning.hypotheticalQuestion=
+        '가상의 업무 장면을 의무적으로 만들지 않는다. '+planned.readerTakeaway+
+        ' 실제 출생월의 두 의미와 오행 관계를 독자 자신의 삶을 관찰한 사실처럼 말하지 않는다.';
+      }else if(Object.hasOwn(topic,'sourceOwnedCoreReaderValue')){
+       errors.push('core-paid-reader-value-leaked-into-qa');
+      }
+      if(!expected||JSON.stringify(topic.evidenceFocus)!==JSON.stringify(expected))
+       errors.push('core-reader-evidence-brief-drift:'+id+'/'+topicId);
+     }
+    }
+    for(const candidate of candidates){
+     const truth=actual.source?.[candidate.id]||{};
+     if(candidate.position!==(truth.position||undefined)||
+        candidate.layer!==(truth.layer||undefined)||
+        candidate.tenGod!==(truth.tenGod||undefined)||
+        candidate.traditionalMeaning!==(truth.traditionalMeaning||undefined)||
+        (candidate.id==='person.mbti'&&candidate.inputType!==truth.type)){
+      errors.push('topic-citable-meaning-drift:'+id+'/'+topicId);
+      break;
+     }
+    }
+   }
+  }
+  const mbti=prompt.analysisGuidance?.mbtiReference;
+  const coreOnly=Array.isArray(prompt.requestedSections)&&
+   prompt.requestedSections.length===1&&prompt.requestedSections[0]==='saju_core';
+  if(coreOnly){
+   // A source-scoped Saju core must NOT import the input MBTI into its
+   // first chapter. Later MBTI chapters still require source preservation.
+   if(Object.hasOwn(actual.source||{},'person.mbti')||task.mbti!=null)
+    errors.push('saju-core-request-leaked-mbti-source');
+  }else if(Boolean(actual.source?.['person.mbti'])!==Boolean(mbti))
+   errors.push('mbti-input-source-dropped-or-invented');
+  if(coreOnly){
+   if(task.comparisonContract!=null)
+    errors.push('saju-core-request-leaked-comparison-contract');
+  }else if(JSON.stringify(task.comparisonContract)!==
+      JSON.stringify(prompt.analysisGuidance?.comparisonContract||null))
+   errors.push('independent-framework-contract-dropped');
+ }else if(prompt.stage==='synthesis'){
+  if(task.editorialGoal!==(prompt.rules?.finalEditingTask||null))
+   errors.push('final-editorial-brief-dropped');
+  if(JSON.stringify(task.completedReport)!==JSON.stringify(prompt.completedReport))
+   errors.push('validated-chapters-dropped-from-synthesis');
+ }
+ return errors;
+}
+function assertTransport(prompt,actual){
+ const errors=inspectTransport(prompt,actual);
+ if(errors.length){
+  console.error('[Paid provider transport audit]',{stage:prompt?.stage,errors});
+  throw Error('AI report service lost verified writing instructions before provider request');
+ }
+ return actual;
+}
 function assert(prompt){const errors=inspect(prompt);if(errors.length){console.error('[Report instruction audit]',{stage:prompt.stage,errors});throw Error('AI report service has contradictory generation instructions')}return prompt}
-module.exports={inspect,assert};
+module.exports={inspect,assert,inspectTransport,assertTransport};

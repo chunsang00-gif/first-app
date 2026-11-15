@@ -1,0 +1,63 @@
+name: One-time paid natal-depth QA (separate, opt-in)
+on:
+  workflow_dispatch:
+    inputs:
+      paid_natal_depth_confirmation:
+        description: 'ONLY ONE billable natal-depth model request. Type RUN_ONE_NATAL_DEPTH_SAMPLE after explicitly approving the API expense.'
+        required: true
+        type: string
+permissions:
+  contents: read
+  actions: read
+jobs:
+  natal-depth-qa:
+    if: ${{ github.ref_name == 'fix-paid-qa-fact-bindings-20261014' && inputs.paid_natal_depth_confirmation == 'RUN_ONE_NATAL_DEPTH_SAMPLE' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    concurrency:
+      group: one-shot-natal-depth-qa
+      cancel-in-progress: false
+    env:
+      REPORT_MODEL: ${{ vars.REPORT_MODEL }}
+      REPORT_QA_OUTPUT: ${{ github.workspace }}/private-qa-first-chapter.json
+      REPORT_QA_CONFIRM: ${{ inputs.paid_natal_depth_confirmation }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-audit --no-fund
+      - name: Verify offline suite and live-QA isolation BEFORE any model request
+        run: npm test && npm run smoke
+      - name: Verify branch, one-call approval, and encrypted-archive prerequisites
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = "fix-paid-qa-fact-bindings-20261014"
+          test "$REPORT_QA_CONFIRM" = "RUN_ONE_NATAL_DEPTH_SAMPLE"
+          test -n "$REPORT_MODEL" || { echo "Missing REPORT_MODEL"; exit 1; }
+          test -n "$OPENAI_API_KEY" || { echo "Missing OpenAI API secret"; exit 1; }
+          test "${#OPENAI_API_KEY}" -ge 32 || { echo "Configured API secret cannot encrypt private QA archive"; exit 1; }
+      - name: Enforce repository-wide one-shot dispatch lock BEFORE paid call
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node qa-natal-depth-dispatch-guard.js
+      - name: ONE paid natal-depth report sample (no retries or subsequent chapters)
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: node run-paid-natal-depth-qa.js
+      - name: Encrypt raw or rejected model response before upload
+        if: always()
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: node report-qa-secure-archive.js encrypt
+      - name: Upload ONLY encrypted natal-depth QA evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: premium-natal-depth-qa-encrypted
+          path: premium-first-chapter-qa.enc
+          if-no-files-found: ignore
+          retention-days: 30

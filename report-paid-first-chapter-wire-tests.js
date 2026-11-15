@@ -1,0 +1,252 @@
+'use strict';
+// Rehearses exactly the ONE first-chapter request used by the paid QA runner,
+// up to the actual OpenAI fetch() boundary. The fetch is intercepted before
+// any network request; this test must never call, charge, or log an AI service.
+// PASS certifies transport consistency ONLY, not the quality of generated prose.
+const assert=require('node:assert/strict');
+const {generate}=require('./report-server-contract');
+const {callOpenAI}=require('./server');
+const {policy,policyFor}=require('./report-generation-request');
+const {inspect}=require('./report-provider-preflight');
+const input={calendar:'lunar',leapMonth:false,birthDate:'1982-11-24',
+ birthTime:'14:20',gender:'male',mbti:'ISFP',name:'검증용'};
+const beforeFetch=global.fetch;
+const prevKey=process.env.OPENAI_API_KEY,prevModel=process.env.REPORT_MODEL;
+const prevURL=process.env.REPORT_MODEL_URL;
+let fetches=0,rawRequest=null,upstreamPrompt=null;
+(async()=>{
+ try{
+  process.env.OPENAI_API_KEY='NO_REAL_KEY_OFFLINE_CAPTURE_ONLY';
+  process.env.REPORT_MODEL='gpt-4.1';
+  delete process.env.REPORT_MODEL_URL;
+  global.fetch=async (url,opts)=>{
+   fetches++;
+   assert.equal(url,'https://api.openai.com/v1/responses');
+   if(fetches!==1)throw Error('UNEXPECTED_SECOND_PROVIDER_CALL');
+   rawRequest=JSON.parse(opts.body);
+   // Never reach network, and NEVER synthesize fake prose to claim quality.
+   throw Error('STOP_BEFORE_NETWORK');
+  };
+  await assert.rejects(
+   generate(input,async prompt=>{
+    assert.equal(prompt.stage,'body');
+    assert.deepEqual(prompt.requestedSections,['saju_core']);
+    upstreamPrompt=prompt;
+    return callOpenAI(prompt);
+   }),
+   /AI report service request failed/
+  );
+  assert.equal(fetches,1,'first QA model call must be intercepted once');
+  assert(rawRequest&&upstreamPrompt,'one real provider request must be captured');
+  assert.equal(rawRequest.model,'gpt-4.1');
+  assert.equal(rawRequest.store,false);
+  assert.equal(rawRequest.text.format.type,'json_schema');
+  assert.equal(rawRequest.text.format.strict,true);
+  const system=rawRequest.input[0].content;
+  const user=JSON.parse(rawRequest.input[1].content);
+  const schema=rawRequest.text.format.schema;
+  assert(system.startsWith('Return only the requested premium report JSON.'));
+  assert(system.includes(policyFor(upstreamPrompt)),
+   'actual provider request must use the scoped Saju-only instruction policy');
+  assert(!system.includes(policy),
+   'first chapter must not include the unrelated global report policy');
+  for(const excluded of ['2027년 관계 장은 실제 계산한',
+   '금전·직업·관계·결정·스트레스 장의 MBTI 비교는',
+   '입력 MBTI가 있을 때 mbti_contradiction',
+   '총평 단계는 completedReport의 내용만 선별한다']){
+   assert(!system.includes(excluded),
+    'Saju-core request still includes unrelated provider instructions: '+excluded);
+  }
+  assert.equal(user.stage,'body');
+  assert.deepEqual(Object.keys(user.task.chapters),['saju_core']);
+  assert.deepEqual(inspect(upstreamPrompt,user,schema),[],
+   'exact outgoing strict schema and compressed task must agree');
+  const core=user.task.chapters.saju_core;
+  const first=core.topics.temperament,second=core.topics.strength;
+  const scopedGoal=require('./report-generation-request').editorialGoalFor(upstreamPrompt);
+  assert(scopedGoal&&user.task.editorialGoal===scopedGoal,
+   'the actual first-chapter provider payload must contain the scoped reader-quality brief');
+  for(const phrase of ['MBTI 장에서는','2027년은 계산된',
+   '돈은 수입·지출','직업은 역할·학습','관계는 친밀감·표현']){
+   assert(!user.task.editorialGoal.includes(phrase),
+    'unrelated full-report editorial instructions must not reach the Saju-only batch: '+phrase);
+  }
+  assert(user.task.editorialGoal.includes('첫 사주 장의 실제 결제 원고')&&
+   user.task.editorialGoal.includes('두 계산 위치가 그 관계를 이루는 이유')&&
+   user.task.editorialGoal.includes('계절의 독립적 해석을 확인할 수 없으면')&&
+   !user.task.editorialGoal.includes('한쪽만 따르면 무엇을 놓치는지'),
+   'core-only real buyer goal must explain verified source relations without forcing invented life outcomes');
+  const altered=structuredClone(user);
+  altered.task.editorialGoal=upstreamPrompt.editorialTask;
+  assert(require('./report-instruction-audit').inspectTransport(upstreamPrompt,altered)
+   .includes('body-editorial-brief-dropped'),
+   'future changes must not silently restore full-report writing instructions');
+  // Exact outgoing paid request: context cannot exceed its citation scope.
+  const chapterRefs=new Set(Object.values(core.topics).flatMap(topic=>
+   topic.citableFacts.map(row=>row.id)));
+  assert.deepEqual(Object.keys(user.source).sort(),[...chapterRefs].sort(),
+   'provider sees only actually citable first-chapter calculated sources');
+  assert.equal(user.task.mbti,null,
+   'first-chapter writer must not receive the MBTI profile');
+  assert.equal(user.task.comparisonContract,null,
+   'first chapter must not receive a cross-framework comparison contract');
+  for(const forbidden of ['facts.rootConditions','facts.stemConnections',
+   'facts.natalClashes','facts.annualTenGods','facts.targetYearRelations',
+   'person.mbti','natal.day.stem','natal.hour.stem']){
+   assert(!Object.hasOwn(user.source,forbidden),
+    'unrelated facts must not reach the first-chapter writer: '+forbidden);
+  }
+  assert(chapterRefs.has('facts.seasonalEvidence')&&
+   chapterRefs.has('facts.qiEvidence')&&
+   chapterRefs.has('facts.structuralEvidence.monthCommand'),
+   'valid season/visible/month evidence must remain available');
+  // Protect the EXACT outgoing system prompt and fact-bound first-chapter task.
+  assert(system.includes('전환월은 진·미·술·축월에 붙이는 명리상의 월지 분류'));
+  const seasonalReason=first.evidenceFocus.readerReasoning.reasoningTask;
+  assert(seasonalReason.includes('명리상 전환월')&&
+   seasonalReason.includes('실제 계절이 끝나는 때')&&
+   seasonalReason.includes('양력·음력 새해')&&
+   seasonalReason.includes('절입 직전·직후'));
+  assert(first.evidenceFocus.points.find(p=>p.kind==='month-vs-day')
+   .calculatedExplanation.includes('실제 계절 종료일'),
+   'the lunar 丑 case must not be interpreted as winter end from phase alone');
+  // Ensure the actual model request and response field share the updated question.
+  const groundedQuestion=require('./report-outline').topics.saju_core.strength;
+  assert.equal(second.question,groundedQuestion);
+  assert(groundedQuestion.includes('한 가지 조건부 해석')&&
+    groundedQuestion.includes('고정된 핵심 판단'),
+    'core interpretation must precede a dictionary explanation');
+  assert(!/뿌리|충은 필요한 경우|각각 무엇을 의미하고/.test(groundedQuestion),
+    'old optional-root and glossary-first instructions must not reach the paid request');
+  const claim1=first.evidenceFocus.claimOwnership,claim2=second.evidenceFocus.claimOwnership;
+  assert.equal(claim1.version,'core-reader-claim-ownership-v1');
+  assert.equal(claim2.version,'core-reader-claim-ownership-v1');
+  assert.equal(claim1.overlappingMonthLearning,true,
+   'historical paid sample should exercise learning/resource overlap');
+  assert.equal(claim2.overlappingMonthLearning,true);
+  assert(claim1.claimIds.every(id=>!claim2.claimIds.includes(id)));
+  assert(claim1.readerConclusion.includes('외부에서 지원을 받을 수 있는 조건'));
+  assert(claim2.readerConclusion.includes('새로운 정보를 자기 방식으로 해석하고 이해하는 태도'));
+  assert(claim2.readerConclusion.includes('여러 곳의 자원을 살피고 필요한 곳에 활용하는 태도'));
+  const coreSchema=schema.properties.chapters.properties.saju_core.properties;
+  const slots=coreSchema.paragraphs.properties;
+  assert.equal(core.anchor,'strength');
+  assert.equal(slots.strength.type,'object');
+  assert(slots.temperament.anyOf?.some(s=>s.type==='null'));
+  const firstSlot=slots.temperament.anyOf.find(x=>x.type==='object');
+  const firstText=firstSlot.properties.text.description;
+  const secondSlot=slots.strength;
+  const secondText=secondSlot.properties.text.description;
+  assert(secondText.includes(groundedQuestion),
+    'strict provider response schema must receive the same interpretation-first writing question');
+  const readerValue=second.sourceOwnedCoreReaderValue;
+  assert(readerValue?.kind==='grounded-paid-core-reader-takeaway-v1');
+  assert(readerValue.monthVisibleTraditionalMeaning.includes('새로운 정보를 자기 방식으로 해석하고 이해'));
+  assert(readerValue.monthMainTraditionalMeaning.includes('여러 곳의 자원을 살피고 필요한 곳에 활용'));
+  assert(readerValue.semanticDifferenceRequired);
+  assert(second.evidenceFocus.readerReasoning.hypotheticalQuestion.includes(readerValue.readerTakeaway));
+  assert(!second.evidenceFocus.readerReasoning.hypotheticalQuestion.includes('가상의 상황:'),
+   'real paid writer must not receive the rejected forced adult-workplace scene');
+  assert(secondText.includes(readerValue.script),
+   'actual provider response field must lead with this calculated symbolic meaning');
+  assert(secondText.includes('보편적 실무 조언, 가상 성패나 교훈을 만들지 않고'),
+   'real provider schema must forbid the universal job-preparation example');
+  assert(readerValue.script.includes('양쪽 모두 중요하다는 말로 끝내지 않는다')&&
+   readerValue.script.includes('한쪽만 보면 놓치고 반대로 다른 쪽만 보면 놓친다는 대칭 문장을 두 개 나열하지 않는다')&&
+   readerValue.twoSidedScope.mirrorAdviceRequired===false,
+   'the required normal paid chapter must focus on a verified direction, not mirror advice');
+  assert(secondText.includes('두 전통 분류가 다르면 정확히 계산된 오행 방향 하나만 설명한다')&&
+    secondText.includes('대칭 주의문을 작성하지 않는다'),
+    'real provider uses one verified relation, not a forced generic workplace scene');
+   const heading=coreSchema.title.description,summary=coreSchema.keyJudgment.description;
+  const fixed=require('./report-core-thesis').forPrompt(upstreamPrompt);
+  assert.deepEqual(coreSchema.title.enum,[fixed.title]);
+  assert.deepEqual(coreSchema.keyJudgment.enum,[fixed.keyJudgment]);
+  assert(secondText.includes('출처에서 직접 계산된 핵심 판단: '+fixed.keyJudgment)&&
+    secondText.includes('고정 판단을 본문에 그대로 다시 적지 말고'),
+    'normal paid writer must elaborate the exact source-bound thesis only once');
+   assert(secondText.split(fixed.keyJudgment).length===2,
+   'repeat the exact judgment only once in the required body field');
+  assert(fixed.keyJudgment.length<120);
+  assert(!/전통적 풀이와 해석의 조건/.test(fixed.title));
+  assert(summary.includes('출생월 두 계산 출처'),
+   'paid response must ask for exactly one main interpretation sentence');
+  assert(heading.includes('실제 출생월 두 출처'));
+  assert(firstText.includes(claim1.readerConclusion)&&
+    !firstText.includes(claim2.readerConclusion));
+  assert(secondText.includes(claim2.readerConclusion)&&
+    !secondText.includes(claim1.readerConclusion));
+  assert(!secondText.includes('첫 출처의 실제 질문은')&&
+    !secondText.includes('둘째 출처의 실제 질문은')&&
+    !secondText.includes('두 질문에 각각 답해야'),
+    'actual output field must not resurrect two-question internal checklist');
+  assert(secondText.includes('하나의 전통적 질문'));
+  assert(secondText.includes('뜻을 한 줄씩 나열하거나')&&
+    secondText.includes('현재 해석 범위를 밝힌다'),
+    'paid reader body must not substitute glossary and generic advice for chart meaning');
+   assert(firstText.includes('상징 소개만 남으면 소제목과 본문을 모두 null로 반환한다'),
+   'optional seasonal paragraph should not inflate the chapter');
+  assert(system.includes('독자에게 출처·상징·검증 과정 자체를 강의하지 않는다')&&
+   system.includes('결론의 재요약을 붙이지 않는다'),
+   'actual system prompt must agree with the schema instructions');
+  assert(readerValue.script.includes('양쪽 모두 중요하다는 말로 끝내지 않는다')&&
+   !readerValue.script.includes('첫 질문만 답하면 무엇이 빠지고')&&
+   readerValue.script.includes('이 명식의 실제 질문: '+readerValue.actualTwoSidedReading),
+   'actual source-owned interpretation must explain one calculated direction, not two glossary definitions');
+  assert(secondText.includes('별도의 개인 해석 근거가 없으면')&&
+    secondText.includes('basis.refs'),
+    'no generic advantage examples are required from unverified life facts');
+   assert(firstText.includes('편집 순서를 말하지 않는다')&&
+    firstText.includes('내부 basis.limit에 기록한다')&&
+    secondText.includes('고정 판단을 본문에 그대로 다시 적지 말고')&&
+    secondText.includes('계산 근거 ID나 용어 목록을 본문에 넣지 않으며'),
+    'reader text stays separate from private source ledger and drafting commentary');
+   const valuePlan=second.evidenceFocus.readerReasoning.readerValuePlan;
+  assert(valuePlan.customerSequence.startsWith('고정 핵심 판단'),
+   'first-chapter writing order must begin with interpretation, not glossary');
+  assert(!Object.hasOwn(valuePlan.first,'question')&&!Object.hasOwn(valuePlan.second,'question')&&
+   valuePlan.first.sourceId==='natal.month.stem'&&
+   valuePlan.second.sourceId===second.evidenceFocus.tenGodFocus.monthMainHidden.sourceId,
+   'real provider must retain exact computed month sources but omit competing first/second FAQ prompts');
+  assert(valuePlan.traditionalReading.first.reading&&valuePlan.traditionalReading.second.reading&&
+   second.evidenceFocus.readerReasoning.hypotheticalQuestion.includes(readerValue.readerTakeaway),
+   'the two real monthly symbolic meanings and their single source-specific reading must reach the paid writer');
+  assert(!Object.hasOwn(second.evidenceFocus.readerReasoning.readerValuePlan.traditionalReading,'tentativeThesis')&&
+   !Object.hasOwn(second.evidenceFocus.readerReasoning.readerValuePlan.traditionalReading,'evidenceLimit'),
+   'do not send duplicated provisional teaching prose or disclaimers');
+  assert(!secondText.includes('작성 목적:')&&!secondText.includes('해석의 범위:'),
+   'response schema must not carry the meta-writing plan as customer prose');
+  assert(core.analysisFocus.includes('한 가지 조건부 기질 해석'));
+  assert(first.citableFacts.some(x=>x.id==='facts.seasonalEvidence'));
+  assert(first.citableFacts.some(x=>x.id==='facts.qiEvidence'));
+  assert(!first.citableFacts.some(x=>x.id.startsWith('natal.month.hidden.')));
+  const verifiedMain=second.evidenceFocus.tenGodFocus.monthMainHidden.sourceId;
+  assert(second.citableFacts.some(x=>x.id==='natal.month.stem'));
+  assert(second.citableFacts.some(x=>x.id===verifiedMain));
+  const optionalMonth=second.sourceOwnedMonthNonmainExposure;
+  assert.deepEqual(second.citableFacts.filter(x=>x.id.startsWith('natal.month.hidden.'))
+    .map(x=>x.id),optionalMonth?
+     [verifiedMain,optionalMonth.nonmainSourceId]:[verifiedMain]);
+  if(optionalMonth){
+   assert(optionalMonth.mainSourceId===verifiedMain&&
+    secondText.includes(optionalMonth.readerGoal)&&
+    optionalMonth.additionalInterpretivePrioritySelected===false,
+    'only the real third monthly source may supply the new reader observation');
+  }
+  const refs1=firstSlot.properties.basis.properties.refs.items.enum;
+  const refs2=secondSlot.properties.basis.properties.refs.items.enum;
+  assert.deepEqual(refs1,first.citableFacts.map(x=>x.id));
+  assert.deepEqual(refs2,second.citableFacts.map(x=>x.id));
+  assert(!refs1.some(x=>x.startsWith('natal.month.hidden.')));
+  assert.equal(rawRequest.text.format.name,'saju_mbti_premium_report');
+  console.log('PASS EXACT 1st-chapter OpenAI transport captured offline: source ownership, response field prose, one-sentence conclusion and strict schema agree; 0 paid API calls. NOT prose quality approval.');
+ }finally{
+  global.fetch=beforeFetch;
+  if(prevKey===undefined)delete process.env.OPENAI_API_KEY;
+  else process.env.OPENAI_API_KEY=prevKey;
+  if(prevModel===undefined)delete process.env.REPORT_MODEL;
+  else process.env.REPORT_MODEL=prevModel;
+  if(prevURL===undefined)delete process.env.REPORT_MODEL_URL;
+  else process.env.REPORT_MODEL_URL=prevURL;
+ }
+})().catch(err=>{console.error(err);process.exitCode=1});

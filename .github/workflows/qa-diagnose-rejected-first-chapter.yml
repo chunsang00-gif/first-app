@@ -1,0 +1,190 @@
+name: Offline diagnostic of already-paid failed first chapter
+on:
+  push:
+    branches: [fix-paid-qa-fact-bindings-20261014]
+    paths: [.github/workflows/qa-diagnose-rejected-first-chapter.yml]
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  inspect-existing-archive:
+    if: github.ref_name == 'fix-paid-qa-fact-bindings-20261014'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install local deterministic calculation dependency (no model calls)
+        run: npm install --no-audit --no-fund
+      - name: Download only the ALREADY PAID failed chapter (no provider calls)
+        uses: actions/download-artifact@v4
+        with:
+          name: premium-first-chapter-qa-encrypted
+          repository: chunsang00-gif/first-app
+          run-id: 38994773780
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/rejected-qa-encrypted
+      - name: Decrypt privately, compare existing baseline checks, print codes ONLY
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          private_dir="$RUNNER_TEMP/rejected-qa-private"
+          mkdir -p "$private_dir"
+          trap 'rm -rf "$private_dir" "$RUNNER_TEMP/rejected-qa-encrypted"' EXIT
+          node report-qa-secure-archive.js decrypt \
+            "$RUNNER_TEMP/rejected-qa-encrypted/premium-first-chapter-qa.enc" \
+            "$private_dir"
+          node - "$private_dir/private-qa-first-chapter-provider-calls.json" <<'NODE'
+          'use strict';
+          const fs=require('node:fs');
+          const journal=JSON.parse(fs.readFileSync(process.argv[2],'utf8'));
+          if(!Array.isArray(journal.calls)||journal.calls.length!==1||
+             journal.calls[0].number!==1)throw Error('INVALID_PAID_ARCHIVE_CALL_COUNT');
+          const record=journal.calls[0];
+          if(record?.response?.status==='invalid_json'||
+             !record?.response?.chapters?.saju_core)
+            throw Error('PAID_RESPONSE_HAS_NO_STRUCTURED_FIRST_CHAPTER');
+          const core=record.response.chapters.saju_core;
+          const topics=Object.entries(core.paragraphs||{})
+           .filter(([,value])=>value!==null&&typeof value==='object');
+          const text=topics.map(([,row])=>String(row.text||''));
+          const section={id:'saju_core',title:String(core.title||''),
+            keyJudgment:String(core.keyJudgment||''),
+            bodyLabels:topics.map(([,row])=>String(row.label||'')),
+            body:text};
+          const baseline=require('./report-grounding-review').inspect({sections:[section]});
+          const headline=section.keyJudgment.trim();
+          // This was a NEW experimental rule, not a validated content verdict.
+          const removedRuleMatch=/^(?:이\s*사주는|태어난\s*달(?:은|이|의|에서)|출생\s*월(?:은|이|의|에서))/.test(headline)&&
+           /(?:계절|전환기|태어|겉글자|기운|사주|관계|달|오행)/.test(headline)&&
+           !/(?:결정|선택|거절|바꾸|확인한\s*뒤|다시\s*살펴|먼저\s*살펴|의견|맡은\s*일|판단한\s*뒤)/.test(headline);
+          const allFields=[headline,section.title,...section.bodyLabels,...text,
+            ...topics.flatMap(([,row])=>Object.values(row.basis||{}).filter(x=>typeof x==='string'))];
+          const originalBirthMonth=Number(String(journal?.sample?.birthDate||'').slice(5,7));
+          const lunarMonthReferences=allFields.flatMap(field=>
+            [...field.matchAll(/음력\s*(\d{1,2})\s*월/g)]
+             .map(m=>({month:Number(m[1]),birthContext:/출생|태어난|생월|생일/.test(field)})));
+          // Step 2: provenance audit of the SAME archived provider payload.
+          // All details stay on the private runner; logs contain counts only.
+          const calculated=require('./report-facts-node').build(journal.sample,2027);
+          if(calculated.status!=='ready')throw Error('ARCHIVED_SAMPLE_CALCULATION_UNAVAILABLE');
+          const source=record.request?.source||{};
+          const corePlan=record.request?.task?.chapters?.saju_core;
+          if(!corePlan?.topics)throw Error('ARCHIVED_WRITER_TASK_MISSING');
+          const mainStem=calculated.facts.structuralEvidence.monthCommand.mainHiddenStem;
+          const monthStemRef='natal.month.stem';
+          const mainHiddenRef='natal.month.hidden.'+mainStem;
+          const refsByTopic={};
+          const referenceProblems=[];
+          for(const [topic,row] of topics){
+            const plan=corePlan.topics[topic];
+            if(!plan){referenceProblems.push(topic+':unplanned-topic');continue;}
+            const refs=row.basis?.refs;
+            const allowed=new Set((plan.citableFacts||[]).map(x=>x.id));
+            const notInSource=Array.isArray(refs)?refs.filter(x=>!Object.hasOwn(source,x)):[];
+            const notAllowed=Array.isArray(refs)?refs.filter(x=>!allowed.has(x)):[];
+            if(!Array.isArray(refs)||!refs.length)referenceProblems.push(topic+':missing-citations');
+            if(notInSource.length)referenceProblems.push(topic+':unknown-citation');
+            if(notAllowed.length)referenceProblems.push(topic+':citation-outside-topic');
+            refsByTopic[topic]={referenceCount:Array.isArray(refs)?refs.length:0,
+              inSource:notInSource.length===0,withinTopic:notAllowed.length===0,
+              hasInterpretation:Boolean(String(row.basis?.interpretation||'').trim()),
+              hasCondition:Boolean(String(row.basis?.condition||'').trim()),
+              hasLimit:Boolean(String(row.basis?.limit||'').trim())};
+          }
+          const month=calculated.facts.tenGods.month;
+          const hidden=(month.hiddenStems||[]).find(x=>x.stem===mainStem);
+          const pair=corePlan.topics.strength?.citableFacts||[];
+          const pairStem=pair.find(x=>x.id===monthStemRef);
+          const pairHidden=pair.find(x=>x.id===mainHiddenRef);
+          const first=corePlan.topics.temperament?.citableFacts||[];
+          const strengthRefs=core.paragraphs?.strength?.basis?.refs||[];
+          const temperamentRefs=core.paragraphs?.temperament?.basis?.refs||[];
+          const evidenceRows=topics.map(([topic,row])=>{
+            const b=row.basis||{};
+            return topic+': '+(Array.isArray(b.refs)?b.refs.map(ref=>{
+              const x=source[ref]||{};
+              return ref+' '+[x.position,x.stem,x.tenGod].filter(Boolean).join(' ');
+            }).join('; '):'')+' / 해석: '+String(b.interpretation||'')+
+              ' / 조건: '+String(b.condition||'')+' / 한계: '+String(b.limit||'');
+          });
+          const factAudit=require('./report-quality-node').verifyEvidenceAgainstFacts(
+            {sections:[{...section,evidence:evidenceRows}]},calculated);
+          const semantic=require('./report-semantic-review').review({sections:[section]});
+          const editorial=require('./report-editorial').wordingErrors(
+            [section.title,section.keyJudgment,...section.bodyLabels,...section.body]);
+          const sourceLedger={
+            verifiedMonthMainStem:!!hidden,
+            monthStemClassificationMatchesCalculation:!!pairStem&&pairStem.tenGod===month.stemTenGod,
+            mainHiddenClassificationMatchesCalculation:!!pairHidden&&pairHidden.tenGod===hidden?.tenGod,
+            strengthReferencesBothMonthLocations:Array.isArray(strengthRefs)&&
+              strengthRefs.includes(monthStemRef)&&strengthRefs.includes(mainHiddenRef),
+            temperamentReferencesRealSeason:Array.isArray(temperamentRefs)&&
+              temperamentRefs.includes('facts.seasonalEvidence'),
+            temperamentCitableMonth:Boolean(first.find(x=>x.id===monthStemRef)),
+            referenceProblems,topicEvidence:refsByTopic,
+            calculatedFactAuditErrors:factAudit.errors.length,
+            calculatedFactAuditWarnings:factAudit.warnings.length,
+            semanticReviewCodes:semantic.findings.map(x=>x.code),
+            wordingProblemCount:editorial.length,
+            noAutomaticReaderQualityApproval:true
+          };
+ 
+          const result={
+            source:'already-paid-2026-10-17-first-chapter',
+            step2ProvenanceAudit:sourceLedger,
+            encryptedArtifactRunId:38994773780,
+            providerCallsInArchive:journal.calls.length,
+            noNewApiCalls:true,
+            corePresent:true,
+            nonNullParagraphs:topics.length,
+            displayedCharacters:[headline,section.title,...section.bodyLabels,...text].join('').length,
+            oldBaselineBlockingCodes:baseline.blockingErrors,
+            newlyAddedRuleWouldMatch:removedRuleMatch,
+            headlineContainsChoiceLanguage:/(?:결정|선택|판단|거절|업무|사람|의견|행동|태도)/.test(headline),
+            lunarMonthReferences:lunarMonthReferences.length,
+            possibleBirthMonthMismatches:lunarMonthReferences.filter(x=>x.birthContext&&
+              Number.isInteger(originalBirthMonth)&&x.month!==originalBirthMonth).length,
+            limitation:'This is a private-archive structural/regex diagnostic, not a human evaluation or proof of factual quality.'
+          };
+          console.log(JSON.stringify(result,null,2));
+          // Confidential human-reading handoff: X25519 public-key sealed.
+          // Never emit the original paid report or birth/name details as plaintext.
+          const crypto=require('node:crypto');
+          const recipient=crypto.createPublicKey({
+            key:Buffer.from('MCowBQYDK2VuAyEAvH7KpNbdHfNdm7xDr10wIUzJEdFT3/YpRwqs0Z4dlRU=','base64'),
+            format:'der',type:'spki'
+          });
+          if(recipient.asymmetricKeyType!=='x25519')throw Error('REVIEW_RECIPIENT_INVALID');
+          const ephemeral=crypto.generateKeyPairSync('x25519');
+          const shared=crypto.diffieHellman({privateKey:ephemeral.privateKey,publicKey:recipient});
+          const aesKey=Buffer.from(crypto.hkdfSync('sha256',shared,
+            Buffer.from('saju-review-v2'),Buffer.from('archived-first-chapter'),32));
+          const nonce=crypto.randomBytes(12),cipher=crypto.createCipheriv('aes-256-gcm',aesKey,nonce);
+          const review={title:core.title,keyJudgment:core.keyJudgment,
+            paragraphs:topics.map(([topic,row])=>({topic,label:row.label,text:row.text,
+              interpretation:row.basis?.interpretation||'',
+              condition:row.basis?.condition||'',
+              limit:row.basis?.limit||''}))};
+          const sealed=Buffer.concat([cipher.update(Buffer.from(JSON.stringify(review),'utf8')),cipher.final()]);
+          const envelope={format:'saju-qa-ephemeral-review-x25519-v2',
+            ephemeralPublic:ephemeral.publicKey.export({format:'der',type:'spki'}).toString('base64'),
+            nonce:nonce.toString('base64'),tag:cipher.getAuthTag().toString('base64'),
+            ciphertext:sealed.toString('base64')};
+          fs.writeFileSync(require('node:path').join(process.env.RUNNER_TEMP,'sealed-review.json'),
+            JSON.stringify(envelope),{encoding:'utf8',mode:0o600,flag:'wx'});
+          console.log('Private reader report sealed to one-time X25519 recipient; no plaintext logging.');
+          NODE
+      - name: Upload ONLY ephemeral public-key-encrypted review
+        uses: actions/upload-artifact@v4
+        with:
+          name: offline-first-chapter-review-sealed
+          path: ${{ runner.temp }}/sealed-review.json
+          retention-days: 1
+          if-no-files-found: error

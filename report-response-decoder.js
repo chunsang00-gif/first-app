@@ -1,0 +1,72 @@
+'use strict';
+// The ONLY paid provider-value -> app-batch decoder. Used live and in QA
+// replay. No network calls; decoding does not certify editorial quality.
+const wire=require('./report-wire');
+const generation=require('./report-generation-request');
+const reader=require('./report-reader-policy');
+function decode(value,prompt){
+ // These two shapes are operator-only archived provider failures, never
+ // successful report data. They must round-trip through free QA replay.
+ if(value?.status==='invalid_json')throw Error('AI report service returned invalid report data');
+ if(value?.status==='empty_output')throw Error('AI report service returned no output');
+ if(value?.status==='incomplete'){
+  const reason=value.incomplete_details?.reason;
+  throw Error(reason==='max_output_tokens'?'AI report service output token limit':
+   reason==='content_filter'?'AI report service content filter':
+   'AI report service returned incomplete report data');
+ }
+ if(!value||typeof value!=='object'||Array.isArray(value))
+  throw Error('AI report service returned invalid report data');
+ // This semantic gate is explicitly limited to operator QA: the live
+ // first-chapter decoder and every other paid chapter remain unchanged.
+ // First verify strict basis and source IDs, then check what the reader sees.
+ // A separately opted-in, OFFLINE development preview may demonstrate
+ // the actual reader result when a previous paid response left the optional
+ // V2 paragraph null. Never change the archived/model value in place.
+ // Never run this in production or in the original paid one-shot workflow.
+ let readerValue=value;
+ if(prompt?.paidCoreDepthV2===true&&
+    process.env.PAID_CORE_V2_SOURCE_BOUND_READER==='offline-preview'&&
+    process.env.NODE_ENV==='test'&&process.env.RENDER!=='true'){
+  const candidate=require('./report-core-v2-source-bound-manuscript')
+   .build(prompt,value);
+  if(candidate){
+   readerValue=structuredClone(value);
+   readerValue.chapters.saju_core.paragraphs.temperament=candidate.proposal;
+  }
+ }
+ // The model's basis.refs is not treated as authoritative provenance.
+ // In guarded offline V2 only, calculated source IDs may be attached to
+ // a CLONE after the concrete chart claim and reader checks both pass.
+ // Production and historical raw provider response stay unchanged.
+ const checked=require('./report-paid-core-v2-source-provenance')
+  .bind(readerValue,prompt);
+ readerValue=checked.value;
+ // Other, NON-exposure source contracts use their own source and text
+ // guard. Never allow them to inherit month-hidden matching claims.
+ const separate=require('./report-paid-core-v2-separate-visible-provenance')
+  .bind(readerValue,prompt);
+ readerValue=separate.value;
+ const restored=generation.restoreEvidence(readerValue,prompt);
+ if(prompt?.qaNatalDepthPreview===true)
+  require('./report-core-paid-natal-depth-response-gate').assert(value,prompt);
+ const decoded=reader.normalizeVisible(wire.decode(restored,prompt));
+ // The last paid synthesis must respect the same verified birth-year
+ // boundary as the earlier chapters. Do not let a late cover or conclusion
+ // introduce a fabricated adult life after the paid body was verified.
+ if(prompt?.stage==='synthesis'){
+  const age=require('./report-reader-age-boundary');
+  if(age.forPrompt(prompt)){
+   const f=decoded.finalJudgment||{},cover=decoded.cover||{};
+   const visible=[cover.headline,cover.description,
+    ...(cover.highlights||[]).flatMap(h=>[h.title,h.description]),
+    f.headline,...(f.body||[]),...(f.strengths||[]),...(f.watchouts||[]),
+    ...(f.routines||[]).flatMap(r=>[r.trigger,r.action,r.reason]),
+    f.closingQuestion];
+   if(visible.some(line=>age.inspect(line,prompt).length))
+    throw Error('AI report service underage adult-history assumption: synthesis');
+  }
+ }
+ return decoded;
+}
+module.exports={decode};

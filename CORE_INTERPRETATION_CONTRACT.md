@@ -1,0 +1,137 @@
+# 유료 사주×MBTI 해석 엔진: 근본 구조 계약 (2026-10-15)
+
+## 원칙
+- **계산 사실 → 전통 분류와 가능한 비교 → 조건부 설명 → 독자용 문장** 순서로만 처리한다.
+- 실제 금전·직장·연애 사건, 능력, 심리검사 점수는 출생 사주나 MBTI 네 글자로 검증되지 않는다.
+- 입력 사실과 작성 계획이 모순되면 **유료 모델 호출 전에 차단한다**. 오류를 피하려고 근거 없는 문단을 채우거나 새 자료를 꾸미지 않는다.
+- 무료 테스트 통과는 해석 품질 합격이나 유료 출시 허가가 아니다.
+
+## 단일 소유자
+
+| 단계 | 파일 | 증명 가능한 것 | 금지되는 것 |
+| --- | --- | --- | --- |
+| 역법 | `calendar-provider-node.js`, `production-pipeline-node.js` | 사용한 역법 라이브러리·절기·시간 규칙 아래의 사주 기둥 | 입력되지 않은 지역 시차 보정, 확인하지 않은 절기 경계 |
+| 십성·위치·연도 | `report-facts-node.js` | 일간 기준의 계산 분류, 원국·세운·대운 자료, 계산된 충 관계 | 인생 기록이나 실제 일어난 사건으로 바꾸기 |
+| 계산 위치와 뜻 | `report-fact-bindings.js` | `natal.year/month/day/hour.*`, `annual.stem/hidden.*`의 위치·층·십성·전통적 설명 | 한 분류를 다른 위치로 옮기기, 전통적 뜻을 검증된 성격으로 단정 |
+| 2027년 금전·직업 비교 | `report-interpretation-core.js` | 연도와 출생 위치 **모두**에 확인된 같은 전통 분류군이 있는지, 두 위치의 차이를 설명할 기초 | 이를 충·합 관계나 특정 사건의 예측이라고 주장 |
+| 분야별 질문/자격 | `report-analysis-guidance.js` | 계산 자료에 있는 분야별 질문과 허용된 인용 경로 | 범용 성격 설명만으로 금전·직업·관계의 행동을 증명 |
+| MBTI 비교 | `report-analysis-guidance.forRequest`의 `comparisonContract` | 사용자가 입력한 MBTI 선호와 계산된 사주의 **독립적·가정적 비교** | 실제 성격의 일치나 충돌이 계산되었다고 주장 |
+| 작성기 | `report-generation-request.js` | 각 문단의 인용 위치와 연간/원국 쌍, 제한된 해석 초안 | 출처가 없는 해석이나 연간 한쪽 자료만으로 분야운 생성 |
+| 유료 호출 전 안전장치 | `report-interpretation-invariants.js`, `report-instruction-audit.js` | 최종 계획·상태·출처·비교 계약의 일치 | 모순된 계획으로 모델 호출 |
+| 출판 심사 | `report-release-gate.js` | 계산·형식 등 기술 통과 상태와 사람의 심사 필요 여부 | `qa.pass`를 유료 출시 승인으로 바꾸기 |
+
+## 이번에 바로잡은 근본 원인
+1. **불변 조건 없는 2027 분야 해석**: 금전·직업 두 분야가 모든 경우에 사실상 비활성화되었다. 이제 연간 및 원국의 정확한 계산 위치를 모두 갖춘 *전통 분류군 비교*만 허용한다. 매출·연봉 상승, 승진이나 이직 시기는 도출하지 않는다.
+2. **근거 선정 전의 재사용 기록**: 연간 분야가 비활성화되기 전에 작성된 사용 기록이 남았다. 이제 최종 분야 판단 후 계산한다.
+3. **초기 상태와 최종 상태의 불일치**: `evidencePresent`, `requiredMode`, `fallbackEvidencePaths`, `anchorTopic`을 각각 판단하던 관행을 제거했다. 최종 지원 주제에서 파생시키고 별도 불변 조건으로 검사한다.
+4. **형식만 갖춘 MBTI 합치기**: 사주와 MBTI 둘을 인용했다고 객관적으로 일치·충돌을 검증한 것이 아니다. 모델의 실제 요청에 독립 비교 계약을 포함하고 누락을 사전 감사한다.
+5. **모델에 의미를 임의 보충**: 계산 위치별 검증된 십성 설명을 해당 출처에 함께 실어 전달하고, 실제 경험이 아니라 전통적 뜻임을 명시한다.
+
+## 계산값 무결성 검사 (후속 보강)
+- `report-calculation-integrity.js`는 생성된 **원래 사주 기둥**으로 십성과 지장간, 연주, 해당 연도에 직접 계산된 충, 월지 본기, 일간의 같은 오행 뿌리, 천간 노출, 대운 십성을 다시 계산한다. 위치가 바뀌거나 값이 변조되면 `status:'blocked'`와 오류 ID를 남기고 **API 호출 전에 중단**한다.
+- `calculationInput`에서 역법 라이브러리를 다시 호출해 실제 출생 입력과 해당 차트가 일치하는지도 검사한다. 출생시간 미상 자료에서 시간주를 만들어내거나 입력된 시간을 없애면 차단한다.
+- `report-calculation-integrity-tests.js`는 양력·음력·자시 경계·시간 미상 사례 및 잘못된 십성, 지장간, 월지 본기, 대운, 연간 충, 원래 출생일 변조 등을 검사한다. 결함을 발견하면 `npm test`가 실패한다.
+- 이 검사는 **자체 계산 결과의 일관성**을 검증한다. 역법 라이브러리가 모든 지역·학파에서 정확하다고 외부 검증까지 마쳤다는 뜻은 아니다. 태양시 보정·절기 경계 및 지원하지 않는 전통 관계는 추가 검증 대상이다.
+
+## 필수 회귀 테스트
+- `report-interpretation-core-tests.js`: 출생·2027년 비교쌍, 연간/원국 불일치·빠진 쌍 차단, 일지 충의 독립성.
+- `report-interpretation-invariants-tests.js`: 실제 양력·음력·시간 미상, 여러 생월 행렬에서 연간 금전·직업 해석이 항상 꺼지지 않는지, 계획의 위조·오래된 상태·잘못된 출처 거부.
+- `report-fact-bindings-tests.js`: 사용자 MBTI와 사주가 독립이라는 비교 계약의 생성 요청 내 보존 및 누락 검출.
+- 나머지 `npm test` 및 `npm run smoke`: 기존 UI·계산·보고서 계약·운영 안전성 검사.
+
+## 지지 관계 계산 테이블 (후속 보강)
+- `report-branch-relations.js`를 **원국·2027년 관계의 단일 테이블 소유자**로 추가했다. 육충 6쌍, 육합 6쌍, 형 후보쌍 11개, 파 6쌍, 해 6쌍을 출생 및 연도 지지의 **실제 위치별**로 검출한다. 삼합과 방합은 서로 다른 세 지지가 **세 출처 위치에 모두 존재할 때만** 완성된 글자 조합으로 표시한다.
+- 새 결과는 `facts.natalBranchRelations`와 `facts.targetYearBranchRelations`에 별도로 보관한다. 기존 `facts.natalClashes`와 `facts.targetYearRelations`는 기존 보고서와 검증 코드 호환을 위해 **충 전용으로 유지**한다.
+- `transformation:'not-assessed'`는 검출된 육합/삼합/방합의 **합화 성립 여부를 계산하지 않았음**을 뜻한다. 형·파·해도 이 자체로 성격, 갈등, 질병, 손실 또는 인간관계 사건을 증명하지 않는다.
+- 연간 삼합·방합에는 `newlyCompletedByAnnual`을 저장한다. 원국에 이미 완성된 조합이 있고 2027년 같은 지지가 들어오는 경우는 **그해 새로 만들어진 조합으로 세지 않는다**.
+- 계산 자료와 생성 계획의 불일치를 막는 `report-calculation-integrity.js`는 두 신규 관계 배열을 재검산하고 기존 충 전용 결과와 대조한다. 쌍 방향·학파별 차이·불완전 그룹·입력시간 미상·출처 위치 중복 회귀 테스트를 CI에 고정했다.
+- 근거 표: [지지 관계 표](https://daysaju.com/guide/jiji), [명리학 육합 설명](https://www.sajustudy.com/59). 고전 관계 테이블의 **형식적 회원 여부**만 계산하며 다른 학파의 가중치와 전통적 성립 조건을 포괄 검증하지 않는다.
+- **중요:** 새로 계산된 지지 관계는 현재 **검증 가능한 입력 사실로만 보관**한다. 아직 명리적 해석 조건·우선순위 검증이 없는 관계를 무조건 새 유료 장의 근거로 판매하거나, AI가 사건으로 추정하도록 열어두지 않는다.
+
+## 지지 관계 해석 조건 및 우선순위 판단 (2026-10-15)
+- `report-branch-context.js`는 출생 당시 연·월·일·시의 **정확한 지지 위치**, 세운 위치, 월지, 완성된 삼합·방합 여부, 같은 지지에 겹치는 충·합·형·파·해를 모두 별도의 근거로 관리한다. 같은 글자라도 **원국 일지와 세운 지지는 다른 출처**다.
+- 검사 순서: ① 위치와 정확한 관계표 ② 월지 존재와 맥락 ③ 원국 및 세운의 완성된 세 글자 조합 ④ 같은 위치에서 겹치는 관계 ⑤ **합화·강약·작용 우선순위·길흉의 독립 검증**. 마지막 단계는 아직 `not-computed`이며 자동으로 '방합 승리/삼합 승리/충이 합을 깼다'로 판정하지 않는다.
+- `facts.targetYearBranchContext`는 이 조건과 미확인 내용을 저장하며 `report-calculation-integrity.js`가 입력 차트로 **다시 계산해 일치 여부를 검사**한다.
+- `report-analysis-guidance.js`와 `report-generation-request.js`는 세운-일지의 **직접 충 또는 육합**이 정확히 계산된 경우에 한하여, 독자용 `year_2027_relationship`에 이 위치 비교를 사용할 수 있다. 관계표상 **형·파·해만** 있는 경우는 명시적 검토 후보로 남고 독립된 연애·결혼 판단 장을 만들지 않는다. 같은 증거로 반복되는 두 번째 단락은 차단한다.
+- AI가 사용 가능한 인용 근거는 `facts.targetYearBranchContext.annualContext.day` 한 경로로 제한된다. `report-interpretation-invariants.js`에서 계획과 근거 일치를 유료 호출 전 재검증하고, `report-branch-claims.js`가 생성 문장의 **미검증 합화, 충·합 승패, 존재하지 않는 세운-원국 관계 단정**을 후단 검사한다.
+- '지지 관계 존재'는 **전통적 기호 비교의 사실**이지 실제로 인간관계가 좋아지거나 이별/결혼이 발생할 근거가 아니다. 월령에 따른 강약, 용신, 지지 사이의 영향력·우선순위, 학파별 합화 조건을 추정해서 채우지 않는다.
+- 근거: [육합 관계와 합화 조건 구분](https://wiki.openfate.ai/ko/bazi/relationships-compatibility/earthly-branch-six-combinations-in-bazi-compatibility), [중첩 관계와 월령의 평가 순서](https://sajuclass.com/%EC%A7%80%EC%A7%80%ED%95%A9/), [형·파·해의 학파별 차이](https://sajufortune.kr/knowledge/hap-chung-hyeong-pa-hae). 이 자료들 자체가 하나의 보편적 계산 우선순위를 증명하지는 않는다.
+
+## 월령·계절 기운과 일간 오행 관계의 검증 가능한 범위
+- `report-seasonal-evidence.js`가 월지를 태어난 계절(봄·여름·가을·겨울)과 **12개 월지의 분류**에 연결한다. 8개 핵심 달은 계절의 중심 오행을 기록하고 辰·未·戌·丑은 **전환월**로 표시해 토(土) 본기만으로 전체 달의 지배 기운을 단정하지 않는다.
+- 월지의 본기·중기·여기, 출생 네 기둥의 일간과 같은 오행을 포함한 지장간 뿌리, 위치별로 겉에 나타난 천간의 같은 오행·생조·설기·극 관계를 `facts.seasonalEvidence`에 별도로 기록한다. 뿌리의 본기/중기/여기 **출현 위치**는 검증하지만 출현 개수를 일간 강약의 백분율이나 점수로 변환하지 않는다.
+- `report-branch-context.js`의 월지 관련 내용에도 계산된 계절·전환월 정보를 유지하며, `report-calculation-integrity.js`는 **원래 사주팔자에서 독립 재계산**하여 변조를 감지한다.
+- 유료 글 생성기의 `saju_core.temperament` 근거는 `facts.seasonalEvidence`를 필수로 인용한다. `report-interpretation-invariants.js`가 이 필수 규칙의 누락을 **유료 호출 전에 차단**하고, `report-generation-request.js`가 실제 인용 누락을 차단한다.
+- `report-seasonal-claims.js`는 미계산 **신강·신약·득령 확정·용신/기신**을 결정된 것처럼 쓰거나 출생 월지의 계절을 잘못 설명한 문장도 차단한다. 제한을 밝힌 설명까지 임의로 차단해서는 안 된다.
+- `report-seasonal-evidence-tests.js`와 `report-seasonal-claims-tests.js`는 **12개 월지 + 양력·음력·시간 미상 + 고의로 바꾼 계절값 + 모델 근거 누락**을 무료 CI에서 검증한다.
+- 전통 해석의 월령은 우선 기준이지만 **계절 하나로 신강·신약 판정이 확정되지 않는다**. 뿌리 위치, 지장간의 실제 사령 기간, 방합·합화·충의 효과, 다른 천간에 의한 생조·설기·극과 특수격 등은 별도의 성립 조건이 필요하다. [월령과 득령의 구별](https://wiki.openfate.ai/en/bazi/strength-month-command/receiving-month-command) · [월지의 지장간 뿌리와 한계](https://wiki.openfate.ai/en/bazi/hidden-stems-roots/month-command-roots)
+- **미완료:** 사령 교대 시각, 계절 강약의 실제 가중치, 학교별 득령 기준·통근 강도, 용신·기신과 용희신 판단. 알고리즘에 없는 최종 강약 판정을 AI에 맡겨 꾸미지 않는다.
+
+## 지장간 사령·생조·설기·극의 위치별 원장 (2026-10-15)
+- `report-qi-evidence.js`를 단일 오행 관계 원장으로 추가했다. 원래 네 기둥의 실제 위치(`natal.year/month/day/hour`)에 대해 **비견·겁재 계열(같은 오행), 인성 계열(생해 주는 오행), 식상 계열(설기), 재성 계열(내가 극함), 관성 계열(나를 극함)**이라는 다섯 방향을 **천간·지장간의 실제 위치**에 묶는다. 강약 점수와 운의 길흉을 산출하지 않는다.
+- **같은 오행의 지장간만 뿌리 위치로 기록한다.** 일간을 생해 주는 오행(인성)의 출현은 도움으로 기록하지만 그 자체를 같은 오행의 통근으로 과장하지 않는다. 일간 자신은 출처 기준이므로 '스스로 돕는 증거'로 중복 가산하지 않는다.
+- 월지의 본기/중기/여기 목록은 확인한다. 그러나 **그날 사령하는 지장간**은 단지 첫 글자를 복사해서 채우지 않는다. 정확한 절입 경과 시각과 채택·검증된 사령 분일법이 없으므로 `governance.activeHiddenStemId=null`, `activeHiddenStemStatus:'unresolved'`로 보존한다. 표준 계절 자료만으로 사령·신강·신약을 자동 확정하지 않는다.
+- `facts.qiEvidence`는 `report-calculation-integrity.js`에서 원래 차트로 재구성하여 변조를 차단한다. 모든 원장 항목의 `natal.*` ID와 천간 글자는 기존 `report-fact-bindings.js`의 검증된 원국 근거와 대응한다.
+- 기본 사주 첫 장의 모델 응답은 **① `facts.seasonalEvidence` ② `facts.qiEvidence` ③ 출생월의 위치(`natal.month.*`)**를 함께 인용해야 한다. `report-analysis-guidance.js`가 필요한 근거 종류를 고정하고 `report-interpretation-invariants.js`와 `report-generation-request.js`가 누락 시 각각 유료 호출 전/후에 중단한다.
+- `report-qi-evidence-tests.js`는 다섯 오행 관계별 실제 위치, 인성과 같은 오행 뿌리의 구별, 12개 월지, 10개 일간, 음력·양력·시주 미상 사례, 모델 인용 누락 및 계산 변조를 무료 CI에 고정한다.
+- **미완료:** 실사령의 절입 시각과 분일법, 지장간 실제 권한/투출 여부의 학파별 규칙, 통근 위치·조후·합충 개입에 따른 오행 강도, 특수격과 용신 최종 판단. 이 값이 확정되지 않은 상태에서 숫자 합산이나 임의 임계값으로 명식 강약을 만들지 않는다.
+- 참고: [월령은 최우선이지만 뿌리와 생조·설기·극을 함께 검토한다](https://wiki.openfate.ai/en/bazi/strength-month-command) · [일간 강약의 월령·근·투간 관계와 한계](https://multifate.com/guides/bazi/day-master-strength) · [관계 기호를 점수와 혼동하지 않는 주의](https://clarifyhk.com/learn/bazi/foundations/strength-weakness-in-bazi).
+
+## 실제 절입 시각과 출생 시각 정밀도 검증 (2026-10-15)
+- `report-solar-term-timing.js`는 **기존에 고정한 lunar-javascript 1.7.7**에서 바로 앞·뒤의 12절(節) 절입 **현지 시계시각(초 단위)**을 읽고, 출생 시각으로부터 몇 초가 지났는지 계산한다. 이전 절의 지지가 실제 팔자 **월지와 일치하지 않으면 생성 차단**한다. 절기와 절입은 역법 라이브러리의 모델 값이며 외부 천문 관측을 독립 대조했다는 의미는 아니다.
+- `calendar-provider-node.js`는 **사용자의 출생시간이 없을 때 정오를 실제 출생시각으로 오인하지 않는다**. 그 날짜의 00:00:00과 23:59:59에서 연·월·일주가 하나라도 달라지면 `blocked_birth_time_solar_term_boundary`로 중단한다. 날짜 전체에서 동일한 경우에만 시간 미상 상태의 연·월·일주 계산을 허용하며, 경과 초는 미상으로 남긴다.
+- 출생시각 입력은 **HH:MM, 초 단위 미지원**이다. 실제 절입과 출생시각이 **같은 분**에 있으면 초가 달라 월주가 바뀔 수 있으므로 `blocked_birth_minute_solar_term_boundary`로 중단한다. 인위적으로 한쪽을 고르지 않는다.
+- `production-pipeline-node.js` → `report-facts-node.js`의 `facts.solarTermTiming` → `report-qi-evidence.js`의 `governance.preciseSolarTermElapsedTime`으로 **동일한 계산 근거가 연결**된다. `report-calculation-integrity.js`가 **원본 출생 입력으로 독립 재계산**한 결과와 대조하여 위조·누락을 차단한다.
+- 절입 경과시간이 정확히 계산되더라도 **지장간 실사령 판단용 분일법과 학파 기준은 선택하지 않았다.** `activeHiddenStemId=null`, `activeHiddenStemStatus='unresolved'`, `hiddenStemGoverningDaysRule='not-selected'`를 유지한다. 단순히 며칠 지났다는 이유로 신강·신약·용신을 결정하지 않는다.
+- `report-solar-term-timing-tests.js`는 **실제 1990년 입춘 전후의 연주·월주 변경**, 초·분 해상도 차이, 출생시간 미상 당일 경계, 12개월 계절과 월주 일치, 음력 입력·원본 데이터 변조·유료 호출 전 차단을 GitHub 무료 CI에서 검사한다.
+- 계산 규약은 한국 표준시로 입력한 **그 시계시각**을 그대로 사용하는 기존 앱 정책이다. 출생지의 지역 표준시 환산, 경도·진태양시, 출생기록의 시계 오류 보정은 **적용되지 않는다**. 이러한 보정이 필요한 출생은 전문가 확인이나 사용자 명시적 입력 없이는 임의 환산하지 않는다.
+
+## 지장간 사령 분일표 교차 대조와 안전 분리 (2026-10-15)
+- `report-governing-day-method.js`는 [靈犀問道 人元司令 12달 분일표](https://asklingxi.com/zh-tw/wiki/bazi/renyuan-siling)의 **대략적인 30일 구간**을 출처·버전 `asklingxi-renyuan-siling-approx30-v1`에 묶은 **비채택 연구용 진단기**다. 시작은 앞 절입부터 흐른 하루(24시간) 기준으로 비교한다. 각 수치는 대략적인 전통 분일 모델이며 실제 천문 절기나 확정된 실사령 강도가 아니다.
+- `卯`월의 초기 `甲`, `午`월의 초기 `丙`, `酉`월의 초기 `庚`, `亥`월의 초기 `戊`, `子`월의 초기 `壬` 등은 **해당 전통 표에는 있어도 앱의 그 월지 지장간 목록에는 없다**. 이것은 계산 오류라기보다 별도의 잔여 계절 기운 설명일 수 있다. **어떤 경우에도 없는 `natal.month.hidden.*` 출처를 새로 만들어 뿌리로 사용하지 않는다.**
+- 실제 절입으로부터 경과한 날짜를 출처 표에 대조하되, 표의 날짜 구분 근처 ±1일은 `approximate-stage-boundary`로 표시한다. 출생시간 미상이면 `unknown-birth-clock`, 표의 글자가 월지 지장간에 없으면 `external-residual-not-natal-hidden`으로 표시한다. **이 값으로 실사령·신강·용신을 확정하지 않는다.**
+- 비채택 결과를 `facts.governingDayDiagnostic`로 **`facts.qiEvidence`와 분리해 보관**한다. `report-generation-request.js`가 모델에 전달하는 출처 목록에는 `governingDayDiagnostic`이 없으며, `report-qi-evidence-tests.js`와 `report-governing-day-method-tests.js`에서 유료 AI 요청에 연구용 값이 새어 나가지 않는지 검사한다. `report-calculation-integrity.js`는 위조·누락된 진단값을 확인하되 오류를 예외로 던지지 않고 사전 검증 실패로 반환한다.
+- **최종 채택 전 필수 조건:** 전통 분일법의 원전 근거 검증, 날짜 수 30일과 실제 절기 월 길이 차이 처리, 교계시각 포함 규칙, 상이한 학파별 표 비교, 사령과 투간·통근의 의미 구분, 전문가 사례 심사를 완료해야 한다. 완료 전 `activeHiddenStemId=null` 및 `canUseForPremiumInterpretation=false`를 지킨다.
+
+## 투간·통근의 검증된 위치 연결 (2026-10-15)
+- `report-stem-connections.js`는 서로 다른 **두 방향의 검사**를 구현한다. **투간(透干)**은 지장간에서 시작해 `甲` 같은 **동일한 천간 글자**가 실제 연·월·일·시 중 어느 겉천간에 있는지 확인한다. **통근(通根)**은 겉천간에서 시작해 실제 지지 지장간에 **같은 오행**이 있는지를 확인한다. 통근 결과에서도 **글자까지 일치**하는 경우와 **오행만 같고 음양이 다른** 경우를 엄격히 구별한다.
+- 모든 연결은 `natal.year/month/day/hour.stem`과 `natal.year/month/day/hour.hidden.<글자>` **개별 근거 ID**를 양쪽에 기록한다. 일간 자체는 근거가 되는 겉천간이지만 다른 겉천간과 역할을 분리한다. 같은 기둥에 뿌리가 있는지와 본기/중기/여기 위치도 기록하되, **동주 근거만으로 강함을 확정하지 않는다.**
+- 출생 시각이 없으면 시주를 제외하고 관찰된 연결만 만든다. 찾지 못한 투간·통근은 `unobserved-hour-not-excluded`로 표시해 **시주가 있을 경우 달라질 수 있는 부재 판정**을 보류한다.
+- `facts.stemConnections`는 `report-calculation-integrity.js`와 `report-interpretation-invariants.js`에서 원래 명식으로 독립 재검산하고 유료 AI 호출 전에 출처를 검사한다. `report-generation-request.js`는 `saju_core.temperament`에 **월령·오행 원장·출생월 위치·천간-지장간 연결**의 네 근거를 모두 인용하도록 요구한다. 단 하나를 누락해도 모델 생성 결과를 거부한다.
+- `report-stem-connections-tests.js`는 실제 양력·음력·시주 미상 및 합성 명식에서 정확한 투간과 같은 오행만의 뿌리, 음양 차이, 일간 역할, 출처 ID 일치, **근거 위조·누락 거부**를 검사한다. `npm test`에 편입했다.
+- **해석 한계:** 투간·통근은 기호와 위치의 대응일 뿐 **사령, 근의 세기, 합충으로 유지되는지, 최종 신강·신약·용신, 실제 성격·미래 결과**를 증명하지 않는다. 다른 학파의 통근 가중치는 미채택이다. 참고: [투간과 통근의 구분](https://wiki.openfate.ai/ko/bazi/hidden-stems-roots/exposed-stems-vs-roots) · [동주 통근의 범위와 한계](https://clarifyhk.com/learn/bazi/hidden-stems-roots/rooting-within-the-same-pillar).
+
+## 뿌리의 충·계절 조건 분리와 현상태 보존 (2026-10-15)
+- `report-root-conditions.js`는 `report-stem-connections.js`의 **실제 통근 출처 ID**마다 `report-branch-relations.js`의 직접 충 관계를 다시 연결한다. 각 뿌리의 글자·위치·본기/중기/여기, 월지·계절, 동일 오행의 다른 뿌리 근거를 함께 보존한다. 존재하지 않는 뿌리를 만들거나 기존 지장간을 삭제하지 않는다.
+- **원국 충과 세운 충은 다른 층**이다. `natal.clashes`에는 출생 기둥 사이의 충, `year.clashes`에는 2027년 연지에서 해당 출생 지지로 들어오는 충을 기록한다. 합·형·파·해와 세 글자 조합 역시 별도의 `otherPairs`·`completeGroups`로 기록하며 **'충이 합을 무효화' 같은 자동 결론을 내지 않는다.**
+- 월지의 계절과 출생 지지 뿌리가 함께 있어도 사령, 충의 실제 파괴력, 합화, 강약·용신이 **수치로 계산된 것은 아니다**. `remainingRootAvailability:'not-assessed'`, `quantitativeEffect:'not-computed'`, `canDeleteRootForClash:false`로 명시한다. **충이 있다고 뿌리를 자동 삭제하지 않는다.**
+- `facts.rootConditions`는 실제 출생·세운 기둥에서 `report-calculation-integrity.js` 및 `report-interpretation-invariants.js`로 독립 재계산한다. 다르면 **유료 모델 호출 전 차단**한다.
+- 실제 유료 AI에는 모든 천간의 거대한 관계망 대신, `report-generation-request.js`에서 **일간의 뿌리와 그 출생·2027년 충의 위치 및 대체 뿌리 ID만 추린 근거**를 `facts.rootConditions`로 전달한다. `saju_core.temperament`는 기존 계절·오행·투간/통근·월간 위치와 **뿌리 조건 근거까지 함께 인용**해야 하며, 누락 시 응답을 거부한다.
+- `report-root-conditions-tests.js`는 실제 양력·음력·출생시각 미상 사례, 원국 충과 세운 충의 구분, 계절 전환월, 임의 점수·뿌리 삭제 금지, 잘못된 출처, API 근거 누락 차단을 무료 `npm test`에서 검증한다.
+- 별도 해석 전문가가 **월령·지장간 실사령·투간 여부·합충 성립 조건·특수격**을 검토하기 전에는 뿌리가 '강하다/없어졌다' 또는 '용신이다'라고 내보내지 않는다. 참고: [뿌리와 충의 조건부 평가](https://wiki.openfate.ai/en/bazi/hidden-stems-roots/roots-damaged-by-clashes) · [충 당한 월령과 출생 계절의 분리](https://clarifyhk.com/learn/bazi/strength-month-command/clashed-month-command-strength).
+
+## 입력 달력 기준의 독립 교차검증 (2026-10-15)
+- 양력/음력의 입력 구분은 **사주 해석보다 상위의 필수 계산 사실**이다. 같은 문자열 `1982-11-24`라도 음력과 양력의 명식은 서로 다르며, 생일 문자열만 비교해 동일인 명식으로 취급하지 않는다.
+- 독립적인 음양력 대조표에 따르면 **평달 음력 1982-11-24 14:20 = 양력 1983-01-07 14:20**이며, 그 시각의 기존 앱 시계시간 기준 사주 네 기둥은 **壬戌·癸丑·乙未·癸未**다. **양력 1983-01-08은 음력 1982-11-25로 하루 뒤이며, 일주는 丙申**이다. 자료: [1983년 음양 만세력](https://wikidocs.net/249512), [양력 1983-01-07의 역법·음력 대응](https://datedb.net/tool/conversion/solar_to_lunar/19830107/).
+- `report-lunar-oracle-tests.js`에 동일 실제 시점의 양력/음력 네 기둥 완전 일치와 전통 기둥값 **외부 고정 기준**, 하루 차이의 일주 변경, 원본 달력표시·윤달 여부 보존, 계산·연간 관계·기본 해석·유료 모델 근거 경로 검증을 넣었다. 기존 자동 테스트에서 사용했던 잘못 표기된 `calendar:'solar', birthDate:'1982-11-24'` 예시는 그 날짜의 **음력** 값을 의도했을 때 `calendar:'lunar', leapMonth:false`로 정정했다.
+- 역법을 재계산한 값과 모델의 글 근거가 일치해도 **그 자체로 유료 해석 문장의 깊이·정확성·상품 가치가 검증되는 것은 아니다.** 또한 출생지 진태양시 보정은 현재 앱이 적용하지 않으므로 위 시주는 기존 앱의 **입력한 시계시각 정책**을 기준으로 한 결과다.
+
+## 차트별로 구분되는 유료 보고서의 근거 설명 (2026-10-15)
+- `report-chart-contrast.js`는 **계산된 명식 자체에만 기반한 네 가지 비교 근거**를 만든다: ① 월지의 계절과 일간 오행의 관계, ② 실제 겉천간의 같은 오행/생조 방향과 다른 방향, ③ 일간과 같은 오행의 뿌리가 있는 실제 지장간·본기·중기·여기 위치, ④ **출생 사주 내부**의 뿌리 위치에 확인된 충. 2027년 충은 여기서 재사용하지 않고 연간 장에 따로 둔다.
+- 각 비교에는 원래 계산 경로(`facts.seasonalEvidence`, `facts.qiEvidence`, `facts.stemConnections`, `facts.rootConditions`, 정확한 `natal.*` 위치), 원천 데이터, **그 명식에서 실제 나온 한국어 계산 설명**과 해석 범위를 함께 넣는다. 같은 날짜 문자열이라도 음력·양력의 출생 팔자가 다르면 설명도 달라진다.
+- 이 `chartContrast`는 기존 `report-generation-request.js`의 **유료 사주 기본 장 모델 요청에 전달**한다. 사주 원국 근거의 서로 다른 방향을 직접 설명하고 금전·직업·관계 장에서 같은 성격 일반론을 표현만 바꿔 반복하지 말라는 지침도 함께 보낸다.
+- `report-chart-contrast-tests.js`는 **음력 1982-11-24와 양력 동일 날짜**, 계절이 다른 입력, 시주 미상의 실제 계산 사례를 사용한다. 비교 자료의 각 위치 ID가 원래 검증된 자료와 일치하는지, 시주 미상 위치가 만들어지지 않는지, **서로 다른 입력이 실제로 다른 계산 설명**을 생산하는지 검사한다.
+- **품질 한계:** 자동화는 서로 다른 명식이 서로 다른 **정확한 근거·작문 계획**으로 전달됨을 확인한다. 실제 유료 AI가 작성한 전체 문장이 자연스럽고 충분히 깊고 서로 반복되지 않는다는 사실까지 증명하지는 않는다. 마지막 품질 판단은 실제 생성 결과를 사람이 읽고 점검해야 하며 출시 게이트는 변경하지 않는다. 신규 API 호출·재시도 없음.
+
+## 아직 계산되지 않거나 증명되지 않는 것
+- 신강/신약, 용신/기신 및 사령·월령의 상세한 강약 판정
+- 지지 관계 표에 없는 추가 학파별 관계·합화 성립 및 형·파·해의 해석 조건과 우선순위, 월별 미래 사건
+- 2027년 실제 수입·승진·이직·질병·연애 결과
+- MBTI와 명리 두 체계 간 경험적으로 검증된 인과 관계
+- 전체 생성 보고서의 의미적 정확성·자연스러운 한국어·독자가 느끼는 상품 가치
+
+이 항목을 더 깊이 해석하려면 **해당 계산 규칙과 외부 전문가 검토를 별도로 구현·검증**해야 한다. 현재 엔진이 이를 구현했다고 말하거나 모델이 자유 문장으로 채워 넣어서는 안 된다.
+
+**절대 보장할 수 없는 것**: 앞으로 모든 버그가 영원히 발생하지 않는다는 주장. 대신 회귀 사례를 테스트에 고정하고, 검증하지 못한 입력·해석은 과금을 위한 모델 호출 전에 차단하고, 실제 유료 보고서는 별도의 심사를 통과하기 전 출시하지 않는 것이 정책이다.
+
+작업 범위: `fix-paid-qa-fact-bindings-20261014`만 수정. 운영 브랜치 `saju-mbti-app`과 유료 API 호출은 변경하지 않음.

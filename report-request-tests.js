@@ -35,6 +35,26 @@ const {createQueue,retryDelay,rateLimitKind}=require('./report-request-control')
 
  const decoded=wire.decode({chapters:{saju_core:{title:'기본 성향',keyJudgment:'판단을 확인합니다',evidence:['일간'],mood:'reflective',paragraphs:Object.fromEntries(Object.keys(outlineForWire.saju_core).map(t=>[t,t===oneTopic?{label:'핵심',text:'계산된 근거를 설명합니다'}:null]))}},cover:null,finalJudgment:null},wirePrompt);
  assert.deepEqual(decoded.sections[0].bodyTopics,[oneTopic],'null topics are omitted');
+ // Original paid QA5 returned explicit null for the OPTIONAL temperament.
+ // Do not turn that legitimate absence into a decoder error. Reject a
+ // non-null but malformed response instead of silently dropping it.
+ const qa5Style={chapters:{saju_core:{title:'기본 성향',
+  keyJudgment:'기본 풀이를 구별합니다',evidence:['출생 근거'],
+  mood:'reflective',paragraphs:{
+   temperament:null,strength:{label:'필수 핵심',text:'월간과 월지 본기의 전통적 뜻을 구별합니다'}
+  }}},cover:null,finalJudgment:null};
+ assert.deepEqual(wire.decode(qa5Style,wirePrompt).sections[0].bodyTopics,
+  ['strength'],'historical optional null must remain a valid omission');
+ const malformedOptional=structuredClone(qa5Style);
+ malformedOptional.chapters.saju_core.paragraphs.temperament={label:'',text:'문단은 있지만 제목이 빠졌습니다'};
+ assert.throws(()=>wire.decode(malformedOptional,wirePrompt),
+  /malformed paragraph field: saju_core:temperament/,
+  'non-null incomplete paid response cannot be silently omitted');
+ const missingOptional=structuredClone(qa5Style);
+ delete missingOptional.chapters.saju_core.paragraphs.temperament;
+ assert.throws(()=>wire.decode(missingOptional,wirePrompt),
+  /missing required paragraph field: saju_core:temperament/,
+  'missing schema slot is different from an explicit optional null');
  assert.equal(decoded.sections[0].body.length,1,'one grounded explanation remains');
  assert.throws(()=>wire.decode({chapters:{saju_core:{paragraphs:Object.fromEntries(Object.keys(outlineForWire.saju_core).map(t=>[t,null]))}}},wirePrompt),/empty chapter/,'fully empty chapters are rejected');
  const queue=createQueue();let active=0,maxActive=0;const order=[];
@@ -44,7 +64,20 @@ const {createQueue,retryDelay,rateLimitKind}=require('./report-request-control')
  assert.equal(retryDelay(new Headers({'retry-after':new Date(120000).toUTCString()}),0,0),120000);
  assert.equal(retryDelay(new Headers(),1),40000);
  const promptModule=require('./report-prompt');assert(promptModule.sectionGoals.money.includes('재성'));assert.equal(typeof promptModule.build,'function');const allChapterIds=require('./report-quality-node').IDS;assert.deepEqual(Object.keys(promptModule.sectionGoals),allChapterIds,'every paid chapter must have an explicit premium goal');for(const id of allChapterIds){assert(promptModule.sectionGoals[id].length>=100,id+': chapter-specific interpretation goal too thin');assert(!/실제 사건.*단정/.test(promptModule.sectionGoals[id])||promptModule.sectionGoals[id].includes('않'),id+': unqualified event prediction');}
- const contract=require('./report-server-contract'),outline=require('./report-outline');const noCover={meta:{},sections:require('./report-quality-node').IDS.map(id=>({id,title:id,keyJudgment:'해석',body:['풀이'],evidence:['근거']})),finalJudgment:{body:['종합'],closingQuestion:'전체적으로 주의를 기울입니다.',afterClosingText:''},cover:null};assert(contract.validateShape(noCover).errors.includes('cover required'));for(const ending of ['참고 자료로만 활용하시기 바랍니다.','실제 미래 사건을 예측한 결과는 아닙니다.']){
+ const contract=require('./report-server-contract'),outline=require('./report-outline');const noCover={meta:{},sections:require('./report-quality-node').IDS.map(id=>({id,title:id,keyJudgment:'해석',body:['풀이'],evidence:['근거']})),finalJudgment:{body:['종합'],closingQuestion:'전체적으로 주의를 기울입니다.',afterClosingText:''},cover:null};assert(contract.validateShape(noCover).errors.includes('cover required'));
+ const missingSections=new Set(['money','year_2027_money','year_2027_career','year_2027_relationship']);
+ const partialReport={...noCover,
+  sections:noCover.sections.filter(section=>!missingSections.has(section.id)),
+  cover:{headline:'개인별 핵심 해석',description:'근거가 있는 부분만 살펴봅니다.',
+   keywords:['계산','해석','선택'],
+   highlights:[
+    {sectionId:'saju_core',title:'기본 성향',description:'원국의 뜻'},
+    {sectionId:'career',title:'일하는 조건',description:'직업 분야의 해석'},
+    {sectionId:'year_2027_money',title:'없어진 장',description:'실제로 생성되지 않은 장'}]}
+ };
+ assert(contract.validateShape(partialReport).errors.includes('cover highlight targets omitted chapter: year_2027_money'));
+ partialReport.cover.highlights[2]={sectionId:'year_2027',title:'2027년',description:'그해 계산 범위'};
+ assert(!contract.validateShape(partialReport).errors.some(e=>e.includes('cover highlight targets omitted chapter')),'valid references to drafted sections must remain accepted');for(const ending of ['참고 자료로만 활용하시기 바랍니다.','실제 미래 사건을 예측한 결과는 아닙니다.']){
   const probe={...noCover,finalJudgment:{...noCover.finalJudgment,closingQuestion:ending}};
   assert(require('./report-quality-node').validate(probe,{}).errors.includes('final conclusion is disclaimer instead of personal insight'),'disclaimer conclusion must fail quality gate: '+ending);
  }
@@ -52,10 +85,12 @@ const {createQueue,retryDelay,rateLimitKind}=require('./report-request-control')
  // 2027 money/career/relationship must not all claim the same annual ten-god.
  const annualSample=require('./report-facts-node').build({calendar:'solar',birthDate:'1990-05-15',birthTime:'10:30',gender:'male',mbti:'INTJ'},2027);
  const annualPlan=require('./report-analysis-guidance').preflight(annualSample);
- const sharedMoney=annualPlan.money.topicTasks.earning.evidenceReuseBoundary;
- assert(sharedMoney&&sharedMoney.priorOwners.some(x=>x.chapter==='mbti_contradiction'),'reused natal evidence must identify its first owner before drafting');
- assert(sharedMoney.distinctQuestion===annualPlan.money.topicTasks.earning.question,'reused evidence must carry a distinct question');
- assert.equal(annualPlan.saju_core.topicTasks.temperament.evidenceReuseBoundary,null,'original evidence owner must not claim prior reuse');
+ const moneyFacts=annualPlan.money.topicTasks.earning;
+ assert(Array.isArray(moneyFacts.allowedSourceRefs),'money must have a calculated source eligibility list');
+ assert(moneyFacts.allowedSourceRefs.every(x=>x.startsWith('natal.')),'money cannot borrow generic structural labels');
+ assert.equal(moneyFacts.mode,moneyFacts.allowedSourceRefs.length?'use-primary':'state-limits');
+ assert.equal(annualPlan.money.topicTasks.risk.mode,'state-limits','a natal clash alone must not become a financial-loss prediction');
+ assert.equal(annualPlan.saju_core.topicTasks.temperament.evidenceReuseBoundary,undefined,'planned topics must not claim any prior cited evidence; use actual source ledger');
  const noAnnualSignal={...annualSample,facts:{...annualSample.facts,annualTenGods:{stemTenGod:'알수없음',hiddenStems:[]},targetYearRelations:[]}};
  const limitedPlan=require('./report-analysis-guidance').preflight(noAnnualSignal);
  for(const id of ['year_2027_money','year_2027_career','year_2027_relationship']){
@@ -84,6 +119,24 @@ const {createQueue,retryDelay,rateLimitKind}=require('./report-request-control')
   {id:'career',keyJudgment:'새 작업을 배우는 순서를 정한다'},
   {id:'relationship',keyJudgment:'서운한 마음을 말로 전한다'}
  ]).length,0,'distinct domain judgments must not be penalized');
+ const nounSwap=[
+  {id:'money',keyJudgment:'금전에서는 실제 계산 근거를 확인한 다음 판단합니다.'},
+  {id:'career',keyJudgment:'직업에서는 실제 계산 근거를 확인한 다음 판단합니다.'}
+ ];
+ assert(contract.findRecycledThemes(nounSwap).some(x=>
+  x.includes('same paid thesis with domain noun substituted')),
+  'two chapters with only the domain noun changed must not be resold');
+ assert(contract.findRecycledThemes([
+  {id:'money',keyJudgment:'금전에서는 예상 지출을 항목별로 비교하고 결정합니다.'},
+  {id:'career',keyJudgment:'직업에서는 동료가 맡을 업무와 내 업무를 먼저 구분합니다.'}
+ ]).every(x=>!x.includes('same paid thesis')),
+ 'different concrete actions must remain independent even with domain words');
+ assert(contract.findRecycledThemes([
+  {id:'year_2027_money',keyJudgment:'금전 결과는 이 자료로 확인할 수 없습니다.'},
+  {id:'year_2027_career',keyJudgment:'직업 결과는 이 자료로 확인할 수 없습니다.'}
+ ]).every(x=>!x.includes('same paid thesis')),
+ 'legitimate shared limits are not proof of duplicate paid predictions');
+
  assert(contract.findReusedEvidenceConclusions([
   {id:'money',keyJudgment:'가격을 비교하고 지출을 결정합니다.',evidence:['월간에 계산된 같은 명리 관계의 설명입니다.']},
   {id:'career',keyJudgment:'가격을 비교하고 지출을 결정합니다.',evidence:['월간에 계산된 같은 명리 관계의 설명입니다.']}
@@ -104,21 +157,80 @@ const {createQueue,retryDelay,rateLimitKind}=require('./report-request-control')
  assert.equal(normalized.sections[0].body.length,1,'fallback should not create a filler paragraph');
  assert.equal(normalized.sections[0].bodyLabels.length,1,'fallback label must match its paragraph');
  assert.equal(contract.enforceAnnualEvidenceLimits(limitedResponse,{year_2027_relationship:{generationMode:'evidence-grounded'}}).sections[0].keyJudgment,limitedResponse.sections[0].keyJudgment,'supported annual chapter must retain model interpretation');
+ // All mock batches must honor the same source-backed topic contract as
+ // the writer. In particular followthrough/risk/change/action can be disabled.
+ const activeKeys=(request,id)=>Object.keys(outline.topics[id]).filter(t=>
+  request.analysisGuidance?.editorialBlueprint?.[id]?.topicTasks?.[t]?.mode!=='state-limits');
+ // The two generation paths must make the same duplicate decision:
+ // changing whitespace must not resell one paid paragraph as new analysis.
+ const repeatedText='태어난 달의 두 글자는 전통적 분류에서 서로 다른 질문으로 읽을 수 있습니다. 그 뜻은 개인이 실제로 어떤 선택을 했다는 기록과는 다르므로, 원래의 계산 근거를 확인하면서 각 문단을 서로 다른 질문에 연결해야 합니다.';
+ const alternateSpacing=repeatedText.replace(/\s+/g,'    ');
+ assert(contract.findRepeatedTopicContent([
+  {id:'money',bodyTopics:['earning'],body:[repeatedText]},
+  {id:'career',bodyTopics:['workstyle'],body:[alternateSpacing]}
+ ]).some(x=>x.includes('repeated topic paragraph')),
+ 'newly generated chapters must not bypass identical-content review by altering spaces');
+ assert.deepEqual(contract.findRepeatedTopicContent([
+  {id:'money',bodyTopics:['earning'],body:[repeatedText]},
+  {id:'career',bodyTopics:['workstyle'],body:['업무 역할을 분리하여 교육의 순서와 협업할 범위를 설명하는 별도의 근거를 검토합니다.']}
+ ]),[],'genuinely different questions should be allowed');
+ // A repeated long interpretation sentence remains duplicated paid content
+ // even when its surrounding paragraph and cited natal source differ.
+ const repeatedDecision='새로운 요청이 들어오면 선택할 자료를 먼저 확인하고 다른 사람에게 설명한 다음에 결정하는 순서를 그대로 따라야 한다고 풀이합니다.';
+ const reusedSentences=[
+  {id:'decision',bodyTopics:['approach'],body:[
+   '가상으로 여러 선택지를 놓고 비교합니다. '+repeatedDecision+' 다른 시기의 계산 근거를 따로 다룹니다.']},
+  {id:'career',bodyTopics:['workstyle'],body:[
+   '업무에서 어떤 역할을 맡는지 다르게 살핍니다. '+repeatedDecision+' 과거 직업은 확인하지 않았습니다.']}
+ ];
+ const crossSentence=contract.findRepeatedSubstantiveSentences(reusedSentences);
+ assert.equal(crossSentence.length,1,
+  'distinct paragraphs must not disguise the same substantive interpretation');
+ assert(crossSentence[0].includes('decision:approach / career:workstyle'));
+ assert(contract.preSynthesisDuplicateErrors(reusedSentences).some(x=>
+  x.startsWith('reused substantive sentence across chapters:')));
+ const differentlyWorded=structuredClone(reusedSentences);
+ differentlyWorded[1].body[0]=
+  '업무에서는 업무를 나누는 규칙과 승인 담당자의 역할을 비교합니다. 선택의 경험을 실제 관찰했다고 주장하지 않습니다.';
+ assert.deepEqual(contract.findRepeatedSubstantiveSentences(differentlyWorded),[],
+  'different evidence questions must not be rejected for common vocabulary');
+ const onlyDisclaimer=structuredClone(reusedSentences);
+ const caution='실제 성격이나 직무 역량을 확인할 수 없으므로 출생 계산만으로 판단을 확정할 수 없다는 한계를 함께 밝힙니다.';
+ for(const row of onlyDisclaimer)row.body=[caution];
+ assert.deepEqual(contract.findRepeatedSubstantiveSentences(onlyDisclaimer),[],
+  'repeated accurate caution is not a second paid interpretation');
+ const sameChapter=structuredClone(reusedSentences);
+ sameChapter[1].id='decision';
+ assert.deepEqual(contract.findRepeatedSubstantiveSentences(sameChapter),[],
+  'the cross-chapter sentence rule must not override existing same-chapter checks');
  const sampleInput={calendar:'solar',birthDate:'1990-06-15',unknownBirthTime:true,gender:'male',mbti:'INFP'};
  const blueprint=require('./report-analysis-guidance').preflight(require('./report-facts-node').build(sampleInput,2027)); 
   const canonicalPlan=require('./report-analysis-guidance').preflight(require('./report-facts-node').build(sampleInput,2027));
   for(const [id,chapter] of Object.entries(canonicalPlan)){
    const tasks=Object.entries(chapter.topicTasks);
    const expectedAnchor=tasks.find(([,t])=>t.mode==='use-primary')||tasks.find(([,t])=>t.mode==='use-verified-fallback');
-   assert.equal(chapter.anchorTopic,expectedAnchor?.[0]||null,'chapter anchor must be derived from available evidence: '+id);
+   const coreFirst=id==='saju_core'&&chapter.topicTasks.strength.mode==='use-primary'?'strength':expectedAnchor?.[0]||null;
+   assert.equal(chapter.anchorTopic,coreFirst,'chapter anchor must be evidence-backed, with the main month reading first: '+id);
    assert.deepEqual(chapter.activeTopicKeys,tasks.filter(([,t])=>t.mode!=='state-limits').map(([k])=>k),'only grounded topics may be active: '+id);
    assert.equal(chapter.hasGroundedTopic,!!expectedAnchor,'preflight gate must agree with model plan: '+id);
   }
 
  const originalBatches=[['saju_core','mbti_contradiction'],['decision','stress'],['money','career'],['relationship','integrated_judgment'],['year_2027','year_2027_money'],['year_2027_career','year_2027_relationship']];
- const expectedBatches=originalBatches.map(ids=>ids.filter(id=>!['year_2027_money','year_2027_career','year_2027_relationship'].includes(id)||blueprint[id]?.annualDomainEvidence?.relevant)).filter(ids=>ids.length);
+ const selectedScope=require('./report-chapter-selection').select(originalBatches,blueprint);
+ assert(selectedScope.canGenerate,'the fixture must still support a genuine paid report');
+ const expectedBatches=require('./report-paid-batch-plan').plan(selectedScope.groups);
+ for(const id of ['year_2027_money','year_2027_career','year_2027_relationship'])
+  assert.equal(expectedBatches.flat().includes(id),
+   blueprint[id].annualDomainEvidence.relevant,
+   'weak yearly classifications must be omitted before provider batching: '+id);
  const expectedCount=expectedBatches.flat().length;
  const stages=[];const checkpoints=[];let calls=0;
+ const mockMbtiPreferenceCopy={
+  information:'N 선호는 낯선 자료의 가능한 연결과 의미를 먼저 살펴보려는 입력입니다. 구체적인 사실을 무시한다는 뜻은 아니며 실제 성적이나 창의력은 확인한 적이 없습니다.',
+  judgment:'F 선호는 판단할 때 내게 중요한 가치와 사람에게 미치는 영향을 먼저 보려는 입력입니다. 논리를 쓰지 못한다는 뜻은 아니며 실제 공감 행동은 관찰한 결과가 아닙니다.',
+  energy:'I 선호는 사람과 대화하기 전에 혼자 생각을 정리하는 편이 편하다는 입력입니다. 타인과 협력하지 못한다는 뜻이 아니며 실제 대화 빈도를 측정하지 않았습니다.',
+  planning:'P 선호는 미리 확정한 계획보다 상황에 맞게 일정을 조정할 여지를 남기는 쪽이 편하다는 입력입니다. 성실하지 않거나 마감을 어긴다는 실제 행동을 뜻하지 않습니다.'
+ };
  const mockedReport=await contract.generate({calendar:'solar',birthDate:'1990-06-15',unknownBirthTime:true,gender:'male',mbti:'INFP'},async p=>{calls++;if(p.stage==='body'){assert(p.rules.sectionGoals,'actual model request must include premium section goals');
   const invalidRules=Object.entries(p.rules).filter(([key,value])=>value===undefined||value===null);
   assert.deepEqual(invalidRules.map(([key])=>key),[],'actual assembled paid model rules must not contain missing values');
@@ -127,18 +239,38 @@ const {createQueue,retryDelay,rateLimitKind}=require('./report-request-control')
    assert(chapter&&chapter.anchorTopic&&chapter.hasGroundedTopic,'every requested chapter must have supported anchor: '+id);
    assert.equal(chapter.topicTasks[chapter.anchorTopic].mode==='use-primary'||chapter.topicTasks[chapter.anchorTopic].mode==='use-verified-fallback',true,'anchor must be backed by calculated facts: '+id);
    if(/^year_2027_(money|career|relationship)$/.test(id))assert.equal(chapter.annualDomainEvidence.relevant,true,'no ungrounded annual domain chapter may reach paid provider');
-  }assert.deepEqual(Object.keys(p.rules.chapterOwnershipPlan),p.requestedSections,'each paid chapter must have its own preassigned interpretation scope');assert(Array.isArray(p.rules.reusedEvidenceWithPriorConclusions),'each body request must carry the evidence-reuse ledger');assert(p.rules.reusedEvidenceWithPriorConclusions.every(x=>x.path&&x.chapter&&x.topic&&x.previousConclusion),'evidence reuse must include earlier chapter conclusions');assert(p.rules.reusedEvidenceWithPriorConclusions.every(x=>{const t=blueprint[x.chapter]?.topicTasks?.[x.topic];return t&&(t.mode==='use-primary'?x.path===t.primaryEvidencePath:t.mode==='use-verified-fallback'?t.verifiedFallbackPaths.includes(x.path):false)}),'reuse ledger must not credit missing facts to earlier chapter');for(const id of p.requestedSections)assert(p.rules.chapterOwnershipPlan[id].owns&&p.rules.chapterOwnershipPlan[id].excludes.length,'chapter must have unique ownership and exclusions');assert(p.rules.depthContract.includes('근거가 부족하면'),'actual model request must include depth contract');assert(p.rules.domainUniquenessRule.includes('친밀해지는 속도')&&p.rules.domainUniquenessRule.includes('항목을 생략'),'model must not invent observed domain behaviors to fill slots');assert(p.planningInstruction.includes('장 전체를 null로 반환하지 않는다')&&p.planningInstruction.includes('최소 하나'),'each paid batch must require supported nonempty chapter output');assert(p.planningInstruction.includes('state-limits인 세부 항목은 출력 JSON에서 반드시 null')&&p.planningInstruction.includes('근거 부족 안내를 별도 문단으로 만들어 채우지 않는다'),'no incompatible instruction may require unsupported narrative in null-only slots');assert(!p.planningInstruction.includes('false면 근거 없는')&&!p.planningInstruction.includes('primary 근거가 없더라도 fallbackEvidencePaths'),'no obsolete instructions can overrule the canonical topic modes');
+  }assert.deepEqual(Object.keys(p.rules.chapterOwnershipPlan),p.requestedSections,'each paid chapter must have its own preassigned interpretation scope');assert(Array.isArray(p.rules.reusedEvidenceWithPriorConclusions),'each body request must carry the evidence-reuse ledger');assert.deepEqual(require('./report-generation-request').compile(p).task.reusedEvidence,p.rules.reusedEvidenceWithPriorConclusions,'the AI compact payload must receive exactly the calculated reuse ledger');assert(p.rules.reusedEvidenceWithPriorConclusions.every(x=>x.path&&x.chapter&&x.topic&&x.previousConclusion),'evidence reuse must include earlier chapter conclusions');assert(p.rules.reusedEvidenceWithPriorConclusions.every(x=>{const t=blueprint[x.chapter]?.topicTasks?.[x.topic];return t&&(t.mode==='use-primary'?x.path===t.primaryEvidencePath:t.mode==='use-verified-fallback'?t.verifiedFallbackPaths.includes(x.path):false)}),'reuse ledger must not credit missing facts to earlier chapter');for(const id of p.requestedSections)assert(p.rules.chapterOwnershipPlan[id].owns&&p.rules.chapterOwnershipPlan[id].excludes.length,'chapter must have unique ownership and exclusions');assert(p.rules.depthContract.includes('근거가 부족하면'),'actual model request must include depth contract');assert(p.rules.domainUniquenessRule.includes('친밀해지는 속도')&&p.rules.domainUniquenessRule.includes('항목을 생략'),'model must not invent observed domain behaviors to fill slots');assert(p.planningInstruction.includes('장 전체를 null로 반환하지 않는다')&&p.planningInstruction.includes('최소 하나'),'each paid batch must require supported nonempty chapter output');assert(p.planningInstruction.includes('state-limits인 세부 항목은 출력 JSON에서 반드시 null')&&p.planningInstruction.includes('근거 부족 안내를 별도 문단으로 만들어 채우지 않는다'),'no incompatible instruction may require unsupported narrative in null-only slots');assert(!p.planningInstruction.includes('false면 근거 없는')&&!p.planningInstruction.includes('primary 근거가 없더라도 fallbackEvidencePaths'),'no obsolete instructions can overrule the canonical topic modes');
   assert(!p.rules.depthAndEvidenceRule.includes('12개 장과 29개 항목')&&p.rules.depthAndEvidenceRule.includes('실제로 선택된 장'),'final provider request must not force unsupported chapters or topics');assert(p.rules.hanjaPolicy.includes('처음 등장할 때')&&p.rules.hanjaPolicy.includes('뜻'),'effective Hanja policy must explain technical terms, not merely prohibit Chinese characters');
   assert(p.rules.tone.includes('전통 해석')&&p.rules.tone.includes('단정'),'effective tone must distinguish interpretive tradition from fact');
   assert(p.rules.narrativeRule.includes('문단 수를 강요하지 않는다'),'effective narrative instructions must not enforce unsupported content quotas');
   assert(p.rules.paragraphGuide.includes('state-limits 항목은 null')&&!p.rules.paragraphGuide.includes('목차에 지정된 항목마다 독립적인 문단'),'paragraph instruction must agree with null-only output schema');assert(!p.rules.narrativeRule.includes('각 장은 3~4개의')&&!JSON.stringify(p).includes('12개 장은 같은 성향을'),'actual model must not enforce fixed chapter or paragraph quotas');assert(p.rules.narrativeRule.includes('전통적 의미')&&p.rules.narrativeRule.includes('관찰된 과거')&&p.rules.narrativeRule.includes('새롭고 독립된 설명'),'body payload must demand depth and protect against invented history and repetitions');assert.deepEqual(Object.keys(p.rules.sectionGoals),p.requestedSections,'do not spend provider tokens on unrelated chapter goals');for(const id of p.requestedSections)assert.equal(p.rules.sectionGoals[id],require('./report-prompt').sectionGoals[id]);}if(p.stage==='synthesis'){assert(p.rules.finalRule.includes('그 사람의 장점과 주의점을 한 문장으로 연결한 최종 결론'),'final synthesis must require a personalized ending');assert(p.rules.finalRule.includes('면책 안내'),'final synthesis must forbid generic disclaimer ending');assert.equal(p.rules.integrateMbti,true,'known MBTI must stay enabled during final synthesis');assert.equal(stages.filter(x=>x.stage==='body'&&x.completed===expectedCount).length,1);assert(p.completedReport.sections.every(s=>s.body.length>=1),'every chapter retains at least one grounded topic');assert(p.completedReport.sections.reduce((n,s)=>n+s.body.length,0)<=28,'optional topics must not add filler paragraphs');return {sections:[],cover:null,finalJudgment:{body:['전체 풀이 검증'],closingQuestion:'꼼꼼하게 확인하느라 결정을 늦출 때는, 오늘 확인할 내용을 먼저 정하는 것이 도움이 됩니다.',afterClosingText:''}}}
- assert.equal(p.stage,'body');assert.equal(p.priorSections.length,expectedBatches.slice(0,calls-1).flat().length);assert.deepEqual(p.requestedSections,expectedBatches[calls-1]);assert(p.editorialTask.includes('최종 본문'));assert.deepEqual(Object.keys(p.rules.topicPlan),p.requestedSections);assert(!('summaryRule' in p.rules));return {sections:p.requestedSections.map(id=>({id,title:id,keyJudgment:id,bodyTopics:Object.keys(outline.topics[id]),bodyLabels:Object.values(outline.topics[id]),body:Object.keys(outline.topics[id]).map(t=>`${id} ${t}에 대한 모의 설명(일반인을 위한 쉬운 뜻풀이)으로 이 문단은 실제 계산된 해석을 담고 있지 않습니다. 독자의 행동과 판단을 설명하는 충분한 근거가 없는 문장입니다.`),evidence:[id+'의 원국과 십성 관계를 구분해 확인하는 모의 분석 자료입니다.']}))}},p=>stages.push(p),batch=>checkpoints.push(batch));
+assert.equal(p.stage,'body');assert.equal(p.priorSections.length,expectedBatches.slice(0,calls-1).flat().length);assert.deepEqual(p.requestedSections,expectedBatches[calls-1]);assert(p.editorialTask.includes('최종 본문'));assert.deepEqual(Object.keys(p.rules.topicPlan),p.requestedSections);assert(!('summaryRule' in p.rules));return {sections:p.requestedSections.map(id=>({id,title:id,keyJudgment:id,bodyTopics:activeKeys(p,id),bodyLabels:activeKeys(p,id).map((_,i)=>'검증 항목 '+i),body:activeKeys(p,id).map(t=>(id==='mbti_contradiction'&&mockMbtiPreferenceCopy[t])||(`${id} ${t}에 대한 모의 설명(일반인을 위한 쉬운 뜻풀이)으로 이 모의 문장은 실제 계산된 해석을 담고 있지 않습니다. 독자의 행동과 판단을 설명하는 충분한 근거가 없는 문장입니다.`+(id==='saju_core'&&t==='strength'?' '+require('./qa/core-meaning-mock').body(p):''))),evidence:[id+'의 원국과 십성 관계를 구분해 확인하는 모의 분석 자료입니다.']}))}},p=>stages.push(p),batch=>checkpoints.push(batch));
  assert.equal(checkpoints.length,expectedBatches.length,'each verified body batch must be checkpointed once');
  assert.deepEqual(checkpoints.map(x=>x.completedSections),expectedBatches.map((_,i)=>expectedBatches.slice(0,i+1).flat().length));
  assert.deepEqual(checkpoints.flatMap(x=>x.ids),expectedBatches.flat(),'checkpoints follow generation order, not display order');
  assert(checkpoints.every((x,i)=>x.sections.length===expectedBatches[i].length),'checkpoint contains exactly its validated sections');
- // Resume five already validated batches: only the sixth body batch and synthesis
- // may call the mock provider. Never spend calls on the cached ten chapters.
+ // Simulate process loss: serialize the same validated prefix, reopen its
+ // private storage, check the identity, and use ONLY the reloaded bytes below.
+ const durableFs=require('node:fs'),durableOs=require('node:os'),durablePath=require('node:path');
+ const directory=durableFs.mkdtempSync(durablePath.join(durableOs.tmpdir(),'saju-verified-resume-'));
+ const jobId='00000000-0000-4000-8000-000000000087';
+ const resumeInput={calendar:'solar',birthDate:'1990-06-15',unknownBirthTime:true,gender:'male',mbti:'INFP'};
+ let diskReloaded;
+ try{
+  const disk=require('./report-job-store').create(directory);
+  const identity=require('./report-checkpoint-identity').signature(resumeInput);
+  for(let index=0;index<checkpoints.length-1;index++)
+   disk.saveCheckpoint(jobId,{identity,batches:checkpoints.slice(0,index+1)});
+  const revived=require('./report-job-store').create(directory);
+  diskReloaded=require('./report-checkpoint-identity').resumeBatches(revived,jobId,resumeInput);
+  assert.deepEqual(diskReloaded,checkpoints.slice(0,-1),'restart must preserve each validated chapter, not invent regenerated ones');
+  assert.throws(()=>require('./report-checkpoint-identity').resumeBatches(revived,jobId,{...resumeInput,mbti:'ENFP'}),/contract changed/);
+  assert.throws(()=>disk.saveCheckpoint(jobId,{identity,batches:checkpoints.slice(0,2)}),/overwrite, gap/);
+  assert.equal(durableFs.statSync(durablePath.join(directory,'checkpoint-'+jobId+'.json')).mode&0o777,0o600);
+ }finally{durableFs.rmSync(directory,{recursive:true,force:true})}
+ // Resume five already validated batches: only the sixth body batch may
+ // call the provider. The repeated placeholder prose must be refused
+ // before paying for synthesis, even after process restart.
  const resumeStages=[];const resumeCalls=[];
  const resumed=await contract.generate({calendar:'solar',birthDate:'1990-06-15',unknownBirthTime:true,gender:'male',mbti:'INFP'},async p=>{
   resumeCalls.push(p.stage==='body'?p.requestedSections.join(','):'synthesis');
@@ -150,14 +282,38 @@ const {createQueue,retryDelay,rateLimitKind}=require('./report-request-control')
   assert.equal(p.stage,'synthesis');
   assert.equal(p.completedReport.sections.length,expectedCount);
   return {sections:[],cover:null,finalJudgment:{body:['전체 풀이 검증'],closingQuestion:'꼼꼼하게 확인하느라 결정을 늦출 때는, 오늘 확인할 내용을 먼저 정하는 것이 도움이 됩니다.',afterClosingText:''}};
- },p=>resumeStages.push(p),()=>{},checkpoints.slice(0,-1));
- assert.deepEqual(resumeCalls,[expectedBatches.at(-1).join(','),'synthesis'],'resume must skip five provider body calls');
+ },p=>resumeStages.push(p),()=>{},diskReloaded);
+ assert.deepEqual(resumeCalls,[expectedBatches.at(-1).join(',')],
+  'resume must skip five body batches and reject near-copy prose before paid synthesis');
  assert.equal(resumed.status,'rejected','resume does not bypass final quality gate');
+ assert.equal(resumed.stoppedBeforeSynthesis,true);
+ assert(resumed.qa.errors.some(x=>x.startsWith('high lexical topic overlap:')),
+  'repeated placeholder prose must be diagnosed as near-copy rather than paid again');
  await assert.rejects(contract.generate({calendar:'solar',birthDate:'1990-06-15',unknownBirthTime:true,gender:'male',mbti:'INFP'},async()=>{throw Error('provider must not be called')},()=>{},()=>{},[checkpoints[1]]),/order mismatch/,'non-prefix checkpoint must fail closed');
  // Tampered checkpoints must fail before any paid provider call.
  const duplicateCheckpoints=JSON.parse(JSON.stringify(checkpoints.slice(0,2)));
- duplicateCheckpoints[1].sections[0].body=duplicateCheckpoints[0].sections[0].body.slice();
+ // Keep both different chapter shapes valid after adding two MBTI topics.
+ // Test the REAL reuse gate rather than tripping a length mismatch first.
+ duplicateCheckpoints[1].sections[0].body=
+  duplicateCheckpoints[1].sections[0].body.map((_,i)=>
+   duplicateCheckpoints[0].sections[0].body[i%
+    duplicateCheckpoints[0].sections[0].body.length]);
  await assert.rejects(contract.generate({calendar:'solar',birthDate:'1990-06-15',unknownBirthTime:true,gender:'male',mbti:'INFP'},async()=>{throw Error('provider must not be called')},()=>{},()=>{},duplicateCheckpoints),/QA resume repeated topic explanations|QA resume recycled chapter thesis/,'reused duplicate chapter text must be rejected before spending');
+ // Resume duplication must normalize whitespace just like live batches.
+ // An identical evidence sentence with altered spacing is NOT a new insight.
+ const spaceVariant=structuredClone(checkpoints.slice(0,2));
+ const originalEvidence=spaceVariant[0].sections[0].evidence[0];
+ assert(originalEvidence.length>=24&&/\s/.test(originalEvidence));
+ spaceVariant[1].sections[0].evidence=[originalEvidence.replace(/\s+/g,'    ')];
+ let spaceVariantPaidCalls=0;
+ await assert.rejects(
+  contract.generate(resumeInput,async()=>{
+   spaceVariantPaidCalls++;throw Error('unexpected paid call');
+  },()=>{},()=>{},spaceVariant),
+  /QA resume repeated chapter evidence/,
+  'resumed copy with whitespace changes must not bypass source-duplicate review');
+ assert.equal(spaceVariantPaidCalls,0,
+  'inconsistent stored evidence must fail before any additional model call');
  assert.equal(mockedReport.status,'rejected','placeholder prose must never be accepted as a paid report');
  assert(mockedReport.qa.errors.length>0,'placeholder report should produce concrete quality failures');
  // A report created for one person must be rejected when checked against another.
@@ -172,7 +328,10 @@ const {createQueue,retryDelay,rateLimitKind}=require('./report-request-control')
  assert(crossUserErrors.some(x=>x.includes('report display name differs')),'swapped display name must be rejected');
  const wrongYear={...swapped,meta:{...swapped.meta,targetYear:2028}};
  assert(qualityGate.validate(wrongYear,factsA).errors.some(x=>x.includes('target year differs')),'wrong report year must be rejected');
- assert.equal(calls,expectedBatches.length+1);assert(!stages.some(x=>x.stage==='edit'));assert(stages.some(x=>x.stage==='body'&&x.completed===expectedCount));
+ assert.equal(calls,expectedBatches.length,'repetitive placeholders must not incur synthesis cost');
+ assert.equal(mockedReport.stoppedBeforeSynthesis,true);
+ assert(!stages.some(x=>x.stage==='edit'));
+ assert(stages.some(x=>x.stage==='body'&&x.completed===expectedCount));
  let failedCalls=0;await assert.rejects(contract.generate({calendar:'solar',birthDate:'1990-06-15',unknownBirthTime:true,gender:'male',mbti:'INFP'},async()=>{failedCalls++;throw Error('AI report service token rate limit')}));assert.equal(failedCalls,1);
  // Compare the exact first paid-generation payloads across distinct inputs.
  // Names are display-only: they must not change calculated chart evidence.
@@ -187,7 +346,9 @@ const {createQueue,retryDelay,rateLimitKind}=require('./report-request-control')
   let first=null;
   await assert.rejects(contract.generate(sample,async prompt=>{first=prompt;throw Error('offline personalization capture');}),/offline personalization capture/);
   assert(first&&first.stage==='body','first model request must be capturable without provider calls');
-  assert.deepEqual(first.requestedSections,['saju_core','mbti_contradiction']);
+  assert.equal(first.requestedSections[0],'saju_core');
+  assert(first.requestedSections.every(id=>['saju_core','mbti_contradiction'].includes(id)),
+   'first paid batch may isolate dense core chapters when weak annual topics are omitted');
   assert.equal(first.facts.person.mbti,sample.mbti);
   assert.equal(first.analysisGuidance.mbtiReference?.type||'모름',sample.mbti);
   // Audit the composed provider payload, not merely source-level templates.
@@ -245,9 +406,9 @@ const {createQueue,retryDelay,rateLimitKind}=require('./report-request-control')
    return {cover:null,finalJudgment:{body:['검증용 결론'],closingQuestion:'검증용 최종 결론입니다.',afterClosingText:''}};
   }
   return {sections:prompt.requestedSections.map(id=>({
-   id,title:id,keyJudgment:id,bodyTopics:Object.keys(outline.topics[id]),
-   bodyLabels:Object.values(outline.topics[id]),
-   body:Object.keys(outline.topics[id]).map(topic=>id+' '+topic+'에 관한 검증용 모의 문장(일반인용 용어 풀이 포함)입니다.'),
+   id,title:id,keyJudgment:id,bodyTopics:activeKeys(prompt,id),
+   bodyLabels:activeKeys(prompt,id).map((_,i)=>'검증 항목 '+i),
+   body:activeKeys(prompt,id).map(topic=>id+' '+topic+'에 관한 검증용 모의 문장(일반인용 용어 풀이 포함)입니다.'+(id==='saju_core'&&topic==='strength'?' '+require('./qa/core-meaning-mock').body(prompt):'')),
    evidence:[id+'의 명리학 계산 근거를 검증하는 모의 데이터입니다.']
   }))};
  });
@@ -257,19 +418,43 @@ const {createQueue,retryDelay,rateLimitKind}=require('./report-request-control')
 
 
  assert.equal(captured[0].facts.person.name,'검증가');
+ // The first paid batch cannot sell the source-matched FREE reading
+ // verbatim and then spend tokens on the second body batch.
+ let freeCopyCalls=0;
+ await assert.rejects(
+  contract.generate(sampleInput,async p=>{
+   freeCopyCalls++;
+   const calculatedFree=require('./report-reading-sample').build(p.facts)
+    .cards.find(x=>x.id==='birth-month').text;
+   return {sections:p.requestedSections.map(id=>({
+    id,title:id,keyJudgment:id,
+    bodyTopics:activeKeys(p,id),
+    bodyLabels:activeKeys(p,id).map((_,i)=>'검증 항목 '+i),
+    body:activeKeys(p,id).map(t=>(id==='saju_core'&&t==='strength')?
+     calculatedFree+' '+require('./qa/core-meaning-mock').body(p):
+     (id==='mbti_contradiction'&&mockMbtiPreferenceCopy[t])||
+     (id+' '+t+'에 대한 독립된 모의 검증 문장입니다. 사주 정보에서 확인된 별도 질문을 설명하지만 실제 생활을 확인하지 않았습니다.')),
+    evidence:[id+'의 원국과 십성 관계를 구분해 확인하는 모의 분석 자료입니다.']
+   }))};
+  }),
+  /reused free preview interpretation in paid prose/
+ );
+ assert.equal(freeCopyCalls,1,
+  'copied FREE first chapter must fail before any second paid model batch');
  let mismatchCalls=0;
  await assert.rejects(contract.generate({calendar:'solar',birthDate:'1990-06-15',unknownBirthTime:true,gender:'male',mbti:'INFP'},async prompt=>{
   mismatchCalls++;
-  return {sections:prompt.requestedSections.map(id=>({id,title:'계산값 검증',keyJudgment:'월간의 정관이 확인됩니다.',bodyTopics:Object.keys(outline.topics[id]),bodyLabels:Object.values(outline.topics[id]),body:Object.keys(outline.topics[id]).map(()=> '월간의 정관이 확인됩니다.'),evidence:['월간의 정관'] }))};
+  return {sections:prompt.requestedSections.map(id=>({id,title:'계산값 검증',keyJudgment:'월간의 정관이 확인됩니다.',bodyTopics:activeKeys(prompt,id),bodyLabels:activeKeys(prompt,id).map((_,i)=>'검증 항목 '+i),body:activeKeys(prompt,id).map(()=> '월간의 정관이 확인됩니다.'),evidence:['월간의 정관'] }))};
  }),/factually inconsistent report data/);
  assert.equal(mismatchCalls,1,'factually incorrect first batch must not trigger six additional paid calls');
  assert.equal(require('./report-diagnostics').failureCode('AI report service returned factually inconsistent report data'),'REPORT_FACT_MISMATCH');
  let duplicatedEvidenceCalls=0;
  await assert.rejects(contract.generate({calendar:'solar',birthDate:'1990-06-15',unknownBirthTime:true,gender:'male',mbti:'INFP'},async prompt=>{
   duplicatedEvidenceCalls++;
-  return {sections:prompt.requestedSections.map(id=>({id,title:'본문 증거 검증',keyJudgment:'설명한 내용을 검토합니다.',bodyTopics:Object.keys(outline.topics[id]),bodyLabels:Object.values(outline.topics[id]),body:Object.keys(outline.topics[id]).map(()=> '서로 다른 질문에 답하는 검증 문장입니다.'),evidence:['사주 계산값을 살펴보고 명리학의 위치를 확인한 검증용 근거 문장입니다.']}))};
+  return {sections:prompt.requestedSections.map(id=>({id,title:'본문 증거 검증',keyJudgment:'설명한 내용을 검토합니다.',bodyTopics:activeKeys(prompt,id),bodyLabels:activeKeys(prompt,id).map((_,i)=>'검증 항목 '+i),body:activeKeys(prompt,id).map(topic=>(id==='mbti_contradiction'&&mockMbtiPreferenceCopy[topic])||('서로 다른 질문에 답하는 검증 문장입니다.'+(id==='saju_core'&&topic==='strength'?' '+require('./qa/core-meaning-mock').body(prompt):''))),evidence:['사주 계산값을 살펴보고 명리학의 위치를 확인한 검증용 근거 문장입니다.']}))};
  }),/repeated chapter evidence/);
- assert.equal(duplicatedEvidenceCalls,1,'duplicate evidence in first batch must not incur further provider calls');
+ assert.equal(duplicatedEvidenceCalls,expectedBatches[0].length===1?2:1,
+  'cross-chapter duplicate must be detected at earliest possible second batch for isolated first chapter');
  let emptyCalls=0;await assert.rejects(contract.generate({calendar:'solar',birthDate:'1990-06-15',unknownBirthTime:true,gender:'male',mbti:'INFP'},async()=>{emptyCalls++;return {sections:[]}}));assert.equal(emptyCalls,1);
  const originalFetch=global.fetch,originalKey=process.env.OPENAI_API_KEY,originalModel=process.env.REPORT_MODEL;let providerCalls=0;
  try{process.env.OPENAI_API_KEY='local-test-placeholder';process.env.REPORT_MODEL='local-test-model';global.fetch=async()=>{providerCalls++;return {ok:false,status:429,json:async()=>({error:{code:'rate_limit_exceeded',message:'tokens per min'}})}};await assert.rejects(require('./server').callOpenAI({}),/token rate limit/);assert.equal(providerCalls,1)}finally{global.fetch=originalFetch;for(const [key,value] of [['OPENAI_API_KEY',originalKey],['REPORT_MODEL',originalModel]])if(value===undefined)delete process.env[key];else process.env[key]=value}
@@ -284,14 +469,26 @@ const {createQueue,retryDelay,rateLimitKind}=require('./report-request-control')
   for(const [key,value] of [['OPENAI_API_KEY',beforeSplitKey],['REPORT_MODEL',beforeSplitModel]])if(value===undefined)delete process.env[key];else process.env[key]=value;
  }
  // Verify that actual OpenAI requests contain no unsupported JSON Schema bounds.
- let sentSchema=null;
+ let sentSchema=null,sentSystem=null;
  const savedFetch=global.fetch,savedKey=process.env.OPENAI_API_KEY,savedModel=process.env.REPORT_MODEL;
  try{
   process.env.OPENAI_API_KEY='local-test-placeholder';process.env.REPORT_MODEL='local-test-model';
-  global.fetch=async(_url,opts)=>{sentSchema=JSON.parse(opts.body).text.format.schema;return {ok:true,json:async()=>({output_text:JSON.stringify({chapters:{saju_core:{paragraphs:Object.fromEntries(Object.keys(outline.topics.saju_core).map(t=>[t,{label:t,text:t}]))}},cover:null,finalJudgment:null})})}};
+  global.fetch=async(_url,opts)=>{sentSchema=JSON.parse(opts.body).text.format.schema;sentSystem=JSON.parse(opts.body).input[0];return {ok:true,json:async()=>({output_text:JSON.stringify({chapters:{saju_core:{paragraphs:Object.fromEntries(Object.keys(outline.topics.saju_core).map(t=>[t,{label:t,text:t}]))}},cover:null,finalJudgment:null})})}};
   await require('./server').callOpenAI({requestedSections:['saju_core'],includeFinal:false,includeCover:false});
   const walk=x=>{if(!x||typeof x!=='object')return;for(const [k,v] of Object.entries(x)){assert(!['minItems','maxItems','minLength','maxLength','$schema'].includes(k),'unsupported strict schema keyword '+k);walk(v)}};
+  assert.equal(sentSystem.role,'system');assert(sentSystem.content.includes(require('./report-reader-policy').systemInstruction),'actual provider system message must carry reader policy');
   walk(sentSchema);assert.deepEqual(sentSchema.properties.chapters.required,['saju_core']);const chapter=sentSchema.properties.chapters.properties.saju_core;assert(chapter.properties.title);assert(chapter.required.includes('title'));assert.deepEqual(chapter.properties.paragraphs.required,Object.keys(outline.topics.saju_core));
+  const readerPolicy=require('./report-reader-policy');
+  assert(chapter.properties.title.description.includes(readerPolicy.readerField));
+  assert(chapter.properties.keyJudgment.description.includes(readerPolicy.readerField));
+  assert(chapter.properties.evidence.items.description.includes(readerPolicy.evidenceField));
+  const firstParagraph=chapter.properties.paragraphs.properties.temperament;
+  assert(firstParagraph.properties.text.description.includes(readerPolicy.readerField));
+  assert(firstParagraph.properties.label.description.includes(readerPolicy.readerField));
+  assert.equal(require('./report-schema.json').properties.sections.items.properties.title.description,undefined,'schema annotation must not mutate canonical schema');
+  const summarySchema=wire.schemaFor({requestedSections:[],includeFinal:true,includeCover:true},require('./report-schema.json'));
+  assert(summarySchema.properties.cover.properties.headline.description.includes(readerPolicy.readerField));
+  assert(summarySchema.properties.finalJudgment.properties.body.items.description.includes(readerPolicy.readerField));
  }finally{global.fetch=savedFetch;for(const [key,value] of [['OPENAI_API_KEY',savedKey],['REPORT_MODEL',savedModel]])if(value===undefined)delete process.env[key];else process.env[key]=value}
  assert.equal(require('./report-schema.json').properties.finalJudgment.properties.routines.minItems,0);
  assert.equal(require('./report-schema.json').properties.sections.items.properties.body.minItems,1);
@@ -316,9 +513,11 @@ const {createQueue,retryDelay,rateLimitKind}=require('./report-request-control')
  }
  const audit=require('./report-instruction-audit');
  const validAuditPayload={stage:'body',requestedSections:['saju_core'],facts:{facts:{}},analysisGuidance:{editorialBlueprint:{}},
-  rules:{paragraphGuide:'state-limits 항목은 null로 둔다',tone:'전통 해석과 사실을 구별한다',narrativeRule:'근거 없으면 문단 수를 강요하지 않는다'},
+  rules:{hanjaPolicy:require('./report-reader-policy').instruction,paragraphGuide:'state-limits 항목은 null로 둔다',tone:'전통 해석과 사실을 구별한다',narrativeRule:'근거 없으면 문단 수를 강요하지 않는다'},
   planningInstruction:'state-limits 항목은 null'};
  assert.deepEqual(audit.inspect(validAuditPayload),[],'valid complete instructions pass');
+ assert(audit.inspect({...validAuditPayload,editorialTask:'핵심 명리 용어를 본문에 넣는다'}).includes('conflicting visible jargon instruction'));
+ assert(audit.inspect({...validAuditPayload,rules:{...validAuditPayload.rules,hanjaPolicy:'용어를 괄호로 설명한다'}}).includes('reader language policy replaced or missing'));
  assert(audit.inspect({...validAuditPayload,rules:{...validAuditPayload.rules,narrativeRule:'12개 장과 29개 항목을 모두 채운다'}}).some(x=>x.includes('obsolete forced quota')),'old fixed-quantity prompt is rejected');
  assert(audit.inspect({...validAuditPayload,rules:{...validAuditPayload.rules,paragraphGuide:'각 장마다 문단을 강제'}}).some(x=>x.includes('paragraph instruction')),'overriding null policy is rejected');
  const groundedAudit={...validAuditPayload,facts:{facts:{tenGods:{day:{}},structuralEvidence:{}}},analysisGuidance:{editorialBlueprint:{saju_core:{hasGroundedTopic:false,topicTasks:{},anchorTopic:null}}}};

@@ -1,0 +1,590 @@
+'use strict';
+// Paid-writer substantive bridge: exact original chart roles to ONE reader
+// question. Unlike generic life scenes, each claim is attached to its
+// allowed natal facts. No strength/priority, outcome or personal history.
+// An absent pair produces NO extra interpretation instruction.
+const GROUP=Object.freeze({
+ '식신':'output','상관':'output','정재':'wealth','편재':'wealth',
+ '정인':'learning','편인':'learning','정관':'rules','편관':'rules',
+ '비견':'peers','겁재':'peers'
+});
+const RULES=Object.freeze({
+ 'money.earning':Object.freeze({
+  first:['식신','상관'],second:['정재','편재'],
+  question:'결과를 만들어 밖에 내놓는 질문과 그 대가·자원을 다루는 질문은 어떻게 다른가?',
+  explanation:'표현·생산이라는 전통 분류는 만들어 내는 과정에 대한 질문이고, 재물이라는 전통 분류는 대가와 자원을 다루는 조건에 대한 질문이다. 이 둘을 실제 수입·재산으로 단정하지 말고 서로 구별해 설명한다.'
+ }),
+ 'money.spending':Object.freeze({
+  first:['정재'],second:['편재'],
+  question:'꾸준히 관리하는 자원과 바깥에서 활용하는 자원은 어떤 다른 질문인가?',
+  explanation:'지속적으로 관리하는 자원과 외부 기회에 맞춰 활용하는 자원은 별도의 전통적 관점이다. 어느 쪽이 실제로 우세하다거나 지출 성향이 확인됐다고 주장하지 않는다.'
+ }),
+ 'career.workstyle':Object.freeze({
+  first:['정인','편인'],second:['식신','상관'],
+  question:'방식을 이해하고 익히는 단계와 결과를 표현하는 단계는 어떻게 구별되는가?',
+  explanation:'학습·이해에 관한 전통 분류는 시작 전에 무엇을 익히는지 묻고, 표현·생산 분류는 무엇을 결과로 드러내는지 묻는다. 두 출처가 실제 능력이나 업무 성과를 보여 주는 것은 아니다.'
+ }),
+ 'career.teamwork':Object.freeze({
+  first:['비견','겁재'],second:['정관','편관'],
+  question:'함께하는 사람들 사이에서 몫을 조정하는 질문과 규칙·책임을 확인하는 질문은 어떻게 다른가?',
+  explanation:'동료·경쟁의 전통 분류는 역할과 몫의 관계를, 규칙·책임의 분류는 정해진 요구와 역할 범위를 묻는다. 실제 팀워크 점수나 직장 갈등 이력을 추정하지 않는다.'
+ }),
+ 'career.growth':Object.freeze({
+  first:['정인'],second:['편인'],
+  question:'도움과 기준을 통해 배우는 관점과 독자적으로 이해하는 관점은 무엇을 달리 묻는가?',
+  explanation:'보호·기초 학습과 독자적 이해라는 전통 분류를 구별한다. 실제 공부 방식, 성적 또는 자격 획득을 증명하지 않는다.'
+ }),
+ 'relationship.closeness':Object.freeze({
+  first:['비견','겁재'],second:['정관','편관'],
+  question:'가까운 사이에 서로 참여하는 몫을 정하는 일과 약속·책임을 지키는 일을 어떻게 구별해 설명할 수 있는가?',
+  explanation:'같은 출생일 지지에 실제로 있는 동료·참여의 전통 상징과 역할·규칙의 전통 상징을 따로 읽는다. 출생일 안에서 함께 확인된다는 것만 말하고 실제 친밀감, 배우자 성격이나 관계의 지속 여부는 예언하지 않는다.'
+ }),
+ 'relationship.expression':Object.freeze({
+  first:['식신'],second:['상관'],
+  question:'자신의 뜻을 표현하는 질문과 기존 규칙에 대한 반응을 표현하는 질문은 어떻게 다른가?',
+  explanation:'자연스러운 표현·생산의 상징과 규칙에 대한 반응·표현의 상징은 서로 다른 질문이다. 실제 말투나 상대방의 반응은 알아낸 사실이 아니다.'
+ }),
+ 'stress.trigger':Object.freeze({
+  first:['정관'],second:['편관'],
+  question:'정해진 역할·규칙에 관한 요구와 압박에 대응하는 요구를 어떻게 구분해 읽는가?',
+  explanation:'역할과 규칙의 분류, 외부 압박과 대응의 분류는 전통적으로 별개의 상징이다. 건강·스트레스 강도나 실제 불안을 측정한 결과는 아니다.'
+ }),
+ 'stress.response':Object.freeze({
+  first:['정인'],second:['편인'],
+  question:'도움과 배움의 조건과 스스로 이해하는 조건은 어떤 상황에서 다른 질문이 되는가?',
+  explanation:'보호·학습의 분류와 독자적 이해의 분류는 다른 관점을 제시한다. 실제 회복력이나 생활 대처 능력을 판정하지 않는다.'
+ })
+});
+// When an entire domain has two DISTINCT verified subtypes but not the
+// two categories chosen for the main reading, preserve their real contrast.
+// This is a chart-specific alternative, not a second paid paragraph and not
+// a claim about an observed person's behavior.
+const ALTERNATIVES=Object.freeze({
+ 'relationship.closeness':Object.freeze([
+  Object.freeze({
+   first:['식신','상관'],second:['정인','편인'],
+   question:'가까운 관계에서 자기 뜻을 전하는 질문과 도움·이해를 구하는 질문은 어떻게 다른가?',
+   explanation:'출생일의 실제 숨은 글자에 있는 표현 상징과 이해·지원 상징의 별도 뜻을 구별한다. 함께 있다고 어느 쪽이 더 강하다는 뜻은 아니며 실제 대화 방식은 확인되지 않았다.'
+  }),
+  Object.freeze({
+   first:['정재','편재'],second:['정관','편관'],
+   question:'함께 쓰는 자원에 관해 결정하는 일과 서로 지킬 약속을 정하는 일은 어떤 질문을 달리 만드는가?',
+   explanation:'출생일 내부의 재물·자원 상징과 역할·약속 상징을 나란히 설명한다. 실제 부부 재산이나 소비 성향, 다툼은 알 수 없다.'
+  }),
+  Object.freeze({
+   first:['비견','겁재'],second:['식신','상관'],
+   question:'서로 맡을 몫을 정하는 일과 자신의 생각을 전달하는 일은 어떻게 다른 질문인가?',
+   explanation:'같은 출생일에 확인된 참여·동료 상징과 표현 상징의 의미를 구별한다. 역할과 표현이 어느 쪽에서 먼저 나타난다거나 실제 대화 경험이 있다는 주장은 하지 않는다.'
+  }),
+  Object.freeze({
+   first:['정재','편재'],second:['정인','편인'],
+   question:'함께 사용하는 자원을 검토하는 일과 서로에게 필요한 도움을 확인하는 일은 어떻게 다른가?',
+   explanation:'출생일의 실제 자원 상징과 이해·지원 상징을 서로 다른 전통적 질문으로 읽는다. 관계의 좋고 나쁨이나 실제 상대 행동은 검증되지 않았다.'
+  }),
+  Object.freeze({
+   first:['식신','상관'],second:['정재','편재'],
+   question:'서로에게 뜻을 전달하는 일과 공동 자원의 조건을 정하는 일은 어떻게 구별되는가?',
+   explanation:'실제로 계산된 출생일의 표현 상징과 재물·자원 상징을 분리해 설명한다. 두 역할의 우열이나 실제 가정 경제는 알 수 없다.'
+  })
+ ]),
+ 'career.workstyle':Object.freeze([
+  Object.freeze({
+   first:['식신'],second:['상관'],
+   question:'결과를 차근차근 만드는 관점과 이미 정해진 방식에 질문을 던지는 관점은 업무 설명에서 어떻게 다른가?',
+   explanation:'식신의 생산·표현 상징과 상관의 표현·관례에 대한 반응 상징을 구별한다. 두 분류가 실제 나온 위치를 각각 읽고, 작업 성과나 지시 불이행이 관찰됐다고 주장하지 않는다.'
+  })
+ ]),
+ 'career.teamwork':Object.freeze([
+  Object.freeze({
+   first:['비견'],second:['겁재'],
+   question:'함께 참여하는 관계와 서로의 몫을 조정해야 하는 관계를 어떻게 다르게 바라볼 수 있는가?',
+   explanation:'비견은 나란히 참여하는 동료·자기 몫의 상징으로, 겁재는 같은 자원을 놓고 몫을 조정하는 상징으로 구별한다. 실제 동료와 경쟁하거나 갈등을 겪는다는 뜻은 아니다.'
+  }),
+  Object.freeze({
+   first:['정관'],second:['편관'],
+   question:'합의한 규칙에 따라 맡는 책임과 예상치 못한 요구를 다루는 책임은 어떻게 다른가?',
+   explanation:'정관이 가리키는 정해진 역할·규칙과 편관이 가리키는 압박·요구의 상징을 각각 설명한다. 실제 상사의 성향이나 업무 강도, 승진 결과는 판단할 수 없다.'
+  })
+ ])
+});
+const ID=/^natal\.(year|month|day|hour)\.(?:stem|hidden\.[甲乙丙丁戊己庚辛壬癸])$/;
+// This relationship is derived from BOTH actual stem elements, not from
+// a stock contrast of two ten-god names. It describes mathematical five-
+// element direction only; traditional strength, usefulness and consequences
+// require further classical analysis and remain unresolved.
+function exactElementRelation(first,second){
+ const season=require('./report-seasonal-evidence');
+ const left=season.ELEMENTS[first?.stem],right=season.ELEMENTS[second?.stem];
+ if(!left||!right)throw Error('PAID_DOMAIN_ELEMENT_SOURCE_NOT_VERIFIED');
+ const kind=season.relation(left,right);
+ const meanings={
+  'same-element':'두 글자가 같은 오행에 속합니다',
+  'resource':'첫 번째 글자의 오행이 두 번째 글자의 오행을 생합니다',
+  'output':'두 번째 글자의 오행이 첫 번째 글자의 오행을 생합니다',
+  'control-on-day':'첫 번째 글자의 오행이 두 번째 글자의 오행을 극합니다',
+  'day-controls':'두 번째 글자의 오행이 첫 번째 글자의 오행을 극합니다'
+ };
+ if(!meanings[kind])throw Error('PAID_DOMAIN_ELEMENT_RELATION_UNCLASSIFIED');
+ return Object.freeze({
+  refs:Object.freeze([first.id,second.id]),
+  stems:Object.freeze([first.stem,second.stem]),
+  elementalDirection:kind,computedRelation:meanings[kind],
+  relativeStrength:'not-assessed', realizedEffect:false,
+  predictedIncomeOrBehavior:false
+ });
+}
+
+// 《子平真詮》卷二〈論雜氣如何取用〉: for a mixed-storage month,
+// the question is WHICH month-hidden category is visibly exposed, not
+// whether a generic pair of ten-god names can be combined into a story.
+// This is a textual method APPLICABILITY screen, never a chosen 格, 用神,
+// strength, favorable/unfavorable verdict, or a claim about a person.
+const CLASSICAL_SOURCE='https://www.donglishuzhai.net/chapter/3729.html';
+function classicalMonthCandidate(packet,exposure,roles){
+ if(!packet?.chart?.hour||!exposure)return null;
+ const month=packet.chart.month?.[1];
+ if(!['辰','戌','丑','未'].includes(month))return null;
+ const original=packet.facts?.stemConnections;
+ const calculated=require('./report-stem-connections').build(packet.chart);
+ if(JSON.stringify(original)!==JSON.stringify(calculated))
+  throw Error('PAID_CLASSICAL_MONTH_SOURCE_GRAPH_MISMATCH');
+ const hidden=calculated.exposure.filter(x=>x.position==='month');
+ const candidateRows=hidden.filter(x=>x.exactVisibleMatches.some(y=>
+  ['year','month','hour'].includes(y.position)));
+ const groups=require('./report-branch-relations').natal(packet.chart).groups
+  .filter(g=>g.type==='삼합'&&g.positions.includes('month'));
+ // One *kind*, not repeated placements. A complete branch triad or a
+ // second exposed kind requires an unresolved classical comparison.
+ if(candidateRows.length!==1||groups.length)return null;
+ const row=candidateRows[0];
+ const expectedRefs=[exposure.hidden.id,exposure.visible.id];
+ if(row.hiddenId!==expectedRefs[0]||
+    !row.exactVisibleMatches.some(x=>x.id===expectedRefs[1])||
+    !expectedRefs.every(id=>roles.some(r=>r.id===id)))
+  return null;
+ const actualMain=packet.facts?.structuralEvidence?.monthCommand?.mainHiddenStem;
+ if(!actualMain||!require('./report-seasonal-evidence').HIDDEN[month]?.includes(actualMain))
+  throw Error('PAID_CLASSICAL_MONTH_MAIN_SOURCE_UNKNOWN');
+ return Object.freeze({
+  kind:'single-exposed-mixed-month-classical-question-v1',
+  monthBranch:month,monthHiddenRef:row.hiddenId,
+  exposedAtRef:exposure.visible.id,stem:row.hiddenStem,
+  isMainMonthHidden:row.hiddenStem===actualMain,
+  numberOfDistinctVisibleCandidates:1,
+  completeMonthTriadCount:0,
+  sourceChapter:'子平真詮 / 論雜氣如何取用',
+  sourceUrl:CLASSICAL_SOURCE,
+  classicalQuestion:'이 출생월은 여러 글자가 함께 들어 있는 잡기월에 해당한다. '+
+   '그 안의 '+row.hiddenStem+' 글자가 '+exposure.visible.position+
+   ' 겉에 정확히 드러나는 한 가지 후보가 확인된다. '+
+   (row.hiddenStem===actualMain?'이 글자는 달의 대표 숨은 글자다. ':
+    '이 글자는 달의 대표 숨은 글자가 아닌 별도 글자다. ')+
+   '따라서 출생월의 대표 글자 뜻만 말하는 설명과, '+
+   '밖으로 드러난 이 글자를 고전의 후보로 함께 검토하는 설명의 차이를 설명한다. '+
+   '다른 완성된 삼합은 이 계산에서 확인되지 않았으나, '+
+   '이를 근거로 어느 격국이나 우선순위가 확정되었다고 주장하지 않는다.',
+  adoptedSchoolMethod:false,chosenPattern:false,
+  chosenUsefulGod:false,individualOutcomeEstablished:false
+ });
+}
+// The reader question must change with the chart's REAL source direction.
+// This is a counter-reading of the symbolic evidence (what a reader would
+// miss if each SOURCE were absent), NOT invented life-event alternatives.
+// A dictionary list of two ten-god names is not a composite reading.
+function sourceDecisionContrast(a,b,relation,topicQuestion){
+ const decisions={
+  'resource':{
+   owner:'first',direction:'첫 번째 글자가 두 번째 글자를 생하는 방향',
+   scopedQuestion:'첫 번째 분류에서 두 번째 분류로 이어지는 연결을 설명할 때 무엇을 추가로 물을 수 있는가?'
+  },
+  'output':{
+   owner:'second',direction:'두 번째 글자가 첫 번째 글자를 생하는 방향',
+   scopedQuestion:'두 번째 분류에서 첫 번째 분류로 이어지는 연결을 거꾸로 읽지 않고 무엇을 물을 수 있는가?'
+  },
+  'control-on-day':{
+   owner:'first',direction:'첫 번째 글자가 두 번째 글자를 극하는 방향',
+   scopedQuestion:'첫 번째 분류가 두 번째 분류를 제한하는 계산 방향과 두 질문의 차이를 어떻게 구분할 것인가?'
+  },
+  'day-controls':{
+   owner:'second',direction:'두 번째 글자가 첫 번째 글자를 극하는 방향',
+   scopedQuestion:'두 번째 분류가 첫 번째 분류를 제한하는 계산 방향을 반대로 쓰지 않고 어떻게 구분할 것인가?'
+  },
+  'same-element':{
+   owner:'neither',direction:'두 글자가 같은 오행에 속하고 생극 방향이 없는 관계',
+   scopedQuestion:'같은 오행이면서도 전통적 세부 분류가 다른 두 질문을 왜 하나의 성격으로 합치면 안 되는가?'
+  }
+ };
+ const chosen=decisions[relation?.elementalDirection];
+ if(!chosen||relation.refs[0]!==a.id||relation.refs[1]!==b.id)
+  throw Error('PAID_READER_DIRECTION_SOURCE_UNVERIFIED');
+ const focus=row=>row.position+'의 '+row.tenGod+'('+row.stem+')';
+ return Object.freeze({
+  kind:'chart-owned-two-source-decision-contrast-v1',
+  topicQuestion,
+  firstSourceRef:a.id,secondSourceRef:b.id,
+  direction:relation.elementalDirection,
+  symbolicRelationship:chosen.direction,
+  directionalOwner:chosen.owner,
+  sourceSpecificQuestion:chosen.scopedQuestion,
+  firstOnlyQuestion:focus(a)+'만 읽으면 '+focus(b)+
+   '가 추가하는 독립된 질문은 무엇이 빠지는가?',
+  secondOnlyQuestion:focus(b)+'만 읽으면 '+focus(a)+
+   '가 추가하는 독립된 질문은 무엇이 빠지는가?',
+  requiredEditorialDifference:'두 출처를 각각 소개한 다음 끝내지 않는다. '+
+   '한쪽 출처만 있는 경우와 양쪽이 함께 확인된 경우에 답할 수 있는 '+
+   '질문의 차이를 '+chosen.direction+'에 맞게 설명한다. '+
+   '방향이 뜻하는 계산 관계와 실제 삶에서 발휘되는 효과를 반드시 구별한다.',
+  observedCustomerChoice:false,realizedInfluence:false,
+  traditionalPriorityChosen:false
+ });
+}
+// Narrow textual rule: 食神生財 names the traditional relationship
+// 'food god generates wealth'. The literal calculated pair may match it,
+// but the *working* classical structure additionally requires a strength,
+// location and whole-chart judgement that this program does not establish.
+// Do not turn an isolated year/hour arrow into a guaranteed income stream.
+function classicalOutputWealthCandidate(key,a,b,relation,packet){
+ if(key!=='money.earning'||a?.tenGod!=='식신'||
+    !['정재','편재'].includes(b?.tenGod)||
+    relation?.elementalDirection!=='resource'||!packet?.chart)
+  return null;
+ const parts=['year','month','day','hour'];
+ const location=id=>{
+  const m=/^natal\.(year|month|day|hour)\.(stem|hidden\.[甲乙丙丁戊己庚辛壬癸])$/.exec(id||'');
+  if(!m)return null;
+  const pillar=packet.chart[m[1]];
+  if(!pillar)return null;
+  const expectedStem=id===a.id?a.stem:b.stem;
+  if(m[2]==='stem'&&pillar[0]!==expectedStem)return null;
+  if(m[2].startsWith('hidden.')&&
+     (!m[2].endsWith('.'+expectedStem)||
+     !require('./report-seasonal-evidence').HIDDEN[pillar[1]]?.includes(expectedStem)))
+   return null;
+  return {pillar:m[1],layer:m[2]};
+ };
+ const left=location(a.id),right=location(b.id);
+ if(!left||!right||left.pillar===right.pillar&&left.layer===right.layer)return null;
+ const leftIndex=parts.indexOf(left.pillar),rightIndex=parts.indexOf(right.pillar);
+ const between=parts.slice(Math.min(leftIndex,rightIndex)+1,Math.max(leftIndex,rightIndex));
+ const bothVisible=left.layer==='stem'&&right.layer==='stem';
+ const hiddenInPair=left.layer.startsWith('hidden.')||right.layer.startsWith('hidden.');
+ return Object.freeze({
+  kind:'verified-food-god-generates-wealth-symbolic-candidate-v1',
+  sourceRefs:Object.freeze([a.id,b.id]),
+  firstTenGod:a.tenGod,secondTenGod:b.tenGod,
+  sourceLayers:Object.freeze([left.layer,right.layer]),
+  hiddenSourceInPair:hiddenInPair,
+  betweenPillars:Object.freeze(between),
+  adjacentVisibleStems:bothVisible&&Math.abs(leftIndex-rightIndex)===1,
+  literalElementCycleOnly:true,
+  phrase:'식신생재(食神生財) 관계 후보',
+  traditionalQuestion:'이 명식에서 결과를 만들어 내는 식신과 자원을 다루는 재성이 '+
+   '오행상 생하는 방향인 사실은 확인된다. 하지만 '+
+   (hiddenInPair?'둘 중 한 글자는 출생 지지 안쪽에 숨은 글자이므로 ':
+    between.length?'두 출생 겉글자 사이에 '+between.join('·')+' 자리가 있어 ':
+    '두 겉글자가 계산상 인접하더라도 ')+
+   '이것을 곧바로 실제 작용하는 식신생재격이나 소득으로 결론 내릴 수 없는 '+
+   '전통적 조건은 무엇인가?',
+  sourceChapter:'子平真詮評注 / 論食神',
+  sourceUrl:'https://yimatrix.com/ko/academy/books/17/chapter/2982',
+  candidateOnly:true,actualFlowEstablished:false,
+  monthPatternChosen:false,dayMasterStrengthVerified:false,
+  financialOutcomeVerified:false
+ });
+}
+// Money earning: two correctly cited traditional role labels do not yet
+// answer a reader's practical question. The same verified role meanings as
+// the free preview form two concrete *counterconditions*, grounded in the
+// exact selected natal positions. This is an editorial comparison of
+// symbols, not an observed income, a predicted profit, or a personality
+// assessment. Other topics must NOT inherit this financial example.
+function earnedValueConditionalReading(key,a,b,relation){
+ if(key!=='money.earning'||!['식신','상관'].includes(a?.tenGod)||
+    !['정재','편재'].includes(b?.tenGod))return null;
+ if(!relation||relation.refs?.[0]!==a.id||relation.refs?.[1]!==b.id||
+    relation.realizedEffect!==false||relation.predictedIncomeOrBehavior!==false)
+  throw Error('PAID_EARNING_READER_CONDITION_SOURCE_MISMATCH');
+ const conditions=require('./report-reading-sample').CONDITIONS;
+ const first=conditions[a.tenGod],second=conditions[b.tenGod];
+ if(!first?.focus||!first.missing||!second?.focus||!second.missing)
+  throw Error('PAID_EARNING_READER_CONDITION_UNSUPPORTED_CATEGORY');
+ const firstLocation=a.position+' '+a.layer;
+ const secondLocation=b.position+' '+b.layer;
+ const condition=
+  '가상으로 결과물을 제공하고 그 대가를 정하는 상황에서 '+firstLocation+
+  '의 '+a.tenGod+'은 '+first.focus+'을 묻고, '+secondLocation+
+  '의 '+b.tenGod+'은 '+second.focus+'을 묻는다. '+
+  '첫 번째만 검토하면 '+second.missing+'. '+
+  '반대로 두 번째만 검토하면 '+first.missing+'. '+
+  '이 비교는 실제 수입·성격·재물운을 확인하거나 보장하지 않는다.';
+ return Object.freeze({
+  kind:'verified-two-sided-earning-condition-v1',
+  sourceRefs:Object.freeze([a.id,b.id]),
+  sourceStems:Object.freeze([a.stem,b.stem]),
+  categories:Object.freeze([a.tenGod,b.tenGod]),
+  relation:relation.elementalDirection,
+  computedCondition:condition,
+  readerParagraph:'수입 활동을 전통적으로 풀이할 때 '+a.position+'에 있는 '+
+   a.tenGod+'은 '+first.focus+'을 살피는 단서이고, '+
+   b.position+'에 있는 '+b.tenGod+'은 '+second.focus+'을 살피는 단서입니다. '+
+   '예를 들어 결과물을 만들고 그 대가를 정하는 가상 상황이라면, '+
+   '첫 번째 조건만 고려할 때는 '+second.missing+
+   '. 반대로 두 번째 조건만 있으면 '+first.missing+
+   '. 두 글자의 오행에서는 '+relation.computedRelation+
+   '. 이는 두 종류의 전통적 질문을 함께 읽은 예시이며, '+
+   '실제 소득이나 일의 성공을 예측한 것은 아닙니다.',
+  firstOnlyMissing:second.missing,
+  secondOnlyMissing:first.missing,
+  observedIncome:false,guaranteedOutcome:false,
+  patternPriorityAssessed:false
+ });
+}
+// Only a real learning/understanding role PLUS a separate expression/output
+// role can support this workstyle contrast. It is deliberately NOT the
+// earnings scenario: the issue here is whether a work method can be
+// explained AND whether the resulting work can be evaluated. Source
+// positions are observed chart facts; no skill or employment is inferred.
+const WORK_METHOD_QUESTIONS=Object.freeze({
+ '정인':Object.freeze({
+  focus:'기존 지침이나 조언을 어떤 근거로 배워 적용하는지',
+  missing:'확인된 지침을 참고할 근거가 빠진다'
+ }),
+ '편인':Object.freeze({
+  focus:'낯선 방법의 원리를 어떻게 비교해 이해할지',
+  missing:'새 방법을 평가할 설명의 근거가 빠진다'
+ }),
+ '식신':Object.freeze({
+  focus:'완성된 결과물을 어떤 기준으로 확인할지',
+  missing:'완료된 결과물과 검수 기준이 빠진다'
+ }),
+ '상관':Object.freeze({
+  focus:'기존 절차 대신 제안한 방법을 어떤 기준으로 검증할지',
+  missing:'바뀐 절차의 타당성을 검증할 기준이 빠진다'
+ })
+});
+function careerWorkstyleCondition(key,a,b,relation){
+ if(key!=='career.workstyle'||
+   !['정인','편인'].includes(a?.tenGod)||
+   !['식신','상관'].includes(b?.tenGod))return null;
+ if(!relation||relation.refs?.[0]!==a.id||relation.refs?.[1]!==b.id||
+   relation.realizedEffect!==false||
+   relation.predictedIncomeOrBehavior!==false)
+  throw Error('PAID_CAREER_WORKSTYLE_RELATION_UNVERIFIED');
+ const first=WORK_METHOD_QUESTIONS[a.tenGod],second=WORK_METHOD_QUESTIONS[b.tenGod];
+ if(!first||!second||!a.position||!b.position||!a.layer||!b.layer)
+  throw Error('PAID_CAREER_WORKSTYLE_POSITION_UNVERIFIED');
+ const computedCondition=
+  '가상으로 새 작업 방식을 검토하는 상황에서 '+
+  a.position+' '+a.layer+'의 '+a.tenGod+'은 '+first.focus+' 묻고, '+
+  b.position+' '+b.layer+'의 '+b.tenGod+'은 '+second.focus+' 묻는다. '+
+  '방법을 이해하는 첫 조건만 검토하면 '+second.missing+'. '+
+  '결과나 개선안을 검토하는 둘째 조건만 남기면 '+first.missing+'. '+
+  '두 글자 사이의 오행 계산은 '+relation.computedRelation+
+  '. 이것이 실제 업무 능력, 입사·승진 결과 또는 사주상의 우선순위라는 뜻은 아니다.';
+ return Object.freeze({
+  kind:'verified-work-method-vs-output-condition-v1',
+  sourceRefs:Object.freeze([a.id,b.id]),
+  sourceStems:Object.freeze([a.stem,b.stem]),
+  categories:Object.freeze([a.tenGod,b.tenGod]),
+  relation:relation.elementalDirection,
+  firstFocus:first.focus,secondFocus:second.focus,
+  firstOnlyMissing:second.missing,
+  secondOnlyMissing:first.missing,
+  computedCondition,
+  readerParagraph:'직업과 일하는 방식을 전통적으로 풀이하면 '+
+   a.position+'에 있는 '+a.tenGod+'에서는 '+first.focus+
+   '를, '+b.position+'에 있는 '+b.tenGod+'에서는 '+
+   second.focus+'를 각각 살펴볼 수 있습니다. '+
+   '새로운 작업 방식을 적용하는 가상 상황에서 앞의 조건만 확인하면 '+
+   second.missing+'. 뒤의 조건만 확인한다면 '+first.missing+
+   '. 따라서 방법을 이해하는 일과 작업의 결과를 검토하는 일은 '+
+   '서로 다른 질문이라는 해석입니다. '+
+   '실제 업무 능력이나 직장 성과를 확인한 결과는 아닙니다.',
+  observedWorkPerformance:false,careerOutcomePredicted:false,
+  traditionalPriorityAssessed:false
+ });
+}
+function build({chapterId,topicId,topic,packet}={}){
+ if(!topic||topic.mode==='state-limits')return null;
+ const key=chapterId+'.'+topicId,rule=RULES[key];
+ // Never invent a cross-domain analogy merely to add a premium paragraph.
+ if(!rule)return null;
+ const roles=(topic.citableFacts||[]).filter(row=>
+  ID.test(row.id)&&
+  // Only the day-branch *hidden* stems may inform a closeness reading.
+  // A year/month/hour role is neither a substitute nor a new day-branch fact.
+  (key!=='relationship.closeness'||/^natal\.day\.hidden\./.test(row.id))&&
+  row.position&&row.stem&&row.tenGod&&GROUP[row.tenGod]&&
+  typeof row.traditionalMeaning==='string'&&row.traditionalMeaning.trim());
+ // Before selecting among same-category source placements, identify
+ // independently observed exposure. Selecting the first wealth row blindly
+ // can hide the actual month-hidden/hour-visible link and leave nothing but
+ // two dictionary labels. Keep the rule's category pairing and priority,
+ // and prefer a real linked placement WITHIN that pairing if it exists.
+ const matchedPairs=roles.filter(row=>/^natal\.month\.hidden\./.test(row.id))
+  .flatMap(hidden=>roles.filter(visible=>
+   /^natal\.(year|hour)\.stem$/.test(visible.id)&&
+   visible.stem===hidden.stem&&visible.tenGod===hidden.tenGod)
+   .map(visible=>({hidden,visible})));
+ const variants=[rule,...(ALTERNATIVES[key]||[])];
+ const selected=variants.map(candidate=>{
+  const first=roles.filter(row=>candidate.first.includes(row.tenGod));
+  const second=roles.filter(row=>candidate.second.includes(row.tenGod));
+  const choices=first.flatMap(a=>second.filter(b=>a.id!==b.id)
+   .map(b=>({rule:candidate,a,b,exposure:matchedPairs.find(link=>
+    [a.id,b.id].includes(link.hidden.id)||
+    [a.id,b.id].includes(link.visible.id))||null})));
+  return choices.find(x=>x.exposure)||choices[0];
+ }).find(Boolean);
+ if(!selected)return null;
+ const {a,b}=selected;
+ const chosenRule=selected.rule;
+ const subjects=[a,b].map(row=>Object.freeze({
+  ref:row.id,position:row.position,layer:row.layer,
+  stem:row.stem,tenGod:row.tenGod,
+  traditionalMeaning:row.traditionalMeaning
+ }));
+ // Exact hidden-to-visible relationship is independently true only when
+ // BOTH original rows are permitted in this paragraph, at birth month and
+ // a different actual visible position. Repeated names are not extra roles.
+ // A same-stem exposure is an additional, chart-specific positional
+ // finding. Never attach a third role merely because it happens elsewhere
+ // in the chart. At least one endpoint MUST be part of this topic's selected
+ // two-role thesis and share its exact traditional classification.
+ const chosenRefs=new Set([a.id,b.id]);
+ const exposure=selected.exposure;
+ const matched=exposure?Object.freeze({
+  refs:Object.freeze([exposure.hidden.id,exposure.visible.id]),
+  hiddenPosition:exposure.hidden.position,
+  visiblePosition:exposure.visible.position,
+  exactStem:exposure.hidden.stem,tenGod:exposure.hidden.tenGod,
+  meaning:exposure.hidden.traditionalMeaning,
+  sameStemObserved:true,realizedStrength:'not-assessed',
+  extraCitedRefs:Object.freeze([exposure.hidden.id,exposure.visible.id]
+   .filter(id=>!chosenRefs.has(id)))
+ }):null;
+ return Object.freeze({
+  kind:'paid-source-owned-interpretive-thesis-v1',
+  topic:key,question:chosenRule.question,explanation:chosenRule.explanation,
+  sourceRoles:Object.freeze(subjects),exactStemBridge:matched,
+  sourceElementRelation:exactElementRelation(a,b),
+  sourceDecisionContrast:sourceDecisionContrast(a,b,exactElementRelation(a,b),chosenRule.question),
+  earnedValueConditionalReading:earnedValueConditionalReading(key,a,b,exactElementRelation(a,b)),
+  careerWorkstyleCondition:careerWorkstyleCondition(key,a,b,exactElementRelation(a,b)),
+  relationshipClosenessCondition:key==='relationship.closeness'?
+   require('./report-paid-day-closeness-reader').build(a,b,exactElementRelation(a,b)):null,
+  classicalOutputWealthCandidate:classicalOutputWealthCandidate(key,a,b,exactElementRelation(a,b),packet),
+  classicalMonthQuestion:classicalMonthCandidate(packet,exposure,roles),
+  interpretationLimit:'전통적 계산 분류의 연결만 해당한다. 성향의 강약, 길흉, 실제 이력, 예측 결과는 검증하지 않았다.',
+  claimedRealWorldOutcome:false,traditionalPriorityAssessed:false
+ });
+}
+
+// A lone verified subtype still deserves a precise reader-facing question.
+// The existing pair-thesis is stronger when TWO genuinely different roles
+// are present; these are never a second paragraph or a fabricated opposite.
+// Never call this with a general natal row outside the PAID topic's citations.
+const SINGLE_QUESTIONS=Object.freeze({
+ 'money.earning':Object.freeze({
+  '식신':['만들어 낸 결과를 설명하는 질문과 그 결과로 대가를 얻었다는 사실은 어떻게 다른가?','결과물을 만들어 제시하는 과정을 가정해 설명한다. 생산의 상징만으로 돈을 받았거나 받을 것이라고 주장하지 않는다.'],
+  '상관':['기존 방식과 다른 결과를 제시하는 관점과 실제 수입을 얻는 일은 어떻게 다른가?','정해진 설명 방식을 바꾸어 결과를 제안하는 가상 상황으로 풀이한다. 상관 하나로 반항적인 성격이나 수익을 단정하지 않는다.'],
+  '정재':['꾸준히 다루는 자원과 그 자원에서 실제로 얻은 소득을 어떻게 구별하는가?','정해진 자원을 계속 관리해야 하는 가상 선택을 풀이한다. 재물의 상징이 있다는 이유로 실제 저축액이나 수입을 확인했다고 쓰지 않는다.'],
+  '편재':['외부에서 사용할 자원을 검토하는 관점과 그 자원으로 실제 수익을 거두는 일은 어떻게 다른가?','밖에서 활용할 수 있는 자원의 조건을 고르는 가상 선택을 설명한다. 돈을 잘 벌거나 위험을 즐기는 성격으로 단정하지 않는다.']
+ }),
+ 'money.spending':Object.freeze({
+  '정재':['지속적으로 남겨 두고 관리할 자원에 관한 질문은 무엇인가?','한정된 자원을 사용하거나 보유하는 가상 결정을 설명한다. 이 분류로 실제 소비 습관이나 절약 여부는 판정하지 않는다.'],
+  '편재':['여러 활용처 사이에서 자원을 배치하는 질문은 무엇인가?','자원을 서로 다른 쓰임에 배치하는 가상 결정을 설명한다. 실제 충동구매나 투자 수익을 알 수 있다고 쓰지 않는다.']
+ }),
+ 'career.workstyle':Object.freeze({
+  '정인':['새 과업에서 기존 설명을 이해하고 적용하는 과정은 어떤 질문을 만드는가?','가상의 새 작업에서 설명을 읽고 절차를 익히는 단계만 풀이한다. 실제 학습 속도나 업무 능력으로 단정하지 않는다.'],
+  '편인':['익숙하지 않은 작업의 원리를 다른 방법으로 이해하는 질문은 무엇인가?','가상의 낯선 과업에서 방법의 뜻을 탐색하는 과정을 풀이한다. 남다른 재능이나 업무 성취가 측정됐다고 말하지 않는다.'],
+  '식신':['업무의 결과를 만들어 전달하는 과정은 어떤 조건에서 설명될 수 있는가?','결과물을 만들어 전달해야 하는 상황을 가정하고, 결과와 설명을 구별해 보는 관점으로 풀이한다. 실제 일처리가 빠르거나 뛰어나다고 주장하지 않는다.'],
+  '상관':['정해진 업무 방식을 달리 표현하는 일에서 무엇을 확인해야 하는가?','기존 절차를 다른 방식으로 설명해 보는 가상 상황만 풀이한다. 실제 직장에서 반항하거나 규칙을 어긴다는 뜻이 아니다.']
+ }),
+ 'career.teamwork':Object.freeze({
+  '비견':['함께하는 작업에서 서로의 맡은 몫을 확인하는 질문은 무엇인가?','공동 작업의 참여 범위를 정하는 가상 상황으로 읽는다. 실제 동료 관계가 좋다는 증거는 아니다.'],
+  '겁재':['같은 자원을 함께 사용할 때 각자의 몫을 조정하는 질문은 무엇인가?','한정된 자원을 나눠야 하는 가상 협업 상황으로 읽는다. 실제 경쟁이나 금전 손해의 증거는 아니다.'],
+  '정관':['공동 작업에서 정해진 책임을 확인하는 질문은 무엇인가?','역할과 승인 범위가 정해진 가상 협업 상황으로 읽는다. 실제 회사에서 신뢰받거나 승진할 것이라는 뜻이 아니다.'],
+  '편관':['예상하지 못한 요구가 생길 때 맡을 범위를 정하는 질문은 무엇인가?','갑작스러운 요구를 분담하는 가상 협업 상황으로 읽는다. 실제 압박 강도나 직장 갈등을 단정하지 않는다.']
+ }),
+ 'career.growth':Object.freeze({
+  '정인':['기초 지식과 도움을 받아 익히는 관점은 어떤 조건에서 설명되는가?','새로운 절차를 안내받아 익히는 가상 과정으로 읽는다. 실제 학습 능력이나 자격 취득을 예언하지 않는다.'],
+  '편인':['익숙하지 않은 내용을 자기 방식으로 이해하는 관점은 어떤 조건에서 설명되는가?','낯선 지식의 원리를 스스로 정리해 보는 가상 과정으로 읽는다. 실제 성적이나 독학 능력을 측정한 것은 아니다.']
+ }),
+ 'relationship.closeness':Object.freeze({
+  '비견':["가까운 사이에서 서로 참여하는 일과 각자 맡을 몫을 어떻게 구별하는가?","가상으로 친구나 가족과 할 일을 나누는 대화를 통해 참여와 자기 몫의 전통적 뜻만 읽는다. 실제 친밀감이나 신뢰도는 알 수 없다."],
+  '겁재':["가까운 사이에 공동 자원의 몫을 정할 때 무엇을 묻는가?","가상의 공동 물품을 나누는 대화를 통해 자원을 함께 쓰는 조건만 풀이한다. 실제 다툼이나 재산 손실을 예측하지 않는다."],
+  '식신':["가까운 사람에게 생각을 표현하는 일과 그 뜻이 전달된 결과는 어떻게 다른가?","자기 의견을 설명하는 가상의 대화에서 표현이라는 전통적 뜻만 풀이한다. 실제 말투와 상대의 반응을 관찰한 것은 아니다."],
+  '상관':["가까운 사람과 정한 방식에 다른 방법을 제안할 때 무엇을 묻는가?","가상의 가족·친구 약속에서 다른 방법을 제안하는 대화를 풀이한다. 실제 반항이나 말다툼의 증거로 삼지 않는다."],
+  '정재':["가까운 사이에 함께 관리할 자원과 실제 친밀감은 왜 다른가?","가상의 공동 물품이나 반복 비용을 관리하는 약속에서 자원 관리의 뜻을 설명한다. 실제 소비 이력과 관계의 성패는 알 수 없다."],
+  '편재':["가까운 사이에 필요한 자원을 마련하는 일은 무엇을 설명하는가?","가상의 공동 활동에 필요한 물건을 어디에서 구할지 논의하는 상황을 풀이한다. 실제 베푸는 성격이나 재산을 단정하지 않는다."],
+  '정관':["가까운 사이에 합의한 약속과 서로 맡은 책임은 어떤 질문인가?","가상의 가족·친구 약속에서 정해진 규칙과 맡은 역할을 구별해 설명한다. 실제 책임감이나 상대의 성격을 판단하지 않는다."],
+  '편관':["가까운 사람에게 예상 밖의 부탁을 받았다면 책임 범위를 어떻게 묻는가?","가상의 친구·가족 부탁에서 자신이 맡을 범위를 정하는 대화로 풀이한다. 실제 압박이나 갈등을 경험했다는 뜻은 아니다."],
+  '정인':["가까운 사이에 도움이나 조언을 구할 때 어떤 조건을 묻는가?","가상의 가족·친구 대화에서 필요한 설명과 받을 도움을 구별하는 뜻을 풀이한다. 실제 의존도나 상대의 속마음은 알 수 없다."],
+  '편인':["가까운 사람이 전한 낯선 설명을 이해할 때 어떤 질문이 생기는가?","가상의 친구·가족 대화에서 낯선 말의 뜻을 다른 관점으로 이해하는 질문을 풀이한다. 실제 공감 능력이나 의심하는 성향을 단정하지 않는다."],
+ }),
+ 'relationship.expression':Object.freeze({
+  '식신':['상대에게 생각을 차근히 드러내는 질문은 무엇인가?','자기 의견을 말하는 가상의 대화로 전통적 표현 상징만 설명한다. 실제 말투나 연애 경험을 추정하지 않는다.'],
+  '상관':['이미 정해진 약속에 이견을 말하는 질문은 무엇인가?','기존 약속을 바꾸자고 말하는 가상의 대화로 전통적 표현 상징만 설명한다. 실제로 불평이 많다는 뜻이 아니다.']
+ }),
+ 'stress.trigger':Object.freeze({
+  '정관':['정해진 역할을 지켜야 한다는 요구를 어떻게 해석할 수 있는가?','규칙과 책임이 주어진 가상 상황에서 요구의 성격만 설명한다. 실제 불안·질병·스트레스 정도를 진단하지 않는다.'],
+  '편관':['예상하지 못한 강한 요구가 생겼을 때 어떤 질문이 추가되는가?','갑작스러운 외부 요청을 받는 가상 상황에서 요구의 종류만 설명한다. 실제 스트레스 강도나 건강 문제는 판단하지 않는다.']
+ }),
+ 'stress.response':Object.freeze({
+  '정인':['어려운 상황에서 설명과 도움을 요청하는 선택을 어떻게 읽을 수 있는가?','가상 문제를 해결할 때 도움을 받아 방법을 익히는 관점을 설명한다. 실제 회복력이나 심리 반응을 단정하지 않는다.'],
+  '편인':['어려운 상황에서 다른 설명 방식을 탐색하는 선택을 어떻게 읽을 수 있는가?','가상 문제의 원리를 다른 관점으로 정리하는 선택을 설명한다. 실제 정신건강이나 회복 속도를 판단하지 않는다.']
+ })
+});
+function buildSingle({chapterId,topicId,topic}={}){
+ if(!topic||topic.mode==='state-limits')return null;
+ const key=chapterId+'.'+topicId,questions=SINGLE_QUESTIONS[key];
+ if(!questions)return null;
+ const roles=(topic.citableFacts||[]).filter(row=>
+  ID.test(row.id)&&
+  (key!=='relationship.closeness'||/^natal\.day\.hidden\./.test(row.id))&&
+  row.position&&row.layer&&row.stem&&questions[row.tenGod]&&
+  typeof row.traditionalMeaning==='string'&&row.traditionalMeaning.trim());
+ // Multiple placements of ONE category are a single traditional meaning.
+ // Different eligible subtypes require a separate actual contrast; never
+ // silently choose one as superior or fabricate a second reading.
+ const kinds=[...new Set(roles.map(row=>row.tenGod))];
+ if(kinds.length!==1)return null;
+ // A single traditional kind may occupy multiple ORIGINAL natal places.
+ // Preserve actual visible/hidden positions, never infer amplified strength.
+ const placements=roles.map(row=>Object.freeze({
+  ref:row.id,position:row.position,layer:row.layer,stem:row.stem,
+  tenGod:row.tenGod,traditionalMeaning:row.traditionalMeaning
+ }));
+ if(new Set(placements.map(x=>x.ref)).size!==placements.length)
+  throw Error('PAID_SINGLE_READING_DUPLICATED_NATAL_SOURCE');
+ const visible=placements.filter(x=>x.layer==='천간');
+ const hidden=placements.filter(x=>x.layer==='지장간');
+ const placementContrast=placements.length>1?Object.freeze({
+  kind:'same-ten-god-distinct-natal-placements-v1',
+  refs:Object.freeze(placements.map(x=>x.ref)),
+  visibleRefs:Object.freeze(visible.map(x=>x.ref)),
+  hiddenRefs:Object.freeze(hidden.map(x=>x.ref)),
+  hasBothVisibleAndHidden:visible.length>0&&hidden.length>0,
+  interpretationQuestion:visible.length&&hidden.length?
+   '같은 전통 분류가 출생의 겉글자와 숨은 글자에서 각각 확인된다. '+
+   '이 두 출처를 구별해 이 주제의 하나의 상징적 질문으로 설명하되 '+
+   '두 배로 강한 성격이나 재능이 있다는 뜻으로 쓰지 않는다.':
+   '같은 전통 분류가 서로 다른 출생 위치에서 확인된다. '+
+   '어느 출처에서 확인되는지 구별하되 동일 의미를 별개의 성격이나 '+
+   '두 번의 인생 사건으로 계산하지 않는다.',
+  categoryCount:1,measuredPersonalityStrength:false,
+  relativePositionPriority:'not-assessed'
+ }):null;
+ const row=roles[0],[question,explanation]=questions[row.tenGod];
+ return Object.freeze({
+  kind:'paid-single-source-reader-thesis-v1',topic:key,
+  source:Object.freeze({ref:row.id,position:row.position,layer:row.layer,
+   stem:row.stem,tenGod:row.tenGod,traditionalMeaning:row.traditionalMeaning}),
+  sourcePlacements:Object.freeze(placements),
+  placementContrast,question,explanation,uniqueSubtypeCount:1,
+  claimedRealWorldOutcome:false,traditionalPriorityAssessed:false,
+  missingCounterpartInferred:false
+ });
+}
+module.exports={build,buildSingle,exactElementRelation,classicalMonthCandidate,sourceDecisionContrast,classicalOutputWealthCandidate,earnedValueConditionalReading,careerWorkstyleCondition,RULES,ALTERNATIVES,SINGLE_QUESTIONS};

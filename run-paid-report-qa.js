@@ -9,7 +9,7 @@ const {validateInput}=require('./input-validation');
 const {generate}=require('./report-server-contract');
 const {callOpenAI}=require('./server');
 const {inspect}=require('./inspect-paid-qa');
-const input={calendar:'solar',birthDate:'1990-05-15',birthTime:'10:30',gender:'male',birthplace:'서울',mbti:'INTJ',name:'검증용'};
+const input={calendar:'lunar',leapMonth:false,birthDate:'1982-11-24',birthTime:'14:20',gender:'male',mbti:'ISFP',name:'검증용'};
 const output=process.env.REPORT_QA_OUTPUT;
 const checkpoint=output?path.join(path.dirname(output),path.basename(output,'.json')+'-checkpoint.json'):null;
 if(process.env.REPORT_QA_CONFIRM!=='RUN_ONE_PAID_SAMPLE')throw Error('Explicit one-sample paid QA confirmation required');
@@ -24,8 +24,20 @@ let resumeBatches=[];
 if(resumePath){
  const previous=JSON.parse(fs.readFileSync(resumePath,'utf8'));
  if(previous.fingerprint!==fingerprint||!Array.isArray(previous.batches))throw Error('QA resume fingerprint or batches mismatch');
+ if(previous.resumeContractIdentity!==require('./report-checkpoint-identity').signature(input)||
+    previous.recoveredFromPaidRun!=='38833494716'||
+    previous.validatedFromOriginalProviderArchive!==true||
+    previous.batches.length!==1)
+  throw Error('QA resume was not independently validated from the exact previous paid provider response');
+ const providerFile=path.join(path.dirname(output),path.basename(output,'.json')+'-provider-calls.json');
+ if(!fs.existsSync(providerFile))throw Error('QA resume lacks original paid provider archive');
+ const original=JSON.parse(fs.readFileSync(providerFile,'utf8'));
+ if(original.fingerprint!==fingerprint||original.calls?.length!==1||
+    original.calls[0]?.number!==1||
+    original.calls[0]?.request?.stage!=='body')
+  throw Error('QA original paid provider archive and checkpoint disagree');
  resumeBatches=previous.batches;
- console.log('Validated resume metadata; cached batches:',resumeBatches.length);
+ console.log('Validated independent provider archive and cached chapters:',resumeBatches.length);
 }
 // Never silently append to an old run: stale checkpoints could be mistaken for
 // verified chapters from the current run. A resume must explicitly name its source.
@@ -35,25 +47,43 @@ if(!resumePath&&checkpoint&&fs.existsSync(checkpoint))
 // exists (for example when the first paid response failed validation).
 if(!resumePath){
  const base=path.join(path.dirname(output),path.basename(output,'.json'));
- for(const existing of [output,base+'-raw-calls.json',base+'-hanja-findings.json']){
+ for(const existing of [output,base+'-raw-calls.json',base+'-provider-calls.json',base+'-hanja-findings.json']){
   if(fs.existsSync(existing))throw Error('Existing QA artifact blocks a fresh paid run: '+path.basename(existing));
  }
 }
 if(resumePath&&checkpoint&&fs.existsSync(checkpoint)&&path.resolve(resumePath)!==path.resolve(checkpoint))
  throw Error('Existing output checkpoint conflicts with the selected resume file');
 (async()=>{
- let calls=0;
+ // Re-run the EXACT already-paid first output through the current decoding,
+ // factual, editorial and chapter validators. Do not trust a checkpoint flag
+ // or filename as proof. Stop BEFORE any new model call on mismatch.
+ if(resumePath){
+  const proof=await require('./verify-paid-report-resume').verifyFiles();
+  if(proof.cachedChapters!==1||proof.providerCalls!==0)
+   throw Error('QA resumed chapter failed independent offline verification');
+ }
+ let calls=resumeBatches.length; // prior paid calls are counted, never re-billed.
  const result=await generate(input,async prompt=>{
   calls++;
   if(calls>7)throw Error('QA call cap exceeded');
   console.log('AI call '+calls+'/7, stage '+prompt.stage);
-  const response=await callOpenAI(prompt);
+  const response=await callOpenAI(prompt,providerResponse=>{
+   // Preserve the transport response BEFORE basis/schema decoding can fail.
+   const providerFile=path.join(path.dirname(output),path.basename(output,'.json')+'-provider-calls.json');
+   const history=fs.existsSync(providerFile)?JSON.parse(fs.readFileSync(providerFile,'utf8')):{fingerprint,sample:input,calls:[]};
+   if(history.fingerprint!==fingerprint)throw Error('QA provider archive fingerprint mismatch');
+   history.calls.push({number:calls,request:require('./report-generation-request').compile(prompt),response:providerResponse});
+   fs.writeFileSync(providerFile,JSON.stringify(history,null,2),{mode:0o600});
+   fs.chmodSync(providerFile,0o600);
+  });
   // Preserve the paid response before downstream validation can reject it.
   // This is a private diagnostic record, never a public log or automatic retry.
   const rawFile=path.join(path.dirname(output),path.basename(output,'.json')+'-raw-calls.json');
   const history=fs.existsSync(rawFile)?JSON.parse(fs.readFileSync(rawFile,'utf8')):{fingerprint,sample:input,calls:[]};
   if(history.fingerprint!==fingerprint)throw Error('QA raw-call fingerprint mismatch');
-  history.calls.push({number:calls,stage:prompt.stage,requestedSections:prompt.requestedSections||[],response});
+  history.calls.push({number:calls,stage:prompt.stage,requestedSections:prompt.requestedSections||[],response,
+   generationRequest:require('./report-generation-request').compile(prompt),
+   semanticReview:require('./report-semantic-review').review(response)});
   fs.writeFileSync(rawFile,JSON.stringify(history,null,2),{mode:0o600});
   fs.chmodSync(rawFile,0o600);
   console.log('Saved private QA model response:',calls);
@@ -73,8 +103,10 @@ if(resumePath&&checkpoint&&fs.existsSync(checkpoint)&&path.resolve(resumePath)!=
   console.log('Saved validated QA batch; sections:',batch.completedSections);
  },resumeBatches);
  const file=path.resolve(output);
- fs.writeFileSync(file,JSON.stringify({sample:input,status:result.status,calls,qa:result.qa,report:result.report},null,2),{flag:'wx',mode:0o600});
+ fs.writeFileSync(file,JSON.stringify({sample:input,status:result.status,calls,qa:result.qa,report:result.report,
+  semanticReview:require('./report-semantic-review').review(result.report)},null,2),{flag:'wx',mode:0o600});
  console.log('QA result saved to private path: '+file);
  console.log('Result status: '+result.status+'; provider calls: '+calls);
+ console.log('Release verdict: not assessed; full report human review required even when automated checks pass');
  if(result.status!=='ready')process.exitCode=2;
 })().catch(err=>{console.error('QA stopped:',String(err.message||err));process.exitCode=1});

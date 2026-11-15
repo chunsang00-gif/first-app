@@ -1,0 +1,152 @@
+'use strict';
+// Real, offline 96-chart first-chapter source-ownership census. A scene for
+// one chart MUST NOT be shared with any other stem, role, or birth position.
+const assert=require('node:assert/strict');
+const facts=require('./report-facts-node');
+const bridge=require('./report-paid-core-depth-v2');
+const contract=require('./report-paid-core-v2-server-contract');
+const {capture}=require('./report-core-paid-full-prompt-capture');
+const writer=require('./report-generation-request');
+const wire=require('./report-wire');
+const schema=require('./report-schema.json');
+const audit=require('./report-provider-preflight');
+async function run(){
+ const env={n:process.env.NODE_ENV,f:process.env.PAID_CORE_DEPTH_V2,r:process.env.RENDER};
+ let cases=0,exact=0,other=0,none=0,scoped=0,unscoped=0,missingRef=0;
+ let altOwned=0;
+ const alternativeSceneIds=new Set();
+ const expectedOwnedIds=new Set(Object.keys(contract.SCENES));
+ const roles={},positions={},supported=[],contrasting=[];
+ const ownedPositions=new Set(),ownedScenes=new Set();
+ const alternateGroups={},alternateExamples={};
+ try{
+  process.env.NODE_ENV='test';
+  process.env.PAID_CORE_DEPTH_V2='offline-preview';
+  delete process.env.RENDER;
+  for(const year of [1982,1994,2006,2018]){
+   for(let month=1;month<=12;month++){
+    for(const time of ['14:20','20:20']){
+     const input={calendar:'solar',birthDate:year+'-'+String(month).padStart(2,'0')+'-15',birthTime:time,gender:'male',mbti:'ISFP'};
+     const packet=facts.build(input,2027);
+     assert.equal(packet.status,'ready');
+     const relation=bridge.build(packet);cases++;
+     if(relation.readerContrast){
+      exact++;
+      const c=relation.readerContrast;
+      const r=c.mainRole+'/'+c.otherRole+'/'+c.monthMainToExposedElementDirection;
+      roles[r]=(roles[r]||0)+1;
+      positions[c.visiblePosition]=(positions[c.visiblePosition]||0)+1;
+     }else if(relation.readerAlternative){
+      other++;
+      const alt=relation.readerAlternative;
+      const key=[alt.visiblePosition,alt.mainRole,alt.otherRole,
+       alt.monthMainToExposedElementDirection].join('/');
+      alternateGroups[key]=(alternateGroups[key]||0)+1;
+      alternateExamples[key]||={date:input.birthDate,time:input.birthTime};
+     }else none++;
+     // Traverse the ACTUAL first-chapter request, not a synthetic fake
+     // source map. This has no network or provider access.
+     const captured=await capture(input);
+     assert.equal(captured.providerCalls,0);
+     const request=writer.compile(captured.prompt);
+     const topic=request.task.chapters.saju_core.topics.temperament;
+     const owned=topic.serverOwnedWritingContract;
+     const selected=topic.sourceQualifiedWritingDecision;
+     if(owned){
+      scoped++;
+      assert.equal(owned.releaseVerdict,'not-approved');
+      assert.equal(owned.humanEditorialApproval,false);
+      if(owned.kind==='server-owned-first-chapter-separate-visible-contract-v1'){
+       altOwned++;
+       assert.equal(relation.readerContrast,null);
+       assert(relation.readerAlternative);
+       assert.deepEqual(require('./report-paid-core-v2-separate-visible-contract')
+        .build(request.source,topic),owned);
+       assert.equal(owned.verifiedSourceIds.length,4);
+       assert(owned.outline.proof.includes('드러났다는 뜻은 아니다'));
+       alternativeSceneIds.add(owned.sceneId);
+       ownedPositions.add(owned.sourcePosition);
+      }else{
+      assert(contract.SCENES[selected.readerScene?.sceneId],
+       'only explicit role+position+direction scenes may be server-owned');
+      assert.deepEqual(contract.build(request.source,topic),owned);
+      const spec=contract.SCENES[selected.readerScene.sceneId];
+      assert(spec.position===owned.sourcePosition||
+       spec.positions?.includes(owned.sourcePosition),
+       'only the chart-verified year/hour location may own citations');
+      assert(owned.outline.originalOnly!==owned.outline.additionalOnly);
+      assert.equal(owned.verifiedSourceIds.length,5);
+      assert(owned.evidenceRefs.includes('facts.stemConnections'));
+      assert.equal(owned.humanEditorialApproval,false);
+      ownedPositions.add(owned.sourcePosition);
+      ownedScenes.add(selected.readerScene.sceneId);
+      // A forged source position or scene pairing must NEVER let a
+      // different chart reuse this exact set of authoritatively bound refs.
+      const forged=structuredClone(topic);
+      forged.paidCoreDepthV2.readerContrast.visiblePosition=
+       owned.sourcePosition==='natal.year.stem'?'natal.hour.stem':'natal.year.stem';
+      assert.throws(()=>contract.build(request.source,forged),
+       /CORE_V2_SERVER_CONTRACT_UNVERIFIED_SCENE/);
+      const forgedProse=structuredClone(topic);
+      forgedProse.sourceQualifiedWritingDecision.readerScene
+       .whenOnlyOriginal='누구나 어울리는 일반적인 조언';
+      assert.throws(()=>contract.build(request.source,forgedProse),
+       /CORE_V2_SERVER_CONTRACT_SCENE_DRIFT/,
+       'never accept a substituted scene just because refs are valid');
+      const forgedRole=structuredClone(topic);
+      forgedRole.paidCoreDepthV2.readerContrast.otherRole=
+       topic.paidCoreDepthV2.readerContrast.otherRole==='상관'?'식신':'상관';
+      assert.throws(()=>contract.build(request.source,forgedRole),
+       /CORE_V2_SERVER_CONTRACT_UNVERIFIED_SCENE/,
+       'one pair must not borrow a different symbolic category');
+      }
+      assert(owned.evidenceRefs.every(id=>Object.hasOwn(request.source,id)));
+      const strict=writer.schema(captured.prompt,wire.schemaFor(captured.prompt,schema));
+      const leaf=strict.properties.chapters.properties.saju_core.properties.paragraphs
+       .properties.temperament.anyOf.find(x=>x.type==='object');
+      assert(leaf.properties.text.description.includes(owned.outline.originalOnly));
+      assert(leaf.properties.text.description.includes(owned.outline.additionalOnly));
+      assert.deepEqual(audit.inspect(captured.prompt,request,strict),[]);
+      if(supported.length<4)supported.push({date:input.birthDate,time,
+       role:selected.readerScene?.rolePair?.join('/')||
+        relation.readerAlternative.mainRole+'/'+relation.readerAlternative.otherRole,
+       position:owned.sourcePosition});
+     }else{
+      unscoped++;
+      assert.equal(contract.build(request.source,topic),null);
+      if(selected?.decision==='attempt-one-distinct-conditional-symbolic-reading'&&
+         selected.requiredCitationIds?.length)missingRef++;
+      if(contrasting.length<4&&relation.readerContrast)
+       contrasting.push({date:input.birthDate,time,role:relation.readerContrast.mainRole+'/'+relation.readerContrast.otherRole,
+        position:relation.readerContrast.visiblePosition});
+     }
+    }
+   }
+  }
+  assert.equal(cases,96);
+  assert.equal(cases,exact+other+none);
+  assert.equal(scoped+unscoped,cases);
+  assert.equal(scoped-altOwned,exact,'every exact month-hidden exposure must retain source ownership');
+  assert.equal(unscoped,other+none-altOwned);
+  assert.equal(alternativeSceneIds.size,3,'three separate-visible contracts must be tested');
+  assert.equal(ownedScenes.size,13,
+   'all thirteen distinct, evidence-verified role-pair scenarios must be covered');
+  assert.deepEqual([...ownedScenes].sort(),[...expectedOwnedIds].sort());
+  assert.deepEqual([...ownedPositions].sort(),
+   ['natal.hour.stem','natal.year.stem']);
+  console.log('CORE_V2_SERVER_OWNED_96_CHARTS='+JSON.stringify({
+   tested:cases,exactExposure:exact,alternativeOnly:other,noIndependentReading:none,
+   serverOwnedCount:scoped,exactOwned:scoped-altOwned,alternativeOwned:altOwned,
+   alternativeSceneIds:[...alternativeSceneIds].sort(),legacyFallbackCount:unscoped,
+   scopeConstrained:true,noProviderRequests:true,commercialReleaseApproved:false,
+   distinctVerifiedScenes:[...ownedScenes].sort(),serverOwnedPositions:[...ownedPositions].sort(),
+   exactPositionCounts:positions,eligibleRoleTuples:roles,
+   alternativeRoleGroups:alternateGroups,alternativeExamples:alternateExamples,
+   sourceVerifiedExamples:supported,notYetGeneralized:contrasting
+  }));
+ }finally{
+  for(const [k,v] of [['NODE_ENV',env.n],['PAID_CORE_DEPTH_V2',env.f],['RENDER',env.r]])
+   if(v===undefined)delete process.env[k];else process.env[k]=v;
+ }
+}
+run().catch(e=>{console.error(e);process.exitCode=1});
