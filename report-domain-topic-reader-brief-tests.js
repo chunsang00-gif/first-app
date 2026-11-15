@@ -187,6 +187,21 @@ for(const [calendar,birthDate,birthTime] of cases){
       'verified original hidden-to-visible link must reach the paid writer');
     }
    }
+   if(chapterId==='stress'&&topic.sourceOwnedStressReading){
+    const r=topic.sourceOwnedStressReading;
+    assert.equal(r.kind,'source-owned-stress-reading-v1');
+    assert(['paired','single'].includes(r.mode));
+    assert(r.sourceRefs.length>=1&&r.sourceRefs.length<=2);
+    assert.equal(r.observedStress,false);
+    assert.equal(r.diagnosedHealth,false);
+    assert.equal(r.predictedRecovery,false);
+    assert(r.sourceRefs.every(ref=>topic.citableFacts.some(x=>x.id===ref)));
+    assert(r.readerQuestions.every(q=>part.properties.text.description.includes(q)),
+     'actual paid writer must see concrete stress questions linked to original role subtypes');
+    assert(part.properties.text.description.includes(
+     '금전·직업·기본 성향에서 이미 설명한 자원·정보·성과 풀이를 되풀이하지 않는다'));
+    assert.deepEqual(part.properties.basis.properties.condition.enum,[r.computedCondition]);
+   }
    const single=topic.sourceOwnedSingleReading;
    if(single){
     singleTheses++;
@@ -424,6 +439,40 @@ const oneObject=oneSlot.anyOf?.find(x=>x.type==='object')||oneSlot;
 assert(oneObject.properties.text.description.includes(oneReading.question));
 assert(oneObject.properties.text.description.includes(oneReading.explanation));
 assert(oneObject.properties.text.description.includes('이미 제공한 금전·직업 결론을 관계라는 말로 바꾸지 않는다'));
+// Stress trigger/response require different reasons, not a generic
+// description of learning or a prediction of the person's stress behavior.
+const appliedStress=require('./report-paid-stress-application');
+const stressBridge=require('./report-paid-interpretive-bridge');
+const srcRole=(stem,tenGod,position='month')=>({
+ id:'natal.'+position+'.stem',position,layer:'천간',stem,tenGod,
+ traditionalMeaning:'계산된 '+tenGod+'의 전통 의미'});
+for(const [topicId,first,second] of [
+ ['trigger',srcRole('辛','정관'),srcRole('庚','편관','hour')],
+ ['response',srcRole('癸','정인'),srcRole('壬','편인','hour')]
+]){
+ const pair={mode:'use-primary',citableFacts:[first,second]};
+ pair.sourceOwnedInterpretiveThesis=stressBridge.build({
+  chapterId:'stress',topicId,topic:pair});
+ assert(pair.sourceOwnedInterpretiveThesis,'two verified natal roles can be used');
+ const two=appliedStress.build('stress',topicId,pair);
+ assert.equal(two.mode,'paired');
+ assert.equal(two.readerQuestions.length,2);
+ assert.notEqual(two.readerQuestions[0],two.readerQuestions[1]);
+ assert(two.computedCondition.includes(
+  pair.sourceOwnedInterpretiveThesis.sourceElementRelation.computedRelation));
+ const only={mode:'use-primary',citableFacts:[second]};
+ only.sourceOwnedSingleReading=stressBridge.buildSingle({
+  chapterId:'stress',topicId,topic:only});
+ const single=appliedStress.build('stress',topicId,only);
+ assert(single&&single.mode==='single');
+ assert.equal(single.sourceRefs.length,1);
+ assert.equal(single.readerQuestions.length,1);
+ assert(!single.writerGoal.includes(two.readerQuestions[0]),
+  'do not claim the absence of a role implies the opposite behavior');
+ assert.throws(()=>appliedStress.build('stress',topicId,{...pair,
+  citableFacts:[first]}),/PAID_STRESS_READING_UNVERIFIED_SOURCE/);
+ assert.equal(appliedStress.build('career',topicId,pair),null);
+}
 // Controlled "prior/general promise" vs CURRENT real-source scenario:
 // these synthetic inputs are category facts, NOT fabricated people.
 const editor=require('./report-domain-topic-reader-brief');
