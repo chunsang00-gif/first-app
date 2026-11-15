@@ -49,6 +49,17 @@ function subsetRefs(source,chapter,id,topic,slot){
    throw Error('Synthetic provider lacks verified exposure source');
   required.push(...ids,...exposure);
  }
+ const integrated=chapter.topics?.[topic]?.sourceOwnedIntegratedInsight;
+ if(integrated){
+  assert.equal(id,'integrated_judgment');
+  assert.equal(topic,'insight');
+  if(integrated.sourceRefs.length!==2||
+     integrated.sourceRefs.some(ref=>!permitted.includes(ref)))
+   throw Error('Offline strict provider missing integrated original-source citations');
+  // Real strict provider fixture must cite the day-hidden row selected by
+  // the current chart, not a re-used natal month label.
+  required.push(...integrated.sourceRefs);
+ }
  const annualDay=chapter.topics?.[topic]?.sourceOwnedAnnualDayContext;
  if(annualDay?.mode==='secondary-table-only'){
   assert.equal(id,'year_2027');
