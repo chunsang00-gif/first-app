@@ -159,4 +159,33 @@ assert.deepEqual(inspect([annualTriadA,genuineLimit]),[],
  'a caution about unverified transformation cannot be treated as a second asserted result');
 assert.equal(coverage([annualTriadA,annualRootA,natalHarmonyA]).withCitations,3,
  'the new ledgers must be counted as actually cited report evidence');
+// Regression from the actual editorial diagnosis: the premium manuscript
+// repeated "understand the material vs find the resources" in multiple
+// chapters while earlier signature families did not cover this motif.
+const understandVsResourcesA=section('saju_core','strength',
+ '새로운 내용을 이해하는 문제와 실행에 필요한 비용을 마련하는 문제를 따로 읽습니다.',
+ ['natal.month.stem','natal.month.hidden.己']);
+const understandVsResourcesB=section('decision','choice',
+ '선택할 때도 설명을 이해하는 문제와 필요한 자원이 부족한 문제를 구분합니다.',
+ ['natal.month.stem','natal.day.stem']);
+const understandVsResourcesC=section('stress','pressure',
+ '압박을 받으면 정보가 부족한지, 사용할 수 있는 예산이 부족한지 구별하는 가정입니다.',
+ ['natal.month.stem']);
+assert(inspect([understandVsResourcesA,understandVsResourcesB]).some(e=>
+ e.includes('understanding-vs-resources')),
+ 'the same source-owned learning/resources contrast must not be sold as a fresh decision thesis');
+assert(inspect([understandVsResourcesA,understandVsResourcesB,understandVsResourcesC])
+ .filter(e=>e.includes('understanding-vs-resources')).length>=2,
+ 'recycling the same cited premise in a third chapter must also be detected');
+assert.deepEqual(inspect([understandVsResourcesA,section('decision','choice',
+ understandVsResourcesB.body[0],['natal.day.stem'])]),[],
+ 'an unrelated chart source does not prove the explanation is a repeat');
+assert.deepEqual(inspect([understandVsResourcesA,section('money','spending',
+ '구매할 때 필요한 도구와 예산을 나누어 기록합니다.',
+ ['natal.month.stem'])]),[],
+ 'a distinct resource-only expense comparison is not the same thesis');
+assert(!signatures('정보를 이해하지 못했다고 단정할 수 없고 비용 부족도 확인할 수 없습니다.')
+ .has('understanding-vs-resources'),
+ 'an explicit limitation is not a second positive interpretation');
+
 console.log('PASS deterministic repeated causal interpretation under shared verified facts; no paid API');
