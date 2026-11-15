@@ -165,6 +165,19 @@ for(const [calendar,birthDate,birthTime] of cases){
       [c.computedCondition],
       'real career writer must receive the calculated two-sided work condition');
     }
+    if(chapterId==='relationship'&&topicId==='closeness'){
+     const reading=thesis.relationshipClosenessCondition;
+     assert(reading,'two real day-hidden roles must create an applied reader question');
+     assert.equal(reading.kind,'verified-day-closeness-two-question-reading-v1');
+     assert.deepEqual(reading.sourceRefs,thesis.sourceRoles.map(row=>row.ref));
+     assert(reading.sourceRefs.every(ref=>ref.startsWith('natal.day.hidden.')));
+     assert.equal(reading.partnerMindKnown,false);
+     assert.equal(reading.relationshipOutcomePredicted,false);
+     assert(part.properties.text.description.includes(reading.firstQuestion));
+     assert(part.properties.text.description.includes(reading.secondQuestion));
+     assert(part.properties.text.description.includes('돈·일 장의 거래·성과 판단을 관계 장에서 다시 쓰지 않는다'));
+     assert.deepEqual(part.properties.basis.properties.condition.enum,[reading.computedCondition]);
+    }
     if(thesis.exactStemBridge){
      const link=thesis.exactStemBridge;
      assert.deepEqual(link.refs.map(id=>topic.citableFacts.some(row=>row.id===id)),
@@ -366,6 +379,30 @@ for(let i=0;i<closeRoles.length;i++){
   topic:{mode:'use-primary',citableFacts:[{...row,
    id:'natal.month.hidden.'+closeStems[i],position:'month'}]}}),null,
   'month-only role must never become a birth-day relationship conclusion');
+}
+// Synthetic source-role regression: distinguish promises from resource-sharing
+// and expression without inventing a person's relationship history.
+for(const [pair,scenePart] of [
+ [['비견','식신'],'맡을 일과 의견'],
+ [['편재','정관'],'물품과 지킬 약속'],
+ [['식신','정재'],'자원과 의견']
+]){
+ const stemMap={비견:'乙',식신:'丁',편재:'己',정관:'辛',정재:'戊'};
+ const rows=pair.map(tenGod=>({id:'natal.day.hidden.'+stemMap[tenGod],
+  position:'일지',layer:'지장간',stem:stemMap[tenGod],
+  tenGod,traditionalMeaning:tenGod+'의 계산된 전통 분류'}));
+ const actualReading=closeBridge.build({chapterId:'relationship',topicId:'closeness',
+  topic:{mode:'use-primary',citableFacts:rows}}).relationshipClosenessCondition;
+ assert(actualReading.scene.includes(scenePart));
+ assert.notEqual(actualReading.firstQuestion,actualReading.secondQuestion);
+ assert(actualReading.readerWritingGoal.includes(actualReading.firstQuestion));
+ assert(actualReading.readerWritingGoal.includes(actualReading.secondQuestion));
+ assert.equal(actualReading.partnerMindKnown,false);
+ assert.equal(actualReading.relationshipOutcomePredicted,false);
+ assert.equal(closeBridge.build({chapterId:'relationship',topicId:'closeness',
+  topic:{mode:'use-primary',citableFacts:rows.map(x=>({
+   ...x,id:x.id.replace('.day.','.month.')}))}}),null,
+  'do not borrow birth-month symbols as personal-day relationship roles');
 }
 const oneDay=Array.from({length:29},(_,i)=>'1994-07-'+String(i+1).padStart(2,'0'))
  .map(birthDate=>facts.build({calendar:'solar',birthDate,birthTime:'14:20',

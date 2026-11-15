@@ -471,6 +471,8 @@ function build({chapterId,topicId,topic,packet}={}){
   sourceDecisionContrast:sourceDecisionContrast(a,b,exactElementRelation(a,b),chosenRule.question),
   earnedValueConditionalReading:earnedValueConditionalReading(key,a,b,exactElementRelation(a,b)),
   careerWorkstyleCondition:careerWorkstyleCondition(key,a,b,exactElementRelation(a,b)),
+  relationshipClosenessCondition:key==='relationship.closeness'?
+   require('./report-paid-day-closeness-reader').build(a,b,exactElementRelation(a,b)):null,
   classicalOutputWealthCandidate:classicalOutputWealthCandidate(key,a,b,exactElementRelation(a,b),packet),
   classicalMonthQuestion:classicalMonthCandidate(packet,exposure,roles),
   interpretationLimit:'전통적 계산 분류의 연결만 해당한다. 성향의 강약, 길흉, 실제 이력, 예측 결과는 검증하지 않았다.',

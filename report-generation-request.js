@@ -1148,6 +1148,35 @@ function schema(prompt,transport){
       '같은 금전/보상 장면을 복사하거나 실제 직무 능력을 추정하지 않는다. '+
       'basis.condition은 원래 계산 근거로 남기되 긴 고정 문자열을 본문에 복사하지 않는다.';
     }
+    const relationReading=thesis.relationshipClosenessCondition;
+    if(relationReading){
+     const original=require('./report-paid-day-closeness-reader')
+      .build(
+       {id:roles[0].ref,position:roles[0].position,
+        layer:roles[0].layer,stem:roles[0].stem,tenGod:roles[0].tenGod},
+       {id:roles[1].ref,position:roles[1].position,
+        layer:roles[1].layer,stem:roles[1].stem,tenGod:roles[1].tenGod},
+       computed);
+     if(chapterId!=='relationship'||topic!=='closeness'||
+       JSON.stringify(original)!==JSON.stringify(relationReading)||
+       relationReading.sourceRefs.some(ref=>!ref.startsWith('natal.day.hidden.')||
+        !permitted.includes(ref))||
+       relationReading.realRelationshipObserved!==false||
+       relationReading.partnerMindKnown!==false||
+       relationReading.relationshipOutcomePredicted!==false||
+       relationReading.traditionalPrioritySelected!==false)
+      throw Error('PAID_CLOSENESS_SOURCE_OWNED_READER_DRIFT');
+     basis.properties.condition.enum=[relationReading.computedCondition];
+     basis.properties.condition.description=
+      '계산된 출생일의 서로 다른 두 숨은 글자와 오행 관계를 바탕으로 한 가상 대화 조건. '+
+      '정확한 문자열을 그대로 기록하며 실제 관계 결과의 증거가 아니다.';
+     p.properties.text.description+=
+      ' 인간관계 장만의 새로운 구체적 질문: '+relationReading.readerWritingGoal+
+      ' 첫 번째 출처의 질문: '+relationReading.firstQuestion+
+      '. 두 번째 출처의 질문: '+relationReading.secondQuestion+
+      '. 두 뜻을 하나의 가상 대화에 적용하되 실제 가족·연인 이력이나 '+
+      '상대방 속마음을 추정하지 않는다. basis.condition의 계산 문자열은 고객 본문에 복사하지 않는다.';
+    }
     if(thesis.classicalOutputWealthCandidate){
      const classic=thesis.classicalOutputWealthCandidate;
      const recomputed=require('./report-paid-interpretive-bridge')
@@ -1908,6 +1937,15 @@ function restoreEvidence(value,prompt){
         !expected.sourceRefs.every(ref=>allowed.has(ref)&&b.refs.includes(ref))||
         b.condition!==expected.computedCondition)
       throw Error('AI report service workstyle source-specific condition missing: '+id+':'+topic);
+    }
+    if(owned?.relationshipClosenessCondition){
+     const expected=owned.relationshipClosenessCondition;
+     if(id!=='relationship'||topic!=='closeness'||
+        expected.kind!=='verified-day-closeness-two-question-reading-v1'||
+        expected.sourceRefs.some(ref=>!ref.startsWith('natal.day.hidden.')||
+         !allowed.has(ref)||!b.refs.includes(ref))||
+        b.condition!==expected.computedCondition)
+      throw Error('AI report service day-closeness two-question condition missing: '+id+':'+topic);
     }
     // A customer-entered question is optional contextual DATA. If its
     // relevant paid topic was actually authored, demand its verified
