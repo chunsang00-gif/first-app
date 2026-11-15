@@ -169,7 +169,7 @@ const understandVsResourcesB=section('decision','choice',
  '선택할 때도 설명을 이해하는 문제와 필요한 자원이 부족한 문제를 구분합니다.',
  ['natal.month.stem','natal.day.stem']);
 const understandVsResourcesC=section('stress','pressure',
- '압박을 받으면 정보가 부족한지, 사용할 수 있는 예산이 부족한지 구별하는 가정입니다.',
+ '압박 상황에서도 정보를 이해할 것인지, 사용할 예산이 부족한지 따로 구별합니다.',
  ['natal.month.stem']);
 assert(inspect([understandVsResourcesA,understandVsResourcesB]).some(e=>
  e.includes('understanding-vs-resources')),
