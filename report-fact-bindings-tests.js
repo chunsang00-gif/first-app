@@ -5,7 +5,7 @@ const bindings=require('./report-fact-bindings');
 const quality=require('./report-quality-node');
 const contract=require('./report-server-contract');
 const audit=require('./report-instruction-audit');
-const sample={calendar:'solar',birthDate:'1990-05-15',birthTime:'10:30',gender:'male',mbti:'INTJ'};
+const sample={calendar:'solar',birthDate:'1990-05-15',birthTime:'10:30',gender:'male',mbti:'INTJ',readerDecision:'스트레스를 줄일지 고민합니다.'};
 const packet=facts.build(sample,2027);
 const rows=bindings.build(packet);
 assert.equal(rows.find(x=>x.id==='natal.month.stem').tenGod,'겁재');
