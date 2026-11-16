@@ -288,7 +288,12 @@ async function generate(input,callModel,onProgress=()=>{},onValidatedBatch=()=>{
  // Choose the exact chapter scope before making any paid API request.
  // Unsupported optional topics are omitted; required core and minimum depth
  // are a fail-closed *unpaid* product gate instead of a mid-generation crash.
- const coverage=require('./report-chapter-selection').select(groups,editorialBlueprint);
+ // Adaptive-v1: only sell separately scoped reader questions. Historical
+ // QA-only exact first-chapter requests keep their frozen writer contract;
+ // the normal paid end-to-end route now rejects known buyer-neutral filler.
+ const coverage=require('./report-chapter-selection').select(
+  groups,editorialBlueprint,{mode:'adaptive-v1',
+   readerQuestion:packet.person?.readerDecision});
  groups=coverage.groups;
  const plannedIds=coverage.plannedIds;
  if(!coverage.canGenerate)return {status:'blocked',packet,coverage,
