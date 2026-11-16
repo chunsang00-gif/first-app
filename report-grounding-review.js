@@ -23,7 +23,7 @@ const coreMonthMeaningWords={
 // Preserve the literal reader role, including any punctuation introduced by
 // a later vocabulary change. Never inject a regular-expression fragment.
 function quoteReaderNoun(x){
- return String(x).replace(/[-/\\^$*+?.()|[\]{}]/g,'\\// Reject only an explicit reversal of a SOURCE-LOCKED five-element arrow.').replace(/\s+/g,'\\s*');
+ return String(x).replace(/[-/\\^$*+?.()|[\]{}]/g,'\\$&').replace(/\s+/g,'\\s*');
 }
 
 // Reject only an explicit reversal of a SOURCE-LOCKED five-element arrow.
