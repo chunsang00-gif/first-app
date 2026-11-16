@@ -71,8 +71,9 @@ global.fetch=()=>{networkAttempts++;throw Error('QA37_NETWORK_PROHIBITED')};
   const schema=writer.schema(request.prompt,wire.schemaFor(request.prompt,baseSchema));
   const words=schema.properties.chapters.properties.saju_core.properties
    .paragraphs.properties.strength.properties.text.description;
-  assert(words.includes(plan.script),
-   'the REAL paid model JSON schema must transport the source-owned reader distinction');
+  assert(words.includes('sourceOwnedCoreReaderValue.script')&&
+   !words.includes(plan.script),
+   'real schema must reference the single source-owned task instead of duplicating its complete prose');
   scripts.add(plan.actualTwoSidedReading);
   pairs.add([month.stemTenGod,hidden.tenGod].join('/'));
   results.push({id:input.id,monthVisible:month.stemTenGod,
