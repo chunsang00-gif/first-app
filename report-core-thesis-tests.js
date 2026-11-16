@@ -367,4 +367,44 @@ assert(!grounding.inspect(single,actual).blockingErrors.includes(
  'one appropriately bounded disclaimer is allowed');
 assert.equal(core.forPrompt({stage:'synthesis',requestedSections:[],facts:actual}),null);
 assert.throws(()=>core.forPrompt({...prompt,facts:{}}),/NO_VERIFIED_MONTH_PAIR/);
+// The reader-facing monthly role contradiction gate is a real paid-output
+// rejection boundary. Exercise the ACTUAL computed arrows, not fake months.
+const phrase='자원(활용) + 정보';
+const quoted=postReview.quoteReaderNoun(phrase);
+assert(new RegExp('^'+quoted+'
+).test(phrase),
+ 'a literal role containing regex punctuation must remain matchable');
+assert(!new RegExp('^'+quoted+'
+).test('자원활용 정보'),
+ 'escaping punctuation must not turn different Korean meaning labels identical');
+assert(new RegExp('^'+postReview.quoteReaderNoun('정보 이해')+'
+).test('정보  이해'),
+ 'whitespace inside an unchanged role name may vary');
+let directionalCases=0;
+for(const input of inputs.slice(0,4)){
+ const packet=facts.build(input,2027);
+ const month=require('./report-chart-contrast').build(packet)?.monthTenGodContext;
+ const kind=month?.elementLink?.kind;
+ if(!kind||kind==='same-element'||month.sameClassification)continue;
+ const visible=core.readerNounFor(month.monthStem.tenGod);
+ const hidden=core.readerNounFor(month.monthMainHidden.tenGod);
+ if(!visible||!hidden||visible===hidden)continue;
+ const from=kind.startsWith('hidden-')?hidden:visible;
+ const to=kind.startsWith('hidden-')?visible:hidden;
+ const verb=kind.includes('generates')?'뒷받침':'제약';
+ const wrongVerb=verb==='뒷받침'?'제약':'뒷받침';
+ const claim=(x,y,v)=>x+'가 '+y+'를 '+v+'하는 전통적 관계입니다.';
+ assert.equal(postReview.monthDirectionConflict(claim(from,to,verb),month),false,
+  'correct computed first-chapter arrow must be retained');
+ assert.equal(postReview.monthDirectionConflict(claim(to,from,verb),month),true,
+  'reversing verified reader roles must be rejected');
+ assert.equal(postReview.monthDirectionConflict(claim(from,to,wrongVerb),month),true,
+  'inventing opposite element interaction must be rejected');
+ assert.equal(postReview.monthDirectionConflict(
+  claim(to,from,verb).replace('관계입니다.','뜻은 아닙니다.'),month),false,
+  'a denial of a wrong arrow is not an affirmative factual contradiction');
+ directionalCases++;
+}
+assert(directionalCases>=1,'real calculated month arrows must be covered');
+
 console.log('PASS deterministic single-sentence core thesis from real lunar/month stems for 5 cases, strict schema and decoding; 0 paid API');
