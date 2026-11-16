@@ -28,12 +28,12 @@ const names=['NODE_ENV','RENDER','PAID_CORE_DEPTH_V2',
    // of the ACTUAL adaptive writer's active topics, not historic 9-chapter
    // arithmetic that silently includes three now-omitted editorial chapters.
    const packet=facts.build(input,2027);
-   const blueprint=require('./report-analysis-guidance').preflight(packet);
+   const writerPlan=require('./report-analysis-guidance').preflight(packet);
    const chosen=require('./report-chapter-selection').select(
-    require('./report-qa11-premium-scope-audit').GROUPS,blueprint,
+    require('./report-qa11-premium-scope-audit').GROUPS,writerPlan,
     {mode:'adaptive-v1',readerQuestion:packet.person?.readerDecision});
    const eligible=chosen.plannedIds.reduce((n,id)=>
-    n+Object.values(blueprint[id].topicTasks).filter(t=>t.mode!=='state-limits').length,0);
+    n+Object.values(writerPlan[id].topicTasks).filter(t=>t.mode!=='state-limits').length,0);
    assert.deepEqual(result.estimate.chapters.filter(x=>x.includedInPlan)
     .map(x=>x.id),chosen.plannedIds,
     'public chapter labels must match the real generator selection');
