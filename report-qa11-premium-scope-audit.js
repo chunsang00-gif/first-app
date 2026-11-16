@@ -29,7 +29,8 @@ function scope(packet,liveFirstPrompt){
      'year_2027','year_2027_money','year_2027_career','year_2027_relationship']))
   throw Error('QA11_CHAPTER_IDS_DIVERGED_FROM_PRODUCTION');
  const plan=guidance.preflight(packet);
- const actual=selection.select(GROUPS,plan);
+ const actual=selection.select(GROUPS,plan,{mode:'adaptive-v1',
+  readerQuestion:packet.person?.readerDecision});
  const requested=liveFirstPrompt.requestedSections;
  const firstPlanned=batch.plan(actual.groups)[0];
  if(JSON.stringify(firstPlanned)!==JSON.stringify(requested))
