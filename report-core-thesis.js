@@ -98,7 +98,12 @@ function forPrompt(prompt){
  const relationalTitle=relationReaderLine(direction.kind,first.tenGod,second.tenGod);
  // The detailed judgment already names which month role affects the other.
  // Use the shorter subject label to avoid repeating that arrow twice.
- const title=same?a.title:shortTitle[first.tenGod]+' · '+shortTitle[second.tenGod];
+ // Reader-facing titles use ordinary Korean conjunctions, not an
+ // enumeration of two symbolic categories. Frozen paid QA stays unchanged.
+ const title=same?a.title:historicalPinnedQA?
+  shortTitle[first.tenGod]+' · '+shortTitle[second.tenGod]:
+  shortTitle[first.tenGod]+josa(shortTitle[first.tenGod],'과','와')+
+  ' '+shortTitle[second.tenGod];
  const original='사주에서는 '+(same?a.last:a.first+' '+b.last)+' 기질로 풀이합니다.';
  // Preserve frozen historical paid QA. Normal first chapters cannot
  // claim an observed disposition from the two symbolic month sources.
