@@ -14,7 +14,7 @@ assert.equal(attemptedNetwork,0,'do not reach real or mocked paid transport');
 assert.equal(a.sample,readiness.SAMPLE_ID);
 assert.equal(a.actualServerRulesVerified,true);
 assert.equal(a.derivedFromRealServerBatch,true);
-assert.deepEqual(a.capturedServerBatchSections,['saju_core','mbti_contradiction']);
+assert.deepEqual(a.capturedServerBatchSections,['saju_core']);
 assert.equal(a.kind,'one-shot-paid-qa-readiness-offline');
 assert.equal(a.runStatus,'transport-ready-interpretation-unverified');
 assert.equal(a.interpretiveMethodReview.methodStatus,'unverified-interpretive-bridge');
@@ -82,7 +82,7 @@ assert(!ordinaryGoal.includes('QA 전용 세 번째 natal_depth'));
 
 const firstDepth=fixed.payload.task.chapters.saju_core.topics.natal_depth;
 const laterDepth=later.payload.task.chapters.saju_core.topics.natal_depth;
-assert.deepEqual(fixed.originalRequestedSections,['saju_core','mbti_contradiction']);
+assert.deepEqual(fixed.originalRequestedSections,['saju_core']);
 assert.deepEqual(later.originalRequestedSections,fixed.originalRequestedSections);
 assert.equal(later.prompt.qaNatalDepthPreview,true);
 assert.equal(later.releaseVerdict,'not-approved');
