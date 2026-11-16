@@ -91,7 +91,10 @@ try{value=JSON.parse(text)}catch{
  if(onProviderResponse)await onProviderResponse({status:'invalid_json',rawOutput:text,usage:x.usage||null});
  throw Error('AI report service returned invalid report data');
 }
-if(onProviderResponse)await onProviderResponse(value);
+// Preserve provider-reported token usage for PRIVATE operator QA. The
+// optional second callback argument does not change decoder input or the
+// model request; old response-only observers keep working unchanged.
+if(onProviderResponse)await onProviderResponse(value,{usage:x.usage||null,model});
 return require('./report-response-decoder').decode(value,prompt)}
 async function callModel(prompt,onProviderResponse=null){if(process.env.REPORT_MODEL_URL){const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),MODEL_TIMEOUT_MS);let r;try{r=await fetch(process.env.REPORT_MODEL_URL,{method:'POST',signal:controller.signal,headers:{'content-type':'application/json',...(process.env.REPORT_MODEL_KEY?{'authorization':`Bearer ${process.env.REPORT_MODEL_KEY}`}:{})},body:JSON.stringify(prompt)});}catch(e){if(e?.name==='AbortError')throw Error('AI report service timed out');throw Error('AI report service request failed')}finally{clearTimeout(timer)}if(!r.ok)throw Error(`AI report service error (${r.status})`);
 const raw=await r.text();
