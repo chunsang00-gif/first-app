@@ -37,7 +37,7 @@ function monthDirectionConflict(text,verified){
   '(?:제약|제한|억제|가로막|막는)';
  const opposite=generating?'(?:제약|제한|억제|가로막|막는)':
   '(?:뒷받침|돕|도와|지원하|생하)';
- const quoted=x=>x.replace(/[^가-힣0-9\s]/g,'\\const patterns=[').replace(/\s+/g,'\\s*');
+ const quoted=x=>String(x).replace(/[-/\\^$*+?.()|[\]{}]/g,'\\$&').replace(/\s+/g,'\\s*');
  const claim=(x,y,verb)=>new RegExp(
   quoted(x)+'\\s*(?:이|가|은|는)\\s*'+quoted(y)+
   '\\s*(?:을|를|에)\\s*(?:(?:더|오히려|직접)\\s*)?'+verb);
