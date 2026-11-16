@@ -20,6 +20,12 @@ const coreMonthMeaningWords={
  편인:/(?:낯선\s*(?:내용|정보|자료)|정보를\s*(?:이해|해석)|자료를\s*해석|배움의\s*방식|자기\s*방식으로\s*(?:이해|읽)|다른\s*관점에서\s*이해|정보\s*이해|(?:새로운\s*)?정보를\s*(?:자기|자신)\s*나름대로\s*(?:해석|이해|파악))/
 };
 
+// Preserve the literal reader role, including any punctuation introduced by
+// a later vocabulary change. Never inject a regular-expression fragment.
+function quoteReaderNoun(x){
+ return String(x).replace(/[-/\\^$*+?.()|[\]{}]/g,'\\// Reject only an explicit reversal of a SOURCE-LOCKED five-element arrow.').replace(/\s+/g,'\\s*');
+}
+
 // Reject only an explicit reversal of a SOURCE-LOCKED five-element arrow.
 // This is a narrow factual consistency check, not editorial approval.
 // It reads the short meaning nouns used in the locked reader headline.
@@ -37,7 +43,7 @@ function monthDirectionConflict(text,verified){
   '(?:제약|제한|억제|가로막|막는)';
  const opposite=generating?'(?:제약|제한|억제|가로막|막는)':
   '(?:뒷받침|돕|도와|지원하|생하)';
- const quoted=x=>String(x).replace(/[-/\\^$*+?.()|[\]{}]/g,'\\$&').replace(/\s+/g,'\\s*');
+ const quoted=quoteReaderNoun;
  const claim=(x,y,verb)=>new RegExp(
   quoted(x)+'\\s*(?:이|가|은|는)\\s*'+quoted(y)+
   '\\s*(?:을|를|에)\\s*(?:(?:더|오히려|직접)\\s*)?'+verb);
@@ -358,4 +364,4 @@ function inspect(report,packet=null){
  }
  return {blockingErrors,findings,requiresHumanReview:true,verdict:'not-assessed'};
 }
-module.exports={inspect};
+module.exports={inspect,monthDirectionConflict,quoteReaderNoun};
