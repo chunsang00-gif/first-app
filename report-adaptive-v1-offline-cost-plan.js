@@ -73,7 +73,8 @@ async function inspect(){
  if(c.providerCalls!==0||c.status!=='captured-full-paid-composition')
   throw Error('ADAPTIVE_OFFLINE_COST_REAL_FIRST_PROMPT_UNAVAILABLE');
  const first=c.prompt,plan=guidance.preflight(first.facts);
- const selected=selection.select(GROUPS,plan);
+ const selected=selection.select(GROUPS,plan,{mode:'adaptive-v1',
+  readerQuestion:first.facts.person?.readerDecision});
  if(!selected.canGenerate)throw Error('ADAPTIVE_OFFLINE_COST_REPORT_SCOPE_BLOCKED');
  const groups=batches.plan(selected.groups);
  if(JSON.stringify(groups[0])!==JSON.stringify(first.requestedSections))
