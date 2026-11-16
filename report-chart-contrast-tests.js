@@ -532,8 +532,11 @@ for(const input of cases){
  const strictProviderSchema=generation.schema(p,wire.schemaFor(p,require('./report-schema.json')));
  const strictReaderText=strictProviderSchema.properties.chapters.properties.saju_core
   .properties.paragraphs.properties.strength.properties.text.description;
- assert(strictReaderText.includes(readerPlan.script),
-  'the actual source-restricted provider response schema must include the reader interpretation');
+ assert(strictReaderText.includes('sourceOwnedCoreReaderValue.script')&&
+  !strictReaderText.includes(readerPlan.script),
+  'the actual source-restricted provider schema must refer to, not duplicate, the one reader task');
+ assert(readerPlan.script.includes(readerPlan.actualTwoSidedReading),
+  'source-specific interpretation and correct element arrow remain in the real provider task');
  assert(!strictReaderText.includes('가상의 상황: '+contrasts.TEN_GOD_SCENE[strength.tenGodFocus.monthMainHidden.tenGod]),
   'the live schema must not reintroduce the old fixed adult workplace scene');
  assert(!/(?:내부 출처|natal\\.|basis\\.|지장간|십성|편인|정인|정재|편재|비견|겁재|식신|상관|정관|편관)/.test(scenario),
