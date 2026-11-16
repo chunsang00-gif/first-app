@@ -644,7 +644,7 @@ const schema=require('./report-schema.json');
    /missing dual MBTI\/Saju evidence/,'integration cannot cite only one framework');
  }
  let unknownPrompt;
- await assert.rejects(generate({calendar:'solar',birthDate:'1990-05-15',unknownBirthTime:true,gender:'male',mbti:'모름'},async p=>{unknownPrompt=p;throw Error('OFFLINE_UNKNOWN');}),/OFFLINE_UNKNOWN/);
+ await assert.rejects(generate({calendar:'solar',birthDate:'1990-05-15',unknownBirthTime:true,gender:'male',mbti:'모름',readerDecision:'스트레스를 줄일지 고민합니다.'},async p=>{unknownPrompt=p;throw Error('OFFLINE_UNKNOWN');}),/OFFLINE_UNKNOWN/);
  const unknownPayload=generation.compile(unknownPrompt);
  checkCitable(unknownPayload,unknownPrompt);
  assert.deepEqual(transportAudit.inspectTransport(unknownPrompt,unknownPayload),[]);
