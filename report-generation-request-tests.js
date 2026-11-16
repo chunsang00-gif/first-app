@@ -20,8 +20,13 @@ const schema=require('./report-schema.json');
  assert(realPolicy.includes('sourceOwnedCoreReaderValue가 가장 구체적인 독자용 작성 지침'));
  assert(realPolicy.includes('가상 상황은 독자가 이 구분을 이해하는 데 필요할 때만'));
  const realWriter=generation.schema(prompt,wire.schemaFor(prompt,schema));
- assert(realWriter.properties.chapters.properties.saju_core.properties.paragraphs
-  .properties.strength.properties.text.description.includes(readerContract.script));
+ const realCoreText=realWriter.properties.chapters.properties.saju_core.properties
+  .paragraphs.properties.strength.properties.text.description;
+ assert(realCoreText.includes('sourceOwnedCoreReaderValue.script'));
+ assert(!realCoreText.includes(readerContract.script),
+  'full core writer plan must remain only in source-owned task, not repeated in schema');
+ assert(readerContract.script.includes(readerContract.actualTwoSidedReading),
+  'verified month direction must survive in the compiled paid task');
  assert(!payload.task.chapters.saju_core.topics.strength.evidenceFocus
   .readerReasoning.hypotheticalQuestion.includes('가상의 상황:'));
  assert(!realPolicy.includes('승인된 전문가 해석')&&
