@@ -130,4 +130,41 @@ const natalCited={id:'relationship',bodyTopics:['coordination'],
 assert.deepEqual(ledger.usedPaths(natalCited,'coordination'),['facts.natalBranchRelations']);
 assert.equal(ledger.reusedBefore(['relationship'],newBlueprint,[natalCited])[0]?.path,
  'facts.natalBranchRelations');
+// Actual multi-line restored evidence must not lose a second citation that
+// a later chapter might otherwise mistakenly treat as fresh.
+const secondary='natal.hour.stem';
+const twoRecords={id:'money',bodyTopics:['earning'],
+ body:['기존 해석에서 실물 자원과 낯선 절차의 뜻을 모두 설명했습니다.'],
+ evidence:[
+  'earning: natal.day.hidden.乙 (첫 계산) / 해석: 기존 뜻 / 조건: 가정 / 한계: 관찰 아님',
+  'earning: natal.hour.stem (두번째 계산) / 해석: 새 뜻 / 조건: 가정 / 한계: 관찰 아님',
+  'earning: natal.hour.stem (반복 기록) / 해석: 동일 뜻 / 조건: 가정 / 한계: 관찰 아님',
+  'spending: natal.year.stem / 해석: 다른 항목으로 인용',
+  'earning: invented.source / 해석: 존재하지 않는 이름',
+  'earning: natal.day.stem / 한계: 해석 기록이 없는 행'
+ ]};
+assert.deepEqual(ledger.usedPaths(twoRecords,'earning'),[source,secondary],
+ 'all verified source records for one topic survive, duplicates and unrelated records do not');
+const extendedBlueprint={
+ money:{topicTasks:{earning:{mode:'use-primary',
+  allowedSourceRefs:[source,secondary]}}},
+ career:{topicTasks:{workstyle:{mode:'use-primary',
+  allowedSourceRefs:[source,secondary]}}}
+};
+const carried=ledger.reusedBefore(['career'],extendedBlueprint,[twoRecords]);
+assert.deepEqual(carried.map(x=>x.path),[source,secondary],
+ 'later paid batches must receive both actually cited rows, never only .find()');
+assert(carried.every(x=>x.previousConclusion===twoRecords.body[0]),
+ 'real prior paragraph body must be used when topicConclusions is absent');
+const ending='뒤에 확인된 독립적인 출생시간 질문은 결과물을 어떻게 보여 줄지입니다.';
+const longBody='출생월 설명을 바탕으로 계산된 분류를 먼저 소개합니다. '+
+ '동일한 정의와 예시를 전달하는 긴 설명입니다. '.repeat(16)+ending;
+const longPrior={...twoRecords,body:[longBody]};
+const abbreviated=ledger.reusedBefore(['career'],extendedBlueprint,[longPrior]);
+assert(abbreviated.every(x=>x.previousConclusion.length<=240&&
+ x.previousConclusion.startsWith('출생월 설명을 바탕으로')&&
+ x.previousConclusion.includes(ending)),
+ 'the closing independent conclusion of a long earlier paid paragraph cannot be silently cut');
+assert.equal(ledger.reusedBefore(['relationship'],blueprint,[twoRecords]).length,0,
+ 'new citation parsing cannot assign an unneeded source to unrelated domains');
 console.log('PASS real citation provenance ledger, no unused/fabricated source ownership, no paid API');
