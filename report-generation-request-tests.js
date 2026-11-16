@@ -5,7 +5,7 @@ const {generate}=require('./report-server-contract');
 const schema=require('./report-schema.json');
 (async()=>{
  let prompt;
- await assert.rejects(generate({calendar:'solar',birthDate:'1990-05-15',birthTime:'10:30',gender:'male',mbti:'INTJ'},async p=>{prompt=p;throw Error('OFFLINE');}),/OFFLINE/);
+ await assert.rejects(generate({calendar:'solar',birthDate:'1990-05-15',birthTime:'10:30',gender:'male',mbti:'INTJ',readerDecision:'스트레스를 줄일지 고민 중입니다.'},async p=>{prompt=p;throw Error('OFFLINE');}),/OFFLINE/);
  const payload=generation.compile(prompt);
  assert(!Object.hasOwn(payload,'rules'));
  // This is the ACTUAL paid first batch, not an offline authoring preview.
