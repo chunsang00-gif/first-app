@@ -29,5 +29,40 @@ const plan=require('./report-adaptive-v1-offline-cost-plan');
  assert.equal(report.chosenChapters.includes('year_2027'),true);
  assert.equal(process.env.OPENAI_API_KEY,before.key);
  assert.equal(process.env.REPORT_MODEL_URL,before.url);
+ // Test the real OpenAI success-envelope callback without internet or paid
+ // calls. Stop deliberately inside the private observer before the decoder.
+ const captured=await require('./report-core-paid-full-prompt-capture')
+  .capture(plan.sample);
+ assert.equal(captured.providerCalls,0);
+ const original={fetch:global.fetch,key:process.env.OPENAI_API_KEY,
+  model:process.env.REPORT_MODEL,url:process.env.REPORT_MODEL_URL};
+ let fakeCalls=0,receiptSeen=false;
+ try{
+  process.env.OPENAI_API_KEY='offline-fake-key-not-a-credential';
+  process.env.REPORT_MODEL='gpt-4.1';
+  delete process.env.REPORT_MODEL_URL;
+  global.fetch=async(url)=>{
+   assert.equal(String(url),'https://api.openai.com/v1/responses');
+   fakeCalls++;
+   return {ok:true,json:async()=>({status:'completed',
+    output_text:'{"chapters":{}}',
+    usage:{input_tokens:1234,output_tokens:567}})};
+  };
+  await assert.rejects(require('./server').callOpenAI(captured.prompt,
+   (_response,receipt)=>{
+    assert.deepEqual(receipt.usage,{input_tokens:1234,output_tokens:567});
+    assert.equal(receipt.model,'gpt-4.1');
+    receiptSeen=true;
+    throw Error('OFFLINE_STOP_BEFORE_DECODE');
+   }),/OFFLINE_STOP_BEFORE_DECODE/);
+  assert.equal(fakeCalls,1);
+  assert(receiptSeen,'private cost observer must receive real provider token usage');
+ }finally{
+  global.fetch=original.fetch;
+  for(const [name,value] of [['OPENAI_API_KEY',original.key],
+   ['REPORT_MODEL',original.model],['REPORT_MODEL_URL',original.url]]){
+   if(value===undefined)delete process.env[name];else process.env[name]=value;
+  }
+ }
  console.log('ADAPTIVE_V1_OFFLINE_COST_PLAN='+JSON.stringify(report));
 })().catch(e=>{console.error(e);process.exitCode=1});
