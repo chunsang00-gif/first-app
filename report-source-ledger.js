@@ -9,12 +9,32 @@ function allowedPaths(task){
   task.mode==='use-verified-fallback'?task.verifiedFallbackPaths||[]:[]).filter(Boolean);
 }
 function usedPaths(section,topic){
+ // The restored evidence can carry more than one verified citation record
+ // for the same topic. Reading only .find() silently lost later sources and
+ // let the next paid chapter re-sell the missed conclusion.
  const prefix=topic+': ';
- const raw=(section?.evidence||[]).find(s=>typeof s==='string'&&s.startsWith(prefix));
- if(!raw||!raw.includes(' / 해석: '))return [];
- const portion=raw.slice(prefix.length).split(' / 해석: ')[0];
- return [...new Set(portion.split('; ').map(segment=>segment.trim().split(/[ (]/,1)[0])
-  .filter(x=>/^(?:natal\.(?:year|month|day|hour)\.(?:stem|hidden\.[^\s;]+)|annual\.(?:stem|hidden\.[^\s;]+)|facts\.[a-zA-Z][\w.]*(?:\.[\w]+)*|fortune\.activeDecade|person\.mbti)$/.test(x)))];
+ const refs=new Set();
+ for(const raw of section?.evidence||[]){
+  if(typeof raw!=='string'||!raw.startsWith(prefix)||
+     !raw.includes(' / 해석: '))continue;
+  const portion=raw.slice(prefix.length).split(' / 해석: ')[0];
+  for(const segment of portion.split(/;\s*/)){
+   const id=segment.trim().split(/[ (]/,1)[0];
+   if(/^(?:natal\.(?:year|month|day|hour)\.(?:stem|hidden\.[^\s;]+)|annual\.(?:stem|hidden\.[^\s;]+)|facts\.[a-zA-Z][\w.]*(?:\.[\w]+)*|fortune\.activeDecade|person\.mbti)$/.test(id))
+    refs.add(id);
+  }
+ }
+ return [...refs];
+}
+// Keep the actual earlier prose, not an editor-generated interpretation.
+// For long paid paragraphs, preserve BOTH ends so a final substantive
+// distinction is not silently dropped by .slice(0,240).
+function priorConclusion(section,index){
+ const body=section?.topicConclusions?.[index]||
+  section?.body?.[index]||section?.keyJudgment||'';
+ const value=String(body).replace(/\s+/g,' ').trim();
+ if(value.length<=240)return value;
+ return value.slice(0,127).trimEnd()+' … '+value.slice(-110).trimStart();
 }
 function reusedBefore(nextIds,blueprint,priorSections,packet){
  // When a real fact packet exists, use exactly the provider's permitted
@@ -40,7 +60,7 @@ function reusedBefore(nextIds,blueprint,priorSections,packet){
    for(const path of actual){
     if(!permitted.has(path)||!needed.has(path))continue;
     result.push({path,chapter:section.id,topic,
-     previousConclusion:String(section.topicConclusions?.[index]||section.keyJudgment||'').slice(0,240)});
+     previousConclusion:priorConclusion(section,index)});
    }
   }
  }
