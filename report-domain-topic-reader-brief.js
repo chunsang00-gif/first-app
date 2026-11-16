@@ -3,7 +3,7 @@
 // No future event, real-life trait, or extra natal fact is derived here.
 // Unlike a generic "avoid repetition" instruction, these are different
 // questions and different hypothetical contrasts for each PAID topic.
-const usedPaths=require('./report-source-ledger').usedPaths;
+const {usedPaths,priorConclusion}=require('./report-source-ledger');
 const EDITORIAL=Object.freeze({
  money:Object.freeze({
   earning:['수입 활동에 연결되는 전통 분류가 무엇이고 어떤 활동의 대가인지','직접 무언가를 만들어 대가를 받는 가상 선택과 이미 있는 자원을 활용하는 가상 선택','지출 습관이나 실제 소득을 설명하지 않는다'],
@@ -235,14 +235,15 @@ function priorComparisons(brief,priorSections){
   if(!section||!Array.isArray(section.bodyTopics))continue;
   for(let i=0;i<section.bodyTopics.length;i++){
    const topic=section.bodyTopics[i];
-   const text=String(section.topicConclusions?.[i]||'')
-    .replace(/\s+/g,' ').trim();
+   // Compare reader-visible prose, not only the synopsis. The shared
+   // ledger also supports restored paid paragraphs without a summary.
+   const text=priorConclusion(section,i);
    if(text.length<24)continue;
    for(const ref of usedPaths(section,topic)){
     if(!allowed.has(ref))continue;
     candidates.push(Object.freeze({
      sourceRef:ref,priorChapter:section.id,priorTopic:topic,
-     previousConclusion:text.slice(0,240)
+     previousConclusion:text
     }));
    }
   }
