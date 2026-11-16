@@ -42,7 +42,30 @@ assert.notEqual(paidOffer.inputFingerprint,plainOffer.inputFingerprint,
  'a paid order cannot be reused after changing the customer question');
 assert.equal(whitespace.inputFingerprint,paidOffer.inputFingerprint,
  'trim-only differences may not falsely change the purchased scope');
-assert.equal(paidOffer.candidateTopicUpperBound,plainOffer.candidateTopicUpperBound);
+assert(paidOffer.candidateTopicUpperBound>plainOffer.candidateTopicUpperBound,
+ 'a buyer question can justify supported decision/integration topics, never fake new natal evidence');
+assert.deepEqual(paidOffer.plannedChapterIds.filter(id=>
+ ['decision','stress','integrated_judgment'].includes(id)),
+ ['decision','integrated_judgment'],
+ 'a career-only buyer question must not add the unrelated stress chapter');
+assert(!plainOffer.plannedChapterIds.some(id=>
+ ['decision','stress','integrated_judgment'].includes(id)),
+ 'customer-facing product must omit repetitive chapters without an explicit decision');
+assert.notEqual(paidOffer.digest,plainOffer.digest);
+const preflight=require('./report-chapter-selection');
+const GROUPS=require('./report-qa11-premium-scope-audit').GROUPS;
+assert.deepEqual(paidOffer.plannedChapterIds,preflight.select(GROUPS,
+ guidance.preflight(p),{mode:'adaptive-v1',readerQuestion:question}).plannedIds,
+ 'exact priced-offer scope must match generator pre-billing selection');
+assert.deepEqual(plainOffer.plannedChapterIds,preflight.select(GROUPS,
+ guidance.preflight(empty),{mode:'adaptive-v1'}).plannedIds,
+ 'no-buyer-question product scope must match actual generator preflight');
+const stressOffer=offer.build({...base,
+ readerDecision:'스트레스를 줄이고 싶습니다.'});
+assert(stressOffer.plannedChapterIds.includes('stress'),
+ 'the stress chapter is conditional, not globally deleted');
+assert.equal(stressOffer.paymentEnabled,undefined,
+ 'an offer fingerprint is not customer payment authorization');
 assert.equal(JSON.stringify(paidOffer).includes(question),false,
  'merchant ledger must store the digest, never the free-text question');
 assert(!Object.keys(p.facts).includes('readerDecision'));
