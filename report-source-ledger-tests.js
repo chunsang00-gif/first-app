@@ -165,6 +165,16 @@ assert(abbreviated.every(x=>x.previousConclusion.length<=240&&
  x.previousConclusion.startsWith('출생월 설명을 바탕으로')&&
  x.previousConclusion.includes(ending)),
  'the closing independent conclusion of a long earlier paid paragraph cannot be silently cut');
+const bodyAndSynopsis={...twoRecords,
+ topicConclusions:['요약에서는 조건을 넓게 설명했습니다.'],
+ body:['실제 본문에서는 설명을 이해하는 일과 준비된 자원으로 실행하는 일을 분리했습니다.']};
+const originalFirst=ledger.reusedBefore(['career'],extendedBlueprint,[bodyAndSynopsis]);
+assert(originalFirst.every(x=>x.previousConclusion===bodyAndSynopsis.body[0]),
+ 'actual visible prose must take precedence over a lossy editorial synopsis');
+const blankBody={...bodyAndSynopsis,body:['   ']};
+assert.equal(ledger.reusedBefore(['career'],extendedBlueprint,[blankBody])[0].previousConclusion,
+ bodyAndSynopsis.topicConclusions[0],
+ 'blank body falls back to a verified previous conclusion rather than silently hiding reuse');
 assert.equal(ledger.reusedBefore(['relationship'],blueprint,[twoRecords]).length,0,
  'new citation parsing cannot assign an unneeded source to unrelated domains');
 console.log('PASS real citation provenance ledger, no unused/fabricated source ownership, no paid API');
