@@ -366,6 +366,11 @@ for(const [calendar,birthDate,birthTime] of cases){
  assert.equal(editorial.priorComparisons(overlapped.readerDistinction,
   [divergentSummary])[0].previousConclusion,originalReaderText,
   'a shortened synopsis must not hide an actual already sold interpretation');
+ const onlyChapterJudgment={...cited,topicConclusions:[],body:[],
+  keyJudgment:'장 전체의 판단은 이 문단의 실제 결론을 증명하지 않습니다.'};
+ assert.deepEqual(editorial.priorComparisons(overlapped.readerDistinction,
+  [onlyChapterJudgment]),[],
+  'a section-wide summary cannot be misattributed to a cited precise topic');
  const schemaWithPrior=generator.schema(next,wire.schemaFor(next,schema));
  const rawTopic=schemaWithPrior.properties.chapters.properties[firstId]
   .properties.paragraphs.properties[overlapId];
