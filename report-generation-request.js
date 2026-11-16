@@ -960,11 +960,16 @@ function schema(prompt,transport){
        plan.noInventedHistory!==true||plan.noUnverifiedPersonalTrait!==true||
        plan.additionalTopic!==false||plan.professionalReviewComplete!==false)
      throw Error('PAID_CORE_READER_VALUE_PLAN_SOURCE_DRIFT');
-    p.properties.text.description+=' 이 명식의 첫 장에서 실제로 새로 설명할 내용: '+
-     plan.script+' 계산 출처 두 자리의 차이와 전통적 뜻을 자연스러운 한국어로 풀어 쓴다. '+
-     '월간과 달 중심 숨은 글자의 이름만 나열하거나 거짓 성격 반전을 만들지 않는다. '+
-     '아무 직업·사업·학교 생활을 실제로 경험했다고 추측하지 않는다. '+
-     '정해진 가상 업무 이야기는 작성 의무가 아니다. ';
+    // The compiled task already contains the complete, fact-verified
+    // sourceOwnedCoreReaderValue plan. Repeating its entire script, examples
+    // and caveats in the JSON text-field description diluted the one
+    // substantive customer interpretation and inflated every paid request.
+    // Preserve that plan ONCE in task; point the writer to it from schema.
+    p.properties.text.description+=
+     ' 이 필수 본문은 task.chapters.saju_core.topics.strength.sourceOwnedCoreReaderValue.script을 따른다. '+
+     '거기에 기록된 실제 계산 관계와 두 출생월 위치의 서로 다른 뜻만 독자용 쉬운 문장으로 풀어 쓴다. '+
+     'keyJudgment를 다시 설명하거나 가상 사례·한계 안내를 여러 번 복사하지 않는다. '+
+     '계산 근거가 허용하지 않는 실제 생활사·성격·손익은 지어내지 않는다. ';
     basis.properties.refs.description+=' 이 명식의 필수 실제 두 출처: '+
      plan.refs.join(' / ')+'.';
    }
