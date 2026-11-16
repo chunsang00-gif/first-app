@@ -147,8 +147,11 @@ let fetches=0,rawRequest=null,upstreamPrompt=null;
   assert(second.evidenceFocus.readerReasoning.hypotheticalQuestion.includes(readerValue.readerTakeaway));
   assert(!second.evidenceFocus.readerReasoning.hypotheticalQuestion.includes('가상의 상황:'),
    'real paid writer must not receive the rejected forced adult-workplace scene');
-  assert(secondText.includes(readerValue.script),
-   'actual provider response field must lead with this calculated symbolic meaning');
+  assert(secondText.includes('sourceOwnedCoreReaderValue.script')&&
+   !secondText.includes(readerValue.script),
+   'provider response field must reference the chart-specific source-owned writing task once');
+  assert(readerValue.script.includes(readerValue.actualTwoSidedReading),
+   'verified symbolic reading remains in the compiled model task');
   assert(secondText.includes('보편적 실무 조언, 가상 성패나 교훈을 만들지 않고'),
    'real provider schema must forbid the universal job-preparation example');
   assert(readerValue.script.includes('양쪽 모두 중요하다는 말로 끝내지 않는다')&&
