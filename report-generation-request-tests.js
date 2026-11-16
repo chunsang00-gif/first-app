@@ -499,7 +499,8 @@ const schema=require('./report-schema.json');
  assert.equal(limitedSchema.properties.chapters.properties.saju_core.properties.paragraphs.properties.strength.type,'object',
   'core traditional ten-god interpretation stays mandatory');
  const synthesis={...prompt,stage:'synthesis',requestedSections:[],
-  completedReport:{sections:wire.decode(restored,prompt).sections},
+  completedReport:{meta:{readerDecision:prompt.facts.person?.readerDecision},
+   sections:wire.decode(restored,prompt).sections},
   rules:{...prompt.rules,finalEditingTask:'본문의 실제 근거에서 중복 없는 결론을 선별하고 사용자의 과거를 창작하지 않는다.'}};
  const summary=generation.compile(synthesis);
  assert.deepEqual(summary.task.completedReport,synthesis.completedReport);
