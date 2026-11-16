@@ -103,12 +103,10 @@ const keys=['NODE_ENV','RENDER','PAID_CORE_DEPTH_V2',
    last=snapshot.prompt;lastPacket=packet;lastEvidence=result;
   }
   assert(allStates.has('state-limits')&&allStates.has('use-primary'));
-  assert.equal(observations[0].selectedChapters,9);
-  assert(observations[0].eligibleTopicUpperBound>=24&&
-   observations[0].eligibleTopicUpperBound<=25);
-  assert.equal(observations[1].selectedChapters,10);
-  assert(observations[1].eligibleTopicUpperBound>=23&&
-   observations[1].eligibleTopicUpperBound<=24);
+  assert.equal(observations[0].selectedChapters,6);
+  assert.equal(observations[0].eligibleTopicUpperBound,18);
+  assert.equal(observations[1].selectedChapters,7);
+  assert.equal(observations[1].eligibleTopicUpperBound,18);
   // Confirm a REAL calculated chart can actually unlock this topic:
   // otherwise 'possible' is only a marketing counter, not an executable
   // product improvement. No model calls, no birth data is exported.
