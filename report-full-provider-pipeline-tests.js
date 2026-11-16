@@ -167,8 +167,8 @@ function bodyResponse(p,strict,kind){
        scenes[id]+' 서로 다른 계산 출처의 의미를 각 질문의 상황에서 구별합니다. '+
        '실제 사건을 확인한 결과로 해석하지 않습니다. ') :
       kind==='duplicate-before-synthesis'?
-      nouns[id]+'에서는 한 가지 계산상의 차이를 확인합니다. 이 분류를 활용하는 예를 들면 새로운 선택 앞에서 어떤 자료를 먼저 살필지 고민하는 장면입니다. 다만 이 설명은 입력된 자료의 전통적인 뜻을 시험하기 위한 문장으로 특정 사람의 경험을 확인한 것은 아닙니다.':
-      scenes[id]))+(kind==='reused-sentence-before-synthesis'&&['decision','career'].includes(id)?' '+sharedConclusion:'')+' '+(id==='saju_core'&&topic==='strength'?
+      nouns[id]+'에서는 한 가지 계산상의 차이를 확인합니다. 가상의 방에는 서로 다른 색의 자료표와 작은 기록장이 놓여 있습니다. 표시된 칸마다 동일한 숫자가 적혀 있지만 칸의 위치를 이해하려면 앞쪽 표지와 뒷쪽 표지를 구별해야 합니다. 다르게 표시한 표지들은 각각의 자료가 어디서 왔는지 일상적인 장면으로 설명합니다. 이 이야기는 실제 사람의 경험을 기록한 것이 아닙니다.':
+      scenes[id]))+(kind==='reused-sentence-before-synthesis'&&['money','career'].includes(id)?' '+sharedConclusion:'')+' '+(id==='saju_core'&&topic==='strength'?
       require('./qa/core-meaning-mock').fromKinds([
        chapter.topics.strength.evidenceFocus.tenGodFocus.monthStem.tenGod,
        chapter.topics.strength.evidenceFocus.tenGodFocus.monthMainHidden.tenGod
