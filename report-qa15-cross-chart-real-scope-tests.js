@@ -31,7 +31,8 @@ for(const day of days)for(const birthTime of times){
  assert.equal(packet.status,'ready','expected fully calculable input');
  assert.equal(packet.targetYear.year,2027);
  const plan=guidance.preflight(packet);
- const chosen=selection.select(GROUPS,plan);
+ const chosen=selection.select(GROUPS,plan,{mode:'adaptive-v1',
+  readerQuestion:packet.person?.readerDecision});
  const shown=coverage.calculate(input);
  assert.equal(shown.status,'ready');
  assert.equal(shown.catalog.chapterDefinitions,12);
