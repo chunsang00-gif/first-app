@@ -4,10 +4,10 @@ const coverage=require('./report-product-coverage');
 const qa12=require('./report-qa12-chapter-topic-evidence-matrix');
 const facts=require('./report-facts-node');
 const cases=[
- ['1982-11-24','14:20','lunar',9,20],
- ['1994-07-15','14:20','solar',10,19],
- ['1994-01-15','14:20','solar',10,21],
- ['1994-05-15','20:20','solar',11,20]
+ ['1982-11-24','14:20','lunar',6,14],
+ ['1994-07-15','14:20','solar',7,13],
+ ['1994-01-15','14:20','solar',7,15],
+ ['1994-05-15','20:20','solar',8,14]
 ];
 const names=['NODE_ENV','RENDER','PAID_CORE_DEPTH_V2',
  'PAID_CORE_V2_CLASSICAL_WRITER','PAID_CORE_V2_CLAIM_LINKS',
@@ -39,6 +39,17 @@ const names=['NODE_ENV','RENDER','PAID_CORE_DEPTH_V2',
    assert.equal(JSON.stringify(input),before,'never rewrite caller birth data');
    assert.equal(result.status,'ready');
    assert.equal(result.kind,'prepurchase-report-scope-v1');
+   const planned=result.estimate.chapters.filter(row=>row.includedInPlan).map(row=>row.id);
+   assert(!planned.some(id=>['decision','stress','integrated_judgment'].includes(id)),
+    'buyer-neutral paid report must NOT advertise the three repetitive chapters');
+   assert.deepEqual(result.estimate.chapters.filter(row=>
+    ['decision','stress','integrated_judgment'].includes(row.id))
+    .map(row=>row.omittedReason),[
+     '별도로 입력한 구체적인 고민이 없어 기본 풀이와 내용이 겹치는 선택 장은 제외했습니다.',
+     '스트레스에 관한 별도 질문이 없거나 해당 분야의 독립된 풀이가 없어 이 장을 제외했습니다.',
+     '새로운 독립 해석 없이 다른 장의 설명을 반복하는 종합 장은 제외했습니다.'
+    ]);
+
    assert.equal(result.readingSample.kind,'free-calculated-meaning-preview-v1');
    assert.equal(result.readingSample.status,'calculated-example');
    assert.equal(result.readingSample.modelCalls,0);
