@@ -514,7 +514,8 @@ const schema=require('./report-schema.json');
  assert.deepEqual(generation.schema(synthesis,t),t);
  // Two-chapter body fixture is not a valid three-card premium cover.
  const synthesisForCover={...synthesis,includeCover:true,includeFinal:true,
-  completedReport:{sections:[...synthesis.completedReport.sections,{id:'decision'}]}};
+  completedReport:{meta:synthesis.completedReport.meta,
+   sections:[...synthesis.completedReport.sections,{id:'decision'}]}};
  const completedIds=synthesisForCover.completedReport.sections.map(section=>section.id);
  const synthesisTransport=wire.schemaFor(synthesisForCover,schema);
  const synthesisSchema=generation.schema(synthesisForCover,synthesisTransport);
