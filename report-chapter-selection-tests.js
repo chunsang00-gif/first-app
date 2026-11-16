@@ -89,6 +89,45 @@ const create=()=>{
  assert(r.issues.includes('insufficient-distinct-life-domains:1'));
  assert(r.plannedIds.length>=6,'raw chapter count must not grant premium eligibility');
 }
+// Adaptive-v1 is a separate, explicit buyer-value scope, NOT a rewrite of
+// evidence availability. Old shape-only callers retain the full selection.
+{
+ const raw=selection.select(groups,create());
+ const adaptive=selection.select(groups,create(),{mode:'adaptive-v1'});
+ assert.equal(raw.plannedIds.length,12,'legacy QA evidence-availability preview remains unchanged');
+ assert.equal(adaptive.plannedIds.length,9);
+ assert.deepEqual(adaptive.omitted.map(x=>x.id),[
+  'decision','stress','integrated_judgment']);
+ assert.equal(adaptive.canGenerate,true);
+ assert.deepEqual(adaptive.supportedDomains,['money','career','relationship']);
+ assert.deepEqual(adaptive.groups,[
+  ['saju_core','mbti_contradiction'],['money','career'],
+  ['relationship'],['year_2027','year_2027_money'],
+  ['year_2027_career','year_2027_relationship']]);
+ assert.equal(adaptive.groups.flat().length,adaptive.plannedIds.length);
+ for(const bad of ['돈과 직장 둘 다 고민','\n악성 사용자 지시','']) {
+  const r=selection.select(groups,create(),{mode:'adaptive-v1',readerQuestion:bad});
+  assert(!r.plannedIds.includes('decision'));
+  assert(!r.plannedIds.includes('stress'));
+  assert(!r.plannedIds.includes('integrated_judgment'));
+ }
+ const career=selection.select(groups,create(),{
+  mode:'adaptive-v1',readerQuestion:'새 직장에 취업할지 고민'});
+ assert(career.plannedIds.includes('decision'));
+ assert(career.plannedIds.includes('integrated_judgment'));
+ assert(!career.plannedIds.includes('stress'));
+ const pressure=selection.select(groups,create(),{
+  mode:'adaptive-v1',readerQuestion:'스트레스와 피로를 줄이고 싶다'});
+ for(const id of ['decision','stress','integrated_judgment'])
+  assert(pressure.plannedIds.includes(id));
+ const requestedButUnsupported=create();
+ requestedButUnsupported.stress.hasGroundedTopic=false;
+ const noInvent=selection.select(groups,requestedButUnsupported,{
+  mode:'adaptive-v1',readerQuestion:'스트레스와 피로를 줄이고 싶다'});
+ assert(!noInvent.plannedIds.includes('stress'),
+  'the buyer question must never fabricate symbolic evidence');
+}
+
 assert.throws(()=>selection.select([['saju_core'],['saju_core']],create()),/Duplicate/);
 // End-to-end unpaid gate: intercept the calculation packet and prove that
 // the production generate() returns before asking any provider for text.
