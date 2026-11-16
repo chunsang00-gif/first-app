@@ -79,7 +79,11 @@ const server=http.createServer(require('./server').handler);
   assert.equal(request.data.scope.countsAreUpperBounds,true);
   assert.equal(request.data.scope.fixed12ChaptersPromised,false);
   assert.equal(request.data.scope.fixed35TopicsPromised,false);
-  assert(request.data.scope.plannedChapters>=8);
+  assert.equal(request.data.scope.plannedChapters,7,
+   'buyer-visible checkout count must match the real adaptive 7-chapter 1994 chart');
+  assert(!request.data.scope.plannedChapterIds.some(id=>
+   ['decision','stress','integrated_judgment'].includes(id)),
+   'buyer-neutral repeated chapters must not appear in the scoped checkout offer');
   const pending=await post('/api/checkout/status',{orderId,ownerToken});
   assert.equal(pending.code,200);
   assert.equal(pending.data.state,'awaiting-provider-confirmation',
