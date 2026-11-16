@@ -235,6 +235,10 @@ function priorComparisons(brief,priorSections){
   if(!section||!Array.isArray(section.bodyTopics))continue;
   for(let i=0;i<section.bodyTopics.length;i++){
    const topic=section.bodyTopics[i];
+   // A chapter-wide keyJudgment is not evidence of what this precise
+   // topic actually told the customer. Require a topic-specific statement.
+   if(!String(section.body?.[i]||'').trim()&&
+      !String(section.topicConclusions?.[i]||'').trim())continue;
    // Compare reader-visible prose, not only the synopsis. The shared
    // ledger also supports restored paid paragraphs without a summary.
    const text=priorConclusion(section,i);
