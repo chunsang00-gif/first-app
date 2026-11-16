@@ -4,10 +4,10 @@ const coverage=require('./report-product-coverage');
 const qa12=require('./report-qa12-chapter-topic-evidence-matrix');
 const facts=require('./report-facts-node');
 const cases=[
- ['1982-11-24','14:20','lunar',6,15],
- ['1994-07-15','14:20','solar',7,13],
- ['1994-01-15','14:20','solar',7,15],
- ['1994-05-15','20:20','solar',8,14]
+ ['1982-11-24','14:20','lunar',6,18],
+ ['1994-07-15','14:20','solar',7,18],
+ ['1994-01-15','14:20','solar',7,19],
+ ['1994-05-15','20:20','solar',8,null]
 ];
 const names=['NODE_ENV','RENDER','PAID_CORE_DEPTH_V2',
  'PAID_CORE_V2_CLASSICAL_WRITER','PAID_CORE_V2_CLAIM_LINKS',
@@ -18,24 +18,27 @@ const names=['NODE_ENV','RENDER','PAID_CORE_DEPTH_V2',
   process.env.NODE_ENV='test';delete process.env.RENDER;
   for(const k of names.slice(2))delete process.env[k];
   const checked=[];
-  for(const [birthDate,birthTime,calendar,chapters,baselineEligible] of cases){
+  for(const [birthDate,birthTime,calendar,chapters,expectedEligible] of cases){
    const input={calendar,birthDate,birthTime,gender:'male',
     mbti:'ISFP',name:'TEST_DO_NOT_EXPOSE',birthplace:'TEST_ADDRESS_DO_NOT_EXPOSE',
     ...(calendar==='lunar'?{leapMonth:false}:{})};
    const before=JSON.stringify(input);
    const result=coverage.calculate(input);
-   const decade=require('./report-paid-career-decade-reading')
-    .candidate(facts.build(input,2027));
-   const careerSelected=result.estimate.chapters.find(row=>row.id==='career')?.includedInPlan;
-   const harmony=require('./report-paid-natal-day-harmony').candidate(facts.build(input,2027));
-   const relationSelected=result.estimate.chapters.find(row=>row.id==='relationship')?.includedInPlan;
-   const annualTriad=require('./report-paid-annual-triad').candidate(facts.build(input,2027));
-   const annualSelected=result.estimate.chapters.find(row=>row.id==='year_2027')?.includedInPlan;
-   const rootContrast=require('./report-paid-annual-root-contrast').candidate(facts.build(input,2027));
-   const eligible=baselineEligible+4+Number(Boolean(decade&&careerSelected))+
-    Number(Boolean(harmony&&relationSelected))+
-    Number(Boolean(annualTriad&&annualSelected))+
-    Number(Boolean(rootContrast&&annualSelected));
+   // Compare the customer-facing counts with a fresh independent recalculation
+   // of the ACTUAL adaptive writer's active topics, not historic 9-chapter
+   // arithmetic that silently includes three now-omitted editorial chapters.
+   const packet=facts.build(input,2027);
+   const blueprint=require('./report-analysis-guidance').preflight(packet);
+   const chosen=require('./report-chapter-selection').select(
+    require('./report-qa11-premium-scope-audit').GROUPS,blueprint,
+    {mode:'adaptive-v1',readerQuestion:packet.person?.readerDecision});
+   const eligible=chosen.plannedIds.reduce((n,id)=>
+    n+Object.values(blueprint[id].topicTasks).filter(t=>t.mode!=='state-limits').length,0);
+   assert.deepEqual(result.estimate.chapters.filter(x=>x.includedInPlan)
+    .map(x=>x.id),chosen.plannedIds,
+    'public chapter labels must match the real generator selection');
+   if(expectedEligible!==null)assert.equal(eligible,expectedEligible,
+    'a previously verified customer chart must not silently gain/loss paid-topic candidates');
    assert.equal(JSON.stringify(input),before,'never rewrite caller birth data');
    assert.equal(result.status,'ready');
    assert.equal(result.kind,'prepurchase-report-scope-v1');
