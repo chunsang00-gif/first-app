@@ -26,12 +26,13 @@ function usedPaths(section,topic){
  }
  return [...refs];
 }
-// Keep the actual earlier prose, not an editor-generated interpretation.
+// Prefer the actual reader-visible paragraph when available; summaries
+// may omit the repeated claim that the next writer needs to avoid.
 // For long paid paragraphs, preserve BOTH ends so a final substantive
 // distinction is not silently dropped by .slice(0,240).
 function priorConclusion(section,index){
- const body=section?.topicConclusions?.[index]||
-  section?.body?.[index]||section?.keyJudgment||'';
+ const readerText=String(section?.body?.[index]||'').trim();
+ const body=readerText||section?.topicConclusions?.[index]||section?.keyJudgment||'';
  const value=String(body).replace(/\s+/g,' ').trim();
  if(value.length<=240)return value;
  return value.slice(0,127).trimEnd()+' … '+value.slice(-110).trimStart();
@@ -66,4 +67,4 @@ function reusedBefore(nextIds,blueprint,priorSections,packet){
  }
  return result;
 }
-module.exports={allowedPaths,usedPaths,reusedBefore};
+module.exports={allowedPaths,usedPaths,priorConclusion,reusedBefore};
