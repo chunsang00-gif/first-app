@@ -216,7 +216,8 @@ const {createQueue,retryDelay,rateLimitKind}=require('./report-request-control')
   }
 
  const originalBatches=[['saju_core','mbti_contradiction'],['decision','stress'],['money','career'],['relationship','integrated_judgment'],['year_2027','year_2027_money'],['year_2027_career','year_2027_relationship']];
- const selectedScope=require('./report-chapter-selection').select(originalBatches,blueprint);
+ const selectedScope=require('./report-chapter-selection').select(originalBatches,blueprint,
+  {mode:'adaptive-v1'});
  assert(selectedScope.canGenerate,'the fixture must still support a genuine paid report');
  const expectedBatches=require('./report-paid-batch-plan').plan(selectedScope.groups);
  for(const id of ['year_2027_money','year_2027_career','year_2027_relationship'])
