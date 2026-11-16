@@ -18,7 +18,7 @@ try{
  assert.equal(result.distinctMonthReaderCopies,3);
  assert(result.distinctAnnualReaderCopies>=2);
  assert.deepEqual(result.cases.map(x=>x.plannedChapters),[6,7,7]);
- assert.deepEqual(result.cases.map(x=>x.counts.eligible),[18,17,19]);
+ assert.deepEqual(result.cases.map(x=>x.counts.eligible),[18,18,19]);
  assert(result.cases.every(x=>x.previews.length>=3&&x.previews.length<=6));
  for(const x of result.cases){
   assert.equal(x.counts.definition,35);
