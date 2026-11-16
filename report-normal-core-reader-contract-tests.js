@@ -70,8 +70,18 @@ for(const input of inputs){
  }
  assert(plan.script.includes('무료 화면에 이미 제공된'),
   'premium first-chapter text must not repackage the free preview');
- assert(text.includes(plan.illustrativeScene),
-  'the source-specific scene must reach the real paid paragraph writing schema');
+ // Source-specific instructions and illustrative scene must be present
+ // exactly in the task, but not repeated verbatim in the output schema.
+ // The schema refers to that actual task field; this is a real provider
+ // payload reduction, not a standalone editorial audit or a new model call.
+ assert(text.includes('sourceOwnedCoreReaderValue.script'),
+  'customer paid field must point to the real source-owned writing task');
+ assert(!text.includes(plan.script)&&!text.includes(plan.illustrativeScene),
+  'the output schema must not send the entire customer reading twice');
+ assert(plan.script.includes(plan.illustrativeScene),
+  'the optional scene remains accessible in the one canonical writer task');
+ assert(plan.script.includes(plan.actualTwoSidedReading),
+  'the exact calculated arrow remains in the source-owned writer task');
  if(judgment.categories[0]!==judgment.categories[1])
   assert(!judgment.title.includes('제약하는')&&!judgment.title.includes('뒷받침하는'),
    'short subject label must not repeat the full headline');
