@@ -18,7 +18,7 @@ function editorialOmission(id,options){
  const question=typeof options.readerQuestion==='string'?
   options.readerQuestion.trim():'';
  const valid=question.length>0&&question.length<=140&&
-  !/[\\r\\n<>\\u0000-\\u001f\\u007f]/.test(question);
+  !/[\r\n<>\u0000-\u001f\u007f]/.test(question);
  const specificStress=valid&&require('./report-paid-reader-question-domain')
   .chosenDomain(question)==='stress';
  if(id==='decision'&&!valid)return 'no-specific-buyer-decision-editorial-overlap';
