@@ -43,9 +43,13 @@ async function run(){
     model:process.env.REPORT_MODEL,attemptedAt:new Date().toISOString(),
     completion:'unknown-until-archived'});
    console.log('QA first chapter: invoking exactly one provider request');
-   return callOpenAI(prompt,response=>{
-    // Persistent private original, even if decoder or editorial QA fails.
-    original.calls=[{number:1,request:writer.compile(prompt),response}];
+   return callOpenAI(prompt,(response,receipt)=>{
+    // Persistent private original and actual billed token usage even if
+    // decoder or editorial QA fails. Never publish the private response.
+    // The model receipt is metadata; billing can still differ from a price
+    // estimate. Older/mock callbacks may supply no usage.
+    original.calls=[{number:1,request:writer.compile(prompt),response,
+     usage:receipt?.usage||response?.usage||null}];
     savePrivate(provider,original);
    });
   },()=>{},async batch=>{
