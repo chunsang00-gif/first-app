@@ -347,6 +347,25 @@ for(const [calendar,birthDate,birthTime] of cases){
  const overlapId=Object.entries(nextTask.topics).find(([,topic])=>
   topic===overlapped)?.[0];
  assert(overlapId);
+ // Historical regression: the previously restored reader paragraph may
+ // exist without a topicConclusions synopsis; the next writer still needs it.
+ const originalReaderText='새 자료를 이해하는 과정과 실제로 준비된 자원을 써서 실행하는 과정은 서로 다릅니다. 같은 설명을 들었어도 준비물이 없다면 실행은 별개의 문제입니다.';
+ const bodyOnly={...cited,topicConclusions:[],body:[originalReaderText]};
+ const bodyPrior=editorial.priorComparisons(overlapped.readerDistinction,[bodyOnly]);
+ assert.equal(bodyPrior.length,1,'actual body without synopsis still owns its cited meaning');
+ assert.equal(bodyPrior[0].previousConclusion,originalReaderText);
+ const bodyOnlyRequest={...next,priorSections:[bodyOnly]};
+ const bodyOnlySchema=generator.schema(bodyOnlyRequest,
+  wire.schemaFor(bodyOnlyRequest,schema));
+ const bodyOnlySlot=bodyOnlySchema.properties.chapters.properties[firstId]
+  .properties.paragraphs.properties[overlapId];
+ const bodyOnlyLeaf=bodyOnlySlot.anyOf?.find(x=>x.type==='object')||bodyOnlySlot;
+ assert(bodyOnlyLeaf.properties.text.description.includes(JSON.stringify(originalReaderText)),
+  'the real provider text slot must see prior reader prose even without synopsis');
+ const divergentSummary={...bodyOnly,topicConclusions:['요약에 적힌 일반적인 뜻은 실무 조건과 다릅니다.']};
+ assert.equal(editorial.priorComparisons(overlapped.readerDistinction,
+  [divergentSummary])[0].previousConclusion,originalReaderText,
+  'a shortened synopsis must not hide an actual already sold interpretation');
  const schemaWithPrior=generator.schema(next,wire.schemaFor(next,schema));
  const rawTopic=schemaWithPrior.properties.chapters.properties[firstId]
   .properties.paragraphs.properties[overlapId];
