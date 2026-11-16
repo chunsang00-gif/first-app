@@ -19,11 +19,12 @@ function editorialOmission(id,options){
   options.readerQuestion.trim():'';
  const valid=question.length>0&&question.length<=140&&
   !/[\r\n<>\u0000-\u001f\u007f]/.test(question);
- const specificStress=valid&&require('./report-paid-reader-question-domain')
-  .chosenDomain(question)==='stress';
- if(id==='decision'&&!valid)return 'no-specific-buyer-decision-editorial-overlap';
+ const domain=valid?require('./report-paid-reader-question-domain')
+  .chosenDomain(question):null;
+ const specificStress=domain==='stress';
+ if(id==='decision'&&!domain)return 'no-specific-buyer-decision-editorial-overlap';
  if(id==='stress'&&!specificStress)return 'no-specific-buyer-stress-question';
- if(id==='integrated_judgment'&&!valid)
+ if(id==='integrated_judgment'&&!domain)
   return 'no-specific-buyer-integration-editorial-overlap';
  return null;
 }
