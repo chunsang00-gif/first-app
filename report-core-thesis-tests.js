@@ -371,14 +371,11 @@ assert.throws(()=>core.forPrompt({...prompt,facts:{}}),/NO_VERIFIED_MONTH_PAIR/)
 // rejection boundary. Exercise the ACTUAL computed arrows, not fake months.
 const phrase='자원(활용) + 정보';
 const quoted=postReview.quoteReaderNoun(phrase);
-assert(new RegExp('^'+quoted+'
-).test(phrase),
+assert(new RegExp('^'+quoted+'$').test(phrase),
  'a literal role containing regex punctuation must remain matchable');
-assert(!new RegExp('^'+quoted+'
-).test('자원활용 정보'),
+assert(!new RegExp('^'+quoted+'$').test('자원활용 정보'),
  'escaping punctuation must not turn different Korean meaning labels identical');
-assert(new RegExp('^'+postReview.quoteReaderNoun('정보 이해')+'
-).test('정보  이해'),
+assert(new RegExp('^'+postReview.quoteReaderNoun('정보 이해')+'$').test('정보  이해'),
  'whitespace inside an unchanged role name may vary');
 let directionalCases=0;
 for(const input of inputs.slice(0,4)){
