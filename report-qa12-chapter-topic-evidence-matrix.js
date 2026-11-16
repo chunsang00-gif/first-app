@@ -22,7 +22,8 @@ function inspect(packet,prompt){
   throw Error('QA12_PREPAID_DIAGNOSTIC_OFFLINE_ONLY');
  const measured=qa11.scope(packet,prompt);
  const plan=guidance.preflight(packet);
- const choice=selection.select(qa11.GROUPS,plan);
+ const choice=selection.select(qa11.GROUPS,plan,{mode:'adaptive-v1',
+  readerQuestion:packet.person?.readerDecision});
  const omissions=new Map(choice.omitted.map(x=>[x.id,x.reason]));
  const entries=[];
  for(const [chapterId,topics] of Object.entries(outline.topics)){
