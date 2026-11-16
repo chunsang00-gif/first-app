@@ -14,7 +14,8 @@ const decoder=require('./report-response-decoder');
 const planner=require('./report-core-v2-source-bound-manuscript');
 const {enabled}=require('./report-paid-core-v2-scope');
 const fixture=Object.freeze({calendar:'solar',birthDate:'1994-07-15',
- birthTime:'14:20',gender:'male',mbti:'ISFP'});
+ birthTime:'14:20',gender:'male',mbti:'ISFP',
+ readerDecision:'스트레스를 줄일지 고민합니다.'});
 async function findMixed(){
  for(const year of [1982,1994,2006,2018])
   for(let month=1;month<=12;month++)
