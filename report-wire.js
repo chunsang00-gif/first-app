@@ -104,21 +104,22 @@ function coreReaderRoles(prompt){
   prompt?.paidCoreDepthV2===true;
  if(!frozen&&lockedJudgment){
   roles.strength.label='태어난 달의 두 실제 출처가 허용하는 전통적 뜻과 오행의 계산 관계를 설명한다. 실생활의 선택 성패나 성격 점수로 이름 붙이지 않는다.';
-  roles.strength.text='이 유료 첫 장에서는 출생월의 겉글자와 중심 속글자의 전통적 뜻만 인용할 수 있다. '+
+  // In the ordinary paid chapter the model receives the exact
+  // sourceOwnedCoreReaderValue script in task ONCE. The text leaf must ask
+  // for a reader explanation, not a second 1,000-character methodology
+  // lecture. Historical QA envelopes above retain their old descriptions.
+  roles.strength.text=
+   '이 유료 첫 장에서 새로 설명할 수 있는 내용은 출생월 두 위치의 실제 전통 분류와 계산 관계뿐이다. '+
    '출처에서 직접 계산된 핵심 판단: '+lockedJudgment+' '+
-   '고정 판단의 관계 방향은 이미 첫 장의 큰 글씨에 있다. 고정 판단을 본문에 그대로 다시 적지 말고 같은 방향을 동의어로 다시 말하거나 사전적 정의 두 문장을 연달아 쓰지 않는다. 출생월의 두 출처를 연결하는 이유를 실제로 구별되는 검토 조건으로 쓰되, 두 분류가 하나의 가상 상황에서 무엇을 서로 다르게 살피는지(근거가 있을 때만) 한 번 구체적으로 설명한다. '+
+   '이 문장은 이미 제목 아래 보이므로 본문에 그대로 다시 적지 말고 같은 방향을 동의어로 다시 말하거나 두 분류의 사전적 뜻만 나열하지 않는다. '+
    (sameMonthlyMeaning?
-     '같은 전통 분류가 두 위치에서 확인되어 두 기질·강도의 증폭·성격 반전으로 읽지 않는다. ':
-     '두 전통 분류가 다르면 정확히 계산된 오행 방향 하나만 설명한다. 두 분류가 실제 고객의 능력에 작용하거나 성공과 손해를 일으킨다고 쓰지 않는다. ')+
-   '두 출처를 함께 읽을 때 생기는 하나의 전통적 질문을 누구나 읽을 수 있는 한국어로 전달한다. '+
+    '같은 전통 분류가 두 위치에서 확인되어 두 기질·강도의 증폭·성격 반전으로 읽지 않는다. ':
+    '두 전통 분류가 다르면 정확히 계산된 오행 방향 하나만 설명한다. 두 분류가 실제 고객의 능력에 작용하거나 성공과 손해를 일으킨다고 쓰지 않는다. ')+
+   '실제 두 전통적 뜻: '+reading.first.reading+' / '+reading.second.reading+'. '+
+   '두 출처를 연결해 새로 생긴 질문을 쉬운 한국어로 풀되, 독립된 해석이 없으면 가상의 직업·금전 사례를 채워 넣지 않는다. '+
    '뜻을 한 줄씩 나열하거나 한쪽만 보면 놓치고 반대로 다른 쪽만 보면 놓친다는 대칭 주의문을 작성하지 않는다. '+
-   '이 명식만으로 확인하지 못한 실제 선택 경향, 이익·손해, 일·학교·가족의 경험을 가정하여 채우지 않는다. '+
-   '고객이 직접 입력한 질문은 실제 생활에 관한 증거가 아니며 가능한 검토 조건으로만 연결한다. '+
    '별도의 개인 해석 근거가 없으면 보편적 실무 조언, 가상 성패나 교훈을 만들지 않고 현재 해석 범위를 밝힌다. '+
-   '계산 근거 ID나 용어 목록을 본문에 넣지 않으며 내부 basis.refs에만 정확히 인용한다. '+
-   (reading?'실제 두 전통적 뜻: '+reading.first.reading+' / '+reading.second.reading+'. ':'')+
-   claimBrief(secondClaim)+
-   '명리 전문가가 확정하지 않은 추가 해석의 우선순위나 실제 행동을 발명하지 않는다.';
+   '출처 ID와 판단 한계는 내부 basis에 기록하며, 실제 선택 경향·과거 경험·미래 결과·전문가가 정하지 않은 우선순위를 만들어내지 않는다.';
  }
  return roles;
 }
