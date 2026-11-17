@@ -522,6 +522,13 @@ const schema=require('./report-schema.json');
  const validHighlightIds=synthesisSchema.properties.cover.properties.highlights.items.properties.sectionId.enum;
  assert.deepEqual(validHighlightIds,completedIds,'paid cover may reference only drafted chapters');
  assert(!validHighlightIds.includes('year_2027'),'missing chapters must never appear in synthesis highlight choices');
+ assert(synthesisSchema.properties.finalJudgment.properties.body.description.includes(
+  '이해한 정보와 실행 자원·예산을 구분한다는 같은 대비'),
+  'the real final provider response field must forbid the historically repeated thesis');
+ assert(synthesisSchema.properties.finalJudgment.properties.body.description.includes(
+  '서로 보완하거나 한계가 달라지는 구체적인 조건'),
+  'final must combine distinct delivered interpretations, not invent a new personality');
+
 
  // Run the ACTUAL lunar input used by first-chapter QA through both
  // independent MBTI chapters; labels must change with user input, while
