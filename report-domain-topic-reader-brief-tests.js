@@ -362,6 +362,27 @@ for(const [calendar,birthDate,birthTime] of cases){
  const bodyOnlyLeaf=bodyOnlySlot.anyOf?.find(x=>x.type==='object')||bodyOnlySlot;
  assert(bodyOnlyLeaf.properties.text.description.includes(JSON.stringify(originalReaderText)),
   'the real provider text slot must see prior reader prose even without synopsis');
+ // A full paid paragraph may put its unique interpretation in the
+ // middle. Verify that the REAL provider text field (not merely the
+ // ledger test) receives that central meaning on the next chapter.
+ const middleClaim='내용을 이해하는 일과 실제 실행 자원을 마련하는 일은 별개의 조건입니다.';
+ const middleReader='본문 첫머리의 계산 설명입니다. '+
+  '앞쪽 배경 계산 사실을 풀어 씁니다. '.repeat(11)+middleClaim+
+  '뒤쪽 해석에 관한 배경을 추가합니다. '.repeat(11)+
+  '마지막 문장은 이론과 현실의 한계를 밝힙니다.';
+ const middleBodyOnly={...bodyOnly,body:[middleReader]};
+ const middlePrior=editorial.priorComparisons(overlapped.readerDistinction,[middleBodyOnly]);
+ assert.equal(middlePrior.length,1);
+ assert(middlePrior[0].previousConclusion.includes(middleClaim),
+  'central interpretation cannot vanish from the per-topic comparison');
+ assert(middlePrior[0].previousConclusion.length<=240);
+ const middleRequest={...next,priorSections:[middleBodyOnly]};
+ const middleSchema=generator.schema(middleRequest,wire.schemaFor(middleRequest,schema));
+ const middleSlot=middleSchema.properties.chapters.properties[firstId]
+  .properties.paragraphs.properties[overlapId];
+ const middleLeaf=middleSlot.anyOf?.find(x=>x.type==='object')||middleSlot;
+ assert(middleLeaf.properties.text.description.includes(JSON.stringify(middlePrior[0].previousConclusion)),
+  'the actual strict provider text field must receive the central meaning before writing');
  const divergentSummary={...bodyOnly,topicConclusions:['요약에 적힌 일반적인 뜻은 실무 조건과 다릅니다.']};
  assert.equal(editorial.priorComparisons(overlapped.readerDistinction,
   [divergentSummary])[0].previousConclusion,originalReaderText,
