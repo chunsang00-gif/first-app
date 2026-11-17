@@ -188,4 +188,26 @@ assert(!signatures('정보를 이해하지 못했다고 단정할 수 없고 비
  .has('understanding-vs-resources'),
  'an explicit limitation is not a second positive interpretation');
 
+
+const {synthesisRepetition}=require('./report-interpretation-overlap');
+const firstUnique='출생월의 두 전통 분류는 출생 위치가 달라 서로 다른 가상 판단 질문에 연결됩니다.';
+const finalSource=section('saju_core','strength',firstUnique,['natal.month.stem']);
+assert(synthesisRepetition({sections:[finalSource],finalJudgment:{
+ body:[firstUnique],closingQuestion:'현재의 계산된 차이를 유의해 살펴봅니다.'}})
+ .some(e=>e.includes('final synthesis copies prior reader sentence')),
+ 'copying an entire paid chapter sentence into the closing body must not pass as synthesis');
+const coreRecycled=section('saju_core','strength',
+ '실제로 필요한 정보를 이해하는 일과 실행에 드는 자원을 마련하는 일은 다른 문제입니다.',
+ ['natal.month.stem']);
+const lastRecycled='기존 원고에서 설명한 내용의 이해와 실행에 필요한 비용을 마련하는 문제는 따로 구분해서 판단합니다.';
+assert(synthesisRepetition({sections:[coreRecycled],finalJudgment:{body:[lastRecycled]}})
+ .some(e=>e.includes('understanding-vs-resources')),
+ 'the rejected learning-vs-resources thesis cannot return as a new final summary');
+assert.deepEqual(synthesisRepetition({sections:[coreRecycled],finalJudgment:{
+ body:['태어난 해와 연도의 실제 관계는 달의 계산 위치와 질문이 다르므로 함께 살펴볼 만합니다.']}}),[],
+ 'a different, conditional source-bound summary must not fail as generic word overlap');
+assert.deepEqual(synthesisRepetition({sections:[section('saju_core','strength',
+ coreRecycled.body[0],['natal.day.stem'])],finalJudgment:{
+ body:['정보를 이해하지 못한다고 단정할 수 없고 비용 부족도 확인할 수 없습니다.']}}),[],
+ 'a mere denial in final prose is not a repeated positive thesis');
 console.log('PASS deterministic repeated causal interpretation under shared verified facts; no paid API');
