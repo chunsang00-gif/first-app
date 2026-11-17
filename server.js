@@ -163,7 +163,7 @@ async function qaHandler(req,res){
     stage:prompt.stage,requestedSections:prompt.requestedSections||[],
     identity:checkpointIdentity.signature(qaSample)
    });
-   return callOpenAI(prompt,raw=>reportStore.saveProviderResponse(qaId,callNumber,raw));
+   return callOpenAI(prompt,(raw,receipt)=>reportStore.saveProviderResponse(qaId,callNumber,raw,receipt));
   });
  },progress=>{qaJob.progress=progress},async batch=>{
   const saved=reportStore.loadCheckpoint(qaId);
@@ -285,8 +285,8 @@ reportContract.generate(a.calculationInput,prompt=>enqueueModel(async()=>{
  if(reportStore.enabled)reportStore.startProviderCall(id,n,{
   stage:prompt.stage,requestedSections:prompt.requestedSections||[],
   identity:checkpointIdentity.signature(a.calculationInput)});
- return callModel(prompt,async response=>{
-  if(reportStore.enabled)reportStore.saveProviderResponse(id,n,response)
+ return callModel(prompt,async(response,receipt)=>{
+  if(reportStore.enabled)reportStore.saveProviderResponse(id,n,response,receipt)
  });
 }),progress=>{
  const job=JOBS.get(id);if(job?.status==='processing')job.progress=progress
