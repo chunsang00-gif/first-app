@@ -724,6 +724,15 @@ function schema(prompt,transport){
   if(ids.length<3)throw Error('Insufficient supported chapters for a three-card premium cover');
   const result=structuredClone(transport);
   result.properties.cover.properties.highlights.items.properties.sectionId.enum=ids;
+  // This is the provider's REAL strict final text field, not another
+  // editorial document. Prevent the known 1/3/7/final repetition before
+  // it is written. Existing completedReport is the sole source.
+  const finalText=result.properties.finalJudgment?.properties;
+  if(finalText?.body){
+   finalText.body.description=(finalText.body.description||'')+
+    ' 완성된 이전 장의 실제 본문과 비교한다. 최종 문단을 앞 장의 문장으로 복사하거나 핵심 주장을 분야 이름만 바꾸어 재진술하지 않는다. 특히 이해한 정보와 실행 자원·예산을 구분한다는 같은 대비가 앞 장에 이미 있으면 이를 새로운 종합 결론으로 쓰지 않는다. 새로운 성격·미래 사건을 만들지 말고, 실제 인용된 서로 다른 해석 중 서로 보완하거나 한계가 달라지는 구체적인 조건만 짧게 연결한다. 그런 연결 근거가 부족하면 일반적인 실행 조언으로 분량을 채우지 않는다.';
+  }
+
   const younger=require('./report-reader-age-boundary').forPrompt(prompt);
   if(younger){
    const summary=result.properties.finalJudgment.properties;
