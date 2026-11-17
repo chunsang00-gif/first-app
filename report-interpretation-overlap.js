@@ -101,4 +101,43 @@ function coverage(sections){
    withCitations===0?'no-canonical-source-data':
    withCitations<paragraphsTotal?'partial-canonical-source-data':'canonical-source-data'};
 }
-module.exports={inspect,signatures,coverage};
+// A synthesis has no paragraph-level citation slots of its own, so do not
+// pretend it owns fresh evidence. Prevent it from selling the preceding
+// reader paragraph verbatim or recasting the same historically rejected
+// understanding-versus-resources thesis as a new ending.
+function synthesisRepetition(report){
+ const owners=new Map(),priorMotifs=new Map(),errors=[];
+ const normalized=value=>String(value||'').normalize('NFKC')
+  .replace(/[\\s.,!?。！？·:;“”"'‘’()[\\]{}]+/g,'').trim();
+ const sentences=value=>String(value||'').split(/[.!?。！？\\n]+/).map(x=>x.trim()).filter(Boolean);
+ for(const section of report?.sections||[]){
+  for(const p of paragraphs(section)){
+   for(const sentence of sentences(p.text)){
+    const key=normalized(sentence);
+    if(key.length>=36&&!LIMIT.test(sentence)&&!owners.has(key))
+     owners.set(key,section.id+':'+p.topic);
+   }
+   // This narrow motif is a real prior paid-reader rejection, not a
+   // generic "both systems are different" disclaimer.
+   if(p.refs.some(id=>id.startsWith('natal.')||id.startsWith('annual.')||
+     id==='facts.annualTenGods'||id==='facts.targetYearBranchRelations')){
+    if(signatures(p.text).has('understanding-vs-resources')&&
+       !priorMotifs.has('understanding-vs-resources'))
+     priorMotifs.set('understanding-vs-resources',section.id+':'+p.topic);
+   }
+  }
+ }
+ const final=[...(report?.finalJudgment?.body||[]),report?.finalJudgment?.closingQuestion].filter(Boolean);
+ for(const text of final){
+  for(const sentence of sentences(text)){
+   const key=normalized(sentence),owner=owners.get(key);
+   if(owner)errors.push('final synthesis copies prior reader sentence: '+owner);
+  }
+  if(priorMotifs.has('understanding-vs-resources')&&
+    signatures(text).has('understanding-vs-resources'))
+   errors.push('final synthesis recycles earlier cited thesis (understanding-vs-resources): '+
+    priorMotifs.get('understanding-vs-resources'));
+ }
+ return [...new Set(errors)];
+}
+module.exports={inspect,signatures,coverage,synthesisRepetition};
