@@ -108,8 +108,8 @@ function coverage(sections){
 function synthesisRepetition(report){
  const owners=new Map(),priorMotifs=new Map(),errors=[];
  const normalized=value=>String(value||'').normalize('NFKC')
-  .replace(/[\\s.,!?。！？·:;“”"'‘’()[\\]{}]+/g,'').trim();
- const sentences=value=>String(value||'').split(/[.!?。！？\\n]+/).map(x=>x.trim()).filter(Boolean);
+  .replace(/[^가-힣A-Za-z0-9]+/g,'').trim();
+ const sentences=value=>String(value||'').split(/[.!?。！？\n]+/).map(x=>x.trim()).filter(Boolean);
  for(const section of report?.sections||[]){
   for(const p of paragraphs(section)){
    for(const sentence of sentences(p.text)){
