@@ -108,6 +108,43 @@ async function stop(child){if(!child)return;
   assert.equal(create(dir).loadProviderCall(uncertainId,1).state,'started');
   assert.equal(mock.calls,2,'unconfirmed provider attempt must not auto-repeat');
   assert.deepEqual(create(dir).loadProviderCall(id,1),first);
+  // Real paid stages must retain PRIVATE provider token usage on every
+  // received response, including an incomplete paid call. Unknown or
+  // still-started attempts must never be counted as free usage.
+  const storage=create(dir),receiptId=require('node:crypto').randomUUID();
+  const meta={identity:first.identity};
+  storage.startProviderCall(receiptId,1,{...meta,stage:'body',requestedSections:['saju_core']});
+  storage.saveProviderResponse(receiptId,1,{chapters:{}},{
+   model:'gpt-4.1',usage:{input_tokens:1200,output_tokens:340,
+    input_tokens_details:{cached_tokens:200}}});
+  assert.deepEqual(storage.loadProviderCall(receiptId,1).receipt,{
+   model:'gpt-4.1',inputTokens:1200,outputTokens:340,cachedInputTokens:200});
+  storage.startProviderCall(receiptId,2,{...meta,stage:'body',requestedSections:['career']});
+  storage.saveProviderResponse(receiptId,2,{status:'incomplete',
+   usage:{input_tokens:580,output_tokens:180}});
+  storage.startProviderCall(receiptId,3,{...meta,stage:'synthesis',requestedSections:[]});
+  assert.deepEqual(storage.providerUsageSummary(receiptId),{
+   attemptedCalls:3,receivedCalls:2,usageRecordedCalls:2,
+   unknownUsageCalls:1,inputTokens:1780,outputTokens:520,
+   cachedInputTokens:200,cachedUsageCalls:1,complete:false});
+  assert.deepEqual(create(dir).providerUsageSummary(receiptId),
+   storage.providerUsageSummary(receiptId),
+   'private usage receipts must survive restart without any new model attempt');
+  assert.equal(storage.loadProviderCall(receiptId,3).state,'started',
+   'an unknown billable attempt must retain its preflight marker');
+  const unknownReceiptId=require('node:crypto').randomUUID();
+  storage.startProviderCall(unknownReceiptId,1,{
+   ...meta,stage:'body',requestedSections:['saju_core']});
+  storage.saveProviderResponse(unknownReceiptId,1,{chapters:{}});
+  assert.equal(storage.providerUsageSummary(unknownReceiptId).unknownUsageCalls,1,
+   'a response without usage metadata is not a confirmed zero-dollar call');
+  assert.equal(storage.providerUsageSummary(unknownReceiptId).complete,false);
+  const validId=require('node:crypto').randomUUID();
+  storage.startProviderCall(validId,1,{...meta,stage:'body',requestedSections:['saju_core']});
+  storage.saveProviderResponse(validId,1,{chapters:{}},{
+   model:'gpt-4.1',usage:{input_tokens:10,output_tokens:20}});
+  assert.equal(storage.providerUsageSummary(validId).complete,true,
+   'all known receipts can be summed without guessing missing usage');
   console.log('PASS provider journal: malformed raw saved, ambiguous 503 attempt retained, owner-only files, restart no retry or leak');
  }finally{
   await stop(child);await stop(child2);
