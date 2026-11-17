@@ -114,7 +114,7 @@ function synthesisRepetition(report){
   for(const p of paragraphs(section)){
    for(const sentence of sentences(p.text)){
     const key=normalized(sentence);
-    if(key.length>=36&&!LIMIT.test(sentence)&&!owners.has(key))
+    if(key.length>=30&&!LIMIT.test(sentence)&&!owners.has(key))
      owners.set(key,section.id+':'+p.topic);
    }
    // This narrow motif is a real prior paid-reader rejection, not a
