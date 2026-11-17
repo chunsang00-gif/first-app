@@ -2,7 +2,7 @@
 // Optional durable storage for paid report jobs. Requires a persistent mounted volume.
 const fs=require('node:fs'),path=require('node:path');
 function create(dir){
- if(!dir)return {enabled:false,save(){},load(){return null},saveRequest(){},loadRequest(){return null},saveCheckpoint(){},loadCheckpoint(){return null},startProviderCall(){},saveProviderResponse(){},loadProviderCall(){return null}};
+ if(!dir)return {enabled:false,save(){},load(){return null},saveRequest(){},loadRequest(){return null},saveCheckpoint(){},loadCheckpoint(){return null},startProviderCall(){},saveProviderResponse(){},loadProviderCall(){return null},providerUsageSummary(){return {attemptedCalls:0,receivedCalls:0,usageRecordedCalls:0,unknownUsageCalls:0,inputTokens:0,outputTokens:0,complete:false}}};
  fs.mkdirSync(dir,{recursive:true,mode:0o700});
  const valid=id=>typeof id==='string'&&/^[a-f0-9-]{36}$/.test(id);
  const file=id=>path.join(dir,id+'.json');
@@ -70,15 +70,58 @@ function create(dir){
   },
   // Private received output is committed synchronously before the decoder
   // can throw. These bytes must never be returned from public report APIs.
-  saveProviderResponse(id,n,response){
+  // Keep private billed-token receipts next to each response. The metadata
+  // has no original prose or user fields and may be missing on failures.
+  // Never treat a started call as a confirmed zero-cost attempt.
+  saveProviderResponse(id,n,response,metadata=null){
    if(!valid(id)||!validNumber(n)||!response||typeof response!=='object')
     throw Error('invalid provider response');
    const previous=this.loadProviderCall(id,n);
    if(!previous||previous.state!=='started')throw Error('cannot overwrite provider output');
+   const rawUsage=metadata?.usage||response.usage||null;
+   const count=value=>Number.isSafeInteger(value)&&value>=0?value:null;
+   const inputTokens=count(rawUsage?.input_tokens);
+   const outputTokens=count(rawUsage?.output_tokens);
+   const cachedTokens=count(rawUsage?.input_tokens_details?.cached_tokens);
+   const receipt=inputTokens!==null&&outputTokens!==null?
+    {model:typeof metadata?.model==='string'?metadata.model:null,
+     inputTokens,outputTokens,cachedInputTokens:cachedTokens}:null;
    atomicSave(providerFile(id,n),{...previous,state:'received',
-    receivedAt:new Date().toISOString(),response});
+    receivedAt:new Date().toISOString(),response,receipt});
   },
-  loadProviderCall(id,n){return valid(id)&&validNumber(n)?readFile(providerFile(id,n)):null}
+  loadProviderCall(id,n){return valid(id)&&validNumber(n)?readFile(providerFile(id,n)):null},
+  // Operator-only aggregation; never expose this or raw provider files via
+  // customer API. Unknown attempts remain UNKNOWN, never a $0 receipt.
+  providerUsageSummary(id){
+   if(!valid(id))throw Error('invalid report job id');
+   const summary={attemptedCalls:0,receivedCalls:0,usageRecordedCalls:0,
+    unknownUsageCalls:0,inputTokens:0,outputTokens:0,cachedInputTokens:0,
+    cachedUsageCalls:0,complete:false};
+   for(let n=1;n<=7;n++){
+    const call=this.loadProviderCall(id,n);
+    if(!call)continue;
+    summary.attemptedCalls++;
+    if(call.state==='received')summary.receivedCalls++;
+    const receipt=call.receipt;
+    if(!receipt||!Number.isSafeInteger(receipt.inputTokens)||
+       !Number.isSafeInteger(receipt.outputTokens)){
+     summary.unknownUsageCalls++;
+     continue;
+    }
+    summary.usageRecordedCalls++;
+    summary.inputTokens+=receipt.inputTokens;
+    summary.outputTokens+=receipt.outputTokens;
+    if(receipt.cachedInputTokens!==null&&
+       Number.isSafeInteger(receipt.cachedInputTokens)){
+     summary.cachedInputTokens+=receipt.cachedInputTokens;
+     summary.cachedUsageCalls++;
+    }
+   }
+   summary.complete=summary.attemptedCalls>0&&
+    summary.unknownUsageCalls===0&&
+    summary.usageRecordedCalls===summary.attemptedCalls;
+   return summary;
+  }
   
  };
 }
