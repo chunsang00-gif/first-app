@@ -165,6 +165,22 @@ assert(abbreviated.every(x=>x.previousConclusion.length<=240&&
  x.previousConclusion.startsWith('출생월 설명을 바탕으로')&&
  x.previousConclusion.includes(ending)),
  'the closing independent conclusion of a long earlier paid paragraph cannot be silently cut');
+// Historical repetition defect: the decisive contrast can be in the
+// MIDDLE of a long reader paragraph, not its opening or final sentence.
+const middleClaim='내용을 이해하는 일과 실제 실행 자원을 마련하는 일은 별개의 조건입니다.';
+const middleBody='본문 첫머리의 계산 설명입니다. '+
+ '앞쪽 배경 계산 사실을 풀어 씁니다. '.repeat(11)+middleClaim+
+ '뒤쪽 해석에 관한 배경을 추가합니다. '.repeat(11)+
+ '마지막 문장은 이론과 현실의 한계를 밝힙니다.';
+const middlePrior={...twoRecords,body:[middleBody],
+ topicConclusions:['핵심 해석은 생략된 일반 요약입니다.']};
+const compactMiddle=ledger.reusedBefore(['career'],extendedBlueprint,[middlePrior]);
+assert(compactMiddle.every(x=>x.previousConclusion.length<=240&&
+ x.previousConclusion.includes('실제 실행 자원을 마련하는 일은 별개의 조건')),
+ 'cross-chapter excerpt must retain the actual central distinction, without increasing provider cost');
+assert(compactMiddle.every(x=>x.previousConclusion.startsWith('본문 첫머리')&&
+ x.previousConclusion.includes('마지막 문장')),
+ 'new central excerpt must not lose the original beginning and ending');
 const bodyAndSynopsis={...twoRecords,
  topicConclusions:['요약에서는 조건을 넓게 설명했습니다.'],
  body:['실제 본문에서는 설명을 이해하는 일과 준비된 자원으로 실행하는 일을 분리했습니다.']};
