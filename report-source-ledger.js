@@ -28,14 +28,21 @@ function usedPaths(section,topic){
 }
 // Prefer the actual reader-visible paragraph when available; summaries
 // may omit the repeated claim that the next writer needs to avoid.
-// For long paid paragraphs, preserve BOTH ends so a final substantive
-// distinction is not silently dropped by .slice(0,240).
+// For long paid paragraphs preserve the beginning, middle AND ending.
+// Two-end excerpts could silently erase the central paid interpretation,
+// allowing a later chapter to sell that same claim again.
 function priorConclusion(section,index){
  const readerText=String(section?.body?.[index]||'').trim();
  const body=readerText||section?.topicConclusions?.[index]||section?.keyJudgment||'';
  const value=String(body).replace(/\s+/g,' ').trim();
  if(value.length<=240)return value;
- return value.slice(0,127).trimEnd()+' … '+value.slice(-110).trimStart();
+ // Three disjoint windows fit within the original 240-character budget.
+ // This is comparison-only quoted data, not a reader-facing paragraph.
+ const head=value.slice(0,72).trimEnd();
+ const middleStart=Math.floor((value.length-86)/2);
+ const middle=value.slice(middleStart,middleStart+86).trim();
+ const tail=value.slice(-72).trimStart();
+ return [head,middle,tail].join(' … ');
 }
 function reusedBefore(nextIds,blueprint,priorSections,packet){
  // When a real fact packet exists, use exactly the provider's permitted
