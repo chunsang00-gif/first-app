@@ -977,6 +977,30 @@ function schema(prompt,transport){
      '출생시간의 별도 뜻을 읽는 근거 두 가지를 누락 없이 인용한다: '+
      ext.sourceRefs.join(' / ')+'.';
    }
+   if(chapterId==='saju_core'&&topic==='temperament'&&
+      task.sourceOwnedYearVisibleExtension){
+    const ext=task.sourceOwnedYearVisibleExtension;
+    const verified=require('./report-paid-core-year-visible-extension')
+     .build(prompt.facts,payload.source);
+    if(!verified||JSON.stringify(ext)!==JSON.stringify(verified)||
+       task.sourceOwnedHourExtension||ext.premiumValueApproved!==false||
+       ext.professionalApproved!==false||ext.priorityEstablished!==false||
+       ext.sourceRefs.some(ref=>!permitted.includes(ref)))
+     throw Error('CORE_YEAR_VISIBLE_SCHEMA_DRIFT');
+    if(!Array.isArray(slot.anyOf)||slot.anyOf.length!==2||
+       !slot.anyOf.some(x=>x.type==='null'))
+     throw Error('CORE_YEAR_VISIBLE_EXPECTED_OPTIONAL_SLOT');
+    slot.anyOf=[p];
+    p.properties.label.description=
+     '출생 해의 별도 계산에서 확인된 질문을 쉬운 소제목으로 쓴다.';
+    p.properties.text.description+=
+     ' 출생 해 겉글자의 전통적 의미가 달의 기본 풀이와 달라지는 이유를 서술한다. '+
+     '고객이 적은 고민의 서로 다른 두 경우에 각각 새로운 확인 조건을 설명한다. '+
+     '내용 없는 사전적 뜻 나열, 출생월 뜻풀이 다시 쓰기, 실제 삶의 결과를 단정하는 문장을 금지한다. '+
+     ext.readerGoal;
+    basis.properties.refs.description+=' 출생 해와 기본 월 풀이의 실제 출처를 모두 인용한다: '+
+     ext.sourceRefs.join(' / ')+'.';
+   }
    if(task.sourceOwnedCoreReaderValue){
     const plan=task.sourceOwnedCoreReaderValue;
     const actual=require('./report-paid-core-reader-value-plan')
@@ -2190,6 +2214,13 @@ function restoreEvidence(value,prompt){
     if(omittedMeaning)
      throw Error('AI report service paid source-owned reader substance missing: '+
       id+':'+topic+':'+omittedMeaning);
+    if(id==='saju_core'&&topic==='temperament'&&
+       task.sourceOwnedYearVisibleExtension){
+     const problems=require('./report-paid-core-year-reader-application')
+      .inspect(p,chapter.paragraphs.strength?.text,task.sourceOwnedYearVisibleExtension);
+     if(problems.length)
+      throw Error('CORE_YEAR_EXTENSION_READER_VALUE_MISSING:'+problems.join('|'));
+    }
     if(id==='saju_core'&&topic==='temperament'&&
        task.sourceOwnedHourExtension){
      const problems=require('./report-paid-core-hour-reader-application')
