@@ -1,8 +1,12 @@
 # Registration-only workflow for GitHub Actions manual dispatch discovery.
-# The main branch NEVER touches provider credentials, bills an API, or deploys.
+# This branch registers the workflow through one harmless push-triggered echo.
+# Manual dispatches on main skip the only job; no provider credentials or billing.
 # Select the separately reviewed feature branch for the one-call QA runner.
 name: Terra first chapter — one explicit paid QA (feature branch only)
 on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/terra-first-chapter-qa.yml']
   workflow_dispatch:
     inputs:
       paid_qa_confirmation:
@@ -13,7 +17,7 @@ permissions:
   contents: read
 jobs:
   default-branch-never-bill:
-    if: ${{ false }}
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
     steps:
-      - run: echo 'Main branch is registration-only. No provider calls.'
+      - run: echo 'Safe registration ping only; no secrets, paid API, checkout, or deploy.'
