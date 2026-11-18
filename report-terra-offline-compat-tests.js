@@ -133,8 +133,10 @@ const cost=require('./report-adaptive-v1-offline-cost-plan');
  await assert.rejects(qa.guardFirstDispatch(env,async()=>({ok:false})),
   /TERRA_ONE_CALL_DENIED/);
  const workflow=fs.readFileSync(path.join(__dirname,qa.WORKFLOW),'utf8');
- assert(workflow.includes('if: ${{ false }}'),
-  'Terra billable job MUST remain hard-disabled before separate approval');
+ assert(workflow.includes("if: ${{ github.ref_name == 'fix-paid-qa-fact-bindings-20261014' && startsWith(inputs.paid_qa_confirmation, 'QA_TERRA_20261118_FIRST_CHAPTER_ONCE_') }}"),
+  'Terra job must require the feature branch and a user-provided approval code');
+ assert(!/^  push:|^  schedule:|^  pull_request:/m.test(workflow),
+  'Terra paid job must not run automatically on push, schedule, or pull request');
  assert(workflow.includes('workflow_dispatch:')&&
   workflow.includes('node qa-terra-first-chapter-one-shot.js')&&
   workflow.includes('node report-qa-secure-archive.js encrypt')&&
