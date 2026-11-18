@@ -97,9 +97,9 @@ const server=http.createServer(require('./server').handler);
   assert(request.data.scope.plannedChapterIds.includes('decision'));
   assert(request.data.scope.plannedChapterIds.includes('integrated_judgment'));
   assert(!request.data.scope.plannedChapterIds.includes('stress'));
-  assert(!request.data.scope.plannedChapterIds.some(id=>
-   ['decision','stress','integrated_judgment'].includes(id)),
-   'buyer-neutral repeated chapters must not appear in the scoped checkout offer');
+  // This buyer DID provide a specific learning decision: two relevant
+  // decision/integration chapters are eligible, but generic stress is not.
+  assert(!request.data.scope.plannedChapterIds.includes('stress'));
   const pending=await post('/api/checkout/status',{orderId,ownerToken});
   assert.equal(pending.code,200);
   assert.equal(pending.data.state,'awaiting-provider-confirmation',
