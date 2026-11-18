@@ -15,6 +15,19 @@ const plan=require('./report-adaptive-v1-offline-cost-plan');
  assert.equal(report.rows.length,report.bodyCalls);
  assert.deepEqual(report.rows[0].chapters,['saju_core']);
  assert.equal(report.rows[0].kind,'actual-first-envelope');
+ assert.match(report.firstBodyRequestSha256,/^[a-f0-9]{64}$/);
+ assert.equal(report.rows[0].requestSha256,report.firstBodyRequestSha256,
+  'the published first paid request digest must be the actual request body digest');
+ assert(report.rows.slice(1).every(row=>!Object.hasOwn(row,'requestSha256')),
+  'unwritten later paid chapters may never be labeled as exact provider requests');
+ assert.equal(report.modelShutdownDate,'2027-01-14');
+ assert.equal(report.modelMigrationBeforeLaunchRequired,true);
+ const candidate=await require('./qa-current-core-preflight').prepare();
+ assert.equal(report.firstBodyRequestSha256,candidate.sha256,
+  'the planned first-charge envelope must equal the locked strict first-call preflight');
+ assert.equal(report.rows[0].requestUtf8Bytes,candidate.requestBytes,
+  'the cost forecast and provider preflight must measure identical request bytes');
+ assert.equal(candidate.approvalToCharge,false);
  assert(report.rows[0].requestUtf8Bytes>20000,'real writer+schema must be serialized');
  assert(report.rows.slice(1).every(row=>
   row.kind==='later-batch-no-prior-prose-projection'&&
