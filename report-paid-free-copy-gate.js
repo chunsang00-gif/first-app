@@ -33,13 +33,13 @@ function inspect(sections,packet){
  const topics=core.bodyTopics||[];
  const evidence=Array.isArray(core.evidence)?core.evidence.join(' '):'';
  const natalRefs=[...new Set([...evidence.matchAll(
-  /natal\\.(?:year|month|day|hour)\\.(?:stem|hidden\\.[甲乙丙丁戊己庚辛壬癸])/g
+  /natal\.(?:year|month|day|hour)\.(?:stem|hidden\.[甲乙丙丁戊己庚辛壬癸])/g
  )].map(match=>match[0]))];
  const monthOnly=natalRefs.length>=2&&
   natalRefs.includes('natal.month.stem')&&
   natalRefs.some(id=>id.startsWith('natal.month.hidden.'))&&
   natalRefs.every(id=>id.startsWith('natal.month.'))&&
-  !/(?:facts\\.(?:seasonalEvidence|qiEvidence)|person\\.mbti)/.test(evidence);
+  !/(?:facts\.(?:seasonalEvidence|qiEvidence)|person\.mbti)/.test(evidence);
  const concreteBuyerQuestion=typeof packet.person?.readerDecision==='string'&&
   packet.person.readerDecision.trim().length>0;
  if(topics.length===1&&topics[0]==='strength'&&monthOnly&&
