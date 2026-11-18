@@ -37,20 +37,20 @@ for(const input of cases){
   'natal.month.hidden.'+monthMain+' (verified month main hidden)'];
  const thin={id:'saju_core',bodyTopics:['strength'],body:[essay],evidence:proof};
  const reason='paid-core-no-independent-reader-value:saju_core:strength';
- assert(copy.inspect([thin],packet).includes(reason),
+ assert(copy.minimumValueProblems(thin,packet).includes(reason),
   'a synonym-only month explanation must not clear the paid editorial gate');
  const extra={...thin,bodyTopics:['temperament','strength'],
   body:['계절과 겉글자가 태어난 날에 서로 다르게 닿는 경우를 따로 설명합니다.',essay],
   evidence:[...proof,'temperament: facts.seasonalEvidence (independent evidence)']};
- assert(!copy.inspect([extra],packet).includes(reason),
+ assert(!copy.minimumValueProblems(extra,packet).includes(reason),
   'an independently grounded second topic remains eligible for human review');
  const buyer=facts.build({...cases[0],
   readerDecision:'새 기술을 배울지 현재 일을 계속할지 고민합니다.'},2027);
  assert.equal(typeof buyer.person.readerDecision,'string');
- assert(!copy.inspect([thin],buyer).includes(reason),
+ assert(!copy.minimumValueProblems(thin,buyer).includes(reason),
   'a voluntary concrete customer question is handled by its separate application gate');
  const noProof={...thin,evidence:['unstructured prose without verified IDs']};
- assert(!copy.inspect([noProof],packet).includes(reason),
+ assert(!copy.minimumValueProblems(noProof,packet).includes(reason),
   'missing provenance should be rejected by the grounding gate, not guessed here');
 }
 
