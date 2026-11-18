@@ -87,4 +87,26 @@ assert(thin.failedTechnicalChecks.includes('chapter-scope-not-confirmed'));
 const empty=release.assess({});
 assert.equal(empty.releaseVerdict,'not-approved');
 assert.equal(empty.humanReviewRequired,true);
+// Historical Terra's paid first chapter was a single MONTH-only reading.
+// A clean schema and verified citations do not prove distinct PAID content.
+{
+ const facts=require('./report-facts-node');
+ const real=facts.build({calendar:'lunar',leapMonth:false,
+  birthDate:'1982-11-24',birthTime:'14:20',gender:'male',mbti:'ISFP'},2027);
+ assert.equal(real.status,'ready');
+ const main=real.facts.structuralEvidence.monthCommand.mainHiddenStem;
+ const held=structuredClone(report);
+ held.sections[0]={...held.sections[0],
+  bodyTopics:['strength'],body:['서로 다른 출생월의 두 분류를 가정 상황에 연결해 뜻을 설명합니다.'],
+  evidence:['strength: natal.month.stem; natal.month.hidden.'+main+
+   ' / 확인 가능한 출생월의 계산 출처만 사용합니다.']};
+ const result=release.assess({report:held,qa:{pass:true,errors:[]},
+  packet:real,coverage});
+ assert(result.failedTechnicalChecks.includes(
+  'paid-core-no-independent-reader-value:saju_core:strength'),
+  'no paid release based solely on month facts already covered by free');
+ assert.equal(result.technicalChecks,'incomplete');
+ assert.equal(result.releaseVerdict,'not-approved');
+}
+
 console.log('PASS release gate separates computed QA, source trace, scope and independent human review; no paid API');
