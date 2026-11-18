@@ -28,7 +28,16 @@ function build(packet,source){
  const ids=a.sourceRefs;
  const main=a.mainMonthId;
  const expected=['natal.month.stem',main,'natal.year.stem','facts.stemConnections'];
- const rows=source||{};
+ // The editorial-goal reader initially passes positional bindings only,
+ // whereas the real provider compiler supplies the verified connection
+ // ledger as well. V2 already independently recomputes and validates that
+ // ledger from the exact chart: normalize the two views, not the evidence.
+ const rows={...(source||{})};
+ if(rows['facts.stemConnections']&&
+    JSON.stringify(rows['facts.stemConnections'])!==
+     JSON.stringify(packet.facts.stemConnections))
+  throw Error('CORE_YEAR_VISIBLE_LEDGER_MISMATCH');
+ rows['facts.stemConnections']=packet.facts.stemConnections;
  const year=rows['natal.year.stem'],primary=rows[main];
  if(JSON.stringify(ids)!==JSON.stringify(expected)||
     !ids.every(id=>Object.hasOwn(rows,id))||
