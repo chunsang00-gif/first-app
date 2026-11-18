@@ -24,7 +24,12 @@ global.fetch=()=>{network++;throw Error('NEVER_CONTACT_NETWORK_FOR_PRIVATE_REVIE
     humanEditorialReviewRequired:true,releaseVerdict:'not-approved'},
    raw:{kind:'terra-first-chapter-private-provider-response',
     model:qa.MODEL,requestHash:qa.FROZEN_REQUEST_SHA256,request,
-    response:{status:'completed',output_text:'<secret>NOT_PUBLIC_PROSE</secret>'},
+    response:{chapters:{saju_core:{
+      title:'첫 장 독자 평가',
+      keyJudgment:'달의 중심 뜻과 다른 겉글자의 전통 분류를 구별합니다.',
+      paragraphs:{strength:{label:'강점 해석',
+       text:'해석은 <script>alert(9)</script> 같은 구체적 문장을 검토합니다.'}}
+    }},otherPrivateNotes:'NOT_PUBLIC_PROSE'},
     usage:{input_tokens:1550,output_tokens:520},providerCalls:1,
     releaseVerdict:'not-approved',otherSecret:'NOT_PUBLIC_EXTRA'},
    validated:{kind:'terra-first-chapter-automated-check',
@@ -65,7 +70,11 @@ global.fetch=()=>{network++;throw Error('NEVER_CONTACT_NETWORK_FOR_PRIVATE_REVIE
    ['double-response',v=>{v.raw.providerCalls=2}],
    ['wrong-section',v=>{v.validated.batches[0].sections[0].id='career'}],
    ['missing-core',v=>{v.validated.batches[0].sections[0].bodyTopics=['temperament']}],
-   ['unreviewed-status',v=>{v.validated.machineValidation='failed'}]
+   ['unreviewed-status',v=>{v.validated.machineValidation='failed'}],
+   ['http-status-wrapper',v=>{v.raw.response={status:'completed',output_text:'x'}}],
+   ['raw-text-mismatch',v=>{v.raw.response.chapters.saju_core.paragraphs.strength.text='새로 바꾼 원문'}],
+   ['raw-title-mismatch',v=>{v.raw.response.chapters.saju_core.title='다른 원고'}],
+   ['raw-judgment-mismatch',v=>{v.raw.response.chapters.saju_core.keyJudgment='다른 결론'}]
   ]){
    const bad=structuredClone(evidence);mutate(bad);
    assert.throws(()=>review.build(bad),/TERRA_PRIVATE_REVIEW_DENIED/,name);
