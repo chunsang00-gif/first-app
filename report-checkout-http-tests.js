@@ -57,8 +57,19 @@ const server=http.createServer(require('./server').handler);
     body:JSON.stringify(value||{})});
    return {code:r.status,data:await r.json()};
   };
-  const input={calendar:'solar',birthDate:'1994-07-15',
+  const thinInput={calendar:'solar',birthDate:'1994-07-15',
    birthTime:'14:20',gender:'male',mbti:'ISFP',name:'testing'};
+  // Even the synthetic configured merchant cannot reserve money for a
+  // first chapter that just repeats the FREE month reading.
+  const thin=await post('/api/checkout/start',
+   {analysisInput:{status:'ready',calculationInput:thinInput}});
+  assert.equal(thin.code,422);
+  assert.equal(chargeAttempts,0);
+  // Use the chart + self-reported choice already proven to produce a
+  // separate, REQUIRED birth-hour paragraph in the real paid writer.
+  const input={calendar:'lunar',birthDate:'1982-11-24',leapMonth:false,
+   birthTime:'14:20',gender:'male',mbti:'ISFP',name:'testing',
+   readerDecision:'기존 일을 유지할지 새로운 기술을 배울지 고민 중입니다.'};
   const startPayload={analysisInput:{status:'ready',calculationInput:input}};
   const missingOffer=await post('/api/checkout/start',{});
   assert.equal(missingOffer.code,422);
@@ -79,8 +90,13 @@ const server=http.createServer(require('./server').handler);
   assert.equal(request.data.scope.countsAreUpperBounds,true);
   assert.equal(request.data.scope.fixed12ChaptersPromised,false);
   assert.equal(request.data.scope.fixed35TopicsPromised,false);
-  assert.equal(request.data.scope.plannedChapters,7,
-   'buyer-visible checkout count must match the real adaptive 7-chapter 1994 chart');
+  const trueScope=require('./report-product-coverage').calculate(input).estimate;
+  assert.equal(request.data.scope.plannedChapters,trueScope.plannedChapters,
+   'checkout promise must match real selected chapter scope for this buyer');
+  assert(request.data.scope.plannedChapterIds.includes('saju_core'));
+  assert(request.data.scope.plannedChapterIds.includes('decision'));
+  assert(request.data.scope.plannedChapterIds.includes('integrated_judgment'));
+  assert(!request.data.scope.plannedChapterIds.includes('stress'));
   assert(!request.data.scope.plannedChapterIds.some(id=>
    ['decision','stress','integrated_judgment'].includes(id)),
    'buyer-neutral repeated chapters must not appear in the scoped checkout offer');
