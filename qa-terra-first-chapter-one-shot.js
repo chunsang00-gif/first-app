@@ -104,7 +104,7 @@ async function run(){
  // Persist this BEFORE a possibly billable HTTP request.
  writeOnce(attempt,{kind:'terra-first-chapter-one-attempt',
   status:'charge-possible-no-retry',commit:env.GITHUB_SHA,
-  model:MODEL,requestHash:FROZEN_REQUEST_SHA256,
+  runId:Number(env.GITHUB_RUN_ID),model:MODEL,requestHash:FROZEN_REQUEST_SHA256,
   providerCallsAllowed:1,releaseVerdict:'not-approved'});
  let calls=0,saved=false,passed=false;
  try{
