@@ -47,8 +47,8 @@ for(const input of cases){
  const buyer=facts.build({...cases[0],
   readerDecision:'새 기술을 배울지 현재 일을 계속할지 고민합니다.'},2027);
  assert.equal(typeof buyer.person.readerDecision,'string');
- assert(!copy.minimumValueProblems(thin,buyer).includes(reason),
-  'a voluntary concrete customer question is handled by its separate application gate');
+ assert(copy.minimumValueProblems(thin,buyer).includes(reason),
+  'a buyer question alone must not approve a month-only paid chapter');
  const noProof={...thin,evidence:['unstructured prose without verified IDs']};
  assert(!copy.minimumValueProblems(noProof,packet).includes(reason),
   'missing provenance should be rejected by the grounding gate, not guessed here');
