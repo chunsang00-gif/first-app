@@ -86,4 +86,4 @@ function build(packet,source){
    '고객의 고민은 실제 행동을 관찰한 증거가 아니라 본인이 제공한 질문이다.'
  });
 }
-module.exports={build};
+module.exports={build,domainFor,DOMAINS};
