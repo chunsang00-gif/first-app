@@ -119,12 +119,15 @@ async function run(){
    const actual=generation.compile(prompt);
    if(JSON.stringify(actual)!==JSON.stringify(expected))
     deny('fresh-server-prompt-mismatch');
-   return callOpenAI(prompt,async response=>{
+   return callOpenAI(prompt,async(response,receipt)=>{
     if(saved)deny('duplicate-provider-callback');
+    // The provider can bill for an incomplete or invalid response.
+    // Preserve token usage privately, never log prose, never invent $0.
+    const usage=receipt?.usage||response?.usage||null;
     writeOnce(raw,{kind:'private-first-chapter-original-provider-response',
      sample:readiness.SAMPLE,requestHash:FROZEN_REQUEST_SHA256,
      model:ready.model,providerCalls:1,
-     request:actual,response,releaseVerdict:'not-approved'});
+     request:actual,response,usage,releaseVerdict:'not-approved'});
     saved=true;
    });
   },()=>{},async batch=>{
