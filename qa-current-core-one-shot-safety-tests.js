@@ -70,5 +70,11 @@ const reply=runs=>async()=>({ok:true,json:async()=>({
   'new workflow must remain manual-only and encrypted');
  assert(!j.includes('run-paid-report-qa.js'),
   'old full-report/7-call runner must never be reachable from new job');
+ const runner=fs.readFileSync(path.join(__dirname,'qa-current-core-one-shot.js'),'utf8');
+ assert(runner.includes('callOpenAI(prompt,async(response,receipt)=>')&&
+  runner.includes('const usage=receipt?.usage||response?.usage||null;')&&
+  runner.includes('request:actual,response,usage,releaseVerdict'),
+  'a new first-chapter one-call archive must privately retain provider token usage even on failure');
+
  console.log('PASS new normal one-call paid QA dormant without exact fresh consent, frozen envelope, no reruns, no plaintext artifacts and zero provider calls');
 })().catch(e=>{console.error(e);process.exitCode=1});
