@@ -25,7 +25,8 @@ function plan(groups){
 // Unknown model families retain the old conservative cap rather than risk
 // requesting a budget the provider cannot support.
 function outputLimit(model,prompt){
- if(!/^gpt-4\.1(?:-|$)/.test(String(model)))return 9000;
+ // Explicitly permit the same sample scope for Terra; other models remain conservative.
+ if(model!=='gpt-6.1-terra'&&!/^gpt-4\.1(?:-|$)/.test(String(model)))return 9000;
  if(prompt?.stage==='synthesis')return 12000;
  if(prompt?.stage==='body'&&(prompt.requestedSections||[]).includes('saju_core'))
   return 18000;
