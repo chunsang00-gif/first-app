@@ -3,7 +3,7 @@
 // This never calls a paid model, uses no API keys, does not certify manuscript
 // quality, and cannot authorize billing or sales. Counts request-envelope
 // BYTES, not actual OpenAI input tokens.
-const fs=require('node:fs'),path=require('node:path');
+const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
 const captured=require('./report-core-paid-full-prompt-capture');
 const guidance=require('./report-analysis-guidance');
 const selection=require('./report-chapter-selection');
@@ -85,6 +85,10 @@ async function inspect(){
   const bytes=Buffer.byteLength(JSON.stringify(env),'utf8');
   const scenarioInput=bytes+2048+index*INCREMENTAL_CARRYOVER_TOKENS;
   return {number:index+1,chapters:ids,kind:index===0?'actual-first-envelope':'later-batch-no-prior-prose-projection',
+   // ONLY the real first request may carry a hash offered for future
+   // consent. Later batches lack previous model prose and are projections.
+   ...(index===0?{requestSha256:crypto.createHash('sha256')
+    .update(JSON.stringify(env)).digest('hex')}:{}),
    requestUtf8Bytes:bytes,outputTokenCeiling:env.max_output_tokens,
    illustrativeInputPlanningTokens:scenarioInput,
    illustrativeCostIfFullOutputUSD:dollars(scenarioInput,env.max_output_tokens)};
@@ -102,6 +106,8 @@ async function inspect(){
   chosenChapters:selected.plannedIds,omittedChapters:selected.omitted.map(x=>x.id),
   bodyCalls:groups.length,finalCalls:1,totalCalls:groups.length+1,
   firstBodyIsExactPrebillingComposition:true,allLaterBodiesAreUnbilledProjections:true,
+  firstBodyRequestSha256:bodies[0].requestSha256,
+  modelShutdownDate:'2027-01-14',modelMigrationBeforeLaunchRequired:true,
   rows:bodies,
   synthesis:{kind:'uncreated-full-manuscript-variable-input',
    inputReservePlanningTokens:SYNTHESIS_INPUT_RESERVE_TOKENS,
