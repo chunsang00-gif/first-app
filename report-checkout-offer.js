@@ -48,6 +48,14 @@ function build(input){
     e.chapters.filter(ch=>ch.includedInPlan)
      .reduce((sum,ch)=>sum+ch.eligibleTopicUpperBound,0)!==p.topicCandidateUpperBound)
   throw Error('ADAPTIVE_OFFER_SCOPE_MISMATCH');
+ // Even a structurally valid multi-chapter offer must not charge for a
+ // first paid chapter that has no independently sourced answer beyond FREE.
+ // Only the actual normal writer and mandatory second source qualify.
+ // Human manuscript approval and separate launch flags are STILL required.
+ const firstChapter=require('./report-paid-core-precharge-value').inspect(canonical);
+ if(firstChapter.eligible!==true||firstChapter.modelQualityValidated!==false||
+    firstChapter.customerSaleApproved!==false||firstChapter.additionalModelCalls!==0)
+  throw Error('ADAPTIVE_OFFER_FIRST_CHAPTER_NOT_READY');
  const content=Object.freeze({
   kind:KIND,productMode:PRODUCT_MODE,targetYear:2027,
   inputFingerprint:digest(canonical),plannedChapterIds:Object.freeze(planned),
