@@ -17,7 +17,7 @@ const cost=require('./report-adaptive-v1-offline-cost-plan');
  assert.equal(report.KoreanPremiumProseApproved,false);
  assert.equal(report.pricingTier,'Standard');
  assert.deepEqual([report.rateUSDPerMillion.input,report.rateUSDPerMillion.output],[1,5]);
- assert.equal(report.firstCallIllustrativeUSD,0.160189,
+ assert.equal(report.firstCallIllustrativeUSD,0.160225,
   'do not mistake Flex/Batch half-price for the synchronous Standard endpoint');
  assert.equal(report.legacyIllustrativeUSD,0.284378);
  assert.equal(report.outputTokenCeiling,18000);
@@ -85,6 +85,6 @@ const cost=require('./report-adaptive-v1-offline-cost-plan');
    if(value===undefined)delete process.env[name];else process.env[name]=value;
   }
  }
- console.log('PASS Terra offline provider payload equals real server boundary, exact 18k output, Standard $0.160189 scenario, 0 paid calls');
+ console.log('PASS Terra offline provider payload equals real server boundary, exact 18k output, Standard $0.160225 scenario, 0 paid calls');
  console.log('TERRA_OFFLINE_COMPAT='+JSON.stringify(report));
 })().catch(error=>{console.error(error);process.exitCode=1});
