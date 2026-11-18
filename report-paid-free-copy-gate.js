@@ -24,6 +24,27 @@ function inspect(sections,packet){
   throw Error('PAID_FREE_COPY_UNVERIFIED_PREVIEW');
  const cards=sample.cards.filter(x=>['birth-month','month-visible-link'].includes(x.id));
  const errors=[];
+ // The real 2026-11-18 paid Terra chapter consisted of ONE strength paragraph
+ // citing only the two month positions that the FREE preview already explains.
+ // Copy similarity could not flag it because its wording differed. This is
+ // a commercial minimum-value HOLD, not a claim that other paragraphs sell.
+ // If a buyer supplies a concrete question or the chapter has independent
+ // validated season/year/day/hour evidence, preserve human review eligibility.
+ const topics=core.bodyTopics||[];
+ const evidence=Array.isArray(core.evidence)?core.evidence.join(' '):'';
+ const natalRefs=[...new Set([...evidence.matchAll(
+  /natal\\.(?:year|month|day|hour)\\.(?:stem|hidden\\.[甲乙丙丁戊己庚辛壬癸])/g
+ )].map(match=>match[0]))];
+ const monthOnly=natalRefs.length>=2&&
+  natalRefs.includes('natal.month.stem')&&
+  natalRefs.some(id=>id.startsWith('natal.month.hidden.'))&&
+  natalRefs.every(id=>id.startsWith('natal.month.'))&&
+  !/(?:facts\\.(?:seasonalEvidence|qiEvidence)|person\\.mbti)/.test(evidence);
+ const concreteBuyerQuestion=typeof packet.person?.readerDecision==='string'&&
+  packet.person.readerDecision.trim().length>0;
+ if(topics.length===1&&topics[0]==='strength'&&monthOnly&&
+    !concreteBuyerQuestion)
+  errors.push('paid-core-no-independent-reader-value:saju_core:strength');
  for(let i=0;i<(core.body||[]).length;i++){
   const paid=String(core.body[i]||''),compact=norm(paid);
   if(compact.length<55)continue;
