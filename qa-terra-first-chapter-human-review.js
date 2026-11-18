@@ -40,7 +40,11 @@ function build({attempt,raw,validated,summary}){
     raw.request?.model!==qa.MODEL||
     raw.request?.max_output_tokens!==18000||
     digest(raw.request)!==qa.FROZEN_REQUEST_SHA256||
-    raw.response?.status!=='completed')refuse('raw-response-identity');
+    !raw.response||typeof raw.response!=='object'||
+    Array.isArray(raw.response)||
+    raw.response.status!==undefined||
+    !raw.response.chapters?.saju_core?.paragraphs)
+    refuse('raw-response-identity');
  if(validated?.kind!=='terra-first-chapter-automated-check'||
     validated.machineValidation!=='passed-not-human-reviewed'||
     validated.releaseVerdict!=='not-approved'||
@@ -50,6 +54,20 @@ function build({attempt,raw,validated,summary}){
     batch.completedSections!==1||batch.sections?.length!==1||
     batch.sections[0]?.id!=='saju_core')refuse('batch-scope');
  const section=batch.sections[0];
+ // The server's successful provider callback archives the PARSED strict
+ // model JSON (chapters.saju_core), not the outer HTTP envelope with
+ // status:'completed'. A response/validated-file mismatch must fail closed.
+ const original=raw.response.chapters.saju_core;
+ const reader=require('./report-reader-policy');
+ if(!original||!original.paragraphs||
+    reader.plainText(original.title)!==section.title||
+    reader.plainText(original.keyJudgment)!==section.keyJudgment||
+    section.bodyTopics?.some((topic,i)=>{
+      const p=original.paragraphs[topic];
+      return typeof p?.text!=='string'||
+       reader.plainText(p.text)!==section.body[i]||
+       reader.plainText(p.label)!==section.bodyLabels[i];
+    }))refuse('provider-original-vs-validated-mismatch');
  if(typeof section.title!=='string'||!section.title.trim()||
     typeof section.keyJudgment!=='string'||!section.keyJudgment.trim()||
     !Array.isArray(section.body)||!Array.isArray(section.bodyLabels)||
