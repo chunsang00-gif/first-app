@@ -51,7 +51,7 @@ async function guardFirstDispatch(env=process.env,request=global.fetch){
  // This is a NEW workflow. Any previous manual dispatch, including one that
  // failed before billing, permanently consumes this workflow's one slot.
  const url='https://api.github.com/repos/'+REPO+
-  '/actions/workflows/terra-first-chapter-qa.yml/runs?event=workflow_dispatch&per_page=100';
+  '/actions/workflows/terra-first-chapter-qa.yml/runs?event=workflow_dispatch&branch='+BRANCH+'&per_page=100';
  let response,body;
  try{
   response=await request(url,{headers:{
