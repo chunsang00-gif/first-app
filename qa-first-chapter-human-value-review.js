@@ -62,6 +62,7 @@ function build(record){
  });
 }
 function renderHtml(r){
+ if(!Number.isSafeInteger(r?.sourceRun)||r.sourceRun<1)throw Error('INVALID_PRIVATE_REVIEW_RUN_ID');
  if(r?.kind!=='same-chart-human-first-chapter-value-comparison-v1'||
    !/^[a-f0-9]{64}$/.test(r.sourceHash||'')||
    !r.humanReviewRequired||r.customerSaleApproved!==false||
@@ -84,7 +85,7 @@ function renderHtml(r){
   "const decision=document.getElementById('decision').value;",
   "if(choices.some(function(x){return x.answer==='undecided';})||decision==='undecided'){document.getElementById('message').textContent='모든 항목과 최종 판단을 먼저 선택하세요.';return;}",
   "const result={kind:'private-first-chapter-human-rating-v1',sourceHash:document.body.dataset.sourceHash,",
-  "sourceRun:42369675176,criteria:choices,editorialDecision:decision,",
+  "sourceRun:"+Number(r.sourceRun)+",criteria:choices,editorialDecision:decision,",
   "newInformation:document.getElementById('newInfo').value.trim(),",
   "reason:document.getElementById('reason').value.trim(),",
   "technicalTestsNotHumanApproval:true,customerSaleApproved:false,releaseVerdict:'not-approved'};",
