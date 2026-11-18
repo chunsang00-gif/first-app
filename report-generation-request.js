@@ -246,6 +246,12 @@ function paidCoreHourGoal(prompt){
  if(hour.classicalPriorityApproved!==false||hour.premiumValueApproved!==false||
     hour.realAbilityObserved!==false||hour.extraPaidTopic!==false)
   throw Error('PAID_CORE_HOUR_GOAL_UNVERIFIED');
+ if(hour.readerDomain&&hour.readerDomain!=='skill')return
+  '선택 문단은 출생월 무료 풀이와 다른 출생시간의 전통적 분류를 고객이 직접 입력한 고민에 적용한다. '+
+  '시간 겉글자와 시간 속글자의 실제 계산 출처는 반드시 두 개 인용한다. '+
+  '새로 추가되는 속글자의 전통적 분류는 '+hour.hourHiddenRole+'이다. '+
+  hour.readerGoal+' 설명이 충분하지 않으면 꾸며 쓰지 않고 해당 검수에서 실패 처리한다. '+
+  '기존 출생월 필수 strength 문단은 그대로 유지한다.';
  return '선택 문단은 출생월의 계절 풀이 대신 이 명식의 정확한 출생시간에서 독립적으로 확인된 전통적 표현 분류를 설명한다. '+
   '고객이 직접 입력한 배움·기술 관련 고민을 구체적인 가상의 선택으로 사용하되 두 개의 삶의 결과를 예언하지 않는다. '+
   '시간의 숨은 글자 분류는 '+hour.hourHiddenRole+'이며 출생시간 겉글자와 숨은 글자의 정확한 두 출처를 내부 근거로 연결한다. '+
