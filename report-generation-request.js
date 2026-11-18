@@ -242,7 +242,15 @@ function paidCoreHourGoal(prompt){
  const rows=require('./report-fact-bindings').build(prompt.facts);
  const sources=Object.fromEntries(rows.map(row=>[row.id,row]));
  const hour=require('./report-paid-core-hour-extension').build(prompt.facts,sources);
- if(!hour)return null;
+ if(!hour){
+  const year=require('./report-paid-core-year-visible-extension').build(prompt.facts,sources);
+  if(!year)return null;
+  if(year.premiumValueApproved!==false||year.professionalApproved!==false||
+     year.priorityEstablished!==false||year.extraPaidTopic!==false)
+   throw Error('PAID_CORE_YEAR_GOAL_UNVERIFIED');
+  return '추가 선택 문단은 출생월 무료 풀이를 다시 쓰지 않고 출생 해 겉글자의 별도 전통적 의미를 고객의 실제 질문에 조건부로 연결한다. '+
+   year.readerGoal+' 출생월 필수 strength 문단은 기존 근거만 사용한다.';
+ }
  if(hour.classicalPriorityApproved!==false||hour.premiumValueApproved!==false||
     hour.realAbilityObserved!==false||hour.extraPaidTopic!==false)
   throw Error('PAID_CORE_HOUR_GOAL_UNVERIFIED');
@@ -411,6 +419,11 @@ function compile(prompt){
      const ext=require('./report-paid-core-hour-extension')
       .build(prompt.facts,source);
      if(ext)topic.sourceOwnedHourExtension=ext;
+     else{
+      const year=require('./report-paid-core-year-visible-extension')
+       .build(prompt.facts,source);
+      if(year)topic.sourceOwnedYearVisibleExtension=year;
+     }
     }
     const permitted=[...allowedRefs(payload,topic,chapterId,topicId)];
     topic.citableFacts=permitted.map(id=>{
@@ -1781,6 +1794,19 @@ function allowedRefs(payload,task,chapterId,topic){
    throw Error('CORE_HOUR_EXTENSION_REF_DRIFT');
   for(const ref of ext.sourceRefs)ids.add(ref);
  }
+ if(chapterId==='saju_core'&&topic==='temperament'&&
+    task?.sourceOwnedYearVisibleExtension){
+  const year=task.sourceOwnedYearVisibleExtension;
+  if(task.sourceOwnedHourExtension||
+     year.kind!=='buyer-question-year-visible-role-addition-v1'||
+     year.premiumValueApproved!==false||year.priorityEstablished!==false||
+     year.professionalApproved!==false||
+     JSON.stringify(year.sourceRefs)!==JSON.stringify([
+      'natal.month.stem',year.mainMonthId,'natal.year.stem','facts.stemConnections'])||
+     year.sourceRefs.some(ref=>!Object.hasOwn(payload.source,ref)))
+   throw Error('CORE_YEAR_VISIBLE_REF_DRIFT');
+  for(const ref of year.sourceRefs)ids.add(ref);
+ }
  if(chapterId==='saju_core'&&topic==='temperament'&&task?.paidCoreDepthV2){
   const extra=task.paidCoreDepthV2;
   if(extra.kind!=='first-chapter-optional-full-chart-source-v1'||
@@ -1938,6 +1964,8 @@ function restoreEvidence(value,prompt){
    const task=payload.task.chapters?.[id]?.topics?.[topic];
    if(p===null&&id==='saju_core'&&topic==='temperament'&&task?.sourceOwnedHourExtension)
     throw Error('CORE_HOUR_EXTENSION_REQUIRED_READER_PARAGRAPH_MISSING');
+   if(p===null&&id==='saju_core'&&topic==='temperament'&&task?.sourceOwnedYearVisibleExtension)
+    throw Error('CORE_YEAR_EXTENSION_REQUIRED_READER_PARAGRAPH_MISSING');
    if(p===null)continue;
    const b=p.basis;
    const limited=task?.mode==='state-limits';
