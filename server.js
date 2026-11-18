@@ -200,6 +200,16 @@ if(req.method==='POST'&&req.url==='/api/checkout/start'){
  const payload=await body(req);
  const sourceInput=payload?.analysisInput?.calculationInput;
  if(!sourceInput)return json(res,422,{status:'blocked',code:'ADAPTIVE_OFFER_INPUT_REQUIRED'});
+ // No pending order may be reserved when the existing normal paid first
+ // chapter has no guaranteed independent, source-cited interpretation beyond
+ // the free month. This is completely offline; no provider or merchant call.
+ // The free preview and scope/fingerprint builders must remain usable.
+ let firstChapter;
+ try{firstChapter=require('./report-paid-core-precharge-value').inspect(sourceInput)}
+ catch{return json(res,422,{status:'blocked',code:'FIRST_CHAPTER_PROOF_UNVERIFIABLE'})}
+ if(firstChapter.eligible!==true||firstChapter.customerSaleApproved!==false||
+    firstChapter.additionalModelCalls!==0)
+  return json(res,422,{status:'blocked',code:'FIRST_CHAPTER_VALUE_NOT_READY'});
  let offer;
  try{offer=require('./report-checkout-offer').build(sourceInput)}
  catch{return json(res,422,{status:'blocked',code:'ADAPTIVE_OFFER_NOT_VERIFIABLE'})}
