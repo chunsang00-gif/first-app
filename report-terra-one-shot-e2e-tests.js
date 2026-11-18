@@ -20,6 +20,11 @@ const original=Object.fromEntries(keys.map(k=>[k,process.env[k]]));
 let scenario='success',modelCalls=0,githubReads=0;
 const repo='chunsang00-gif/first-app';
 const branch='fix-paid-qa-fact-bindings-20261014';
+const CHAPTER={id:'saju_core',title:'출생월의 두 계산 출처',
+ keyJudgment:'출생월의 전통 분류 둘을 구별하여 한 가지 풀이를 합니다.',
+ bodyTopics:['strength'],bodyLabels:['구체적 강점'],
+ body:['출생월의 중심 분류와 겉글자에 드러난 다른 분류를 구별해서 설명합니다.'],
+ evidence:['월간과 월지 주기 출처 비교']};
 const workflow='.github/workflows/terra-first-chapter-qa.yml';
 function checkedFiles(dir,expected){
  const found=archive.NAMES.filter(n=>fs.existsSync(path.join(dir,n)));
@@ -32,9 +37,14 @@ function checkedFiles(dir,expected){
  server.callOpenAI=async(_prompt,onResponse)=>{
   modelCalls++;
   if(scenario==='provider-failure')throw Error('FAKE_PROVIDER_UNAVAILABLE');
-  const response={status:'completed',output_text:'{"offline":true}',
-   usage:{input_tokens:123,output_tokens:456}};
-  await onResponse(response,{model:'gpt-6.1-terra',usage:response.usage});
+  // Match the real server boundary: onProviderResponse receives the parsed
+  // strict JSON VALUE, not the outer Responses API HTTP envelope.
+  const response={chapters:{saju_core:{
+   title:CHAPTER.title,keyJudgment:CHAPTER.keyJudgment,
+   paragraphs:{strength:{label:CHAPTER.bodyLabels[0],text:CHAPTER.body[0]}}
+  }},cover:null,finalJudgment:null};
+  await onResponse(response,{model:'gpt-6.1-terra',
+   usage:{input_tokens:123,output_tokens:456}});
   return response;
  };
  contract.generate=async(_sample,call,_onProgress,onBatch)=>{
@@ -46,7 +56,7 @@ function checkedFiles(dir,expected){
   await call(prompt);
   if(scenario==='second-batch')await call(prompt);
   else await onBatch({ids:['saju_core'],completedSections:1,
-   sections:[{id:'saju_core'}]});
+   sections:[structuredClone(CHAPTER)]});
  };
  delete require.cache[require.resolve('./qa-terra-first-chapter-one-shot')];
  const qa=require('./qa-terra-first-chapter-one-shot');
@@ -100,6 +110,10 @@ function checkedFiles(dir,expected){
     const provider=JSON.parse(fs.readFileSync(path.join(dir,names[2]),'utf8'));
     assert.deepEqual(provider.usage,{input_tokens:123,output_tokens:456});
     assert.equal(provider.requestHash,qa.FROZEN_REQUEST_SHA256);
+    assert.deepEqual(provider.response.chapters.saju_core.paragraphs.strength.text,
+     CHAPTER.body[0],'the archived response must be actual parsed provider JSON');
+    assert.equal(provider.response.status,undefined,
+     'successful server callback must not be mocked as an HTTP status envelope');
     // Even with the exact same local approval, persisted evidence prohibits
     // reusing the run folder; a second provider call must not happen.
     await assert.rejects(qa.run(),/TERRA_ONE_CALL_DENIED:old-attempt/);
@@ -115,6 +129,13 @@ function checkedFiles(dir,expected){
    assert.deepEqual(archive.decrypt(path.join(dir,archive.ARCHIVE),restored),names);
    for(const name of names)assert.deepEqual(
     fs.readFileSync(path.join(restored,name)),fs.readFileSync(path.join(dir,name)));
+   if(mode==='success'){
+    const reviewed=require('./qa-terra-first-chapter-human-review')
+     .build(require('./qa-terra-first-chapter-human-review').readPrivate(restored));
+    assert.equal(reviewed.paid.paragraphs[0].text,CHAPTER.body[0],
+     'encrypted saved provider value must survive through offline human review');
+    assert.equal(reviewed.releaseVerdict,'not-approved');
+   }
   }finally{fs.rmSync(dir,{recursive:true,force:true});}
  }
  console.log('PASS Terra local one-shot pipeline: success, provider failure, second-batch guard, no retry, encrypted private evidence; provider calls=0 (all mocks)');
