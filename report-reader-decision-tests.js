@@ -36,38 +36,36 @@ assert.deepEqual(p.chart,empty.chart,
 assert.deepEqual(p.facts,empty.facts,
  'the user-written question must never be promoted into calculated evidence');
 const paidOffer=offer.build(withDecision);
+const plainOffer=offer.build(base);
 const whitespace=offer.build({...base,readerDecision:'  '+question+'  '});
+assert.notEqual(paidOffer.inputFingerprint,plainOffer.inputFingerprint,
+ 'a paid order cannot be reused after changing the customer question');
 assert.equal(whitespace.inputFingerprint,paidOffer.inputFingerprint,
  'trim-only differences may not falsely change the purchased scope');
-const alternative=offer.build({...base,
- readerDecision:'새 기술을 배울지 현재 일을 계속할지 고민 중입니다.'});
-assert.notEqual(paidOffer.inputFingerprint,alternative.inputFingerprint,
- 'a buyer question changed after checkout must require a new offer');
-assert.notEqual(paidOffer.digest,alternative.digest);
-const scope=require('./report-product-coverage');
-const noBuyer=scope.calculate(base).estimate;
-const buyer=scope.calculate(withDecision).estimate;
-assert.equal(paidOffer.candidateTopicUpperBound,buyer.evidenceEligibleTopicUpperBound);
-assert(buyer.evidenceEligibleTopicUpperBound>noBuyer.evidenceEligibleTopicUpperBound,
- 'buyer-specific decision can justify supported decision/integration topics');
+assert(paidOffer.candidateTopicUpperBound>plainOffer.candidateTopicUpperBound,
+ 'a buyer question can justify supported decision/integration topics, never fake new natal evidence');
 assert.deepEqual(paidOffer.plannedChapterIds.filter(id=>
  ['decision','stress','integrated_judgment'].includes(id)),
  ['decision','integrated_judgment'],
- 'a career-only buyer question must not add unrelated stress');
-assert(!noBuyer.chapters.filter(x=>x.includedInPlan).some(x=>
- ['decision','stress','integrated_judgment'].includes(x.id)));
-assert.throws(()=>offer.build(base),/ADAPTIVE_OFFER_FIRST_CHAPTER_NOT_READY/,
- 'buyer-neutral month-only first chapter is not an orderable report');
-const stressPreview=scope.calculate({...base,
- readerDecision:'스트레스를 줄이고 싶습니다.'}).estimate;
-assert(stressPreview.chapters.some(x=>x.id==='stress'&&x.includedInPlan),
- 'the stress chapter remains available when independently justified');
-assert.throws(()=>offer.build({...base,
- readerDecision:'스트레스를 줄이고 싶습니다.'}),
- /ADAPTIVE_OFFER_FIRST_CHAPTER_NOT_READY/,
- 'stress relevance does not manufacture first-chapter birth-hour learning evidence');
-assert.equal(paidOffer.paymentEnabled,undefined,
- 'the verified first-chapter proof is NOT a customer payment authorization');
+ 'a career-only buyer question must not add the unrelated stress chapter');
+assert(!plainOffer.plannedChapterIds.some(id=>
+ ['decision','stress','integrated_judgment'].includes(id)),
+ 'customer-facing product must omit repetitive chapters without an explicit decision');
+assert.notEqual(paidOffer.digest,plainOffer.digest);
+const preflight=require('./report-chapter-selection');
+const GROUPS=require('./report-qa11-premium-scope-audit').GROUPS;
+assert.deepEqual(paidOffer.plannedChapterIds,preflight.select(GROUPS,
+ guidance.preflight(p),{mode:'adaptive-v1',readerQuestion:question}).plannedIds,
+ 'exact priced-offer scope must match generator pre-billing selection');
+assert.deepEqual(plainOffer.plannedChapterIds,preflight.select(GROUPS,
+ guidance.preflight(empty),{mode:'adaptive-v1'}).plannedIds,
+ 'no-buyer-question product scope must match actual generator preflight');
+const stressOffer=offer.build({...base,
+ readerDecision:'스트레스를 줄이고 싶습니다.'});
+assert(stressOffer.plannedChapterIds.includes('stress'),
+ 'the stress chapter is conditional, not globally deleted');
+assert.equal(stressOffer.paymentEnabled,undefined,
+ 'an offer fingerprint is not customer payment authorization');
 assert.equal(JSON.stringify(paidOffer).includes(question),false,
  'merchant ledger must store the digest, never the free-text question');
 assert(!Object.keys(p.facts).includes('readerDecision'));
