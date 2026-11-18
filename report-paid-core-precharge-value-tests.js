@@ -10,7 +10,8 @@ const choice='기존 일을 유지할지 새로운 기술을 배울지 고민 �
 const noChoice=gate.inspect(base);
 assert.equal(noChoice.eligible,false);
 assert.equal(noChoice.reason,'no-guaranteed-independent-first-chapter-paragraph');
-assert.throws(()=>offer.build(base),/ADAPTIVE_OFFER_FIRST_CHAPTER_NOT_READY/);
+assert.equal(offer.build(base).actualProseNotYetGenerated,true,
+ 'building a free scope or unsigned merchant fingerprint cannot reserve money');
 const good=gate.inspect({...base,readerDecision:choice});
 assert.equal(good.eligible,true);
 assert.equal(good.reason,'verified-hour-addition-awaits-human-review');
@@ -28,8 +29,8 @@ assert(!JSON.stringify(eligible).includes(choice),
 const unrelated={...base,readerDecision:'집을 살지 전세로 살지 고민 중입니다.'};
 const unqualifiedConcern=gate.inspect(unrelated);
 assert.equal(unqualifiedConcern.eligible,false);
-assert.throws(()=>offer.build(unrelated),
- /ADAPTIVE_OFFER_FIRST_CHAPTER_NOT_READY/);
+assert.equal(offer.build(unrelated).actualProseNotYetGenerated,true,
+ 'unqualified coverage preview is still inspectable without charge');
 const noTime=gate.inspect({...base,birthTime:'',unknownBirthTime:true,readerDecision:choice});
 assert.equal(noTime.eligible,false);
 console.log('PASS zero-cost checkout gate blocks month-only paid first chapters and preserves source-qualified current-choice first chapter');
