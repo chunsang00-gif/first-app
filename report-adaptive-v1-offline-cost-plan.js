@@ -52,15 +52,16 @@ function bodyPrompt(first,ids,blueprint){
    alreadyRepeatedNarrativeMotifs:[],
    returnOnlyRequestedSections:true}};
 }
-function envelope(prompt){
+function envelope(prompt,model=MODEL){
  const compiled=writer.compile(prompt);
  const schema=writer.schema(prompt,
   wire.schemaFor(prompt,strict(JSON.parse(fs.readFileSync(
    path.join(__dirname,'report-schema.json'),'utf8')))));
  const invalid=preflight.inspect(prompt,compiled,schema);
  if(invalid.length)throw Error('ADAPTIVE_OFFLINE_COST_PREFLIGHT:'+invalid.join('|'));
- return {model:MODEL,store:false,
-  max_output_tokens:batches.outputLimit(MODEL,prompt),
+ return {model,store:false,
+  max_output_tokens:batches.outputLimit(model,prompt),
+  ...require('./report-provider-model-options').requestFields(model),
   input:[{role:'system',content:'Return only the requested premium report JSON. '+
    writer.policyFor(prompt)+' '+wire.instruction},
    {role:'user',content:JSON.stringify(projection.project(prompt,compiled))}],
