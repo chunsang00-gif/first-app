@@ -38,6 +38,10 @@ function checkedFiles(dir,expected){
   return response;
  };
  contract.generate=async(_sample,call,_onProgress,onBatch)=>{
+  // Preflight captures the real request through the two-argument generator.
+  // Mock only the four-argument runner call, never its nested preflight.
+  if(typeof onBatch!=='function')
+   return oldGenerate(_sample,call,_onProgress,onBatch);
   const {prompt}=await readiness.prepare({includePrompt:true});
   await call(prompt);
   if(scenario==='second-batch')await call(prompt);
