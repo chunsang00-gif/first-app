@@ -71,6 +71,8 @@ function renderHtml(r){
   '</h3><p>'+html(c.text)+'</p></article>').join('');
  const paragraphs=(r.paid.paragraphs||[]).map(p=>'<article><h3>'+
   html(p.label)+'</h3><p>'+html(p.text)+'</p></article>').join('');
+ const evidence=(r.paid.evidence||[]).map(x=>'<li>'+html(x)+'</li>').join('');
+ const evidencePanel=evidence?'<details><summary>실제 생성 원고의 계산 근거 확인</summary><ul>'+evidence+'</ul></details>':'';
  const questionRows=r.questions.map(q=>
   '<label for="q-'+html(q.id)+'">'+html(q.label)+'</label>'+
   '<select data-question="'+html(q.id)+'" id="q-'+html(q.id)+'">'+
@@ -116,7 +118,7 @@ function renderHtml(r){
   '<div class="grid"><section class="panel"><h2>무료 계산 예시 — 동일 명식</h2>'+cards+
   '</section><section class="panel"><h2>당시 실제 유료 첫 장 — 원문</h2>'+
   '<h3>'+html(r.paid.title)+'</h3><p>'+html(r.paid.keyJudgment)+'</p>'+
-  paragraphs+'</section></div><section class="panel"><h2>독자 가치 직접 평가</h2>'+
+  paragraphs+evidencePanel+'</section></div><section class="panel"><h2>독자 가치 직접 평가</h2>'+
   '<p>무조건 통과시키지 말고 무료에서 이미 설명한 내용이라면 미흡을 선택하세요.</p>'+
   '<div class="form">'+questionRows+'</div>'+
   '<h3>무료에는 없던 구체적인 새 해석 한 가지</h3>'+
