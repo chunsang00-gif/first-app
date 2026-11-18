@@ -83,7 +83,7 @@ function checkedFiles(dir,expected){
    global.fetch=async url=>{
     assert.equal(String(url),
      'https://api.github.com/repos/'+repo+
-     '/actions/workflows/terra-first-chapter-qa.yml/runs?event=workflow_dispatch&per_page=100');
+     '/actions/workflows/terra-first-chapter-qa.yml/runs?event=workflow_dispatch&branch='+branch+'&per_page=100');
     githubReads++;
     return {ok:true,json:async()=>({total_count:1,workflow_runs:[{
      id:runId,path:workflow,event:'workflow_dispatch',head_branch:branch,
