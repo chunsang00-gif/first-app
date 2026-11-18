@@ -24,6 +24,7 @@ function inspect(input){
  const compiled=writer.compile(prompt);
  const t=compiled?.task?.chapters?.saju_core?.topics?.temperament;
  const hour=t?.sourceOwnedHourExtension;
+ const year=t?.sourceOwnedYearVisibleExtension;
  const strict=writer.schema(prompt,wire.schemaFor(prompt,schema));
  const slot=strict?.properties?.chapters?.properties?.saju_core
   ?.properties?.paragraphs?.properties?.temperament;
@@ -37,10 +38,27 @@ function inspect(input){
    Object.hasOwn(source,x)&&t.citableFacts?.some(f=>f.id===x))&&
   !slot?.anyOf?.some(s=>s.type==='null')&&
   (slot?.anyOf?.some(s=>s.type==='object')||slot?.type==='object');
+ const yearRefs=year?.sourceRefs||[];
+ const onlyIndependentYear=!hour&&
+  year?.kind==='buyer-question-year-visible-role-addition-v1'&&
+  year.distinctFromFreeMonth===true&&year.exactHiddenExposureClaimed===false&&
+  year.priorityEstablished===false&&year.realLifeObserved===false&&
+  year.actualOutcomePredicted===false&&
+  year.professionalApproved===false&&year.premiumValueApproved===false&&
+  yearRefs.length===4&&
+  yearRefs.includes('natal.year.stem')&&
+  yearRefs.includes('natal.month.stem')&&
+  yearRefs.includes(year.mainMonthId)&&
+  yearRefs.includes('facts.stemConnections')&&
+  yearRefs.every(x=>Object.hasOwn(source,x)&&
+   t.citableFacts?.some(f=>f.id===x))&&
+  !slot?.anyOf?.some(s=>s.type==='null')&&
+  (slot?.anyOf?.some(s=>s.type==='object')||slot?.type==='object');
  return Object.freeze({
   kind:'adaptive-first-chapter-precharge-unique-evidence-v1',
-  eligible:Boolean(onlyIndependentHour),
+  eligible:Boolean(onlyIndependentHour||onlyIndependentYear),
   reason:onlyIndependentHour?'verified-hour-addition-awaits-human-review':
+   onlyIndependentYear?'verified-year-visible-addition-awaits-human-review':
    'no-guaranteed-independent-first-chapter-paragraph',
   existingModelCalls:0,additionalModelCalls:0,
   modelQualityValidated:false,customerSaleApproved:false
