@@ -85,6 +85,64 @@ const cost=require('./report-adaptive-v1-offline-cost-plan');
    if(value===undefined)delete process.env[name];else process.env[name]=value;
   }
  }
+ // One future Terra trial must be a DIFFERENT, explicitly authorized
+ // workflow. This test never calls the provider or grants that approval.
+ const fs=require('node:fs'),path=require('node:path');
+ const qa=require('./qa-terra-first-chapter-one-shot');
+ assert.equal(qa.FROZEN_REQUEST_SHA256,report.firstRequestSha256);
+ assert.equal(qa.MODEL,terra.MODEL);
+ const pre=await qa.preflight();
+ assert.equal(pre.checked.firstRequestSha256,report.firstRequestSha256);
+ const fakeSha='a'.repeat(40),fakeId=44230000001;
+ const env={
+  GITHUB_ACTIONS:'true',GITHUB_REPOSITORY:'chunsang00-gif/first-app',
+  GITHUB_REF_NAME:'fix-paid-qa-fact-bindings-20261014',
+  GITHUB_WORKFLOW_REF:'chunsang00-gif/first-app/'+qa.WORKFLOW+
+   '@refs/heads/fix-paid-qa-fact-bindings-20261014',
+  GITHUB_SHA:fakeSha,GITHUB_RUN_ID:String(fakeId),GITHUB_RUN_ATTEMPT:'1',
+  REPORT_QA_CONFIRM:qa.APPROVAL_PREFIX+fakeSha,
+  REPORT_MODEL:qa.MODEL,OPENAI_API_KEY:'local-fake-key-only-'.repeat(3),
+  GITHUB_TOKEN:'local-fake-github-token',NODE_ENV:'test',
+  REPORT_QA_OUTPUT:path.join(__dirname,'private-qa-first-chapter.json')
+ };
+ assert.equal(qa.approval(env),fakeSha);
+ for(const bad of [
+  {...env,REPORT_QA_CONFIRM:'QA_CURRENT_CORE_20261107_ONE_PAID_CALL_'+fakeSha},
+  {...env,REPORT_QA_CONFIRM:'QA5'},
+  {...env,GITHUB_SHA:'b'.repeat(40)},
+  {...env,GITHUB_RUN_ATTEMPT:'2'},
+  {...env,REPORT_MODEL:'gpt-4.1'},
+  {...env,REPORT_MODEL_URL:'https://example.com'},
+  {...env,PAID_CORE_DEPTH_V2:'offline-preview'},
+  {...env,GITHUB_WORKFLOW_REF:'other'},
+  {...env,OPENAI_API_KEY:''},
+  {...env,GITHUB_TOKEN:''}
+ ])assert.throws(()=>qa.approval(bad),/TERRA_ONE_CALL_DENIED/);
+ const matching={id:fakeId,path:qa.WORKFLOW,event:'workflow_dispatch',
+  head_branch:env.GITHUB_REF_NAME,head_sha:fakeSha,run_attempt:1};
+ const history=runs=>async()=>({ok:true,json:async()=>({
+  total_count:runs.length,workflow_runs:runs})});
+ assert.equal(await qa.guardFirstDispatch(env,history([matching])),true);
+ for(const bad of [
+  [matching,{...matching,id:fakeId+1}],
+  [{...matching,run_attempt:2}],
+  [{...matching,head_sha:'b'.repeat(40)}],
+  []
+ ])await assert.rejects(qa.guardFirstDispatch(env,history(bad)),
+  /TERRA_ONE_CALL_DENIED/);
+ await assert.rejects(qa.guardFirstDispatch(env,async()=>({ok:false})),
+  /TERRA_ONE_CALL_DENIED/);
+ const workflow=fs.readFileSync(path.join(__dirname,qa.WORKFLOW),'utf8');
+ assert(workflow.includes('if: ${{ false }}'),
+  'Terra billable job MUST remain hard-disabled before separate approval');
+ assert(workflow.includes('workflow_dispatch:')&&
+  workflow.includes('node qa-terra-first-chapter-one-shot.js')&&
+  workflow.includes('node report-qa-secure-archive.js encrypt')&&
+  workflow.includes('premium-first-chapter-qa.enc'));
+ assert(!workflow.includes('run-paid-report-qa.js'),
+  'a first-chapter QA must never dispatch the full paid report');
+ await assert.rejects(qa.run(),/TERRA_ONE_CALL_DENIED/,
+  'without fresh GitHub workflow consent, direct execution must fail closed');
  console.log('PASS Terra offline provider payload equals real server boundary, exact 18k output, Standard $0.160225 scenario, 0 paid calls');
  console.log('TERRA_OFFLINE_COMPAT='+JSON.stringify(report));
 })().catch(error=>{console.error(error);process.exitCode=1});
