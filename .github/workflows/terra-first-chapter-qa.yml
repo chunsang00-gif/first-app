@@ -1,0 +1,72 @@
+# DORMANT. No paid request is authorized by preparing this workflow.
+# A separate user approval, reviewed commit, and code change are required
+# before this job can ever be enabled. Never reuse earlier QA consent.
+name: Terra first chapter — dormant manual one-call QA
+on:
+  workflow_dispatch:
+    inputs:
+      paid_qa_confirmation:
+        description: 'New exact-commit consent required; currently DISABLED.'
+        required: true
+        type: string
+permissions:
+  contents: read
+  actions: read
+jobs:
+  terra-first-chapter:
+    if: ${{ false }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    concurrency:
+      group: terra-first-chapter-one-manual-attempt-20261118
+      cancel-in-progress: false
+    env:
+      REPORT_MODEL: gpt-6.1-terra
+      REPORT_QA_CONFIRM: ${{ inputs.paid_qa_confirmation }}
+      REPORT_QA_OUTPUT: ${{ github.workspace }}/private-qa-first-chapter.json
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-audit --no-fund
+      - name: Run full free checks without provider credentials
+        env:
+          NODE_ENV: test
+          OPENAI_API_KEY: ''
+          REPORT_MODEL_URL: ''
+        run: npm test && npm run smoke && node report-terra-offline-compat.js
+      - name: Deny reused consent, request drift, or second manual dispatch
+        env:
+          NODE_ENV: test
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          node - <<'NODE'
+          const qa=require('./qa-terra-first-chapter-one-shot');
+          (async()=>{
+            qa.approval();
+            await qa.guardFirstDispatch();
+            await qa.preflight();
+            console.log('TERRA_EXACT_FIRST_REQUEST_PREBILL_GUARD_PASS');
+          })().catch(e=>{console.error('TERRA_PREBILL_DENIED:'+e.message);process.exitCode=1});
+          NODE
+      - name: Exactly one first-chapter model call, never retry or continue
+        env:
+          NODE_ENV: test
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node qa-terra-first-chapter-one-shot.js
+      - name: Encrypt private original and failed-attempt evidence
+        if: always()
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: node report-qa-secure-archive.js encrypt
+      - name: Retain encrypted evidence only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: terra-first-chapter-qa-encrypted
+          path: premium-first-chapter-qa.enc
+          if-no-files-found: ignore
+          retention-days: 30
