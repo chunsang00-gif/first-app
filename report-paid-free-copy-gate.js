@@ -14,15 +14,8 @@ function similarity(freeCopy,paid){
  let shared=0;for(const g of A)if(B.has(g))shared++;
  return shared/A.size;
 }
-function inspect(sections,packet){
- const core=(sections||[]).find(s=>s?.id==='saju_core');
- if(!core)return [];
- if(packet?.status!=='ready')throw Error('PAID_FREE_COPY_VERIFIED_PACKET_REQUIRED');
- const sample=free.build(packet);
- if(sample.status!=='calculated-example'||sample.modelCalls!==0||
-   sample.completedPremiumParagraphs!==0)
-  throw Error('PAID_FREE_COPY_UNVERIFIED_PREVIEW');
- const cards=sample.cards.filter(x=>['birth-month','month-visible-link'].includes(x.id));
+function minimumValueProblems(core,packet){
+ if(!core||packet?.status!=='ready')return [];
  const errors=[];
  // The real 2026-11-18 paid Terra chapter consisted of ONE strength paragraph
  // citing only the two month positions that the FREE preview already explains.
@@ -45,6 +38,18 @@ function inspect(sections,packet){
  if(topics.length===1&&topics[0]==='strength'&&monthOnly&&
     !concreteBuyerQuestion)
   errors.push('paid-core-no-independent-reader-value:saju_core:strength');
+ return errors;
+}
+function inspect(sections,packet){
+ const core=(sections||[]).find(s=>s?.id==='saju_core');
+ if(!core)return [];
+ if(packet?.status!=='ready')throw Error('PAID_FREE_COPY_VERIFIED_PACKET_REQUIRED');
+ const sample=free.build(packet);
+ if(sample.status!=='calculated-example'||sample.modelCalls!==0||
+   sample.completedPremiumParagraphs!==0)
+  throw Error('PAID_FREE_COPY_UNVERIFIED_PREVIEW');
+ const cards=sample.cards.filter(x=>['birth-month','month-visible-link'].includes(x.id));
+ const errors=[];
  for(let i=0;i<(core.body||[]).length;i++){
   const paid=String(core.body[i]||''),compact=norm(paid);
   if(compact.length<55)continue;
@@ -60,4 +65,4 @@ function inspect(sections,packet){
  }
  return [...new Set(errors)];
 }
-module.exports={inspect,similarity};
+module.exports={inspect,similarity,minimumValueProblems};
