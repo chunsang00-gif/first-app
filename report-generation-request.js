@@ -246,8 +246,7 @@ function paidCoreHourGoal(prompt){
  if(hour.classicalPriorityApproved!==false||hour.premiumValueApproved!==false||
     hour.realAbilityObserved!==false||hour.extraPaidTopic!==false)
   throw Error('PAID_CORE_HOUR_GOAL_UNVERIFIED');
- if(hour.readerDomain&&hour.readerDomain!=='skill')return
-  '선택 문단은 출생월 무료 풀이와 다른 출생시간의 전통적 분류를 고객이 직접 입력한 고민에 적용한다. '+
+ if(hour.readerDomain&&hour.readerDomain!=='skill')return '선택 문단은 출생월 무료 풀이와 다른 출생시간의 전통적 분류를 고객이 직접 입력한 고민에 적용한다. '+
   '시간 겉글자와 시간 속글자의 실제 계산 출처는 반드시 두 개 인용한다. '+
   '새로 추가되는 속글자의 전통적 분류는 '+hour.hourHiddenRole+'이다. '+
   hour.readerGoal+' 설명이 충분하지 않으면 꾸며 쓰지 않고 해당 검수에서 실패 처리한다. '+
