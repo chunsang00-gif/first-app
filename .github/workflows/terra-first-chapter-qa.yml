@@ -1,12 +1,12 @@
-# DORMANT. No paid request is authorized by preparing this workflow.
-# A separate user approval, reviewed commit, and code change are required
-# before this job can ever be enabled. Never reuse earlier QA consent.
-name: Terra first chapter — dormant manual one-call QA
+# Manual, user-approved one-call first-chapter QA only. Requires the exact
+# feature commit consent string; never retries, schedules, merges or deploys.
+# The main branch contains an always-disabled discovery placeholder.
+name: Terra first chapter — exact commit manual one-call QA
 on:
   workflow_dispatch:
     inputs:
       paid_qa_confirmation:
-        description: 'New exact-commit consent required; currently DISABLED.'
+        description: 'Use the user-approved exact feature commit code; one chargeable attempt max.'
         required: true
         type: string
 permissions:
@@ -14,7 +14,7 @@ permissions:
   actions: read
 jobs:
   terra-first-chapter:
-    if: ${{ false }}
+    if: ${{ github.ref_name == 'fix-paid-qa-fact-bindings-20261014' && startsWith(inputs.paid_qa_confirmation, 'QA_TERRA_20261118_FIRST_CHAPTER_ONCE_') }}
     runs-on: ubuntu-latest
     timeout-minutes: 25
     concurrency:
