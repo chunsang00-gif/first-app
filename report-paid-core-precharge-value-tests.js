@@ -24,9 +24,11 @@ assert.equal(eligible.actualProseNotYetGenerated,true);
 assert.equal(eligible.fixed12ChaptersPromised,false);
 assert(!JSON.stringify(eligible).includes(choice),
  'raw buyer question must not leak into payment order');
-const unqualifiedHour=gate.inspect({...base,birthTime:'20:20',readerDecision:choice});
-assert.equal(unqualifiedHour.eligible,false);
-assert.throws(()=>offer.build({...base,birthTime:'20:20',readerDecision:choice}),
+// An unrelated buyer question cannot claim the birth-hour learning symbol.
+const unrelated={...base,readerDecision:'집을 살지 전세로 살지 고민 중입니다.'};
+const unqualifiedConcern=gate.inspect(unrelated);
+assert.equal(unqualifiedConcern.eligible,false);
+assert.throws(()=>offer.build(unrelated),
  /ADAPTIVE_OFFER_FIRST_CHAPTER_NOT_READY/);
 const noTime=gate.inspect({...base,birthTime:'',unknownBirthTime:true,readerDecision:choice});
 assert.equal(noTime.eligible,false);
