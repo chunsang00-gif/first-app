@@ -21,8 +21,9 @@ function minimumValueProblems(core,packet){
  // citing only the two month positions that the FREE preview already explains.
  // Copy similarity could not flag it because its wording differed. This is
  // a commercial minimum-value HOLD, not a claim that other paragraphs sell.
- // If a buyer supplies a concrete question or the chapter has independent
- // validated season/year/day/hour evidence, preserve human review eligibility.
+ // A buyer's self-reported concern is NOT a new calculated source;
+ // it cannot excuse a paid core consisting solely of free month meanings.
+ // Independently evidenced additional paragraphs remain human-review only.
  const topics=core.bodyTopics||[];
  const evidence=Array.isArray(core.evidence)?core.evidence.join(' '):'';
  const natalRefs=[...new Set([...evidence.matchAll(
@@ -33,10 +34,7 @@ function minimumValueProblems(core,packet){
   natalRefs.some(id=>id.startsWith('natal.month.hidden.'))&&
   natalRefs.every(id=>id.startsWith('natal.month.'))&&
   !/(?:facts\.(?:seasonalEvidence|qiEvidence)|person\.mbti)/.test(evidence);
- const concreteBuyerQuestion=typeof packet.person?.readerDecision==='string'&&
-  packet.person.readerDecision.trim().length>0;
- if(topics.length===1&&topics[0]==='strength'&&monthOnly&&
-    !concreteBuyerQuestion)
+ if(topics.length===1&&topics[0]==='strength'&&monthOnly)
   errors.push('paid-core-no-independent-reader-value:saju_core:strength');
  return errors;
 }
