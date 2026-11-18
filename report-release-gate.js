@@ -11,6 +11,14 @@ function assess({report,qa,packet,coverage}={}){
  const deliveryScope=packet?.chart&&coverage?
   require('./report-delivery-scope').inspect({report,packet,coverage}):null;
  const reasons=[];
+ // Commercial VALUE is a separate release criterion from transport shape.
+ // The paid Terra first chapter proved that one month-only paragraph can
+ // satisfy a strict JSON schema while merely paraphrasing the free reading.
+ // Do not approve a full paid product on that basis even if mock CI passes.
+ const core=sections.find(x=>x?.id==='saju_core');
+ if(packet?.status==='ready'&&core)
+  reasons.push(...require('./report-paid-free-copy-gate')
+   .minimumValueProblems(core,packet));
  if(deliveryScope&&deliveryScope.status!=='verified-structural-counts')
   reasons.push('inconsistent-delivered-topic-scope');
  const hasFinal=Array.isArray(report?.finalJudgment?.body)&&report.finalJudgment.body.length>0;
