@@ -126,7 +126,10 @@ function bodyResponse(p,strict,kind){
   assert(anchor&&slots[anchor],'mandatory anchor absent '+id);
   for(const [topic,slot] of Object.entries(slots)){
    const isOptional=topic!==anchor;
-   const qualifiedOptional=kind==='all-eligible'&&isOptional&&
+   const qualifiedOptional=(kind==='all-eligible'||
+    (id==='saju_core'&&topic==='temperament'&&
+     !['month-only-first-chapter','provider-limit','provider-json-syntax',
+       'provider-empty','malformed','missing-anchor-basis'].includes(kind)))&&isOptional&&
     slot.anyOf?.some(x=>x.type==='object')&&
     chapter.topics[topic]?.mode!=='state-limits';
    if(isOptional&&!qualifiedOptional){paragraphs[topic]=null;continue}
@@ -317,6 +320,20 @@ async function runScenario(kind){
   }
   if(kind!=='complete'){
    const seen=[];
+   if(kind==='month-only-first-chapter'){
+    // Reproduce the verified archived Terra failure with the actual normal
+    // server pipeline and synthetic response: first paid response is retained,
+    // but the next model call, checkpoint and final synthesis MUST NOT happen.
+    await assert.rejects(
+     generate(input,p=>callOpenAI(p,v=>{archived++;seen.push(v)}),
+      ()=>{},x=>{snapshots.push(x)}),
+     /paid first chapter without independent reader value/);
+    assert.deepEqual(stages,['body']);
+    assert.equal(calls,1);
+    assert.equal(archived,1,'raw provider response remains archived');
+    assert.equal(snapshots.length,0,'failed chapter must not be validated');
+    return;
+   }
    if(kind==='duplicate-before-synthesis'){
     const result=await generate(input,p=>callOpenAI(p,v=>{archived++;seen.push(v)}),
      ()=>{},x=>{snapshots.push(x)});
@@ -397,6 +414,7 @@ async function runScenario(kind){
 (async()=>{
  await runScenario('complete');
  await runScenario('all-eligible');
+ await runScenario('month-only-first-chapter');
  await runScenario('duplicate-before-synthesis');
  await runScenario('reused-sentence-before-synthesis');
  await runScenario('malformed');
