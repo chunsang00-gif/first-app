@@ -21,7 +21,12 @@ function normalized(input){
   gender:input.gender,mbti:input.mbti||'모름',
   // Only hash the optional customer question. Its raw text is not stored
   // in a merchant order, but changing it invalidates the bound order.
-  ...(typeof input.readerDecision==='string'&&input.readerDecision.trim()?{readerDecision:input.readerDecision.trim()}:{})
+  ...(typeof input.readerDecision==='string'&&input.readerDecision.trim()?{readerDecision:input.readerDecision.trim()}:{}),
+  // Bound to the purchase fingerprint but NEVER included as raw merchant
+  // order text. A changed job/skill after payment invalidates scope.
+  ...(input.decisionContext?{
+   decisionContext:require('./report-buyer-decision-context').checked(input.decisionContext)
+  }:{})
  };
 }
 function build(input){
