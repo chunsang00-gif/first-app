@@ -418,7 +418,15 @@ function compile(prompt){
        prompt.qaOfflineEditorialResearchPreview!==true){
      const ext=require('./report-paid-core-hour-extension')
       .build(prompt.facts,source);
-     if(ext)topic.sourceOwnedHourExtension=ext;
+     if(ext){
+      topic.sourceOwnedHourExtension=ext;
+      // A voluntarily described current job/target skill is NOT a natal
+      // fact. Only attach it to the source-verified learning comparison.
+      const context=prompt.facts?.person?.decisionContext;
+      if(context&&ext.readerDomain==='skill')
+       topic.customerDeclaredChoiceSituation=
+        require('./report-buyer-decision-context').readerTask(context);
+     }
      else{
       const year=require('./report-paid-core-year-visible-extension')
        .build(prompt.facts,source);
@@ -976,6 +984,19 @@ function schema(prompt,transport){
     basis.properties.refs.description=
      '출생시간의 별도 뜻을 읽는 근거 두 가지를 누락 없이 인용한다: '+
      ext.sourceRefs.join(' / ')+'.';
+    if(task.customerDeclaredChoiceSituation){
+     const extra=task.customerDeclaredChoiceSituation;
+     if(extra.kind!=='buyer-self-reported-work-and-study-context-v1'||
+        extra.calculatedNatalFact!==false||
+        extra.observedWorkPerformance!==false||
+        extra.observedLearningSpeed!==false)
+      throw Error('CORE_CUSTOMER_CONTEXT_NOT_ONLY_READER_INPUT');
+     p.properties.text.description+=' '+extra.writerGoal+
+      ' 실제 업무는 '+extra.currentWork+
+      '이고 배우려는 기술은 '+extra.targetSkill+
+      '이라는 고객의 자가 입력 내용을 가상 선택 문맥으로만 사용한다.';
+    }
+
    }
    if(chapterId==='saju_core'&&topic==='temperament'&&
       task.sourceOwnedYearVisibleExtension){
