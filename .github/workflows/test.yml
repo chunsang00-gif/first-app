@@ -35,6 +35,12 @@ jobs:
           REPORT_MODEL_URL: ''
           REPORT_QA_CONFIRM: ''
         run: node report-paid-core-free-natal-novelty-tests.js
+      - name: Reject generic buyer advice unlinked to verified hour role BEFORE next paid call (NO API)
+        env:
+          OPENAI_API_KEY: ''
+          REPORT_MODEL_URL: ''
+          REPORT_QA_CONFIRM: ''
+        run: node report-paid-core-hour-choice-meaning-tests.js
       - name: Compare same-chart free reader with manual paid-first-chapter example (NO API)
         env:
           OPENAI_API_KEY: ''
