@@ -22,6 +22,18 @@ for(const input of cases){
   '각각의 전통적 뜻이 판단의 어느 부분을 설명하는지 연결하되, 실제 행동을 확인하거나 출생월 관계의 우위를 확정할 수는 없습니다. '+
   '선택 상황과 해석 한계가 구분되지 않는 경우에는 그 의미를 짧게만 남기고, 새로운 직업이나 사건을 만들어내지 않습니다.';
  assert.deepEqual(copy.inspect(section(unique),packet),[]);
+ // The new paid year/hour reader must also prove value over the
+ // FREE year/hour card, not merely over the FREE month-only material.
+ const yearHour=sample.build(packet).cards.find(c=>c.id==='year-hour');
+ assert(yearHour?.text,'known time should have a free year/hour card');
+ const yearCopier=[{id:'saju_core',bodyTopics:['temperament'],body:[yearHour.text]}];
+ assert(copy.inspect(yearCopier,packet).includes(
+  'copied-free-reader-meaning:saju_core:temperament:year-hour'),
+  'relabeling the free year/hour prose as paid must not pass');
+ const paddedYear=[{id:'saju_core',bodyTopics:['temperament'],
+  body:[yearHour.text+' 개인에게 적용할 때 확인할 내용입니다.']}];
+ assert(copy.inspect(paddedYear,packet).some(v=>v.endsWith(':year-hour')),
+  'padding an unchanged free year/hour paragraph is not paid value');
  assert.deepEqual(copy.inspect([{id:'decision',bodyTopics:['approach'],body:[original]}],packet),[]);
  assert.equal(copy.similarity('',original),0);
 }
