@@ -31,5 +31,25 @@ const checkout=require('./report-paid-core-precharge-value');
  assert.equal(checkout.inspect(next.SAMPLE).eligible,true);
  assert(!JSON.stringify(result).includes(next.SAMPLE.readerDecision),
   'Never expose the full private prompt or customer-entered question');
+ const quote={
+  kind:'next-first-chapter-consent-packet-offline-v1',
+  featureCommit:process.env.GITHUB_SHA||null,
+  model:next.MODEL,modelRateUSDPerMillion:{input:1,output:5},
+  exactRequestSha256:result.exactProviderRequestSha256,
+  requestUtf8Bytes:result.requestUtf8Bytes,
+  maximumProviderOutputTokens:result.outputTokenCeiling,
+  priorMeasuredInputTokens:26006,priorMeasuredOutputTokens:454,
+  exampleCostAtPriorMeasuredTokensUSD:Number(
+   ((26006+454*5)/1000000).toFixed(6)),
+  exampleCostAtPriorInputAndMaxOutputUSD:Number(
+   ((26006+result.outputTokenCeiling*5)/1000000).toFixed(6)),
+  guaranteedBillingCapUSD:null,
+  previousPaidConsentReusable:false,newPaidApprovalObtained:false,
+  providerCalls:0,operatorReleaseApproved:false
+ };
+ assert.equal(quote.exampleCostAtPriorMeasuredTokensUSD,0.028276);
+ assert.equal(quote.exampleCostAtPriorInputAndMaxOutputUSD,0.116006);
+ assert.equal(quote.guaranteedBillingCapUSD,null);
+ console.log('NEXT_QA_CONSENT_PACKET='+JSON.stringify(quote));
  console.log('PASS next first-chapter realistic question: exact provider envelope OFFLINE, old one-shot consumed, independent hour paragraph required, no billing');
 })().catch(e=>{console.error(e);process.exitCode=1});
