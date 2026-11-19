@@ -24,9 +24,11 @@ function inspect(text,question){
  if(!first.some(a=>second.some(z=>a.i!==z.i)))
   return ['buyer-two-options-not-applied-separately'];
  const redacted=s=>{
-  for(const token of [...alternatives.first,...alternatives.second].sort((a,b)=>b.length-a.length))
-   s=s.split(token).join('');
-  return norm(s);
+  // The option description often contains particles and generic prefixes
+  // not returned by the keyword parser ("현재 일을", "새"). Remove the
+  // entire IF-clause before comparing the CONSEQUENCE of each choice.
+  const outcome=s.replace(/^.*?(?:경우|때|라면|한다면|하면)/,'').trim();
+  return norm(outcome);
  };
  // Replacing only the option name in identical template sentences does not
  // add distinct value, even though two separate sentences are present.
