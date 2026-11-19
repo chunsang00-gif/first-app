@@ -46,6 +46,16 @@ assert.equal(actual.definedTopics,35);
 assert.equal(actual.structuralUpperBound,32);
 assert.equal(actual.minimumShortfall,3);
 assert.equal(realReadiness.assessAdaptive().canPrepareScopeBoundOrder,true);
+assert.equal(realReadiness.assessAdaptive().independentlyReviewedPaidManuscript,false);
+// Only this isolated HTTP test simulates a future independently reviewed
+// manuscript. No environment setting can override real production readiness.
+const realAssessAdaptive=realReadiness.assessAdaptive;
+realReadiness.assessAdaptive=()=>{
+ const structural=realAssessAdaptive();
+ return Object.freeze({...structural,
+  independentlyReviewedPaidManuscript:true,
+  humanEditorialReviewStillRequired:false});
+};
 const server=http.createServer(require('./server').handler);
 (async()=>{
  try{
@@ -307,6 +317,7 @@ const server=http.createServer(require('./server').handler);
  }finally{
   await new Promise(resolve=>server.close(resolve));
   global.fetch=nativeFetch;
+  realReadiness.assessAdaptive=realAssessAdaptive;
   for(const [key,value] of Object.entries(prior))
    if(value===undefined)delete process.env[key];else process.env[key]=value;
   fs.rmSync(dir,{recursive:true,force:true});
