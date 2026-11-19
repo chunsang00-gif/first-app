@@ -59,6 +59,20 @@ function taskFor(proof){
   throw Error('PAID_HOUR_CHOICE_SCOPE_UNVERIFIED');
  return scope;
 }
+// In the original provider schema the two-choice direction was appended
+// even when the customer had asked a SINGLE question. Match the actual
+// input, without declaring an unparseable question a quality PASS.
+function writerFor(proof,question){
+ const scope=taskFor(proof);
+ const role=require('./report-paid-core-hour-extension')
+  .DOMAINS[proof.readerDomain]?.meanings?.[proof.hourHiddenRole];
+ if(!role)throw Error('PAID_HOUR_SINGLE_READER_MEANING_UNVERIFIED');
+ return alternatives(question)?scope.writer:
+  '이 고객은 두 선택지를 직접 입력하지 않았다. '+ 
+  '출생시간 안쪽 글자의 ‘'+role+'’라는 별도 질문을 고객이 실제로 적은 한 가지 고민에만 조건부로 적용한다. '+
+  '대안이 없는 질문에 새로운 직장·기술·금전 선택지를 만들어 두 가지 경우처럼 비교하지 않는다. '+
+  '고객의 실제 능력이나 결과를 예언하지 않고, 해당 고민에서 무엇을 확인할 수 있는지만 설명한다.';
+}
 function inspectParagraph(text,question,proof){
  const choice=alternatives(question);
  if(!choice)return []; // free-form / single choice needs HUMAN review, not a machine PASS
@@ -109,4 +123,4 @@ function inspect(sections,packet){
  return inspectParagraph(core.body[pos],question,proof)
   .map(error=>'saju_core:'+error);
 }
-module.exports={taskFor,inspectParagraph,inspect};
+module.exports={taskFor,writerFor,inspectParagraph,inspect};
