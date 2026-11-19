@@ -1,0 +1,70 @@
+# One-time OFFLINE interpretation of the ALREADY GENERATED 2026-11-18
+# encrypted Terra first chapter. This run makes ZERO AI/model API requests,
+# never starts checkout, never deploys, never logs the source text.
+name: Review already-paid Terra first chapter vs free — metrics only (NO AI)
+on:
+  push:
+    branches: [fix-paid-qa-fact-bindings-20261014]
+    paths:
+      - .github/workflows/qa-terra-archived-real-value-review.yml
+permissions:
+  contents: read
+  actions: read
+jobs:
+  existing-real-first-chapter:
+    if: github.ref_name == 'fix-paid-qa-fact-bindings-20261014'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      NODE_ENV: test
+      REPORT_MODEL: ''
+      REPORT_MODEL_URL: ''
+      REPORT_QA_CONFIRM: ''
+      PREMIUM_SALES_APPROVED: 'false'
+      PREMIUM_EDITORIAL_REVIEW_APPROVED: 'false'
+    steps:
+      - name: Checkout development branch only, no deploy
+        uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install deterministic lunar calculation offline dependencies, no lifecycle scripts
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Prove old-response analysis is read-only and log-safe
+        env:
+          OPENAI_API_KEY: ''
+        run: node qa-terra-archived-real-value-audit-tests.js
+      - name: Retrieve encrypted artifact FROM original paid run, never regenerate
+        uses: actions/download-artifact@v4
+        with:
+          repository: chunsang00-gif/first-app
+          run-id: 44319550676
+          name: terra-first-chapter-qa-encrypted
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/previous-paid-artifact
+      - name: Decrypt existing archive in isolated runner (no model command)
+        shell: bash
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          set -euo pipefail
+          umask 077
+          test -z "$REPORT_MODEL"
+          test -z "$REPORT_MODEL_URL"
+          test -z "$REPORT_QA_CONFIRM"
+          test -s "$RUNNER_TEMP/previous-paid-artifact/premium-first-chapter-qa.enc"
+          node report-qa-secure-archive.js decrypt \
+            "$RUNNER_TEMP/previous-paid-artifact/premium-first-chapter-qa.enc" \
+            "$RUNNER_TEMP/private-terra-input"
+      - name: Compare authentic paid prose to free baseline, emit ONLY structured nontext metrics
+        shell: bash
+        env:
+          OPENAI_API_KEY: ''
+        run: |
+          set -euo pipefail
+          node qa-terra-archived-real-value-audit.js "$RUNNER_TEMP/private-terra-input"
+      - name: Delete decrypted paid original even after failed inspection
+        if: always()
+        shell: bash
+        run: |
+          rm -rf "$RUNNER_TEMP/private-terra-input" "$RUNNER_TEMP/previous-paid-artifact"
