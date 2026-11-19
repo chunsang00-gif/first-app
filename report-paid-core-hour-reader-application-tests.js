@@ -17,6 +17,16 @@ assert(check.inspect(p('태어난 시간의 숨은 글자는 결과물을 만드
 assert(check.inspect(p('새 기술을 배울 때 결과물을 만들어 봅니다. '+month),month,ext)
  .includes('missing-hour-specific-meaning'));
 assert(check.inspect(p(month),month,ext).includes('repeated-month-paragraph'));
+// The approved 2026-11-19 response used the ordinary Korean paraphrase
+// '눈에 보이는 결과로 나타내는' instead of the literal noun '결과물'.
+const synonym='태어난 시간의 숨은 글자에서는 익힌 내용을 눈에 보이는 결과로 나타내는 뜻을 가정합니다. '+
+ '새로운 기술을 배우는 경우 익힌 것을 무엇으로 만들어 보여 줄지 조건을 따로 생각합니다.';
+assert.deepEqual(check.inspect(p(synonym),month,ext),[],
+ 'ordinary Korean result/outcome wording should not be rejected as missing the traditional meaning');
+assert(check.inspect(p('태어난 시간에는 여러 일을 살필 수 있습니다. 새 기술을 배울 때 준비가 필요합니다.'),month,ext)
+ .includes('missing-hour-specific-meaning'),
+ 'synonym repair must still reject unsourced generic career advice');
+
 const alt={sourceRefs:['natal.hour.stem','natal.hour.hidden.丙'],hourHiddenRole:'상관'};
 const altText='태어난 시간의 숨은 글자는 배운 내용을 정해진 규칙과 다르게 표현하는 문제와 관련됩니다. '+
  '새 방법을 익힐 때 규칙을 따라 하는 과정과 자기 방식으로 바꾸어 설명하는 과정은 구별됩니다.';
