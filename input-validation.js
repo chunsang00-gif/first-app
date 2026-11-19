@@ -29,6 +29,11 @@ function validateInput(input){
      /(?:https?:\/\/|www\.|@|\b01[016789][- ]?\d{3,4}[- ]?\d{4}\b)/i.test(v))
    errors.push('선택 고민은 연락처·주소 링크 없이 한 줄 140자 이내로 입력해 주세요.');
  }
+ // Separate opt-in details make the two choices concrete but are never
+ // treated as calculated temperament, achievement or a future event.
+ if(input.decisionContext!==undefined&&
+    !require('./report-buyer-decision-context').inspect(input.decisionContext).valid)
+  errors.push('현재 일과 배우려는 기술은 각각 한 줄 2~80자, 연락처 없이 함께 입력해 주세요.');
  for(const key of ['name','birthplace'])if(input[key]!==undefined&&(typeof input[key]!=='string'||input[key].length>100))errors.push('이름과 출생지는 각각 100자 이내로 입력해 주세요.');
  return [...new Set(errors)];
 }
