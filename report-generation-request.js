@@ -984,6 +984,18 @@ function schema(prompt,transport){
     basis.properties.refs.description=
      '출생시간의 별도 뜻을 읽는 근거 두 가지를 누락 없이 인용한다: '+
      ext.sourceRefs.join(' / ')+'.';
+    // The paid writer previously saw only its own month/hour source task.
+    // Show it the SAME already-public free prose for this exact chart, so
+    // changing a few words cannot masquerade as a new premium reading.
+    // Only the verified ordinary hour-choice contract gets this boundary;
+    // historical one-shot neutral prompts remain byte-identical.
+    const freeBoundary=require('./report-paid-core-free-baseline')
+     .build(prompt.facts,ext);
+    if(freeBoundary.modelCalls!==0||freeBoundary.merchantCalls!==0||
+       freeBoundary.extraNatalEvidenceAdded!==false||
+       freeBoundary.saleApproved!==false)
+     throw Error('CORE_FREE_BASELINE_CANNOT_CHANGE_PAID_EVIDENCE');
+    p.properties.text.description+=' '+freeBoundary.writerInstruction;
     if(task.customerDeclaredChoiceSituation){
      const extra=task.customerDeclaredChoiceSituation;
      if(extra.kind!=='buyer-self-reported-work-and-study-context-v1'||
