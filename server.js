@@ -11,10 +11,18 @@ const commercialReadiness=require('./report-commercial-readiness');
 // Fixed 12×35 has never been deliverable. A chart-scoped adaptive offer is
 // a SEPARATE checkout mode and requires a separate explicit launch switch.
 // No default, legacy, or single environment flag can silently enable sales.
-const adaptiveProductAuthorized=()=>
- process.env.PREMIUM_PRODUCT_MODE==='adaptive-v1'&&
- process.env.PREMIUM_ADAPTIVE_CONTRACT_APPROVED==='true'&&
- commercialReadiness.assessAdaptive().canPrepareScopeBoundOrder===true;
+const adaptiveProductAuthorized=()=>{
+ const verdict=commercialReadiness.assessAdaptive();
+ return process.env.PREMIUM_PRODUCT_MODE==='adaptive-v1'&&
+  process.env.PREMIUM_ADAPTIVE_CONTRACT_APPROVED==='true'&&
+  verdict.canPrepareScopeBoundOrder===true&&
+  // The only authentic paid first chapter has FAILED reader-value review.
+  // A human-review ENV flag is NOT proof of a passing actual manuscript.
+  // Requiring source-controlled editorial readiness makes accidentally
+  // flipping merchant env switches incapable of opening customer checkout.
+  verdict.independentlyReviewedPaidManuscript===true&&
+  verdict.humanEditorialReviewStillRequired===false;
+};
 // One verified merchant order may authorize ONE report job. Sales remain
 // disabled unless both separate business and editorial approvals are set.
 const paymentLedger=reportStore.enabled&&path.isAbsolute(process.env.REPORT_STORAGE_DIR||'')?require('./report-purchase-ledger').create({
