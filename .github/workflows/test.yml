@@ -17,6 +17,12 @@ jobs:
       - run: npm install --no-audit --no-fund
       - run: node character-assets-test.js
       - run: npm test
+      - name: Verify same-chart FREE text is visible to paid first-chapter writer (NO AI)
+        env:
+          OPENAI_API_KEY: ''
+          REPORT_MODEL_URL: ''
+          REPORT_QA_CONFIRM: ''
+        run: node report-paid-core-free-baseline-tests.js
       - name: Compare same-chart free reader with manual paid-first-chapter example (NO API)
         env:
           OPENAI_API_KEY: ''
