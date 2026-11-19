@@ -113,10 +113,15 @@ function earlyPaidCoreChoiceProblems(sections,packet){
   .inspect(sections,packet?.person?.readerDecision);
 }
 function preSynthesisDuplicateErrors(sections){
- return [...findRepeatedSubstantiveSentences(sections),
-  ...findParaphrasedTopicContent(sections),
-  ...findRecycledThemes(sections),...findReusedEvidenceConclusions(sections),
-  ...require('./report-interpretation-overlap').inspect(sections)];
+ // The incremental provider stores prior paragraphs in topicConclusions,
+ // while its current batch provides body. Examine BOTH before another paid
+ // API call; otherwise the strongest duplicate checks only run at the end.
+ const actual=(sections||[]).map(s=>({...s,body:Array.isArray(s?.body)?s.body:
+  Array.isArray(s?.topicConclusions)?s.topicConclusions:[]}));
+ return [...findRepeatedSubstantiveSentences(actual),
+  ...findParaphrasedTopicContent(actual),
+  ...findRecycledThemes(actual),...findReusedEvidenceConclusions(actual),
+  ...require('./report-interpretation-overlap').inspect(actual)];
 }
 // A shared calculation is allowed, but repeating the same conclusion with the
 // same evidence in another chapter is not a second paid insight.
@@ -410,6 +415,10 @@ async function generate(input,callModel,onProgress=()=>{},onValidatedBatch=()=>{
   if(findRecycledThemes(combined).length||findReusedEvidenceConclusions(combined).length)throw Error('QA resume recycled chapter thesis');
   if(require('./report-interpretation-overlap').inspect([...priorSections,...verified.sections]).length)
    throw Error('QA resume duplicated factual interpretation');
+  // Resumed historical sections must pass the same substantive originality
+  // check as newly returned sections before any further billable call.
+  if(preSynthesisDuplicateErrors([...priorSections,...verified.sections]).length)
+   throw Error('QA resume repeated substantive or paraphrased paid content');
   const evidenceOwners=new Map();
   for(const section of [...priorSections,...verified.sections]){
    for(const item of section.evidence||[]){
@@ -510,6 +519,15 @@ async function generate(input,callModel,onProgress=()=>{},onValidatedBatch=()=>{
   if(priorInterpretationErrors.length){
    console.error('[Report repeated calculated interpretation]',{requestedIds:ids,errors:priorInterpretationErrors});
    throw Error('AI report service returned repeated interpretation from identical calculated evidence');
+  }
+  // In the paid pipeline, do not defer copied-sentence and paraphrase
+  // detection until all remaining body chapters have already been paid for.
+  const substantiveDuplicates=preSynthesisDuplicateErrors([...priorSections,...result.sections]);
+  if(substantiveDuplicates.length){
+   console.error('[Paid body novelty rejected before next provider call]',{
+    requestedIds:ids,codes:substantiveDuplicates
+   });
+   throw Error('AI report service returned repeated substantive or paraphrased paid content');
   }
   priorSections.push(...result.sections.map(s=>({id:s.id,keyJudgment:s.keyJudgment,bodyLabels:s.bodyLabels,bodyTopics:s.bodyTopics,topicConclusions:s.body.slice(),evidence:s.evidence.slice()})));
   await onValidatedBatch({ids:ids.slice(),sections:result.sections,completedSections:priorSections.length});
