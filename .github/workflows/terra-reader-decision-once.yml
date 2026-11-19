@@ -13,7 +13,7 @@ permissions:
   actions: read
 jobs:
   first-chapter-only:
-    if: ${{ github.ref_name == 'fix-paid-qa-fact-bindings-20261014' && startsWith(inputs.paid_qa_confirmation, 'QA_TERRA_20261119_READER_DECISION_ONCE_') }}
+    if: ${{ false }} # Disabled while the explicitly approved ONE push attempt is pending; cannot bill twice.
     runs-on: ubuntu-latest
     timeout-minutes: 25
     concurrency:
