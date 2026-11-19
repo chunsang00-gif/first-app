@@ -1003,6 +1003,11 @@ function schema(prompt,transport){
        freeBoundary.saleApproved!==false)
      throw Error('CORE_FREE_BASELINE_CANNOT_CHANGE_PAID_EVIDENCE');
     p.properties.text.description+=' '+freeBoundary.writerInstruction;
+    // The reader must see the exact additional hour meaning INSIDE each
+    // option, not merely in the introduction above generic work advice.
+    const hourChoiceScope=require('./report-paid-core-hour-choice-meaning')
+     .taskFor(ext);
+    p.properties.text.description+=' '+hourChoiceScope.writer;
     if(task.customerDeclaredChoiceSituation){
      const extra=task.customerDeclaredChoiceSituation;
      if(extra.kind!=='buyer-self-reported-work-and-study-context-v1'||
