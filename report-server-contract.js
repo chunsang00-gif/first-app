@@ -112,6 +112,15 @@ function earlyMbtiReaderProblems(sections,mbti){
 function earlyFreePreviewCopyProblems(sections,packet){
  return require('./report-paid-free-copy-gate').inspect(sections,packet);
 }
+// The archived REAL Terra first chapter passed copy detection while citing
+// only two FREE month positions. Check its commercial minimum BEFORE buying
+// batch two, including for recovered/checkpointed first chapters. This is
+// an objective narrow HOLD, not expert approval of other generated prose.
+function earlyPaidCoreMinimumValueProblems(sections,packet){
+ const core=(sections||[]).find(s=>s?.id==='saju_core');
+ return core?require('./report-paid-free-copy-gate')
+  .minimumValueProblems(core,packet):[];
+}
 function earlyPaidCoreChoiceProblems(sections,packet){
  return require('./report-paid-core-choice-application')
   .inspect(sections,packet?.person?.readerDecision);
@@ -419,6 +428,8 @@ async function generate(input,callModel,onProgress=()=>{},onValidatedBatch=()=>{
   }
   if(earlyFreePreviewCopyProblems(verified.sections,packet).length)
    throw Error('QA resume reused the free reader interpretation as paid prose');
+  if(earlyPaidCoreMinimumValueProblems(verified.sections,packet).length)
+   throw Error('QA resume paid first chapter has no independent reader value');
   if(earlyPaidCoreChoiceProblems(verified.sections,packet).length)
    throw Error('QA resume first chapter failed buyer-choice application');
   const combined=[...priorSections.map(s=>({id:s.id,keyJudgment:s.keyJudgment,body:s.topicConclusions,bodyTopics:s.bodyTopics})),...verified.sections];
@@ -494,6 +505,13 @@ async function generate(input,callModel,onProgress=()=>{},onValidatedBatch=()=>{
   if(choiceProblems.length){
    console.error('[Paid buyer choice was not applied before next provider call]',{requestedIds:ids,codes:choiceProblems});
    throw Error('AI report service did not apply both customer choice alternatives');
+  }
+  const minimumValueProblems=earlyPaidCoreMinimumValueProblems(result.sections,packet);
+  if(minimumValueProblems.length){
+   console.error('[Paid first chapter minimum value rejected before next provider call]',{
+    requestedIds:ids,codes:minimumValueProblems
+   });
+   throw Error('AI report service returned paid first chapter without independent reader value');
   }
   const previewCopyProblems=earlyFreePreviewCopyProblems(result.sections,packet);
   if(previewCopyProblems.length){
@@ -611,6 +629,6 @@ async function generate(input,callModel,onProgress=()=>{},onValidatedBatch=()=>{
  qa=require('./report-release-gate').finalize({report,qa,packet,coverage});
  return qa.pass?{status:'ready',report,qa,headingRepairs,coverage}:{status:'rejected',report,qa,headingRepairs,coverage};
 }
-module.exports={earlyPaidCoreChoiceProblems,earlyFreePreviewCopyProblems,earlyMbtiReaderProblems,findReusedEvidenceConclusions,enforceAnnualEvidenceLimits,narrativeMotifLedger,IDS,validateShape,buildPrompt,generate,findRepeatedTopicContent,findRecycledThemes,findParaphrasedTopicContent,findRepeatedAdvice,findRepeatedSubstantiveSentences,earlySubstantiveDuplicateErrors,preSynthesisDuplicateErrors};
+module.exports={earlyPaidCoreChoiceProblems,earlyPaidCoreMinimumValueProblems,earlyFreePreviewCopyProblems,earlyMbtiReaderProblems,findReusedEvidenceConclusions,enforceAnnualEvidenceLimits,narrativeMotifLedger,IDS,validateShape,buildPrompt,generate,findRepeatedTopicContent,findRecycledThemes,findParaphrasedTopicContent,findRepeatedAdvice,findRepeatedSubstantiveSentences,earlySubstantiveDuplicateErrors,preSynthesisDuplicateErrors};
 
 
