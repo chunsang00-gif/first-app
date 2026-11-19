@@ -31,7 +31,7 @@ function inspect(input){
  const refs=hour?.sourceRefs||[];
  const source=compiled?.source||{};
  const onlyIndependentHour=hour?.kind==='buyer-choice-hour-symbolic-extension-v1'&&
-  hour.distinctFromMonth===true&&
+  hour.distinctFromMonth===true&&hour.distinctFromFreeVisibleNatal===true&&
   hour.realAbilityObserved===false&&hour.premiumValueApproved===false&&
   hour.realOutcomePredicted===false&&hour.classicalPriorityApproved===false&&
   refs.length===2&&refs.every(x=>x.startsWith('natal.hour.')&&
