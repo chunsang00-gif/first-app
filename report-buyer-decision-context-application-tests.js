@@ -11,6 +11,13 @@ const labels={
  targetSkill:'지게차 실습과 자격 취득'
 };
 const assign=context.readerTask(labels);
+assert.deepEqual(application.preflight(assign,question),[],
+ 'valid source-independent current-work/skill choices remain permitted');
+assert(application.preflight(assign,'새 기술을 배우고 싶습니다.')
+ .includes('buyer-context-cannot-map-two-choices'));
+assert(application.preflight(context.readerTask({
+ currentWork:'물류 품질 검수',targetSkill:'물류 품질 검수'
+}),question).includes('buyer-context-not-distinct-enough-for-automatic-review'));
 const paragraph=x=>({text:x,basis:{refs:[
  'natal.hour.stem','natal.hour.hidden.丁']}});
 const original='태어난 시간의 숨은 글자는 배운 것을 결과물로 완성하는 질문을 더합니다. ';
