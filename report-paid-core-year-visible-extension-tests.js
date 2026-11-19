@@ -62,8 +62,9 @@ for(const input0 of samples){
   assert(v.sourceRefs.every(ref=>
    slot.anyOf[0].properties.basis.properties.refs.items.enum.includes(ref)));
   const eligible=precharge.inspect(input);
-  assert.equal(eligible.eligible,true);
-  assert.equal(eligible.reason,'verified-year-visible-addition-awaits-human-review');
+  assert.equal(eligible.eligible,false,
+   'year category already exposed in FREE year/hour card is not independent paid value');
+  assert.equal(eligible.reason,'year-visible-meaning-already-in-free-preview');
   assert.equal(eligible.additionalModelCalls,0);
   assert.equal(eligible.customerSaleApproved,false);
   const role=roleMeanings[v.yearRole];
