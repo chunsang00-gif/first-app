@@ -329,14 +329,19 @@ async function runScenario(kind){
     return;
    }
    if(kind==='reused-sentence-before-synthesis'){
-    const result=await generate(input,p=>callOpenAI(p,v=>{archived++;seen.push(v)}),
-     ()=>{},x=>{snapshots.push(x)});
-    assert.equal(result.status,'rejected','copied sentence must not be sold twice');
-    assert.equal(result.stoppedBeforeSynthesis,true);
-    assert(result.qa.errors.some(x=>x.startsWith('reused substantive sentence across chapters:')),
-     'new sentence-level reason must be visible without private report prose');
-    assert.equal(stages.includes('synthesis'),false,'must not pay for rejected summary');
-    assert.equal(calls,archived,'raw body calls remain archived');
+    // The offending paid body batch is now rejected immediately.
+    // Do not continue spending money on the remaining chapters.
+    await assert.rejects(
+     generate(input,p=>callOpenAI(p,v=>{archived++;seen.push(v)}),
+      ()=>{},x=>{snapshots.push(x)}),
+     /copied substantive sentence/,
+     'reused long behavioral conclusion must block later paid body calls');
+    assert.equal(stages.includes('synthesis'),false,
+     'no payment for synthesis after copied paid sentence');
+    assert.equal(calls,archived,
+     'all provider responses already consumed remain archived');
+    assert(snapshots.length>0,'valid earlier paid batches remain checkpointed');
+    assert(calls<MAX_PAID_CALLS,'stops before purchasing remaining calls');
     return;
    }
    if(kind==='synthesis-cover-missing'){
