@@ -13,9 +13,18 @@ const DOMAIN_LABELS=Object.freeze({
  skill:'배움·기술',money:'돈·자원',pressure:'업무 압박·책임'
 });
 const DOMAIN_TASKS=Object.freeze({
- skill:'기존 일을 계속할 때는 기존 결과물·진행 방식의 검토 조건을, 새 기술을 익힐 때는 처음 만들 연습 결과물과 연습 기간을 서로 다르게 다룬다.',
- money:'지출·저축·자금 마련 중 실제 고객이 질문한 선택에만 연결하고, 정기 비용과 필요한 돈을 마련할 경로 같은 서로 다른 확인 항목을 구별한다.',
- pressure:'고객이 직접 질문한 업무 부담에만 연결하고, 기존에 맡은 책임의 경계와 갑작스러운 추가 요구를 처리할 범위를 구별한다.'
+ skill:Object.freeze({
+  paired:'고객이 실제로 비교한 선택이 기존 업무 유지와 새 기술 학습인 경우에만, 기존 업무의 검토 조건과 새 기술의 연습 결과물·기간을 서로 다른 기준으로 다룬다. 해당 선택이 아니면 입력된 두 선택의 실제 차이를 따른다.',
+  single:'고객이 직접 질문한 배움·기술 한 가지를 중심으로, 어떤 작은 결과물·연습 조건이나 방식의 차이를 검토할지 조건부로 설명한다. 기존 일을 유지할지 또는 이직할지 같은 입력되지 않은 대안은 만들지 않는다.'
+ }),
+ money:Object.freeze({
+  paired:'고객이 실제로 비교한 지출·저축·자금 선택 두 가지에만 연결해 정기 비용과 자금 확보 경로 등의 확인 기준을 구별한다.',
+  single:'고객이 직접 질문한 돈·자원 문제 한 가지만 다루고, 그 문제에 필요한 반복 비용 또는 자원 확보 경로를 가상의 점검 기준으로 설명한다. 다른 소비·투자 대안을 만들어 비교하지 않는다.'
+ }),
+ pressure:Object.freeze({
+  paired:'고객이 실제로 비교한 업무 부담의 두 선택에만 연결해 정해진 책임과 갑작스러운 추가 요구의 범위를 서로 다른 조건으로 설명한다.',
+  single:'고객이 직접 질문한 업무 압박 한 가지에 대해 맡은 책임 또는 추가 요구의 경계를 조건부로 설명한다. 질문하지 않은 두 번째 업무나 상사를 상상하지 않는다.'
+ })
 });
 function build(packet,hour){
  if(packet?.status!=='ready'||hour?.kind!==SOURCE_KIND||
@@ -35,10 +44,11 @@ function build(packet,hour){
     alreadyPublic.some(c=>typeof c.text!=='string'||c.text.length<30))
   throw Error('PAID_CORE_FREE_BASELINE_REQUIRED_CARDS_MISSING');
  const label=DOMAIN_LABELS[hour.readerDomain];
- const domainTask=DOMAIN_TASKS[hour.readerDomain];
- if(!label||!domainTask)throw Error('PAID_CORE_FREE_BASELINE_UNKNOWN_READER_DOMAIN');
+ const templates=DOMAIN_TASKS[hour.readerDomain];
+ if(!label||!templates)throw Error('PAID_CORE_FREE_BASELINE_UNKNOWN_READER_DOMAIN');
  const choices=require('./report-paid-core-choice-application')
   .alternatives(packet.person?.readerDecision);
+ const domainTask=choices?templates.paired:templates.single;
  const choiceTask=choices?
   '고객이 실제로 적은 두 선택을 각각 다른 확인 조건에 적용한다. 고객 질문을 그대로 복사하거나 양쪽에 같은 조언을 반복하지 않는다. ':
   '고객 질문에서 두 선택이 명확히 확인되지 않았으므로 가짜 두 선택지를 창작하지 말고 실제 적은 한 가지 고민에만 조건부로 답한다. ';
