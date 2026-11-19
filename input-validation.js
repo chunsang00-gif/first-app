@@ -31,9 +31,12 @@ function validateInput(input){
  }
  // Separate opt-in details make the two choices concrete but are never
  // treated as calculated temperament, achievement or a future event.
- if(input.decisionContext!==undefined&&
-    !require('./report-buyer-decision-context').inspect(input.decisionContext).valid)
-  errors.push('현재 일과 배우려는 기술은 각각 한 줄 2~80자, 연락처 없이 함께 입력해 주세요.');
+ if(input.decisionContext!==undefined){
+  if(!require('./report-buyer-decision-context').inspect(input.decisionContext).valid)
+   errors.push('현재 일과 배우려는 기술은 각각 한 줄 2~80자, 연락처 없이 함께 입력해 주세요.');
+  if(typeof input.readerDecision!=='string'||!input.readerDecision.trim())
+   errors.push('현재 일·배울 기술을 입력하려면 위의 선택 고민도 함께 적어 주세요.');
+ }
  for(const key of ['name','birthplace'])if(input[key]!==undefined&&(typeof input[key]!=='string'||input[key].length>100))errors.push('이름과 출생지는 각각 100자 이내로 입력해 주세요.');
  return [...new Set(errors)];
 }
