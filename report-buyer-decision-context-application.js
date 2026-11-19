@@ -17,10 +17,11 @@ function tokens(text){
    /(?:에서는|에서|으로|에게|까지|부터|에도|에|을|를|은|는|이|가|도|만|와|과)$/,''))
   .filter(s=>s.length>=2&&!GENERIC.has(s)))];
 }
-function inspect(paragraph,assignment,question){
+// Validate the INPUT at no cost before a merchant order exists. This is
+// the same lexical minimum that the post-provider paragraph gate uses.
+// A buyer's personal statements are contextual labels, never natal proof.
+function preflight(assignment,question){
  if(!assignment)return [];
- if(!paragraph||typeof paragraph.text!=='string')
-  return ['buyer-context-missing-paid-paragraph'];
  const trusted=readerTask({
   currentWork:assignment.currentWork,targetSkill:assignment.targetSkill
  });
@@ -30,12 +31,22 @@ function inspect(paragraph,assignment,question){
     assignment.observedWorkPerformance!==false||
     assignment.observedLearningSpeed!==false)
   return ['buyer-context-unverified-input'];
+ if(!alternatives(question))
+  return ['buyer-context-cannot-map-two-choices'];
+ const a=tokens(assignment.currentWork),b=tokens(assignment.targetSkill);
+ if(!a.some(x=>!b.includes(x))||!b.some(x=>!a.includes(x)))
+  return ['buyer-context-not-distinct-enough-for-automatic-review'];
+ return [];
+}
+function inspect(paragraph,assignment,question){
+ if(!assignment)return [];
+ if(!paragraph||typeof paragraph.text!=='string')
+  return ['buyer-context-missing-paid-paragraph'];
+ const before=preflight(assignment,question);
+ if(before.length)return before;
  const opts=alternatives(question);
- if(!opts)return ['buyer-context-cannot-map-two-choices'];
  const a=tokens(assignment.currentWork),b=tokens(assignment.targetSkill);
  const work=a.filter(x=>!b.includes(x)),skill=b.filter(x=>!a.includes(x));
- if(!work.length||!skill.length)
-  return ['buyer-context-not-distinct-enough-for-automatic-review'];
  const original=paragraph.text.split(String(question||'').trim()).join(' ');
  // Keep comma-separated conditional clauses independent, not just full stops.
  const clauses=original.split(/[.!?。！？\n;,，；]+|\s+(?:반면|반대로|한편)\s+/)
@@ -55,4 +66,4 @@ function inspect(paragraph,assignment,question){
   problems.push('buyer-context-options-not-independently-applied');
  return problems;
 }
-module.exports={inspect,tokens};
+module.exports={inspect,preflight,tokens};
