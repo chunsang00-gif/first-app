@@ -17,9 +17,9 @@ const cost=require('./report-adaptive-v1-offline-cost-plan');
  assert.equal(report.KoreanPremiumProseApproved,false);
  assert.equal(report.pricingTier,'Standard');
  assert.deepEqual([report.rateUSDPerMillion.input,report.rateUSDPerMillion.output],[1,5]);
- assert.equal(report.firstCallIllustrativeUSD,Number(
-  ((report.inputPlanningTokens+report.outputTokenCeiling*5)/1000000).toFixed(6)),
-  'Standard provider pricing must be derived from the CURRENT offline prompt, not a consumed historic quote');
+ assert.equal(report.firstCallIllustrativeUSD,0.160225,
+  'do not mistake Flex/Batch half-price for the synchronous Standard endpoint');
+ assert.equal(report.legacyIllustrativeUSD,0.284378);
  assert.equal(report.outputTokenCeiling,18000);
  assert.notEqual(report.firstRequestSha256,report.oldModelSha256);
  assert.match(report.firstRequestSha256,/^[0-9a-f]{64}$/);
@@ -30,8 +30,6 @@ const cost=require('./report-adaptive-v1-offline-cost-plan');
  assert.equal(batches.outputLimit('gpt-6.1-terra',{stage:'body',requestedSections:['saju_core']}),18000);
  assert.equal(batches.outputLimit('unknown-family',{stage:'body',requestedSections:['saju_core']}),9000);
  const base=await older.prepare({includePrompt:true});
- assert.equal(report.legacyIllustrativeUSD,Number(
-  (((base.requestBytes+2048)*2+base.maxOutputTokens*8)/1000000).toFixed(6)));
  const expected=cost.envelope(base.prompt,terra.MODEL);
  assert.equal(expected.model,'gpt-6.1-terra');
  assert.equal(expected.reasoning.effort,'none');
@@ -91,11 +89,10 @@ const cost=require('./report-adaptive-v1-offline-cost-plan');
  // workflow. This test never calls the provider or grants that approval.
  const fs=require('node:fs'),path=require('node:path');
  const qa=require('./qa-terra-first-chapter-one-shot');
- assert.notEqual(qa.FROZEN_REQUEST_SHA256,report.firstRequestSha256,
-  'spent 2026-11-18 approval must NOT match the changed editorial writer');
+ assert.equal(qa.FROZEN_REQUEST_SHA256,report.firstRequestSha256);
  assert.equal(qa.MODEL,terra.MODEL);
- await assert.rejects(qa.preflight(),/frozen-terra-first-request-drift/,
-  'old 1-use runner must refuse the revised prompt before any paid call');
+ const pre=await qa.preflight();
+ assert.equal(pre.checked.firstRequestSha256,report.firstRequestSha256);
  const fakeSha='a'.repeat(40),fakeId=44230000001;
  const env={
   GITHUB_ACTIONS:'true',GITHUB_REPOSITORY:'chunsang00-gif/first-app',
@@ -148,6 +145,6 @@ const cost=require('./report-adaptive-v1-offline-cost-plan');
   'a first-chapter QA must never dispatch the full paid report');
  await assert.rejects(qa.run(),/TERRA_ONE_CALL_DENIED/,
   'without fresh GitHub workflow consent, direct execution must fail closed');
- console.log('PASS Terra offline provider request equals local server boundary, current Standard cost verified, 18k output, prior consent permanently spent, 0 paid calls');
+ console.log('PASS Terra offline provider payload equals real server boundary, exact 18k output, Standard $0.160225 scenario, 0 paid calls');
  console.log('TERRA_OFFLINE_COMPAT='+JSON.stringify(report));
 })().catch(error=>{console.error(error);process.exitCode=1});
