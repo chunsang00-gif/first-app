@@ -13,7 +13,7 @@ permissions:
   actions: read
 jobs:
   approved-single-first-chapter:
-    if: ${{ github.repository == 'chunsang00-gif/first-app' && github.ref_name == 'fix-paid-qa-fact-bindings-20261014' && github.run_attempt == 1 }}
+    if: ${{ false }} # One user-approved billable attempt consumed on run 44449779736; permanently disabled
     runs-on: ubuntu-latest
     timeout-minutes: 25
     concurrency:
