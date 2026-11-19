@@ -34,7 +34,10 @@ if(!fs.existsSync(file)){
  // differ from that exact paid SHA. The spent runner must now deny drift.
  await assert.rejects(()=>q.preflight(),/frozen-new-first-request-drift/);
  const current=await plan.inspect();
- assert.equal(current.exactProviderRequestSha256,q.REQUEST_SHA);
+ assert.notEqual(current.exactProviderRequestSha256,q.REQUEST_SHA,
+  'the earlier one-call request hash is consumed; new editorial rules MUST change the payload');
+ assert.equal(current.previousApprovedCodeValid,false);
+ assert.equal(current.realPaidProviderCalls,0);
  assert.equal(current.realPaidProviderCalls,0);
  console.log('PASS explicit push user authorization requires unique marker, source parent, one run and immutable exact request; providerCalls=0');
 })().catch(err=>{console.error(err);process.exitCode=1});
