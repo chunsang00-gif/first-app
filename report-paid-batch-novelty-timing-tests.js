@@ -20,6 +20,23 @@ const next=section('career','workstyle',
 const result=contract.earlySubstantiveDuplicateErrors([previous,next]);
 assert(result.some(x=>x.includes('reused substantive sentence across chapters')),
  'stored prior topicConclusions and newly generated body share an exact substantive sentence');
+// One paid chapter may contain multiple distinct billable topic paragraphs.
+ // Repeating an actual long interpretation between two topics is no better
+ // than copying it into another chapter, even when source refs differ.
+const twoTopicCopy={
+ id:'saju_core',bodyTopics:['temperament','strength'],
+ body:[previous.topicConclusions[0],next.body[0]]
+};
+assert(contract.earlySubstantiveDuplicateErrors([twoTopicCopy])
+ .some(x=>x.includes('reused substantive sentence across topics:')),
+ 'two topic slots in the SAME paid chapter must not resell a copied long sentence');
+const twoTopicDistinct={
+ ...twoTopicCopy,
+ body:[previous.topicConclusions[0],
+ '출생월의 두 기호가 질문하는 내용을 따로 비교합니다. 서로 다른 전통 분류가 실제 삶을 증명한다고 해석하지 않습니다.']
+};
+assert.deepEqual(contract.earlySubstantiveDuplicateErrors([twoTopicDistinct]),[],
+ 'two different interpretations in one paid chapter may share ordinary vocabulary');
 const whollyDifferent=section('career','workstyle',
  '새로운 기술을 연습할 경우에는 하루에 끝낼 수 있는 실습을 하나 고릅니다. 완료된 연습 기록과 안전 점검 내역을 따로 확인합니다.');
 assert.deepEqual(contract.earlySubstantiveDuplicateErrors([previous,whollyDifferent]),[],
@@ -42,4 +59,4 @@ const spending=code.indexOf('await onValidatedBatch({ids:ids.slice()');
 assert(resume>0&&fresh>resume&&spending>fresh,
  'the strict check must be used for both resumed and fresh batches BEFORE announcing/purchasing subsequent batches');
 assert.equal(typeof contract.generate,'function');
-console.log('PASS paid report novelty timing: early exact repeated substantive sentences fail including resume, near-paraphrases checked pre-synthesis, provider calls=0');
+console.log('PASS paid report novelty timing: repeated substantive sentences fail across chapters and within one chapter, including resume; close paraphrases checked pre-synthesis, provider calls=0');
