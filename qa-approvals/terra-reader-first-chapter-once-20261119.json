@@ -1,0 +1,11 @@
+{
+  "kind": "saju-terra-first-chapter-explicit-approved-single-push-v1",
+  "operatorApprovedOneBillableCall": true,
+  "reportModel": "gpt-6.1-terra",
+  "requestSha256": "690766cd036705f2ab55caabe8a985e28ad7eb803dbe7b6c84a63df4d6b527c7",
+  "noRetries": true,
+  "noDeployment": true,
+  "allowedChapters": 1,
+  "consentSource": "chat-explicit-approval-2026-11-19",
+  "parentCommit": "a4d78d143b3a0f027af01b1706a58115f5b36047"
+}
