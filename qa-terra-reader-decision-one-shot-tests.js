@@ -68,10 +68,9 @@ function answer(body){
  })),/manual-dispatch-identity-mismatch/);
  await assert.rejects(()=>q.guardFirstDispatch(env,async()=>({ok:false})),
   /workflow-history-request-failed/);
- const checked=await q.preflight();
- assert.equal(checked.requestHash,q.FROZEN_REQUEST_SHA256);
- assert.equal(typeof checked.prompt,'object');
- assert.equal(checked.prompt.stage,'body');
- assert.deepEqual(checked.prompt.requestedSections,['saju_core']);
+ // The approved 2026-11-19 call was already consumed. The new
+ // editorial contract has changed; the spent old consent MUST now reject
+ // any attempt rather than silently authorizing the revised payload.
+ await assert.rejects(()=>q.preflight(),/frozen-new-first-request-drift/);
  console.log('PASS second Terra single-use workflow: consent SHA, old approval rejected, duplicate dispatch rejected, exact new request hash preflight; providerCalls=0');
 })().catch(err=>{console.error(err);process.exitCode=1});
