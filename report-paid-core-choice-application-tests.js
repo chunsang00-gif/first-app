@@ -36,6 +36,24 @@ assert.deepEqual(audit.inspect(section(generic),null),[]);
 assert.deepEqual(audit.inspect(section(generic),'새로운 집이 좋을까요?'),[],
  'unknown question styles are explicitly left for human review');
 assert.deepEqual(audit.inspect([{id:'career',bodyTopics:['workstyle'],body:[generic]}],q),[]);
+// Regression from the real 2026-11-19 paid first chapter. Source-specific
+// buyer context is authored in temperament, while month-only strength
+// correctly remains limited to verified MONTH facts.
+const separateHour='현재 일을 유지할 경우 현재 작업의 기존 결과물을 검토하고 납기 기준을 기록해야 합니다. '+
+ '새 기술을 배울 경우 학습 결과물의 완성 범위와 연습 기간을 따로 정해 봅니다.';
+const monthOnly='태어난 달의 겉은 정보를 이해하고 안쪽은 자원을 마련하는 뜻으로 연결됩니다.';
+const together=[{id:'saju_core',bodyTopics:['temperament','strength'],
+ body:[separateHour,monthOnly]}];
+assert.deepEqual(audit.inspect(together,q),[],
+ 'correctly grounded buyer applications in temperament must not be rejected by month-only strength gate');
+const sameBoiler='현재 일을 유지할 경우 결과물의 완성 범위를 확인해야 합니다. '+
+ '새 기술을 배울 경우 결과물의 완성 범위를 확인해야 합니다.';
+assert(audit.inspect([{...together[0],body:[sameBoiler,monthOnly]}],q).length>0,
+ 'a distinct paragraph slot is not enough; boilerplate with option swaps still fails');
+const genericHour='태어난 시간의 별도 분류를 살펴보면 배우거나 일할 때마다 결과로 나타내는 것이 중요합니다.';
+assert(audit.inspect([{...together[0],body:[genericHour,monthOnly]}],q).length>0,
+ 'a generic hour explanation must not excuse a free month-only strength paragraph');
+
 const base={calendar:'lunar',birthDate:'1982-11-24',leapMonth:false,
  birthTime:'14:20',gender:'male',mbti:'ISFP'};
 assert.deepEqual(server.earlyPaidCoreChoiceProblems(section(real),
