@@ -994,7 +994,9 @@ function schema(prompt,transport){
      p.properties.text.description+=' '+extra.writerGoal+
       ' 실제 업무는 '+extra.currentWork+
       '이고 배우려는 기술은 '+extra.targetSkill+
-      '이라는 고객의 자가 입력 내용을 가상 선택 문맥으로만 사용한다.';
+      '이라는 고객의 자가 입력 내용을 가상 선택 문맥으로만 사용한다. '+
+      '두 선택을 각각 조건부로 설명하는 서로 다른 문장에 고객 입력의 해당 분야 핵심 단어를 최소 한 개씩 명확하게 적고, 실제 확인할 구체적 기준을 하나씩 제시한다. '+
+      '단어를 한 문장에서 나열하거나 입력 전체를 복사해 놓는 것만으로는 불합격이다.';
     }
 
    }
@@ -2248,6 +2250,21 @@ function restoreEvidence(value,prompt){
       .inspect(p,chapter.paragraphs.strength?.text,task.sourceOwnedHourExtension);
      if(problems.length)
       throw Error('CORE_HOUR_EXTENSION_READER_VALUE_MISSING:'+problems.join('|'));
+    }
+    // Self-reported work/skill labels are not natal evidence. If the
+    // customer included both, both must actually inform the separate
+    // checkable conditional alternatives in the delivered paid paragraph.
+    if(id==='saju_core'&&topic==='temperament'&&
+       task.customerDeclaredChoiceSituation){
+     const declared=task.customerDeclaredChoiceSituation;
+     const verified=require('./report-buyer-decision-context')
+      .readerTask(prompt.facts?.person?.decisionContext);
+     if(!verified||JSON.stringify(declared)!==JSON.stringify(verified))
+      throw Error('CORE_CUSTOMER_DECLARED_CHOICE_INPUT_DRIFT');
+     const errors=require('./report-buyer-decision-context-application')
+      .inspect(p,declared,prompt.facts?.person?.readerDecision);
+     if(errors.length)
+      throw Error('CORE_CUSTOMER_DECLARED_CHOICE_NOT_APPLIED:'+errors.join('|'));
     }
     // Even two source-correct extra explanations do not serve a buyer if
     // they merely repeat one canned phrase with option names swapped.
