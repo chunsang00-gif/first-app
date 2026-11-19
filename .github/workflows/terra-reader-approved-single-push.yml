@@ -1,0 +1,77 @@
+# This workflow has ONE explicit approval marker as its ONLY push path.
+# The ChatGPT user explicitly approved one model call on 2026-11-19.
+# No schedules, no repeat, no production deploy, no additional chapters.
+name: Terra reader-decision exactly one user-approved push QA
+on:
+  push:
+    branches:
+      - fix-paid-qa-fact-bindings-20261014
+    paths:
+      - qa-approvals/terra-reader-first-chapter-once-20261119.json
+permissions:
+  contents: read
+  actions: read
+jobs:
+  approved-single-first-chapter:
+    if: ${{ github.repository == 'chunsang00-gif/first-app' && github.ref_name == 'fix-paid-qa-fact-bindings-20261014' && github.run_attempt == 1 }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    concurrency:
+      group: terra-reader-20261119-explicit-single-approved-attempt
+      cancel-in-progress: false
+    env:
+      NODE_ENV: test
+      REPORT_MODEL: gpt-6.1-terra
+      REPORT_MODEL_URL: ''
+      REPORT_QA_OUTPUT: ${{ github.workspace }}/private-qa-first-chapter.json
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install dependencies without lifecycle scripts
+        run: npm install --ignore-scripts --no-audit --no-fund
+      - name: Verify whole app and exact new chapter envelope WITHOUT spending
+        env:
+          OPENAI_API_KEY: ''
+        run: npm test && npm run smoke && node qa-next-first-chapter-offline-preflight.js
+      - name: Deny wrong approval marker, wrong commit, reused run or changed request
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          node - <<'NODE'
+          const q=require('./qa-terra-reader-approved-push');
+          (async()=>{
+            q.approval();
+            await q.history();
+            await q.preflight();
+            console.log('ONE_USER_APPROVED_PROVIDER_CALL_PREBILL_GUARD_PASS');
+          })().catch(e=>{
+            console.error('ONE_APPROVED_PREBILL_DENIED:'+e.message);
+            process.exitCode=1;
+          });
+          NODE
+      - name: At most ONE paid first-chapter model call, no retries and no later chapters
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node qa-terra-reader-approved-push.js
+      - name: Archive raw or failed attempt with authenticated encryption
+        if: always()
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: node report-qa-secure-archive.js encrypt
+      - name: Seal private original and same-chart free preview for human editor
+        if: always()
+        run: node qa-terra-reader-sealed-transfer.js
+      - name: Retain only encrypted evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: terra-approved-reader-first-chapter-encrypted-only
+          path: premium-first-chapter-qa.enc
+          if-no-files-found: ignore
+          retention-days: 30
