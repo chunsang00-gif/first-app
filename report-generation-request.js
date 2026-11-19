@@ -220,10 +220,15 @@ const optionalSeasonOnly='계절 보충 문단은 핵심 풀이와 다른 해석
 // Only the regular paid core has this scoped editorial assignment.
 // The earlier goal stays intact for previously paid QA envelopes.
 const normalCoreEditorialGoal=
- '유료 첫 장 strength는 태어난 달의 두 계산 출처(월간·월지 본기)의 전통적 뜻과 정확한 오행 관계를 무료와 연결해 간명하게 설명한다. 무료 내용을 새 유료 분석처럼 재진술해 분량을 채우지 않는다. '+
- 'temperament는 출생시간·해의 독립 계산 근거가 실제 확인될 때만 고객이 적은 고민과 연결된 새 질문 및 두 선택의 서로 다른 확인 조건을 설명한다. 근거가 없으면 null로 둔다. '+
- '분류가 같으면 억지 차이를 만들지 않고 다르면 오행 방향을 바꾸지 않는다. 실제 성격·능력·손익·성취·미래 사건, 격국·용신·우선순위를 출생정보로 확정하지 않는다. 가상 사례는 가정임을 밝히며 고객 질문은 계산 증거가 아니다. '+
- '계절의 독립적 해석을 확인할 수 없으면 선택 문단을 null로 둔다.';
+ '결제 고객에게 제공하는 보고서입니다. 첫 사주 장의 실제 결제 원고는 태어난 달의 두 계산 출처와 전통적 분류, 정확한 오행 관계를 독자에게 알기 쉽게 설명한다. '+
+ '개인의 실제 기질·행동·이익·손해를 출생 정보만으로 관찰한 듯이 쓰지 않는다. '+
+ '두 분류가 같으면 의미를 둘로 나누거나 강도를 높이지 않고, 다르면 실제 계산된 관계의 방향을 바꾸지 않는다. '+
+ '고정 핵심 판단의 문장을 본문에 복제하지 말고 두 계산 위치가 그 관계를 이루는 이유를 설명한다. '+
+ '전통적 뜻의 설명을 누구에게나 할 수 있는 일·학업 조언으로 대체하지 않는다. '+
+ '구체적인 가상 상황이 꼭 필요하면 가정임을 분명히 하며 선택의 성공이나 실손익을 예언하지 않는다. '+
+ '추가 근거가 없는 심화 판단, 격국·용신의 우선순위, 개인의 경험을 만들어내지 않는다. '+
+ '계절의 독립적 해석을 확인할 수 없으면 선택 문단을 null로 둔다. '+
+ '고객이 직접 적은 고민은 계산 근거가 아니고 독자 문맥이며, 증거 출처는 내부 basis에만 기록한다.';
 // Shared source of truth for the actual mixed or isolated provider chapter.
 function scopedAnalysisGoal(prompt,id){
  return id==='saju_core'&&normalPaidCore(prompt)?
