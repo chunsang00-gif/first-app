@@ -112,13 +112,20 @@ function earlyPaidCoreChoiceProblems(sections,packet){
  return require('./report-paid-core-choice-application')
   .inspect(sections,packet?.person?.readerDecision);
 }
-function preSynthesisDuplicateErrors(sections){
- // The incremental provider stores prior paragraphs in topicConclusions,
- // while its current batch provides body. Examine BOTH before another paid
- // API call; otherwise the strongest duplicate checks only run at the end.
- const actual=(sections||[]).map(s=>({...s,body:Array.isArray(s?.body)?s.body:
+// High-confidence early detection may stop additional paid calls. Broad
+// lexical similarity is intentionally NOT run per batch: distinct chapters
+// and offline protocol fixtures share topic vocabulary, and a weak hit must
+// never masquerade as certain repeated meaning.
+function actualBatchParagraphs(sections){
+ return (sections||[]).map(s=>({...s,body:Array.isArray(s?.body)?s.body:
   Array.isArray(s?.topicConclusions)?s.topicConclusions:[]}));
- return [...findRepeatedSubstantiveSentences(actual),
+}
+function earlySubstantiveDuplicateErrors(sections){
+ return findRepeatedSubstantiveSentences(actualBatchParagraphs(sections));
+}
+function preSynthesisDuplicateErrors(sections){
+ const actual=actualBatchParagraphs(sections);
+ return [...earlySubstantiveDuplicateErrors(actual),
   ...findParaphrasedTopicContent(actual),
   ...findRecycledThemes(actual),...findReusedEvidenceConclusions(actual),
   ...require('./report-interpretation-overlap').inspect(actual)];
@@ -417,8 +424,8 @@ async function generate(input,callModel,onProgress=()=>{},onValidatedBatch=()=>{
    throw Error('QA resume duplicated factual interpretation');
   // Resumed historical sections must pass the same substantive originality
   // check as newly returned sections before any further billable call.
-  if(preSynthesisDuplicateErrors([...priorSections,...verified.sections]).length)
-   throw Error('QA resume repeated substantive or paraphrased paid content');
+  if(earlySubstantiveDuplicateErrors([...priorSections,...verified.sections]).length)
+   throw Error('QA resume repeated substantive paid content');
   const evidenceOwners=new Map();
   for(const section of [...priorSections,...verified.sections]){
    for(const item of section.evidence||[]){
@@ -522,12 +529,12 @@ async function generate(input,callModel,onProgress=()=>{},onValidatedBatch=()=>{
   }
   // In the paid pipeline, do not defer copied-sentence and paraphrase
   // detection until all remaining body chapters have already been paid for.
-  const substantiveDuplicates=preSynthesisDuplicateErrors([...priorSections,...result.sections]);
+  const substantiveDuplicates=earlySubstantiveDuplicateErrors([...priorSections,...result.sections]);
   if(substantiveDuplicates.length){
-   console.error('[Paid body novelty rejected before next provider call]',{
+   console.error('[Paid body substantive sentence copy rejected before next provider call]',{
     requestedIds:ids,codes:substantiveDuplicates
    });
-   throw Error('AI report service returned repeated substantive or paraphrased paid content');
+   throw Error('AI report service returned a copied substantive sentence');
   }
   priorSections.push(...result.sections.map(s=>({id:s.id,keyJudgment:s.keyJudgment,bodyLabels:s.bodyLabels,bodyTopics:s.bodyTopics,topicConclusions:s.body.slice(),evidence:s.evidence.slice()})));
   await onValidatedBatch({ids:ids.slice(),sections:result.sections,completedSections:priorSections.length});
@@ -600,6 +607,6 @@ async function generate(input,callModel,onProgress=()=>{},onValidatedBatch=()=>{
  qa=require('./report-release-gate').finalize({report,qa,packet,coverage});
  return qa.pass?{status:'ready',report,qa,headingRepairs,coverage}:{status:'rejected',report,qa,headingRepairs,coverage};
 }
-module.exports={earlyPaidCoreChoiceProblems,earlyFreePreviewCopyProblems,earlyMbtiReaderProblems,findReusedEvidenceConclusions,enforceAnnualEvidenceLimits,narrativeMotifLedger,IDS,validateShape,buildPrompt,generate,findRepeatedTopicContent,findRecycledThemes,findParaphrasedTopicContent,findRepeatedAdvice,findRepeatedSubstantiveSentences,preSynthesisDuplicateErrors};
+module.exports={earlyPaidCoreChoiceProblems,earlyFreePreviewCopyProblems,earlyMbtiReaderProblems,findReusedEvidenceConclusions,enforceAnnualEvidenceLimits,narrativeMotifLedger,IDS,validateShape,buildPrompt,generate,findRepeatedTopicContent,findRecycledThemes,findParaphrasedTopicContent,findRepeatedAdvice,findRepeatedSubstantiveSentences,earlySubstantiveDuplicateErrors,preSynthesisDuplicateErrors};
 
 
