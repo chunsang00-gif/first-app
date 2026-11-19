@@ -67,6 +67,19 @@ function build(packet,source){
   throw Error('CORE_HOUR_ADDITION_SOURCE_DRIFT');
  const meaning=domain.meanings[h.tenGod];
  if(!meaning)throw Error('CORE_HOUR_DOMAIN_ROLE_NOT_VERIFIED');
+ // After the real one-shot Terra review, this specific dilemma exposed a
+ // missing distinction: both alternatives were phrased as "make/show an
+ // output". Model prompts must assign DIFFERENT conditional checks instead
+ // of just restating the same output verb. These are reader examples, not
+ // new natal calculations or claims about the actual customer's work.
+ const distinctChoiceGoal=readerDomain==='skill'&&
+   /(?:유지할지|이어\s*갈지|계속할지)/.test(q)&&
+   /(?:배울지|익힐지|학습할지)/.test(q)?
+   '독자가 선택한 두 경우를 각각 이름 붙인 독립된 문장으로 쓴다. '+
+   '현재 일을 유지하는 가정에서는 기존 결과물이나 기존 방식 중 무엇을 평가하고 어떤 변경 기준을 확인할지 질문한다. '+
+   '새 기술을 배우는 가정에서는 작은 연습 결과물의 완성 조건과 확인할 기간·자원을 구별해 묻는다. '+
+   '양쪽을 똑같이 무엇을 만들어 보여 줄지만 묻거나, 같은 행동을 단어만 바꿔 반복하면 실패다. '+
+   '이 점검 항목은 일반적 선택 사례이며 명식으로 확인한 개인 성향·필연적 결과가 아니다. ':'';
  return Object.freeze({
   kind:'buyer-choice-hour-symbolic-extension-v1',
   sourceRefs:Object.freeze([a,b]),hourVisibleRole:hour.stemTenGod,
@@ -78,7 +91,8 @@ function build(packet,source){
   readerGoal:'이 출생시간의 숨은 글자에서만 새롭게 확인되는 ‘'+meaning+
    '’라는 전통적 질문을, 고객이 직접 입력한 '+domain.label+' 고민에 조건부로 연결한다. '+
    '출생월의 겉글자와 중심 글자의 뜻풀이를 반복하지 말고 시간의 별도 분류가 더하는 질문을 설명한다. '+
-   domain.compare+' 고객이 두 선택지를 적었다면 두 경우의 차이를 독립된 문장으로 설명한다. '+
+   domain.compare+' '+distinctChoiceGoal+
+   '고객이 두 선택지를 적었다면 두 경우의 차이를 독립된 문장으로 설명한다. '+
    '이 글자는 실제 출생시간의 근거 '+b+'에 해당하며 시간 겉글자의 분류는 '+hour.stemTenGod+
    '이다. 인용은 '+a+'과 '+b+'만 허용하며, 출생월을 뜻만 바꿔 나열하지 않는다. '+
    '숨은 글자 한 개를 골랐다는 이유로 사령·강약·격국·성격·재산·능력·건강·성취·미래를 확정하지 않는다. '+
