@@ -125,6 +125,14 @@ function earlyPaidCoreChoiceProblems(sections,packet){
  return require('./report-paid-core-choice-application')
   .inspect(sections,packet?.person?.readerDecision);
 }
+// A distinct birth-hour citation is insufficient if the paragraph merely
+// puts source meaning in its introduction and offers generic A/B advice.
+// Evaluate both independently sourced choice applications before any later
+// paid model call, including a resumed first-chapter checkpoint.
+function earlyPaidCoreHourMeaningProblems(sections,packet){
+ return require('./report-paid-core-hour-choice-meaning')
+  .inspect(sections,packet);
+}
 // High-confidence early detection may stop additional paid calls. Broad
 // lexical similarity is intentionally NOT run per batch: distinct chapters
 // and offline protocol fixtures share topic vocabulary, and a weak hit must
@@ -432,6 +440,8 @@ async function generate(input,callModel,onProgress=()=>{},onValidatedBatch=()=>{
    throw Error('QA resume paid first chapter has no independent reader value');
   if(earlyPaidCoreChoiceProblems(verified.sections,packet).length)
    throw Error('QA resume first chapter failed buyer-choice application');
+  if(earlyPaidCoreHourMeaningProblems(verified.sections,packet).length)
+   throw Error('QA resume first chapter failed hour-meaning application to buyer choices');
   const combined=[...priorSections.map(s=>({id:s.id,keyJudgment:s.keyJudgment,body:s.topicConclusions,bodyTopics:s.bodyTopics})),...verified.sections];
   if(findRepeatedTopicContent(combined).length)throw Error('QA resume repeated topic explanations');
   if(findRecycledThemes(combined).length||findReusedEvidenceConclusions(combined).length)throw Error('QA resume recycled chapter thesis');
@@ -505,6 +515,13 @@ async function generate(input,callModel,onProgress=()=>{},onValidatedBatch=()=>{
   if(choiceProblems.length){
    console.error('[Paid buyer choice was not applied before next provider call]',{requestedIds:ids,codes:choiceProblems});
    throw Error('AI report service did not apply both customer choice alternatives');
+  }
+  const hourMeaningProblems=earlyPaidCoreHourMeaningProblems(result.sections,packet);
+  if(hourMeaningProblems.length){
+   console.error('[Paid hour-role application missing before next provider call]',{
+    requestedIds:ids,codes:hourMeaningProblems
+   });
+   throw Error('AI report service failed to apply independent hour meaning to buyer choices');
   }
   const minimumValueProblems=earlyPaidCoreMinimumValueProblems(result.sections,packet);
   if(minimumValueProblems.length){
@@ -629,6 +646,6 @@ async function generate(input,callModel,onProgress=()=>{},onValidatedBatch=()=>{
  qa=require('./report-release-gate').finalize({report,qa,packet,coverage});
  return qa.pass?{status:'ready',report,qa,headingRepairs,coverage}:{status:'rejected',report,qa,headingRepairs,coverage};
 }
-module.exports={earlyPaidCoreChoiceProblems,earlyPaidCoreMinimumValueProblems,earlyFreePreviewCopyProblems,earlyMbtiReaderProblems,findReusedEvidenceConclusions,enforceAnnualEvidenceLimits,narrativeMotifLedger,IDS,validateShape,buildPrompt,generate,findRepeatedTopicContent,findRecycledThemes,findParaphrasedTopicContent,findRepeatedAdvice,findRepeatedSubstantiveSentences,earlySubstantiveDuplicateErrors,preSynthesisDuplicateErrors};
+module.exports={earlyPaidCoreChoiceProblems,earlyPaidCoreHourMeaningProblems,earlyPaidCoreMinimumValueProblems,earlyFreePreviewCopyProblems,earlyMbtiReaderProblems,findReusedEvidenceConclusions,enforceAnnualEvidenceLimits,narrativeMotifLedger,IDS,validateShape,buildPrompt,generate,findRepeatedTopicContent,findRecycledThemes,findParaphrasedTopicContent,findRepeatedAdvice,findRepeatedSubstantiveSentences,earlySubstantiveDuplicateErrors,preSynthesisDuplicateErrors};
 
 
