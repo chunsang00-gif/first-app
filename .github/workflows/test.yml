@@ -17,6 +17,15 @@ jobs:
       - run: npm install --no-audit --no-fund
       - run: node character-assets-test.js
       - run: npm test
+      - name: Compare same-chart free reader with manual paid-first-chapter example (NO API)
+        env:
+          OPENAI_API_KEY: ''
+          REPORT_MODEL_URL: ''
+          REPORT_QA_CONFIRM: ''
+        run: |
+          node qa-first-chapter-value-audit-tests.js
+          node qa-first-chapter-value-audit.js > "$RUNNER_TEMP/first-chapter-public-synthetic-value-audit.md"
+          test -s "$RUNNER_TEMP/first-chapter-public-synthetic-value-audit.md"
       - run: npm run smoke
       - name: Verify additional normal-paid monthly evidence without API charges
         run: node report-paid-core-month-nonmain-exposure-tests.js
