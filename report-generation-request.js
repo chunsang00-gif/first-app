@@ -220,7 +220,7 @@ const optionalSeasonOnly='계절 보충 문단은 핵심 풀이와 다른 해석
 // Only the regular paid core has this scoped editorial assignment.
 // The earlier goal stays intact for previously paid QA envelopes.
 const normalCoreEditorialGoal=
- '유료 첫 장에서 strength는 무료에 있던 출생월 겉글자·중심 숨은 글자의 전통적 뜻과 계산된 오행 방향을 독자가 이해할 정도로만 간명하게 연결한다. 무료 내용을 새 유료 분석처럼 재진술해 분량을 채우지 않는다. '+
+ '유료 첫 장 strength는 태어난 달의 두 계산 출처(월간·월지 본기)의 전통적 뜻과 정확한 오행 관계를 무료와 연결해 간명하게 설명한다. 무료 내용을 새 유료 분석처럼 재진술해 분량을 채우지 않는다. '+
  'temperament는 출생시간·해의 독립 계산 근거가 실제 확인될 때만 고객이 적은 고민과 연결된 새 질문 및 두 선택의 서로 다른 확인 조건을 설명한다. 근거가 없으면 null로 둔다. '+
  '분류가 같으면 억지 차이를 만들지 않고 다르면 오행 방향을 바꾸지 않는다. 실제 성격·능력·손익·성취·미래 사건, 격국·용신·우선순위를 출생정보로 확정하지 않는다. 가상 사례는 가정임을 밝히며 고객 질문은 계산 증거가 아니다. '+
  '계절의 독립적 해석을 확인할 수 없으면 선택 문단을 null로 둔다.';
