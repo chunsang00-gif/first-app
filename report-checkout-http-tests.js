@@ -70,6 +70,26 @@ const server=http.createServer(require('./server').handler);
   const input={calendar:'lunar',birthDate:'1982-11-24',leapMonth:false,
    birthTime:'14:20',gender:'male',mbti:'ISFP',name:'testing',
    readerDecision:'기존 일을 유지할지 새로운 기술을 배울지 고민 중입니다.'};
+  const invalidBuyerContext={...input,
+   readerDecision:'새로운 기술을 배우고 싶습니다.',
+   decisionContext:{currentWork:'출하 전 품질 검수',targetSkill:'지게차 실습'}};
+  const beforeCharge=await post('/api/checkout/start',
+   {analysisInput:{status:'ready',calculationInput:invalidBuyerContext}});
+  assert.equal(beforeCharge.code,422,
+   'an unsupportable customer two-way explanation must fail before any order');
+  assert.equal(beforeCharge.data.code,'FIRST_CHAPTER_VALUE_NOT_READY');
+  assert.equal(chargeAttempts,0);
+  const identicalBuyerContext={...input,decisionContext:{
+   currentWork:'출하 검수',targetSkill:'출하 검수'}};
+  const sameInput=await post('/api/checkout/start',
+   {analysisInput:{status:'ready',calculationInput:identicalBuyerContext}});
+  assert.equal(sameInput.code,422);
+  assert.equal(chargeAttempts,0);
+  const validBuyerContext={...input,decisionContext:{
+   currentWork:'출하 전 품질 검수',targetSkill:'지게차 실습'}};
+  assert.equal(require('./report-paid-core-precharge-value')
+   .inspect(validBuyerContext).eligible,true,
+   'different, grounded customer work/skill inputs may enter the normal path');
   const startPayload={analysisInput:{status:'ready',calculationInput:input}};
   const missingOffer=await post('/api/checkout/start',{});
   assert.equal(missingOffer.code,422);
