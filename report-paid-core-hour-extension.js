@@ -38,6 +38,25 @@ function domainFor(question){
  const found=Object.entries(DOMAINS).filter(([,v])=>v.query.test(question));
  return found.length===1?found[0]:null;
 }
+// In the FREE preview's "year-hour" card, buyers ALREADY see the
+// traditional category of BOTH visible birth-year and visible birth-hour
+// stems. A birth-hour HIDDEN stem with that SAME category is a different
+// physical source, but is NOT a novel traditional category for the reader.
+// Do not monetize that duplicated meaning as an "independent" first chapter.
+// The month card also exposes both month stem and month main hidden role.
+// Secondary-month linkage in the FREE preview only appears when it matches
+// one of the visible year/hour roles, which this also excludes.
+function alreadyPublicNatalRoles(packet){
+ const ten=packet?.facts?.tenGods;
+ const month=ten?.month;
+ const mainStem=packet?.facts?.structuralEvidence?.monthCommand?.mainHiddenStem;
+ const mainRole=month?.hiddenStems?.find(row=>row.stem===mainStem)?.tenGod;
+ if(!month?.stemTenGod||!mainRole||!ten?.year?.stemTenGod||
+    !ten?.hour?.stemTenGod||packet?.calculationInput?.unknownBirthTime===true)
+  throw Error('CORE_HOUR_PUBLIC_NATAL_ROLES_UNVERIFIED');
+ return new Set([month.stemTenGod,mainRole,
+  ten.year.stemTenGod,ten.hour.stemTenGod]);
+}
 function build(packet,source){
  if(packet?.status!=='ready'||packet.calculationInput?.unknownBirthTime===true||
     !packet.calculationInput?.birthTime||!packet.chart?.hour)return null;
@@ -51,8 +70,9 @@ function build(packet,source){
  if(!month?.stemTenGod||!main||!hour?.stemTenGod)throw Error('CORE_HOUR_MONTH_OR_HOUR_MISSING');
  const mainRow=month.hiddenStems?.find(x=>x.stem===main);
  if(!mainRow?.tenGod)throw Error('CORE_HOUR_MONTH_MAIN_MISSING');
- const already=new Set([month.stemTenGod,mainRow.tenGod]);
- const found=(hour.hiddenStems||[]).filter(x=>kinds.has(x.tenGod)&&!already.has(x.tenGod));
+ const already=alreadyPublicNatalRoles(packet);
+ const found=(hour.hiddenStems||[]).filter(x=>
+  kinds.has(x.tenGod)&&!already.has(x.tenGod));
  if(found.length!==1)return null;
  const h=found[0],a='natal.hour.stem',b='natal.hour.hidden.'+h.stem;
  const outer=source?.[a],inner=source?.[b];
@@ -84,7 +104,8 @@ function build(packet,source){
   kind:'buyer-choice-hour-symbolic-extension-v1',
   sourceRefs:Object.freeze([a,b]),hourVisibleRole:hour.stemTenGod,
   hourHiddenRole:h.tenGod,hiddenRef:b,readerDomain,
-  distinctFromMonth:true,chosenHiddenStemIsGoverning:false,
+  distinctFromMonth:true,distinctFromFreeVisibleNatal:true,
+  chosenHiddenStemIsGoverning:false,
   realAbilityObserved:false,realOutcomePredicted:false,
   classicalPriorityApproved:false,premiumValueApproved:false,
   extraPaidTopic:false,optionalOnly:true,
@@ -100,4 +121,4 @@ function build(packet,source){
    '고객의 고민은 실제 행동을 관찰한 증거가 아니라 본인이 제공한 질문이다.'
  });
 }
-module.exports={build,domainFor,DOMAINS};
+module.exports={build,domainFor,DOMAINS,alreadyPublicNatalRoles};
