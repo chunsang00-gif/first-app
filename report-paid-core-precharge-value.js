@@ -54,11 +54,15 @@ function inspect(input){
    t.citableFacts?.some(f=>f.id===x))&&
   !slot?.anyOf?.some(s=>s.type==='null')&&
   (slot?.anyOf?.some(s=>s.type==='object')||slot?.type==='object');
+ // The reader's FREE "year-hour" card already describes the YEAR
+ // visible category. A novel source compared with the MONTH is NOT a
+ // novel paid finding compared with the FULL free report. Keep this path
+ // as an editorial draft, but NEVER authorize a paid order solely for it.
  return Object.freeze({
   kind:'adaptive-first-chapter-precharge-unique-evidence-v1',
-  eligible:Boolean(onlyIndependentHour||onlyIndependentYear),
+  eligible:Boolean(onlyIndependentHour),
   reason:onlyIndependentHour?'verified-hour-addition-awaits-human-review':
-   onlyIndependentYear?'verified-year-visible-addition-awaits-human-review':
+   onlyIndependentYear?'year-visible-meaning-already-in-free-preview':
    'no-guaranteed-independent-first-chapter-paragraph',
   existingModelCalls:0,additionalModelCalls:0,
   modelQualityValidated:false,customerSaleApproved:false
