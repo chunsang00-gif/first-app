@@ -30,8 +30,9 @@ if(!fs.existsSync(file)){
  assert.throws(()=>q.approval(e),/not-exact-approved-push-workflow-run/);
 }
 (async()=>{
- const pre=await q.preflight();
- assert.equal(pre,true);
+ // The real approved single push has completed. New editorial instructions
+ // differ from that exact paid SHA. The spent runner must now deny drift.
+ await assert.rejects(()=>q.preflight(),/frozen-new-first-request-drift/);
  const current=await plan.inspect();
  assert.equal(current.exactProviderRequestSha256,q.REQUEST_SHA);
  assert.equal(current.realPaidProviderCalls,0);
