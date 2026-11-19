@@ -43,8 +43,12 @@ function findRepeatedSubstantiveSentences(sections){
     const canonical=readable.replace(/[\s"'“”‘’·:;()[\],，、]/g,'');
     if(canonical.length<54)continue;
     const prior=seen.get(canonical);
-    if(prior&&prior.chapter!==section.id){
-     errors.push('reused substantive sentence across chapters: '+prior.owner+' / '+owner);
+    if(prior&&prior.owner!==owner){
+     // Two topics inside one chapter are also separately paid explanations.
+     // Reuse of a long substantive sentence is not original merely because
+     // the chapter id stays the same. Ordinary disclaimers remain excluded.
+     const level=prior.chapter===section.id?'topics':'chapters';
+     errors.push('reused substantive sentence across '+level+': '+prior.owner+' / '+owner);
     }else if(!prior)seen.set(canonical,{chapter:section.id,owner});
    }
   }
