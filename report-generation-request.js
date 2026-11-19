@@ -967,9 +967,10 @@ function schema(prompt,transport){
        ext.classicalPriorityApproved!==false||
        ext.realAbilityObserved!==false||ext.premiumValueApproved!==false)
      throw Error('CORE_HOUR_EXTENSION_SCHEMA_DRIFT');
-    // Customer study/skill concern + exact hour source makes this
-    // additional reading a required FIRST-chapter paragraph. All baseline
-    // requests without this proven reader question remain nullable.
+    // A domain-qualified customer question + an independent exact birth
+    // hour source makes this paragraph mandatory. NEVER turn money or
+    // pressure questions into invented study/career concerns.
+    // Requests without that proven source still keep their nullable slot.
     if(!Array.isArray(slot.anyOf)||slot.anyOf.length!==2||
        !slot.anyOf.some(s=>s.type==='null'))
      throw Error('CORE_HOUR_EXTENSION_EXPECTED_OPTIONAL_SLOT');
@@ -977,9 +978,14 @@ function schema(prompt,transport){
     p.description='출생시간의 별도 전통적 질문을 고객의 고민에 적용한다.';
     p.properties.label.description=
      '출생시간에서 새로 확인된 별도 의미를 쉬운 소제목으로 표현한다.';
+    const readerDomainLabel=require('./report-paid-core-free-baseline')
+     .DOMAIN_LABELS[ext.readerDomain];
+    if(!readerDomainLabel)throw Error('CORE_HOUR_EXTENSION_UNKNOWN_READER_DOMAIN');
     p.properties.text.description=
      '독자가 읽는 온전한 한국어 문장으로 작성한다. 사전적 의미 나열, 출생월 본문 재요약, 고객 질문의 그대로 복사는 실패다. '+
-     ext.readerGoal+' 이 출생시간의 의미를 고객의 배움·기술 고민에서 구체적인 조건과 연결한다. '+
+     ext.readerGoal+' 이 출생시간의 의미를 고객이 직접 적은 '+readerDomainLabel+
+     ' 질문에서 검토할 구체적인 조건과 연결한다. '+ 
+     '고객이 질문하지 않은 다른 분야의 생활 경험이나 선택지를 만들지 않는다. '+
      '현실의 능력, 취업 성공, 과거 경험, 명리 방법의 우선순위는 확정하지 않는다.';
     basis.properties.refs.description=
      '출생시간의 별도 뜻을 읽는 근거 두 가지를 누락 없이 인용한다: '+
