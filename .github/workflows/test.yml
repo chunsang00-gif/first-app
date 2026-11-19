@@ -23,6 +23,12 @@ jobs:
           REPORT_MODEL_URL: ''
           REPORT_QA_CONFIRM: ''
         run: node report-paid-core-free-baseline-tests.js
+      - name: Check ACTUAL source-bound paid first-chapter writer for skill, money and pressure (NO API)
+        env:
+          OPENAI_API_KEY: ''
+          REPORT_MODEL_URL: ''
+          REPORT_QA_CONFIRM: ''
+        run: node report-paid-core-domain-boundary-tests.js
       - name: Compare same-chart free reader with manual paid-first-chapter example (NO API)
         env:
           OPENAI_API_KEY: ''
