@@ -965,6 +965,7 @@ function schema(prompt,transport){
     if(!verified||JSON.stringify(ext)!==JSON.stringify(verified)||
        ext.sourceRefs.some(ref=>!permitted.includes(ref))||
        ext.classicalPriorityApproved!==false||
+       ext.distinctFromFreeVisibleNatal!==true||
        ext.realAbilityObserved!==false||ext.premiumValueApproved!==false)
      throw Error('CORE_HOUR_EXTENSION_SCHEMA_DRIFT');
     // A domain-qualified customer question + an independent exact birth
