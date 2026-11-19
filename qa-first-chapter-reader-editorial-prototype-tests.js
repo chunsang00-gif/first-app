@@ -16,7 +16,23 @@ assert.equal(result.sections[0].bodyTopics.join(','),'temperament,strength');
 assert.deepEqual(result.inspections.hour,[]);
 assert.deepEqual(result.inspections.twoChoice,[]);
 assert.deepEqual(result.inspections.chapterChoice,[]);
+assert.deepEqual(result.inspections.customerContext,[]);
 assert.deepEqual(result.inspections.freeCopy,[]);
+assert.equal(result.customerContextSource,
+ 'voluntarily-entered-current-work-and-target-skill-not-natal-proof');
+assert(result.sections[0].body[0].includes(editorial.input.decisionContext.currentWork));
+assert(result.sections[0].body[0].includes(editorial.input.decisionContext.targetSkill));
+const facts=require('./report-facts-node').build(editorial.input,2027);
+const sameFacts=require('./report-facts-node').build(
+ {...editorial.input,decisionContext:undefined},2027);
+assert.deepEqual(facts.chart,sameFacts.chart,
+ 'voluntarily entered work and skill cannot change natal calculation');
+assert.deepEqual(facts.facts,sameFacts.facts,
+ 'reader self-report cannot become calculation evidence');
+const preview=require('./report-reading-sample').build(facts);
+const neutralPreview=require('./report-reading-sample').build(sameFacts);
+assert.deepEqual(preview.cards,neutralPreview.cards,
+ 'buyer input must not rewrite free calculated meanings');
 assert.equal(result.automatedChecksPassed,true);
 const badExtra='태어난 시간에서 새로운 의미를 확인했습니다. '+
  '기존 일을 유지할 경우 결과물을 만들어 보여 줄 수 있습니다. '+
