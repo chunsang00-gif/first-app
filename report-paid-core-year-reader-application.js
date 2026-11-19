@@ -35,8 +35,11 @@ function inspect(p,monthText,proof){
   errors.push('missing-distinct-year-meaning');
  if(!sentences.some(s=>MONTH.test(s)&&/(?:다른|차이|구분|비교|새로운|별도|달라)/.test(s)))
   errors.push('month-year-comparison-not-visible');
+ // Duplicating a generic conditional sentence does not establish
+ // two independently applied buyer decisions.
  const applied=sentences.filter(s=>domain?.test(s)&&role?.test(s)&&CONDITION.test(s));
- if(applied.length<2)
+ const different=new Set(applied.map(normalize));
+ if(different.size<2)
   errors.push('missing-two-independent-reader-conditions');
  if(normalize(p.text)===normalize(monthText)||
     !sentences.some(s=>!normalize(monthText).includes(normalize(s))))
