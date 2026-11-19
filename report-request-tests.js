@@ -201,8 +201,9 @@ const {createQueue,retryDelay,rateLimitKind}=require('./report-request-control')
   'repeated accurate caution is not a second paid interpretation');
  const sameChapter=structuredClone(reusedSentences);
  sameChapter[1].id='decision';
- assert.deepEqual(contract.findRepeatedSubstantiveSentences(sameChapter),[],
-  'the cross-chapter sentence rule must not override existing same-chapter checks');
+ assert(contract.findRepeatedSubstantiveSentences(sameChapter).some(x=>
+  x.startsWith('reused substantive sentence across topics:')),
+  'distinct paid topics inside the same chapter cannot reuse a long substantive interpretation');
  const sampleInput={calendar:'solar',birthDate:'1990-06-15',unknownBirthTime:true,gender:'male',mbti:'INFP'};
  const blueprint=require('./report-analysis-guidance').preflight(require('./report-facts-node').build(sampleInput,2027)); 
   const canonicalPlan=require('./report-analysis-guidance').preflight(require('./report-facts-node').build(sampleInput,2027));
