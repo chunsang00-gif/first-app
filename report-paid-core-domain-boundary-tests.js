@@ -49,8 +49,16 @@ function actual(input){
   assert(single?.extension?.readerDomain==='skill');
   const singleBaseline=baseline.build(single.packet,single.extension);
   assert.equal(singleBaseline.twoBuyerChoicesParsed,false);
+  assert.equal(single.extension.twoBuyerChoicesParsed,false);
   assert(singleBaseline.writerInstruction.includes('가짜 두 선택지를 창작하지 말고'));
   assert(!singleBaseline.writerInstruction.includes('실제로 적은 두 선택'));
+  assert(!singleBaseline.writerInstruction.includes('기존 일을 계속할 때는'));
+  assert(!single.extension.readerGoal.includes('기존 일을 유지하는 가정에서는'));
+  const singleSchema=single.leaf.properties.text.description;
+  assert(singleSchema.includes('이 고객은 두 선택지를 직접 입력하지 않았다.'));
+  assert(!singleSchema.includes('각 선택을 해석하는 별도 문장마다'));
+  assert(!singleSchema.includes('현재 일을 유지하는 가정에서는'),
+   'the ACTUAL model must not invent a keep-job option when the buyer only asked to learn');
 
   // Find real, source-qualified examples across the twelve birth-hour
   // branches rather than inventing a natal source for a fake test.
@@ -82,6 +90,24 @@ function actual(input){
     'previous irrelevant global assumption must not leak into other buyer domains');
    assert(found.extension.sourceRefs.every(id=>
     found.leaf.properties.basis.properties.refs.items.enum.includes(id)));
+   const oneQuestion=c.domain==='money'?
+    '월급에서 지출을 줄이는 방법이 고민입니다.':
+    '업무 압박이 심해서 책임 범위를 고민하고 있습니다.';
+   const one=actual({...found.packet.calculationInput,readerDecision:oneQuestion,
+    mbti:found.packet.person?.mbti||'ISFP'});
+   assert(one?.extension?.readerDomain===c.domain,
+    'single customer question must still obtain the SAME independently verified hour evidence');
+   assert.equal(one.extension.twoBuyerChoicesParsed,false);
+   const oneFree=baseline.build(one.packet,one.extension);
+   assert.equal(oneFree.twoBuyerChoicesParsed,false);
+   assert(oneFree.writerInstruction.includes('가짜 두 선택지를 창작하지 말고'));
+   assert(!oneFree.writerInstruction.includes('각각 다른 확인 조건에 적용한다'));
+   assert(!one.extension.readerGoal.includes(c.domain==='money'?
+    '매번 들어가는 비용을 따져볼 경우와 새로운 자원을 찾아 마련할 경우':
+    '평소에 정해진 절차로 대응하는 경우와 갑자기 새로운 요구가 들어오는 경우'));
+   const oneSchema=one.leaf.properties.text.description;
+   assert(oneSchema.includes('이 고객은 두 선택지를 직접 입력하지 않았다.'));
+   assert(!oneSchema.includes('각 선택'));
   }
   assert.equal(networkCalls,0);
   console.log('PASS REAL paid schema keeps skill, money and pressure buyer concerns distinct with exact computed hour sources; no AI/payment calls');
