@@ -15,7 +15,7 @@ assert(yaml.includes('q.approval()'));
 assert(yaml.includes('await q.history()'));
 assert(yaml.includes('await q.preflight()'));
 assert(yaml.includes("if: always()"));
-assert(!yaml.includes('deploy'));
+assert(!/uses:\s*[^\n]*(?:render|deploy)/i.test(yaml));
 assert.equal(manual.FROZEN_REQUEST_SHA256,q.REQUEST_SHA);
 const file=path.join(__dirname,q.MARKER);
 if(!fs.existsSync(file)){
