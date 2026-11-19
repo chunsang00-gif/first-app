@@ -19,7 +19,7 @@ const DOMAIN_TASKS=Object.freeze({
 });
 function build(packet,hour){
  if(packet?.status!=='ready'||hour?.kind!==SOURCE_KIND||
-    hour.distinctFromMonth!==true||
+    hour.distinctFromMonth!==true||hour.distinctFromFreeVisibleNatal!==true||
     !Array.isArray(hour.sourceRefs)||hour.sourceRefs.length!==2||
     !hour.sourceRefs.includes('natal.hour.stem')||
     !hour.sourceRefs.some(ref=>ref.startsWith('natal.hour.hidden.'))||
