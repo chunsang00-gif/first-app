@@ -81,6 +81,12 @@ for(const input0 of samples){
    applicability.join('. ')+'.';
   const paragraph={text:content,basis:{refs:v.sourceRefs.slice()}};
   assert.deepEqual(reader.inspect(paragraph,'달의 기본 풀이만 반복합니다.',v),[]);
+  const repeatedConditions={...paragraph,
+   text:content.replace(applicability[1],applicability[0])};
+  assert(reader.inspect(repeatedConditions,'달의 기본 풀이만 반복합니다.',v)
+   .includes('missing-two-independent-reader-conditions'),
+   'the same conditional sentence twice is not two distinct paid insights');
+
   assert(reader.inspect({...paragraph,basis:{refs:v.sourceRefs.slice(1)}},
    '달 기본 설명',v).includes('missing-year-comparison-citations'));
   assert(reader.inspect({...paragraph,text:'태어난 달의 기본 풀이와는 다른 뜻이 있습니다.'},
