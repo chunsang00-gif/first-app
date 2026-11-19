@@ -14,6 +14,12 @@ const v=ext.build(packet,source);
 assert(v&&v.kind==='buyer-choice-hour-symbolic-extension-v1');
 assert.deepEqual(v.sourceRefs,['natal.hour.stem','natal.hour.hidden.丁']);
 assert.equal(v.hourHiddenRole,'식신');
+assert(v.readerGoal.includes('현재 일을 유지하는 가정에서는 기존 결과물'),
+ 'postmortem: current-work option must have a concrete baseline criterion');
+assert(v.readerGoal.includes('새 기술을 배우는 가정에서는 작은 연습 결과물'),
+ 'postmortem: learning option must have a different practice-output criterion');
+assert(v.readerGoal.includes('같은 행동을 단어만 바꿔 반복하면 실패'),
+ 'the original real paid prose repeated the same make/show recommendation');
 assert.equal(v.premiumValueApproved,false);
 assert.equal(v.chosenHiddenStemIsGoverning,false);
 assert.equal(v.realOutcomePredicted,false);
