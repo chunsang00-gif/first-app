@@ -32,6 +32,17 @@ function inspect(sections,question){
  const i=Array.isArray(core.bodyTopics)?core.bodyTopics.indexOf('strength'):-1;
  if(i<0||!Array.isArray(core.body))
   return ['saju_core:buyer-choice-strength-paragraph-missing'];
+ // The REAL paid writer puts the optional independently cited buyer-choice
+ // explanation in temperament, while mandatory strength explains MONTH only.
+ // Previously we required buyer-choice details inside strength regardless
+ // of the writer contract: a valid temperament could never clear this gate.
+ // Keep the strict two-option test; do NOT treat any extra paragraph as PASS.
+ const extra=core.bodyTopics.indexOf('temperament');
+ if(extra>=0&&typeof core.body[extra]==='string'&&
+    core.body[extra].trim()&&
+    require('./report-paid-core-two-choice-value')
+     .inspect(core.body[extra],question).length===0)
+  return [];
  const original=String(core.body[i]||'');
  const authored=original.split(String(question).trim()).join(' ');
  const sentences=authored.split(/[.!?。！？\n]+/)
