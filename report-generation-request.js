@@ -2228,6 +2228,15 @@ function restoreEvidence(value,prompt){
      if(problems.length)
       throw Error('CORE_HOUR_EXTENSION_READER_VALUE_MISSING:'+problems.join('|'));
     }
+    // Even two source-correct extra explanations do not serve a buyer if
+    // they merely repeat one canned phrase with option names swapped.
+    if(id==='saju_core'&&topic==='temperament'&&
+       (task.sourceOwnedYearVisibleExtension||task.sourceOwnedHourExtension)){
+     const errors=require('./report-paid-core-two-choice-value')
+      .inspect(p.text,prompt.facts?.person?.readerDecision);
+     if(errors.length)
+      throw Error('CORE_PAID_BUYER_TWO_CHOICE_VALUE_MISSING:'+errors.join('|'));
+    }
     if(id==='saju_core'&&topic==='temperament'&&prompt.paidCoreDepthV2===true){
      const contrast=task.paidCoreDepthV2.readerClassicalScope||
       task.paidCoreDepthV2.readerContrast||
