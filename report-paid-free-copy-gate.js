@@ -46,7 +46,11 @@ function inspect(sections,packet){
  if(sample.status!=='calculated-example'||sample.modelCalls!==0||
    sample.completedPremiumParagraphs!==0)
   throw Error('PAID_FREE_COPY_UNVERIFIED_PREVIEW');
- const cards=sample.cards.filter(x=>['birth-month','month-visible-link'].includes(x.id));
+ // The FREE report already contains the exact year/hour traditional
+ // meanings. New paid hour/year extensions must NOT repeat that card as
+ // purported premium insight. Compare all natal free cards, not just month.
+ const natalFreeIds=new Set(['birth-month','month-visible-link','year-hour']);
+ const cards=sample.cards.filter(x=>natalFreeIds.has(x.id));
  const errors=[];
  for(let i=0;i<(core.body||[]).length;i++){
   const paid=String(core.body[i]||''),compact=norm(paid);
