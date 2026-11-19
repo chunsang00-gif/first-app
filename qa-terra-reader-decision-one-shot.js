@@ -94,10 +94,10 @@ function saveOnce(file,data){
  try{fs.writeFileSync(fd,JSON.stringify(data,null,2));fs.fsyncSync(fd)}
  finally{fs.closeSync(fd)}
 }
-async function run(){
+async function run(guards={approve:approval,history:guardFirstDispatch}){
  const env=process.env;
- approval(env);
- await guardFirstDispatch(env);
+ guards.approve(env);
+ await guards.history(env);
  const {requestHash}=await preflight();
  const dir=path.dirname(env.REPORT_QA_OUTPUT);
  const attempt=path.join(dir,'private-qa-first-chapter-attempt.json');
