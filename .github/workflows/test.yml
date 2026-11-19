@@ -29,6 +29,12 @@ jobs:
           REPORT_MODEL_URL: ''
           REPORT_QA_CONFIRM: ''
         run: node report-paid-core-domain-boundary-tests.js
+      - name: Reject FREE year-hour category reuse before paid order (NO API, NO MERCHANT)
+        env:
+          OPENAI_API_KEY: ''
+          REPORT_MODEL_URL: ''
+          REPORT_QA_CONFIRM: ''
+        run: node report-paid-core-free-natal-novelty-tests.js
       - name: Compare same-chart free reader with manual paid-first-chapter example (NO API)
         env:
           OPENAI_API_KEY: ''
