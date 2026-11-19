@@ -1005,9 +1005,9 @@ function schema(prompt,transport){
     p.properties.text.description+=' '+freeBoundary.writerInstruction;
     // The reader must see the exact additional hour meaning INSIDE each
     // option, not merely in the introduction above generic work advice.
-    const hourChoiceScope=require('./report-paid-core-hour-choice-meaning')
-     .taskFor(ext);
-    p.properties.text.description+=' '+hourChoiceScope.writer;
+    const hourChoiceGoal=require('./report-paid-core-hour-choice-meaning')
+     .writerFor(ext,prompt.facts?.person?.readerDecision);
+    p.properties.text.description+=' '+hourChoiceGoal;
     if(task.customerDeclaredChoiceSituation){
      const extra=task.customerDeclaredChoiceSituation;
      if(extra.kind!=='buyer-self-reported-work-and-study-context-v1'||
