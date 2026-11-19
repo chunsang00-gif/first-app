@@ -1,0 +1,73 @@
+# NEW manual one-use approval required; never re-run the spent 2026-11-18 QA.
+# The branch CI does NOT trigger this workflow and it has no schedules.
+name: Terra reader-decision first chapter — independent single-use manual QA
+on:
+  workflow_dispatch:
+    inputs:
+      paid_qa_confirmation:
+        description: 'NEW separately approved exact feature commit code (one billable attempt; NEVER retry)'
+        required: true
+        type: string
+permissions:
+  contents: read
+  actions: read
+jobs:
+  first-chapter-only:
+    if: ${{ github.ref_name == 'fix-paid-qa-fact-bindings-20261014' && startsWith(inputs.paid_qa_confirmation, 'QA_TERRA_20261119_READER_DECISION_ONCE_') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    concurrency:
+      group: terra-reader-decision-manual-one-attempt-20261119
+      cancel-in-progress: false
+    env:
+      REPORT_MODEL: gpt-6.1-terra
+      REPORT_QA_CONFIRM: ${{ inputs.paid_qa_confirmation }}
+      REPORT_QA_OUTPUT: ${{ github.workspace }}/private-qa-first-chapter.json
+      REPORT_MODEL_URL: ''
+      NODE_ENV: test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install without lifecycle scripts
+        run: npm install --ignore-scripts --no-audit --no-fund
+      - name: Full offline checks before a possible billable call
+        env:
+          OPENAI_API_KEY: ''
+        run: npm test && npm run smoke && node qa-next-first-chapter-offline-preflight.js
+      - name: Block unauthorized commit, second dispatch, old consent and request drift
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          node - <<'NODE'
+          const job=require('./qa-terra-reader-decision-one-shot');
+          (async()=>{
+            job.approval();
+            await job.guardFirstDispatch();
+            await job.preflight();
+            console.log('NEW_READER_DECISION_ONE_SHOT_PREBILL_GUARD_PASS');
+          })().catch(e=>{
+            console.error('NEW_READER_DECISION_PREBILL_DENIED:'+e.message);
+            process.exitCode=1;
+          });
+          NODE
+      - name: Exactly one Terra first-chapter model call; no retry, next chapter or release
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node qa-terra-reader-decision-one-shot.js
+      - name: Encrypt original and failed attempt locally, even on a failed request
+        if: always()
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: node report-qa-secure-archive.js encrypt
+      - name: Upload encrypted private evidence ONLY
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: terra-reader-decision-first-chapter-encrypted
+          path: premium-first-chapter-qa.enc
+          if-no-files-found: ignore
+          retention-days: 30
