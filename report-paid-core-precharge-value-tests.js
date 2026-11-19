@@ -31,6 +31,20 @@ const unqualifiedConcern=gate.inspect(unrelated);
 assert.equal(unqualifiedConcern.eligible,false);
 assert.equal(offer.build(unrelated).actualProseNotYetGenerated,true,
  'unqualified coverage preview is still inspectable without charge');
+const context={currentWork:'출하 전 품질 검수',targetSkill:'지게차 실습'};
+const withContext=gate.inspect({...base,readerDecision:choice,decisionContext:context});
+assert.equal(withContext.eligible,true);
+const unparseable={...base,readerDecision:'새로운 기술을 배우고 싶습니다.',
+ decisionContext:context};
+const unparseableResult=gate.inspect(unparseable);
+assert.equal(unparseableResult.eligible,false,
+ 'an unparseable paid two-option buyer context must never reach checkout');
+assert.equal(unparseableResult.reason,'buyer-context-unusable-for-two-option-paid-explanation');
+const sameLabels=gate.inspect({...base,readerDecision:choice,
+ decisionContext:{currentWork:'물류 품질 검수',targetSkill:'물류 품질 검수'}});
+assert.equal(sameLabels.eligible,false,
+ 'identical work and skill cannot be sold as an independently compared pair');
+assert.equal(sameLabels.additionalModelCalls,0);
 const noTime=gate.inspect({...base,birthTime:'',unknownBirthTime:true,readerDecision:choice});
 assert.equal(noTime.eligible,false);
 console.log('PASS zero-cost checkout gate blocks month-only paid first chapters and preserves source-qualified current-choice first chapter');
