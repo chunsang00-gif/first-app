@@ -42,9 +42,12 @@ const combined=original+
 assert(application.inspect(paragraph(combined),assign,question)
  .includes('buyer-context-options-not-independently-applied'),
  'mentioning both choices in one long clause must NOT pass');
-const altered={...assign,currentWork:'원래 업무라는 말'};
+const altered={...assign,calculatedNatalFact:true};
 assert(application.inspect(paragraph(good),altered,question)
- .includes('buyer-context-unverified-input'));
+ .includes('buyer-context-unverified-input'),
+ 'An input falsely presented as natal proof must be refused');
+ // Changing a valid user-provided label is checked against the immutable
+ // original input in restoreEvidence(), not inferred by this local auditor.
 const same={currentWork:'물류 품질 검수',targetSkill:'물류 품질 검수'};
 assert(application.inspect(paragraph(good),context.readerTask(same),question)
  .includes('buyer-context-not-distinct-enough-for-automatic-review'));
