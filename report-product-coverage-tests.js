@@ -240,6 +240,11 @@ const names=['NODE_ENV','RENDER','PAID_CORE_DEPTH_V2',
    'a genuine year exposure must be about the year rather than a generic hour case');
   assert.notEqual(yearLink.text,directLink.text,
    'the independent chart must produce a different role-grounded conditional reading');
+  assert(!/(?:태어난 해을|태어난 시간을|태어난 해에을|태어난 시간를)/.test(
+   [yearLink.text,directLink.text].join(' ')),
+   'year/hour linkage must never attach the wrong Korean object particle');
+  assert(directLink.text.includes('태어난 시간을 나타내는'),
+   'the birth-hour linkage must say 시간을, not 시간를');
   const unknownTime=coverage.calculate({calendar:'solar',birthDate:'2001-11-03',
    unknownBirthTime:true,birthTime:'12:00',gender:'male',mbti:'모름'});
   assert.equal(unknownTime.status,'ready');
