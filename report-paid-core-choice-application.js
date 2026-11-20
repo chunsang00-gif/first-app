@@ -14,7 +14,10 @@ function tokens(s){
 }
 function alternatives(question){
  if(typeof question!=='string'||question.length>140)return null;
- const m=question.match(/(.{2,70}?)([가-힣]지)\s+(.{2,70}?)([가-힣]지)(?=\s|[,.!?。！？]|$)/);
+ // Accept ordinary punctuation and '아니면' between -할지 alternatives.
+ // Otherwise a real two-choice question is misread as a SINGLE concern,
+ // risking a paid writer that does not compare what the buyer asked.
+ const m=question.match(/(.{2,70}?)([가-힣]지)(?:\s*(?:[,，;；/]|\s+)(?:\s*(?:아니면|혹은|또는))?\s*)(.{2,70}?)([가-힣]지)(?=\s|[,.!?。！？]|$)/);
  if(!m)return null;
  // Korean alternatives include 유지할지, 배울지, 고를지, 이직할지.
  // Reattach the end of verbs other than auxiliary '할지'.
