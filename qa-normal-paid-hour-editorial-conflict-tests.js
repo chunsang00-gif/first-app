@@ -25,6 +25,10 @@ function status(prompt){
  assert(source);
  const high=writer.policyFor(prompt);
  const goal=chapter.analysisGoal,contextRule=context.writerBoundary;
+ assert(body.task.editorialGoal?.includes('필수 strength는 태어난 달의 이미 공개된 기본 맥락'),
+  'top-level model editorial brief must NOT remain month-only');
+ assert(!body.task.editorialGoal.includes('계절의 독립적 해석을 확인할 수 없으면 선택 문단을 null로 둔다'),
+  'old optional-season rule must not contradict mandatory hour schema');
  assert(goal.includes('필수 strength는 태어난 달의 이미 공개된 기본 맥락'));
  assert(goal.includes('필수 temperament는 출생시간의 검증된 별도 분류'));
  assert(!goal.includes('계절의 독립적 해석을 확인할 수 없으면 선택 문단을 null로 둔다'),
