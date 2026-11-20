@@ -395,6 +395,12 @@ async function mount({container,analysisInput,proposal,isCurrent}={}){
   try{
    const order=await json('/api/checkout/start',{analysisInput});
    const data=order.data;
+   // A source-correct natal chart can still have a buyer question our
+   // first-chapter reader gate cannot interpret without inventing content.
+   // This is a PRE-ORDER refusal, not a payment failure or price mismatch.
+   if(!order.ok&&data?.code==='FIRST_CHAPTER_VALUE_NOT_READY')
+    throw Error(typeof data.message==='string'&&data.message.length<250?
+     data.message:'유료 첫 장의 독립적인 해석을 검증할 수 없어 주문을 만들지 않았습니다.');
    if(!order.ok||data?.status!=='pending'||!data.orderId||
       !/^[a-f0-9]{64}$/.test(data.ownerToken||'')||
       data.amount!==cfg.amount||data.currency!=='KRW'||
