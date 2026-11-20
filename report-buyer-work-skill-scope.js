@@ -9,15 +9,18 @@
  const KEEP=/(?:유지할지|계속할지|이어갈지|다닐지|남을지|버틸지)/;
  const LEARNING=/(?:기술|자격|교육|훈련|실습|연습|학습|공부|배우|익히|수업|지게차|엑셀)/;
  const LEARN_ACTION=/(?:배울지|익힐지|학습할지|공부할지|취득할지|실습할지|연습할지|훈련할지|수강할지)/;
- function supportsDecision(question){
-  if(typeof question!=='string'||!question.trim()||question.length>140)return false;
+ function orderFor(question){
+  if(typeof question!=='string'||!question.trim()||question.length>140)return null;
   const match=question.match(TWO_OPTIONS);
-  if(!match)return false;
+  if(!match)return null;
   const first=match[1]+match[2],second=match[3]+match[4];
   const keep=text=>WORK.test(text)&&KEEP.test(text);
   const learn=text=>LEARNING.test(text)&&LEARN_ACTION.test(text);
-  return keep(first)&&learn(second)||learn(first)&&keep(second);
+  if(keep(first)&&learn(second))return 'work-first';
+  if(learn(first)&&keep(second))return 'skill-first';
+  return null;
  }
+ function supportsDecision(question){return orderFor(question)!==null;}
  function bindForm(document){
   const question=document?.getElementById?.('readerDecision');
   const wrap=document?.getElementById?.('workSkillContext');
@@ -38,7 +41,7 @@
   sync();
   return true;
  }
- const api=Object.freeze({supportsDecision,bindForm});
+ const api=Object.freeze({orderFor,supportsDecision,bindForm});
  if(typeof module!=='undefined'&&module.exports)module.exports=api;
  if(root?.document){
   root.REPORT_BUYER_WORK_SKILL_SCOPE=api;
