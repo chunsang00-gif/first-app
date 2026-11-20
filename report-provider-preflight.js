@@ -68,7 +68,19 @@ function inspect(prompt,payload,schema){
    }
    const refs=writer.allowedRefs(payload,directive,id,topic);
    const available=basis.refs?.items?.enum||[];
-   if(!refs.size||JSON.stringify([...refs])!==JSON.stringify(available)||
+   // The ordinary hour-specific first chapter is deliberately NARROWER
+   // than the general fact ledger. Its only independently NEW natal
+   // evidence is one visible and one hidden hour source. Don't force the
+   // broad seasonal/month ledger back into its outgoing strict JSON field.
+   const hour=id==='saju_core'&&topic==='temperament'&&
+    directive.sourceOwnedHourExtension;
+   const expectedWireRefs=hour?.sourceRefs||[...refs];
+   if(hour&&(hour.kind!=='buyer-choice-hour-symbolic-extension-v1'||
+      hour.distinctFromFreeVisibleNatal!==true||
+      expectedWireRefs.length!==2||
+      expectedWireRefs.some(x=>!refs.has(x)||!x.startsWith('natal.hour.'))))
+    note('core-hour-novel-source-citations-unverified');
+   if(!refs.size||JSON.stringify(expectedWireRefs)!==JSON.stringify(available)||
       (directive.citableFacts||[]).some(x=>!refs.has(x.id)))
     note('topic-allowed-citations-drift:'+id+'/'+topic);
    const kinds=directive.requiredSourceKinds||[];
