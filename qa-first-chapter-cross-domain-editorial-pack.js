@@ -135,11 +135,11 @@ function markdown(result){
   const label={skill:'배움·기술',money:'돈·자원',pressure:'업무 압박'}[row.domain];
   lines.push('## '+label+' — 고객 질문과 같은 명식의 무료/유료 초안',
    '', '**합성 고객 질문:** '+row.question,
-   '', '**계산 사례:** '+row.syntheticChart.calendar+' '+
+   '', '**계산 사례:** '+(row.syntheticChart.calendar==='lunar'?'음력':'양력')+' '+
     row.syntheticChart.birthDate+' / '+row.syntheticChart.birthTime+
     ' (실제 고객이 아닌 프로그램 테스트용)',
-   '', '**새 유료 근거:** 출생시간 안쪽 전통 분류 '+row.verifiedHourRole+
-    ' (근거 '+row.verifiedSourceRefs.join(', ')+')',
+   '', '**새로 확인된 출생시간 근거:** 숨은 글자의 전통 분류 '+row.verifiedHourRole+
+    ' (내부 근거: '+row.verifiedSourceRefs.join(', ')+')',
    '', '### 이 명식의 실제 무료 풀이',
    '');
   for(const c of row.freeCards){
