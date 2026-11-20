@@ -22,14 +22,17 @@ const GROUPS=Object.freeze([
 ]);
 const MODEL='gpt-4.1';
 const RATE=Object.freeze({input:2,output:8,unit:1000000});
+const LUNA_RATE=Object.freeze({input:0.1,output:0.5,unit:1000000});
+// Source: https://developers.openai.com/api/docs/models/gpt-6-luna
+// 2026-11-20 publicly listed Standard text price. Scenario only, not a bill.
 // Scenarios, NOT usage estimates or guaranteed provider/billing caps:
 // UTF-8 bytes + 2048 per call deliberately overcounts many textual tokens;
 // however tokenization, service-side overhead, and actual completed
 // previous chapters are unknown. Add explicit prior-chapter reserves.
 const INCREMENTAL_CARRYOVER_TOKENS=12000;
 const SYNTHESIS_INPUT_RESERVE_TOKENS=50000;
-const dollars=(input,output)=>
- Number(((input*RATE.input+output*RATE.output)/RATE.unit).toFixed(6));
+const dollars=(input,output,rate=RATE)=>
+ Number(((input*rate.input+output*rate.output)/rate.unit).toFixed(6));
 function strict(value){
  if(Array.isArray(value))return value.map(strict);
  if(!value||typeof value!=='object')return value;
@@ -68,7 +71,12 @@ function envelope(prompt,model=MODEL){
   text:{format:{type:'json_schema',name:'saju_mbti_premium_report',
    strict:true,schema}}};
 }
-async function inspect(){
+async function inspect(options={}){
+ const model=options.model||MODEL;
+ if(!['gpt-4.1','gpt-6-luna'].includes(model))
+  throw Error('ADAPTIVE_COST_UNREVIEWED_MODEL_NOT_SUPPORTED');
+ const rate=model==='gpt-6-luna'?LUNA_RATE:RATE;
+ const deprecated=model==='gpt-4.1';
  // This function aborts server generation at the FIRST provider boundary.
  const c=await captured.capture(sample);
  if(c.providerCalls!==0||c.status!=='captured-full-paid-composition')
@@ -82,7 +90,7 @@ async function inspect(){
   throw Error('ADAPTIVE_OFFLINE_COST_FIRST_BATCH_SCOPE_MISMATCH');
  const bodies=groups.map((ids,index)=>{
   const p=index===0?first:bodyPrompt(first,ids,plan);
-  const env=envelope(p);
+  const env=envelope(p,model);
   const bytes=Buffer.byteLength(JSON.stringify(env),'utf8');
   const scenarioInput=bytes+2048+index*INCREMENTAL_CARRYOVER_TOKENS;
   return {number:index+1,chapters:ids,kind:index===0?'actual-first-envelope':'later-batch-no-prior-prose-projection',
@@ -92,9 +100,9 @@ async function inspect(){
     .update(JSON.stringify(env)).digest('hex')}:{}),
    requestUtf8Bytes:bytes,outputTokenCeiling:env.max_output_tokens,
    illustrativeInputPlanningTokens:scenarioInput,
-   illustrativeCostIfFullOutputUSD:dollars(scenarioInput,env.max_output_tokens)};
+   illustrativeCostIfFullOutputUSD:dollars(scenarioInput,env.max_output_tokens,rate)};
  });
- const synthesisTokens=batches.outputLimit(MODEL,{stage:'synthesis'});
+ const synthesisTokens=batches.outputLimit(model,{stage:'synthesis'});
  const outputCeiling=bodies.reduce((n,x)=>n+x.outputTokenCeiling,0)+synthesisTokens;
  const firstCost=bodies[0].illustrativeCostIfFullOutputUSD;
  const approximateInput=bodies.reduce((n,x)=>n+x.illustrativeInputPlanningTokens,0)+
@@ -102,26 +110,30 @@ async function inspect(){
  if(groups.length+1>batches.MAX_PAID_CALLS)
   throw Error('ADAPTIVE_OFFLINE_COST_CALL_CAP_EXCEEDED');
  return {kind:'adaptive-v1-offline-cost-plan-v1',
-  model:MODEL,modelDeprecated:true,
+  model,modelDeprecated:deprecated,
   sample:'synthetic-lunar-1982-11-24-1420-ISFP',
   chosenChapters:selected.plannedIds,omittedChapters:selected.omitted.map(x=>x.id),
   bodyCalls:groups.length,finalCalls:1,totalCalls:groups.length+1,
   firstBodyIsExactPrebillingComposition:true,allLaterBodiesAreUnbilledProjections:true,
   firstBodyRequestSha256:bodies[0].requestSha256,
-  modelShutdownDate:'2027-01-14',modelMigrationBeforeLaunchRequired:true,
+  modelShutdownDate:deprecated?'2027-01-14':null,
+  modelMigrationBeforeLaunchRequired:deprecated,
+  replacementModelTransportVerifiedOnlyByMock:!deprecated,
+  replacementModelRealKoreanQualityVerified:false,
+  nextPaidProviderCallAuthorized:false,
   rows:bodies,
   synthesis:{kind:'uncreated-full-manuscript-variable-input',
    inputReservePlanningTokens:SYNTHESIS_INPUT_RESERVE_TOKENS,
    outputTokenCeiling:synthesisTokens},
   totalOutputTokenCeiling:outputCeiling,
   illustrativeInputPlanningTokens:approximateInput,
-  outputIfAllLimitsReachedUSD:dollars(0,outputCeiling),
+  outputIfAllLimitsReachedUSD:dollars(0,outputCeiling,rate),
   firstBodyIllustrativeFullOutputUSD:firstCost,
-  illustrativeFullRunUSD:dollars(approximateInput,outputCeiling),
+  illustrativeFullRunUSD:dollars(approximateInput,outputCeiling,rate),
   // Not a hard bound because the real tokenization + dynamic history are
   // not measured or enforced by OpenAI or the app.
   guaranteedBillingCapUSD:null,realMeasuredTokenCount:null,realPriceChargedUSD:null,
-  rateUSDPerMillion:RATE,
+  rateUSDPerMillion:rate,
   providerCalls:0,modelOutputInspected:false,salesApproved:false,
   operatorApprovalGranted:false,releaseVerdict:'not-approved'};
 }
@@ -129,4 +141,4 @@ if(require.main===module)inspect().then(x=>{
  // Only non-sensitive counts; never print the request/prompt or source chart.
  process.stdout.write('ADAPTIVE_V1_OFFLINE_COST_PLAN='+JSON.stringify(x)+'\n');
 }).catch(e=>{console.error('ADAPTIVE_V1_OFFLINE_COST_FAILED:'+e.message);process.exitCode=1});
-module.exports={inspect,sample,MODEL,RATE,dollars,envelope};
+module.exports={inspect,sample,MODEL,RATE,LUNA_RATE,dollars,envelope};
