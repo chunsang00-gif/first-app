@@ -160,6 +160,38 @@ function calculate(input){
  const planned=new Set(choice.plannedIds);
  const productProposal=require('./report-adaptive-product-proposal').build(blueprint,choice);
  const interpretivePreviews=independentDomainReadings(packet,blueprint,planned);
+ // Chapter counts are only a broad scope estimate. They MUST NOT imply
+ // that the first PAID chapter can contain anything beyond the FREE text.
+ // Reuse the exact production precharge gate; no model/merchant is called.
+ const firstChapterPrecharge=require('./report-paid-core-precharge-value').inspect(input);
+ if(firstChapterPrecharge.kind!=='adaptive-first-chapter-precharge-unique-evidence-v1'||
+    firstChapterPrecharge.additionalModelCalls!==0||
+    firstChapterPrecharge.customerSaleApproved!==false)
+  throw Error('PREVIEW_FIRST_CHAPTER_GATE_CONTRACT_DRIFT');
+ const firstChapterReasons=Object.freeze({
+  'verified-hour-addition-awaits-human-review':
+   '무료 풀이에 없던 출생시간의 별도 계산 근거가 확인됐습니다. 아직 실제 유료 문장과 상품 가치는 검증되지 않았습니다.',
+  'no-guaranteed-independent-first-chapter-paragraph':
+   packet.person?.readerDecision?
+    '현재 질문과 출생정보로는 무료 풀이와 구별되는 유료 첫 장의 별도 해석 근거가 확인되지 않았습니다.':
+    '직접 입력한 고민이 없어 무료 풀이와 구별되는 유료 첫 장의 별도 해석 근거를 확인할 수 없습니다.',
+  'year-visible-meaning-already-in-free-preview':
+   '추가로 보이는 해석은 이미 무료 풀이에 포함돼 있습니다. 같은 의미를 유료로 다시 제공하지 않습니다.',
+  'buyer-question-cannot-pass-first-chapter-reader-gate':
+   '입력한 고민에서 어떤 상황을 따져야 할지 분명하지 않아, 유료 첫 장의 차별화된 해석을 검증하기 어렵습니다.',
+  'buyer-context-unusable-for-two-option-paid-explanation':
+   '직접 입력한 현재 업무와 배우려는 기술을 두 선택에 정확하게 연결할 수 없어 유료 첫 장을 만들지 않습니다.'
+ });
+ if(!Object.hasOwn(firstChapterReasons,firstChapterPrecharge.reason))
+  throw Error('PREVIEW_FIRST_CHAPTER_UNKNOWN_PRECHARGE_REASON');
+ const firstChapterFeasibility=Object.freeze({
+  kind:'prepurchase-first-chapter-differentiation-v1',
+  status:firstChapterPrecharge.eligible?'source-candidate-not-validated':'not-qualified',
+  message:firstChapterReasons[firstChapterPrecharge.reason],
+  modelGeneratedPremiumTextVerified:false,
+  customerSaleApproved:false,additionalModelCalls:0,
+  newPaymentEnabled:false
+ });
  const chapters=expected.map(id=>{
   const entries=Object.keys(outline.topics[id]);
   const selected=planned.has(id);
@@ -218,7 +250,7 @@ function calculate(input){
   throw Error('PRODUCT_COVERAGE_COUNT_MISMATCH');
  return {
   status:'ready',kind:'prepurchase-report-scope-v1',
-  readingSample,interpretivePreviews,productProposal,
+  readingSample,interpretivePreviews,productProposal,firstChapterFeasibility,
   catalog:{chapterDefinitions:expected.length,topicDefinitions:currentDefined,
    originallyPlannedTopics:35,historicalDefinitionShortfall},
   estimate:{plannedChapters:choice.plannedIds.length,
