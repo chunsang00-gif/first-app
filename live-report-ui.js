@@ -104,7 +104,15 @@ async function showCoverage(validatedInput,isCurrent=()=>true){
  // The planned chapter count alone cannot establish premium value.
  // Show the exact server-side first-chapter differentiation result,
  // never imply an unreviewed candidate is already a saleable manuscript.
- const firstChapter=out.firstChapterFeasibility;
+ // Older saved calculation envelopes may omit the new qualification.
+ // Never treat an absent status as paid eligibility; render a safe hold.
+ const firstChapter=out.firstChapterFeasibility??{
+  kind:'prepurchase-first-chapter-differentiation-v1',
+  status:'not-qualified',
+  message:'이전 계산 결과에서는 유료 첫 장의 차별화 근거를 확인하지 못했습니다. 새 계산이 필요합니다.',
+  modelGeneratedPremiumTextVerified:false,
+  customerSaleApproved:false,newPaymentEnabled:false,additionalModelCalls:0
+ };
  if(firstChapter?.kind!=='prepurchase-first-chapter-differentiation-v1'||
     !['source-candidate-not-validated','not-qualified'].includes(firstChapter.status)||
     typeof firstChapter.message!=='string'||!firstChapter.message.trim()||
