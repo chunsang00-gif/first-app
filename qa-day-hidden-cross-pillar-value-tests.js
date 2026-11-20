@@ -81,8 +81,10 @@ try{
  assert(b.monthSourceIdsWithSameStem.includes('natal.month.hidden.乙'));
  assert(a.otherPossibleBuyerDomains.includes('pressure'));
  assert(b.otherPossibleBuyerDomains.includes('money'));
- assert.equal(prior.inspect(money.calculationInput).eligible,false);
- assert.equal(prior.inspect(pressure.calculationInput).eligible,false);
+ // The pressure question may independently qualify through an HOUR
+ // source. The counterexample here is about the arbitrary DAY role choice,
+ // not a claim that either request has passed/failed the real precharge.
+ assert.equal(prior.inspect(input(1982,4,'14:20',domains.money)).eligible,false);
  // The second earlier manuscript changes only the HOUR of the exact same
  // year/month/day, so a method claiming DAY symbol -> unique buyer answer
  // would need to resolve the conflicting MONTH/DAY relation first.
