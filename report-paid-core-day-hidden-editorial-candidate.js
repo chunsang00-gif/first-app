@@ -74,10 +74,14 @@ function inspect(packet){
  const selected=eligible[0],a='natal.day.stem',
   b='natal.day.hidden.'+selected.stem;
  const outside=rows[a],inside=rows[b];
+ // The DAY visible stem is the reference/subject, marked 일간 in
+ // canonical facts; it is NOT a second interpreted ten-god category.
+ // Only the validated DAY hidden row supplies the new symbolic role.
  if(outside?.position!=='일간'||outside.stem!==day.stem||
+    outside.tenGod!=='일간'||outside.traditionalMeaning!==null||
     inside?.position!=='일지'||inside?.stem!==selected.stem||
     inside.tenGod!==selected.tenGod||
-    !outside.traditionalMeaning||!inside.traditionalMeaning||
+    !inside.traditionalMeaning||
     outside.observedBehavior!==false||inside.observedBehavior!==false||
     !seasonal.HIDDEN[packet.chart.day?.[1]]?.includes(selected.stem))
   throw Error('DAY_EDITORIAL_EXACT_POSITION_OR_ROLE_MISMATCH');
