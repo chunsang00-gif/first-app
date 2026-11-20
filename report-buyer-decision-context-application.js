@@ -47,6 +47,8 @@ function inspect(paragraph,assignment,question){
  const before=preflight(assignment,question);
  if(before.length)return before;
  const opts=alternatives(question);
+ const order=require('./report-buyer-work-skill-scope').orderFor(question);
+ if(!order)return ['buyer-context-not-current-work-versus-skill-decision'];
  const a=tokens(assignment.currentWork),b=tokens(assignment.targetSkill);
  const work=a.filter(x=>!b.includes(x)),skill=b.filter(x=>!a.includes(x));
  const original=paragraph.text.split(String(question||'').trim()).join(' ');
@@ -57,9 +59,9 @@ function inspect(paragraph,assignment,question){
   options.some(x=>s.includes(x))&&anchors.some(x=>
    s.toLowerCase().includes(x));
  const first=clauses.map((s,i)=>({s,i})).filter(x=>
-  useful(x.s,opts.first,work));
+  useful(x.s,order==='work-first'?opts.first:opts.second,work));
  const second=clauses.map((s,i)=>({s,i})).filter(x=>
-  useful(x.s,opts.second,skill));
+  useful(x.s,order==='work-first'?opts.second:opts.first,skill));
  const problems=[];
  if(!first.length)problems.push('buyer-context-current-work-not-applied');
  if(!second.length)problems.push('buyer-context-target-skill-not-applied');
