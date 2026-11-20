@@ -989,6 +989,7 @@ function schema(prompt,transport){
    // The actual strict model output field can carry the chart-specific
    // seasonal interpretation without inflating the compact task payload.
    if(chapterId==='saju_core'&&topic==='temperament'&&
+      !task.sourceOwnedHourExtension&&!task.sourceOwnedYearVisibleExtension&&
       task.mode!=='state-limits'&&prompt.paidCoreDepthV2!==true&&
       prompt.qaNatalDepthPreview!==true&&
       prompt.qaAdditiveDepthPreview!==true&&
@@ -1022,6 +1023,19 @@ function schema(prompt,transport){
        !slot.anyOf.some(s=>s.type==='null'))
      throw Error('CORE_HOUR_EXTENSION_EXPECTED_OPTIONAL_SLOT');
     slot.anyOf=[p];
+    // The outgoing STRICT JSON schema must enforce the SAME two natal-hour
+    // source IDs as this customer-facing premium paragraph. The general
+    // temperament slot also permits month/season sources; those would let
+    // the model substitute already-free explanations for the promised
+    // independently sourced birth-hour question. Keep the broad allowed
+    // source ledger for other tasks, scope only THIS field's citations.
+    if(basis.properties.refs.type!=='array'||
+       basis.properties.refs.items?.type!=='string'||
+       !Array.isArray(basis.properties.refs.items.enum)||
+       ext.sourceRefs.length!==2||
+       ext.sourceRefs.some(ref=>!basis.properties.refs.items.enum.includes(ref)))
+     throw Error('CORE_HOUR_STRICT_REF_ENUM_UNVERIFIED');
+    basis.properties.refs.items.enum=ext.sourceRefs.slice();
     p.description='출생시간의 별도 전통적 질문을 고객의 고민에 적용한다.';
     p.properties.label.description=
      '출생시간에서 새로 확인된 별도 의미를 쉬운 소제목으로 표현한다.';
