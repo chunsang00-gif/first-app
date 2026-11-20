@@ -68,9 +68,10 @@ try{
  assert.deepEqual(server.earlyPaidCoreHourMeaningProblems(
    make('태어난 달의 풀이입니다.'),facts.build({...input,readerDecision:undefined},2027)),[],
   'do not impose buyer-choice contract on customer who gave no question');
- assert.deepEqual(audit.inspectParagraph('고객이 한 가지만 질문했습니다.',
-  '새로운 기술을 배우고 싶습니다.',proof),[],
-  'single-question input must not be fabricated into two options');
+ assert(audit.inspectParagraph('고객이 한 가지만 질문했습니다.',
+  '새로운 기술을 배우고 싶습니다.',proof)
+  .includes('buyer-single-concern-not-grounded-in-hour-role'),
+  'single-question report must NOT silently pass when the buyer concern was ignored');
  assert.equal(calls,0);
  console.log('PASS real first-chapter writer requires the new hour role in EACH buyer option and different checks, rejects generic advice before additional paid calls; 0 API/payment');
 }finally{global.fetch=orig}
