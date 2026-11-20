@@ -111,6 +111,17 @@ try{
    .includes('buyer-single-concern-hour-role-not-explained'),
    'a generic conditional clause cannot replace the birth-hour interpretation');
 
+  if(c.domain==='money'){
+   const moneyFocus=gate.singleFocus(c.question,proof);
+   assert(moneyFocus.answer.test('지출'));
+   assert(!moneyFocus.answer.test('월급'),
+    'a salary mention cannot substitute for the actual buyer goal to reduce spending');
+   const wrongSubject=intro+
+    '월급을 관리하는 경우 매달 필요한 예산과 금액 한도를 정해야 합니다.';
+   assert(gate.inspectParagraph(wrongSubject,c.question,proof)
+    .includes('buyer-single-concern-not-grounded-in-hour-role'),
+    'paid finance prose must answer reducing spending, not an unrelated salary template');
+  }
   assert.equal(require('./report-paid-core-precharge-value').inspect(
    packet.calculationInput).customerSaleApproved,false);
  }
