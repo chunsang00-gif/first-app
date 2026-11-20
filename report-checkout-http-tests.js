@@ -80,6 +80,20 @@ const server=http.createServer(require('./server').handler);
   const input={calendar:'lunar',birthDate:'1982-11-24',leapMonth:false,
    birthTime:'14:20',gender:'male',mbti:'ISFP',name:'testing',
    readerDecision:'기존 일을 유지할지 새로운 기술을 배울지 고민 중입니다.'};
+  // The natal hour source genuinely exists, yet the user's question has
+  // no focus recognized by this exact post-provider reader gate. No order
+  // or simulated merchant call is permitted, even with all sales flags.
+  const unreadableQuestion=await post('/api/checkout/start',{
+   analysisInput:{status:'ready',calculationInput:{
+    ...input,readerDecision:'자격이 고민입니다.'
+   }}
+  });
+  assert.equal(unreadableQuestion.code,422);
+  assert.equal(unreadableQuestion.data.code,'FIRST_CHAPTER_VALUE_NOT_READY');
+  assert.equal(unreadableQuestion.data.reason,'buyer-question-needs-clarification');
+  assert(unreadableQuestion.data.message.includes('주문과 결제는 진행되지 않았습니다.'));
+  assert.equal(chargeAttempts,0);
+  assert.equal(modelAttempts,0);
   const invalidBuyerContext={...input,
    readerDecision:'새로운 기술을 배우고 싶습니다.',
    decisionContext:{currentWork:'출하 전 품질 검수',targetSkill:'지게차 실습'}};
