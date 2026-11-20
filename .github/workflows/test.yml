@@ -95,6 +95,12 @@ jobs:
           REPORT_MODEL_URL: ''
           REPORT_QA_CONFIRM: ''
         run: node qa-day-hidden-versus-free-pilot.js
+      - name: Print synthetic day-hidden FREE comparison inputs for authored first-chapter editorial work (NO AI)
+        env:
+          OPENAI_API_KEY: ''
+          REPORT_MODEL_URL: ''
+          REPORT_QA_CONFIRM: ''
+        run: node qa-day-hidden-editorial-fixtures.js
       - name: Produce actual same-chart FREE vs 3 offline editorial first-chapter candidate readings (NO AI / NO PAY)
         env:
           OPENAI_API_KEY: ''
