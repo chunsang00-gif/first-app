@@ -65,7 +65,7 @@ async function run(){
   extra.sourceRefs);
  const transmitted=JSON.parse(envelope.input[1].content);
  assert(transmitted.task.chapters.saju_core.topics.temperament.sourceOwnedHourExtension);
- assert.equal(transmitted.task.coreReaderChoiceContext?.text,buyer.readerDecision);
+ assert.equal(transmitted.task.chapters.saju_core.coreReaderChoiceContext?.text,buyer.readerDecision);
  const saved={
   fetch:global.fetch,key:process.env.OPENAI_API_KEY,
   model:process.env.REPORT_MODEL,url:process.env.REPORT_MODEL_URL};
