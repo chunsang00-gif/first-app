@@ -72,6 +72,12 @@ $('#next').onclick=async()=>{
   if(!d.birthplace)return inputError('city','출생도시를 입력해 주세요.');
   if(!d.birthTime&&!d.unknownBirthTime)return inputError('time','출생시간을 입력하거나 시간 모름을 선택해 주세요.');
   if(!d.name)return inputError('name','이름을 입력해 주세요.');
+  if(window.REPORT_BUYER_WORK_SKILL_SCOPE?.supportsDecision(d.readerDecision||'')&&d.decisionContext){
+   if(!d.decisionContext.currentWork)
+    return inputError('currentWork','현재 하는 일과 새로 배우려는 기술은 둘 다 적거나 둘 다 비워 주세요.');
+   if(!d.decisionContext.targetSkill)
+    return inputError('targetSkill','현재 하는 일과 새로 배우려는 기술은 둘 다 적거나 둘 다 비워 주세요.');
+  }
   clearInputError();
   const button=$('#next');
   if(button.disabled)return;
