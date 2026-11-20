@@ -77,6 +77,12 @@ jobs:
           REPORT_MODEL_URL: ''
           REPORT_QA_CONFIRM: ''
         run: node report-paid-core-precharge-reader-feasibility-tests.js
+      - name: Proofread actual FREE templates and 3 manually revised first-chapter drafts (NO API)
+        env:
+          OPENAI_API_KEY: ''
+          REPORT_MODEL_URL: ''
+          REPORT_QA_CONFIRM: ''
+        run: node report-free-reading-language-tests.js
       - name: Produce actual same-chart FREE vs 3 offline editorial first-chapter candidate readings (NO AI / NO PAY)
         env:
           OPENAI_API_KEY: ''
