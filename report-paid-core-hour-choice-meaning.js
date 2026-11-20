@@ -64,11 +64,13 @@ const SINGLE_FOCUS=Object.freeze({
   {ask:/제작|만들|창작/,answer:/제작|만들|창작/}
  ]),
  money:Object.freeze([
+  // The action sought is more important than the source of the money.
+  // "Reduce spending from salary" must NOT pass by discussing salary alone.
   {ask:/대출|상환/,answer:/대출|상환/},
-  {ask:/월급|연봉|급여/,answer:/월급|연봉|급여/},
   {ask:/지출|소비/,answer:/지출|소비/},
   {ask:/저축|적금/,answer:/저축|적금/},
   {ask:/투자|주식|코인/,answer:/투자|주식|코인/},
+  {ask:/월급|연봉|급여/,answer:/월급|연봉|급여/},
   {ask:/자금|금전|수입|소득|돈을|돈이|돈은/,answer:/자금|금전|수입|소득|돈/}
  ]),
  pressure:Object.freeze([
