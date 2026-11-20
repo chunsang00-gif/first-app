@@ -112,6 +112,24 @@ function singleFocus(question,proof){
  const available=SINGLE_FOCUS[proof?.readerDomain]||[];
  return available.find(x=>x.ask.test(String(question||'')))||null;
 }
+// Pre-payment feasibility checks must use the SAME reader-contract
+// semantics as the post-model first-chapter gate. A mathematically novel
+// hour source is not chargeable if the buyer's actual question is certain
+// to be rejected by our own parser after the model already incurred cost.
+// This does NOT certify that any future prose passes a human review.
+const UNCLEAR_TWO_CHOICES=/(?:\s아니면\s|\s혹은\s|\s또는\s|둘\s*중|둘\s*사이|\bvs\.?\b)/i;
+function preflightReaderQuestion(question,proof){
+ if(!proof)return [];
+ taskFor(proof);
+ if(typeof question!=='string'||!question.trim())
+  return ['buyer-reader-question-missing'];
+ if(alternatives(question))return [];
+ if(UNCLEAR_TWO_CHOICES.test(question))
+  return ['buyer-two-option-question-not-parseable'];
+ if(!singleFocus(question,proof))
+  return ['buyer-single-concern-focus-unverifiable'];
+ return [];
+}
 function inspectSingleConcern(text,question,proof){
  const scope=taskFor(proof);
  if(typeof text!=='string'||!text.trim())
@@ -185,4 +203,4 @@ function inspect(sections,packet){
  return inspectParagraph(core.body[pos],question,proof)
   .map(error=>'saju_core:'+error);
 }
-module.exports={taskFor,writerFor,singleFocus,inspectSingleConcern,inspectParagraph,inspect};
+module.exports={taskFor,writerFor,singleFocus,preflightReaderQuestion,inspectSingleConcern,inspectParagraph,inspect};
