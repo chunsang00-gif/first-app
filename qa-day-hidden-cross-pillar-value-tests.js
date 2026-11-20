@@ -18,7 +18,9 @@ const summary=Object.fromEntries(Object.keys(domains).map(k=>[k,{
  checked:0,daySourceCandidates:0,daySourceExactMonthRepeated:0,
  dayBranchSameAsMonth:0,dayAlsoInAnotherDomain:0,
  noScope:0,unprovenInterpretiveValue:0,originalHourPrecharge:0,
- potentialSeparateSourceAfterMonthRepeatsRemoved:0
+ dayOnlyCandidateNotHour:0,dayOnlyAlreadyMonthSource:0,
+  dayOnlyDistinctFromMonthSource:0,
+  potentialSeparateSourceAfterMonthRepeatsRemoved:0
 }]));
 let externalCalls=0;const fetchOriginal=global.fetch;
 global.fetch=()=>{externalCalls++;throw Error('OFFLINE_RELATIONS_PROHIBITS_NETWORK')};
@@ -47,6 +49,11 @@ try{
      assert(found.dayHiddenRolesRelevantToQuestion.includes(found.selectedHiddenRole));
      assert(!found.freeCardIds.some(x=>x==='paid-first-chapter'));
      r.daySourceCandidates++;r.unprovenInterpretiveValue++;
+     if(!paid.eligible){
+      r.dayOnlyCandidateNotHour++;
+      if(found.exactStemAlreadyExistsInMonth)r.dayOnlyAlreadyMonthSource++;
+      else r.dayOnlyDistinctFromMonthSource++;
+     }
      if(found.exactStemAlreadyExistsInMonth)r.daySourceExactMonthRepeated++;
      else r.potentialSeparateSourceAfterMonthRepeatsRemoved++;
      if(found.dayBranchSameAsMonth)r.dayBranchSameAsMonth++;
@@ -62,8 +69,10 @@ try{
   assert.equal(row.checked,row.daySourceCandidates+row.noScope);
   assert.equal(row.daySourceCandidates,
    row.daySourceExactMonthRepeated+row.potentialSeparateSourceAfterMonthRepeatsRemoved);
+   assert.equal(row.dayOnlyCandidateNotHour,
+    row.dayOnlyAlreadyMonthSource+row.dayOnlyDistinctFromMonthSource);
  }
- // Exactly the SAME natal chart admits two incompatible paid narratives
+ // Exactly the SAME natal chart permits two different question-led emphases
  // depending solely on the reader's question. Both meanings also occur in
  // the non-main hidden stems of the MONTH, which the previous free card
  // did not spell out. This is a genuine source repetition, not new method.
