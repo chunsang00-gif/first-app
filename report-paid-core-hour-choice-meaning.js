@@ -48,6 +48,39 @@ const checks=Object.freeze([
  /(?:외부|조달|경로|수단|확보|조정|예외|긴급 요청)/
 ]);
 const CONDITION=/(?:경우|때|한다면|하면|하려면|라면|상황|선택하면)/;
+// A domain match ("learning", "money", "pressure") is too broad to
+// certify that the paid paragraph actually answered a ONE-CONCERN buyer.
+// Priority is most specific first. Each item requires a concrete subject
+// from the customer question to reappear INSIDE the conditional explanation,
+// with the actual independent hour role and an actionable check. These are
+// conservative mechanical checks, not proof of personal truth or paid value.
+const SINGLE_FOCUS=Object.freeze({
+ skill:Object.freeze([
+  {ask:/지게차|포크리프트/,answer:/지게차|포크리프트/},
+  {ask:/자격증|자격\s*취득|자격시험/,answer:/자격증|자격|시험/},
+  {ask:/실습|연습/,answer:/실습|연습/},
+  {ask:/기술/,answer:/기술/},
+  {ask:/배우|익히|학습|공부|교육|훈련|수업/,answer:/배우|배운|익히|학습|공부|교육|훈련|수업/},
+  {ask:/제작|만들|창작/,answer:/제작|만들|창작/}
+ ]),
+ money:Object.freeze([
+  {ask:/대출|상환/,answer:/대출|상환/},
+  {ask:/월급|연봉|급여/,answer:/월급|연봉|급여/},
+  {ask:/지출|소비/,answer:/지출|소비/},
+  {ask:/저축|적금/,answer:/저축|적금/},
+  {ask:/투자|주식|코인/,answer:/투자|주식|코인/},
+  {ask:/자금|금전|수입|소득|돈을|돈이|돈은/,answer:/자금|금전|수입|소득|돈/}
+ ]),
+ pressure:Object.freeze([
+  {ask:/책임|담당/,answer:/책임|담당/},
+  {ask:/마감|납기/,answer:/마감|납기/},
+  {ask:/업무\s*압박|업무\s*요구/,answer:/업무|압박|요구/},
+  {ask:/스트레스|긴장|과로|부담|압박/,answer:/스트레스|긴장|과로|부담|압박/},
+  {ask:/요구/,answer:/요구/}
+ ])
+});
+const SINGLE_CHECK=/(?:기준|범위|기간|횟수|마감|납기|비용|예산|한도|자원|도구|장비|승인|검수|검토|점검|완성|책임|담당|계획|경로|조건|비교|확인|절차)/;
+const HOUR_MEANING_CONTEXT=/(?:태어난\s*시간|출생\s*시간|출생시각|시간의\s*(?:숨은|안쪽|속)\s*글자)/;
 function taskFor(proof){
  if(!proof)return null;
  const scope=ROLES[proof.readerDomain]?.[proof.hourHiddenRole];
@@ -73,9 +106,36 @@ function writerFor(proof,question){
   '대안이 없는 질문에 새로운 직장·기술·금전 선택지를 만들어 두 가지 경우처럼 비교하지 않는다. '+
   '고객의 실제 능력이나 결과를 예언하지 않고, 해당 고민에서 무엇을 확인할 수 있는지만 설명한다.';
 }
+function singleFocus(question,proof){
+ const available=SINGLE_FOCUS[proof?.readerDomain]||[];
+ return available.find(x=>x.ask.test(String(question||'')))||null;
+}
+function inspectSingleConcern(text,question,proof){
+ const scope=taskFor(proof);
+ if(typeof text!=='string'||!text.trim())
+  return ['buyer-single-concern-paragraph-missing'];
+ const focus=singleFocus(question,proof);
+ if(!focus)return ['buyer-single-concern-focus-unverifiable'];
+ // Quoting the user's exact text doesn't demonstrate an additional
+ // interpretation. Remove it before measuring the actual paid explanation.
+ const withoutEcho=text.split(String(question).trim()).join(' ');
+ const sentences=withoutEcho.split(/[.!?。！？\n;,，；]+|\s+(?:반면|한편)\s+/)
+  .map(v=>v.trim()).filter(v=>v.length>=25);
+ // A role label at the beginning followed by generic advice to ANYONE
+ // cannot make the subsequent advice a reader-specific, paid interpretation.
+ const applied=sentences.some(x=>CONDITION.test(x)&&
+  focus.answer.test(x)&&scope.meaning.test(x)&&SINGLE_CHECK.test(x));
+ const errors=[];
+ if(!applied)errors.push('buyer-single-concern-not-grounded-in-hour-role');
+ // Require an honest connection to the HOUR position somewhere in the
+ // paragraph: day/month prose is not enough, even if the role words appear.
+ if(!sentences.some(x=>HOUR_MEANING_CONTEXT.test(x)&&scope.meaning.test(x)))
+  errors.push('buyer-single-concern-hour-role-not-explained');
+ return errors;
+}
 function inspectParagraph(text,question,proof){
  const choice=alternatives(question);
- if(!choice)return []; // free-form / single choice needs HUMAN review, not a machine PASS
+ if(!choice)return inspectSingleConcern(text,question,proof);
  const scope=taskFor(proof);
  if(!scope)return []; // only the actual verified additional birth-hour path
  if(typeof text!=='string'||!text.trim())
@@ -113,7 +173,7 @@ function inspect(sections,packet){
  const core=(sections||[]).find(x=>x?.id==='saju_core');
  if(!core||packet?.status!=='ready')return [];
  const question=packet.person?.readerDecision;
- if(!alternatives(question))return [];
+ if(typeof question!=='string'||!question.trim())return [];
  const source=Object.fromEntries(bindings.build(packet).map(row=>[row.id,row]));
  const proof=hourEvidence.build(packet,source);
  if(!proof)return [];
@@ -123,4 +183,4 @@ function inspect(sections,packet){
  return inspectParagraph(core.body[pos],question,proof)
   .map(error=>'saju_core:'+error);
 }
-module.exports={taskFor,writerFor,inspectParagraph,inspect};
+module.exports={taskFor,writerFor,singleFocus,inspectSingleConcern,inspectParagraph,inspect};
