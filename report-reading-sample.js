@@ -14,6 +14,18 @@ const MEANING=Object.freeze({
  '편인':'새로운 방식을 스스로 이해하는 문제',
  '정인':'배우거나 도움을 받아 익히는 문제'
 });
+// 한국어 조사 '을/를'은 앞말의 실제 받침 유무에 따라 선택한다.
+// 글자 그대로 붙이던 기존 템플릿은 '근거을', '경로을' 같은 오타를 냈다.
+function objectParticle(word){
+ const text=String(word||'');
+ const last=text.charCodeAt(text.length-1);
+ if(!Number.isInteger(last)||last<0xAC00||last>0xD7A3)
+  throw Error('SAMPLE_PARTICLE_FINAL_HANGUL_REQUIRED');
+ return (last-0xAC00)%28===0?'를':'을';
+}
+function objectPhrase(word){
+ return '‘'+word+'’'+objectParticle(word);
+}
 function phrase(tenGod){
  const meaning=MEANING[tenGod];
  if(!meaning)throw Error('SAMPLE_UNSUPPORTED_CALCULATED_CATEGORY');
@@ -56,9 +68,9 @@ function conditionalMonthReading(main,exposed,location){
  };
  const link=links[relation];
  if(!link)throw Error('SAMPLE_CONTRAST_ELEMENT_UNCLASSIFIED');
- return '태어난 달의 중심 글자는 ‘'+first.focus+
-  '’을 전통적으로 묻고, 같은 달에 있는 다른 글자는 ‘'+second.focus+
-  '’을 묻습니다. 이 두 번째 글자가 '+location+
+ return '태어난 달의 중심 글자는 '+objectPhrase(first.focus)+
+  ' 전통적으로 묻고, 같은 달에 있는 다른 글자는 '+objectPhrase(second.focus)+
+  ' 묻습니다. 이 두 번째 글자가 '+location+
   '의 겉에도 정확히 같은 글자로 확인됩니다. 따라서 출생월의 중심 글자 하나만 읽으면 '+
   location+'에서 되풀이되는 별도 분류를 놓치게 됩니다. '+
   '두 글자 사이에는 '+link+'도 계산됩니다. '+
@@ -136,11 +148,11 @@ function build(packet){
  const monthText=month.stemTenGod===hidden.tenGod?
   '태어난 달의 겉과 안쪽 중심에서 모두 ‘'+upper+
   '’이라는 같은 전통 분류가 확인됩니다. 가령 ‘'+visible.focus+
-  '’을 생각하는 상황에서 두 출처는 한 가지 질문을 되풀이하며, '+
+  '’'+objectParticle(visible.focus)+' 생각하는 상황에서 두 출처는 한 가지 질문을 되풀이하며, '+
   '성격이 두 배 강하거나 실제로 그 선택을 했다는 뜻은 아닙니다.':
   '태어난 달의 겉글자는 ‘'+upper+'’에, 안쪽 중심 글자는 ‘'+lower+
   '’에 연결됩니다. 예를 들어 ‘'+visible.focus+
-  '’을 따지는 가상의 선택에서는 ‘'+central.focus+
+  '’'+objectParticle(visible.focus)+' 따지는 가상의 선택에서는 ‘'+central.focus+
   '’도 답해야 할 별도의 질문으로 남습니다. 이 둘은 실제로 경험한 갈등이나 '+
   '어느 쪽이 더 강한 성격인지 보여 주는 결과가 아니라, 서로 다른 전통적 분류를 '+
   '한 사주에서 확인한 계산 예시입니다.';
@@ -150,7 +162,7 @@ function build(packet){
  const annual=packet.facts.annualTenGods;
  const annualMeaning=phrase(annual.stemTenGod);
  cards.push(card('annual-2027','2027년 계산에서 추가되는 질문',
-  '2027년을 나타내는 겉글자는 전통적으로 ‘'+annualMeaning+'’와 관련됩니다. 이 계산은 입춘을 기준으로 한 연간 기호이며, 2027년 1월부터 12월까지 같은 일이 생긴다는 뜻이 아닙니다. 실제 수입·이직·관계 사건이나 시기는 이 한 가지 분류로 예측할 수 없습니다.'));
+  '2027년을 나타내는 글자는 전통적으로 ‘'+annualMeaning+'’와 관련됩니다. 여기서 한 해는 절기인 입춘을 기준으로 구분합니다. 이 분류만으로 실제 수입·이직·관계에서 어떤 일이 일어날지 예측할 수는 없습니다.'));
  const year=packet.facts.tenGods.year;
  const hour=packet.facts.tenGods.hour;
  const hasHour=packet.calculationInput?.unknownBirthTime!==true &&
@@ -175,4 +187,4 @@ function build(packet){
     ' 출생 시각을 모르는 경우에는 시각에 따른 날짜 경계와 시주를 확정할 수 없으므로 잠정 계산 예시로만 보세요.':'')
  });
 }
-module.exports={build,CONDITIONS};
+module.exports={build,CONDITIONS,objectParticle,objectPhrase};
