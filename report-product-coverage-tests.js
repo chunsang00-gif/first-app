@@ -42,6 +42,16 @@ const names=['NODE_ENV','RENDER','PAID_CORE_DEPTH_V2',
    assert.equal(JSON.stringify(input),before,'never rewrite caller birth data');
    assert.equal(result.status,'ready');
    assert.equal(result.kind,'prepurchase-report-scope-v1');
+   assert.equal(result.firstChapterFeasibility.kind,
+    'prepurchase-first-chapter-differentiation-v1');
+   assert.equal(result.firstChapterFeasibility.status,'not-qualified',
+    'buyer-neutral preview must not advertise a novel paid first chapter');
+   assert.equal(result.firstChapterFeasibility.customerSaleApproved,false);
+   assert.equal(result.firstChapterFeasibility.newPaymentEnabled,false);
+   assert.equal(result.firstChapterFeasibility.additionalModelCalls,0);
+   assert(!/TEST_DO_NOT_EXPOSE|TEST_ADDRESS_DO_NOT_EXPOSE/.test(
+    JSON.stringify(result.firstChapterFeasibility)),
+    'first-chapter status must never leak personal identifying fields');
    const planned=result.estimate.chapters.filter(row=>row.includedInPlan).map(row=>row.id);
    assert(!planned.some(id=>['decision','stress','integrated_judgment'].includes(id)),
     'buyer-neutral paid report must NOT advertise the three repetitive chapters');
@@ -279,6 +289,30 @@ const names=['NODE_ENV','RENDER','PAID_CORE_DEPTH_V2',
   assert(visibleUI.includes('excludedHtml'));
   assert(visibleUI.includes('historicalDefinitionShortfall'));
   assert.equal(noMBTI.customerSaleApproved,false);
+  // Customer-visible first-chapter status must match the ACTUAL server
+  // precharge writer, not optimistic chapter/topic counts.
+  const questionInput=require('./qa-next-first-chapter-offline-preflight').SAMPLE;
+  const candidate=coverage.calculate(questionInput);
+  const actualPrecharge=require('./report-paid-core-precharge-value')
+   .inspect(questionInput);
+  assert.equal(actualPrecharge.eligible,true);
+  assert.equal(candidate.firstChapterFeasibility.status,
+   'source-candidate-not-validated');
+  assert.equal(candidate.firstChapterFeasibility.customerSaleApproved,false);
+  assert.equal(candidate.purchaseEnabled,false);
+  const withoutTime=coverage.calculate({...questionInput,
+   unknownBirthTime:true,birthTime:'12:00'});
+  assert.equal(withoutTime.firstChapterFeasibility.status,'not-qualified');
+  assert.equal(withoutTime.purchaseEnabled,false);
+  const currentUI=require('node:fs').readFileSync(
+   require('node:path').join(__dirname,'live-report-ui.js'),'utf8');
+  assert(currentUI.includes('무료 풀이와 다른 유료 첫 장의 근거'));
+  assert(currentUI.includes('firstChapter.message'));
+  assert(currentUI.includes('firstChapter.status'));
+  assert(currentUI.includes('firstChapter.newPaymentEnabled!==false'));
+  assert(currentUI.indexOf('firstChapterHtml}')<
+   currentUI.indexOf('맞춤형 심화 풀이 구성안'),
+   'buyer must see qualification status before the aspirational report scope');
   const fake={...input,chart:{year:'甲子',month:'甲子',day:'甲子',hour:'甲子'},
    facts:{tenGods:{year:{stemTenGod:'정재'}}},purchaseEnabled:true};
   const actual=coverage.calculate(fake);
