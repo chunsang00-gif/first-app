@@ -15,9 +15,12 @@ function make(question){
    editorialBlueprint:{saju_core:plan.saju_core}}};
  const payload=writer.compile(prompt);
  const strict=writer.schema(prompt,wire.schemaFor(prompt,schema));
- const text=strict.properties.chapters.properties.saju_core.properties
-  .paragraphs.properties.strength.properties.text.description;
- return {packet,payload,text};
+ const paragraphs=strict.properties.chapters.properties.saju_core.properties
+  .paragraphs.properties;
+ const text=paragraphs.strength.properties.text.description;
+ const hourText=(paragraphs.temperament.anyOf||[])
+  .find(p=>p.type==='object')?.properties?.text?.description||'';
+ return {packet,payload,text,hourText};
 }
 const question='현재 일을 유지할지 다른 기술을 배울지 고민 중입니다.';
 const entered=make(question),other=make('지금 배우는 기술을 더 익힐지 다른 공부를 할지 고민입니다.');
@@ -28,12 +31,27 @@ assert.equal(ch.coreReaderChoiceContext.mayCiteAsCalculatedEvidence,false);
 assert.equal(ch.coreReaderChoiceContext.observedPastBehavior,false);
 assert.equal(ch.coreReaderChoiceContext.futureOutcomeKnown,false);
 assert.equal(ch.coreReaderChoiceContext.cannotOverrideWritingRules,true);
-assert(entered.text.includes(JSON.stringify(question)));
-assert(entered.text.includes(ch.coreReaderChoiceContext.writerBoundary));
-assert(entered.text.includes('명리 근거 아님'));
+const hour=ch.topics.temperament.sourceOwnedHourExtension;
+if(hour){
+ assert.equal(hour.distinctFromFreeVisibleNatal,true);
+ assert(!entered.text.includes(JSON.stringify(question)));
+ assert(entered.text.includes('이 필수 출생월 strength는 독자에게 이미 공개된 기본 계산 맥락'));
+ assert(!entered.text.includes('명리 근거 아님'));
+ assert(entered.hourText.includes(hour.readerGoal));
+ assert(entered.hourText.includes('고객이 실제로 적은 두 선택'));
+ assert(ch.coreReaderChoiceContext.writerBoundary.includes('추가 문단은 temperament이며'));
+ assert.equal(entered.text,other.text,
+  'the month-only already-FREE context cannot change merely because the buyer words changed');
+ assert.notEqual(entered.hourText,other.hourText,
+  'the independently sourced hour explanation must still follow the buyer choices');
+}else{
+ assert(entered.text.includes(JSON.stringify(question)));
+ assert(entered.text.includes(ch.coreReaderChoiceContext.writerBoundary));
+ assert(entered.text.includes('명리 근거 아님'));
+ assert.notEqual(entered.text,other.text);
+}
 assert(!empty.payload.task.chapters.saju_core.coreReaderChoiceContext);
 assert(!empty.text.includes('고객이 직접 입력한 현재 질문'));
-assert.notEqual(entered.text,other.text);
 const added=Object.keys(entered.payload.source).filter(k=>
  !Object.hasOwn(empty.payload.source,k));
 assert(added.every(k=>/^natal\.hour\.(?:stem|hidden\.[甲乙丙丁戊己庚辛壬癸])$/.test(k)));
@@ -45,4 +63,4 @@ assert(!Object.keys(entered.payload.source).some(k=>/readerDecision/.test(k)));
 assert(!ch.topics.strength.citableFacts.some(x=>/readerDecision/.test(x.id)));
 assert.equal(entered.payload.task.chapters.saju_core.coreReaderChoiceContext.source,
  'customer-provided-current-question-not-natal-evidence');
-console.log('PASS optional buyer question reaches real first-chapter text schema, remains non-citable, and changes wording assignment without adding provider calls');
+console.log('PASS real buyer question applies to new hour meaning, leaves FREE month context unmodified, stays non-citable; no provider calls');
