@@ -41,6 +41,12 @@ jobs:
           REPORT_MODEL_URL: ''
           REPORT_QA_CONFIRM: ''
         run: node report-paid-core-hour-choice-meaning-tests.js
+      - name: Verify real paid one-concern skill, money and pressure reader value BEFORE extra paid call (NO API)
+        env:
+          OPENAI_API_KEY: ''
+          REPORT_MODEL_URL: ''
+          REPORT_QA_CONFIRM: ''
+        run: node report-paid-core-single-concern-value-tests.js
       - name: Compare same-chart free reader with manual paid-first-chapter example (NO API)
         env:
           OPENAI_API_KEY: ''
