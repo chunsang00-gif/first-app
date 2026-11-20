@@ -17,7 +17,7 @@ function inspect(p,monthText,proof){
  // correct citations and generic role vocabulary must not NAME a different
  // traditional category as the calculated hour reading. Keep plain Korean
  // without any label valid; only reject an explicit contradictory label.
- const roleNames=/(?:^|[^가-힣])(비견|겁재|식신|상관|편재|정재|편관|정관|편인|정인)(?=$|[^가-힣])/g;
+ const roleNames=/(?:^|[^가-힣])(비견|겁재|식신|상관|편재|정재|편관|정관|편인|정인)(?=$|[^가-힣]|(?:은|는|이|가|을|를|에|의|로|으로|와|과|이고|이며|입니다|이라고|라는)(?=[^가-힣]|$))/g;
  const namedHourRoles=sentences.filter(s=>hour.test(s))
   .flatMap(s=>[...s.matchAll(roleNames)].map(m=>m[1]));
  if(namedHourRoles.some(role=>role!==proof.hourHiddenRole))
