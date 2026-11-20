@@ -216,8 +216,21 @@ if(req.method==='POST'&&req.url==='/api/checkout/start'){
  try{firstChapter=require('./report-paid-core-precharge-value').inspect(sourceInput)}
  catch{return json(res,422,{status:'blocked',code:'FIRST_CHAPTER_PROOF_UNVERIFIABLE'})}
  if(firstChapter.eligible!==true||firstChapter.customerSaleApproved!==false||
-    firstChapter.additionalModelCalls!==0)
-  return json(res,422,{status:'blocked',code:'FIRST_CHAPTER_VALUE_NOT_READY'});
+    firstChapter.additionalModelCalls!==0){
+  // Report only a fixed server-owned reason, never the customer's raw
+  // question or unreviewed chart details. Nothing is charged or reserved.
+  const reason=firstChapter.reason;
+  const buyerQuestionUnverifiable=
+   reason==='buyer-question-cannot-pass-first-chapter-reader-gate';
+  return json(res,422,{
+   status:'blocked',code:'FIRST_CHAPTER_VALUE_NOT_READY',
+   reason:buyerQuestionUnverifiable?'buyer-question-needs-clarification':
+    'first-chapter-interpretation-unavailable',
+   message:buyerQuestionUnverifiable?
+    '현재 적은 고민은 두 선택을 구분하거나 핵심 질문을 확인하기 어려워 유료 보고서를 준비할 수 없습니다. 한 가지 구체적인 고민 또는 비교할 두 선택을 분명히 적어 주세요. 주문과 결제는 진행되지 않았습니다.':
+    '이번 입력에서는 무료 풀이와 구별되는 유료 첫 장을 아직 확인하지 못했습니다. 주문과 결제는 진행되지 않았습니다.'
+  });
+ }
  let offer;
  try{offer=require('./report-checkout-offer').build(sourceInput)}
  catch{return json(res,422,{status:'blocked',code:'ADAPTIVE_OFFER_NOT_VERIFIABLE'})}
