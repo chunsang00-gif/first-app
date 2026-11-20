@@ -83,6 +83,12 @@ jobs:
           REPORT_MODEL_URL: ''
           REPORT_QA_CONFIRM: ''
         run: node report-paid-core-precharge-reader-feasibility-tests.js
+      - name: Measure how many synthetic buyers can technically get a NEW first paid chapter (NO API/CHARGE)
+        env:
+          OPENAI_API_KEY: ''
+          REPORT_MODEL_URL: ''
+          REPORT_QA_CONFIRM: ''
+        run: node qa-adaptive-first-chapter-technical-reach.js
       - name: Produce actual same-chart FREE vs 3 offline editorial first-chapter candidate readings (NO AI / NO PAY)
         env:
           OPENAI_API_KEY: ''
