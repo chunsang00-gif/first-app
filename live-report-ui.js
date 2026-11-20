@@ -156,7 +156,7 @@ async function showCoverage(validatedInput,isCurrent=()=>true){
  <p class="meta">결제 없이 계산한 참고용 풀이입니다. 실제 삶의 경험을 확인한 결과나 AI 유료 보고서의 완성·판매 승인 기록이 아닙니다.</p>
  </section>`:''}
  ${firstChapterHtml}
- ${'<section class="section report-coverage">'}
+ <section class="section report-coverage">
  <h2>맞춤형 심화 풀이 구성안</h2>
  <p><strong>기본 해석 ${proposal.mainChapterCount}개 장 + 2027년 추가 분야 ${proposal.conditionalChapterCount}개 장</strong>을 계산 근거에 따라 선택했습니다.</p>
  <p>전체 <strong>${proposal.plannedChapterCount}개 장 · 최대 ${proposal.topicCandidateUpperBound}개 세부 항목</strong>이 작성 후보입니다.</p>
