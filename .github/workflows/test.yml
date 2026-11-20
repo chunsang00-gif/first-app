@@ -77,6 +77,21 @@ jobs:
           REPORT_MODEL_URL: ''
           REPORT_QA_CONFIRM: ''
         run: node report-paid-core-precharge-reader-feasibility-tests.js
+      - name: Produce actual same-chart FREE vs 3 offline editorial first-chapter candidate readings (NO AI / NO PAY)
+        env:
+          OPENAI_API_KEY: ''
+          REPORT_MODEL_URL: ''
+          REPORT_QA_CONFIRM: ''
+        run: |
+          node qa-first-chapter-cross-domain-editorial-pack.js
+          node qa-first-chapter-cross-domain-editorial-pack.js --markdown > "$RUNNER_TEMP/paid-first-chapter-three-domain-review.md"
+          test -s "$RUNNER_TEMP/paid-first-chapter-three-domain-review.md"
+      - name: Attach reviewable human-authored manuscript, not actual AI output
+        uses: actions/upload-artifact@v4
+        with:
+          name: first-chapter-three-domain-manual-editorial-pack
+          path: ${{ runner.temp }}/paid-first-chapter-three-domain-review.md
+          retention-days: 14
       - name: Compare same-chart free reader with manual paid-first-chapter example (NO API)
         env:
           OPENAI_API_KEY: ''
