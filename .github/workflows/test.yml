@@ -17,6 +17,12 @@ jobs:
       - run: npm install --no-audit --no-fund
       - run: node character-assets-test.js
       - run: npm test
+      - name: Verify REAL web server serves every app entry script and denies private files (LOCAL HTTP)
+        env:
+          OPENAI_API_KEY: ''
+          REPORT_MODEL_URL: ''
+          REPORT_QA_CONFIRM: ''
+        run: node report-public-entry-scripts-tests.js
       - name: Verify current-work/learning context is shown ONLY for the matching question (NO API, NO PAYMENT)
         env:
           OPENAI_API_KEY: ''
