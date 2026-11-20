@@ -23,6 +23,12 @@ jobs:
           REPORT_MODEL_URL: ''
           REPORT_QA_CONFIRM: ''
         run: node report-paid-core-free-baseline-tests.js
+      - name: Resolve MONTH-vs-HOUR policy conflict in real paid first-chapter request (NO AI)
+        env:
+          OPENAI_API_KEY: ''
+          REPORT_MODEL_URL: ''
+          REPORT_QA_CONFIRM: ''
+        run: node report-paid-core-hour-policy-conflict-tests.js
       - name: Check ACTUAL source-bound paid first-chapter writer for skill, money and pressure (NO API)
         env:
           OPENAI_API_KEY: ''
