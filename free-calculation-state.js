@@ -3,7 +3,7 @@
  'use strict';
  const FIELDS=Object.freeze([
   'calendar','birthDate','birthTime','leapMonth','unknownBirthTime',
-  'readerDecision','gender','birthplace','name','mbti'
+  'readerDecision','decisionContext','gender','birthplace','name','mbti'
  ]);
  function key(input){
   if(!input||typeof input!=='object')return null;
@@ -12,6 +12,19 @@
    if(field==='leapMonth'||field==='unknownBirthTime')return v===true;
    if(field==='birthplace'||field==='name'||field==='readerDecision')
     return typeof v==='string'?v.trim():'';
+   // This optional self-report DOES NOT alter natal math, but DOES alter
+   // what a paid report is written about and the bound order fingerprint.
+   // Treat a changed work or skill as a new input requiring a fresh free
+   // /api/calculate receipt, even when birth date and time are unchanged.
+   if(field==='decisionContext'){
+    if(v===undefined||v===null)return null;
+    if(!v||typeof v!=='object'||Array.isArray(v))return ['invalid',v];
+    return [
+     typeof v.currentWork==='string'?v.currentWork.trim():v.currentWork,
+     typeof v.targetSkill==='string'?v.targetSkill.trim():v.targetSkill,
+     Object.keys(v).filter(k=>k!=='currentWork'&&k!=='targetSkill').sort()
+    ];
+   }
    return typeof v==='string'?v:'';
   }));
  }
