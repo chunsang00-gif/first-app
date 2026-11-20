@@ -85,7 +85,7 @@ try{
  const counterfeit=structuredClone(original);
  counterfeit.facts.tenGods.day.hiddenStems=[{stem:'癸',tenGod:'식신'}];
  assert.throws(()=>candidate.inspect(counterfeit),
-  /DAY_EDITORIAL_EXACT_POSITION_OR_ROLE_MISMATCH|DAY_EDITORIAL_FREE_ROLE_OR_NATAL_SOURCE_MISSING/,
+  /DAY_EDITORIAL_CALCULATED_HIDDEN_ROLES_TAMPERED/,
   'tampered day classification cannot become independent reader evidence');
  const sum={
   kind:'source-only-day-hidden-versus-real-free-grid-v1',
