@@ -49,7 +49,7 @@ global.fetch=(...args)=>{requests++;return forbidden(...args)};
   assert(!monthText.includes('고객이 직접 입력한 현재 질문(명리 근거 아님)'));
   assert(!monthText.includes(original.readerDecision),
    'the buyer decision belongs ONLY to the NEW hour explanation, not the free month paraphrase');
-  assert(core.coreReaderChoiceContext.writerBoundary.includes('temperament에서만 작성'));
+  assert(core.coreReaderChoiceContext.writerBoundary.includes('추가 문단은 temperament이며'));
   assert(!core.coreReaderChoiceContext.writerBoundary.includes('고객의 질문에서 각각 어떤 점을'));
   const freeChart=free.build(data.build(original,2027));
   assert.equal(freeChart.modelCalls,0);
