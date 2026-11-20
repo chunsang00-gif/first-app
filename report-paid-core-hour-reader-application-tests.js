@@ -7,6 +7,20 @@ const good='태어난 시간의 숨은 글자는 배운 내용을 밖으로 표�
  '새 기술을 배울 때 내용을 이해하는 과정과 작은 결과물을 완성하는 과정은 서로 다른 질문입니다.';
 const p=(text,refs=ext.sourceRefs)=>({text,basis:{refs}});
 assert.deepEqual(check.inspect(p(good),month,ext),[]);
+// A model must not label the calculated birth-hour 食神 as 正官, even
+// if its remaining prose mentions an output and the source refs are valid.
+const correctNamed=good.replace('숨은 글자는','숨은 글자는 식신에 해당하며');
+const wrongNamed=good.replace('숨은 글자는','숨은 글자는 정관에 해당하며');
+assert.deepEqual(check.inspect(p(correctNamed),month,ext),[],
+ 'a true source category may be named explicitly');
+assert(check.inspect(p(wrongNamed),month,ext).includes(
+ 'hour-source-explicit-category-conflicts-with-calculation'),
+ 'a wrong category name must fail even when generic outcome words remain');
+const alternativeName='태어난 시간의 숨은 글자는 편재로 계산됩니다. '+
+ '새 기술을 배울 때 익힌 내용을 결과물로 완성하는 조건을 살펴봅니다.';
+assert(check.inspect(p(alternativeName),month,ext).includes(
+ 'hour-source-explicit-category-conflicts-with-calculation'),
+ 'a mislabeled hour interpretation cannot be published as a verified natal fact');
 assert(check.inspect(null,month,ext).includes('missing-hour-paragraph'));
 assert(check.inspect(p(good,['natal.hour.hidden.丁']),month,ext)
  .includes('missing-hour-pair-citations'));
