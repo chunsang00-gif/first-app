@@ -15,6 +15,13 @@ const projection=require('./report-paid-core-v2-provider-projection');
 const outlined=require('./report-prompt');
 const sample=Object.freeze({calendar:'lunar',birthDate:'1982-11-24',
  leapMonth:false,birthTime:'14:20',gender:'male',mbti:'ISFP'});
+// The buyer-neutral historical fixture had NO eligible paid first-chapter
+// novelty. Evaluate the exact real precharge-qualified CUSTOMER-QUESTION
+// scenario separately, rather than reporting a non-sellable chart as pricing.
+const qualifiedSample=Object.freeze({
+ ...require('./qa-current-core-preflight').SAMPLE,
+ readerDecision:'기존 일을 유지할지 새로운 기술을 배울지 고민 중입니다.'
+});
 const GROUPS=Object.freeze([
  ['saju_core','mbti_contradiction'],['decision','stress'],
  ['money','career'],['relationship','integrated_judgment'],
@@ -73,15 +80,41 @@ function envelope(prompt,model=MODEL){
 }
 async function inspect(options={}){
  const model=options.model||MODEL;
+ const scenario=options.scenario||'buyer-neutral-historical';
+ if(!['buyer-neutral-historical','source-qualified-skill-choice'].includes(scenario))
+  throw Error('ADAPTIVE_COST_UNREVIEWED_SCENARIO_NOT_SUPPORTED');
+ const scenarioInput=scenario==='source-qualified-skill-choice'?
+  qualifiedSample:sample;
+ const valueGate=scenario==='source-qualified-skill-choice'?
+  require('./report-paid-core-precharge-value').inspect(scenarioInput):null;
+ if(valueGate&&(valueGate.eligible!==true||
+    valueGate.reason!=='verified-hour-addition-awaits-human-review'||
+    valueGate.customerSaleApproved!==false||
+    valueGate.additionalModelCalls!==0))
+  throw Error('ADAPTIVE_COST_SCENARIO_NOT_ELIGIBLE_FOR_FIRST_CHAPTER');
  if(!['gpt-4.1','gpt-6-luna'].includes(model))
   throw Error('ADAPTIVE_COST_UNREVIEWED_MODEL_NOT_SUPPORTED');
  const rate=model==='gpt-6-luna'?LUNA_RATE:RATE;
  const deprecated=model==='gpt-4.1';
  // This function aborts server generation at the FIRST provider boundary.
- const c=await captured.capture(sample);
+ const c=await captured.capture(scenarioInput);
  if(c.providerCalls!==0||c.status!=='captured-full-paid-composition')
   throw Error('ADAPTIVE_OFFLINE_COST_REAL_FIRST_PROMPT_UNAVAILABLE');
  const first=c.prompt,plan=guidance.preflight(first.facts);
+ if(valueGate){
+  const compiled=writer.compile(first);
+  const hour=compiled.task?.chapters?.saju_core?.topics?.temperament
+   ?.sourceOwnedHourExtension;
+  const firstEnvelope=envelope(first,model);
+  const slot=firstEnvelope.text?.format?.schema?.properties?.chapters
+   ?.properties?.saju_core?.properties?.paragraphs?.properties?.temperament;
+  if(!hour||hour.readerDomain!=='skill'||
+     hour.hourHiddenRole!=='식신'||
+     hour.distinctFromFreeVisibleNatal!==true||
+     hour.sourceRefs?.length!==2||
+     slot?.anyOf?.length!==1||slot.anyOf[0]?.type!=='object')
+   throw Error('ADAPTIVE_COST_QUALIFIED_FIRST_CHAPTER_SCHEMA_DRIFT');
+ }
  const selected=selection.select(GROUPS,plan,{mode:'adaptive-v1',
   readerQuestion:first.facts.person?.readerDecision});
  if(!selected.canGenerate)throw Error('ADAPTIVE_OFFLINE_COST_REPORT_SCOPE_BLOCKED');
@@ -111,7 +144,13 @@ async function inspect(options={}){
   throw Error('ADAPTIVE_OFFLINE_COST_CALL_CAP_EXCEEDED');
  return {kind:'adaptive-v1-offline-cost-plan-v1',
   model,modelDeprecated:deprecated,
-  sample:'synthetic-lunar-1982-11-24-1420-ISFP',
+  sample:scenario==='source-qualified-skill-choice'?
+   'synthetic-1982-skill-two-choice-hour-qualified':
+   'synthetic-lunar-1982-11-24-1420-ISFP',
+  scenario,
+  firstChapterPrechargeQualified:Boolean(valueGate),
+  sourceQualifiedFirstChapterRequired:Boolean(valueGate),
+  buyerQuestionNeverCountsAsChartEvidence:true,
   chosenChapters:selected.plannedIds,omittedChapters:selected.omitted.map(x=>x.id),
   bodyCalls:groups.length,finalCalls:1,totalCalls:groups.length+1,
   firstBodyIsExactPrebillingComposition:true,allLaterBodiesAreUnbilledProjections:true,
@@ -141,4 +180,4 @@ if(require.main===module)inspect().then(x=>{
  // Only non-sensitive counts; never print the request/prompt or source chart.
  process.stdout.write('ADAPTIVE_V1_OFFLINE_COST_PLAN='+JSON.stringify(x)+'\n');
 }).catch(e=>{console.error('ADAPTIVE_V1_OFFLINE_COST_FAILED:'+e.message);process.exitCode=1});
-module.exports={inspect,sample,MODEL,RATE,LUNA_RATE,dollars,envelope};
+module.exports={inspect,sample,qualifiedSample,MODEL,RATE,LUNA_RATE,dollars,envelope};
