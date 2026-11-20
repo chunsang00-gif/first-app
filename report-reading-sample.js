@@ -68,14 +68,13 @@ function conditionalMonthReading(main,exposed,location){
  };
  const link=links[relation];
  if(!link)throw Error('SAMPLE_CONTRAST_ELEMENT_UNCLASSIFIED');
- return '태어난 달의 중심 글자는 '+objectPhrase(first.focus)+
+ return '태어난 달에 숨겨진 중심 글자는 '+objectPhrase(first.focus)+
   ' 전통적으로 묻고, 같은 달에 있는 다른 글자는 '+objectPhrase(second.focus)+
   ' 묻습니다. 이 두 번째 글자가 '+location+
-  '의 겉에도 정확히 같은 글자로 확인됩니다. 따라서 출생월의 중심 글자 하나만 읽으면 '+
+  '을 나타내는 글자에도 정확히 같은 글자로 확인됩니다. 따라서 태어난 달에 숨겨진 중심 글자 하나만 읽으면 '+
   location+'에서 되풀이되는 별도 분류를 놓치게 됩니다. '+
   '두 글자 사이에는 '+link+'도 계산됩니다. '+
-  '이것은 출생 위치와 전통적 뜻을 연결한 결과이지, 실제 성격·일하는 능력·돈 쓰는 습관이나 '+
-  '어느 분류가 더 강한지 판정한 결과는 아닙니다.';
+  '이 관계만으로 실제 생활에서 어느 분류가 더 강하게 드러날지는 알 수 없습니다.';
 }
 function card(id,title,text){
  if(typeof text!=='string'||text.length<30)
@@ -146,16 +145,15 @@ function build(packet){
  if(!visible||!central)
   throw Error('SAMPLE_MONTH_TWO_SOURCE_CONDITIONS_MISSING');
  const monthText=month.stemTenGod===hidden.tenGod?
-  '태어난 달의 겉과 안쪽 중심에서 모두 ‘'+upper+
+  '태어난 달에 드러난 글자와 숨겨진 중심 글자에서 모두 ‘'+upper+
   '’이라는 같은 전통 분류가 확인됩니다. 가령 ‘'+visible.focus+
   '’'+objectParticle(visible.focus)+' 생각하는 상황에서 두 출처는 한 가지 질문을 되풀이하며, '+
   '성격이 두 배 강하거나 실제로 그 선택을 했다는 뜻은 아닙니다.':
-  '태어난 달의 겉글자는 ‘'+upper+'’에, 안쪽 중심 글자는 ‘'+lower+
+  '태어난 달에 드러난 글자는 ‘'+upper+'’에, 달에 숨겨진 중심 글자는 ‘'+lower+
   '’에 연결됩니다. 예를 들어 ‘'+visible.focus+
   '’'+objectParticle(visible.focus)+' 따지는 가상의 선택에서는 ‘'+central.focus+
-  '’도 답해야 할 별도의 질문으로 남습니다. 이 둘은 실제로 경험한 갈등이나 '+
-  '어느 쪽이 더 강한 성격인지 보여 주는 결과가 아니라, 서로 다른 전통적 분류를 '+
-  '한 사주에서 확인한 계산 예시입니다.';
+  '’도 답해야 할 별도의 질문으로 남습니다. 두 분류가 실제 생활에서 충돌하거나 '+
+  '어느 쪽이 더 강하다는 뜻은 아닙니다.';
  const cards=[card('birth-month','태어난 달에서 확인되는 두 근거',monthText)];
  const monthLink=monthToVisibleLink(packet);
  if(monthLink)cards.push(monthLink);
@@ -172,8 +170,8 @@ function build(packet){
   const same=year.stemTenGod===hour.stemTenGod;
   cards.splice(1,0,card('year-hour','출생 해와 시간에서 따로 읽는 질문',
    same?
-    '태어난 해와 시간의 겉글자는 둘 다 ‘'+yearMeaning+'’를 설명하는 분류입니다. 위치가 다르다고 서로 다른 생활 경험을 만들어낼 수 없으며, 이 반복만으로 실제 성향의 강도나 영향력을 재지 않습니다.':
-    '태어난 해의 겉글자는 ‘'+yearMeaning+'’, 태어난 시간의 겉글자는 ‘'+hourMeaning+'’를 각각 가리킵니다. 두 질문이 다르다는 계산만 확인한 상태이며, 어느 쪽이 실제 생활에 더 크게 작용하는지나 개인의 능력을 판정한 결과는 아닙니다.'));
+    '태어난 해와 시간을 나타내는 글자는 둘 다 ‘'+yearMeaning+'’와 관련됩니다. 같은 뜻이 두 출생 위치에 나온다는 계산이며, 그 영향력이 두 배라는 뜻은 아닙니다.':
+    '태어난 해를 나타내는 글자는 ‘'+yearMeaning+'’, 태어난 시간을 나타내는 글자는 ‘'+hourMeaning+'’를 각각 가리킵니다. 서로 다른 질문을 다룬다는 계산이지만, 실제 생활에서 어느 쪽이 더 강하게 나타날지는 알 수 없습니다.'));
  }
  return Object.freeze({
   kind:'free-calculated-meaning-preview-v1',
@@ -182,7 +180,7 @@ function build(packet){
   modelCalls:0,
   completedPremiumParagraphs:0,
   humanEditorialApproved:false,
-  note:'출생정보에서 확인한 전통적 분류의 뜻을 읽기 쉽게 보여 주는 무료 예시입니다. 실제 개인의 생활과 미래를 검증한 유료 풀이가 아닙니다.'+
+  note:'출생정보에서 계산한 전통적 뜻을 풀어 쓴 무료 예시입니다. 실제 경험을 확인하거나 미래를 예언하는 내용은 아닙니다.'+
    (packet.calculationInput?.unknownBirthTime===true?
     ' 출생 시각을 모르는 경우에는 시각에 따른 날짜 경계와 시주를 확정할 수 없으므로 잠정 계산 예시로만 보세요.':'')
  });
