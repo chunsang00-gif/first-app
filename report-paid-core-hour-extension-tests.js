@@ -40,6 +40,14 @@ assert.throws(()=>ext.build(packet,swapped),/CORE_HOUR_ADDITION_SOURCE_DRIFT/);
  const outgoingSchema=writer.schema(captured.prompt,wire.schemaFor(captured.prompt,schema));
  assert.deepEqual(require('./report-provider-preflight')
   .inspect(captured.prompt,currentPayload,outgoingSchema),[]);
+ const tampered=structuredClone(outgoingSchema);
+ tampered.properties.chapters.properties.saju_core.properties.paragraphs
+  .properties.temperament.anyOf[0].properties.basis.properties
+  .refs.items.enum.push('natal.month.stem');
+ assert(require('./report-provider-preflight')
+  .inspect(captured.prompt,currentPayload,tampered)
+  .includes('topic-allowed-citations-drift:saju_core/temperament'),
+  'preflight must catch accidental reintroduction of free month sources into the paid hour paragraph');
  const payload=writer.compile(captured.prompt);
  const first=payload.task.chapters.saju_core.topics.temperament;
  assert.deepEqual(first.sourceOwnedHourExtension,v);
