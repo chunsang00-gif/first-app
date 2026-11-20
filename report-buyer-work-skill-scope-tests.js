@@ -24,6 +24,9 @@ const cases=[
 for(const [input,enabled] of cases)
  assert.equal(scope.supportsDecision(input),enabled,input);
 const details={currentWork:'출하 전 품질 검수',targetSkill:'지게차 실습'};
+assert.equal(scope.orderFor(good),'work-first');
+assert.equal(scope.orderFor(reversed),'skill-first');
+assert.equal(scope.orderFor('저축할지 대출을 갚을지 고민합니다.'),null);
 const task=decision.readerTask(details);
 assert.deepEqual(application.preflight(task,good),[]);
 assert.deepEqual(application.preflight(task,reversed),[]);
