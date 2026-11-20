@@ -105,8 +105,9 @@ function actual(input){
     'a non-learning buyer must never be instructed to learn a new skill');
    assert(!free.writerInstruction.includes('업무·기술 입력은'),
     'previous irrelevant global assumption must not leak into other buyer domains');
-   assert(found.extension.sourceRefs.every(id=>
-    found.leaf.properties.basis.properties.refs.items.enum.includes(id)));
+   assert.deepEqual(found.leaf.properties.basis.properties.refs.items.enum,
+    found.extension.sourceRefs,
+    'real paid source-specific first chapter may only cite its two new hour positions');
    // Another customer in the SAME DOMAIN has a different dilemma. The
    // real calculated source does not change with the wording, but the
    // paid first chapter must actually explain the new two choices.
