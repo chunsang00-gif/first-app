@@ -5,7 +5,8 @@
 // preflight. Actual Korean prose quality and remote API acceptance are
 // NOT verified by selecting this value.
 function requestFields(model){
- if(model==='gpt-6.1-terra')return {reasoning:{effort:'none'}};
+ if(model==='gpt-6.1-terra'||model==='gpt-6-luna')
+  return {reasoning:{effort:'none'}};
  return {};
 }
 module.exports={requestFields};
