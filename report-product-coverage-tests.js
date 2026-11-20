@@ -196,15 +196,16 @@ const names=['NODE_ENV','RENDER','PAID_CORE_DEPTH_V2',
   assert(directLink.text.includes('역할과 승인·검수의 기준')&&
    directLink.text.includes('반복해서 들어갈 비용과 관리 자원'),
    'the actual 1994 chart exposes distinct authority and recurring-cost questions');
-  assert(directLink.text.includes('출생월의 중심 글자 하나만 읽으면')&&
+  assert(directLink.text.includes('태어난 달에 숨겨진 중심 글자 하나만 읽으면')&&
    directLink.text.includes('되풀이되는 별도 분류를 놓치게 됩니다'),
    'the chart-specific distinction must show exactly what the natal month baseline omitted');
   assert(!/(?:여섯 달|운영하는 가상의 상황|첫 번째 조건만|반대로 두 번째 조건만|장비|납품)/.test(directLink.text),
    'rejected reusable adult-workplace examples may not return to the real customer preview');
   assert(directLink.text.includes('두 글자 사이에는')&&directLink.text.includes('도와주는 방향'),
    'the actual Ding/己 elements must determine their verified direction, not a fixed template');
-  assert(directLink.text.includes('실제 성격')&&directLink.text.includes('판정한 결과는 아닙니다'),
-   'explicit source scope must not be mistaken for real behavior');
+  assert(directLink.text.includes('실제 생활의 행동이나 능력')&&
+   directLink.text.includes('판단할 수는 없습니다'),
+   'new reader-friendly limit must still explicitly reject unsupported lived-behavior conclusions');
   assert(!/(?:실제로 성실한 사람|돈을 잘 번다|재물운이 강하다)/.test(directLink.text),
    'a chart-specific hypothetical cannot become a verified personal trait');
   assert(!directLink.text.includes('辛')&&!directLink.text.includes('壬'),
