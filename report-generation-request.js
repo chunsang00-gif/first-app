@@ -43,6 +43,32 @@ const normalPaidCore=p=>p?.stage==='body'&&
  Array.isArray(p.requestedSections)&&p.requestedSections.includes('saju_core')&&
  p.qaNatalDepthPreview!==true&&p.qaAdditiveDepthPreview!==true&&
  p.qaOfflineEditorialResearchPreview!==true&&p.paidCoreDepthV2!==true;
+// An eligible paid first chapter has a NEW, source-verified birth-HOUR
+// question in temperament. The old top-level writer policy still ordered
+// that SAME slot to explain birth-MONTH seasons, contradicting its strict
+// hour-only schema. Resolve the conflict BEFORE sending the model request.
+// Customer question text remains reader context and never natal evidence.
+function sourceOwnedHourFirstChapter(prompt){
+ if(!normalPaidCore(prompt)||prompt.facts?.status!=='ready'||
+    !prompt.facts?.person?.readerDecision)return null;
+ const refs=require('./report-fact-bindings').build(prompt.facts);
+ const source=Object.fromEntries(refs.map(row=>[row.id,row]));
+ return require('./report-paid-core-hour-extension').build(prompt.facts,source);
+}
+const hourPolicyMonthSentence='사주 기본 장의 temperament에서는 facts.seasonalEvidence와 facts.qiEvidence를 근거로 출생월의 계절·전환월 여부, 일간과의 실제 오행 관계, 겉천간의 실제 생조·설기·극 방향을 구별해 설명한다. 월의 출생 위치(natal.month.*)도 명시적으로 인용한다.';
+const hourPolicyTemperamentSentence='temperament는 출생 계절·겉글자 관계에서 독립적인 추가 해석이 확인될 때만 짧게 보충한다.';
+function normalPaidHourPolicyPart(i,raw,hour){
+ if(!hour)return raw;
+ const replaceExactly=(from,to)=>{
+  if(raw.split(from).length!==2)throw Error('PAID_CORE_HOUR_HIGHER_POLICY_DRIFT:'+i);
+  raw=raw.replace(from,to);
+ };
+ if(i===1)replaceExactly(hourPolicyMonthSentence,
+  '이 명식의 선택 문단 temperament는 실제 출생시간 안쪽 글자의 별도 전통적 분류만 해석한다. 출생시간 겉글자 natal.hour.stem과 정확히 확인된 안쪽 글자 '+hour.hiddenRef+'를 내부 출처로 인용하고, 고객이 입력한 '+hour.readerDomain+' 질문에 조건부로 적용한다. 출생월의 계절·기운 자료 facts.seasonalEvidence, facts.qiEvidence와 월간 출처 natal.month.*는 필수 strength의 맥락이지 temperament의 새 유료 근거가 아니다. 해당 계절 내용을 temperament에서 새 해석으로 다시 쓰지 않는다.');
+ if(i===4)replaceExactly(hourPolicyTemperamentSentence,
+  'temperament는 오직 추가로 확인된 출생시간의 별도 전통적 질문을 고객의 실제 고민에 적용한다. 출생월의 계절 해석을 반복하거나 질문 밖의 선택지를 창작하지 않는다.');
+ return raw;
+}
 function normalizeNormalCorePolicyPart(i,raw){
  const once=(a,z)=>{if(raw.split(a).length!==2)
   throw Error('PAID_CORE_HIGHER_POLICY_DRIFT:'+i);
@@ -65,10 +91,13 @@ function policyFor(prompt){
  if(prompt?.stage==='body'&&
     JSON.stringify(prompt.requestedSections)===JSON.stringify(['saju_core'])){
   if(policyParts.length!==18)throw Error('QA_CORE_POLICY_PARTITION_NEEDS_REVIEW');
+  const hourScope=sourceOwnedHourFirstChapter(prompt);
   const parts=corePolicyPartIndexes
    .filter(i=>prompt.qaAdditiveDepthPreview===true||
     prompt.qaNatalDepthPreview!==true||i!==1)
-   .map(i=>normalPaidCore(prompt)?normalizeNormalCorePolicyPart(i,policyParts[i]):policyParts[i]);
+   .map(i=>normalPaidCore(prompt)?
+    normalPaidHourPolicyPart(i,normalizeNormalCorePolicyPart(i,policyParts[i]),hourScope):
+    policyParts[i]);
   if(prompt.qaAdditiveDepthPreview===true)
    return parts.join('\n')+'\n'+additivePolicy;
   if(prompt.qaNatalDepthPreview===true)parts.push(
@@ -94,7 +123,9 @@ function policyFor(prompt){
   prompt.paidCoreDepthV2!==true&&
   prompt.qaAdditiveDepthPreview!==true&&
   prompt.qaOfflineEditorialResearchPreview!==true;
- return (normalPaidCore(prompt)?policyParts.map((v,i)=>normalizeNormalCorePolicyPart(i,v)).join('\n'):policy)+(prompt?.stage==='body'&&prompt?.requestedSections?.includes('saju_core')&&
+ return (normalPaidCore(prompt)?policyParts.map((v,i)=>
+   normalPaidHourPolicyPart(i,normalizeNormalCorePolicyPart(i,v),
+    sourceOwnedHourFirstChapter(prompt))).join('\n'):policy)+(prompt?.stage==='body'&&prompt?.requestedSections?.includes('saju_core')&&
   prompt.qaNatalDepthPreview!==true?'\n'+normalPaidMonthMethodBoundary:'')+
   (isNormalCore?'\n'+normalCoreMeaningPriority:'');
 }
