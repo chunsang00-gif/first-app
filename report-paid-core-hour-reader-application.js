@@ -7,6 +7,8 @@ function inspect(p,monthText,proof){
   return ['missing-hour-paragraph'];
  const errors=[];
  if(!Array.isArray(proof.sourceRefs)||proof.sourceRefs.length!==2||
+    p.basis.refs.length!==2||
+    new Set(p.basis.refs).size!==2||
     !proof.sourceRefs.every(ref=>p.basis.refs.includes(ref)))
   errors.push('missing-hour-pair-citations');
  const sentences=p.text.split(/[.!?。！？\n]+/).map(s=>s.trim()).filter(s=>s.length>=23);
