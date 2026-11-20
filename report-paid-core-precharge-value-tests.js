@@ -19,6 +19,16 @@ assert.equal(good.existingModelCalls,0);
 assert.equal(good.additionalModelCalls,0);
 assert.equal(good.modelQualityValidated,false);
 assert.equal(good.customerSaleApproved,false);
+for(const question of [
+ '기존 일을 유지할지, 새로운 기술을 배울지 고민 중입니다.',
+ '기존 일을 유지할지, 아니면 새로운 기술을 배울지 고민 중입니다.'
+]){
+ const withPunctuation=gate.inspect({...base,readerDecision:question});
+ assert.equal(withPunctuation.eligible,true,
+  'comma/아니면 must keep the two-choice paid writer path instead of a single concern');
+ assert.equal(withPunctuation.customerSaleApproved,false);
+ assert.equal(withPunctuation.additionalModelCalls,0);
+}
 const eligible=offer.build({...base,readerDecision:choice});
 assert.equal(eligible.productMode,'adaptive-v1');
 assert.equal(eligible.actualProseNotYetGenerated,true);
