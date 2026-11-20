@@ -43,6 +43,7 @@ function build(proof,question){
   premiumManuscriptQualityVerified:false,saleApproved:false,
   analysisGoal:scope+difference+' '+real,
   buyerContextBoundary:'고객 질문은 오직 출생시간 선택 문단(temperament)의 독자 문맥이다. '+
+   '고객 질문에 새롭게 답하는 유일한 첫 장의 추가 문단은 temperament이며, 정확히 검증한 출생시간의 두 출처만 인용한다. '+
    '필수 출생월 문단(strength)에서 이 고민의 양자택일을 미리 답하지 않는다. '+
    difference+' '+real
  });
