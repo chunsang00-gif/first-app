@@ -29,6 +29,12 @@ jobs:
           REPORT_MODEL_URL: ''
           REPORT_QA_CONFIRM: ''
         run: node report-buyer-work-skill-scope-tests.js
+      - name: Ensure a free HTTP calculation receipt cannot be reused after work or skill input changes (LOCAL HTTP)
+        env:
+          OPENAI_API_KEY: ''
+          REPORT_MODEL_URL: ''
+          REPORT_QA_CONFIRM: ''
+        run: node report-free-buyer-context-receipt-http-tests.js
       - name: Verify same-chart FREE text is visible to paid first-chapter writer (NO AI)
         env:
           OPENAI_API_KEY: ''
