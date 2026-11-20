@@ -154,6 +154,8 @@ function inspectSingleConcern(text,question,proof){
  return errors;
 }
 function inspectParagraph(text,question,proof){
+ const buyerScopeProblems=preflightReaderQuestion(question,proof);
+ if(buyerScopeProblems.length)return buyerScopeProblems;
  const choice=alternatives(question);
  if(!choice)return inspectSingleConcern(text,question,proof);
  const scope=taskFor(proof);
