@@ -17,6 +17,12 @@ jobs:
       - run: npm install --no-audit --no-fund
       - run: node character-assets-test.js
       - run: npm test
+      - name: Verify current-work/learning context is shown ONLY for the matching question (NO API, NO PAYMENT)
+        env:
+          OPENAI_API_KEY: ''
+          REPORT_MODEL_URL: ''
+          REPORT_QA_CONFIRM: ''
+        run: node report-buyer-work-skill-scope-tests.js
       - name: Verify same-chart FREE text is visible to paid first-chapter writer (NO AI)
         env:
           OPENAI_API_KEY: ''
