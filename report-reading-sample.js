@@ -71,7 +71,7 @@ function conditionalMonthReading(main,exposed,location){
  return '태어난 달에 숨겨진 중심 글자는 '+objectPhrase(first.focus)+
   ' 전통적으로 묻고, 같은 달에 있는 다른 글자는 '+objectPhrase(second.focus)+
   ' 묻습니다. 이 두 번째 글자가 '+location+
-  '을 나타내는 글자에도 정확히 같은 글자로 확인됩니다. 따라서 태어난 달에 숨겨진 중심 글자 하나만 읽으면 '+
+  '+objectParticle(location)+' 나타내는 글자에도 정확히 같은 글자로 확인됩니다. 따라서 태어난 달에 숨겨진 중심 글자 하나만 읽으면 '+
   location+'에서 되풀이되는 별도 분류를 놓치게 됩니다. '+
   '두 글자 사이에는 '+link+'도 계산됩니다. '+
   '이 계산 관계만으로 실제 생활의 행동이나 능력을 판단할 수는 없습니다.';
