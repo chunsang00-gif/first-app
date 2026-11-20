@@ -13,6 +13,15 @@ function inspect(p,monthText,proof){
   errors.push('missing-hour-pair-citations');
  const sentences=p.text.split(/[.!?。！？\n]+/).map(s=>s.trim()).filter(s=>s.length>=23);
  const hour=/(?:태어난\s*시간|출생\s*시간|출생시각|시간의\s*(?:숨은|안쪽|속)\s*글자)/;
+ // The actual source binds ONE hidden-hour role. Even a paragraph with
+ // correct citations and generic role vocabulary must not NAME a different
+ // traditional category as the calculated hour reading. Keep plain Korean
+ // without any label valid; only reject an explicit contradictory label.
+ const roleNames=/(?:^|[^가-힣])(비견|겁재|식신|상관|편재|정재|편관|정관|편인|정인)(?=$|[^가-힣])/g;
+ const namedHourRoles=sentences.filter(s=>hour.test(s))
+  .flatMap(s=>[...s.matchAll(roleNames)].map(m=>m[1]));
+ if(namedHourRoles.some(role=>role!==proof.hourHiddenRole))
+  errors.push('hour-source-explicit-category-conflicts-with-calculation');
  const rules={
   skill:{
    concern:/(?:배우|배운|배울|익히|익힌|익힐|학습|공부|기술|교육|연습|방법)/,
