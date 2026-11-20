@@ -10,6 +10,18 @@ const real='이미 하던 일을 유지한다면 기존에 익힌 방법을 살�
 const generic='새로운 정보를 자기 방식으로 이해하고 필요한 자원을 찾아 활용하는 뜻을 봅니다. '+
  '어느 한 가지만 보면 놓치는 조건이 있으므로 두 가지 뜻을 함께 살펴봅니다.';
 assert.deepEqual(audit.alternatives(q),{first:['유지'],second:['기술','배울']});
+for(const punctuated of [
+ '현재 일을 유지할지, 새로운 기술을 배울지 고민 중입니다.',
+ '현재 일을 유지할지,새로운 기술을 배울지 고민 중입니다.',
+ '현재 일을 유지할지, 아니면 새로운 기술을 배울지 고민 중입니다.',
+ '현재 일을 유지할지 아니면 새로운 기술을 배울지 고민 중입니다.'
+]){
+ assert.deepEqual(audit.alternatives(punctuated),
+  {first:['유지'],second:['기술','배울']},
+  'a real two-choice dilemma must not silently become one concern: '+punctuated);
+}
+assert.equal(audit.alternatives('새로운 기술을 배우고 싶습니다.'),null);
+
 assert.deepEqual(
  audit.alternatives('지게차를 배울지 현재 일을 유지할지 고민합니다.'),
  {first:['지게차','배울'],second:['유지']},
