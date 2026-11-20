@@ -95,6 +95,12 @@ jobs:
           REPORT_MODEL_URL: ''
           REPORT_QA_CONFIRM: ''
         run: node qa-day-hidden-versus-free-pilot.js
+      - name: Cross-check day-hidden candidate against same-chart MONTH repeats and natal relations (NO API / PAY)
+        env:
+          OPENAI_API_KEY: ''
+          REPORT_MODEL_URL: ''
+          REPORT_QA_CONFIRM: ''
+        run: node qa-day-hidden-cross-pillar-value-tests.js
       - name: Print synthetic day-hidden FREE comparison inputs for authored first-chapter editorial work (NO AI)
         env:
           OPENAI_API_KEY: ''
