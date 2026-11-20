@@ -55,7 +55,8 @@ assert.throws(()=>ext.build(packet,swapped),/CORE_HOUR_ADDITION_SOURCE_DRIFT/);
   'buyer-triggered hour meaning must be present in paid first chapter');
  assert(!leaf.anyOf.some(x=>x.type==='null'));
  assert(opt.properties.text.description.includes(v.readerGoal));
- assert(v.sourceRefs.every(id=>opt.properties.basis.properties.refs.items.enum.includes(id)));
+ assert.deepEqual(opt.properties.basis.properties.refs.items.enum,v.sourceRefs,
+  'strict outgoing first-chapter hour paragraph must NOT allow month/season sources');
  const older=await capture(input);
  assert.equal(older.providerCalls,0);
  const old=writer.compile(older.prompt);
