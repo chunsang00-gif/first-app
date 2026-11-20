@@ -74,7 +74,7 @@ function conditionalMonthReading(main,exposed,location){
   '을 나타내는 글자에도 정확히 같은 글자로 확인됩니다. 따라서 태어난 달에 숨겨진 중심 글자 하나만 읽으면 '+
   location+'에서 되풀이되는 별도 분류를 놓치게 됩니다. '+
   '두 글자 사이에는 '+link+'도 계산됩니다. '+
-  '이 관계만으로 실제 생활에서 어느 분류가 더 강하게 드러날지는 알 수 없습니다.';
+  '이 계산 관계만으로 실제 생활의 행동이나 능력을 판단할 수는 없습니다.';
 }
 function card(id,title,text){
  if(typeof text!=='string'||text.length<30)
@@ -152,8 +152,7 @@ function build(packet){
   '태어난 달에 드러난 글자는 ‘'+upper+'’에, 달에 숨겨진 중심 글자는 ‘'+lower+
   '’에 연결됩니다. 예를 들어 ‘'+visible.focus+
   '’'+objectParticle(visible.focus)+' 따지는 가상의 선택에서는 ‘'+central.focus+
-  '’도 답해야 할 별도의 질문으로 남습니다. 두 분류가 실제 생활에서 충돌하거나 '+
-  '어느 쪽이 더 강하다는 뜻은 아닙니다.';
+  '’도 답해야 할 별도의 질문으로 남습니다. 이 계산만으로 실제 행동이나 성격의 정도를 판단할 수는 없습니다.';
  const cards=[card('birth-month','태어난 달에서 확인되는 두 근거',monthText)];
  const monthLink=monthToVisibleLink(packet);
  if(monthLink)cards.push(monthLink);
