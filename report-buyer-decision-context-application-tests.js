@@ -32,8 +32,13 @@ const reversedGood='태어난 시간의 숨은 글자는 배운 것을 결과물
 assert.deepEqual(application.preflight(assign,reversed),[]);
 assert.deepEqual(application.inspect(paragraph(reversedGood),assign,reversed),[],
  'reverse input order must correctly attach targetSkill to FIRST and currentWork to SECOND');
-assert(application.inspect(paragraph(good),assign,reversed).length>0,
- 'a report applying the wrong alternative order cannot clear the buyer-specific checks');
+const swappedWrong='태어난 시간의 숨은 글자는 배운 것을 결과물로 완성하는 전통적 질문입니다. '+
+ '지게차를 배울 경우 출하 품질 검수 단계의 수량을 기록합니다. '+
+ '현재 일을 유지할 경우 지게차 실습의 연습 기간과 도구를 점검합니다.';
+assert(application.inspect(paragraph(swappedWrong),assign,reversed).length>0,
+ 'swapping the ACTUAL work and target-skill subjects must not clear the buyer-specific checks');
+assert.deepEqual(application.inspect(paragraph(good),assign,reversed),[],
+ 'whether author writes work first or learning first is not itself an error');
 assert.equal(application.tokens(labels.currentWork).includes('출하'),true);
 assert.equal(application.tokens(labels.targetSkill).includes('지게차'),true);
 assert.deepEqual(application.inspect(paragraph('공통 조언만 합니다.'),
