@@ -63,15 +63,25 @@ function inspect(input){
  const contextProblems=declared?require('./report-buyer-decision-context-application')
   .preflight(require('./report-buyer-decision-context').readerTask(declared),
    packet.person?.readerDecision):[];
+ // Prior to this check, the model could be paid for a perfectly calculated
+ // hour role but the post-model quality gate would ALWAYS reject a vague
+ // single concern or an unparseable "A or B" dilemma. A client should
+ // never reserve an order under a contract that cannot accept its question.
+ const readerProblems=onlyIndependentHour?
+  require('./report-paid-core-hour-choice-meaning')
+   .preflightReaderQuestion(packet.person?.readerDecision,hour):[];
  // The reader's FREE "year-hour" card already describes the YEAR
  // visible category. A novel source compared with the MONTH is NOT a
  // novel paid finding compared with the FULL free report. Keep this path
  // as an editorial draft, but NEVER authorize a paid order solely for it.
  return Object.freeze({
   kind:'adaptive-first-chapter-precharge-unique-evidence-v1',
-  eligible:Boolean(onlyIndependentHour)&&contextProblems.length===0,
+  eligible:Boolean(onlyIndependentHour)&&
+   contextProblems.length===0&&readerProblems.length===0,
   reason:onlyIndependentHour&&contextProblems.length?
    'buyer-context-unusable-for-two-option-paid-explanation':
+   onlyIndependentHour&&readerProblems.length?
+   'buyer-question-cannot-pass-first-chapter-reader-gate':
    onlyIndependentHour?'verified-hour-addition-awaits-human-review':
    onlyIndependentYear?'year-visible-meaning-already-in-free-preview':
    'no-guaranteed-independent-first-chapter-paragraph',
