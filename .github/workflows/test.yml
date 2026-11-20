@@ -89,6 +89,12 @@ jobs:
           REPORT_MODEL_URL: ''
           REPORT_QA_CONFIRM: ''
         run: node qa-adaptive-first-chapter-technical-reach.js
+      - name: Pilot distinct birth-DAY hidden category vs FREE and hour-only paid precharge (NO API / PAY)
+        env:
+          OPENAI_API_KEY: ''
+          REPORT_MODEL_URL: ''
+          REPORT_QA_CONFIRM: ''
+        run: node qa-day-hidden-versus-free-pilot.js
       - name: Produce actual same-chart FREE vs 3 offline editorial first-chapter candidate readings (NO AI / NO PAY)
         env:
           OPENAI_API_KEY: ''
