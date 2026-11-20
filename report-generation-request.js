@@ -723,6 +723,21 @@ function compile(prompt){
     }
    }
   }
+  // For a proven extra HOUR paragraph the paid question belongs in
+  // temperament, NOT in the mandatory month-only strength explanation.
+  // Previously the chapter-level customer context told the writer to
+  // answer that choice from the FREE month source, then answer it again
+  // from the additional hour source: the paid first chapter was padded.
+  const coreChapter=task.chapters.saju_core;
+  if(coreChapter?.coreReaderChoiceContext&&
+     coreChapter.topics?.temperament?.sourceOwnedHourExtension){
+   coreChapter.coreReaderChoiceContext.writerBoundary=
+    '고객의 질문은 출생으로 확인된 행동이 아니라 독자가 직접 적은 고민이다. '+
+    '필수 strength에서는 무료에 이미 공개된 출생월의 두 전통적 분류와 그 정확한 관계만 간결하게 설명하고 질문에 대한 일반 조언이나 두 선택 비교를 반복하지 않는다. '+
+    '고객 질문에 새롭게 답하는 유일한 첫 장의 추가 문단은 temperament이며, 검증된 출생시간의 겉글자와 안쪽 글자 두 출처에만 연결한다. '+
+    'temperament는 실제 질문에 들어 있는 선택지 수와 분야를 따른다. '+
+    '입력에 없던 고객 경험·대안·실제 성격·능력·미래 결과를 만들지 않는다.';
+  }
   // The customer question should reach its *relevant* paid domain once,
   // not merely the generic first and decision chapters. The domain writer
   // may only use its original fact-owned two-role or single-role proof.
@@ -1116,9 +1131,18 @@ function schema(prompt,transport){
        prompt.qaAdditiveDepthPreview===true||
        prompt.qaOfflineEditorialResearchPreview===true)
      throw Error('PAID_CORE_USER_QUESTION_SOURCE_OR_MODE_DRIFT');
-    p.properties.text.description+=' 고객이 직접 입력한 현재 질문(명리 근거 아님): '+
-     JSON.stringify(choice.text)+'. '+choice.writerBoundary+
-     ' 질문에 답하면서 인용 가능한 사주 출처는 기존 월간과 월지의 계산값뿐이다. 고객이 실제로 선택하거나 행동했다고 추정하지 않는다.';
+    const addedHour=payload.task.chapters.saju_core?.topics
+     ?.temperament?.sourceOwnedHourExtension;
+    if(addedHour){
+     p.properties.text.description+=' 이 필수 출생월 strength는 독자에게 이미 공개된 기본 계산 맥락이다. '+
+      '고객이 직접 입력한 고민의 양자택일 또는 행동 조언은 이 문단에서 쓰지 않는다. '+
+      '새로운 출생시간 근거와 고객 질문의 구체적 설명은 필수 temperament에서만 작성한다. '+
+      '출생월 자료를 새롭게 발견한 유료 판단처럼 꾸미거나 temperament 내용을 미리 반복하지 않는다.';
+    }else{
+     p.properties.text.description+=' 고객이 직접 입력한 현재 질문(명리 근거 아님): '+
+      JSON.stringify(choice.text)+'. '+choice.writerBoundary+
+      ' 질문에 답하면서 인용 가능한 사주 출처는 기존 월간과 월지의 계산값뿐이다. 고객이 실제로 선택하거나 행동했다고 추정하지 않는다.';
+    }
    }
    if(task.sourceOwnedMonthNonmainExposure){
     const m=task.sourceOwnedMonthNonmainExposure;
