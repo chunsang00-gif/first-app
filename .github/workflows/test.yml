@@ -138,6 +138,12 @@ jobs:
         run: node report-paid-delivery-state-tests.js
       - name: Check a DIFFERENT evidence-based first-chapter reading order without paid calls
         run: node report-core-month-exposure-reading-order-tests.js
+      - name: Reject conflicting month-vs-hour paid writer instructions in three real provider-first-chapter compositions (NO API)
+        env:
+          OPENAI_API_KEY: ''
+          REPORT_MODEL_URL: ''
+          REPORT_QA_CONFIRM: ''
+        run: node qa-normal-paid-hour-editorial-conflict-tests.js
       - name: Price the SOURCE-QUALIFIED customer first chapter instead of unsellable buyer-neutral estimate (NO API)
         env:
           OPENAI_API_KEY: ''
