@@ -72,5 +72,7 @@ const browser=fs.readFileSync(path.join(__dirname,'live-report-ui.js'),'utf8');
 assert(html.includes('id="workSkillContext" class="hidden" hidden'));
 assert(html.includes('<script src="report-buyer-work-skill-scope.js"></script><script src="live-report-ui.js"></script>'));
 assert(html.includes('REPORT_BUYER_WORK_SKILL_SCOPE?.supportsDecision(val(\'readerDecision\'))'));
+assert(html.includes("inputError('targetSkill','현재 하는 일과 새로 배우려는 기술은 둘 다 적거나 둘 다 비워 주세요.')"));
+assert(html.includes("inputError('currentWork','현재 하는 일과 새로 배우려는 기술은 둘 다 적거나 둘 다 비워 주세요.')"));
 assert(browser.includes('REPORT_BUYER_WORK_SKILL_SCOPE?.supportsDecision(value(\'readerDecision\'))'));
 console.log('PASS work/skill optional context appears only for real buyer work-versus-learning dilemma and is erased on unrelated questions; backend precharge agrees; provider/merchant calls=0');
