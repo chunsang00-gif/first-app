@@ -33,6 +33,8 @@ function preflight(assignment,question){
   return ['buyer-context-unverified-input'];
  if(!alternatives(question))
   return ['buyer-context-cannot-map-two-choices'];
+ if(!require('./report-buyer-work-skill-scope').supportsDecision(question))
+  return ['buyer-context-not-current-work-versus-skill-decision'];
  const a=tokens(assignment.currentWork),b=tokens(assignment.targetSkill);
  if(!a.some(x=>!b.includes(x))||!b.some(x=>!a.includes(x)))
   return ['buyer-context-not-distinct-enough-for-automatic-review'];
