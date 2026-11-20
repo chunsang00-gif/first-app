@@ -10,6 +10,15 @@ assert.deepEqual(check.inspect(p(good),month,ext),[]);
 assert(check.inspect(null,month,ext).includes('missing-hour-paragraph'));
 assert(check.inspect(p(good,['natal.hour.hidden.丁']),month,ext)
  .includes('missing-hour-pair-citations'));
+assert(check.inspect(p(good,[...ext.sourceRefs,'natal.month.stem']),month,ext)
+ .includes('missing-hour-pair-citations'),
+ 'a new paid birth-hour paragraph cannot cite the free month source as extra proof');
+assert(check.inspect(p(good,[...ext.sourceRefs,'facts.seasonalEvidence']),month,ext)
+ .includes('missing-hour-pair-citations'),
+ 'the separate paid hour chapter cannot borrow free seasonal meaning');
+assert(check.inspect(p(good,['natal.hour.stem','natal.hour.stem']),month,ext)
+ .includes('missing-hour-pair-citations'),
+ 'duplicate refs must not satisfy the source pair');
 assert(check.inspect(p(month),month,ext)
  .includes('missing-hour-specific-meaning'));
 assert(check.inspect(p('태어난 시간의 숨은 글자는 결과물을 만드는 뜻입니다. '+month),month,ext)
