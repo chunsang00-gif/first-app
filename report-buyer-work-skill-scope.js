@@ -4,7 +4,7 @@
 // the customer's OWN question is whether to keep their work or learn a
 // skill. They are never Saju evidence, and never authorize a sale.
 (function(root){
- const TWO_OPTIONS=/(.{2,70}?)([가-힣]지)\s+(.{2,70}?)([가-힣]지)/;
+ const TWO_OPTIONS=/(.{2,70}?)([가-힣]지)\s+(.{2,70}?)([가-힣]지)(?=\s|[,.!?。！？]|$)/;
  const WORK=/(?:일|업무|직장|직무|회사|현직|재직|고용)/;
  const KEEP=/(?:유지할지|계속할지|이어갈지|다닐지|남을지|버틸지)/;
  const LEARNING=/(?:기술|자격|교육|훈련|실습|연습|학습|공부|배우|익히|수업|지게차|엑셀)/;
