@@ -12,7 +12,6 @@ const DOMAINS=Object.freeze({
    식신:'배운 것을 눈에 보이는 결과로 마무리하는 질문',
    상관:'기존의 규칙과 새로운 표현·개선 방식을 구분하는 질문'
   }),
-  compare:'배우거나 익힌 내용을 실제로 만들어 보여 줄 경우와 기존 방식을 바꾸어 제안할 경우에 무엇을 따로 살펴야 하는지 가정으로 구별한다.',
   single:'배움·기술에 대해 고객이 실제로 질문한 한 가지 상황에만 연결하고, 완성할 연습 결과물 또는 바꾸려는 방법을 확인하는 조건을 제시한다. 기존 업무 유지나 다른 직업 선택을 새로 만들지 않는다.'
  }),
  money:Object.freeze({
@@ -22,7 +21,6 @@ const DOMAINS=Object.freeze({
    정재:'정해진 금액과 반복해서 필요한 자원을 살펴보는 질문',
    편재:'필요한 자원을 여러 경로에서 마련하는 질문'
   }),
-  compare:'매번 들어가는 비용을 따져볼 경우와 새로운 자원을 찾아 마련할 경우에 필요한 확인 조건을 나누어 설명한다.',
   single:'고객이 적은 단일 금전 고민만 설명하고, 반복되는 비용 또는 자원을 마련할 경로 중 실제 계산 분류에 맞는 하나의 확인 기준을 제시한다. 다른 투자나 저축 선택을 지어내지 않는다.'
  }),
  pressure:Object.freeze({
@@ -32,7 +30,6 @@ const DOMAINS=Object.freeze({
    정관:'정해진 규칙과 맡은 책임의 범위를 살펴보는 질문',
    편관:'예상하지 못한 요구와 책임 경계를 살펴보는 질문'
   }),
-  compare:'평소에 정해진 절차로 대응하는 경우와 갑자기 새로운 요구가 들어오는 경우의 확인 조건을 나누어 설명한다.',
   single:'고객이 적은 업무 압박 한 가지에 대해서만 기존 규칙이나 예외 요구의 책임 범위를 조건부로 살핀다. 새로운 업무나 압박 사례를 두 번째 선택으로 만들어내지 않는다.'
  })
 });
@@ -95,8 +92,20 @@ function build(packet,source){
  // output". Model prompts must assign DIFFERENT conditional checks instead
  // of just restating the same output verb. These are reader examples, not
  // new natal calculations or claims about the actual customer's work.
- const hasTwoChoices=Boolean(require('./report-paid-core-choice-application')
-  .alternatives(q));
+ const actualOptions=require('./report-paid-core-choice-application')
+  .alternatives(q);
+ const hasTwoChoices=Boolean(actualOptions);
+ // These are keyword markers, NOT reconstructed alternatives and not
+ // natal evidence. The model still sees the original question. Without
+ // this scope it invented two stock choices ("reduce costs vs obtain
+ // external funds") irrespective of what a particular buyer had asked.
+ const actualChoiceGoal=hasTwoChoices?
+  '고객이 실제로 입력한 질문에서 구별되는 두 선택의 표지는 첫째 ['+
+  actualOptions.first.join('·')+'], 둘째 ['+
+  actualOptions.second.join('·')+']이다. 이 표지는 고객 원문의 핵심어일 뿐 완성된 선택지 문장이 아니다. '+
+  '반드시 원문에서 이 두 선택을 다시 읽고 각각의 의미를 조건부로 설명한다. '+
+  '여기에 없는 제3의 대안이나 명리상의 예시를 고객이 선택한 것처럼 지어내지 않는다. '+
+  '이 출생시간 안쪽 글자의 실제 전통 분류 하나를 두 선택에 각각 적용하면서 확인 기준을 다르게 쓴다. ':null;
  const distinctChoiceGoal=hasTwoChoices&&readerDomain==='skill'&&
    /(?:유지할지|이어\s*갈지|계속할지)/.test(q)&&
    /(?:배울지|익힐지|학습할지)/.test(q)?
@@ -118,7 +127,7 @@ function build(packet,source){
   readerGoal:'이 출생시간의 숨은 글자에서만 새롭게 확인되는 ‘'+meaning+
    '’라는 전통적 질문을, 고객이 직접 입력한 '+domain.label+' 고민에 조건부로 연결한다. '+
    '출생월의 겉글자와 중심 글자의 뜻풀이를 반복하지 말고 시간의 별도 분류가 더하는 질문을 설명한다. '+
-   (hasTwoChoices?domain.compare:domain.single)+' '+distinctChoiceGoal+
+   (hasTwoChoices?actualChoiceGoal:domain.single)+' '+distinctChoiceGoal+
    '고객이 두 선택지를 적었다면 두 경우의 차이를 독립된 문장으로 설명한다. '+
    '이 글자는 실제 출생시간의 근거 '+b+'에 해당하며 시간 겉글자의 분류는 '+hour.stemTenGod+
    '이다. 인용은 '+a+'과 '+b+'만 허용하며, 출생월을 뜻만 바꿔 나열하지 않는다. '+
