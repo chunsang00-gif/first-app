@@ -101,6 +101,27 @@ async function showCoverage(validatedInput,isCurrent=()=>true){
     JSON.stringify([...proposal.mainChapterIds,...proposal.conditional2027ChapterIds].sort())!==
      JSON.stringify(selected.map(x=>x.id).sort()))
    throw Error('맞춤형 상품 초안과 실제 계산 근거가 일치하지 않습니다.');
+ // The planned chapter count alone cannot establish premium value.
+ // Show the exact server-side first-chapter differentiation result,
+ // never imply an unreviewed candidate is already a saleable manuscript.
+ const firstChapter=out.firstChapterFeasibility;
+ if(firstChapter?.kind!=='prepurchase-first-chapter-differentiation-v1'||
+    !['source-candidate-not-validated','not-qualified'].includes(firstChapter.status)||
+    typeof firstChapter.message!=='string'||!firstChapter.message.trim()||
+    firstChapter.modelGeneratedPremiumTextVerified!==false||
+    firstChapter.customerSaleApproved!==false||
+    firstChapter.newPaymentEnabled!==false||
+    firstChapter.additionalModelCalls!==0)
+  throw Error('유료 첫 장의 무료 대비 차별화 검증 정보가 올바르지 않습니다.');
+ const firstChapterHtml=
+  '<section class="section report-first-chapter-status">'+
+  '<h2>무료 풀이와 다른 유료 첫 장의 근거</h2>'+
+  '<p><strong>'+esc(firstChapter.status==='source-candidate-not-validated'?
+   '별도 계산 근거 후보 확인 · 원고 검증 전':
+   '별도 해석 근거 미확인 · 유료 판매 불가')+'</strong></p>'+
+  '<p>'+esc(firstChapter.message)+'</p>'+
+  '<p class="meta">장 수와 세부 항목 수는 유료 원고의 품질을 보증하지 않습니다. 실제 생성 원고 검토와 판매 승인은 아직 완료되지 않았습니다.</p>'+
+  '</section>';
  const primary=selected.filter(x=>proposal.mainChapterIds.includes(x.id));
  const conditional=selected.filter(x=>proposal.conditional2027ChapterIds.includes(x.id));
  const sample=out.readingSample;
@@ -134,7 +155,8 @@ async function showCoverage(validatedInput,isCurrent=()=>true){
  ${interpreted.map(item=>`<article class="reading-preview-card"><h3>${esc(item.title)}</h3><p>${esc(item.text)}</p></article>`).join('')}
  <p class="meta">결제 없이 계산한 참고용 풀이입니다. 실제 삶의 경험을 확인한 결과나 AI 유료 보고서의 완성·판매 승인 기록이 아닙니다.</p>
  </section>`:''}
- <section class="section report-coverage">
+ ${firstChapterHtml}
+ ${'<section class="section report-coverage">'}
  <h2>맞춤형 심화 풀이 구성안</h2>
  <p><strong>기본 해석 ${proposal.mainChapterCount}개 장 + 2027년 추가 분야 ${proposal.conditionalChapterCount}개 장</strong>을 계산 근거에 따라 선택했습니다.</p>
  <p>전체 <strong>${proposal.plannedChapterCount}개 장 · 최대 ${proposal.topicCandidateUpperBound}개 세부 항목</strong>이 작성 후보입니다.</p>
