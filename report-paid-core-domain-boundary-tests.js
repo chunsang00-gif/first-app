@@ -44,6 +44,23 @@ function actual(input){
   assert(skill.leaf.properties.text.description.includes('배움·기술'));
   assert.equal(baseline.build(skill.packet,skill.extension).twoBuyerChoicesParsed,true);
   assert.equal(skill.p.anyOf.length,1);
+  // The buyer may ask about TWO study options, neither of which involves
+  // retaining a current job. The outgoing paid writer must use THOSE
+  // options instead of the old hardcoded keep-job / new-skill comparison.
+  const unexpectedSkill='지게차를 배울지 엑셀을 공부할지 고민 중입니다.';
+  const differentSkill=actual({...sample,readerDecision:unexpectedSkill});
+  assert.equal(differentSkill?.extension?.readerDomain,'skill');
+  const altSkill=require('./report-paid-core-choice-application')
+   .alternatives(unexpectedSkill);
+  assert(altSkill&&altSkill.first.includes('지게차')&&
+   altSkill.second.some(word=>word.includes('엑셀')));
+  const actualSkillGoal=differentSkill.extension.readerGoal;
+  assert(actualSkillGoal.includes('첫째 ['+altSkill.first.join('·')+']'));
+  assert(actualSkillGoal.includes('둘째 ['+altSkill.second.join('·')+']'));
+  assert(!actualSkillGoal.includes('배우거나 익힌 내용을 실제로 만들어 보여 줄 경우와 기존 방식을 바꾸어 제안할 경우'));
+  assert(!actualSkillGoal.includes('현재 일을 유지하는 가정에서는'));
+  assert(differentSkill.leaf.properties.text.description.includes(actualSkillGoal));
+  assert(!differentSkill.leaf.properties.text.description.includes('현재 일을 유지하는 가정에서는'));
 
   const single=actual({...sample,readerDecision:'새로운 기술을 배우고 싶습니다.'});
   assert(single?.extension?.readerDomain==='skill');
@@ -90,6 +107,28 @@ function actual(input){
     'previous irrelevant global assumption must not leak into other buyer domains');
    assert(found.extension.sourceRefs.every(id=>
     found.leaf.properties.basis.properties.refs.items.enum.includes(id)));
+   // Another customer in the SAME DOMAIN has a different dilemma. The
+   // real calculated source does not change with the wording, but the
+   // paid first chapter must actually explain the new two choices.
+   const otherQuestion=c.domain==='money'?
+    '적금을 유지할지 대출을 상환할지 고민입니다.':
+    '업무 압박 때문에 마감 일정을 조정할지 업무 요청을 거절할지 고민입니다.';
+   const changed=actual({...found.packet.calculationInput,
+    mbti:found.packet.person?.mbti||'ISFP',
+    readerDecision:otherQuestion});
+   assert(changed?.extension?.readerDomain===c.domain);
+   const realOptions=require('./report-paid-core-choice-application')
+    .alternatives(otherQuestion);
+   assert(realOptions&&realOptions.first.length&&realOptions.second.length);
+   const changedGoal=changed.extension.readerGoal;
+   assert(changedGoal.includes('첫째 ['+realOptions.first.join('·')+']'));
+   assert(changedGoal.includes('둘째 ['+realOptions.second.join('·')+']'));
+   assert(!changedGoal.includes(c.domain==='money'?
+    '매번 들어가는 비용을 따져볼 경우와 새로운 자원을 찾아 마련할 경우':
+    '평소에 정해진 절차로 대응하는 경우와 갑자기 새로운 요구가 들어오는 경우'));
+   assert(changed.leaf.properties.text.description.includes(changedGoal));
+   assert(!changed.leaf.properties.text.description.includes(
+    '새로운 기술을 배우는 가정에서는'));
    const oneQuestion=c.domain==='money'?
     '월급에서 지출을 줄이는 방법이 고민입니다.':
     '업무 압박이 심해서 책임 범위를 고민하고 있습니다.';
@@ -110,6 +149,6 @@ function actual(input){
    assert(!oneSchema.includes('각 선택'));
   }
   assert.equal(networkCalls,0);
-  console.log('PASS REAL paid schema keeps skill, money and pressure buyer concerns distinct with exact computed hour sources; no AI/payment calls');
+  console.log('PASS REAL paid schema anchors paired skill, money and pressure on exact buyer options rather than generic invented dilemmas, plus single-concern safety; no AI/payment calls');
  }finally{global.fetch=oldFetch}
 })().catch(e=>{console.error(e);process.exitCode=1;});
