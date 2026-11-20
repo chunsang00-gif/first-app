@@ -317,6 +317,17 @@ function paidCoreHourGoal(prompt){
 const additiveGoal=' 선택형 QA에서는 temperament의 기존 선택 기준과 strength 필수 판정을 유지한다. natal_depth는 독립적으로 증명 가능한 새 개인별 해석이 없으면 null이다. 계산상 새로운 분류와 고전 사례만으로 실제 능력, 성격, 운세를 새로 만들어 쓰지 않는다. 다른 두 문단의 내용을 복제하거나 일반적인 조언으로 심화를 채우지 않는다.';
 function editorialGoalFor(prompt){
  const original=typeof prompt?.editorialTask==='string'?prompt.editorialTask:null;
+ // Some legitimate money/pressure customer charts omit the optional
+ // editorialTask string. The same source-qualified first-chapter guidance
+ // must still reach the top-level provider task. It is not a free-preview
+ // synthesis or an automatic quality approval.
+ if(!original&&normalPaidCore(prompt)&&
+    JSON.stringify(prompt.requestedSections)==='["saju_core"]'&&
+    sourceQualifiedNormalCoreBrief(prompt)){
+  const hourGoal=paidCoreHourGoal(prompt);
+  if(!hourGoal)throw Error('PAID_CORE_UNBOUND_HOUR_EDITORIAL_GOAL');
+  return normalCoreGoalFor(prompt)+' '+hourGoal;
+ }
  if(original&&prompt.stage==='body'&&
     Array.isArray(prompt.requestedSections)&&
     prompt.requestedSections.length===1&&prompt.requestedSections[0]==='saju_core')
