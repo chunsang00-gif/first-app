@@ -8,6 +8,12 @@ const bindings=require('./report-fact-bindings');
 const seasonal=require('./report-seasonal-evidence');
 const hour=require('./report-paid-core-hour-extension');
 const free=require('./report-reading-sample');
+const {LunarUtil}=require('lunar-javascript');
+const TRADITIONAL=Object.freeze({
+ '比肩':'비견','劫财':'겁재','食神':'식신','伤官':'상관',
+ '偏财':'편재','正财':'정재','七杀':'편관','正官':'정관',
+ '偏印':'편인','正印':'정인'
+});
 const TOPICS=Object.freeze({
  skill:Object.freeze({
   식신:'익힌 것을 무엇으로 완성했는지 점검하는 질문',
@@ -55,6 +61,12 @@ function inspect(packet){
  const publicRoles=new Set([month.stemTenGod,mainRow.tenGod,
   year.stemTenGod,clock.stemTenGod]);
  const raw=day.hiddenStems||[];
+ const branchHidden=seasonal.HIDDEN[packet.chart.day?.[1]];
+ if(!Array.isArray(branchHidden)||raw.length!==branchHidden.length||
+    new Set(raw.map(x=>x.stem)).size!==raw.length||
+    !raw.every(x=>branchHidden.includes(x.stem)&&
+     TRADITIONAL[LunarUtil.SHI_SHEN[day.stem+x.stem]]===x.tenGod))
+  throw Error('DAY_EDITORIAL_CALCULATED_HIDDEN_ROLES_TAMPERED');
  const eligible=raw.filter(x=>rule.roles.includes(x.tenGod)&&
   !publicRoles.has(x.tenGod));
  if(eligible.length!==1)return none(eligible.length>1?
