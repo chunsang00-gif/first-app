@@ -25,8 +25,9 @@ function plan(groups){
 // Unknown model families retain the old conservative cap rather than risk
 // requesting a budget the provider cannot support.
 function outputLimit(model,prompt){
- // Explicitly permit the same sample scope for Terra; other models remain conservative.
- if(model!=='gpt-6.1-terra'&&!/^gpt-4\.1(?:-|$)/.test(String(model)))return 9000;
+ // Permit source-scoped output limits for Terra and Luna; no quality approval or remote call.
+ if(!['gpt-6.1-terra','gpt-6-luna'].includes(model)&&
+    !/^gpt-4\.1(?:-|$)/.test(String(model)))return 9000;
  if(prompt?.stage==='synthesis')return 12000;
  if(prompt?.stage==='body'&&(prompt.requestedSections||[]).includes('saju_core'))
   return 18000;
