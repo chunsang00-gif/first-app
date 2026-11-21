@@ -144,7 +144,7 @@ function build(packet,source){
   realAbilityObserved:false,realOutcomePredicted:false,
   classicalPriorityApproved:false,premiumValueApproved:false,
   extraPaidTopic:false,optionalOnly:true,
-  readerGoal:'이 출생시간의 숨은 글자에서만 새롭게 확인되는 ‘'+meaning+
+  readerGoal:'이 출생시간의 숨은 글자에서 계산되는 ‘'+meaning+
    '’라는 전통적 질문을, 고객이 직접 입력한 '+domain.label+' 고민에 조건부로 연결한다. '+
    wholeNatalBoundary+
    '출생월의 겉글자와 중심 글자의 뜻풀이를 반복하지 말고 시간의 별도 분류가 더하는 질문을 설명한다. '+
