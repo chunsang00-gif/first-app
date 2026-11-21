@@ -28,14 +28,16 @@ assert.equal(review.separatePaidValueEstablished,false);
 assert.equal(review.locationSpecificClassicalPriorityProved,false);
 assert.equal(precharge.inspect(qualified).eligible,false,
  'the ACTUAL precharge must block same-stem hour repetition in year/day');
-let total=0,hourCandidates=0,otherNatalRepeat=0,notExactRepeat=0,technicalQualified=0;
+let total=0,hourCandidates=0,otherNatalRepeat=0,notExactRepeat=0;
+let actualNoRepeatTechnicalCandidates=0,prechargeRepeatedBlocks=0;
 for(const year of [1982,1994,2006,2018])
  for(const month of [1,4,7,10])
   for(const birthTime of ['02:20','14:20'])
    for(const [domain,readerDecision] of Object.entries(topics)){
-    const packet=core.build({calendar:'solar',
+    const input={calendar:'solar',
      birthDate:year+'-'+String(month).padStart(2,'0')+'-15',
-     gender:'male',mbti:'ISFP',birthTime,readerDecision},2027);
+     gender:'male',mbti:'ISFP',birthTime,readerDecision};
+    const packet=core.build(input,2027);
     assert.equal(packet.status,'ready');
     const found=audit.inspect(packet);
     total++;
@@ -45,6 +47,19 @@ for(const year of [1982,1994,2006,2018])
     hourCandidates++;
     const repeated=found.sameExactStemOtherNatalPositions.length>0;
     if(repeated)otherNatalRepeat++;else notExactRepeat++;
+    const livePrecharge=precharge.inspect(input);
+    assert.equal(livePrecharge.customerSaleApproved,false);
+    assert.equal(livePrecharge.additionalModelCalls,0);
+    if(repeated){
+     prechargeRepeatedBlocks++;
+     assert.equal(livePrecharge.eligible,false,
+      'the actual paid path must never auto-charge a repeated symbol');
+     assert.equal(livePrecharge.reason,
+      'hour-role-already-in-other-natal-pillar-unreviewed-positional-meaning');
+    }else if(livePrecharge.eligible){
+     actualNoRepeatTechnicalCandidates++;
+     assert.equal(livePrecharge.wholeNatalHourRoleNotRepeated,true);
+    }
     assert.equal(found.wholeNatalCategoryIsNew,!repeated);
     assert.equal(found.eligibleForNewPaidRoleClaim,!repeated);
     assert(found.sameExactStemOtherNatalPositions.every(row=>
@@ -56,11 +71,15 @@ for(const year of [1982,1994,2006,2018])
 assert.equal(total,96);
 assert.equal(hourCandidates,otherNatalRepeat+notExactRepeat);
 assert(hourCandidates>0&&otherNatalRepeat>0&&notExactRepeat>0);
-assert.equal(technicalQualified,0); // no revenue or model approval derived here
+assert.equal(prechargeRepeatedBlocks,otherNatalRepeat);
+assert(actualNoRepeatTechnicalCandidates>0,
+ 'there should remain an actual non-repeated technical path for manual quality review');
 console.log('HOUR_ALL_NATAL_SYMBOL_AUDIT='+JSON.stringify({
  totalSyntheticQuestions:total,sourceHourCandidates:hourCandidates,
  exactSymbolRepeatedInOtherNatalPillar:otherNatalRepeat,
  noOtherExactStemFound:notExactRepeat,
+ actualRepeatedSourcesBlockedPrecharge:prechargeRepeatedBlocks,
+ actualNonRepeatedTechnicalCandidates:actualNoRepeatTechnicalCandidates,
  legacy1982SkillFirstChapter:{sameStemAt:[
  'natal.year.hidden.丁','natal.day.hidden.丁'],
  technicalPrechargeNowBlocksRepeatedNATALCategory:true},
