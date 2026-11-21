@@ -91,11 +91,12 @@ function build(packet,source){
  // HOUR position is not a new symbolic CATEGORY if the same hidden STEM
  // is already present in year/month/day. The current first-chapter writer
  // has no independently reviewed rule to monetize that repeated symbol.
- const sameStemInOtherNatal=Object.entries(source||{})
-  .filter(([ref,row])=>ref.startsWith('natal.')&&
-   ref!=='natal.day.stem'&&ref!==b&&
-   row?.stem===h.stem&&row?.tenGod===h.tenGod)
-  .map(([ref])=>ref);
+ const sameStemInOtherNatal=require('./report-fact-bindings')
+  .build(packet)
+  .filter(row=>row.id.startsWith('natal.')&&
+   row.id!=='natal.day.stem'&&row.id!==b&&
+   row.stem===h.stem&&row.tenGod===h.tenGod)
+  .map(row=>row.id);
  const wholeNatalCategoryDistinct=sameStemInOtherNatal.length===0;
  const wholeNatalBoundary=wholeNatalCategoryDistinct?
   '이 시간 속글자의 정확한 글자는 다른 원국 위치에서 발견되지 않았지만, 새 글자 하나가 유료 해석의 가치나 실제 행동 예측을 증명하지는 않는다. ':
