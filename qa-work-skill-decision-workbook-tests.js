@@ -10,6 +10,57 @@ const FREE=Object.freeze({
 let network=0;const old=global.fetch;
 global.fetch=async()=>{network++;throw Error('OFFLINE_WORKBOOK_MUST_NOT_USE_NETWORK')};
 try{
+ // Work56: quick numerical preview works BEFORE customers enter either
+ // optional work/learning name or know all five figures.
+ const capacityOnly=workbook.quickPreview({
+  readerDecision:FREE.readerDecision,
+  constraints:{weeklyStudyHours:8,targetWeeks:8}
+ });
+ assert.equal(capacityOnly.kind,'buyer-self-reported-partial-work-skill-capacity-v1');
+ assert.equal(capacityOnly.availableHoursByTarget,64);
+ assert.equal(capacityOnly.capacityKnown,true);
+ assert.equal(capacityOnly.fullTimeKnown,false);
+ assert.equal(capacityOnly.requiredWeeklyKnown,false);
+ assert.equal(capacityOnly.deficitHours,null,
+  'missing total hours MUST NEVER invent zero shortfall');
+ assert.equal(capacityOnly.budgetGapKRW,null);
+ assert.equal(capacityOnly.enteredFieldCount,2);
+ assert.equal(capacityOnly.missingFields.length,3);
+ assert.equal(capacityOnly.customerWorkOrSkillNamesInferred,false);
+ assert.equal(capacityOnly.modelCalls,0);
+ assert.equal(capacityOnly.paymentApproved,false);
+ const needOnly=workbook.quickPreview({
+  readerDecision:FREE.readerDecision,
+  constraints:{requiredStudyHours:60,targetWeeks:8}
+ });
+ assert.equal(needOnly.minimumWeeklyHoursForTarget,7.5);
+ assert.equal(needOnly.availableHoursByTarget,null);
+ assert.equal(needOnly.deficitHours,null);
+ const budgetOnly=workbook.quickPreview({
+  readerDecision:FREE.readerDecision,
+  constraints:{trainingCostKRW:300000,availableBudgetKRW:100000}
+ });
+ assert.equal(budgetOnly.moneyKnown,true);
+ assert.equal(budgetOnly.budgetGapKRW,200000);
+ assert.equal(budgetOnly.capacityKnown,false);
+ assert.equal(budgetOnly.deficitHours,null);
+ const previewAll=workbook.quickPreview({
+  readerDecision:FREE.readerDecision,
+  constraints:{weeklyStudyHours:3,requiredStudyHours:60,targetWeeks:8,
+   trainingCostKRW:300000,availableBudgetKRW:100000}
+ });
+ assert.equal(previewAll.availableHoursByTarget,24);
+ assert.equal(previewAll.deficitHours,36);
+ assert.equal(previewAll.weeksOnSchedule,20);
+ assert.equal(previewAll.minimumWeeklyHoursForTarget,7.5);
+ assert.equal(previewAll.budgetGapKRW,200000);
+ assert.equal(previewAll.missingFields.length,0);
+ assert.throws(()=>workbook.quickPreview({
+  readerDecision:FREE.readerDecision,constraints:{weeklyStudyHours:'8'}}),
+  /WORKBOOK_CONSTRAINT_INVALID/);
+ assert.throws(()=>workbook.quickPreview({
+  readerDecision:'퇴사할지 쉴지 고민 중입니다.',constraints:{targetWeeks:8}}),
+  /WORKBOOK_ONLY_EXPLICIT_WORK_VERSUS_LEARNING_QUESTION/);
  const compatible=workbook.build({...FREE,constraints:{
   weeklyStudyHours:8,requiredStudyHours:60,targetWeeks:8,
   trainingCostKRW:150000,availableBudgetKRW:200000
