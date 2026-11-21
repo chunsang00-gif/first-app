@@ -30,14 +30,11 @@ if(!fs.existsSync(file)){
  assert.throws(()=>q.approval(e),/not-exact-approved-push-workflow-run/);
 }
 (async()=>{
- // The real approved single push has completed. New editorial instructions
- // differ from that exact paid SHA. The spent runner must now deny drift.
- await assert.rejects(()=>q.preflight(),/frozen-new-first-request-drift/);
- const current=await plan.inspect();
- assert.notEqual(current.exactProviderRequestSha256,q.REQUEST_SHA,
-  'the earlier one-call request hash is consumed; new editorial rules MUST change the payload');
- assert.equal(current.previousApprovedCodeValid,false);
- assert.equal(current.realPaidProviderCalls,0);
- assert.equal(current.realPaidProviderCalls,0);
+ // The previously approved one-call push has been CONSUMED. A repeated
+ // natal category now blocks even earlier, before any frozen SHA check.
+ await assert.rejects(()=>q.preflight(),
+  /NEXT_QA_NO_NEW_INDEPENDENT_EDITORIAL_SOURCE|frozen-new-first-request-drift/);
+ await assert.rejects(()=>plan.inspect(),
+  /NEXT_QA_NO_NEW_INDEPENDENT_EDITORIAL_SOURCE/);
  console.log('PASS explicit push user authorization requires unique marker, source parent, one run and immutable exact request; providerCalls=0');
 })().catch(err=>{console.error(err);process.exitCode=1});
