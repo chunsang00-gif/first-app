@@ -103,6 +103,8 @@ assert(shown().includes('64시간'));
 assert(shown().includes('8주'));
 assert(shown().includes('0원'));
 assert(shown().includes('두 선택에서 확인할 내용'));
+assert(shown().includes('물류 재고 확인'));
+assert(shown().includes('엑셀 자동화'));
 assert(shown().includes('현재 일을 유지하는 경우'));
 assert(shown().includes('새 기술을 배우거나 병행하는 경우'));
 assert(shown().includes('실제 근무표와 수업 시간대'));
