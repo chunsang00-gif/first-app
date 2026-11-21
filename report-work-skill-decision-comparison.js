@@ -64,9 +64,11 @@ function build(workbook){
   }));
  const openQuestions=[
   {id:'keep-work',title:'현재 일을 유지하는 경우',
+   subject:workbook.workChoice,
    text:'현재 업무의 근무시간·소득·안정성·변경 가능한 근무일정은 입력되지 않았으므로 이 선택의 유불리는 계산할 수 없습니다.',
    numericVerdict:'not-calculable-from-given-data'},
   {id:'learn-skill',title:'새 기술을 배우거나 병행하는 경우',
+   subject:workbook.learningChoice,
    text:!timeKnown&&!budgetKnown?
     '예상 학습시간·목표 기간·교육비·예산이 부족해 실행 조건을 계산할 수 없습니다.':
     '고객이 입력한 학습시간과 교육비의 제약만 계산합니다. 실제 학습 성과나 취업 결과는 예측하지 않습니다.',
