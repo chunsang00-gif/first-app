@@ -13,6 +13,7 @@ const files=[
  'report-buyer-work-skill-scope.js',
  'report-buyer-decision-context.js',
  'report-work-skill-decision-workbook.js',
+ 'report-work-skill-decision-comparison.js',
  'report-work-skill-decision-workbook-ui.js'
 ];
 for(const name of files)assert(html.includes('<script src="'+name+'"></script>'));
@@ -101,6 +102,11 @@ assert.equal(status(),'resources-fit-on-entered-estimates');
 assert(shown().includes('64시간'));
 assert(shown().includes('8주'));
 assert(shown().includes('0원'));
+assert(shown().includes('두 선택에서 확인할 내용'));
+assert(shown().includes('현재 일을 유지하는 경우'));
+assert(shown().includes('새 기술을 배우거나 병행하는 경우'));
+assert(shown().includes('실제 근무표와 수업 시간대'));
+assert(!shown().includes('부족한 조건을 바꾸는 계산상 방법'));
 assert(shown().includes('사주·MBTI로 판단하지 않으며'));
 const args={readerDecision:n('readerDecision').value,
  decisionContext:{currentWork:n('currentWork').value,targetSkill:n('targetSkill').value},
@@ -118,11 +124,18 @@ assert(shown().includes('24시간'));
 assert(shown().includes('36시간'));
 assert(shown().includes('20주'));
 assert(shown().includes('200,000원'));
+assert(shown().includes('부족한 조건을 바꾸는 계산상 방법'));
+assert(shown().includes('주당 학습시간을 4.5시간 더 확보'));
+assert(shown().includes('12주 연장'));
+assert(shown().includes('교육비 부족분 200,000원'));
+assert(shown().includes('현재 업무의 근무시간·소득·안정성'));
+assert(!shown().includes('이직해야 합니다'));
 n('wb-availableBudgetKRW').value='';
 n('wb-availableBudgetKRW').emit();
 assert.equal(status(),'additional-customer-facts-required');
 assert(shown().includes('배움에 쓸 수 있는 예산'));
-assert(!shown().includes('200,000원 부족'));
+assert(!shown().includes('교육비 부족분 200,000원'));
+assert(shown().includes('주당 학습시간을 4.5시간 더 확보'));
 n('wb-trainingCostKRW').value='-50';
 n('wb-trainingCostKRW').emit();
 assert.equal(status(),'invalid');
@@ -137,6 +150,8 @@ n('wb-weeklyStudyHours').value='0';
 n('wb-weeklyStudyHours').emit();
 assert(shown().includes('완료 예상 주수'));
 assert(shown().includes('계산 불가'));
+assert(shown().includes('주당 학습시간을 7.5시간 더 확보'));
+assert(!shown().includes('목표를 12주 연장'));
 // Changing topic clears prior numbers and previously entered personal text,
 // and never keeps the stale workbook/answer visible for unrelated dilemmas.
 n('readerDecision').value='저축할지 대출을 상환할지 고민입니다.';
