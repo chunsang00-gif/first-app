@@ -102,8 +102,16 @@ assert.equal(n('workSkillContext').hidden,false);
 assert.equal(n('workSkillWorkbook').hidden,false);
 assert.equal(n('wb-weeklyStudyHours').disabled,false);
 assert(shown().includes('먼저 매주 학습시간과 목표 기간만 입력해 보세요'));
+n('wb-weeklyStudyHours').value='169';
+n('wb-weeklyStudyHours').emit();
+assert.equal(status(),'invalid','missing job/skill names must not bypass numeric limits');
+assert(shown().includes('0~168시간'));
+assert.equal(n('wb-weeklyStudyHours').getAttribute('aria-invalid'),'true');
+assert.equal(n('wb-weeklyStudyHours').getAttribute('aria-describedby'),
+ 'workSkillWorkbookLiveStatus');
 n('wb-weeklyStudyHours').value='8';
 n('wb-weeklyStudyHours').emit();
+assert.equal(n('wb-weeklyStudyHours').getAttribute('aria-invalid'),'false');
 assert.equal(status(),'partial-capacity-preview');
 assert(shown().includes('매주 학습시간과 목표 기간을 적으면'));
 n('wb-targetWeeks').value='8';
