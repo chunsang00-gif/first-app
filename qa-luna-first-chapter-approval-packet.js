@@ -21,12 +21,6 @@ async function inspect({sample=INPUT,model=MODEL}={}){
  if(model!==MODEL||hash(sample)!==hash(INPUT))deny('only-reviewed-synthetic-buyer-fixture');
  if(process.env.REPORT_QA_CONFIRM||process.env.REPORT_QA_ALLOW_PAYMENT)
   deny('paid-approval-env-must-be-absent-in-offline-preflight');
- const ready=precharge.inspect(sample);
- if(ready.kind!=='adaptive-first-chapter-precharge-unique-evidence-v1'||
-    ready.eligible!==true||
-    ready.reason!=='verified-hour-addition-awaits-human-review'||
-    ready.customerSaleApproved!==false||ready.modelQualityValidated!==false||
-    ready.additionalModelCalls!==0)deny('first-chapter-source-not-qualified');
  // Product-value review after work43's day/source duplication result:
  // technical novelty compared to FREE is not a category new to the natal
  // chart. The frozen buyer fixture reuses 丁 in YEAR 戌 and DAY 未.
@@ -38,6 +32,12 @@ async function inspect({sample=INPUT,model=MODEL}={}){
     recurrence.eligibleForNewPaidRoleClaim!==true)
   deny('old-luna-qa-sample-repeats-hour-role-across-natal-'+
    recurrence.sameExactStemOtherNatalPositions?.map(x=>x.sourceId).join(','));
+ const ready=precharge.inspect(sample);
+ if(ready.kind!=='adaptive-first-chapter-precharge-unique-evidence-v1'||
+    ready.eligible!==true||
+    ready.reason!=='verified-hour-addition-awaits-human-review'||
+    ready.customerSaleApproved!==false||ready.modelQualityValidated!==false||
+    ready.additionalModelCalls!==0)deny('first-chapter-source-not-qualified');
  const run=await capture.capture(sample);
  if(run.status!=='captured-full-paid-composition'||run.providerCalls!==0||
     JSON.stringify(run.requestedSections)!=='["saju_core"]'||
