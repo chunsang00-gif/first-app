@@ -38,8 +38,8 @@ const verifiedBeforePayment=require('./report-paid-core-precharge-value').inspec
  birthTime:'14:20',gender:'male',mbti:'ISFP',
  readerDecision:'기존 일을 유지할지 새로운 기술을 배울지 고민 중입니다.'
 });
-assert.equal(verifiedBeforePayment.eligible,true,
- 'this chart would be eligible if a later human-reviewed report could be sold');
+assert.equal(verifiedBeforePayment.eligible,false,
+ 'the real 1982 hour role repeats year/day; flags cannot waive this blocker');
 const server=http.createServer(require('./server').handler);
 const nativeFetch=global.fetch;
 global.fetch=async()=>{throw Error('PRODUCTION_GATE_MUST_NOT_CONTACT_PAYMENT_OR_MODEL_PROVIDER')};
