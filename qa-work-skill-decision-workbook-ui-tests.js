@@ -139,7 +139,7 @@ n('wb-availableBudgetKRW').emit();
 assert.equal(findChild('workbook-more').open,true,'details must remain open while customer edits input');
 n('wb-availableBudgetKRW').value='200000';
 n('wb-availableBudgetKRW').emit();
-assert(!shown().includes('부족한 조건을 바꾸는 계산상 방법'));
+assert(!shown().includes('조건을 바꿀 수 있는 방법'));
 assert(shown().includes('사주·MBTI로 판단하지 않으며'));
 const args={readerDecision:n('readerDecision').value,
  decisionContext:{currentWork:n('currentWork').value,targetSkill:n('targetSkill').value},
@@ -157,7 +157,7 @@ assert(shown().includes('24시간'));
 assert(shown().includes('36시간'));
 assert(shown().includes('20주'));
 assert(shown().includes('200,000원'));
-assert(shown().includes('부족한 조건을 바꾸는 계산상 방법'));
+assert(shown().includes('조건을 바꿀 수 있는 방법'));
 assert(shown().includes('주당 학습시간을 4.5시간 더 확보'));
 assert(shown().includes('12주 연장'));
 assert(shown().includes('교육비 부족분 200,000원'));
