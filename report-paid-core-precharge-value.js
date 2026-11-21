@@ -91,14 +91,14 @@ function inspect(input){
   kind:'adaptive-first-chapter-precharge-unique-evidence-v1',
   eligible:Boolean(onlyIndependentHour&&wholeNatalDistinct)&&
    contextProblems.length===0&&readerProblems.length===0,
-  reason:sameStemAlreadyInNatal?
-   'hour-role-already-in-other-natal-pillar-unreviewed-positional-meaning':
-   onlyIndependentHour&&!wholeNatalDistinct?
-   'hour-whole-natal-category-audit-unverified':
-   onlyIndependentHour&&contextProblems.length?
+  reason:onlyIndependentHour&&contextProblems.length?
    'buyer-context-unusable-for-two-option-paid-explanation':
    onlyIndependentHour&&readerProblems.length?
    'buyer-question-cannot-pass-first-chapter-reader-gate':
+   sameStemAlreadyInNatal?
+   'hour-role-already-in-other-natal-pillar-unreviewed-positional-meaning':
+   onlyIndependentHour&&!wholeNatalDistinct?
+   'hour-whole-natal-category-audit-unverified':
    onlyIndependentHour?'verified-hour-addition-awaits-human-review':
    onlyIndependentYear?'year-visible-meaning-already-in-free-preview':
    'no-guaranteed-independent-first-chapter-paragraph',
