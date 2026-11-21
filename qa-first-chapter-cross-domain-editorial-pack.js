@@ -64,9 +64,14 @@ function verificationFor(sample){
  if(!proof||proof.readerDomain!==sample.id||
     proof.distinctFromFreeVisibleNatal!==true)
   throw Error('EDITORIAL_VERIFIED_NEW_HOUR_SOURCE_MISSING:'+sample.id);
- if(!precharge.inspect(sample.input).eligible)
-  throw Error('EDITORIAL_PRECHARGE_QUESTION_NOT_SUPPORTED:'+sample.id);
- return {packet,proof};
+ // A manual RESEARCH sample can still be read, even after the actual
+ // merchant precharge becomes more conservative. Such a sample must never
+ // be labelled eligible or a sale-ready source.
+ const prechargeResult=precharge.inspect(sample.input);
+ if(prechargeResult.customerSaleApproved!==false||
+    prechargeResult.additionalModelCalls!==0)
+  throw Error('EDITORIAL_PRECHARGE_SAFETY_MISMATCH:'+sample.id);
+ return {packet,proof,prechargeResult};
 }
 function findMoneyOrPressure(sample){
  for(const base of grid.representativeInputs()){
@@ -87,7 +92,7 @@ function build(){
  const chosen=SAMPLES.map(s=>s.input?s:findMoneyOrPressure(s));
  const rows=[];
  for(const sample of chosen){
-  const {packet,proof}=verificationFor(sample);
+  const {packet,proof,prechargeResult}=verificationFor(sample);
   const text=sample.id==='skill'?old.temperament:
     DRAFTS[sample.id]?.[proof.hourHiddenRole]?.join(' ');
   if(!text||text.length<320)throw Error('EDITORIAL_PAID_DRAFT_TOO_THIN:'+sample.id);
@@ -111,6 +116,10 @@ function build(){
     birthDate:sample.input.birthDate,birthTime:sample.input.birthTime}),
    verifiedSourceRefs:proof.sourceRefs.slice(),
    verifiedHourRole:proof.hourHiddenRole,
+   prechargeEligible:prechargeResult.eligible,
+   prechargeBlocker:prechargeResult.eligible?null:prechargeResult.reason,
+   fullNatalCategoryDistinct:proof.wholeNatalCategoryDistinct,
+   repeatedNatalRefs:proof.repeatedExactStemNatalRefs.slice(),
    freeCards:sameChartFree.cards.map(c=>({id:c.id,title:c.title,text:c.text})),
    draft:text,characterCount:text.length,
    automatedChecks:Object.freeze({hour:[],reader:[],freeCopy:[]}),
@@ -138,8 +147,10 @@ function markdown(result){
    '', '**계산 사례:** '+(row.syntheticChart.calendar==='lunar'?'음력':'양력')+' '+
     row.syntheticChart.birthDate+' / '+row.syntheticChart.birthTime+
     ' (실제 고객이 아닌 프로그램 테스트용)',
-   '', '**새로 확인된 출생시간 근거:** 숨은 글자의 전통 분류 '+row.verifiedHourRole+
+   '', '**출생시간 계산 위치 (유료 자격 아님):** 숨은 글자의 전통 분류 '+row.verifiedHourRole+
     ' (내부 근거: '+row.verifiedSourceRefs.join(', ')+')',
+   '', '**실제 유료 사전검사:** '+(row.prechargeEligible?'기술 후보 통과(출시 미승인)':'차단 · '+row.prechargeBlocker)+
+    (row.repeatedNatalRefs.length?' / 같은 글자가 존재하는 다른 위치: '+row.repeatedNatalRefs.join(', '):''),
    '', '### 이 명식의 실제 무료 풀이',
    '');
   for(const c of row.freeCards){
@@ -148,7 +159,7 @@ function markdown(result){
   lines.push('### 유료 첫 장에 추가하려는 독립 문단 — 사람이 작성한 편집 후보',
    '', row.draft,'',
    '**검토 질문:** 무료에서 알 수 없는 새로운 질문이 있는가? 두 선택에서 확인할 조건이 실제로 다른가? 아무 고객에게나 적용할 일반 조언인가? 분량만 늘렸는가?',
-   '', '**판정:** 계산 근거/중복/독자 질문 자동 검사 통과. **실제 유료 AI 원고·사람의 상품성 승인·판매 준비 모두 미완료.**',
+   '', '**판정:** 편집 초안의 문장/인용 형식만 확인. 실제 유료 사전검사에서 중복으로 차단된 사례는 판매 후보가 아닙니다. **실제 유료 AI 원고·사람의 상품성 승인·판매 준비 모두 미완료.**',
    '');
  }
  lines.push('## 판정과 다음 제한','',
