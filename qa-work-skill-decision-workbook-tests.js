@@ -27,7 +27,7 @@ try{
  assert.equal(capacityOnly.enteredFieldCount,2);
  assert.equal(capacityOnly.missingFields.length,3);
  assert.equal(capacityOnly.customerWorkOrSkillNamesInferred,false);
- assert.equal(capacityOnly.modelCalls,0);
+ assert.equal(capacityOnly.providerCalls,0);
  assert.equal(capacityOnly.paymentApproved,false);
  const needOnly=workbook.quickPreview({
   readerDecision:FREE.readerDecision,
