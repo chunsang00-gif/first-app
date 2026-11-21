@@ -120,6 +120,8 @@ async function run(){
   assert.equal(rejected.status,'machine-rejected-human-review-needed');
   assert.equal(rejected.comparison.machineReportedPass,false);
   assert.equal(rejected.noAutomatedRetry,true);
+  assert(reviewer.renderHtml(rejected).includes('기존 자동 검수 불합격(재호출 금지)'),
+   'a model-rejected first chapter must not look like a machine-accepted one');
   for(const status of ['incomplete','invalid_json','empty_output']){
    const unusable=structuredClone(failed);
    unusable.raw.response={status,usage:{input_tokens:10}};
