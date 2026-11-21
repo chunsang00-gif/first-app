@@ -27,6 +27,17 @@ async function inspect({sample=INPUT,model=MODEL}={}){
     ready.reason!=='verified-hour-addition-awaits-human-review'||
     ready.customerSaleApproved!==false||ready.modelQualityValidated!==false||
     ready.additionalModelCalls!==0)deny('first-chapter-source-not-qualified');
+ // Product-value review after work43's day/source duplication result:
+ // technical novelty compared to FREE is not a category new to the natal
+ // chart. The frozen buyer fixture reuses 丁 in YEAR 戌 and DAY 未.
+ // DO NOT collect payment or propose a new billable QA attempt until a
+ // distinct-position interpretative justification has been human-reviewed.
+ const recurrence=require('./report-paid-core-hour-cross-pillar-audit')
+  .inspect(facts.build(sample,2027));
+ if(recurrence.status==='same-exact-hour-symbol-already-in-other-natal-position'||
+    recurrence.eligibleForNewPaidRoleClaim!==true)
+  deny('old-luna-qa-sample-repeats-hour-role-across-natal-'+
+   recurrence.sameExactStemOtherNatalPositions?.map(x=>x.sourceId).join(','));
  const run=await capture.capture(sample);
  if(run.status!=='captured-full-paid-composition'||run.providerCalls!==0||
     JSON.stringify(run.requestedSections)!=='["saju_core"]'||
