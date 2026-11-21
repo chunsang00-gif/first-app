@@ -94,13 +94,37 @@ function build({attempt,raw,validated=null,summary}){
   deny('raw-response-object-missing');
  if(['incomplete','empty_output','invalid_json'].includes(response.status)){
   if(machinePassed)deny('failure-response-claimed-machine-success');
+  // The model can charge for invalid JSON or a partial text response.
+  // A refusal to render the original meant the ONLY forensic path was
+  // paying again. Keep the diagnostic PRIVATELY on the operator's machine.
+  // No content is printed to CI or treated as a report for customers.
+  const source=response.status==='invalid_json'?response.rawOutput:
+   response.status==='incomplete'?response.partialOutput:response.output;
+  const rawText=typeof source==='string'?source:
+   source==null?'':JSON.stringify(source);
+  const safeText=String(rawText||'');
+  const maxChars=24000;
+  const usage=response.usage&&typeof response.usage==='object'?
+   Object.fromEntries(['input_tokens','output_tokens','total_tokens']
+    .filter(k=>Number.isSafeInteger(response.usage[k])&&
+     response.usage[k]>=0).map(k=>[k,response.usage[k]])):null;
+  const reason=response.incomplete_details?.reason;
+  const privateDiagnostic=Object.freeze({
+   kind:'private-provider-unusable-output-diagnostic-v1',
+   reason:typeof reason==='string'?reason.slice(0,200):null,
+   usage,
+   text:safeText.slice(0,maxChars),
+   textWasTruncated:safeText.length>maxChars,
+   rawTextPresent:safeText.length>0
+  });
   return Object.freeze({
    kind:'private-luna-first-chapter-postmortem-v1',
    status:'provider-output-unusable-no-retry',
    providerStatus:response.status,
    requestHash:FROZEN_REQUEST_SHA256,model:MODEL,
    attemptedCalls:1,additionalModelCalls:0,
-   textAvailableForHumanReview:false,
+   textAvailableForHumanReview:privateDiagnostic.rawTextPresent,
+   privateDiagnostic,
    humanEditorialReviewRequired:false,
    originalEncryptedArchiveMustBeRetained:true,
    noAutomatedRetry:true,customerSaleApproved:false,
@@ -205,7 +229,43 @@ function readPrivate(directory){
   return [key,JSON.parse(fs.readFileSync(loc,'utf8'))];
  }));
 }
+function renderUnusablePrivateHtml(record){
+ if(record?.kind!=='private-luna-first-chapter-postmortem-v1'||
+    record.status!=='provider-output-unusable-no-retry'||
+    !['incomplete','empty_output','invalid_json'].includes(record.providerStatus)||
+    record.model!==MODEL||
+    record.requestHash!==FROZEN_REQUEST_SHA256||
+    record.noAutomatedRetry!==true||
+    record.customerSaleApproved!==false||
+    record.releaseVerdict!=='not-approved'||
+    record.comparison!==null||
+    record.privateDiagnostic?.kind!=='private-provider-unusable-output-diagnostic-v1')
+  deny('invalid-private-failure-diagnostic');
+ const escapeHtml=x=>String(x??'').replace(/[&<>"']/g,
+  c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const d=record.privateDiagnostic;
+ const usage=Object.entries(d.usage||{}).map(([k,v])=>
+  escapeHtml(k)+': '+escapeHtml(v)).join(' / ');
+ const raw=d.rawTextPresent?escapeHtml(d.text):
+  'AI가 출력 원문을 제공하지 않았습니다. 응답 상태와 보관된 기록을 확인하세요.';
+ return '<!doctype html><html lang="ko"><head><meta charset="utf-8">'+
+  '<meta name="viewport" content="width=device-width,initial-scale=1">'+
+  '<meta http-equiv="Content-Security-Policy" content="default-src &#39;none&#39;; style-src &#39;unsafe-inline&#39;; connect-src &#39;none&#39;; img-src &#39;none&#39;; script-src &#39;none&#39;; form-action &#39;none&#39;; base-uri &#39;none&#39;">'+
+  '<title>첫 장 유료 응답 실패 — 비공개 진단</title>'+
+  '<style>body{background:#f5f5f7;color:#192332;font:16px/1.6 system-ui,sans-serif;margin:0;padding:20px}main{max-width:930px;margin:auto}article{background:white;padding:22px;border-radius:12px;border:1px solid #dde3ed}pre{white-space:pre-wrap;overflow-wrap:anywhere;padding:15px;background:#f1f3f7;border-radius:8px;max-height:60vh;overflow:auto}strong{color:#8c2b23}</style>'+
+  '</head><body><main><article><h1>첫 장 생성 실패 — 원본 확인용</h1>'+
+  '<p><strong>유료 원고 불합격 · 추가 AI 호출 금지 · 고객 판매 불가</strong></p>'+
+  '<p>상태: '+escapeHtml(record.providerStatus)+
+  (d.reason?' / 원인: '+escapeHtml(d.reason):'')+
+  '</p><p>응답 토큰(기록된 수치): '+(usage||'기록 없음')+'</p>'+
+  '<p>원문 미리보기는 저장된 비공개 기록에서만 가져왔습니다. 원본 전체는 암호화 기록에 남아 있으며 이 화면으로 새 모델을 호출하지 않습니다.</p>'+
+  (d.textWasTruncated?'<p>화면에서는 처음 24,000글자만 표시합니다. 전체 원본은 암호화 기록에서 확인하세요.</p>':'')+
+  '<h2>남아 있는 비공개 원문/진단 내용</h2><pre>'+raw+'</pre>'+
+  '</article></main></body></html>';
+}
 function renderHtml(record){
+ if(record?.status==='provider-output-unusable-no-retry')
+  return renderUnusablePrivateHtml(record);
  if(record?.kind!=='private-luna-first-chapter-postmortem-v1'||
     !record.comparison||record.customerSaleApproved!==false)
   deny('unreviewable-provider-output-cannot-render-paid-value-comparison');
@@ -231,12 +291,13 @@ function main(args=process.argv.slice(2)){
  const [directory,output]=args;
  if(fs.existsSync(output))deny('private-review-output-must-be-new');
  const result=build(readPrivate(directory));
+ fs.writeFileSync(output,renderHtml(result),{mode:0o600,flag:'wx'});
  if(!result.comparison){
-  console.log('LUNA_PRIVATE_FIRST_CHAPTER_UNREADABLE: '+result.providerStatus+
-   '; archived original must be kept; NEVER retry automatically');
+  console.log('LUNA_PRIVATE_FAILURE_DIAGNOSTIC_CREATED; kind='+
+   result.providerStatus+
+   '; original retained privately; NEVER retry automatically; NO paid text logged');
   return result;
  }
- fs.writeFileSync(output,renderHtml(result),{mode:0o600,flag:'wx'});
  console.log('LUNA_PRIVATE_FIRST_CHAPTER_HUMAN_COMPARISON_CREATED; issueCount='+
   result.independentMechanicalIssues.length+
   '; NO public paid prose, no provider calls, no sale approval');
