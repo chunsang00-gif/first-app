@@ -18,6 +18,7 @@ const concerns={
  pressure:'갑작스러운 업무 요구와 마감 압박을 어떻게 구분할지 고민입니다.'
 };
 const counts={skill:0,money:0,pressure:0};
+const actuallyEligible={skill:0,money:0,pressure:0},blockedRepeat={skill:0,money:0,pressure:0};
 const examples={};
 for(const base of inputs){
  if(base.unknownBirthTime===true||!base.birthTime)continue;
@@ -51,8 +52,16 @@ for(const base of inputs){
   assert(choice.sourceRefs.every(id=>slot.anyOf[0]
    .properties.basis.properties.refs.items.enum.includes(id)));
   const ready=precharge.inspect(input);
-  assert.equal(ready.eligible,true);
   assert.equal(ready.additionalModelCalls,0);
+  if(choice.wholeNatalCategoryDistinct){
+   assert.equal(ready.eligible,true,'unrepeated chart-specific symbolic category remains technically eligible');
+   actuallyEligible[domain]++;
+  }else{
+   assert.equal(ready.eligible,false,'repeated category is not independent paid evidence');
+   assert.equal(ready.reason,
+    'hour-role-already-in-other-natal-pillar-unreviewed-positional-meaning');
+   blockedRepeat[domain]++;
+  }
   const output=choice.hourHiddenRole==='정재'?
    '태어난 시간의 숨은 글자에서 정기적으로 드는 비용을 따지는 의미가 나옵니다. '+
    '돈을 저축할 경우 미리 정해진 지출과 반복 비용을 비교하는 조건을 따로 생각합니다.':
@@ -85,6 +94,8 @@ for(const base of inputs){
 assert(counts.skill>0,'existing learning scenario must still work');
 assert(counts.money>0,'at least one non-month finance hour role must be eligible');
 assert(counts.pressure>0,'at least one non-month external-demand hour role must be eligible');
+assert(Object.values(blockedRepeat).some(n=>n>0));
+assert(Object.values(actuallyEligible).some(n=>n>0));
 const ambiguous={calendar:'lunar',birthDate:'1982-11-24',leapMonth:false,
  birthTime:'14:20',gender:'male',mbti:'ISFP',
  readerDecision:'새 기술을 배우면서 투자할지 고민입니다.'};
@@ -92,5 +103,5 @@ assert.equal(ext.build(facts.build(ambiguous,2027),
  Object.fromEntries(bindings.build(facts.build(ambiguous,2027)).map(x=>[x.id,x]))),null,
  'two concurrent reader domains cannot silently pick the paid meaning');
 console.log('PASS actual hour-source paid first-chapter domain expansion '+JSON.stringify({
- counts,examples,realProviderCalls:0,merchantCalls:0,saleApproved:false
+ counts,actuallyEligible,blockedRepeat,examples,realProviderCalls:0,merchantCalls:0,saleApproved:false
 }));
