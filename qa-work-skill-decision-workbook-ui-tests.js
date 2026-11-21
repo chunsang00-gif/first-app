@@ -50,6 +50,7 @@ class FakeNode{
  replaceChildren(...items){this.childNodes=items;this._textContent=''}
  append(...items){this.childNodes.push(...items)}
  setAttribute(name,value){this.attrs[name]=String(value)}
+ removeAttribute(name){delete this.attrs[name]}
  getAttribute(name){return this.attrs[name]??null}
 }
 const ids=[
@@ -175,6 +176,8 @@ assert(live().includes('0~168시간'),'screen reader should learn exact bounds')
 n('wb-weeklyStudyHours').value='3';
 n('wb-weeklyStudyHours').emit();
 assert.equal(n('wb-weeklyStudyHours').attrs['aria-invalid'],'false');
+assert.equal(n('wb-weeklyStudyHours').getAttribute('aria-describedby'),null,
+ 'corrected numeric field should not reference an old error');
 assert.equal(status(),'at-least-one-entered-constraint-not-met');
 n('wb-availableBudgetKRW').value='';
 n('wb-availableBudgetKRW').emit();
