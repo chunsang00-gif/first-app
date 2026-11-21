@@ -28,6 +28,13 @@ assert(html.includes('aria-live="polite"')&&html.includes('무료 미리보기')
 assert(html.includes('id="workSkillWorkbookResult" class="workbook-result" role="region"'));
 assert(html.includes('aria-label="학습 시간과 교육비 선택 비교 결과" aria-live="off"'));
 assert(html.includes('id="workSkillWorkbookLiveStatus"'));
+assert(html.includes('<details id="workSkillBudgetOption"'));
+assert(html.includes('교육비·예산도 계산하기 (선택)'));
+const budgetOpen=html.indexOf('<details id="workSkillBudgetOption"');
+const budgetInput=html.indexOf('id="wb-trainingCostKRW"');
+const budgetEnd=html.indexOf('</details>',budgetOpen);
+assert(budgetOpen>=0&&budgetInput>budgetOpen&&budgetEnd>budgetInput,
+ 'money inputs must be inside optional native details on mobile');
 const stylesheet=source('report-work-skill-decision-workbook.css');
 for(const required of ['.workbook-glance','.workbook-missing-focus','.workbook-more-summary','@media(max-width:480px)'])
  assert(stylesheet.includes(required),'mobile or keyboard styles missing: '+required);
@@ -94,13 +101,40 @@ n('readerDecision').emit();
 assert.equal(n('workSkillContext').hidden,false);
 assert.equal(n('workSkillWorkbook').hidden,false);
 assert.equal(n('wb-weeklyStudyHours').disabled,false);
-assert(shown().includes('현재 하는 일과 배우려는 기술을 모두 적으면'));
+assert(shown().includes('먼저 매주 학습시간과 목표 기간만 입력해 보세요'));
+n('wb-weeklyStudyHours').value='8';
+n('wb-weeklyStudyHours').emit();
+assert.equal(status(),'partial-capacity-preview');
+assert(shown().includes('매주 학습시간과 목표 기간을 적으면'));
+n('wb-targetWeeks').value='8';
+n('wb-targetWeeks').emit();
+assert.equal(status(),'partial-capacity-preview');
+assert(shown().includes('64시간'),'8h x 8w capacity must work without job names or training-hour guess');
+assert(!shown().includes('부족한 학습시간'), 'missing study requirement must not show fabricated shortfall');
+const beforeLabels=window.REPORT_WORK_SKILL_DECISION_WORKBOOK.quickPreview({
+ readerDecision:n('readerDecision').value,
+ constraints:{weeklyStudyHours:8,targetWeeks:8}
+});
+assert.equal(beforeLabels.availableHoursByTarget,64);
+assert.equal(beforeLabels.fullTimeKnown,false);
+n('wb-trainingCostKRW').value='300000';
+n('wb-trainingCostKRW').emit();
+n('wb-availableBudgetKRW').value='100000';
+n('wb-availableBudgetKRW').emit();
+assert.equal(status(),'partial-capacity-preview');
+assert(shown().includes('200,000원'),'budget gap works with no job/skill names');
+assert(live().length<180);
+for(const id of ['weeklyStudyHours','targetWeeks','trainingCostKRW','availableBudgetKRW']){
+ n('wb-'+id).value='';
+ n('wb-'+id).emit();
+}
+assert.equal(status(),'info');
 n('currentWork').value='물류 재고 확인';
 n('currentWork').emit();
 n('targetSkill').value='엑셀 자동화';
 n('targetSkill').emit();
 assert.equal(status(),'additional-customer-facts-required');
-assert(shown().includes('다음 입력: 일주일에 실제로 확보할 수 있는 학습시간'));
+assert(shown().includes('다음 선택 입력: 일주일에 실제로 확보할 수 있는 학습시간'));
 const nextInput=findChild('workbook-missing-focus');
 assert(nextInput,'missing input must have a keyboard-operable focus shortcut');
 assert.equal(nextInput.type,'button','shortcut must never submit parent form');
@@ -221,6 +255,6 @@ n('readerDecision').emit();
 assert.equal(n('workSkillWorkbook').hidden,false);
 assert.equal(n('wb-weeklyStudyHours').value,'');
 assert.equal(status(),'info'); // the reactivated preview must request work/skill anew
-assert(shown().includes('현재 하는 일과 배우려는 기술을 모두 적으면'));
+assert(shown().includes('먼저 매주 학습시간과 목표 기간만 입력해 보세요'));
 assert.equal(fetchCalls,0);
 console.log('PASS REAL STEP-01 WORKBOOK BROWSER/Node: live self-report, partial numbers, invalid, 0h, privacy reset and zero network/paid calls');
