@@ -146,6 +146,13 @@ jobs:
           REPORT_QA_CONFIRM: ''
           REPORT_QA_ALLOW_PAYMENT: ''
         run: node qa-luna-private-first-chapter-review-tests.js
+      - name: Exercise REAL Step-01 workbook browser preview in JS VM and compare Node calculation (NO HTTP / AI)
+        env:
+          OPENAI_API_KEY: ''
+          REPORT_MODEL_URL: ''
+          REPORT_QA_CONFIRM: ''
+          REPORT_QA_ALLOW_PAYMENT: ''
+        run: node qa-work-skill-decision-workbook-ui-tests.js
       - name: Validate customer-reported work-vs-learning workbook with real hour/budget math and missing-data guard (NO AI)
         env:
           OPENAI_API_KEY: ''
