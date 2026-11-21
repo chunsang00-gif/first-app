@@ -124,13 +124,58 @@ async function run(){
    'a model-rejected first chapter must not look like a machine-accepted one');
   for(const status of ['incomplete','invalid_json','empty_output']){
    const unusable=structuredClone(failed);
-   unusable.raw.response={status,usage:{input_tokens:10}};
+   unusable.raw.response={
+    status,usage:{input_tokens:10,output_tokens:5},
+    ...(status==='invalid_json'?{
+     rawOutput:'{"chapters":<img src=x onerror=alert(1)>'}:{}),
+    ...(status==='incomplete'?{
+     partialOutput:[{content:[{
+      type:'output_text',
+      text:'부분 출력 <script>alert(1)</script>'}]}],
+     incomplete_details:{reason:'max_output_tokens'}}:{})
+   };
    const rejected=reviewer.build(unusable);
    assert.equal(rejected.status,'provider-output-unusable-no-retry');
    assert.equal(rejected.providerStatus,status);
    assert.equal(rejected.comparison,null);
-   assert.throws(()=>reviewer.renderHtml(rejected),
-    /unreviewable-provider-output/);
+   assert.equal(rejected.noAutomatedRetry,true);
+   assert.equal(rejected.customerSaleApproved,false);
+   assert.equal(rejected.privateDiagnostic.usage.input_tokens,10);
+   const diagnosticHtml=reviewer.renderHtml(rejected);
+   assert(diagnosticHtml.includes('유료 원고 불합격'));
+   assert(diagnosticHtml.includes('추가 AI 호출 금지'));
+   assert(diagnosticHtml.includes('응답 토큰'));
+   assert(!diagnosticHtml.includes('<script>alert(1)</script>'));
+   assert(!diagnosticHtml.includes('<img src=x onerror=alert(1)>'));
+   if(status==='incomplete'){
+    assert(diagnosticHtml.includes('max_output_tokens'));
+    assert(diagnosticHtml.includes('&lt;script&gt;alert(1)&lt;/script&gt;'));
+    assert.equal(rejected.textAvailableForHumanReview,true);
+   }else if(status==='invalid_json'){
+    assert(diagnosticHtml.includes('&lt;img src=x onerror=alert(1)&gt;'));
+    assert.equal(rejected.textAvailableForHumanReview,true);
+   }else{
+    assert(diagnosticHtml.includes('AI가 출력 원문을 제공하지 않았습니다'));
+    assert.equal(rejected.textAvailableForHumanReview,false);
+   }
+   // A failed response must produce a safe local HTML diagnostic rather
+   // than forcing a fresh billable model call to see what happened.
+   const failureDir=path.join(dir,'failed-'+status);
+   fs.mkdirSync(failureDir,{mode:0o700});
+   for(const [key,file] of Object.entries(reviewer.NAMES)){
+    if(key==='validated')continue;
+    fs.writeFileSync(path.join(failureDir,file),
+     JSON.stringify(unusable[key]),{mode:0o600});
+   }
+   const diagnosticOutput=path.join(failureDir,'failed-review.html');
+   const diagnostic=reviewer.main([failureDir,diagnosticOutput]);
+   assert.equal(diagnostic.status,'provider-output-unusable-no-retry');
+   assert.equal(fs.existsSync(diagnosticOutput),true);
+   assert.equal(fs.statSync(diagnosticOutput).mode&0o777,0o600);
+   assert(fs.readFileSync(diagnosticOutput,'utf8')
+    .includes('추가 AI 호출 금지'));
+   assert.throws(()=>reviewer.main([failureDir,diagnosticOutput]),
+    /private-review-output-must-be-new/);
   }
   const bad=structuredClone(original);
   bad.raw.model='gpt-6.1-terra';
@@ -168,7 +213,8 @@ async function run(){
    syntheticCases:['valid-structured','wrong-citations',
     'generic-two-choices','missing-hour','machine-rejected',
     'incomplete','invalid-json','empty','wrong-model','double-call',
-    'extra-paid-chapter','archive-tampering','html-escaping','private-0600'],
+    'extra-paid-chapter','archive-tampering','html-escaping','private-0600',
+    'invalid-json-private-source-preview','incomplete-private-partial-preview','no-raw-text-diagnostic'],
    freshModelCalls:0,merchantCalls:0,networkCalls:network,
    realLunaProseEvaluated:false,releaseVerdict:'not-approved'}));
  }finally{
