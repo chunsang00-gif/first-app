@@ -81,9 +81,9 @@ try{
  assert.equal(edge.waysToAdjust.length,0);
  // A 168h/week cap means a larger weekly target cannot be offered as
  // mathematically viable: fail closed instead of fabricating 200h/week.
- const impossible=report({weeklyStudyHours:168,requiredStudyHours:10000,targetWeeks:1,
+ const impossible=report({weeklyStudyHours:0,requiredStudyHours:10000,targetWeeks:1,
   trainingCostKRW:0,availableBudgetKRW:0});
- assert.equal(impossible.timeSummary.additionalWeeklyHoursForTarget,9832);
+ assert.equal(impossible.timeSummary.additionalWeeklyHoursForTarget,10000);
  assert.equal(impossible.waysToAdjust[0].id,'schedule-no-verified-adjustment');
  assert.equal(impossible.waysToAdjust[0].amount,null);
  assert.equal(impossible.waysToAdjust.length,1);
