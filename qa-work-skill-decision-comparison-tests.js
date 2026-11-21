@@ -22,6 +22,7 @@ try{
  assert.equal(short.timeSummary.extraWeeksAtCurrentSchedule,12);
  assert.equal(short.budgetSummary.gapKRW,200000);
  assert.deepEqual(short.choices.map(x=>x.id),['keep-work','learn-skill']);
+ assert.deepEqual(short.choices.map(x=>x.subject),['물류 재고 확인','엑셀 자동화']);
  assert.equal(short.choices[0].numericVerdict,'not-calculable-from-given-data');
  assert(short.choices[0].text.includes('근무시간·소득·안정성'));
  assert(short.choices[1].text.includes('학습시간과 교육비'));
