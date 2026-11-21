@@ -12,7 +12,9 @@ const scripts=[
  'report-buyer-decision-context.js',
  'report-work-skill-decision-workbook.js',
  'report-work-skill-decision-comparison.js',
- 'report-work-skill-decision-workbook-ui.js'
+ 'report-work-skill-decision-workbook-ui.js',
+ 'report-work-skill-decision-private-export.js',
+ 'report-work-skill-decision-private-export-ui.js'
 ];
 assert(html.startsWith('<!doctype html>'));
 assert(html.includes('<meta name="viewport" content="width=device-width,initial-scale=1">'));
@@ -39,7 +41,9 @@ const ids=[
  'wb-weeklyStudyHours','wb-requiredStudyHours','wb-targetWeeks',
  'wb-trainingCostKRW','wb-availableBudgetKRW',
  'trialExample','trialClear','trialUnderstanding','trialDifficulty',
- 'trialFeedbackCompose','trialFeedbackSummary'
+ 'trialFeedbackCompose','trialFeedbackSummary',
+ 'workSkillExport','workSkillExportPrepare','workSkillExportCopy',
+ 'workSkillExportSave','workSkillExportText','workSkillExportStatus'
 ];
 for(const id of ids){
  const count=(html.match(new RegExp('id="'+id+'"','g'))||[]).length;
@@ -74,6 +78,9 @@ class FakeNode{
  replaceChildren(...items){this._textContent='';this.childNodes=items}
  append(...items){this.childNodes.push(...items)}
  focus(){this.focused=true}
+ select(){this.selected=true}
+ click(){this.clicked=true}
+ remove(){this.removed=true}
  scrollIntoView(){}
  contains(node){return this.childNodes.includes(node)}
 }
@@ -84,7 +91,9 @@ nodes.trialDifficulty.value='not-tested';
 for(const id of ids.filter(x=>x.startsWith('wb-')))
  nodes[id].setAttribute('data-field-label',id.slice(3));
 const events={DOMContentLoaded:[]};
+const downloaded=[];
 const document={
+ body:{appendChild:(node)=>downloaded.push(node)},
  readyState:'loading',
  getElementById:id=>nodes[id]||null,
  addEventListener:(event,fn)=>{(events[event]??=[]).push(fn)},
@@ -102,7 +111,7 @@ const sandbox={window,document,console,
  navigator:{sendBeacon:block}};
 for(const script of matches)
  vm.runInNewContext(script[2],sandbox,{filename:script[1],timeout:3000});
-assert.equal(events.DOMContentLoaded.length,2,'same original app pair of scope + preview handlers');
+assert.equal(events.DOMContentLoaded.length,3,'scope, calculation and privacy export should mount in native order');
 for(const fn of events.DOMContentLoaded)fn();
 const view=()=>nodes.workSkillWorkbookResult.textContent;
 const status=()=>nodes.workSkillWorkbookResult.getAttribute('data-workbook-status');
@@ -116,7 +125,16 @@ nodes['wb-targetWeeks'].emit();
 assert.equal(status(),'partial-capacity-preview');
 assert(view().includes('64시간'));
 assert(!view().includes('36시간 부족'));
+assert.equal(nodes.workSkillExport.hidden,false);
+assert.equal(nodes.workSkillExportPrepare.disabled,false);
+nodes.workSkillExportPrepare.emit('click');
+assert.equal(nodes.workSkillExportText.hidden,false);
+assert(nodes.workSkillExportText.value.includes('목표 기간에 배치 가능한 시간: 64시간'));
+assert(nodes.workSkillExportText.value.includes('필요 학습시간: 미입력'));
+assert(!nodes.workSkillExportText.value.includes('부족한 학습시간: 0시간'));
 nodes.trialExample.emit('click');
+assert.equal(nodes.workSkillExportText.value,'','old export must not survive an input change');
+assert.equal(nodes.workSkillExportCopy.disabled,true);
 assert.equal(nodes.currentWork.value,'물류 재고 확인');
 assert.equal(nodes.targetSkill.value,'엑셀 자동화');
 assert.equal(nodes['wb-weeklyStudyHours'].value,'3');
@@ -130,6 +148,32 @@ assert(view().includes('36시간'));
 assert(view().includes('200,000원'));
 assert(view().includes('주당 학습시간을 4.5시간 더 확보'));
 assert(view().includes('12주 연장'));
+nodes.workSkillExportPrepare.emit('click');
+const privateText=nodes.workSkillExportText.value;
+assert(privateText.includes('목표 기간에 부족한 학습시간: 36시간'));
+assert(privateText.includes('교육비 부족 금액: 200,000원'));
+assert(privateText.includes('12주 연장'));
+assert(!privateText.includes('물류 재고 확인'));
+assert(!privateText.includes('엑셀 자동화'));
+assert(!privateText.includes(nodes.readerDecision.value),
+ 'customer free-text question must not appear in saved summary');
+nodes.workSkillExportCopy.emit('click');
+assert.equal(nodes.workSkillExportText.selected,true,
+ 'file:// must still offer manual text selection when clipboard unavailable');
+window.Blob=class Blob{constructor(parts,options){this.text=parts.join('');this.type=options.type}};
+let locallyCreated=0,locallyRevoked=0;
+window.URL={
+ createObjectURL:(blob)=>{assert(blob.text.includes('36시간'));locallyCreated++;return 'blob:local-summary';},
+ revokeObjectURL:(uri)=>{assert.equal(uri,'blob:local-summary');locallyRevoked++}
+};
+window.setTimeout=fn=>fn();
+nodes.workSkillExportSave.emit('click');
+assert.equal(downloaded.length,1);
+assert.equal(downloaded[0].download,'learning-time-budget-summary.txt');
+assert.equal(downloaded[0].clicked,true);
+assert.equal(downloaded[0].removed,true);
+assert.equal(locallyCreated,1);
+assert.equal(locallyRevoked,1);
 nodes.trialUnderstanding.value='partly';
 nodes.trialDifficulty.value='adjust';
 nodes.trialFeedbackCompose.emit('click');
@@ -145,14 +189,18 @@ assert.equal(nodes['wb-weeklyStudyHours'].value,'');
 assert.equal(nodes['wb-trainingCostKRW'].value,'');
 assert.equal(nodes.workSkillBudgetOption.open,false);
 assert.equal(nodes.trialFeedbackSummary.value,'');
+assert.equal(nodes.workSkillExport.hidden,true);
+assert.equal(nodes.workSkillExportText.value,'');
+assert.equal(nodes.workSkillExportSave.disabled,true);
 assert.equal(status(),'info');
 assert.equal(calls,0);
-console.log('PASS WORK57 SINGLE-FILE OFFLINE MOBILE TRIAL '+JSON.stringify({
+console.log('PASS WORK58 STANDALONE OFFLINE MOBILE TRIAL WITH PRIVACY EXPORT '+JSON.stringify({
  originalModulesCompared:scripts.length,
  offlineCharacters:html.length,
  initialPreview:'capacity-only-64h',
  realSyntheticScenario:'36h-short-and-200000KRW-short',
  feedback:'optional-manual-copy-no-personal-inputs',
+ privateTextExport:{noCustomerLabels:true,explicitDownload:true,downloadedFiles:downloaded.length},
  modelCalls:0,merchantCalls:0,externalCalls:calls,productionDeployed:false,
  realHumanTesters:0,paidProductApproved:false
 }));
