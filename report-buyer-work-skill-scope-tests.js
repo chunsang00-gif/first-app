@@ -79,7 +79,8 @@ const browser=fs.readFileSync(path.join(__dirname,'live-report-ui.js'),'utf8');
 assert(html.includes('id="workSkillContext" class="hidden" hidden'));
 const sequence=[
  'report-buyer-work-skill-scope.js','report-buyer-decision-context.js',
- 'report-work-skill-decision-workbook.js','report-work-skill-decision-workbook-ui.js',
+ 'report-work-skill-decision-workbook.js','report-work-skill-decision-comparison.js',
+ 'report-work-skill-decision-workbook-ui.js',
  'live-report-ui.js'
 ];
 const positions=sequence.map(src=>html.indexOf('<script src="'+src+'"></script>'));
