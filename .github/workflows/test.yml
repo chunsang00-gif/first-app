@@ -153,6 +153,13 @@ jobs:
           REPORT_QA_CONFIRM: ''
           REPORT_QA_ALLOW_PAYMENT: ''
         run: node qa-work-skill-decision-comparison-tests.js
+      - name: Verify privacy-minimized local numeric report, partial cases and copy-only safety (NO API)
+        env:
+          OPENAI_API_KEY: ''
+          REPORT_MODEL_URL: ''
+          REPORT_QA_CONFIRM: ''
+          REPORT_QA_ALLOW_PAYMENT: ''
+        run: node qa-work58-private-export-tests.js
       - name: Verify standalone offline mobile trial embeds CURRENT product modules and runs the synthetic user journey (NO API)
         env:
           OPENAI_API_KEY: ''
