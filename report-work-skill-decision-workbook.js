@@ -44,6 +44,45 @@ function parseValues(entered){
   return [k,v];
  }));
 }
+// Quick capacity arithmetic is useful even before a customer has chosen
+// a job label, estimated total training hours, or offered a budget.
+// This is a lightweight FREE preview, not a buyer-facing career verdict.
+// Both this preview and the full comparison use the EXACT same values.
+function quickPreview({readerDecision,constraints}={}){
+ const question=cleanQuestion(readerDecision);
+ if(!scope.supportsDecision(question))
+  throw Error('WORKBOOK_ONLY_EXPLICIT_WORK_VERSUS_LEARNING_QUESTION');
+ const n=parseValues(constraints);
+ const known=k=>n[k]!==null;
+ const capacityKnown=known('weeklyStudyHours')&&known('targetWeeks');
+ const requiredWeeklyKnown=known('requiredStudyHours')&&known('targetWeeks');
+ const fullTimeKnown=capacityKnown&&known('requiredStudyHours');
+ const moneyKnown=known('trainingCostKRW')&&known('availableBudgetKRW');
+ const availableHoursByTarget=capacityKnown?
+  +(n.weeklyStudyHours*n.targetWeeks).toFixed(4):null;
+ const minimumWeeklyHoursForTarget=requiredWeeklyKnown?
+  Math.ceil(n.requiredStudyHours/n.targetWeeks*2)/2:null;
+ const deficitHours=fullTimeKnown?
+  +Math.max(0,n.requiredStudyHours-availableHoursByTarget).toFixed(4):null;
+ const weeksOnSchedule=fullTimeKnown?
+  (n.weeklyStudyHours===0?null:Math.ceil(n.requiredStudyHours/n.weeklyStudyHours)):null;
+ const budgetGapKRW=moneyKnown?
+  Math.max(0,n.trainingCostKRW-n.availableBudgetKRW):null;
+ return Object.freeze({
+  kind:'buyer-self-reported-partial-work-skill-capacity-v1',
+  sourceData:Object.freeze({...n}),
+  enteredFieldCount:KEYS.filter(known).length,
+  missingFields:Object.freeze(KEYS.filter(k=>!known(k))),
+  missingQuestions:Object.freeze(KEYS.filter(k=>!known(k)).map(k=>MISSING_LABELS[k])),
+  capacityKnown,requiredWeeklyKnown,fullTimeKnown,moneyKnown,
+  availableHoursByTarget,minimumWeeklyHoursForTarget,
+  deficitHours,weeksOnSchedule,budgetGapKRW,
+  scope:'arithmetic-only-no-career-recommendation',
+  customerWorkOrSkillNamesInferred:false,
+  natalEvidenceUsed:false,mbtiPredictionUsed:false,
+  providerCalls:0,paymentApproved:false
+ });
+}
 function build({readerDecision,decisionContext,constraints}={}){
  const question=cleanQuestion(readerDecision);
  if(!scope.supportsDecision(question))
@@ -51,25 +90,20 @@ function build({readerDecision,decisionContext,constraints}={}){
  const reported=context.checked(decisionContext);
  if(!reported||reported.currentWork===reported.targetSkill)
   throw Error('WORKBOOK_DISTINCT_USER_REPORTED_WORK_AND_SKILL_REQUIRED');
- const n=parseValues(constraints);
- const missing=KEYS.filter(k=>n[k]===null);
- const hourKnown=['weeklyStudyHours','requiredStudyHours','targetWeeks']
-  .every(k=>n[k]!==null);
- const moneyKnown=['trainingCostKRW','availableBudgetKRW']
-  .every(k=>n[k]!==null);
- // No fabricated estimates: these are calculations on self-reported inputs.
+ const quick=quickPreview({readerDecision:question,constraints});
+ const n=quick.sourceData;
+ const missing=quick.missingFields;
+ const hourKnown=quick.fullTimeKnown;
+ const moneyKnown=quick.moneyKnown;
+ // Full comparison and preliminary capacity use identical source arithmetic.
  const weeklyCapacity=hourKnown?n.weeklyStudyHours:null;
- const deadlineCapacity=hourKnown?
-  +(n.weeklyStudyHours*n.targetWeeks).toFixed(4):null;
- const timeGap=hourKnown?
-  +Math.max(0,n.requiredStudyHours-deadlineCapacity).toFixed(4):null;
- const estimatedWeeksToComplete=hourKnown?
-  (weeklyCapacity===0?null:Math.ceil(n.requiredStudyHours/weeklyCapacity)):null;
- const hoursPerWeekNeeded=hourKnown?
-  +Math.ceil(n.requiredStudyHours/n.targetWeeks*2)/2:null;
+ const deadlineCapacity=hourKnown?quick.availableHoursByTarget:null;
+ const timeGap=hourKnown?quick.deficitHours:null;
+ const estimatedWeeksToComplete=hourKnown?quick.weeksOnSchedule:null;
+ const hoursPerWeekNeeded=hourKnown?quick.minimumWeeklyHoursForTarget:null;
  const timeState=!hourKnown?'unknown':weeklyCapacity===0?
   'no-weekly-time':timeGap>0?'hours-short':'within-entered-hours';
- const budgetGap=moneyKnown?Math.max(0,n.trainingCostKRW-n.availableBudgetKRW):null;
+ const budgetGap=moneyKnown?quick.budgetGapKRW:null;
  const budgetState=!moneyKnown?'unknown':budgetGap>0?
   'budget-short':'within-entered-budget';
  const complete=missing.length===0;
@@ -142,7 +176,7 @@ function readerText(result){
  ];
  return line.join('\n');
 }
-const api=Object.freeze({build,readerText,parseValues,FIELDS});
+const api=Object.freeze({build,quickPreview,readerText,parseValues,FIELDS});
 if(typeof module!=='undefined'&&module.exports)module.exports=api;
 if(root?.document)root.REPORT_WORK_SKILL_DECISION_WORKBOOK=api;
 })(typeof window!=='undefined'?window:null);
