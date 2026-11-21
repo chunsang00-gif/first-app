@@ -295,9 +295,12 @@ const names=['NODE_ENV','RENDER','PAID_CORE_DEPTH_V2',
   const candidate=coverage.calculate(questionInput);
   const actualPrecharge=require('./report-paid-core-precharge-value')
    .inspect(questionInput);
-  assert.equal(actualPrecharge.eligible,true);
-  assert.equal(candidate.firstChapterFeasibility.status,
-   'source-candidate-not-validated');
+  assert.equal(actualPrecharge.eligible,false,
+   'same hour hidden category exists in year/day and cannot silently be monetized');
+  assert.equal(actualPrecharge.reason,
+   'hour-role-already-in-other-natal-pillar-unreviewed-positional-meaning');
+  assert.equal(candidate.firstChapterFeasibility.status,'not-qualified');
+  assert(candidate.firstChapterFeasibility.message.includes('원국의 다른 위치'));
   assert.equal(candidate.firstChapterFeasibility.customerSaleApproved,false);
   assert.equal(candidate.purchaseEnabled,false);
   const withoutTime=coverage.calculate({...questionInput,
