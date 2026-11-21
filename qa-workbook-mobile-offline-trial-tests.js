@@ -67,6 +67,7 @@ class FakeNode{
  get textContent(){return this._textContent+this.childNodes.map(x=>x.textContent||'').join('')}
  addEventListener(event,fn){(this.listeners[event]??=[]).push(fn)}
  emit(event='input'){for(const fn of this.listeners[event]||[])fn()}
+ dispatchEvent(event){this.emit(event.type);return true}
  setAttribute(k,v){this.attrs[k]=String(v)}
  getAttribute(k){return this.attrs[k]??null}
  removeAttribute(k){delete this.attrs[k]}
