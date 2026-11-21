@@ -40,7 +40,9 @@ function bindForm(doc,apis={}){
   result.replaceChildren(node('strong',heading,'workbook-result-heading'),
    node('p',text,'workbook-result-note'));
   result.setAttribute('data-workbook-status',kind);
-  announce(heading,kind);
+  // Keep error detail in the short announcement; invalid input is
+  // identified without making a screen reader replay the entire report.
+  announce(heading,kind,text.slice(0,130));
  };
  const render=()=>{
   const active=scope.supportsDecision(question.value);
@@ -84,6 +86,7 @@ function bindForm(doc,apis={}){
    if(raw!==''){
     if(!/^(?:\d+(?:\.\d+)?|\.\d+)$/.test(raw)){
      field.setAttribute('aria-invalid','true');
+     field.setAttribute('aria-describedby','workSkillWorkbookLiveStatus');
      show('숫자를 확인해 주세요',
       (field.getAttribute('data-field-label')||'숫자')+
        ': 음수가 아닌 숫자로 입력해 주세요.','invalid');
@@ -105,7 +108,10 @@ function bindForm(doc,apis={}){
    const key=String(error?.message||'').startsWith(prefix)?
     String(error.message).slice(prefix.length):null;
    const index=FIELD_IDS.indexOf(key);
-   if(index>=0)fields[index].setAttribute('aria-invalid','true');
+   if(index>=0){
+    fields[index].setAttribute('aria-invalid','true');
+    fields[index].setAttribute('aria-describedby','workSkillWorkbookLiveStatus');
+   }
    const spec=index>=0?workbook.FIELDS[FIELD_IDS[index]]:null;
    const label=index>=0?fields[index].getAttribute('data-field-label'):null;
    show('입력값을 확인해 주세요',
