@@ -7,7 +7,10 @@ const files=new Set(['index.html','character-assets.css','result-dashboard.css',
  // The explicit allowlist protects source and private QA files from GET.
  'report-paid-reader-question-domain.js','report-readable-export.js',
  'free-calculation-state.js','birth-day-options.js',
- 'report-buyer-work-skill-scope.js']);
+ 'report-buyer-work-skill-scope.js',
+ 'report-buyer-decision-context.js','report-work-skill-decision-workbook.js',
+ 'report-work-skill-decision-workbook-ui.js',
+ 'report-work-skill-decision-workbook.css']);
 function resolvePublic(root,url){
  let pathname;try{pathname=decodeURIComponent(url.split('?')[0]);}catch{return null;}
  if(pathname==='/')pathname='/index.html';
