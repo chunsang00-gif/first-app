@@ -1,0 +1,18 @@
+/* Optional free workbook preview in step one. No payment/upsell styling. */
+.workbook-preview{margin:12px 0 20px;padding:18px;border:1px solid #d8e2e3;border-radius:18px;background:#f7fbfa;box-shadow:0 3px 12px #163b3509}
+.workbook-preview h3{font-size:18px;letter-spacing:-.025em;line-height:1.4;margin:0 0 8px;color:#202c39}
+.workbook-preview>p{font-size:13px;line-height:1.75;color:#586371;margin:0 0 16px}
+.workbook-badge{display:inline-block;border:1px solid #c6d8d2;padding:3px 8px;border-radius:30px;font-size:11px;font-weight:850;margin-left:6px;vertical-align:middle;color:#325d50;background:#ecf6f2}
+.workbook-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 12px}
+.workbook-fields .field{margin:0}
+.workbook-fields label{min-height:38px;line-height:1.5;font-size:12.5px}
+.workbook-fields input{min-height:46px;font-size:16px;border-radius:10px;background:#fff}
+.workbook-result{margin-top:16px;border-top:1px solid #d8e3df;padding-top:15px;line-height:1.6}
+.workbook-result-heading{display:block;font-size:15px;line-height:1.65;color:#203c38;margin-bottom:8px}
+.workbook-result-note{font-size:13px;color:#596b65;line-height:1.7;margin:4px 0}
+.workbook-result-line{font-size:13.5px;line-height:1.7;margin:6px 0;color:#263a38;overflow-wrap:anywhere}
+.workbook-result-line strong{font-weight:750}
+.workbook-result-advice{font-size:13px;line-height:1.7;margin:10px 0 0;color:#354945}
+.workbook-result-disclaimer{font-size:12px;line-height:1.65;margin:14px 0 0;padding-top:12px;border-top:1px dashed #bdcbc7;color:#65716e}
+.workbook-result[data-workbook-status="invalid"]{border-color:#c1a19a}
+@media(max-width:560px){.workbook-fields{grid-template-columns:1fr}.workbook-fields label{min-height:0}.workbook-preview{padding:15px}}
