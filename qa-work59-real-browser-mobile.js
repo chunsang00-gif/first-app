@@ -6,6 +6,7 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const path=require('node:path');
 const os=require('node:os');
+const {execFileSync}=require('node:child_process');
 const {chromium}=require('playwright-core');
 const html=path.resolve(__dirname,'workbook-mobile-offline-trial.html');
 const out=process.env.WORK59_SCREENSHOT_DIR||
@@ -18,6 +19,12 @@ const executables=[
 ].filter(Boolean);
 const chrome=executables.find(x=>fs.existsSync(x));
 if(!chrome)throw Error('WORK59_CHROME_NOT_FOUND_ON_CI_RUNNER');
+// A screenshot with all Korean letters rendered as square glyphs is NOT a
+// meaningful mobile usability review. Explicitly fail rather than publish.
+const koreanFonts=execFileSync('fc-list',[':lang=ko'],{
+ encoding:'utf8',timeout:10000
+}).trim();
+if(!koreanFonts)throw Error('WORK59_NO_KOREAN_FONTS_SCREENSHOTS_UNREADABLE');
 function imageName(tag){return path.join(out,tag+'.png')}
 async function visualSize(page,label,maxOverflow=2){
  const dims=await page.evaluate(()=>({
