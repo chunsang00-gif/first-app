@@ -77,7 +77,14 @@ assert.equal(targetSkill.value,'');
 const html=fs.readFileSync(path.join(__dirname,'index.html'),'utf8');
 const browser=fs.readFileSync(path.join(__dirname,'live-report-ui.js'),'utf8');
 assert(html.includes('id="workSkillContext" class="hidden" hidden'));
-assert(html.includes('<script src="report-buyer-work-skill-scope.js"></script><script src="live-report-ui.js"></script>'));
+const sequence=[
+ 'report-buyer-work-skill-scope.js','report-buyer-decision-context.js',
+ 'report-work-skill-decision-workbook.js','report-work-skill-decision-workbook-ui.js',
+ 'live-report-ui.js'
+];
+const positions=sequence.map(src=>html.indexOf('<script src="'+src+'"></script>'));
+assert(positions.every(x=>x>=0)&&positions.every((x,i)=>i===0||x>positions[i-1]),
+ 'existing work/skill scope must load before shared workbook logic, live report after');
 assert(html.includes('REPORT_BUYER_WORK_SKILL_SCOPE?.supportsDecision(val(\'readerDecision\'))'));
 assert(html.includes("inputError('targetSkill','현재 하는 일과 새로 배우려는 기술은 둘 다 적거나 둘 다 비워 주세요.')"));
 assert(html.includes("inputError('currentWork','현재 하는 일과 새로 배우려는 기술은 둘 다 적거나 둘 다 비워 주세요.')"));
