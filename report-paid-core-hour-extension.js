@@ -87,6 +87,22 @@ function build(packet,source){
   throw Error('CORE_HOUR_ADDITION_SOURCE_DRIFT');
  const meaning=domain.meanings[h.tenGod];
  if(!meaning)throw Error('CORE_HOUR_DOMAIN_ROLE_NOT_VERIFIED');
+ // Show the outgoing writer the ENTIRE chart source provenance. A new
+ // HOUR position is not a new symbolic CATEGORY if the same hidden STEM
+ // is already present in year/month/day. The current first-chapter writer
+ // has no independently reviewed rule to monetize that repeated symbol.
+ const sameStemInOtherNatal=Object.entries(source||{})
+  .filter(([ref,row])=>ref.startsWith('natal.')&&
+   ref!=='natal.day.stem'&&ref!==b&&
+   row?.stem===h.stem&&row?.tenGod===h.tenGod)
+  .map(([ref])=>ref);
+ const wholeNatalCategoryDistinct=sameStemInOtherNatal.length===0;
+ const wholeNatalBoundary=wholeNatalCategoryDistinct?
+  '이 시간 속글자의 정확한 글자는 다른 원국 위치에서 발견되지 않았지만, 새 글자 하나가 유료 해석의 가치나 실제 행동 예측을 증명하지는 않는다. ':
+  '동일한 글자가 출생 해·달·날의 다른 위치에도 이미 있어 새 십성 분류라고 주장할 수 없다. 중복 위치: '+
+   sameStemInOtherNatal.join(', ')+'. '+
+   '다른 위치에 같은 전통 분류가 있다는 사실로 능력·성격이 더 강하다고 말하지 않는다. '+
+   '출생시간만의 의미가 별도로 검증되지 않았으므로 이 근거를 독립적인 유료 가치로 표현하지 않는다. ';
  // After the real one-shot Terra review, this specific dilemma exposed a
  // missing distinction: both alternatives were phrased as "make/show an
  // output". Model prompts must assign DIFFERENT conditional checks instead
@@ -119,6 +135,10 @@ function build(packet,source){
   sourceRefs:Object.freeze([a,b]),hourVisibleRole:hour.stemTenGod,
   hourHiddenRole:h.tenGod,hiddenRef:b,readerDomain,
   distinctFromMonth:true,distinctFromFreeVisibleNatal:true,
+  // These flags describe FREE-visible novelty, not whole-chart originality.
+  wholeNatalCategoryDistinct,
+  repeatedExactStemNatalRefs:Object.freeze(sameStemInOtherNatal.slice()),
+  positionSpecificPaidMethodApproved:false,
   twoBuyerChoicesParsed:hasTwoChoices,
   chosenHiddenStemIsGoverning:false,
   realAbilityObserved:false,realOutcomePredicted:false,
@@ -126,6 +146,7 @@ function build(packet,source){
   extraPaidTopic:false,optionalOnly:true,
   readerGoal:'이 출생시간의 숨은 글자에서만 새롭게 확인되는 ‘'+meaning+
    '’라는 전통적 질문을, 고객이 직접 입력한 '+domain.label+' 고민에 조건부로 연결한다. '+
+   wholeNatalBoundary+
    '출생월의 겉글자와 중심 글자의 뜻풀이를 반복하지 말고 시간의 별도 분류가 더하는 질문을 설명한다. '+
    (hasTwoChoices?actualChoiceGoal:domain.single)+' '+distinctChoiceGoal+
    '고객이 두 선택지를 적었다면 두 경우의 차이를 독립된 문장으로 설명한다. '+
