@@ -42,7 +42,7 @@ try{
   '주당 학습시간을 4.5시간 더 확보',
   '목표를 12주 연장',
   '교육비 부족분 200,000원',
-  '공유 전에 직접 확인'
+  '전달하기 전에 직접 확인'
  ])assert(constrained.content.includes(t),'missing true numeric or guidance: '+t);
  assert(!constrained.content.includes(fakeLabel));
  assert(!constrained.content.includes(fakeSkill));
