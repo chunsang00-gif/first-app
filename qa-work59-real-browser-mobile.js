@@ -69,6 +69,14 @@ async function run(){
   assert.equal(await page.locator('#workSkillExport').isVisible(),false);
   results.push({stage:'initial',viewport:await visualSize(page,'mobile-initial')});
   await page.screenshot({path:imageName('mobile-01-initial'),fullPage:true});
+  // Real usability issue from first screenshot: numeric input starts below
+  // the first mobile viewport. One tap must jump to that input.
+  await page.locator('#trialStart').click();
+  assert.equal(await page.evaluate(()=>document.activeElement?.id),
+   'wb-weeklyStudyHours','mobile quickstart must focus first numeric input');
+  const boxAfterJump=await page.locator('#wb-weeklyStudyHours').boundingBox();
+  assert(boxAfterJump&&boxAfterJump.y>=0&&boxAfterJump.y<844,
+   'start shortcut must scroll the numeric input into the phone viewport');
   await page.locator('#wb-weeklyStudyHours').fill('8');
   await page.locator('#wb-targetWeeks').fill('8');
   assert.equal(await page.locator('#workSkillWorkbookResult').getAttribute('data-workbook-status'),
