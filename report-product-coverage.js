@@ -169,6 +169,10 @@ function calculate(input){
     firstChapterPrecharge.customerSaleApproved!==false)
   throw Error('PREVIEW_FIRST_CHAPTER_GATE_CONTRACT_DRIFT');
  const firstChapterReasons=Object.freeze({
+  'hour-role-already-in-other-natal-pillar-unreviewed-positional-meaning':
+   '출생시간에서 찾은 전통 분류와 정확히 같은 글자가 원국의 다른 위치에도 있습니다. 위치만 바뀐 설명을 새 유료 가치로 팔지 않으며, 검증된 위치별 해석법을 마련하기 전에는 유료 첫 장을 제공하지 않습니다.',
+  'hour-whole-natal-category-audit-unverified':
+   '출생시간의 추가 글자를 원국 전체와 대조해 독립성을 확인할 수 없어 유료 첫 장을 제공하지 않습니다.',
   'verified-hour-addition-awaits-human-review':
    '무료 풀이에 없던 출생시간의 별도 계산 근거가 확인됐습니다. 아직 실제 유료 문장과 상품 가치는 검증되지 않았습니다.',
   'no-guaranteed-independent-first-chapter-paragraph':
