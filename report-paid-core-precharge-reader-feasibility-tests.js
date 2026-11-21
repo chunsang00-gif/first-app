@@ -42,7 +42,11 @@ try{
   assert.deepEqual(buyer.preflightReaderQuestion(c.good,proof),[],
    'the legitimate single-buyer question should have a reader application');
   const valid=precharge.inspect(input);
-  assert.equal(valid.eligible,true,c.domain+' genuine source+question is feasible');
+  assert.equal(valid.eligible,proof.wholeNatalCategoryDistinct,
+   c.domain+' post-model question parser is separate from whole-natal stem novelty');
+  if(!proof.wholeNatalCategoryDistinct)
+   assert.equal(valid.reason,
+    'hour-role-already-in-other-natal-pillar-unreviewed-positional-meaning');
   assert.equal(valid.customerSaleApproved,false);
   const badInput={...input,readerDecision:c.bad};
   const badPacket=facts.build(badInput,2027);
