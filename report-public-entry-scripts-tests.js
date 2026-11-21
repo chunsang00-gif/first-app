@@ -30,6 +30,8 @@ for(const denied of ['/server.js','/report-generation-request.js',
  '/report-buyer-decision-context-application.js','/qa-terra-first-chapter-one-shot.js',
  '/report-work-skill-decision-workbook-ui-tests.js',
  '/qa-work-skill-decision-workbook-ui-tests.js',
+ '/qa-workbook-mobile-offline-trial-tests.js',
+ '/workbook-mobile-offline-trial.html',
  '/.env','/../server.js','/%2e%2e/server.js','/node_modules/foo.js']){
  assert.equal(resolvePublic(__dirname,denied),null,
   'fix must NOT expose code, credentials or private QA: '+denied);
