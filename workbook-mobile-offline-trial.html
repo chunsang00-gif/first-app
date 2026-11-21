@@ -94,6 +94,18 @@ button.secondary{background:white;color:#286653}
 .workbook-result[data-workbook-status="partial-capacity-preview"] .workbook-result-heading{color:#2c5b50}
 @media(max-width:480px){.workbook-optional-budget{padding:4px 9px 10px}}
 
+/* Work58: explicit local number-only TXT export; nothing auto-submitted. */
+.workbook-export{margin-top:18px;padding:15px;border:1px solid #d4e2dc;border-radius:13px;background:#fff}
+.workbook-export h4{font-size:15px;font-weight:850;line-height:1.55;margin:0 0 6px;color:#25463e}
+.workbook-export p{font-size:12.5px;line-height:1.75;color:#556a62;margin:5px 0 12px}
+.workbook-export-actions{display:flex;gap:8px;flex-wrap:wrap}
+.workbook-export-actions button{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:9px 12px;border:1px solid #2a6555;border-radius:10px;background:#e9f5ef;color:#245544;font-size:13px;line-height:1.5;font-weight:750;cursor:pointer}
+.workbook-export-actions button:disabled{opacity:.55;cursor:default}
+.workbook-export-actions button:focus-visible{outline:3px solid #286653;outline-offset:2px}
+#workSkillExportText{width:100%;min-height:170px;margin-top:12px;padding:12px;border:1px solid #b9ccc2;border-radius:10px;background:#fafcfb;color:#243c34;font-family:system-ui,"Malgun Gothic",sans-serif;font-size:13px;line-height:1.7;resize:vertical}
+.workbook-export-status{margin-top:10px!important;overflow-wrap:anywhere}
+@media(max-width:480px){.workbook-export{padding:13px}.workbook-export-actions{flex-direction:column}.workbook-export-actions button{width:100%}}
+
 </style>
 </head><body><main>
 <header><div class="kicker">개발 브랜치 · WORK57 · 무료 오프라인</div>
@@ -120,6 +132,17 @@ button.secondary{background:white;color:#286653}
 <div class="field"><label for="wb-availableBudgetKRW">사용 가능한 교육 예산 (원)</label><input id="wb-availableBudgetKRW" data-field-label="교육 예산" type="number" min="0" max="100000000" step="1" inputmode="numeric" autocomplete="off" disabled placeholder="예: 200000"></div></div></details>
 <div id="workSkillWorkbookLiveStatus" class="workbook-live-summary" role="status" aria-live="polite" aria-atomic="true" data-workbook-announcement="hidden"></div>
 <div id="workSkillWorkbookResult" class="workbook-result" role="region" aria-label="학습 시간과 교육비 선택 비교 결과" aria-live="off" data-workbook-status="hidden"></div>
+<section id="workSkillExport" class="workbook-export" hidden aria-label="계산 결과 복사와 파일 저장">
+<h4>결과 가져가기 <span class="workbook-badge">무료·로컬</span></h4>
+<p>현재 업무명·기술명·개인 고민 내용은 빼고 숫자와 계산 결과만 요약합니다. <strong>숫자도 개인 정보일 수 있으므로 공유 전 확인하세요.</strong></p>
+<div class="workbook-export-actions">
+<button type="button" id="workSkillExportPrepare" disabled>복사용 요약 만들기</button>
+<button type="button" id="workSkillExportCopy" disabled>텍스트 복사</button>
+<button type="button" id="workSkillExportSave" disabled>텍스트 파일 저장</button>
+</div>
+<textarea id="workSkillExportText" readonly hidden rows="11" aria-label="공유 전 내용을 확인할 계산 결과 텍스트" spellcheck="false"></textarea>
+<p id="workSkillExportStatus" role="status" aria-live="polite" class="workbook-export-status"></p>
+</section>
 </div></section>
 <section class="howto" aria-label="선택 가능한 피드백">
 <h2>2. 직접 사용한 뒤 의견 정리</h2>
@@ -881,6 +904,256 @@ const api=Object.freeze({bindForm,FIELD_IDS});
 if(typeof module!=='undefined'&&module.exports)module.exports=api;
 if(root?.document){
  root.REPORT_WORK_SKILL_DECISION_WORKBOOK_UI=api;
+ if(root.document.readyState==='loading')
+  root.document.addEventListener('DOMContentLoaded',()=>bindForm(root.document));
+ else bindForm(root.document);
+}
+})(typeof window!=='undefined'?window:null);
+
+</script>
+<script data-original-module="report-work-skill-decision-private-export.js">
+'use strict';
+// Work58: a customer-controlled, local-only TEXT export. Never includes the
+// reader's original question, work/skill names, birthday, MBTI, phone, or
+// other free-text inputs. Numbers ARE personal information: user should
+// review the draft before choosing to save/copy or share it.
+(function(root){
+const workbook=typeof module!=='undefined'&&module.exports?
+ require('./report-work-skill-decision-workbook'):
+ root?.REPORT_WORK_SKILL_DECISION_WORKBOOK;
+const comparisonEngine=typeof module!=='undefined'&&module.exports?
+ require('./report-work-skill-decision-comparison'):
+ root?.REPORT_WORK_SKILL_DECISION_COMPARISON;
+if(!workbook?.quickPreview||!workbook?.build||!comparisonEngine?.build)
+ throw Error('WORK58_SHARED_CALCULATIONS_REQUIRED');
+const format=x=>Number(x).toLocaleString('ko-KR');
+const FILENAME='learning-time-budget-summary.txt';
+const DEFAULT_QUESTION='기존 일을 유지할지 새로운 기술을 배울지 고민 중입니다.';
+function compose({preview}={}){
+ if(preview?.kind!=='buyer-self-reported-partial-work-skill-capacity-v1'||
+    preview.scope!=='arithmetic-only-no-career-recommendation'||
+    preview.natalEvidenceUsed!==false||preview.mbtiPredictionUsed!==false||
+    preview.providerCalls!==0||preview.paymentApproved!==false)
+  throw Error('WORK58_UNTRUSTED_PRIVATE_PREVIEW');
+ // Independently recalculate numeric source fields; don't accidentally
+ // export a manipulated or stale display-only value.
+ const clean=workbook.quickPreview({
+  readerDecision:DEFAULT_QUESTION,constraints:preview.sourceData
+ });
+ for(const key of [
+  'availableHoursByTarget','minimumWeeklyHoursForTarget','deficitHours',
+  'weeksOnSchedule','budgetGapKRW','enteredFieldCount'
+ ])if(!Object.is(clean[key],preview[key]))
+  throw Error('WORK58_INCONSISTENT_NUMERIC_PREVIEW:'+key);
+ if(!clean.capacityKnown&&!clean.requiredWeeklyKnown&&!clean.moneyKnown)
+  throw Error('WORK58_NOTHING_CALCULATED_TO_EXPORT');
+ // Build any more detailed alternatives from the customer NUMBERS but
+ // deliberately use fixed anonymous labels. This is not a formatter that
+ // silently exports arbitrary customer-written context or a report fragment.
+ const internallyComputed=comparisonEngine.build(workbook.build({
+  readerDecision:DEFAULT_QUESTION,
+  decisionContext:{currentWork:'현재 업무',targetSkill:'배울 기술'},
+  constraints:clean.sourceData
+ }));
+ if(internallyComputed.kind!=='self-reported-work-vs-learning-comparison-v1'||
+    internallyComputed.modelCalls!==0||
+    internallyComputed.paymentApproved!==false)
+  throw Error('WORK58_UNTRUSTED_COMPARISON_RESULT');
+ const n=clean.sourceData;
+ const line=(name,key,unit)=>name+': '+
+  (n[key]===null?'미입력':format(n[key])+unit);
+ const lines=[
+  '학습시간·교육비 선택 비교 | 무료 계산 요약',
+  '고민 유형: 현재 일 유지 / 새 기술 학습',
+  '출처: 이용자가 직접 입력한 추정치 (사주·MBTI 아님)',
+  '',
+  '[직접 입력한 숫자]',
+  line('주당 확보 가능한 시간','weeklyStudyHours','시간'),
+  line('필요 학습시간','requiredStudyHours','시간'),
+  line('목표 기간','targetWeeks','주'),
+  line('예상 교육비','trainingCostKRW','원'),
+  line('학습용 예산','availableBudgetKRW','원'),
+  '',
+  '[계산으로 확인한 내용]'
+ ];
+ if(clean.capacityKnown)lines.push(
+  '목표 기간에 배치 가능한 시간: '+
+   format(clean.availableHoursByTarget)+'시간');
+ if(clean.requiredWeeklyKnown)lines.push(
+  '목표 기간에 필요한 주당 시간: '+
+   format(clean.minimumWeeklyHoursForTarget)+'시간');
+ if(clean.fullTimeKnown)lines.push(
+  '목표 기간에 부족한 학습시간: '+
+   format(clean.deficitHours)+'시간',
+  '현재 학습시간을 유지할 때 필요한 총 기간: '+
+   (clean.weeksOnSchedule===null?'산출 불가 (주당 0시간)':
+    format(clean.weeksOnSchedule)+'주'));
+ if(clean.moneyKnown)lines.push(
+  '교육비 부족 금액: '+format(clean.budgetGapKRW)+'원');
+ if(internallyComputed.waysToAdjust.length){
+  lines.push('','[검토할 수 있는 조건 변경]');
+  for(const option of internallyComputed.waysToAdjust){
+   if(!['schedule','budget'].includes(option.kind)||
+      typeof option.text!=='string'||option.text.length>300)
+    throw Error('WORK58_INVALID_COMPARISON_OPTION');
+   lines.push('- '+option.text);
+  }
+ }
+ lines.push('','[확인할 사항]',
+  '- 근무시간, 급여, 휴식시간, 교육과정 조건은 이 숫자만으로 평가할 수 없습니다.',
+  '- 교육비에 교통비·시험비·생활비가 포함됐는지 확인해야 합니다.',
+  '- 현재 일을 유지하면서 배우는 방법도 가능합니다.',
+  '- 선택한 시간표와 비용이 실제 실천 가능한지는 별도 확인이 필요합니다.',
+  '',
+  '공유 주의: 회사명·업무명·기술명·자유입력 질문은 자동으로 포함하지 않았지만 시간·비용 숫자는 개인 정보일 수 있습니다. 다른 사람에게 전달하기 전에 직접 확인하세요.',
+  '실제 학습 성공·취업 결과를 예측하거나 돈을 내고 구매하는 보고서가 아닙니다.'
+ );
+ const content=lines.join('\n');
+ if(content.length>7000)throw Error('WORK58_EXPORT_TOO_LONG');
+ return Object.freeze({
+  kind:'buyer-private-number-only-summary-v1',
+  filename:FILENAME,content,
+  numbersAreUserEntered:true,
+  customerFreeTextIncluded:false,
+  generatedLocally:true,
+  customerReviewRequiredBeforeSharing:true,
+  copyOrDownloadRequiresExplicitGesture:true,
+  networkCalls:0,modelCalls:0,paymentApproved:false,
+  saleApproved:false
+ });
+}
+const api=Object.freeze({compose,FILENAME});
+if(typeof module!=='undefined'&&module.exports)module.exports=api;
+if(root?.document)root.REPORT_WORK_SKILL_DECISION_PRIVATE_EXPORT=api;
+})(typeof window!=='undefined'?window:null);
+
+</script>
+<script data-original-module="report-work-skill-decision-private-export-ui.js">
+'use strict';
+// Work58. Optional user-initiated action, never a submission or analytics.
+// Works on the REAL app screen and in the one-file offline mobile trial.
+(function(root){
+const IDS=Object.freeze([
+ 'weeklyStudyHours','requiredStudyHours','targetWeeks',
+ 'trainingCostKRW','availableBudgetKRW'
+]);
+function bindForm(doc,apis={}){
+ const scope=apis.scope||root?.REPORT_BUYER_WORK_SKILL_SCOPE;
+ const workbook=apis.workbook||root?.REPORT_WORK_SKILL_DECISION_WORKBOOK;
+ const exporter=apis.exporter||root?.REPORT_WORK_SKILL_DECISION_PRIVATE_EXPORT;
+ const question=doc?.getElementById?.('readerDecision');
+ const section=doc?.getElementById?.('workSkillExport');
+ const create=doc?.getElementById?.('workSkillExportPrepare');
+ const copy=doc?.getElementById?.('workSkillExportCopy');
+ const save=doc?.getElementById?.('workSkillExportSave');
+ const output=doc?.getElementById?.('workSkillExportText');
+ const status=doc?.getElementById?.('workSkillExportStatus');
+ const names=['currentWork','targetSkill'].map(id=>doc?.getElementById?.(id));
+ const numbers=IDS.map(k=>doc?.getElementById?.('wb-'+k));
+ if(!scope?.supportsDecision||!workbook?.quickPreview||!exporter?.compose||
+    !question||!section||!create||!copy||!save||!output||!status||
+    numbers.some(x=>!x)||names.some(x=>!x))return false;
+ const inform=s=>{status.textContent=s};
+ let latest=null;
+ const clear=()=>{
+  latest=null;
+  output.value='';
+  output.hidden=true;
+  copy.disabled=true;save.disabled=true;
+  inform('');
+ };
+ const snapshot=()=>{
+  if(!scope.supportsDecision(question.value))return null;
+  const constraints={};
+  for(let i=0;i<numbers.length;i++){
+   const raw=String(numbers[i].value??'').trim();
+   if(raw==='')continue;
+   if(!/^(?:\d+(?:\.\d+)?|\.\d+)$/.test(raw))return null;
+   constraints[IDS[i]]=Number(raw);
+  }
+  try{
+   const value=workbook.quickPreview({
+    readerDecision:question.value,constraints
+   });
+   if(!value.capacityKnown&&!value.requiredWeeklyKnown&&!value.moneyKnown)
+    return null;
+   return value;
+  }catch{return null}
+ };
+ const sync=()=>{
+  clear(); // A result from a different set of customer inputs is NEVER kept.
+  const valid=snapshot()!==null;
+  section.hidden=!valid;
+  create.disabled=!valid;
+ };
+ create.addEventListener('click',()=>{
+  const data=snapshot();
+  if(!data){sync();return}
+  try{
+   latest=exporter.compose({preview:data});
+   output.value=latest.content;
+   output.hidden=false;
+   copy.disabled=false;save.disabled=false;
+   inform('개인정보를 확인한 뒤 직접 복사하거나 저장하세요. 입력 숫자는 포함됩니다.');
+  }catch{
+   clear();
+   inform('현재 입력에서는 요약을 만들 수 없습니다. 숫자와 범위를 확인해 주세요.');
+  }
+ });
+ copy.addEventListener('click',()=>{
+  if(!latest||output.hidden||output.value!==latest.content)return;
+  // file:// and some mobile browsers deny clipboard writes. Always provide
+  // manual select/copy as a graceful fallback; never claim success early.
+  const select=()=>{
+   output.focus?.();output.select?.();
+   inform('텍스트가 선택됐습니다. 복사 메뉴로 직접 복사할 수 있습니다.');
+  };
+  const write=root?.navigator?.clipboard?.writeText;
+  if(typeof write!=='function'){select();return}
+  try{
+   Promise.resolve(write.call(root.navigator.clipboard,latest.content))
+    .then(()=>inform('요약 텍스트를 복사했습니다. 공유 전 숫자를 확인하세요.'))
+    .catch(select);
+  }catch{select()}
+ });
+ save.addEventListener('click',()=>{
+  if(!latest||output.hidden||output.value!==latest.content)return;
+  const BlobType=root?.Blob;
+  const urls=root?.URL;
+  if(typeof BlobType!=='function'||typeof urls?.createObjectURL!=='function'){
+   inform('이 브라우저는 파일 저장을 지원하지 않습니다. 텍스트를 직접 복사해 주세요.');
+   return;
+  }
+  let uri=null;
+  try{
+   uri=urls.createObjectURL(new BlobType([latest.content],{
+    type:'text/plain;charset=utf-8'
+   }));
+   const anchor=doc.createElement('a');
+   anchor.href=uri;anchor.download=latest.filename;
+   doc.body?.appendChild(anchor);
+   anchor.click();
+   anchor.remove?.();
+   inform('기기에서 파일 저장 여부를 확인해 주세요. 저장한 숫자도 공유 전 확인하세요.');
+  }catch{
+   inform('이 기기에서 저장을 시작하지 못했습니다. 텍스트를 직접 복사해 주세요.');
+  }finally{
+   if(uri&&typeof urls?.revokeObjectURL==='function'){
+    // Downloads may be asynchronous; don't revoke immediately after click.
+    if(typeof root?.setTimeout==='function')
+     root.setTimeout(()=>urls.revokeObjectURL(uri),30000);
+   }
+  }
+ });
+ for(const field of [question,...names,...numbers])
+  field.addEventListener('input',sync);
+ sync();
+ return true;
+}
+const api=Object.freeze({bindForm,IDS});
+if(typeof module!=='undefined'&&module.exports)module.exports=api;
+if(root?.document){
+ root.REPORT_WORK_SKILL_DECISION_PRIVATE_EXPORT_UI=api;
  if(root.document.readyState==='loading')
   root.document.addEventListener('DOMContentLoaded',()=>bindForm(root.document));
  else bindForm(root.document);
