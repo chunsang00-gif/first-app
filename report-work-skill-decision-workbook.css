@@ -23,6 +23,7 @@
 .workbook-choice-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 .workbook-choice-card{padding:14px;background:#fff;border:1px solid #d4dedb;border-radius:12px;min-width:0}
 .workbook-choice-card strong{display:block;font-size:14px;line-height:1.6;color:#263c39}
+.workbook-choice-subject{display:block;margin:6px 0 0;font-size:12px;font-weight:700;line-height:1.6;color:#4a655c;overflow-wrap:anywhere}
 .workbook-choice-card p{font-size:12.5px;line-height:1.7;color:#51635e;margin:7px 0 0;overflow-wrap:anywhere}
 .workbook-option-list,.workbook-check-list{margin:4px 0 12px;padding-left:22px;line-height:1.75;font-size:13px;color:#344b44}
 .workbook-option-list li,.workbook-check-list li{margin:7px 0}
