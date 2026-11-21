@@ -13,8 +13,8 @@ assert.equal(noChoice.reason,'no-guaranteed-independent-first-chapter-paragraph'
 assert.equal(offer.build(base).actualProseNotYetGenerated,true,
  'building a free scope or unsigned merchant fingerprint cannot reserve money');
 const good=gate.inspect({...base,readerDecision:choice});
-assert.equal(good.eligible,true);
-assert.equal(good.reason,'verified-hour-addition-awaits-human-review');
+assert.equal(good.eligible,false);
+assert.equal(good.reason,'hour-role-already-in-other-natal-pillar-unreviewed-positional-meaning');
 assert.equal(good.existingModelCalls,0);
 assert.equal(good.additionalModelCalls,0);
 assert.equal(good.modelQualityValidated,false);
@@ -24,8 +24,8 @@ for(const question of [
  '기존 일을 유지할지, 아니면 새로운 기술을 배울지 고민 중입니다.'
 ]){
  const withPunctuation=gate.inspect({...base,readerDecision:question});
- assert.equal(withPunctuation.eligible,true,
-  'comma/아니면 must keep the two-choice paid writer path instead of a single concern');
+ assert.equal(withPunctuation.eligible,false,
+  'comma/아니면 must not bypass the full natal repetition blocker');
  assert.equal(withPunctuation.customerSaleApproved,false);
  assert.equal(withPunctuation.additionalModelCalls,0);
 }
@@ -43,7 +43,7 @@ assert.equal(offer.build(unrelated).actualProseNotYetGenerated,true,
  'unqualified coverage preview is still inspectable without charge');
 const context={currentWork:'출하 전 품질 검수',targetSkill:'지게차 실습'};
 const withContext=gate.inspect({...base,readerDecision:choice,decisionContext:context});
-assert.equal(withContext.eligible,true);
+assert.equal(withContext.eligible,false);
 const unparseable={...base,readerDecision:'새로운 기술을 배우고 싶습니다.',
  decisionContext:context};
 const unparseableResult=gate.inspect(unparseable);
@@ -57,4 +57,4 @@ assert.equal(sameLabels.eligible,false,
 assert.equal(sameLabels.additionalModelCalls,0);
 const noTime=gate.inspect({...base,birthTime:'',unknownBirthTime:true,readerDecision:choice});
 assert.equal(noTime.eligible,false);
-console.log('PASS zero-cost checkout gate blocks month-only paid first chapters and preserves source-qualified current-choice first chapter');
+console.log('PASS zero-cost precharge rejects repeated hour roles across the natal chart');
