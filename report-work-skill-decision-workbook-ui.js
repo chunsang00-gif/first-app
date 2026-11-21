@@ -95,8 +95,22 @@ function bindForm(doc,apis={}){
     readerDecision:question.value,constraints
    });
   }catch(error){
+   // This error can occur BEFORE optional work/skill names are provided.
+   // Keep the exact invalid field and permitted range accessible.
+   const prefix='WORKBOOK_CONSTRAINT_INVALID:';
+   const key=String(error?.message||'').startsWith(prefix)?
+    String(error.message).slice(prefix.length):null;
+   const index=FIELD_IDS.indexOf(key);
+   if(index>=0){
+    fields[index].setAttribute('aria-invalid','true');
+    fields[index].setAttribute('aria-describedby','workSkillWorkbookLiveStatus');
+   }
+   const spec=index>=0?workbook.FIELDS[FIELD_IDS[index]]:null;
+   const label=index>=0?fields[index].getAttribute('data-field-label'):null;
    show('입력값을 확인해 주세요',
-    '시간은 0.5시간 단위, 기간은 1~260주, 금액은 0원 이상의 정수로 입력해 주세요.','invalid');
+    spec?(label+': '+spec.min+'~'+spec.max+spec.unit+
+     ', '+spec.step+spec.unit+' 단위로 입력해 주세요.'):
+     '시간은 0.5시간 단위, 기간은 1~260주, 금액은 0원 이상의 정수로 입력해 주세요.','invalid');
    return;
   }
   if(!submitted.currentWork||!submitted.targetSkill){
