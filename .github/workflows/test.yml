@@ -146,6 +146,13 @@ jobs:
           REPORT_QA_CONFIRM: ''
           REPORT_QA_ALLOW_PAYMENT: ''
         run: node qa-luna-private-first-chapter-review-tests.js
+      - name: Validate customer-reported work-vs-learning workbook with real hour/budget math and missing-data guard (NO AI)
+        env:
+          OPENAI_API_KEY: ''
+          REPORT_MODEL_URL: ''
+          REPORT_QA_CONFIRM: ''
+          REPORT_QA_ALLOW_PAYMENT: ''
+        run: node qa-work-skill-decision-workbook-tests.js
       - name: Compare same-reader HOUR-to-month versus HOUR-to-day BRANCH relations for non-generic product method (NO API)
         env:
           OPENAI_API_KEY: ''
