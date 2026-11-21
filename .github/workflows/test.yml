@@ -146,6 +146,13 @@ jobs:
           REPORT_QA_CONFIRM: ''
           REPORT_QA_ALLOW_PAYMENT: ''
         run: node qa-luna-private-first-chapter-review-tests.js
+      - name: Verify customer-choice comparison report shows precise weekly-hour, extended-period and budget alternatives (NO API)
+        env:
+          OPENAI_API_KEY: ''
+          REPORT_MODEL_URL: ''
+          REPORT_QA_CONFIRM: ''
+          REPORT_QA_ALLOW_PAYMENT: ''
+        run: node qa-work-skill-decision-comparison-tests.js
       - name: Exercise REAL Step-01 workbook browser preview in JS VM and compare Node calculation (NO HTTP / AI)
         env:
           OPENAI_API_KEY: ''
