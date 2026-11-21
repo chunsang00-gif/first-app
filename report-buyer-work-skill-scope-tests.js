@@ -81,11 +81,18 @@ const sequence=[
  'report-buyer-work-skill-scope.js','report-buyer-decision-context.js',
  'report-work-skill-decision-workbook.js','report-work-skill-decision-comparison.js',
  'report-work-skill-decision-workbook-ui.js',
+ 'report-work-skill-decision-private-export.js',
+ 'report-work-skill-decision-private-export-ui.js',
  'live-report-ui.js'
 ];
 const positions=sequence.map(src=>html.indexOf('<script src="'+src+'"></script>'));
 assert(positions.every(x=>x>=0)&&positions.every((x,i)=>i===0||x>positions[i-1]),
  'existing work/skill scope must load before shared workbook logic, live report after');
+for(const id of [
+ 'workSkillExport','workSkillExportPrepare','workSkillExportCopy',
+ 'workSkillExportSave','workSkillExportText','workSkillExportStatus'
+])assert(html.includes('id="'+id+'"'),'work58 real input screen must provide '+id);
+assert(html.includes('숫자도 개인 정보일 수 있으므로 공유 전 확인하세요.'));
 assert(html.includes('REPORT_BUYER_WORK_SKILL_SCOPE?.supportsDecision(val(\'readerDecision\'))'));
 assert(html.includes("inputError('targetSkill','현재 하는 일과 새로 배우려는 기술은 둘 다 적거나 둘 다 비워 주세요.')"));
 assert(html.includes("inputError('currentWork','현재 하는 일과 새로 배우려는 기술은 둘 다 적거나 둘 다 비워 주세요.')"));
