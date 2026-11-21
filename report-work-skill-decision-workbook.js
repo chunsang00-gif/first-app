@@ -3,8 +3,15 @@
 // decision constraints. This is NOT natal/MBTI evidence, a prediction,
 // financial advice, premium-sales approval, or a remote model request.
 // Existing customer checkout, provider writer and UI are NOT connected here.
-const context=require('./report-buyer-decision-context');
-const scope=require('./report-buyer-work-skill-scope');
+// One shared calculation implementation for the Node tests and the REAL
+// Step 01 browser preview. No duplicated or separately drifting arithmetic.
+(function(root){
+const context=typeof module!=='undefined'&&module.exports?
+ require('./report-buyer-decision-context'):root?.REPORT_BUYER_DECISION_CONTEXT;
+const scope=typeof module!=='undefined'&&module.exports?
+ require('./report-buyer-work-skill-scope'):root?.REPORT_BUYER_WORK_SKILL_SCOPE;
+if(!context?.checked||!scope?.supportsDecision)
+ throw Error('WORKBOOK_REQUIRED_VALIDATORS_NOT_READY');
 const FIELDS=Object.freeze({
  weeklyStudyHours:{label:'일주일에 실제로 확보할 수 있는 학습시간',unit:'시간',min:0,max:168,step:0.5},
  requiredStudyHours:{label:'목표 기술을 익히는 데 필요하다고 입력한 시간',unit:'시간',min:0.5,max:10000,step:0.5},
@@ -135,4 +142,7 @@ function readerText(result){
  ];
  return line.join('\n');
 }
-module.exports={build,readerText,parseValues,FIELDS};
+const api=Object.freeze({build,readerText,parseValues,FIELDS});
+if(typeof module!=='undefined'&&module.exports)module.exports=api;
+if(root?.document)root.REPORT_WORK_SKILL_DECISION_WORKBOOK=api;
+})(typeof window!=='undefined'?window:null);
