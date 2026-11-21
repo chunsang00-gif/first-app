@@ -26,8 +26,8 @@ assert.deepEqual(review.sameExactStemOtherNatalPositions.map(x=>x.sourceId),[
 assert.equal(review.salesApproved,false);
 assert.equal(review.separatePaidValueEstablished,false);
 assert.equal(review.locationSpecificClassicalPriorityProved,false);
-assert.equal(precharge.inspect(qualified).eligible,true,
- 'old precharge is technically FREE-visible novelty only; review must not relabel it as full-natal uniqueness');
+assert.equal(precharge.inspect(qualified).eligible,false,
+ 'the ACTUAL precharge must block same-stem hour repetition in year/day');
 let total=0,hourCandidates=0,otherNatalRepeat=0,notExactRepeat=0,technicalQualified=0;
 for(const year of [1982,1994,2006,2018])
  for(const month of [1,4,7,10])
@@ -63,7 +63,7 @@ console.log('HOUR_ALL_NATAL_SYMBOL_AUDIT='+JSON.stringify({
  noOtherExactStemFound:notExactRepeat,
  legacy1982SkillFirstChapter:{sameStemAt:[
  'natal.year.hidden.丁','natal.day.hidden.丁'],
- technicalPrechargePassButNoNewNATALCategory:true},
+ technicalPrechargeNowBlocksRepeatedNATALCategory:true},
  actualPaidManuscriptsValidated:0,modelCalls:0,
  merchantCalls:0,newSaleApproved:false
 }));
