@@ -10,6 +10,7 @@ const FIELD_IDS=Object.freeze([
 function bindForm(doc,apis={}){
  const scope=apis.scope||root?.REPORT_BUYER_WORK_SKILL_SCOPE;
  const workbook=apis.workbook||root?.REPORT_WORK_SKILL_DECISION_WORKBOOK;
+ const comparison=apis.comparison||root?.REPORT_WORK_SKILL_DECISION_COMPARISON;
  const context=apis.context||root?.REPORT_BUYER_DECISION_CONTEXT;
  const question=doc?.getElementById?.('readerDecision');
  const current=doc?.getElementById?.('currentWork');
@@ -17,7 +18,7 @@ function bindForm(doc,apis={}){
  const panel=doc?.getElementById?.('workSkillWorkbook');
  const result=doc?.getElementById?.('workSkillWorkbookResult');
  const fields=FIELD_IDS.map(id=>doc?.getElementById?.('wb-'+id));
- if(!scope?.supportsDecision||!workbook?.build||!context?.inspect||
+ if(!scope?.supportsDecision||!workbook?.build||!comparison?.build||!context?.inspect||
     !question||!current||!target||!panel||!result||
     fields.some(x=>!x))return false;
  const node=(tag,text,cssClass)=>{
@@ -71,11 +72,12 @@ function bindForm(doc,apis={}){
     constraints[FIELD_IDS[i]]=Number(raw);
    }
   }
-  let report;
+  let report,decisionReport;
   try{
    report=workbook.build({
     readerDecision:question.value,decisionContext:submitted,constraints
    });
+   decisionReport=comparison.build(report);
   }catch(e){
    // Never display arbitrary exception detail or purchaser input as HTML.
    // Native field bounds and the SAME Node validator remain authoritative.
@@ -114,10 +116,32 @@ function bindForm(doc,apis={}){
    add('교육비에서 추가로 필요한 금액',
     fmt(report.budget.additionalKRWNeeded)+'원');
   }
-  for(const check of report.checks)
-   nodes.push(node('p',check,'workbook-result-advice'));
+  // The separate source-bound comparison makes visible which option
+  // has numeric inputs and which cannot yet be assessed. Do not imply an
+  // astrology-based verdict or claim a new career recommendation.
+  nodes.push(node('h4','두 선택에서 확인할 내용','workbook-compare-title'));
+  const cards=node('div','','workbook-choice-grid');
+  for(const choice of decisionReport.choices){
+   const card=node('section','','workbook-choice-card');
+   card.append(node('strong',choice.title),
+    node('p',choice.text));
+   cards.append(card);
+  }
+  nodes.push(cards);
+  if(decisionReport.waysToAdjust.length){
+   nodes.push(node('h4','부족한 조건을 바꾸는 계산상 방법','workbook-compare-title'));
+   const options=node('ul','','workbook-option-list');
+   for(const option of decisionReport.waysToAdjust)
+    options.append(node('li',option.text));
+   nodes.push(options);
+  }
+  nodes.push(node('h4','직접 확인할 사항','workbook-compare-title'));
+  const checks=node('ul','','workbook-check-list');
+  for(const check of decisionReport.nextChecks)
+   checks.append(node('li',check));
+  nodes.push(checks);
   nodes.push(node('p',
-   '무료 계산 미리보기입니다. 모든 수치는 직접 입력한 예상값을 사용합니다. 실제 수료·직장 성과를 보장하거나 사주·MBTI로 판단하지 않으며, 결제·AI 호출·저장은 하지 않습니다.',
+   '무료 선택 비교입니다. 모든 수치는 직접 입력한 예상값을 사용합니다. 실제 수료·직장 성과를 보장하거나 사주·MBTI로 판단하지 않으며, 결제·AI 호출·저장은 하지 않습니다.',
    'workbook-result-disclaimer'));
   result.replaceChildren(...nodes);
   result.setAttribute('data-workbook-status',report.status);
