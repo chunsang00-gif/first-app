@@ -71,6 +71,7 @@ function answer(body){
  // The approved 2026-11-19 call was already consumed. The new
  // editorial contract has changed; the spent old consent MUST now reject
  // any attempt rather than silently authorizing the revised payload.
- await assert.rejects(()=>q.preflight(),/frozen-new-first-request-drift/);
+ await assert.rejects(()=>q.preflight(),
+  /NEXT_QA_NO_NEW_INDEPENDENT_EDITORIAL_SOURCE|frozen-new-first-request-drift/);
  console.log('PASS second Terra single-use workflow: consent SHA, old approval rejected, duplicate dispatch rejected, exact new request hash preflight; providerCalls=0');
 })().catch(err=>{console.error(err);process.exitCode=1});
