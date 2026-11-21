@@ -88,7 +88,7 @@ n('currentWork').emit();
 n('targetSkill').value='엑셀 자동화';
 n('targetSkill').emit();
 assert.equal(status(),'additional-customer-facts-required');
-assert(shown().includes('주당 학습시간'));
+assert(shown().includes('일주일에 실제로 확보할 수 있는 학습시간'));
 const fill=(entries)=>{
  for(const [id,v] of Object.entries(entries)){
   n('wb-'+id).value=String(v);
@@ -121,7 +121,7 @@ assert(shown().includes('200,000원'));
 n('wb-availableBudgetKRW').value='';
 n('wb-availableBudgetKRW').emit();
 assert.equal(status(),'additional-customer-facts-required');
-assert(shown().includes('사용 가능한 교육 예산'));
+assert(shown().includes('배움에 쓸 수 있는 예산'));
 assert(!shown().includes('200,000원 부족'));
 n('wb-trainingCostKRW').value='-50';
 n('wb-trainingCostKRW').emit();
