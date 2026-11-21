@@ -59,3 +59,15 @@
 .workbook-optional-budget .workbook-fields{margin-top:8px}
 .workbook-result[data-workbook-status="partial-capacity-preview"] .workbook-result-heading{color:#2c5b50}
 @media(max-width:480px){.workbook-optional-budget{padding:4px 9px 10px}}
+
+/* Work58: explicit local number-only TXT export; nothing auto-submitted. */
+.workbook-export{margin-top:18px;padding:15px;border:1px solid #d4e2dc;border-radius:13px;background:#fff}
+.workbook-export h4{font-size:15px;font-weight:850;line-height:1.55;margin:0 0 6px;color:#25463e}
+.workbook-export p{font-size:12.5px;line-height:1.75;color:#556a62;margin:5px 0 12px}
+.workbook-export-actions{display:flex;gap:8px;flex-wrap:wrap}
+.workbook-export-actions button{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:9px 12px;border:1px solid #2a6555;border-radius:10px;background:#e9f5ef;color:#245544;font-size:13px;line-height:1.5;font-weight:750;cursor:pointer}
+.workbook-export-actions button:disabled{opacity:.55;cursor:default}
+.workbook-export-actions button:focus-visible{outline:3px solid #286653;outline-offset:2px}
+#workSkillExportText{width:100%;min-height:170px;margin-top:12px;padding:12px;border:1px solid #b9ccc2;border-radius:10px;background:#fafcfb;color:#243c34;font-family:system-ui,"Malgun Gothic",sans-serif;font-size:13px;line-height:1.7;resize:vertical}
+.workbook-export-status{margin-top:10px!important;overflow-wrap:anywhere}
+@media(max-width:480px){.workbook-export{padding:13px}.workbook-export-actions{flex-direction:column}.workbook-export-actions button{width:100%}}
