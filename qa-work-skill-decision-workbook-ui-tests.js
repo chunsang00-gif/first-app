@@ -153,7 +153,7 @@ n('readerDecision').value='기존 일을 유지할지 새로운 기술을 배울
 n('readerDecision').emit();
 assert.equal(n('workSkillWorkbook').hidden,false);
 assert.equal(n('wb-weeklyStudyHours').value,'');
-assert.equal(status(),'hidden'===status()?false:true); // should request work/skill anew
+assert.equal(status(),'info'); // the reactivated preview must request work/skill anew
 assert(shown().includes('현재 하는 일과 배우려는 기술을 모두 적으면'));
 assert.equal(fetchCalls,0);
 console.log('PASS REAL STEP-01 WORKBOOK BROWSER/Node: live self-report, partial numbers, invalid, 0h, privacy reset and zero network/paid calls');
