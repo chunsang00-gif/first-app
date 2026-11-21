@@ -18,13 +18,19 @@ const files=[
 ];
 for(const name of files)assert(html.includes('<script src="'+name+'"></script>'));
 for(const id of [
- 'workSkillWorkbook','workSkillWorkbookResult','readerDecision',
+ 'workSkillWorkbook','workSkillWorkbookResult','workSkillWorkbookLiveStatus','readerDecision',
  'currentWork','targetSkill',
  'wb-weeklyStudyHours','wb-requiredStudyHours','wb-targetWeeks',
  'wb-trainingCostKRW','wb-availableBudgetKRW'
 ])assert(html.includes('id="'+id+'"'),'real wizard input missing: '+id);
 assert(html.includes('<link rel="stylesheet" href="report-work-skill-decision-workbook.css">'));
 assert(html.includes('aria-live="polite"')&&html.includes('무료 미리보기'));
+assert(html.includes('id="workSkillWorkbookResult" class="workbook-result" role="region"'));
+assert(html.includes('aria-label="학습 시간과 교육비 선택 비교 결과" aria-live="off"'));
+assert(html.includes('id="workSkillWorkbookLiveStatus"'));
+const stylesheet=source('report-work-skill-decision-workbook.css');
+for(const required of ['.workbook-glance','.workbook-missing-focus','.workbook-more-summary','@media(max-width:480px)'])
+ assert(stylesheet.includes(required),'mobile or keyboard styles missing: '+required);
 assert(!source('live-report-ui.js').includes('wb-weeklyStudyHours'));
 assert(!source('live-report-ui.js').includes('wb-trainingCostKRW'));
 class FakeNode{
@@ -38,6 +44,7 @@ class FakeNode{
  }
  addEventListener(event,fn){(this.listeners[event]??=[]).push(fn)}
  emit(event='input'){for(const fn of this.listeners[event]||[])fn()}
+ focus(){this.focused=true}
  get textContent(){return this._textContent+this.childNodes.map(c=>c.textContent||'').join('')}
  set textContent(value){this.childNodes=[];this._textContent=String(value??'')}
  replaceChildren(...items){this.childNodes=items;this._textContent=''}
@@ -75,9 +82,12 @@ for(const fn of docs.DOMContentLoaded)fn();
 const n=id=>nodes[id];
 const status=()=>n('workSkillWorkbookResult').getAttribute('data-workbook-status');
 const shown=()=>n('workSkillWorkbookResult').textContent;
+const live=()=>n('workSkillWorkbookLiveStatus').textContent;
+const findChild=className=>n('workSkillWorkbookResult').childNodes.find(x=>x.className===className);
 assert.equal(n('workSkillWorkbook').hidden,true);
 assert.equal(n('wb-weeklyStudyHours').disabled,true);
 assert.equal(status(),'hidden');
+assert.equal(live(),'');
 n('readerDecision').value='기존 일을 유지할지 새로운 기술을 배울지 고민 중입니다.';
 n('readerDecision').emit();
 assert.equal(n('workSkillContext').hidden,false);
@@ -89,7 +99,14 @@ n('currentWork').emit();
 n('targetSkill').value='엑셀 자동화';
 n('targetSkill').emit();
 assert.equal(status(),'additional-customer-facts-required');
-assert(shown().includes('일주일에 실제로 확보할 수 있는 학습시간'));
+assert(shown().includes('다음 입력: 일주일에 실제로 확보할 수 있는 학습시간'));
+const nextInput=findChild('workbook-missing-focus');
+assert(nextInput,'missing input must have a keyboard-operable focus shortcut');
+assert.equal(nextInput.type,'button','shortcut must never submit parent form');
+nextInput.emit('click');
+assert.equal(n('wb-weeklyStudyHours').focused,true);
+assert(live().includes('입력 대기 5개'));
+assert(live().length<180,'live region must not announce a whole report while typing');
 const fill=(entries)=>{
  for(const [id,v] of Object.entries(entries)){
   n('wb-'+id).value=String(v);
@@ -108,6 +125,19 @@ assert(shown().includes('엑셀 자동화'));
 assert(shown().includes('현재 일을 유지하는 경우'));
 assert(shown().includes('새 기술을 배우거나 병행하는 경우'));
 assert(shown().includes('실제 근무표와 수업 시간대'));
+assert(live().length<180);
+const firstDetails=findChild('workbook-more');
+assert(firstDetails);
+assert.equal(firstDetails.tagName,'details');
+assert.equal(firstDetails.open,false,'long comparison should be collapsed by default on mobile');
+assert.equal(firstDetails.childNodes[0].tagName,'summary','native keyboard summary required');
+firstDetails.open=true;
+firstDetails.emit('toggle');
+n('wb-availableBudgetKRW').value='200001';
+n('wb-availableBudgetKRW').emit();
+assert.equal(findChild('workbook-more').open,true,'details must remain open while customer edits input');
+n('wb-availableBudgetKRW').value='200000';
+n('wb-availableBudgetKRW').emit();
 assert(!shown().includes('부족한 조건을 바꾸는 계산상 방법'));
 assert(shown().includes('사주·MBTI로 판단하지 않으며'));
 const args={readerDecision:n('readerDecision').value,
@@ -132,6 +162,9 @@ assert(shown().includes('12주 연장'));
 assert(shown().includes('교육비 부족분 200,000원'));
 assert(shown().includes('현재 업무의 근무시간·소득·안정성'));
 assert(!shown().includes('이직해야 합니다'));
+assert(live().includes('학습시간 부족 36시간'));
+assert(live().includes('교육비 부족 200,000원'));
+assert(live().length<180,'no long repetitive live announcements');
 n('wb-availableBudgetKRW').value='';
 n('wb-availableBudgetKRW').emit();
 assert.equal(status(),'additional-customer-facts-required');
@@ -142,11 +175,13 @@ n('wb-trainingCostKRW').value='-50';
 n('wb-trainingCostKRW').emit();
 assert.equal(status(),'invalid');
 assert(shown().includes('숫자로 입력해 주세요'));
+assert.equal(n('wb-trainingCostKRW').attrs['aria-invalid'],'true');
 n('wb-trainingCostKRW').value='0';
 n('wb-trainingCostKRW').emit();
 n('wb-availableBudgetKRW').value='0';
 n('wb-availableBudgetKRW').emit();
 assert.equal(status(),'at-least-one-entered-constraint-not-met');
+assert.equal(n('wb-trainingCostKRW').attrs['aria-invalid'],'false');
 assert(shown().includes('0원'));
 n('wb-weeklyStudyHours').value='0';
 n('wb-weeklyStudyHours').emit();
@@ -166,6 +201,7 @@ assert.equal(n('wb-weeklyStudyHours').value,'');
 assert.equal(n('wb-trainingCostKRW').value,'');
 assert.equal(status(),'hidden');
 assert.equal(shown(),'');
+assert.equal(live(),'','stale screen-reader announcement must clear on topic change');
 n('readerDecision').value='기존 일을 유지할지 새로운 기술을 배울지 고민 중입니다.';
 n('readerDecision').emit();
 assert.equal(n('workSkillWorkbook').hidden,false);
