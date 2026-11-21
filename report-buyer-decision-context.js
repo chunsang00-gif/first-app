@@ -1,4 +1,6 @@
 'use strict';
+// Browser and Node share the exact same customer-input validator.
+(function(root){
 // Optional CUSTOMER-REPORTED decision context, NOT natal calculation evidence.
 // Missing context is legal; partial/unsafe context must be rejected. This
 // avoids suggesting a personal career answer from date/time alone.
@@ -39,4 +41,7 @@ function readerTask(input){
    '입력한 상황을 실제 경험·성격·능력·합격·성공의 사주 증거로 인용하지 않는다. 기존 무료 풀이를 새 설명인 것처럼 재사용하지 않는다.'
  });
 }
-module.exports={inspect,checked,readerTask,FIELDS,DISCLAIMER};
+const api=Object.freeze({inspect,checked,readerTask,FIELDS,DISCLAIMER});
+if(typeof module!=='undefined'&&module.exports)module.exports=api;
+if(root?.document)root.REPORT_BUYER_DECISION_CONTEXT=api;
+})(typeof window!=='undefined'?window:null);
