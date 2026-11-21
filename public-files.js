@@ -9,6 +9,7 @@ const files=new Set(['index.html','character-assets.css','result-dashboard.css',
  'free-calculation-state.js','birth-day-options.js',
  'report-buyer-work-skill-scope.js',
  'report-buyer-decision-context.js','report-work-skill-decision-workbook.js',
+ 'report-work-skill-decision-comparison.js',
  'report-work-skill-decision-workbook-ui.js',
  'report-work-skill-decision-workbook.css']);
 function resolvePublic(root,url){
