@@ -24,6 +24,14 @@ try{
  assert.deepEqual(all(late).map(x=>x.endpoints),[['month','hour']]);
  assert.deepEqual(all(early).map(x=>x.branches),['未丑']);
  assert.deepEqual(all(late).map(x=>x.branches),['丑未']);
+ assert.equal(all(early)[0].adjacentPillars,true);
+ assert.equal(all(late)[0].adjacentPillars,false);
+ assert.equal(all(early)[0].onePairNotDoubleWeight,true);
+ assert.equal(all(late)[0].onePairNotDoubleWeight,true);
+ assert(all(early)[0].samePairRelationLabels.includes('충'));
+ assert(all(early)[0].samePairRelationLabels.includes('형'));
+ assert(all(late)[0].samePairRelationLabels.includes('충'));
+ assert(all(late)[0].samePairRelationLabels.includes('형'));
  assert(early.freeCardCount>=2&&late.freeCardCount>=2,
   'real FREE card builders may combine sections: require their actual IDs, not a guessed number');
  assert(early.actualFreeCards.some(c=>c.id==='birth-month'));
@@ -49,6 +57,10 @@ try{
    birthTime:c.hourTime,hourPillar:c.hourPillar,
    distinctiveHourClashEndpoints:c.hourRelationDeltas
     .filter(r=>r.type==='충').map(r=>r.endpoints),
+   structuralClashAdjacency:c.hourRelationDeltas
+    .filter(r=>r.type==='충').map(r=>r.adjacentPillars),
+   collisionAndPunishmentSamePairNotDoubleEvent:c.hourRelationDeltas
+    .filter(r=>r.type==='충').every(r=>r.onePairNotDoubleWeight),
    allHourRelations:c.allHourPairs.map(r=>({
     kind:r.type,positions:r.positions,branches:r.branches
    })),
