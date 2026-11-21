@@ -55,7 +55,7 @@ class FakeNode{
 }
 const ids=[
  'readerDecision','workSkillContext','currentWork','targetSkill',
- 'workSkillWorkbook','workSkillWorkbookResult',
+ 'workSkillWorkbook','workSkillWorkbookResult','workSkillWorkbookLiveStatus',
  'wb-weeklyStudyHours','wb-requiredStudyHours','wb-targetWeeks',
  'wb-trainingCostKRW','wb-availableBudgetKRW'
 ];
