@@ -7,11 +7,15 @@
 const workbook=typeof module!=='undefined'&&module.exports?
  require('./report-work-skill-decision-workbook'):
  root?.REPORT_WORK_SKILL_DECISION_WORKBOOK;
-if(!workbook?.quickPreview)throw Error('WORK58_WORKBOOK_CALCULATION_REQUIRED');
+const comparisonEngine=typeof module!=='undefined'&&module.exports?
+ require('./report-work-skill-decision-comparison'):
+ root?.REPORT_WORK_SKILL_DECISION_COMPARISON;
+if(!workbook?.quickPreview||!workbook?.build||!comparisonEngine?.build)
+ throw Error('WORK58_SHARED_CALCULATIONS_REQUIRED');
 const format=x=>Number(x).toLocaleString('ko-KR');
 const FILENAME='learning-time-budget-summary.txt';
 const DEFAULT_QUESTION='기존 일을 유지할지 새로운 기술을 배울지 고민 중입니다.';
-function compose({preview,comparison=null}={}){
+function compose({preview}={}){
  if(preview?.kind!=='buyer-self-reported-partial-work-skill-capacity-v1'||
     preview.scope!=='arithmetic-only-no-career-recommendation'||
     preview.natalEvidenceUsed!==false||preview.mbtiPredictionUsed!==false||
@@ -29,23 +33,18 @@ function compose({preview,comparison=null}={}){
   throw Error('WORK58_INCONSISTENT_NUMERIC_PREVIEW:'+key);
  if(!clean.capacityKnown&&!clean.requiredWeeklyKnown&&!clean.moneyKnown)
   throw Error('WORK58_NOTHING_CALCULATED_TO_EXPORT');
- if(comparison!==null){
-  if(comparison.kind!=='self-reported-work-vs-learning-comparison-v1'||
-     comparison.evidenceKind!=='buyer-self-report-only'||
-     comparison.natalEvidenceUsed!==false||
-     comparison.mbtiPredictionUsed!==false||
-     comparison.modelCalls!==0||
-     comparison.paymentApproved!==false||
-     comparison.cannotChooseForCustomer!==true)
-   throw Error('WORK58_UNTRUSTED_COMPARISON');
-  if(comparison.timeKnown!==clean.fullTimeKnown||
-     comparison.budgetKnown!==clean.moneyKnown||
-     (clean.fullTimeKnown&&
-      comparison.timeSummary.deficitHours!==clean.deficitHours)||
-     (clean.moneyKnown&&
-      comparison.budgetSummary.gapKRW!==clean.budgetGapKRW))
-   throw Error('WORK58_COMPARISON_NUMBERS_DO_NOT_MATCH_PREVIEW');
- }
+ // Build any more detailed alternatives from the customer NUMBERS but
+ // deliberately use fixed anonymous labels. This is not a formatter that
+ // silently exports arbitrary customer-written context or a report fragment.
+ const internallyComputed=comparisonEngine.build(workbook.build({
+  readerDecision:DEFAULT_QUESTION,
+  decisionContext:{currentWork:'현재 업무',targetSkill:'배울 기술'},
+  constraints:clean.sourceData
+ }));
+ if(internallyComputed.kind!=='self-reported-work-vs-learning-comparison-v1'||
+    internallyComputed.modelCalls!==0||
+    internallyComputed.paymentApproved!==false)
+  throw Error('WORK58_UNTRUSTED_COMPARISON_RESULT');
  const n=clean.sourceData;
  const line=(name,key,unit)=>name+': '+
   (n[key]===null?'미입력':format(n[key])+unit);
@@ -77,9 +76,9 @@ function compose({preview,comparison=null}={}){
     format(clean.weeksOnSchedule)+'주'));
  if(clean.moneyKnown)lines.push(
   '교육비 부족 금액: '+format(clean.budgetGapKRW)+'원');
- if(comparison!==null&&comparison.waysToAdjust.length){
+ if(internallyComputed.waysToAdjust.length){
   lines.push('','[검토할 수 있는 조건 변경]');
-  for(const option of comparison.waysToAdjust){
+  for(const option of internallyComputed.waysToAdjust){
    if(!['schedule','budget'].includes(option.kind)||
       typeof option.text!=='string'||option.text.length>300)
     throw Error('WORK58_INVALID_COMPARISON_OPTION');
