@@ -55,6 +55,7 @@ function bindForm(doc,apis={}){
     item.value='';
     item.disabled=true;
     item.setAttribute('aria-invalid','false');
+    item.removeAttribute?.('aria-describedby');
    }
    result.replaceChildren();
    result.setAttribute('data-workbook-status','hidden');
@@ -65,6 +66,7 @@ function bindForm(doc,apis={}){
   for(const item of fields){
    item.disabled=false;
    item.setAttribute('aria-invalid','false');
+   item.removeAttribute?.('aria-describedby');
   }
   const submitted={currentWork:current.value.trim(),targetSkill:target.value.trim()};
   if(!submitted.currentWork||!submitted.targetSkill){
