@@ -153,6 +153,19 @@ jobs:
           REPORT_QA_CONFIRM: ''
           REPORT_QA_ALLOW_PAYMENT: ''
         run: node qa-work-skill-decision-comparison-tests.js
+      - name: Verify standalone offline mobile trial embeds CURRENT product modules and runs the synthetic user journey (NO API)
+        env:
+          OPENAI_API_KEY: ''
+          REPORT_MODEL_URL: ''
+          REPORT_QA_CONFIRM: ''
+          REPORT_QA_ALLOW_PAYMENT: ''
+        run: node qa-workbook-mobile-offline-trial-tests.js
+      - name: Attach standalone FREE offline HTML for hands-on mobile usability trial (NOT A DEPLOY)
+        uses: actions/upload-artifact@v4
+        with:
+          name: work57-single-file-offline-mobile-trial
+          path: workbook-mobile-offline-trial.html
+          retention-days: 14
       - name: Exercise REAL Step-01 workbook browser preview in JS VM and compare Node calculation (NO HTTP / AI)
         env:
           OPENAI_API_KEY: ''
