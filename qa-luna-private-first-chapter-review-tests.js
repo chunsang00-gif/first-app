@@ -84,11 +84,17 @@ async function run(){
   assert(html.includes('검수 상태: 출시 불가 / 사람 확인 필수'));
   assert(html.includes('고객 판매 승인을 자동으로 바꾸지 않습니다'));
   const changed=structuredClone(original);
+  changed.summary.status='stopped-no-retry';
+  changed.summary.automatedValidated=false;
+  changed.validated=null;
   changed.raw.response.chapters.saju_core.paragraphs.temperament.basis.refs=['natal.month.stem'];
   const wrongRefs=reviewer.build(changed);
   assert.equal(wrongRefs.status,'machine-or-editorial-defects-found');
   assert(wrongRefs.independentMechanicalIssues.includes('missing-hour-pair-citations'));
   const generic=structuredClone(original);
+  generic.summary.status='stopped-no-retry';
+  generic.summary.automatedValidated=false;
+  generic.validated=null;
   generic.raw.response.chapters.saju_core.paragraphs.temperament.text=
    '태어난 시간은 결과물을 완성하는 뜻을 살핍니다. '+
    '현재 일을 유지할 경우 충분한 정보를 확인합니다. '+
@@ -98,6 +104,9 @@ async function run(){
   assert(weak.independentMechanicalIssues.length>0,
    'an introductory hour gloss followed by generic two-option advice must fail');
   const missing=structuredClone(original);
+  missing.summary.status='stopped-no-retry';
+  missing.summary.automatedValidated=false;
+  missing.validated=null;
   missing.raw.response.chapters.saju_core.paragraphs.temperament=null;
   const noHour=reviewer.build(missing);
   assert(noHour.independentMechanicalIssues.includes(
