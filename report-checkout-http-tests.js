@@ -75,11 +75,39 @@ const server=http.createServer(require('./server').handler);
    {analysisInput:{status:'ready',calculationInput:thinInput}});
   assert.equal(thin.code,422);
   assert.equal(chargeAttempts,0);
-  // Use the chart + self-reported choice already proven to produce a
-  // separate, REQUIRED birth-hour paragraph in the real paid writer.
-  const input={calendar:'lunar',birthDate:'1982-11-24',leapMonth:false,
+  // The former paid example is a REPEATED birth-hour symbol:
+  // HOUR 丁 is already in YEAR/DAY. Even simulated merchant+human flags
+  // cannot bypass the actual first-chapter precharge value test.
+  const repeatedInput={calendar:'lunar',birthDate:'1982-11-24',leapMonth:false,
    birthTime:'14:20',gender:'male',mbti:'ISFP',name:'testing',
    readerDecision:'기존 일을 유지할지 새로운 기술을 배울지 고민 중입니다.'};
+  const repeated=await post('/api/checkout/start',
+   {analysisInput:{status:'ready',calculationInput:repeatedInput}});
+  assert.equal(repeated.code,422);
+  assert.equal(repeated.data.code,'FIRST_CHAPTER_VALUE_NOT_READY');
+  assert.equal(chargeAttempts,0);
+  assert.equal(modelAttempts,0);
+  // Test the existing isolated payment/owner contract only with a
+  // DIFFERENT, genuinely UNREPEATED natal role. This is a test process
+  // with mocked approval, not an actual commercial go-live.
+  const precharge=require('./report-paid-core-precharge-value');
+  let input=null;
+  outer:for(const year of [1982,1994,2006,2018]){
+   for(const month of [1,4,7,10]){
+    for(const hour of [0,2,4,6,8,10,12,14,16,18,20,22]){
+     const candidate={calendar:'solar',
+      birthDate:year+'-'+String(month).padStart(2,'0')+'-15',
+      birthTime:String(hour).padStart(2,'0')+':20',
+      gender:'male',mbti:'ISFP',name:'testing',
+      readerDecision:repeatedInput.readerDecision};
+     const checked=precharge.inspect(candidate);
+     if(checked.eligible===true&&checked.wholeNatalHourRoleNotRepeated===true){
+      input=candidate;break outer;
+     }
+    }
+   }
+  }
+  assert(input,'need a genuine distinct-natal-role test case to test otherwise valid order ownership');
   // The natal hour source genuinely exists, yet the user's question has
   // no focus recognized by this exact post-provider reader gate. No order
   // or simulated merchant call is permitted, even with all sales flags.
