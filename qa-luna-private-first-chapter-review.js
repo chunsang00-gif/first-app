@@ -212,9 +212,12 @@ function renderHtml(record){
  const issues=record.independentMechanicalIssues;
  const esc=x=>String(x).replace(/[&<>"']/g,c=>
   ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const machineMessage=record.machineReportedPass?
+  '기존 자동 검수 통과(사람 품질 미검증)':
+  '기존 자동 검수 불합격(재호출 금지)';
  const notice='<section role="alert" style="padding:12px 16px;background:#fff1dd;'+
   'border:1px solid #c49b4f;border-radius:8px"><strong>검수 상태: 출시 불가 / 사람 확인 필수</strong>'+
-  '<p>AI 원문이 생성돼도 자동 검증만으로 유료 판매할 수 없습니다. 기계 검토 발견 '+issues.length+
+  '<p>'+esc(machineMessage)+'. AI 원문이 생성돼도 자동 검증만으로 유료 판매할 수 없습니다. 기계 검토 발견 '+issues.length+
   '건. 기존 무료와 반드시 대조하세요.</p>'+
   (issues.length?'<ul>'+issues.map(s=>'<li>'+esc(s)+'</li>').join('')+'</ul>':'')+
   '</section>';
