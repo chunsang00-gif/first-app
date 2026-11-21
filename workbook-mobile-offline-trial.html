@@ -1,0 +1,931 @@
+<!doctype html>
+<html lang="ko">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'none'; form-action 'none'; img-src 'none'; font-src 'none'; object-src 'none'; base-uri 'none'">
+<title>시간·예산 비교 — 비공개 오프라인 체험</title>
+<style>
+*{box-sizing:border-box}
+:root{color-scheme:light;font-family:system-ui,-apple-system,"Malgun Gothic",sans-serif;background:#eef3f1;color:#1f3530}
+body{margin:0;padding:22px 14px 55px;font-size:15px;line-height:1.65}
+main{max-width:750px;margin:auto}
+header{padding:26px 23px;background:#173b35;color:white;border-radius:19px;margin-bottom:16px}
+header h1{font-size:25px;line-height:1.32;margin:6px 0 10px}
+header p{font-size:13px;line-height:1.7;margin:0;color:#dce9e4}
+.kicker{font-weight:800;letter-spacing:.05em;font-size:11px;color:#b5e8d7}
+section.base,section.howto{background:white;border:1px solid #d6e1db;border-radius:17px;padding:21px;margin:13px 0}
+h2{font-size:18px;margin:0 0 9px}h3{margin:0 0 7px;font-size:16px}
+p.hint{margin:0 0 14px;color:#556e64;font-size:13px}
+.field{display:flex;flex-direction:column;gap:5px;margin:0 0 13px}
+.field label{font-weight:700;font-size:13px;line-height:1.6}
+input,textarea,select{display:block;width:100%;min-height:46px;padding:10px 12px;border:1px solid #b7c9c0;background:white;border-radius:10px;color:#243a33;font-size:16px;font-family:inherit}
+input:focus-visible,textarea:focus-visible,select:focus-visible{outline:3px solid #286653;outline-offset:2px}
+input[aria-invalid=true]{border:2px solid #b03737}
+button{font-family:inherit;font-size:14px;cursor:pointer;border-radius:11px;border:1px solid #286653;min-height:44px;padding:10px 14px;font-weight:750;background:#286653;color:white}
+button.secondary{background:white;color:#286653}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0}
+.hidden,[hidden]{display:none!important}
+.privacy{padding:13px 16px;background:#f5f8f7;border-radius:10px;font-size:12px;color:#436357}
+.privacy strong{color:#214436}
+#trialFeedbackSummary{min-height:100px;resize:vertical;font-size:14px;line-height:1.6}
+.workbook-preview{margin:15px 0 0}
+@media(max-width:480px){body{padding:12px 10px 36px}header{padding:20px 18px}header h1{font-size:22px}section.base,section.howto{padding:16px}.actions{flex-direction:column}.actions button{width:100%}}
+
+/* Original current product stylesheet below. */
+/* Optional free workbook preview in step one. No payment/upsell styling. */
+.workbook-preview{margin:12px 0 20px;padding:18px;border:1px solid #d8e2e3;border-radius:18px;background:#f7fbfa;box-shadow:0 3px 12px #163b3509}
+.workbook-preview h3{font-size:18px;letter-spacing:-.025em;line-height:1.4;margin:0 0 8px;color:#202c39}
+.workbook-preview>p{font-size:13px;line-height:1.75;color:#586371;margin:0 0 16px}
+.workbook-badge{display:inline-block;border:1px solid #c6d8d2;padding:3px 8px;border-radius:30px;font-size:11px;font-weight:850;margin-left:6px;vertical-align:middle;color:#325d50;background:#ecf6f2}
+.workbook-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 12px}
+.workbook-fields .field{margin:0}
+.workbook-fields label{min-height:38px;line-height:1.5;font-size:12.5px}
+.workbook-fields input{min-height:46px;font-size:16px;border-radius:10px;background:#fff}
+.workbook-result{margin-top:16px;border-top:1px solid #d8e3df;padding-top:15px;line-height:1.6}
+.workbook-result-heading{display:block;font-size:15px;line-height:1.65;color:#203c38;margin-bottom:8px}
+.workbook-result-note{font-size:13px;color:#596b65;line-height:1.7;margin:4px 0}
+.workbook-result-line{font-size:13.5px;line-height:1.7;margin:6px 0;color:#263a38;overflow-wrap:anywhere}
+.workbook-result-line strong{font-weight:750}
+.workbook-result-advice{font-size:13px;line-height:1.7;margin:10px 0 0;color:#354945}
+.workbook-result-disclaimer{font-size:12px;line-height:1.65;margin:14px 0 0;padding-top:12px;border-top:1px dashed #bdcbc7;color:#65716e}
+.workbook-result[data-workbook-status="invalid"]{border-color:#c1a19a}
+@media(max-width:560px){.workbook-fields{grid-template-columns:1fr}.workbook-fields label{min-height:0}.workbook-preview{padding:15px}}
+
+/* Work54 neutral comparison: cards distinguish unavailable evidence from
+   numeric learning constraints; nothing visually implies a recommendation. */
+.workbook-compare-title{font-size:15px;line-height:1.5;color:#20372f;font-weight:850;margin:18px 0 10px}
+.workbook-choice-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.workbook-choice-card{padding:14px;background:#fff;border:1px solid #d4dedb;border-radius:12px;min-width:0}
+.workbook-choice-card strong{display:block;font-size:14px;line-height:1.6;color:#263c39}
+.workbook-choice-subject{display:block;margin:6px 0 0;font-size:12px;font-weight:700;line-height:1.6;color:#4a655c;overflow-wrap:anywhere}
+.workbook-choice-card p{font-size:12.5px;line-height:1.7;color:#51635e;margin:7px 0 0;overflow-wrap:anywhere}
+.workbook-option-list,.workbook-check-list{margin:4px 0 12px;padding-left:22px;line-height:1.75;font-size:13px;color:#344b44}
+.workbook-option-list li,.workbook-check-list li{margin:7px 0}
+@media(max-width:560px){.workbook-choice-grid{grid-template-columns:1fr}}
+
+/* Work55: short screen-reader announcement; full multi-paragraph report
+   is not a live region. Native details/summary is keyboard operable. */
+.workbook-live-summary{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
+.workbook-glance{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:12px 0}
+.workbook-glance-cell{min-width:0;background:#fff;padding:13px;border:1px solid #d4dedb;border-radius:12px}
+.workbook-glance-label{display:block;font-size:12px;color:#586a64;line-height:1.5;margin-bottom:6px}
+.workbook-glance-value{display:block;font-size:23px;font-weight:850;line-height:1.35;font-variant-numeric:tabular-nums;letter-spacing:-.02em;overflow-wrap:anywhere}
+.workbook-missing-note{font-size:13px;line-height:1.6;color:#54665e;margin:8px 0}
+.workbook-missing-focus{display:inline-block;max-width:100%;min-height:44px;text-align:left;padding:10px 13px;border:1px solid #aecac0;color:#244c43;background:#fff;border-radius:11px;font-weight:750;font-size:13px;line-height:1.5;cursor:pointer}
+.workbook-missing-focus:focus-visible,.workbook-more-summary:focus-visible{outline:3px solid #2c6558;outline-offset:3px}
+.workbook-more{border-top:1px solid #d8e3df;margin-top:14px;padding-top:12px}
+.workbook-more-summary{display:list-item;min-height:44px;cursor:pointer;padding:11px 8px;color:#23564c;font-size:14px;font-weight:800;line-height:1.5}
+.workbook-more[open] .workbook-more-summary{margin-bottom:10px}
+.workbook-more .workbook-compare-title:first-of-type{margin-top:12px}
+.workbook-result[data-workbook-status="invalid"] .workbook-result-heading{color:#8b2828}
+@media(max-width:480px){
+ .workbook-glance{grid-template-columns:1fr;gap:8px}
+ .workbook-glance-value{font-size:22px}
+ .workbook-compare-title{margin:15px 0 8px}
+ .workbook-preview{padding:14px}
+}
+
+/* Work56: zero forced financial guesses. The three time fields are always
+   visible; cost/budget are optional and discoverable via native summary. */
+.workbook-optional-budget{margin-top:12px;padding:6px 10px 12px;border:1px solid #d8e2e3;border-radius:12px;background:#fff}
+.workbook-optional-budget summary{cursor:pointer;min-height:44px;padding:10px 5px;font-size:13.5px;font-weight:750;line-height:1.6;color:#275d51}
+.workbook-optional-budget summary:focus-visible{outline:3px solid #2c6558;outline-offset:2px}
+.workbook-optional-budget .workbook-fields{margin-top:8px}
+.workbook-result[data-workbook-status="partial-capacity-preview"] .workbook-result-heading{color:#2c5b50}
+@media(max-width:480px){.workbook-optional-budget{padding:4px 9px 10px}}
+
+</style>
+</head><body><main>
+<header><div class="kicker">개발 브랜치 · WORK57 · 무료 오프라인</div>
+<h1>현재 일을 유지할까, 새 기술을 배울까?</h1>
+<p>실제 앱과 같은 계산 코드로 시간과 교육비를 비교합니다. 사주·MBTI 개인 예측은 하지 않습니다. 실제 유료 보고서나 출시 버전이 아닙니다.</p></header>
+<section class="howto" aria-label="이용 순서"><h2>체험 방법</h2>
+<p class="hint">먼저 주당 학습시간과 목표 기간만 입력하세요. 궁금하면 필요한 총 학습시간도 추가하세요. 예상 교육비와 현재 업무·배울 기술의 이름은 선택입니다.</p>
+<div class="actions"><button id="trialExample" type="button">합성 예시 자동 입력</button><button id="trialClear" class="secondary" type="button">전체 입력 초기화</button></div>
+<p class="privacy"><strong>개인정보 주의:</strong> 이름·회사명·연락처는 입력하지 마세요. 이 HTML은 외부 연결 없이 계산하고 결과를 자동 저장하거나 제출하지 않습니다.</p></section>
+<section class="base" aria-label="실제 선택 질문"><h2>1. 고민과 실제 조건</h2>
+<div class="field"><label for="readerDecision">현재 고민</label><textarea id="readerDecision" maxlength="140" rows="2">기존 일을 유지할지 새로운 기술을 배울지 고민 중입니다.</textarea></div>
+<div id="workSkillContext" class="hidden" hidden aria-label="현재 일과 새 기술 선택 상세">
+<div class="field"><label for="currentWork">현재 업무 (선택)</label><input id="currentWork" maxlength="80" autocomplete="off" disabled placeholder="예: 물류 재고 확인"></div>
+<div class="field"><label for="targetSkill">배울 기술 (선택)</label><input id="targetSkill" maxlength="80" autocomplete="off" disabled placeholder="예: 엑셀 자동화"></div></div>
+<div id="workSkillWorkbook" class="workbook-preview hidden" hidden aria-labelledby="workbookTitle">
+<h3 id="workbookTitle">학습시간·교육비 간단 비교 <span class="workbook-badge">무료 미리보기</span></h3>
+<p>수치만 입력해도 계산됩니다. 모든 수치는 직접 입력한 예상값입니다.</p>
+<div class="workbook-fields">
+<div class="field"><label for="wb-weeklyStudyHours">매주 확보 가능한 학습시간 (시간)</label><input id="wb-weeklyStudyHours" data-field-label="주당 학습시간" type="number" min="0" max="168" step="0.5" inputmode="decimal" autocomplete="off" disabled placeholder="예: 8"></div>
+<div class="field"><label for="wb-requiredStudyHours">필요한 총 학습시간 (시간)</label><input id="wb-requiredStudyHours" data-field-label="필요 학습시간" type="number" min="0.5" max="10000" step="0.5" inputmode="decimal" autocomplete="off" disabled placeholder="예: 60"></div>
+<div class="field"><label for="wb-targetWeeks">목표 기간 (주)</label><input id="wb-targetWeeks" data-field-label="목표 기간" type="number" min="1" max="260" step="1" inputmode="numeric" autocomplete="off" disabled placeholder="예: 8"></div></div>
+<details id="workSkillBudgetOption" class="workbook-optional-budget"><summary>교육비·예산도 계산하기 (선택)</summary><div class="workbook-fields">
+<div class="field"><label for="wb-trainingCostKRW">예상 교육비 (원)</label><input id="wb-trainingCostKRW" data-field-label="예상 교육비" type="number" min="0" max="100000000" step="1" inputmode="numeric" autocomplete="off" disabled placeholder="예: 150000"></div>
+<div class="field"><label for="wb-availableBudgetKRW">사용 가능한 교육 예산 (원)</label><input id="wb-availableBudgetKRW" data-field-label="교육 예산" type="number" min="0" max="100000000" step="1" inputmode="numeric" autocomplete="off" disabled placeholder="예: 200000"></div></div></details>
+<div id="workSkillWorkbookLiveStatus" class="workbook-live-summary" role="status" aria-live="polite" aria-atomic="true" data-workbook-announcement="hidden"></div>
+<div id="workSkillWorkbookResult" class="workbook-result" role="region" aria-label="학습 시간과 교육비 선택 비교 결과" aria-live="off" data-workbook-status="hidden"></div>
+</div></section>
+<section class="howto" aria-label="선택 가능한 피드백">
+<h2>2. 직접 사용한 뒤 의견 정리</h2>
+<p class="hint">어려웠던 부분을 알려주시면 다음 수정에 반영할 수 있습니다. 이 파일은 피드백을 자동 제출하지 않습니다.</p>
+<div class="field"><label for="trialUnderstanding">계산 결과를 이해했나요?</label><select id="trialUnderstanding"><option value="not-tested">선택 안 함</option><option value="yes">이해했음</option><option value="partly">일부만 이해함</option><option value="no">이해하지 못함</option></select></div>
+<div class="field"><label for="trialDifficulty">어느 단계가 가장 어려웠나요?</label><select id="trialDifficulty"><option value="not-tested">선택 안 함</option><option value="opening">시작/문항 선택</option><option value="input">시간/기간 입력</option><option value="result">결과 확인</option><option value="adjust">실행 계획 해석</option><option value="none">어렵지 않음</option></select></div>
+<div class="actions"><button type="button" id="trialFeedbackCompose" class="secondary">피드백 문구 만들기</button></div>
+<div class="field"><label for="trialFeedbackSummary">직접 복사해 채팅에 붙여 주세요 (자동 제출 안 함)</label><textarea id="trialFeedbackSummary" rows="5" placeholder="위 항목을 고르고 피드백 문구 만들기를 누르세요."></textarea></div>
+</section>
+<p class="privacy">계산 결과는 고객 입력값의 산술 검토일 뿐 실제 학습 성공·직장 선택을 보장하지 않습니다. 사주×MBTI 유료 상품성은 검증되지 않았습니다.</p>
+</main>
+<script data-original-module="report-buyer-work-skill-scope.js">
+'use strict';
+// Shared server/browser eligibility for the OPTIONAL self-reported current
+// work + target skill fields. Those two details are meaningful only when
+// the customer's OWN question is whether to keep their work or learn a
+// skill. They are never Saju evidence, and never authorize a sale.
+(function(root){
+ // Keep client-side optional-context visibility aligned with the REAL
+ // paid two-choice reader parser, including commas and '아니면'.
+ const TWO_OPTIONS=/(.{2,70}?)([가-힣]지)(?:\s*(?:[,，;；/]|\s+)(?:\s*(?:아니면|혹은|또는))?\s*)(.{2,70}?)([가-힣]지)(?=\s|[,.!?。！？]|$)/;
+ const WORK=/(?:일|업무|직장|직무|회사|현직|재직|고용)/;
+ const KEEP=/(?:유지할지|계속할지|이어갈지|다닐지|남을지|버틸지)/;
+ const LEARNING=/(?:기술|자격|교육|훈련|실습|연습|학습|공부|배우|익히|수업|지게차|엑셀)/;
+ const LEARN_ACTION=/(?:배울지|익힐지|학습할지|공부할지|취득할지|실습할지|연습할지|훈련할지|수강할지)/;
+ function orderFor(question){
+  if(typeof question!=='string'||!question.trim()||question.length>140)return null;
+  const match=question.match(TWO_OPTIONS);
+  if(!match)return null;
+  const first=match[1]+match[2],second=match[3]+match[4];
+  const keep=text=>WORK.test(text)&&KEEP.test(text);
+  const learn=text=>LEARNING.test(text)&&LEARN_ACTION.test(text);
+  if(keep(first)&&learn(second))return 'work-first';
+  if(learn(first)&&keep(second))return 'skill-first';
+  return null;
+ }
+ function supportsDecision(question){return orderFor(question)!==null;}
+ function bindForm(document){
+  const question=document?.getElementById?.('readerDecision');
+  const wrap=document?.getElementById?.('workSkillContext');
+  const fields=['currentWork','targetSkill'].map(id=>document?.getElementById?.(id));
+  if(!question||!wrap||fields.some(x=>!x))return false;
+  const sync=()=>{
+   const enabled=supportsDecision(question.value);
+   wrap.hidden=!enabled;
+   wrap.classList?.toggle('hidden',!enabled);
+   for(const field of fields){
+    field.disabled=!enabled;
+    // Never leave irrelevant self-report attached to a different concern.
+    // No data is submitted for a hidden section, even on legacy form paths.
+    if(!enabled)field.value='';
+   }
+  };
+  question.addEventListener('input',sync);
+  sync();
+  return true;
+ }
+ const api=Object.freeze({orderFor,supportsDecision,bindForm});
+ if(typeof module!=='undefined'&&module.exports)module.exports=api;
+ if(root?.document){
+  root.REPORT_BUYER_WORK_SKILL_SCOPE=api;
+  if(root.document.readyState==='loading')
+   root.document.addEventListener('DOMContentLoaded',()=>bindForm(root.document));
+  else bindForm(root.document);
+ }
+})(typeof window!=='undefined'?window:null);
+
+</script>
+<script data-original-module="report-buyer-decision-context.js">
+'use strict';
+// Browser and Node share the exact same customer-input validator.
+(function(root){
+// Optional CUSTOMER-REPORTED decision context, NOT natal calculation evidence.
+// Missing context is legal; partial/unsafe context must be rejected. This
+// avoids suggesting a personal career answer from date/time alone.
+const FIELDS=Object.freeze(['currentWork','targetSkill']);
+const DISCLAIMER='고객이 직접 입력한 상황입니다. 사주 계산 사실이나 실제 업무 성과·학습 능력이 확인된 자료가 아닙니다.';
+const unsafe=v=>/[<>\r\n\u0000-\u001f\u007f]/.test(v)||
+ /(?:https?:\/\/|www\.|@|(?:\b01[016789][- ]?\d{3,4}[- ]?\d{4}\b))/i.test(v)||
+ /(?:\b(?:system|assistant|developer)\s*:|ignore\s+(?:all\s+)?(?:previous|instructions)|프롬프트\s*(?:무시|변경))/i.test(v);
+function inspect(input){
+ if(input===undefined||input===null)return {status:'not-provided',valid:true};
+ if(!input||typeof input!=='object'||Array.isArray(input)||
+    Object.keys(input).some(k=>!FIELDS.includes(k)))
+  return {status:'invalid',valid:false,code:'BUYER_DECISION_CONTEXT_FORMAT'};
+ const a=input.currentWork,b=input.targetSkill;
+ if(typeof a!=='string'||typeof b!=='string'||
+    [a,b].some(x=>x.trim().length<2||x.trim().length>80||unsafe(x)))
+  return {status:'invalid',valid:false,code:'BUYER_DECISION_CONTEXT_INCOMPLETE_OR_UNSAFE'};
+ return {status:'ready',valid:true,
+  data:Object.freeze({currentWork:a.trim(),targetSkill:b.trim()})};
+}
+function checked(input){
+ const v=inspect(input);
+ if(!v.valid)throw Error(v.code);
+ return v.status==='ready'?v.data:null;
+}
+function readerTask(input){
+ const data=checked(input);
+ if(!data)return null;
+ return Object.freeze({
+  kind:'buyer-self-reported-work-and-study-context-v1',
+  currentWork:data.currentWork,targetSkill:data.targetSkill,
+  evidenceKind:'user-entered-context',calculatedNatalFact:false,
+  observedWorkPerformance:false,observedLearningSpeed:false,
+  userProvidedTextMayBeWrong:true,jobOutcomePredicted:false,
+  interpretationLimits:DISCLAIMER,
+  writerGoal:'고객이 직접 적은 현재 일과 배우려는 기술의 내용이 다를 때만 두 선택의 구체적인 확인 조건에 반영한다. '+
+   '현재 일에서는 그 일의 기존 결과물·검토 기준을 가정으로 묻고, 배우려는 기술에서는 그 기술로 처음 완성할 연습 결과물·시간·준비물을 가정으로 묻는다. '+
+   '입력한 상황을 실제 경험·성격·능력·합격·성공의 사주 증거로 인용하지 않는다. 기존 무료 풀이를 새 설명인 것처럼 재사용하지 않는다.'
+ });
+}
+const api=Object.freeze({inspect,checked,readerTask,FIELDS,DISCLAIMER});
+if(typeof module!=='undefined'&&module.exports)module.exports=api;
+if(root?.document)root.REPORT_BUYER_DECISION_CONTEXT=api;
+})(typeof window!=='undefined'?window:null);
+
+</script>
+<script data-original-module="report-work-skill-decision-workbook.js">
+'use strict';
+// Offline adaptive product prototype: buyer-owned facts -> reproducible
+// decision constraints. This is NOT natal/MBTI evidence, a prediction,
+// financial advice, premium-sales approval, or a remote model request.
+// Existing customer checkout, provider writer and UI are NOT connected here.
+// One shared calculation implementation for the Node tests and the REAL
+// Step 01 browser preview. No duplicated or separately drifting arithmetic.
+(function(root){
+const context=typeof module!=='undefined'&&module.exports?
+ require('./report-buyer-decision-context'):root?.REPORT_BUYER_DECISION_CONTEXT;
+const scope=typeof module!=='undefined'&&module.exports?
+ require('./report-buyer-work-skill-scope'):root?.REPORT_BUYER_WORK_SKILL_SCOPE;
+if(!context?.checked||!scope?.supportsDecision)
+ throw Error('WORKBOOK_REQUIRED_VALIDATORS_NOT_READY');
+const FIELDS=Object.freeze({
+ weeklyStudyHours:{label:'일주일에 실제로 확보할 수 있는 학습시간',unit:'시간',min:0,max:168,step:0.5},
+ requiredStudyHours:{label:'목표 기술을 익히는 데 필요하다고 입력한 시간',unit:'시간',min:0.5,max:10000,step:0.5},
+ targetWeeks:{label:'목표 기간',unit:'주',min:1,max:260,step:1},
+ trainingCostKRW:{label:'배움에 필요한 총비용',unit:'원',min:0,max:100000000,step:1},
+ availableBudgetKRW:{label:'배움에 쓸 수 있는 예산',unit:'원',min:0,max:100000000,step:1}
+});
+const KEYS=Object.freeze(Object.keys(FIELDS));
+const MISSING_LABELS=Object.freeze(Object.fromEntries(
+ KEYS.map(k=>[k,FIELDS[k].label])
+));
+function cleanQuestion(question){
+ if(typeof question!=='string'||!question.trim()||question.length>140||
+    /[<>\r\n\u0000-\u001f\u007f]|(?:https?:\/\/|www\.|@)/i.test(question))
+  throw Error('WORKBOOK_BUYER_QUESTION_INVALID');
+ return question.trim();
+}
+function parseValues(entered){
+ if(entered===undefined||entered===null)entered={};
+ if(!entered||typeof entered!=='object'||Array.isArray(entered)||
+    Object.keys(entered).some(k=>!KEYS.includes(k)))
+  throw Error('WORKBOOK_UNKNOWN_OR_NONOBJECT_CONSTRAINT');
+ return Object.fromEntries(KEYS.map(k=>{
+  const v=entered[k],spec=FIELDS[k];
+  if(v===undefined||v===null||v==='')return [k,null];
+  if(typeof v!=='number'||!Number.isFinite(v)||
+     v<spec.min||v>spec.max||
+     Math.abs(v/spec.step-Math.round(v/spec.step))>1e-8)
+   throw Error('WORKBOOK_CONSTRAINT_INVALID:'+k);
+  return [k,v];
+ }));
+}
+// Quick capacity arithmetic is useful even before a customer has chosen
+// a job label, estimated total training hours, or offered a budget.
+// This is a lightweight FREE preview, not a buyer-facing career verdict.
+// Both this preview and the full comparison use the EXACT same values.
+function quickPreview({readerDecision,constraints}={}){
+ const question=cleanQuestion(readerDecision);
+ if(!scope.supportsDecision(question))
+  throw Error('WORKBOOK_ONLY_EXPLICIT_WORK_VERSUS_LEARNING_QUESTION');
+ const n=parseValues(constraints);
+ const known=k=>n[k]!==null;
+ const capacityKnown=known('weeklyStudyHours')&&known('targetWeeks');
+ const requiredWeeklyKnown=known('requiredStudyHours')&&known('targetWeeks');
+ const fullTimeKnown=capacityKnown&&known('requiredStudyHours');
+ const moneyKnown=known('trainingCostKRW')&&known('availableBudgetKRW');
+ const availableHoursByTarget=capacityKnown?
+  +(n.weeklyStudyHours*n.targetWeeks).toFixed(4):null;
+ const minimumWeeklyHoursForTarget=requiredWeeklyKnown?
+  Math.ceil(n.requiredStudyHours/n.targetWeeks*2)/2:null;
+ const deficitHours=fullTimeKnown?
+  +Math.max(0,n.requiredStudyHours-availableHoursByTarget).toFixed(4):null;
+ const weeksOnSchedule=fullTimeKnown?
+  (n.weeklyStudyHours===0?null:Math.ceil(n.requiredStudyHours/n.weeklyStudyHours)):null;
+ const budgetGapKRW=moneyKnown?
+  Math.max(0,n.trainingCostKRW-n.availableBudgetKRW):null;
+ return Object.freeze({
+  kind:'buyer-self-reported-partial-work-skill-capacity-v1',
+  sourceData:Object.freeze({...n}),
+  enteredFieldCount:KEYS.filter(known).length,
+  missingFields:Object.freeze(KEYS.filter(k=>!known(k))),
+  missingQuestions:Object.freeze(KEYS.filter(k=>!known(k)).map(k=>MISSING_LABELS[k])),
+  capacityKnown,requiredWeeklyKnown,fullTimeKnown,moneyKnown,
+  availableHoursByTarget,minimumWeeklyHoursForTarget,
+  deficitHours,weeksOnSchedule,budgetGapKRW,
+  scope:'arithmetic-only-no-career-recommendation',
+  customerWorkOrSkillNamesInferred:false,
+  natalEvidenceUsed:false,mbtiPredictionUsed:false,
+  providerCalls:0,paymentApproved:false
+ });
+}
+function build({readerDecision,decisionContext,constraints}={}){
+ const question=cleanQuestion(readerDecision);
+ if(!scope.supportsDecision(question))
+  throw Error('WORKBOOK_ONLY_EXPLICIT_WORK_VERSUS_LEARNING_QUESTION');
+ const reported=context.checked(decisionContext);
+ if(!reported||reported.currentWork===reported.targetSkill)
+  throw Error('WORKBOOK_DISTINCT_USER_REPORTED_WORK_AND_SKILL_REQUIRED');
+ const quick=quickPreview({readerDecision:question,constraints});
+ const n=quick.sourceData;
+ const missing=quick.missingFields;
+ const hourKnown=quick.fullTimeKnown;
+ const moneyKnown=quick.moneyKnown;
+ // Full comparison and preliminary capacity use identical source arithmetic.
+ const weeklyCapacity=hourKnown?n.weeklyStudyHours:null;
+ const deadlineCapacity=hourKnown?quick.availableHoursByTarget:null;
+ const timeGap=hourKnown?quick.deficitHours:null;
+ const estimatedWeeksToComplete=hourKnown?quick.weeksOnSchedule:null;
+ const hoursPerWeekNeeded=hourKnown?quick.minimumWeeklyHoursForTarget:null;
+ const timeState=!hourKnown?'unknown':weeklyCapacity===0?
+  'no-weekly-time':timeGap>0?'hours-short':'within-entered-hours';
+ const budgetGap=moneyKnown?quick.budgetGapKRW:null;
+ const budgetState=!moneyKnown?'unknown':budgetGap>0?
+  'budget-short':'within-entered-budget';
+ const complete=missing.length===0;
+ const status=complete?(timeState==='within-entered-hours'&&
+   budgetState==='within-entered-budget'?'resources-fit-on-entered-estimates':
+   'at-least-one-entered-constraint-not-met'):'additional-customer-facts-required';
+ const checks=[];
+ if(!hourKnown){
+  checks.push('학습에 필요한 시간·매주 확보 가능한 시간·목표 주수를 알려주면 시간 조건을 계산할 수 있습니다.');
+ }else if(weeklyCapacity===0){
+  checks.push('현재 입력으로는 일주일에 학습시간이 0시간입니다. 학습 일정을 마련하기 전에는 완료 시점을 계산할 수 없습니다.');
+ }else if(timeGap>0){
+  checks.push('현재 입력한 목표 기간 안에 총 '+timeGap+'시간이 부족합니다. 학습시간이나 목표 기간을 다시 검토해 주세요.');
+ }else{
+  checks.push('입력한 학습시간으로는 목표 기간 내 '+n.requiredStudyHours+'시간의 학습량을 배치할 수 있습니다. 실제 수료나 능력 습득을 보장하지는 않습니다.');
+ }
+ if(!moneyKnown){
+  checks.push('교육비와 사용 가능한 예산을 모두 알려주면 필요한 추가 금액을 계산할 수 있습니다.');
+ }else if(budgetGap>0){
+  checks.push('교육비 기준으로 예산이 '+budgetGap.toLocaleString('ko-KR')+'원 부족합니다. 비용 구성과 별도 재원 여부를 확인해 주세요.');
+ }else{
+  checks.push('고객이 입력한 교육비는 입력한 예산 안에 들어갑니다. 생활비나 예상외 지출을 포함했다고 가정하지 않습니다.');
+ }
+ checks.push('기존 일을 유지하는 선택은 이 입력만으로 급여·승진·안정성을 평가할 수 없습니다. 현재 근무조건을 별도로 확인해야 합니다.');
+ checks.push('일을 유지하면서 기술을 배울 수도 있으므로 두 선택이 반드시 상호 배타적이라고 가정하지 않습니다.');
+ return Object.freeze({
+  kind:'buyer-self-reported-work-skill-workbook-v1',
+  status,question,workChoice:reported.currentWork,
+  learningChoice:reported.targetSkill,
+  entryKind:'self-reported-only',sourceData:Object.freeze({...n}),
+  missingFields:Object.freeze(missing),
+  missingQuestions:Object.freeze(missing.map(k=>MISSING_LABELS[k])),
+  time:Object.freeze({
+   state:timeState,
+   availableWeeklyHours:n.weeklyStudyHours,
+   requiredHours:n.requiredStudyHours,
+   targetWeeks:n.targetWeeks,
+   totalHoursByTarget:deadlineCapacity,
+   hoursNeededPerWeek:hoursPerWeekNeeded,
+   hoursShortByTarget:timeGap,
+   earliestWholeWeeksOnEnteredSchedule:estimatedWeeksToComplete,
+   scheduleOrCompletionGuaranteed:false
+  }),
+  budget:Object.freeze({
+   state:budgetState,
+   enteredCostKRW:n.trainingCostKRW,
+   enteredBudgetKRW:n.availableBudgetKRW,
+   additionalKRWNeeded:budgetGap,
+   includesOtherLivingExpenses:false
+  }),
+  checks:Object.freeze(checks),
+  natalEvidenceUsed:false,mbtiBehaviorInferred:false,
+  predictedCareerSuccess:false,automatedDecisionRecommendation:false,
+  providerCalls:0,paymentApproved:false,qualitySold:false,
+  actualCustomerWillingnessToPayVerified:false
+ });
+}
+function readerText(result){
+ if(result?.kind!=='buyer-self-reported-work-skill-workbook-v1')
+  throw Error('WORKBOOK_WRONG_RESULT');
+ const line=[
+  '고객이 입력한 고민: '+result.question,
+  '현재 일: '+result.workChoice+' / 배우려는 기술: '+result.learningChoice,
+  '계산 상태: '+(result.missingFields.length?
+   '입력 부족 ('+result.missingQuestions.join(', ')+')':
+   result.status==='resources-fit-on-entered-estimates'?
+    '입력한 일정과 교육비가 제약 조건 안에 있음':'입력한 일정 또는 예산의 제약 미충족'),
+  ...result.checks,
+  '이 계산은 고객이 직접 입력한 시간·비용을 기준으로 하며, 사주나 MBTI에서 알게 된 개인의 능력·결과가 아닙니다.'
+ ];
+ return line.join('\n');
+}
+const api=Object.freeze({build,quickPreview,readerText,parseValues,FIELDS});
+if(typeof module!=='undefined'&&module.exports)module.exports=api;
+if(root?.document)root.REPORT_WORK_SKILL_DECISION_WORKBOOK=api;
+})(typeof window!=='undefined'?window:null);
+
+</script>
+<script data-original-module="report-work-skill-decision-comparison.js">
+'use strict';
+// Work54: a reproducible two-option REPORT made only from customer input.
+// Does NOT recommend career action, use natal/MBTI, send data, or enable sales.
+(function(root){
+const source=typeof module!=='undefined'&&module.exports?
+ require('./report-work-skill-decision-workbook'):
+ root?.REPORT_WORK_SKILL_DECISION_WORKBOOK;
+if(!source?.build)throw Error('WORK54_SHARED_WORKBOOK_REQUIRED');
+const roundHalfUp=x=>Math.ceil((x-1e-10)*2)/2;
+const format=x=>Number(x).toLocaleString('ko-KR');
+function build(workbook){
+ if(workbook?.kind!=='buyer-self-reported-work-skill-workbook-v1'||
+    workbook.entryKind!=='self-reported-only'||
+    workbook.natalEvidenceUsed!==false||
+    workbook.mbtiBehaviorInferred!==false||
+    workbook.providerCalls!==0||
+    workbook.paymentApproved!==false)
+  throw Error('WORK54_UNTRUSTED_WORKBOOK');
+ const t=workbook.time,b=workbook.budget;
+ if(!t||!b)throw Error('WORK54_INCOMPLETE_WORKBOOK');
+ const timeKnown=t.state!=='unknown',budgetKnown=b.state!=='unknown';
+ const shortTime=timeKnown&&t.hoursShortByTarget>0;
+ const shortBudget=budgetKnown&&b.additionalKRWNeeded>0;
+ const weeklyIncrease=timeKnown?
+  Math.max(0,roundHalfUp(t.hoursNeededPerWeek-t.availableWeeklyHours)):null;
+ const delayWeeks=timeKnown&&t.earliestWholeWeeksOnEnteredSchedule!==null?
+  Math.max(0,t.earliestWholeWeeksOnEnteredSchedule-t.targetWeeks):null;
+ const changes=[];
+ if(shortTime){
+  if(weeklyIncrease>0&&t.availableWeeklyHours+weeklyIncrease<=168)
+   changes.push(Object.freeze({
+    id:'increase-weekly-hours',kind:'schedule',
+    amount:weeklyIncrease,unit:'hours/week',
+    text:'목표 '+t.targetWeeks+'주를 유지한다면 주당 학습시간을 '+
+      format(weeklyIncrease)+'시간 더 확보해 총 '+
+      format(t.availableWeeklyHours+weeklyIncrease)+'시간으로 조정할 수 있는지 확인',
+    customerMustVerify:true,actualFeasibilityProved:false
+   }));
+  if(delayWeeks!==null&&delayWeeks>0&&
+     t.earliestWholeWeeksOnEnteredSchedule<=260)
+   changes.push(Object.freeze({
+    id:'extend-target-weeks',kind:'schedule',
+    amount:delayWeeks,unit:'weeks',
+    text:'주당 '+format(t.availableWeeklyHours)+'시간을 유지한다면 목표를 '+
+      format(delayWeeks)+'주 연장한 총 '+
+      format(t.earliestWholeWeeksOnEnteredSchedule)+'주로 잡을 수 있는지 확인',
+    customerMustVerify:true,actualFeasibilityProved:false
+   }));
+  if(!changes.some(x=>x.kind==='schedule'))
+   changes.push(Object.freeze({
+    id:'schedule-no-verified-adjustment',kind:'schedule',
+    amount:null,unit:null,
+    text:'현재 입력과 범위 안에서 가능한 학습시간 조정안을 계산하지 못했습니다. 실제 주간 일정과 전체 교육 시간을 확인해 주세요.',
+    customerMustVerify:true,actualFeasibilityProved:false
+   }));
+ }
+ if(shortBudget)
+  changes.push(Object.freeze({
+   id:'resolve-education-budget-gap',kind:'budget',
+   amount:b.additionalKRWNeeded,unit:'KRW',
+   text:'교육비 부족분 '+format(b.additionalKRWNeeded)+
+    '원을 어떤 방식으로 마련할지, 또는 수업 비용 자체를 낮출 수 있는지 확인',
+   customerMustVerify:true,actualFeasibilityProved:false
+  }));
+ const openQuestions=[
+  {id:'keep-work',title:'현재 일을 유지하는 경우',
+   subject:workbook.workChoice,
+   text:'현재 업무의 근무시간·소득·안정성·변경 가능한 근무일정은 입력되지 않았으므로 이 선택의 유불리는 계산할 수 없습니다.',
+   numericVerdict:'not-calculable-from-given-data'},
+  {id:'learn-skill',title:'새 기술을 배우거나 병행하는 경우',
+   subject:workbook.learningChoice,
+   text:!timeKnown&&!budgetKnown?
+    '예상 학습시간·목표 기간·교육비·예산이 부족해 실행 조건을 계산할 수 없습니다.':
+    '고객이 입력한 학습시간과 교육비의 제약만 계산합니다. 실제 학습 성과나 취업 결과는 예측하지 않습니다.',
+   numericVerdict:workbook.status}
+ ];
+ const nextChecks=[];
+ if(!timeKnown)nextChecks.push('예상 총 학습시간·매주 확보 가능한 시간·목표 기간을 확인');
+ else if(shortTime)nextChecks.push('일정 변경안 중 현실적으로 가능한 방법을 확인');
+ else nextChecks.push('실제 근무표와 수업 시간대가 서로 겹치지 않는지 확인');
+ if(!budgetKnown)nextChecks.push('교육비와 별도로 사용할 수 있는 예산을 확인');
+ else if(shortBudget)nextChecks.push('교육비 부족분과 추가 지출 가능 여부를 확인');
+ else nextChecks.push('교육비에 교통비·시험비·생활비가 포함됐는지 확인');
+ nextChecks.push('현재 직장의 조건과 학습 병행 가능 여부를 확인');
+ const result=Object.freeze({
+  kind:'self-reported-work-vs-learning-comparison-v1',
+  sourceKind:workbook.kind,
+  title:'현재 일 유지 vs 기술 학습 — 실행 조건 비교',
+  readerQuestion:workbook.question,
+  workChoice:workbook.workChoice,learningChoice:workbook.learningChoice,
+  evidenceKind:'buyer-self-report-only',
+  status:workbook.status,
+  timeKnown,budgetKnown,
+  timeSummary:timeKnown?Object.freeze({
+   enteredWeeklyHours:t.availableWeeklyHours,
+   enteredRequiredHours:t.requiredHours,
+   enteredTargetWeeks:t.targetWeeks,
+   enteredHoursAvailableByTarget:t.totalHoursByTarget,
+   deficitHours:t.hoursShortByTarget,
+   minimumHoursPerWeekForTarget:t.hoursNeededPerWeek,
+   additionalWeeklyHoursForTarget:weeklyIncrease,
+   weeksOnCurrentEnteredSchedule:t.earliestWholeWeeksOnEnteredSchedule,
+   extraWeeksAtCurrentSchedule:delayWeeks
+  }):null,
+  budgetSummary:budgetKnown?Object.freeze({
+   estimatedEducationCostKRW:b.enteredCostKRW,
+   availableEducationBudgetKRW:b.enteredBudgetKRW,
+   gapKRW:b.additionalKRWNeeded
+  }):null,
+  choices:Object.freeze(openQuestions.map(x=>Object.freeze(x))),
+  waysToAdjust:Object.freeze(changes),
+  nextChecks:Object.freeze(nextChecks),
+  missingQuestions:Object.freeze([...workbook.missingQuestions]),
+  cannotChooseForCustomer:true,
+  alternativesAreNotGuaranteed:true,
+  predictedOutcome:false,natalEvidenceUsed:false,mbtiPredictionUsed:false,
+  modelCalls:0,paymentApproved:false,releaseApproved:false,
+  consumerValueProven:false
+ });
+ return result;
+}
+function reportText(report){
+ if(report?.kind!=='self-reported-work-vs-learning-comparison-v1'||
+    report.paymentApproved!==false)throw Error('WORK54_INVALID_COMPARISON');
+ return [
+  report.title,
+  '기존 일: '+report.workChoice,
+  '새로 배울 기술: '+report.learningChoice,
+  ...report.choices.map(x=>x.title+': '+x.text),
+  ...(report.timeSummary?[
+   '목표까지 '+format(report.timeSummary.deficitHours)+'시간 부족',
+   '목표 기한을 유지하려면 추가로 주당 '+
+     format(report.timeSummary.additionalWeeklyHoursForTarget)+'시간 필요'
+  ]:[]),
+  ...(report.budgetSummary?[
+   '추가 교육비 필요: '+format(report.budgetSummary.gapKRW)+'원'
+  ]:[]),
+  ...report.waysToAdjust.map(x=>x.text),
+  ...report.nextChecks,
+  '현실 조건으로 계산한 무료 정보이며 사주·MBTI로 실제 선택 결과를 예측하지 않습니다.'
+ ].join('\n');
+}
+const api=Object.freeze({build,reportText});
+if(typeof module!=='undefined'&&module.exports)module.exports=api;
+if(root?.document)root.REPORT_WORK_SKILL_DECISION_COMPARISON=api;
+})(typeof window!=='undefined'?window:null);
+
+</script>
+<script data-original-module="report-work-skill-decision-workbook-ui.js">
+'use strict';
+// Free, LOCAL browser-only preview. All numbers are processed by the same
+// report-work-skill-decision-workbook.js shared with Node. Never fetches,
+// persists, charges, or adds fields to the existing horoscope submission.
+(function(root){
+const FIELD_IDS=Object.freeze([
+ 'weeklyStudyHours','requiredStudyHours','targetWeeks',
+ 'trainingCostKRW','availableBudgetKRW'
+]);
+function bindForm(doc,apis={}){
+ const scope=apis.scope||root?.REPORT_BUYER_WORK_SKILL_SCOPE;
+ const workbook=apis.workbook||root?.REPORT_WORK_SKILL_DECISION_WORKBOOK;
+ const comparison=apis.comparison||root?.REPORT_WORK_SKILL_DECISION_COMPARISON;
+ const context=apis.context||root?.REPORT_BUYER_DECISION_CONTEXT;
+ const question=doc?.getElementById?.('readerDecision');
+ const current=doc?.getElementById?.('currentWork');
+ const target=doc?.getElementById?.('targetSkill');
+ const panel=doc?.getElementById?.('workSkillWorkbook');
+ const result=doc?.getElementById?.('workSkillWorkbookResult');
+ const live=doc?.getElementById?.('workSkillWorkbookLiveStatus');
+ const fields=FIELD_IDS.map(id=>doc?.getElementById?.('wb-'+id));
+ if(!scope?.supportsDecision||!workbook?.build||!workbook?.quickPreview||!comparison?.build||!context?.inspect||
+    !question||!current||!target||!panel||!result||!live||
+    fields.some(x=>!x))return false;
+ const node=(tag,text,cssClass)=>{
+  const element=doc.createElement(tag);
+  if(cssClass)element.className=cssClass;
+  element.textContent=text;
+  return element;
+ };
+ let detailsOpen=false;
+ const announce=(heading,kind,shortDetail='')=>{
+  // Announce only a short STATUS, not a whole multi-page report on
+  // every mobile keystroke. The full report is a labelled region.
+  const message=heading+(shortDetail?' · '+shortDetail:'');
+  if(live.textContent!==message)live.textContent=message;
+  live.setAttribute('data-workbook-announcement',kind);
+ };
+ const show=(heading,text,kind='info')=>{
+  result.replaceChildren(node('strong',heading,'workbook-result-heading'),
+   node('p',text,'workbook-result-note'));
+  result.setAttribute('data-workbook-status',kind);
+  // Keep error detail in the short announcement; invalid input is
+  // identified without making a screen reader replay the entire report.
+  announce(heading,kind,text.slice(0,130));
+ };
+ const render=()=>{
+  const active=scope.supportsDecision(question.value);
+  panel.hidden=!active;
+  panel.classList?.toggle('hidden',!active);
+  if(!active){
+   // Any new reader topic erases old personal choices, numbers and output.
+   detailsOpen=false;
+   for(const item of fields){
+    item.value='';
+    item.disabled=true;
+    item.setAttribute('aria-invalid','false');
+    item.removeAttribute?.('aria-describedby');
+   }
+   result.replaceChildren();
+   result.setAttribute('data-workbook-status','hidden');
+   live.textContent='';
+   live.setAttribute('data-workbook-announcement','hidden');
+   return;
+  }
+  for(const item of fields){
+   item.disabled=false;
+   item.setAttribute('aria-invalid','false');
+   item.removeAttribute?.('aria-describedby');
+  }
+  const constraints={};
+  for(let i=0;i<FIELD_IDS.length;i++){
+   const field=fields[i],raw=String(field.value||'').trim();
+   // Empty input is UNKNOWN, not the number zero.
+   if(raw!==''){
+    if(!/^(?:\d+(?:\.\d+)?|\.\d+)$/.test(raw)){
+     field.setAttribute('aria-invalid','true');
+     field.setAttribute('aria-describedby','workSkillWorkbookLiveStatus');
+     show('숫자를 확인해 주세요',
+      (field.getAttribute('data-field-label')||'숫자')+
+       ': 음수가 아닌 숫자로 입력해 주세요.','invalid');
+     return;
+    }
+    constraints[FIELD_IDS[i]]=Number(raw);
+   }
+  }
+  // Names of current work and target skill are OPTIONAL for numeric
+  // arithmetic. Previously this screen refused to calculate ANYTHING until
+  // both text boxes were filled, even though an 8h × 8w capacity doesn't
+  // depend on job titles. Never invent names just to satisfy a writer gate.
+  const submitted={currentWork:current.value.trim(),targetSkill:target.value.trim()};
+  let preliminary;
+  try{
+   preliminary=workbook.quickPreview({
+    readerDecision:question.value,constraints
+   });
+  }catch(error){
+   // This error can occur BEFORE optional work/skill names are provided.
+   // Keep the exact invalid field and permitted range accessible.
+   const prefix='WORKBOOK_CONSTRAINT_INVALID:';
+   const key=String(error?.message||'').startsWith(prefix)?
+    String(error.message).slice(prefix.length):null;
+   const index=FIELD_IDS.indexOf(key);
+   if(index>=0){
+    fields[index].setAttribute('aria-invalid','true');
+    fields[index].setAttribute('aria-describedby','workSkillWorkbookLiveStatus');
+   }
+   const spec=index>=0?workbook.FIELDS[FIELD_IDS[index]]:null;
+   const label=index>=0?fields[index].getAttribute('data-field-label'):null;
+   show('입력값을 확인해 주세요',
+    spec?(label+': '+spec.min+'~'+spec.max+spec.unit+
+     ', '+spec.step+spec.unit+' 단위로 입력해 주세요.'):
+     '시간은 0.5시간 단위, 기간은 1~260주, 금액은 0원 이상의 정수로 입력해 주세요.','invalid');
+   return;
+  }
+  if(!submitted.currentWork||!submitted.targetSkill){
+   if(!preliminary.enteredFieldCount){
+    show('무료 시간·예산 비교',
+     '먼저 매주 학습시간과 목표 기간만 입력해 보세요. 현재 업무와 기술 이름·교육비는 선택 입력입니다.');
+    return;
+   }
+   const fmt=x=>Number(x).toLocaleString('ko-KR');
+   const nodes=[node('strong','입력한 숫자부터 먼저 계산했습니다','workbook-result-heading')];
+   const add=(label,value)=>{
+    const row=node('p','','workbook-result-line');
+    row.append(node('strong',label+': '),doc.createTextNode(value));
+    nodes.push(row);
+   };
+   if(preliminary.capacityKnown)
+    add('목표 기간 내 배치 가능한 학습시간',
+     fmt(preliminary.availableHoursByTarget)+'시간');
+   if(preliminary.requiredWeeklyKnown)
+    add('목표까지 필요한 주당 학습시간',
+     fmt(preliminary.minimumWeeklyHoursForTarget)+'시간');
+   if(preliminary.fullTimeKnown)
+    add('목표 기간 내 부족한 학습시간',
+     fmt(preliminary.deficitHours)+'시간');
+   if(preliminary.moneyKnown)
+    add('추가 교육비 부족분',fmt(preliminary.budgetGapKRW)+'원');
+   if(!preliminary.capacityKnown&&!preliminary.requiredWeeklyKnown&&!preliminary.moneyKnown)
+    nodes.push(node('p',
+     '매주 학습시간과 목표 기간을 적으면 기간 내 학습 가능시간부터 계산합니다.',
+     'workbook-result-note'));
+   nodes.push(node('p',
+    '현재 일과 배울 기술의 이름을 둘 다 적으면 두 선택 비교도 볼 수 있습니다. 이름을 입력하지 않아도 위 시간·예산 계산은 가능합니다.',
+    'workbook-result-note'));
+   nodes.push(node('p',
+    '입력한 값만 계산하며, 누락된 항목이나 실제 학습 성과는 추정하지 않습니다. 외부 전송·AI 호출·결제 없이 브라우저에서 계산합니다.',
+    'workbook-result-disclaimer'));
+   result.replaceChildren(...nodes);
+   result.setAttribute('data-workbook-status','partial-capacity-preview');
+   announce('입력값으로 간단 계산', 'partial-capacity-preview',
+    preliminary.capacityKnown?'배치 가능 '+fmt(preliminary.availableHoursByTarget)+'시간':
+    preliminary.moneyKnown?'교육비 부족 '+fmt(preliminary.budgetGapKRW)+'원':
+    '주당 시간과 목표 기간 입력 대기');
+   return;
+  }
+  const validated=context.inspect(submitted);
+  if(!validated.valid||validated.status!=='ready'||
+     submitted.currentWork===submitted.targetSkill){
+   show('현재 일과 기술 입력을 확인해 주세요',
+    '서로 다른 두 내용을 각각 2~80자로 입력해 주세요. 연락처·링크는 사용하지 않습니다.','invalid');
+   return;
+  }
+  let report,decisionReport;
+  try{
+   report=workbook.build({
+    readerDecision:question.value,decisionContext:submitted,constraints
+   });
+   decisionReport=comparison.build(report);
+  }catch(error){
+   // Shared Node validation remains authoritative. Use known public
+   // field constraints for user help; do not expose exception contents.
+   const prefix='WORKBOOK_CONSTRAINT_INVALID:';
+   const key=String(error?.message||'').startsWith(prefix)?
+    String(error.message).slice(prefix.length):null;
+   const index=FIELD_IDS.indexOf(key);
+   if(index>=0){
+    fields[index].setAttribute('aria-invalid','true');
+    fields[index].setAttribute('aria-describedby','workSkillWorkbookLiveStatus');
+   }
+   const spec=index>=0?workbook.FIELDS[FIELD_IDS[index]]:null;
+   const label=index>=0?fields[index].getAttribute('data-field-label'):null;
+   show('입력값을 확인해 주세요',
+    spec?(label+': '+spec.min+'~'+spec.max+spec.unit+
+     ', '+spec.step+spec.unit+' 단위로 입력해 주세요.'):
+     '시간은 0.5시간 단위, 기간은 1~260주, 금액은 0원 이상의 정수로 입력해 주세요.','invalid');
+   return;
+  }
+  const headings={
+   'resources-fit-on-entered-estimates':'입력한 시간·교육비 조건 충족',
+   'at-least-one-entered-constraint-not-met':'입력한 시간이나 예산에 부족한 부분이 있습니다',
+   'additional-customer-facts-required':'입력한 조건부터 계산했습니다'
+  };
+  const title=headings[report.status]||'입력값 비교';
+  const fmt=x=>Number(x).toLocaleString('ko-KR');
+  const nodes=[node('strong',title,'workbook-result-heading')];
+  const time=decisionReport.timeSummary;
+  const money=decisionReport.budgetSummary;
+  const keyFacts=node('div','','workbook-glance');
+  const glance=(label,value)=>{
+   const cell=node('div','','workbook-glance-cell');
+   cell.append(node('span',label,'workbook-glance-label'),
+    node('strong',value,'workbook-glance-value'));
+   keyFacts.append(cell);
+  };
+  if(time)glance('목표 기간 내 부족한 학습시간',
+   fmt(time.deficitHours)+'시간');
+  if(money)glance('추가 교육비 부족분',
+   fmt(money.gapKRW)+'원');
+  if(time||money)nodes.push(keyFacts);
+  if(report.missingFields.length){
+   const remaining=report.missingFields.length;
+   const missing=report.missingQuestions[0];
+   const key=report.missingFields[0],idx=FIELD_IDS.indexOf(key);
+   nodes.push(node('p','선택 입력 중 비어 있는 숫자 '+remaining+
+    '개. 빈 항목은 0으로 처리하지 않습니다.','workbook-missing-note'));
+   if(idx>=0){
+    const focusButton=node('button','다음 선택 입력: '+missing,'workbook-missing-focus');
+    focusButton.type='button'; // NEVER submit the parent saju wizard.
+    focusButton.addEventListener('click',()=>fields[idx].focus?.());
+    nodes.push(focusButton);
+   }
+  }
+  // Real decision improvements are immediately visible on narrow phones.
+  // Keep the optional long comparison and reading checklist behind a native
+  // keyboard-accessible <details> control. Preserve open state on typing.
+  if(decisionReport.waysToAdjust.length){
+   nodes.push(node('h4','조건을 바꿀 수 있는 방법','workbook-compare-title'));
+   const options=node('ul','','workbook-option-list');
+   for(const option of decisionReport.waysToAdjust)
+    options.append(node('li',option.text));
+   nodes.push(options);
+  }
+  const detail=node('details','','workbook-more');
+  detail.open=detailsOpen;
+  detail.addEventListener('toggle',()=>{
+   if(!result.contains||result.contains(detail))
+    detailsOpen=Boolean(detail.open);
+  });
+  detail.append(node('summary','계산 상세·두 선택·확인사항 펼쳐 보기',
+   'workbook-more-summary'));
+  const add=(label,value)=>{
+   const row=node('p','','workbook-result-line');
+   row.append(node('strong',label+': '),doc.createTextNode(value));
+   detail.append(row);
+  };
+  if(time){
+   add('목표 기간 내 확보 가능한 학습시간',
+    fmt(time.enteredHoursAvailableByTarget)+'시간');
+   add('필요한 주당 학습시간',
+    fmt(time.minimumHoursPerWeekForTarget)+'시간');
+   if(time.weeksOnCurrentEnteredSchedule===null)
+    add('현재 일정에서 완료 예상 주수','주당 학습시간 0시간으로 계산 불가');
+   else add('현재 일정에서 필요한 주수',
+    fmt(time.weeksOnCurrentEnteredSchedule)+'주 (입력한 총시간 기준)');
+   add('목표 기간 내 부족한 학습시간',
+    fmt(time.deficitHours)+'시간');
+  }
+  if(money)add('교육비에서 추가로 필요한 금액',
+   fmt(money.gapKRW)+'원');
+  detail.append(node('h4','두 선택에서 확인할 내용','workbook-compare-title'));
+  const cards=node('div','','workbook-choice-grid');
+  for(const choice of decisionReport.choices){
+   const card=node('section','','workbook-choice-card');
+   card.append(node('strong',choice.title),
+    node('span',choice.subject,'workbook-choice-subject'),
+    node('p',choice.text));
+   cards.append(card);
+  }
+  detail.append(cards);
+  detail.append(node('h4','직접 확인할 사항','workbook-compare-title'));
+  const checks=node('ul','','workbook-check-list');
+  for(const check of decisionReport.nextChecks)
+   checks.append(node('li',check));
+  detail.append(checks);
+  nodes.push(detail);
+  nodes.push(node('p',
+   '무료 선택 비교입니다. 수치는 고객이 입력한 예상값만 사용합니다. 실제 수료·직장 성과를 보장하거나 사주·MBTI로 판단하지 않으며, 결제·AI 호출·저장은 하지 않습니다.',
+   'workbook-result-disclaimer'));
+  result.replaceChildren(...nodes);
+  result.setAttribute('data-workbook-status',report.status);
+  const short=[
+   time?'학습시간 부족 '+fmt(time.deficitHours)+'시간':null,
+   money?'교육비 부족 '+fmt(money.gapKRW)+'원':null,
+   report.missingFields.length?'입력 대기 '+report.missingFields.length+'개':null
+  ].filter(Boolean).join(', ');
+  announce(title,report.status,short);
+ };
+ // Scope's question listener is bound first in the real entry page.
+ // Still clear the old work fields and computed result in this module
+ // even if called standalone without the scope's DOM-binding helper.
+ let lastActive=scope.supportsDecision(question.value);
+ question.addEventListener('input',()=>{
+  const active=scope.supportsDecision(question.value);
+  if(!active&&lastActive){current.value='';target.value='';}
+  lastActive=active;
+  render();
+ });
+ for(const field of [current,target,...fields])
+  field.addEventListener('input',render);
+ render();
+ return true;
+}
+const api=Object.freeze({bindForm,FIELD_IDS});
+if(typeof module!=='undefined'&&module.exports)module.exports=api;
+if(root?.document){
+ root.REPORT_WORK_SKILL_DECISION_WORKBOOK_UI=api;
+ if(root.document.readyState==='loading')
+  root.document.addEventListener('DOMContentLoaded',()=>bindForm(root.document));
+ else bindForm(root.document);
+}
+})(typeof window!=='undefined'?window:null);
+
+</script>
+<script data-original-module="trial-offline-local-controls">
+
+'use strict';
+(()=>{
+ const $=id=>document.getElementById(id);
+ const emit=(id,v)=>{const e=$(id);e.value=v;e.dispatchEvent(new Event('input',{bubbles:true}));};
+ const sample={
+  readerDecision:'기존 일을 유지할지 새로운 기술을 배울지 고민 중입니다.',
+  currentWork:'물류 재고 확인',targetSkill:'엑셀 자동화',
+  'wb-weeklyStudyHours':'3','wb-requiredStudyHours':'60','wb-targetWeeks':'8',
+  'wb-trainingCostKRW':'300000','wb-availableBudgetKRW':'100000'
+ };
+ $('trialExample').addEventListener('click',()=>{
+  for(const [id,value] of Object.entries(sample))emit(id,value);
+  $('workSkillBudgetOption').open=true;
+  $('workSkillWorkbookResult').scrollIntoView?.({behavior:'smooth',block:'nearest'});
+ });
+ $('trialClear').addEventListener('click',()=>{
+  for(const id of ['currentWork','targetSkill','wb-weeklyStudyHours','wb-requiredStudyHours','wb-targetWeeks','wb-trainingCostKRW','wb-availableBudgetKRW'])emit(id,'');
+  emit('readerDecision',sample.readerDecision);
+  $('workSkillBudgetOption').open=false;
+  $('trialDifficulty').value='not-tested';
+  $('trialUnderstanding').value='not-tested';
+  $('trialFeedbackSummary').value='';
+ });
+ $('trialFeedbackCompose').addEventListener('click',()=>{
+  const understandable=$('trialUnderstanding').value;
+  const difficulty=$('trialDifficulty').value;
+  $('trialFeedbackSummary').value=[
+   '무료 오프라인 체험 의견 (개인정보·입력 숫자 미포함)',
+   '결과 이해: '+({yes:'이해했음',partly:'일부만 이해함',no:'이해하지 못함','not-tested':'미평가'}[understandable]),
+   '가장 어려운 단계: '+({opening:'시작/문항 선택',input:'시간/기간 입력',result:'결과 확인',adjust:'실행 계획 해석',none:'어렵지 않음','not-tested':'미평가'}[difficulty]),
+   '원하는 개선점: (직접 적어주세요)',
+   '이 체험은 실제 유료 제품 평가가 아니며 자동 제출되지 않습니다.'
+  ].join('\n');
+  $('trialFeedbackSummary').focus();
+ });
+})();
+
+</script>
+</body></html>
