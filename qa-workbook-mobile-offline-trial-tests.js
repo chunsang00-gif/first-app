@@ -40,7 +40,7 @@ const ids=[
  'workSkillBudgetOption',
  'wb-weeklyStudyHours','wb-requiredStudyHours','wb-targetWeeks',
  'wb-trainingCostKRW','wb-availableBudgetKRW',
- 'trialExample','trialClear','trialUnderstanding','trialDifficulty',
+ 'trialStart','trialExample','trialClear','trialUnderstanding','trialDifficulty',
  'trialFeedbackCompose','trialFeedbackSummary',
  'workSkillExport','workSkillExportPrepare','workSkillExportCopy',
  'workSkillExportSave','workSkillExportText','workSkillExportStatus'
@@ -49,6 +49,7 @@ for(const id of ids){
  const count=(html.match(new RegExp('id="'+id+'"','g'))||[]).length;
  assert.equal(count,1,'must have exactly one true offline DOM id: '+id);
 }
+assert(html.includes('내 숫자로 바로 시작'));
 assert(html.includes('합성 예시 자동 입력'));
 assert(html.includes('피드백 문구 만들기'));
 assert(html.includes('실제 유료 보고서나 출시 버전이 아닙니다'));
@@ -118,6 +119,9 @@ const status=()=>nodes.workSkillWorkbookResult.getAttribute('data-workbook-statu
 assert.equal(nodes.workSkillWorkbook.hidden,false);
 assert.equal(nodes['wb-weeklyStudyHours'].disabled,false);
 assert.equal(status(),'info');
+nodes.trialStart.emit('click');
+assert.equal(nodes['wb-weeklyStudyHours'].focused,true,
+ 'short mobile entry must focus the first numeric input without typing for user');
 nodes['wb-weeklyStudyHours'].value='8';
 nodes['wb-weeklyStudyHours'].emit();
 nodes['wb-targetWeeks'].value='8';
