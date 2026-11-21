@@ -146,6 +146,12 @@ jobs:
           REPORT_QA_CONFIRM: ''
           REPORT_QA_ALLOW_PAYMENT: ''
         run: node qa-luna-private-first-chapter-review-tests.js
+      - name: Compare same-reader HOUR-to-month versus HOUR-to-day BRANCH relations for non-generic product method (NO API)
+        env:
+          OPENAI_API_KEY: ''
+          REPORT_MODEL_URL: ''
+          REPORT_QA_CONFIRM: ''
+        run: node qa-hour-branch-relational-editorial-pilot.js
       - name: Audit real HOUR paid source for duplicate year/day natal hidden roles before spending (NO API)
         env:
           OPENAI_API_KEY: ''
