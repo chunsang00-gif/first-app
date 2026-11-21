@@ -266,3 +266,34 @@ jobs:
             }
           })();
           NODE
+
+  visual-mobile-offline:
+    # Real Chrome screenshots live in a separate, bounded job. Does NOT
+    # contact any AI, merchant, Render deploy, or external user website.
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install browser automation driver (uses runner's local Google Chrome)
+        run: npm install --no-save --no-audit --no-fund --ignore-scripts playwright-core@1.56.1
+      - name: Test actual local HTML at 320px, 390px and 1280px with file download, no provider API
+        env:
+          OPENAI_API_KEY: ''
+          REPORT_MODEL_URL: ''
+          REPORT_QA_CONFIRM: ''
+          REPORT_QA_ALLOW_PAYMENT: ''
+          WORK59_SCREENSHOT_DIR: ${{ runner.temp }}/work59-visual-screens
+        run: node qa-work59-real-browser-mobile.js
+      - name: Attach real browser screenshots for human mobile review
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: work59-real-chromium-mobile-desktop-screenshots
+          path: ${{ runner.temp }}/work59-visual-screens/*.png
+          if-no-files-found: ignore
+          retention-days: 14
