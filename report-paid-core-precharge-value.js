@@ -38,6 +38,19 @@ function inspect(input){
    Object.hasOwn(source,x)&&t.citableFacts?.some(f=>f.id===x))&&
   !slot?.anyOf?.some(s=>s.type==='null')&&
   (slot?.anyOf?.some(s=>s.type==='object')||slot?.type==='object');
+ // 'Different from the FREE year/hour card' is not proof of an
+ // independent symbolic category across the WHOLE chart. This is not a
+ // judgment that repeating a stem forbids all positional interpretation;
+ // no validated position-specific paid method exists yet. Block BEFORE
+ // reserving payment or calling a model, not after a failed paid response.
+ const natalRoleAudit=onlyIndependentHour?
+  require('./report-paid-core-hour-cross-pillar-audit').inspect(packet):null;
+ const sameStemAlreadyInNatal=Boolean(onlyIndependentHour&&
+  natalRoleAudit?.status==='same-exact-hour-symbol-already-in-other-natal-position'&&
+  natalRoleAudit.sameExactStemOtherNatalPositions.length>0);
+ const wholeNatalDistinct=Boolean(onlyIndependentHour&&
+  natalRoleAudit?.status==='not-exactly-repeated-across-other-natal-positions'&&
+  natalRoleAudit.wholeNatalCategoryIsNew===true);
  const yearRefs=year?.sourceRefs||[];
  const onlyIndependentYear=!hour&&
   year?.kind==='buyer-question-year-visible-role-addition-v1'&&
@@ -76,15 +89,21 @@ function inspect(input){
  // as an editorial draft, but NEVER authorize a paid order solely for it.
  return Object.freeze({
   kind:'adaptive-first-chapter-precharge-unique-evidence-v1',
-  eligible:Boolean(onlyIndependentHour)&&
+  eligible:Boolean(onlyIndependentHour&&wholeNatalDistinct)&&
    contextProblems.length===0&&readerProblems.length===0,
-  reason:onlyIndependentHour&&contextProblems.length?
+  reason:sameStemAlreadyInNatal?
+   'hour-role-already-in-other-natal-pillar-unreviewed-positional-meaning':
+   onlyIndependentHour&&!wholeNatalDistinct?
+   'hour-whole-natal-category-audit-unverified':
+   onlyIndependentHour&&contextProblems.length?
    'buyer-context-unusable-for-two-option-paid-explanation':
    onlyIndependentHour&&readerProblems.length?
    'buyer-question-cannot-pass-first-chapter-reader-gate':
    onlyIndependentHour?'verified-hour-addition-awaits-human-review':
    onlyIndependentYear?'year-visible-meaning-already-in-free-preview':
    'no-guaranteed-independent-first-chapter-paragraph',
+  wholeNatalHourRoleNotRepeated:wholeNatalDistinct,
+  independentPositionSpecificMeaningApproved:false,
   existingModelCalls:0,additionalModelCalls:0,
   modelQualityValidated:false,customerSaleApproved:false
  });
