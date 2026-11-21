@@ -138,7 +138,7 @@ jobs:
         run: node report-paid-delivery-state-tests.js
       - name: Check a DIFFERENT evidence-based first-chapter reading order without paid calls
         run: node report-core-month-exposure-reading-order-tests.js
-      - name: Validate PRIVATE Luna first-chapter human comparison for failure, success and incomplete responses (NO API)
+      - name: Reject retired Luna first-chapter archive identity and repeated hour-role paid preflight (NO API)
         env:
           NODE_ENV: test
           OPENAI_API_KEY: ''
