@@ -124,6 +124,7 @@ function bindForm(doc,apis={}){
   for(const choice of decisionReport.choices){
    const card=node('section','','workbook-choice-card');
    card.append(node('strong',choice.title),
+    node('span',choice.subject,'workbook-choice-subject'),
     node('p',choice.text));
    cards.append(card);
   }
