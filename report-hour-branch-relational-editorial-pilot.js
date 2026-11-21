@@ -56,19 +56,30 @@ function compare(a,b){
  const onlySecond=second.hourPairs.filter(x=>!old.has(key(x)));
  const clash=x=>x.filter(r=>r.type==='충'&&
   r.positions.filter(p=>p!=='hour').length===1);
- const lens=rel=>{
+ const lens=(rel,all)=>{
   const counterpart=rel.positions.find(p=>p!=='hour');
   if(!LABEL[counterpart])throw Error('UNKNOWN_HOUR_RELATION_COUNTERPART');
+  // 丑未 appears as both 沖 and a pairwise 刑 table hit. They describe
+  // ONE POSITION PAIR, not "two independent bad events". Preserve both
+  // table labels but never double count intensity or infer an outcome.
+  const onSameEndpoints=all.filter(x=>
+   x.branches===rel.branches&&
+   JSON.stringify(x.positions)===JSON.stringify(rel.positions));
+  const categories=[...new Set(onSameEndpoints.map(x=>x.type))];
+  if(!categories.includes('충'))throw Error('HOUR_CONTRAST_CLASH_LOST');
   return Object.freeze({
    type:rel.type,sourceRef:'facts.natalBranchRelations',
    endpoints:rel.positions.slice(),branches:rel.branches,
+   samePairRelationLabels:Object.freeze(categories),
+   adjacentPillars:Math.abs(['year','month','day','hour'].indexOf(counterpart)-3)===1,
    traditionalPositionQuestion:LABEL[counterpart]+'와 '+
     LABEL.hour+'의 관계를 구조적으로 비교하는 질문',
+   onePairNotDoubleWeight:true,
    personalEventOrOutcomePredicted:false
   });
  };
- const left=clash(onlyFirst).map(lens);
- const right=clash(onlySecond).map(lens);
+ const left=clash(onlyFirst).map(x=>lens(x,first.hourPairs));
+ const right=clash(onlySecond).map(x=>lens(x,second.hourPairs));
  return Object.freeze({
   kind:'offline-hour-to-other-pillar-branch-contrast-v1',
   status:left.length&&right.length?
