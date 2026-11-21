@@ -113,7 +113,7 @@ button.secondary{background:white;color:#286653}
 <p>실제 앱과 같은 계산 코드로 시간과 교육비를 비교합니다. 사주·MBTI 개인 예측은 하지 않습니다. 실제 유료 보고서나 출시 버전이 아닙니다.</p></header>
 <section class="howto" aria-label="이용 순서"><h2>체험 방법</h2>
 <p class="hint">먼저 주당 학습시간과 목표 기간만 입력하세요. 궁금하면 필요한 총 학습시간도 추가하세요. 예상 교육비와 현재 업무·배울 기술의 이름은 선택입니다.</p>
-<div class="actions"><button id="trialExample" type="button">합성 예시 자동 입력</button><button id="trialClear" class="secondary" type="button">전체 입력 초기화</button></div>
+<div class="actions"><button id="trialStart" type="button">내 숫자로 바로 시작</button><button id="trialExample" class="secondary" type="button">합성 예시 자동 입력</button><button id="trialClear" class="secondary" type="button">전체 입력 초기화</button></div>
 <p class="privacy"><strong>개인정보 주의:</strong> 이름·회사명·연락처는 입력하지 마세요. 이 HTML은 외부 연결 없이 계산하고 결과를 자동 저장하거나 제출하지 않습니다.</p></section>
 <section class="base" aria-label="실제 선택 질문"><h2>1. 고민과 실제 조건</h2>
 <div class="field"><label for="readerDecision">현재 고민</label><textarea id="readerDecision" maxlength="140" rows="2">기존 일을 유지할지 새로운 기술을 배울지 고민 중입니다.</textarea></div>
@@ -1173,6 +1173,11 @@ if(root?.document){
   'wb-weeklyStudyHours':'3','wb-requiredStudyHours':'60','wb-targetWeeks':'8',
   'wb-trainingCostKRW':'300000','wb-availableBudgetKRW':'100000'
  };
+ $('trialStart').addEventListener('click',()=>{
+  const field=$('wb-weeklyStudyHours');
+  field.scrollIntoView?.({behavior:'smooth',block:'center'});
+  field.focus?.();
+ });
  $('trialExample').addEventListener('click',()=>{
   for(const [id,value] of Object.entries(sample))emit(id,value);
   $('workSkillBudgetOption').open=true;
