@@ -50,3 +50,12 @@
  .workbook-compare-title{margin:15px 0 8px}
  .workbook-preview{padding:14px}
 }
+
+/* Work56: zero forced financial guesses. The three time fields are always
+   visible; cost/budget are optional and discoverable via native summary. */
+.workbook-optional-budget{margin-top:12px;padding:6px 10px 12px;border:1px solid #d8e2e3;border-radius:12px;background:#fff}
+.workbook-optional-budget summary{cursor:pointer;min-height:44px;padding:10px 5px;font-size:13.5px;font-weight:750;line-height:1.6;color:#275d51}
+.workbook-optional-budget summary:focus-visible{outline:3px solid #2c6558;outline-offset:2px}
+.workbook-optional-budget .workbook-fields{margin-top:8px}
+.workbook-result[data-workbook-status="partial-capacity-preview"] .workbook-result-heading{color:#2c5b50}
+@media(max-width:480px){.workbook-optional-budget{padding:4px 9px 10px}}
