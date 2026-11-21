@@ -17,31 +17,19 @@ async function run(){
   delete process.env.REPORT_QA_CONFIRM;
   delete process.env.REPORT_QA_ALLOW_PAYMENT;
   delete process.env.OPENAI_API_KEY;
-  const p=await pkg.inspect();
-  assert.equal(p.model,'gpt-6-luna');
-  assert.equal(p.kind,'one-luna-first-chapter-explicit-approval-required-offline-v1');
-  assert.match(p.firstChapterProviderRequestSha256,/^[a-f0-9]{64}$/);
-  assert(p.requestUtf8Bytes>60000);
-  assert.equal(p.outputTokenCeiling,18000);
-  assert.equal(p.sourceRefs.length,2);
-  assert.deepEqual(p.sourceRefs,['natal.hour.stem','natal.hour.hidden.丁']);
-  assert(p.approximateFirstCallMaxOutputScenarioUSD>0.01);
-  assert(p.approximateFirstCallMaxOutputScenarioUSD<0.03);
-  assert.equal(p.freeBaselineCardCount>=2,true);
-  assert.match(p.freeBaselineTextSha256,/^[a-f0-9]{64}$/);
-  assert.equal(p.humanReviewQuestions.length,5);
-  assert.equal(p.realProviderCalls,0);
-  assert.equal(p.merchantCalls,0);
-  assert.equal(p.userApprovedAdditionalPaidCall,false);
-  assert.equal(p.previousTerraConsentReusable,false);
-  assert.equal(p.modelOutputGenerated,false);
-  assert.equal(p.manuscriptHumanVerified,false);
-  assert.equal(p.productSaleApproved,false);
-  assert.equal(p.productionDeploymentApproved,false);
-  assert.equal(p.releaseVerdict,'not-approved');
-  assert.equal(p.exactModelAvailabilityAndOutputNotVerified,true);
-  assert.equal(p.estimatedNotGuaranteedCap,true);
-  assert.equal(p.work46ProviderBriefPresent,true);
+  // Old work47 packet is NOW REVOKED: the selected hourly 丁 already
+  // appears in the YEAR and DAY hidden stems. Different position does not
+  // prove a new traditional meaning worth selling.
+  await assert.rejects(pkg.inspect(),err=>
+   /old-luna-qa-sample-repeats-hour-role-across-natal/.test(err.message)&&
+   err.message.includes('natal.year.hidden.丁')&&
+   err.message.includes('natal.day.hidden.丁'));
+  const overlap=require('./report-paid-core-hour-cross-pillar-audit')
+   .inspect(require('./report-facts-node').build(sample,2027));
+  assert.equal(overlap.eligibleForNewPaidRoleClaim,false);
+  assert.equal(overlap.sameExactStemOtherNatalPositions.length,2);
+  assert.equal(overlap.salesApproved,false);
+  assert.equal(calls,0);
   assert(!fs.existsSync(path.join(__dirname,'.github/workflows/luna-first-chapter-qa.yml')),
    'never leave an active billable workflow without explicit new operator approval');
   assert.equal(calls,0);
@@ -56,13 +44,14 @@ async function run(){
   process.env.REPORT_QA_ALLOW_PAYMENT='true';
   await assert.rejects(pkg.inspect(),/paid-approval-env-must-be-absent/);
   assert.equal(calls,0,'even a forged approval token never performs network IO');
-  console.log('PASS LUNA NO-BILL FIRST-CHAPTER APPROVAL PACKET '+
-   JSON.stringify({requestSha256:p.firstChapterProviderRequestSha256,
-    requestUtf8Bytes:p.requestUtf8Bytes,outputLimit:p.outputTokenCeiling,
-    firstCallOutputMaxScenarioUSD:p.approximateFirstCallMaxOutputScenarioUSD,
-    actualModelRequests:calls,merchantRequests:0,
-    consumedTerraConsentReusable:false,
-    newOperatorApprovalRequired:true,releaseVerdict:p.releaseVerdict}));
+  console.log('PASS REVOKED LUNA FIRST-CHAPTER OFFLINE PACKET '+JSON.stringify({
+    reason:'same symbol already in year and day natal hidden stems',
+    oldRequestPreviouslyFrozen:true,oldTrialNoLongerApproved:true,
+    modelRequests:calls,merchantRequests:0,
+    previousTerraConsentReusable:false,
+    newOperatorApprovalWouldNotFixMissingChartMethod:true,
+    releaseVerdict:'not-approved'
+  }));
  }finally{
   global.fetch=restore;
   for(const [key,value] of [
