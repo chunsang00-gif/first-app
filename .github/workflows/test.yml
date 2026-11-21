@@ -271,7 +271,7 @@ jobs:
     # Real Chrome screenshots live in a separate, bounded job. Does NOT
     # contact any AI, merchant, Render deploy, or external user website.
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 7
     permissions:
       contents: read
     steps:
@@ -279,6 +279,14 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+      - name: Install Korean glyph fonts only if runner lacks them (screenshot readability)
+        run: |
+          if [ -z "$(fc-list :lang=ko)" ]; then
+            sudo apt-get update -qq
+            sudo apt-get install -y -qq fonts-nanum
+            fc-cache -f >/dev/null
+          fi
+          test -n "$(fc-list :lang=ko)"
       - name: Install browser automation driver (uses runner's local Google Chrome)
         run: npm install --no-save --no-audit --no-fund --ignore-scripts playwright-core@1.56.1
       - name: Test actual local HTML at 320px, 390px and 1280px with file download, no provider API
