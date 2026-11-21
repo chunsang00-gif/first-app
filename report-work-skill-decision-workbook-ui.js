@@ -17,9 +17,10 @@ function bindForm(doc,apis={}){
  const target=doc?.getElementById?.('targetSkill');
  const panel=doc?.getElementById?.('workSkillWorkbook');
  const result=doc?.getElementById?.('workSkillWorkbookResult');
+ const live=doc?.getElementById?.('workSkillWorkbookLiveStatus');
  const fields=FIELD_IDS.map(id=>doc?.getElementById?.('wb-'+id));
  if(!scope?.supportsDecision||!workbook?.build||!comparison?.build||!context?.inspect||
-    !question||!current||!target||!panel||!result||
+    !question||!current||!target||!panel||!result||!live||
     fields.some(x=>!x))return false;
  const node=(tag,text,cssClass)=>{
   const element=doc.createElement(tag);
@@ -27,25 +28,42 @@ function bindForm(doc,apis={}){
   element.textContent=text;
   return element;
  };
+ let detailsOpen=false;
+ const announce=(heading,kind,shortDetail='')=>{
+  // Announce only a short STATUS, not a whole multi-page report on
+  // every mobile keystroke. The full report is a labelled region.
+  const message=heading+(shortDetail?' · '+shortDetail:'');
+  if(live.textContent!==message)live.textContent=message;
+  live.setAttribute('data-workbook-announcement',kind);
+ };
  const show=(heading,text,kind='info')=>{
   result.replaceChildren(node('strong',heading,'workbook-result-heading'),
    node('p',text,'workbook-result-note'));
   result.setAttribute('data-workbook-status',kind);
+  announce(heading,kind);
  };
  const render=()=>{
   const active=scope.supportsDecision(question.value);
   panel.hidden=!active;
   panel.classList?.toggle('hidden',!active);
   if(!active){
-   // The question may now be about an entirely different concern:
-   // don't retain old work-specific figures or a previous diagnosis.
-   for(const item of fields)item.value='';
-   for(const item of fields)item.disabled=true;
+   // Any new reader topic erases old personal choices, numbers and output.
+   detailsOpen=false;
+   for(const item of fields){
+    item.value='';
+    item.disabled=true;
+    item.setAttribute('aria-invalid','false');
+   }
    result.replaceChildren();
    result.setAttribute('data-workbook-status','hidden');
+   live.textContent='';
+   live.setAttribute('data-workbook-announcement','hidden');
    return;
   }
-  for(const item of fields)item.disabled=false;
+  for(const item of fields){
+   item.disabled=false;
+   item.setAttribute('aria-invalid','false');
+  }
   const submitted={currentWork:current.value.trim(),targetSkill:target.value.trim()};
   if(!submitted.currentWork||!submitted.targetSkill){
    show('무료 시간·예산 비교',
@@ -62,11 +80,13 @@ function bindForm(doc,apis={}){
   const constraints={};
   for(let i=0;i<FIELD_IDS.length;i++){
    const field=fields[i],raw=String(field.value||'').trim();
-   // Only explicit numbers count. Empty input must NOT silently be 0.
+   // Empty input is UNKNOWN, not the number zero.
    if(raw!==''){
     if(!/^(?:\d+(?:\.\d+)?|\.\d+)$/.test(raw)){
-     show('숫자를 확인해 주세요',field.getAttribute('data-field-label')+
-      ': 음수가 아닌 숫자로 입력해 주세요.','invalid');
+     field.setAttribute('aria-invalid','true');
+     show('숫자를 확인해 주세요',
+      (field.getAttribute('data-field-label')||'숫자')+
+       ': 음수가 아닌 숫자로 입력해 주세요.','invalid');
      return;
     }
     constraints[FIELD_IDS[i]]=Number(raw);
@@ -78,48 +98,95 @@ function bindForm(doc,apis={}){
     readerDecision:question.value,decisionContext:submitted,constraints
    });
    decisionReport=comparison.build(report);
-  }catch(e){
-   // Never display arbitrary exception detail or purchaser input as HTML.
-   // Native field bounds and the SAME Node validator remain authoritative.
+  }catch(error){
+   // Shared Node validation remains authoritative. Use known public
+   // field constraints for user help; do not expose exception contents.
+   const prefix='WORKBOOK_CONSTRAINT_INVALID:';
+   const key=String(error?.message||'').startsWith(prefix)?
+    String(error.message).slice(prefix.length):null;
+   const index=FIELD_IDS.indexOf(key);
+   if(index>=0)fields[index].setAttribute('aria-invalid','true');
+   const spec=index>=0?workbook.FIELDS[FIELD_IDS[index]]:null;
+   const label=index>=0?fields[index].getAttribute('data-field-label'):null;
    show('입력값을 확인해 주세요',
-    '시간은 0.5시간 단위, 기간은 1~260주, 금액은 0원 이상의 정수로 입력해 주세요.','invalid');
+    spec?(label+': '+spec.min+'~'+spec.max+spec.unit+
+     ', '+spec.step+spec.unit+' 단위로 입력해 주세요.'):
+     '시간은 0.5시간 단위, 기간은 1~260주, 금액은 0원 이상의 정수로 입력해 주세요.','invalid');
    return;
   }
-  const missing=report.missingQuestions;
   const headings={
    'resources-fit-on-entered-estimates':'입력한 시간·교육비 조건 충족',
    'at-least-one-entered-constraint-not-met':'입력한 시간이나 예산에 부족한 부분이 있습니다',
    'additional-customer-facts-required':'입력하지 않은 정보를 확인해 주세요'
   };
-  const nodes=[node('strong',headings[report.status]||'입력값 비교','workbook-result-heading')];
-  const add=(label,value)=>{
-   const row=node('p','', 'workbook-result-line');
-   const emphasis=node('strong',label+': ');
-   row.append(emphasis,doc.createTextNode(value));
-   nodes.push(row);
-  };
-  if(missing.length)add('아직 필요한 입력',missing.join(' · '));
+  const title=headings[report.status]||'입력값 비교';
   const fmt=x=>Number(x).toLocaleString('ko-KR');
-  if(report.time.state!=='unknown'){
+  const nodes=[node('strong',title,'workbook-result-heading')];
+  const time=decisionReport.timeSummary;
+  const money=decisionReport.budgetSummary;
+  const keyFacts=node('div','','workbook-glance');
+  const glance=(label,value)=>{
+   const cell=node('div','','workbook-glance-cell');
+   cell.append(node('span',label,'workbook-glance-label'),
+    node('strong',value,'workbook-glance-value'));
+   keyFacts.append(cell);
+  };
+  if(time)glance('목표 기간 내 부족한 학습시간',
+   fmt(time.deficitHours)+'시간');
+  if(money)glance('추가 교육비 부족분',
+   fmt(money.gapKRW)+'원');
+  if(time||money)nodes.push(keyFacts);
+  if(report.missingFields.length){
+   const remaining=report.missingFields.length;
+   const missing=report.missingQuestions[0];
+   const key=report.missingFields[0],idx=FIELD_IDS.indexOf(key);
+   nodes.push(node('p','아직 입력하지 않은 숫자 '+remaining+
+    '개. 빈 항목은 0으로 처리하지 않습니다.','workbook-missing-note'));
+   if(idx>=0){
+    const focusButton=node('button','다음 입력: '+missing,'workbook-missing-focus');
+    focusButton.type='button'; // NEVER submit the parent saju wizard.
+    focusButton.addEventListener('click',()=>fields[idx].focus?.());
+    nodes.push(focusButton);
+   }
+  }
+  // Real decision improvements are immediately visible on narrow phones.
+  // Keep the optional long comparison and reading checklist behind a native
+  // keyboard-accessible <details> control. Preserve open state on typing.
+  if(decisionReport.waysToAdjust.length){
+   nodes.push(node('h4','조건을 바꿀 수 있는 방법','workbook-compare-title'));
+   const options=node('ul','','workbook-option-list');
+   for(const option of decisionReport.waysToAdjust)
+    options.append(node('li',option.text));
+   nodes.push(options);
+  }
+  const detail=node('details','','workbook-more');
+  detail.open=detailsOpen;
+  detail.addEventListener('toggle',()=>{
+   if(!result.contains||result.contains(detail))
+    detailsOpen=Boolean(detail.open);
+  });
+  detail.append(node('summary','계산 상세·두 선택·확인사항 펼쳐 보기',
+   'workbook-more-summary'));
+  const add=(label,value)=>{
+   const row=node('p','','workbook-result-line');
+   row.append(node('strong',label+': '),doc.createTextNode(value));
+   detail.append(row);
+  };
+  if(time){
    add('목표 기간 내 확보 가능한 학습시간',
-    fmt(report.time.totalHoursByTarget)+'시간');
+    fmt(time.enteredHoursAvailableByTarget)+'시간');
    add('필요한 주당 학습시간',
-    fmt(report.time.hoursNeededPerWeek)+'시간');
-   if(report.time.earliestWholeWeeksOnEnteredSchedule===null)
+    fmt(time.minimumHoursPerWeekForTarget)+'시간');
+   if(time.weeksOnCurrentEnteredSchedule===null)
     add('현재 일정에서 완료 예상 주수','주당 학습시간 0시간으로 계산 불가');
    else add('현재 일정에서 필요한 주수',
-    fmt(report.time.earliestWholeWeeksOnEnteredSchedule)+'주 (입력한 총시간 기준)');
+    fmt(time.weeksOnCurrentEnteredSchedule)+'주 (입력한 총시간 기준)');
    add('목표 기간 내 부족한 학습시간',
-    fmt(report.time.hoursShortByTarget)+'시간');
+    fmt(time.deficitHours)+'시간');
   }
-  if(report.budget.state!=='unknown'){
-   add('교육비에서 추가로 필요한 금액',
-    fmt(report.budget.additionalKRWNeeded)+'원');
-  }
-  // The separate source-bound comparison makes visible which option
-  // has numeric inputs and which cannot yet be assessed. Do not imply an
-  // astrology-based verdict or claim a new career recommendation.
-  nodes.push(node('h4','두 선택에서 확인할 내용','workbook-compare-title'));
+  if(money)add('교육비에서 추가로 필요한 금액',
+   fmt(money.gapKRW)+'원');
+  detail.append(node('h4','두 선택에서 확인할 내용','workbook-compare-title'));
   const cards=node('div','','workbook-choice-grid');
   for(const choice of decisionReport.choices){
    const card=node('section','','workbook-choice-card');
@@ -128,24 +195,24 @@ function bindForm(doc,apis={}){
     node('p',choice.text));
    cards.append(card);
   }
-  nodes.push(cards);
-  if(decisionReport.waysToAdjust.length){
-   nodes.push(node('h4','부족한 조건을 바꾸는 계산상 방법','workbook-compare-title'));
-   const options=node('ul','','workbook-option-list');
-   for(const option of decisionReport.waysToAdjust)
-    options.append(node('li',option.text));
-   nodes.push(options);
-  }
-  nodes.push(node('h4','직접 확인할 사항','workbook-compare-title'));
+  detail.append(cards);
+  detail.append(node('h4','직접 확인할 사항','workbook-compare-title'));
   const checks=node('ul','','workbook-check-list');
   for(const check of decisionReport.nextChecks)
    checks.append(node('li',check));
-  nodes.push(checks);
+  detail.append(checks);
+  nodes.push(detail);
   nodes.push(node('p',
-   '무료 선택 비교입니다. 모든 수치는 직접 입력한 예상값을 사용합니다. 실제 수료·직장 성과를 보장하거나 사주·MBTI로 판단하지 않으며, 결제·AI 호출·저장은 하지 않습니다.',
+   '무료 선택 비교입니다. 수치는 고객이 입력한 예상값만 사용합니다. 실제 수료·직장 성과를 보장하거나 사주·MBTI로 판단하지 않으며, 결제·AI 호출·저장은 하지 않습니다.',
    'workbook-result-disclaimer'));
   result.replaceChildren(...nodes);
   result.setAttribute('data-workbook-status',report.status);
+  const short=[
+   time?'학습시간 부족 '+fmt(time.deficitHours)+'시간':null,
+   money?'교육비 부족 '+fmt(money.gapKRW)+'원':null,
+   report.missingFields.length?'입력 대기 '+report.missingFields.length+'개':null
+  ].filter(Boolean).join(', ');
+  announce(title,report.status,short);
  };
  // Scope's question listener is bound first in the real entry page.
  // Still clear the old work fields and computed result in this module
