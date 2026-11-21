@@ -19,7 +19,7 @@ function bindForm(doc,apis={}){
  const result=doc?.getElementById?.('workSkillWorkbookResult');
  const live=doc?.getElementById?.('workSkillWorkbookLiveStatus');
  const fields=FIELD_IDS.map(id=>doc?.getElementById?.('wb-'+id));
- if(!scope?.supportsDecision||!workbook?.build||!comparison?.build||!context?.inspect||
+ if(!scope?.supportsDecision||!workbook?.build||!workbook?.quickPreview||!comparison?.build||!context?.inspect||
     !question||!current||!target||!panel||!result||!live||
     fields.some(x=>!x))return false;
  const node=(tag,text,cssClass)=>{
@@ -68,19 +68,6 @@ function bindForm(doc,apis={}){
    item.setAttribute('aria-invalid','false');
    item.removeAttribute?.('aria-describedby');
   }
-  const submitted={currentWork:current.value.trim(),targetSkill:target.value.trim()};
-  if(!submitted.currentWork||!submitted.targetSkill){
-   show('무료 시간·예산 비교',
-    '현재 하는 일과 배우려는 기술을 모두 적으면 시간·비용 조건을 비교할 수 있습니다. 아래 수치는 선택 입력입니다.');
-   return;
-  }
-  const validated=context.inspect(submitted);
-  if(!validated.valid||validated.status!=='ready'||
-     submitted.currentWork===submitted.targetSkill){
-   show('현재 일과 기술 입력을 확인해 주세요',
-    '서로 다른 두 내용을 각각 2~80자로 입력해 주세요. 연락처·링크는 사용하지 않습니다.','invalid');
-   return;
-  }
   const constraints={};
   for(let i=0;i<FIELD_IDS.length;i++){
    const field=fields[i],raw=String(field.value||'').trim();
@@ -96,6 +83,70 @@ function bindForm(doc,apis={}){
     }
     constraints[FIELD_IDS[i]]=Number(raw);
    }
+  }
+  // Names of current work and target skill are OPTIONAL for numeric
+  // arithmetic. Previously this screen refused to calculate ANYTHING until
+  // both text boxes were filled, even though an 8h × 8w capacity doesn't
+  // depend on job titles. Never invent names just to satisfy a writer gate.
+  const submitted={currentWork:current.value.trim(),targetSkill:target.value.trim()};
+  let preliminary;
+  try{
+   preliminary=workbook.quickPreview({
+    readerDecision:question.value,constraints
+   });
+  }catch(error){
+   show('입력값을 확인해 주세요',
+    '시간은 0.5시간 단위, 기간은 1~260주, 금액은 0원 이상의 정수로 입력해 주세요.','invalid');
+   return;
+  }
+  if(!submitted.currentWork||!submitted.targetSkill){
+   if(!preliminary.enteredFieldCount){
+    show('무료 시간·예산 비교',
+     '먼저 매주 학습시간과 목표 기간만 입력해 보세요. 현재 업무와 기술 이름·교육비는 선택 입력입니다.');
+    return;
+   }
+   const fmt=x=>Number(x).toLocaleString('ko-KR');
+   const nodes=[node('strong','입력한 숫자부터 먼저 계산했습니다','workbook-result-heading')];
+   const add=(label,value)=>{
+    const row=node('p','','workbook-result-line');
+    row.append(node('strong',label+': '),doc.createTextNode(value));
+    nodes.push(row);
+   };
+   if(preliminary.capacityKnown)
+    add('목표 기간 내 배치 가능한 학습시간',
+     fmt(preliminary.availableHoursByTarget)+'시간');
+   if(preliminary.requiredWeeklyKnown)
+    add('목표까지 필요한 주당 학습시간',
+     fmt(preliminary.minimumWeeklyHoursForTarget)+'시간');
+   if(preliminary.fullTimeKnown)
+    add('목표 기간 내 부족한 학습시간',
+     fmt(preliminary.deficitHours)+'시간');
+   if(preliminary.moneyKnown)
+    add('추가 교육비 부족분',fmt(preliminary.budgetGapKRW)+'원');
+   if(!preliminary.capacityKnown&&!preliminary.requiredWeeklyKnown&&!preliminary.moneyKnown)
+    nodes.push(node('p',
+     '매주 학습시간과 목표 기간을 적으면 기간 내 학습 가능시간부터 계산합니다.',
+     'workbook-result-note'));
+   nodes.push(node('p',
+    '현재 일과 배울 기술의 이름을 둘 다 적으면 두 선택 비교도 볼 수 있습니다. 이름을 입력하지 않아도 위 시간·예산 계산은 가능합니다.',
+    'workbook-result-note'));
+   nodes.push(node('p',
+    '입력한 값만 계산하며, 누락된 항목이나 실제 학습 성과는 추정하지 않습니다. 외부 전송·AI 호출·결제 없이 브라우저에서 계산합니다.',
+    'workbook-result-disclaimer'));
+   result.replaceChildren(...nodes);
+   result.setAttribute('data-workbook-status','partial-capacity-preview');
+   announce('입력값으로 간단 계산', 'partial-capacity-preview',
+    preliminary.capacityKnown?'배치 가능 '+fmt(preliminary.availableHoursByTarget)+'시간':
+    preliminary.moneyKnown?'교육비 부족 '+fmt(preliminary.budgetGapKRW)+'원':
+    '주당 시간과 목표 기간 입력 대기');
+   return;
+  }
+  const validated=context.inspect(submitted);
+  if(!validated.valid||validated.status!=='ready'||
+     submitted.currentWork===submitted.targetSkill){
+   show('현재 일과 기술 입력을 확인해 주세요',
+    '서로 다른 두 내용을 각각 2~80자로 입력해 주세요. 연락처·링크는 사용하지 않습니다.','invalid');
+   return;
   }
   let report,decisionReport;
   try{
@@ -125,7 +176,7 @@ function bindForm(doc,apis={}){
   const headings={
    'resources-fit-on-entered-estimates':'입력한 시간·교육비 조건 충족',
    'at-least-one-entered-constraint-not-met':'입력한 시간이나 예산에 부족한 부분이 있습니다',
-   'additional-customer-facts-required':'입력하지 않은 정보를 확인해 주세요'
+   'additional-customer-facts-required':'입력한 조건부터 계산했습니다'
   };
   const title=headings[report.status]||'입력값 비교';
   const fmt=x=>Number(x).toLocaleString('ko-KR');
@@ -148,10 +199,10 @@ function bindForm(doc,apis={}){
    const remaining=report.missingFields.length;
    const missing=report.missingQuestions[0];
    const key=report.missingFields[0],idx=FIELD_IDS.indexOf(key);
-   nodes.push(node('p','아직 입력하지 않은 숫자 '+remaining+
+   nodes.push(node('p','선택 입력 중 비어 있는 숫자 '+remaining+
     '개. 빈 항목은 0으로 처리하지 않습니다.','workbook-missing-note'));
    if(idx>=0){
-    const focusButton=node('button','다음 입력: '+missing,'workbook-missing-focus');
+    const focusButton=node('button','다음 선택 입력: '+missing,'workbook-missing-focus');
     focusButton.type='button'; // NEVER submit the parent saju wizard.
     focusButton.addEventListener('click',()=>fields[idx].focus?.());
     nodes.push(focusButton);
