@@ -67,9 +67,13 @@ function status(prompt){
   'historical buyer-neutral scenario must retain exact old instructions');
  assert.equal(neutralBody.task.chapters.saju_core.coreReaderChoiceContext,undefined);
  const results=[];
- // One actual paid-eligible concrete SKILL dilemma.
+ // Historical SKILL draft has a genuine hour role, but it repeats
+ // YEAR/DAY and therefore cannot be treated as a billable source.
  const standard=cost.qualifiedSample;
- assert.equal(precharge.inspect(standard).eligible,true);
+ const standardGuard=precharge.inspect(standard);
+ assert.equal(standardGuard.eligible,false);
+ assert.equal(standardGuard.reason,
+  'hour-role-already-in-other-natal-pillar-unreviewed-positional-meaning');
  const c=await capture.capture(standard);
  assert.equal(c.status,'captured-full-paid-composition');
  const main=status(c.prompt);
