@@ -22,7 +22,7 @@ for(const {focus} of conditions){
  assert(!correct.endsWith('’'+wrong));
 }
 const badPairs=[/근거’을/,/경로’을/,/범위’을/,/문제’을/,/기준’를/,/조건’를/,
- /근거을/,/경로을/,/범위을/,/문제을/,/기준를/,/조건를/];
+ /근거을/,/경로을/,/범위을/,/문제을/,/기준를/,/조건를/,/문제’이라는/];
 let ready=0,link=0;
 for(const input of grid.representativeInputs()){
  const p=facts.build(input,2027);
@@ -38,6 +38,19 @@ for(const input of grid.representativeInputs()){
   if(c.id==='month-visible-link')link++;
  }
 }
+// Work62: an actually published FREE equal-role sentence had
+// “무언가를 ... 문제’이라는”. Exercise its exact chart, not only random grids.
+const equalRole=facts.build({
+ calendar:'solar',birthDate:'2006-01-15',birthTime:'14:20',
+ gender:'male',mbti:'ISFP',readerDecision:'기존 일을 유지할지 새로운 기술을 배울지 고민 중입니다.'
+},2027);
+assert.equal(equalRole.status,'ready');
+const equalText=reader.build(equalRole).cards
+ .find(c=>c.id==='birth-month')?.text||'';
+assert(equalText.includes('’라는 같은 전통 분류가 확인됩니다'),
+ 'FREE same-role reader must use the correct Korean quoted-noun particle');
+assert(!equalText.includes('문제’이라는'),
+ 'never publish the work61 S07 grammar defect again');
 assert(ready>90&&link>0,'test must cover real monthly linkage cases');
 const review=manual.build();
 assert.equal(review.rows.length,3);
