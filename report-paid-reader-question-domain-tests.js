@@ -167,7 +167,24 @@ assert.equal(scope.chosenDomain('직장을 옮겨 돈을 더 벌지 고민입니
  'multi-domain buyer decision must never imply a guaranteed career answer');
 const missingDecisionChapter=structuredClone(delivered);
 missingDecisionChapter.sections.splice(1,1);
-assert.equal(scope.locateDelivered(missingDecisionChapter),null);
+const direct=scope.locateDelivered(missingDecisionChapter);
+assert.equal(direct.decisionChapterId,null);
+assert.equal(direct.decisionIndex,null);
+assert.equal(direct.related.chapterId,'career');
+assert.equal(direct.related.topicIndex,0,
+ 'a source-responsive career paragraph is still navigable without any decision chapter');
+const noDecisionAndNoAnswer=structuredClone(unresponsive);
+noDecisionAndNoAnswer.sections.splice(1,1);
+assert.equal(scope.locateDelivered(noDecisionAndNoAnswer),null,
+ 'never show an empty shortcut if neither a decision nor a responsive topic exists');
+const moneyTopicOnly={meta:{readerDecision:'적금 만기일이 궁금합니다.'},sections:[
+ {id:'money',bodyTopics:['spending'],body:[
+ '적금 만기일이 아직 남아 있는 경우에는 실제 약정 이율과 해지 조건을 확인해야 합니다. 적금 상품의 만기 조건을 따로 비교하는 것이 필요합니다.']}
+]};
+const savingLink=scope.locateDelivered(moneyTopicOnly);
+assert.equal(savingLink.decisionChapterId,null);
+assert.equal(savingLink.related.chapterId,'money');
+assert.equal(savingLink.related.topicIndex,0);
 assert.equal(scope.locateDelivered({meta:{readerDecision:'<script>evil</script>'},sections:delivered.sections}),null);
 assert.equal(JSON.stringify(links),JSON.stringify(browserLinks.window.REPORT_BUYER_QUESTION_LINKS.locateDelivered(delivered)),
  'server and browser must point to the same actually delivered customer answer');
