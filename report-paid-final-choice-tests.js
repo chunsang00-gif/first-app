@@ -65,7 +65,25 @@ const noQuestion={...prompt,facts:facts.build({...p,readerDecision:undefined},20
 assert.equal(compile.compile(noQuestion).task.finalCustomerChoice,undefined);
 const noDecision={...prompt,completedReport:{meta:{readerDecision:question},
  sections:[core,career,make('year_2027',['change'])]}};
-assert.equal(compile.compile(noDecision).task.finalCustomerChoice,undefined);
+const domainOnly=compile.compile(noDecision).task.finalCustomerChoice;
+assert(domainOnly,'a related delivered career paragraph remains a real answer even without decision');
+assert.equal(domainOnly.supportChapter,null,
+ 'must never claim an omitted decision chapter was delivered');
+assert.equal(domainOnly.relatedChapter,'career');
+assert.equal(domainOnly.relatedTopic,'growth');
+assert.equal(domainOnly.relatedParagraphWasDelivered,true);
+const domainOnlySchema=compile.schema(noDecision,wire.schemaFor(noDecision,schema));
+assert(domainOnlySchema.properties.finalJudgment.properties.body.description
+ .includes('관련 분야의 실제 본문이 고객의 두 선택지를 구분했습니다.'));
+assert(!domainOnlySchema.properties.finalJudgment.properties.body.description
+ .includes('실제로 완성된 선택·결정 장에서 이미 답한'),
+ 'do not lie about a nonexistent decision chapter in final synthesis');
+const noDecisionAndNoAnswer={...noDecision,completedReport:{
+ ...noDecision.completedReport,sections:[core,{
+  ...career,body:['일반적인 직업 조건의 개요','실무 조건 풀이']},
+  make('year_2027',['change'])]}};
+assert.equal(compile.compile(noDecisionAndNoAnswer).task.finalCustomerChoice,undefined,
+ 'without decision and without relevant delivered prose no buyer summary is allowed');
 assert.throws(()=>compile.compile({...prompt,completedReport:{
  ...prompt.completedReport,meta:{readerDecision:'다른 질문'}}}),/PAID_FINAL_CHOICE_INPUT_MISMATCH/);
 console.log('PASS real paid final synthesis uses customer decision and already delivered relevant topic only; absent optional domain not invented; no extra model or payment calls');
