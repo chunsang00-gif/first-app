@@ -118,8 +118,32 @@ const create=()=>{
  assert(!career.plannedIds.includes('stress'));
  const pressure=selection.select(groups,create(),{
   mode:'adaptive-v1',readerQuestion:'스트레스와 피로를 줄이고 싶다'});
- for(const id of ['decision','stress','integrated_judgment'])
-  assert(pressure.plannedIds.includes(id));
+ assert(pressure.plannedIds.includes('stress'),
+  'an explicit pressure concern keeps its supported stress chapter');
+ assert(!pressure.plannedIds.includes('decision'));
+ assert(!pressure.plannedIds.includes('integrated_judgment'),
+  'one stress complaint is not automatically an additional choice and integrated insight');
+ assert.deepEqual(pressure.omitted.filter(x=>['decision','integrated_judgment'].includes(x.id))
+  .map(x=>x.reason),[
+   'no-explicit-buyer-choice-for-decision-chapter',
+   'no-explicit-buyer-choice-for-integration'
+  ]);
+ const plainTopic=selection.select(groups,create(),{
+  mode:'adaptive-v1',readerQuestion:'적금 만기일이 궁금합니다.'});
+ assert(!plainTopic.plannedIds.includes('decision'));
+ assert(!plainTopic.plannedIds.includes('integrated_judgment'),
+  'a money TOPIC is not independently a buyer decision');
+ assert(plainTopic.plannedIds.includes('money'));
+ const moneyChoice=selection.select(groups,create(),{
+  mode:'adaptive-v1',readerQuestion:'적금을 유지할지 대출을 상환할지 고민입니다.'});
+ assert(moneyChoice.plannedIds.includes('decision'));
+ assert(moneyChoice.plannedIds.includes('integrated_judgment'));
+ const stressChoice=selection.select(groups,create(),{
+  mode:'adaptive-v1',readerQuestion:'압박을 받으면 참고 견딜지 휴식을 취할지 고민입니다.'});
+ assert(stressChoice.plannedIds.includes('stress'));
+ assert(stressChoice.plannedIds.includes('decision'));
+ assert(stressChoice.plannedIds.includes('integrated_judgment'),
+  'an explicit stress choice can still earn a scoped choice/integration candidate');
  const requestedButUnsupported=create();
  requestedButUnsupported.stress.hasGroundedTopic=false;
  const noInvent=selection.select(groups,requestedButUnsupported,{
