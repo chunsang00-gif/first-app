@@ -263,6 +263,35 @@ jobs:
           path: ${{ runner.temp }}/work65-s02-independent-expert-review.html
           if-no-files-found: error
           retention-days: 14
+      # Work70: Give the owner the FULL existing original editorial texts.
+      # Do not summarize, regenerate, reword or pretend these are paid API outputs.
+      - name: Preserve complete nine-chapter original and later six-chapter revision (zero AI)
+        env:
+          OPENAI_API_KEY: ''
+          REPORT_MODEL_URL: ''
+          REPORT_QA_CONFIRM: ''
+          REPORT_QA_ALLOW_PAYMENT: ''
+        run: |
+          mkdir -p "${RUNNER_TEMP}/work70-complete-original-editorial-drafts"
+          original="qa/full-report-offline-reader-manuscript-1982-1420-20261107.md"
+          revision="qa/adaptive-v1-six-chapter-source-specific-reader-draft-20261116.md"
+          for file in "$original" "$revision"; do
+            test -s "$file"
+            cp "$file" "${RUNNER_TEMP}/work70-complete-original-editorial-drafts/"
+            cmp "$file" "${RUNNER_TEMP}/work70-complete-original-editorial-drafts/$(basename "$file")"
+          done
+          test "$(grep -c '^## [1-9]\\.' "$original")" -eq 9
+          test "$(grep -c '^## [1-6]장\\.' "$revision")" -eq 6
+          grep -q '판매 불가' "$original"
+          grep -q '실제 유료 AI 생성본 아님' "$revision"
+          echo 'PASS original 9 chapters + revised 6 chapters, byte-for-byte unchanged; paid calls=0'
+      - name: Attach BOTH complete existing editorial manuscripts, unabridged and not-for-sale
+        uses: actions/upload-artifact@v4
+        with:
+          name: work70-complete-original-editorial-nine-and-six-chapters-NOT-PAID
+          path: ${{ runner.temp }}/work70-complete-original-editorial-drafts/*.md
+          if-no-files-found: error
+          retention-days: 14
       - name: Freeze the exact new Luna first-chapter QA consent packet with NO provider transport
         env:
           NODE_ENV: test
