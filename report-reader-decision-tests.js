@@ -75,8 +75,14 @@ const browser=fs.readFileSync(path.join(__dirname,'live-report-ui.js'),'utf8');
 assert(html.includes('id="readerDecision"'));
 assert(html.includes('maxlength="140"'));
 assert(html.includes('지금 고민하는 선택'));
-assert(html.includes('첫 장·선택과 결정·근거가 있는 관련 분야 풀이에 참고할 수 있습니다.'),
- 'form copy must describe only evidence-grounded buyer-question personalisation');
+assert(html.includes('이 고민은 사주 계산 결과를 바꾸지 않습니다.'),
+ 'self-reported buyer question cannot change any calculated natal pillar');
+assert(html.includes('아래 무료 시간·교육비 비교를 사용할 수 있습니다.'),
+ 'real available FREE tool may be described, not a speculative paid interpretation');
+assert(html.includes('유료 보고서는 아직 검증 중이며 판매하지 않습니다.'),
+ 'the current first screen must disclose the unpublished paid product');
+assert(!html.includes('첫 장·선택과 결정·근거가 있는 관련 분야 풀이에 참고할 수 있습니다.'),
+ 'remove the stale implied premium first-chapter promise');
 assert(browser.includes("value('readerDecision').trim()"));
 assert(html.includes("['지금 고민하는 선택',d.readerDecision]"));
 
