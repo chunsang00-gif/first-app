@@ -146,7 +146,7 @@ function build(packet){
   throw Error('SAMPLE_MONTH_TWO_SOURCE_CONDITIONS_MISSING');
  const monthText=month.stemTenGod===hidden.tenGod?
   '태어난 달에 드러난 글자와 숨겨진 중심 글자에서 모두 ‘'+upper+
-  '’이라는 같은 전통 분류가 확인됩니다. 가령 ‘'+visible.focus+
+  '’라는 같은 전통 분류가 확인됩니다. 가령 ‘'+visible.focus+
   '’'+objectParticle(visible.focus)+' 생각하는 상황에서 두 출처는 한 가지 질문을 되풀이하며, '+
   '성격이 두 배 강하거나 실제로 그 선택을 했다는 뜻은 아닙니다.':
   '태어난 달에 드러난 글자는 ‘'+upper+'’에, 달에 숨겨진 중심 글자는 ‘'+lower+
