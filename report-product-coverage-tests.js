@@ -17,6 +17,33 @@ const names=['NODE_ENV','RENDER','PAID_CORE_DEPTH_V2',
  try{
   process.env.NODE_ENV='test';delete process.env.RENDER;
   for(const k of names.slice(2))delete process.env[k];
+  // Work71: exercise the ACTUAL customer preview + its actual chapter scope,
+  // not only a fake blueprint in report-chapter-selection-tests.js.
+  // A topical sentence must not be sold as a personal decision plus synthesis.
+  const scopeBase={calendar:'solar',birthDate:'1994-07-15',
+   birthTime:'14:20',gender:'male',mbti:'ISFP'};
+  const scoped=q=>coverage.calculate({...scopeBase,readerDecision:q});
+  const topical=scoped('적금 만기일이 궁금합니다.');
+  const moneyChoice=scoped('적금을 유지할지 대출을 상환할지 고민입니다.');
+  const pressureConcern=scoped('스트레스와 피로를 줄이고 싶다.');
+  const selectedIds=x=>x.estimate.chapters.filter(c=>c.includedInPlan).map(c=>c.id);
+  for(const x of [topical,moneyChoice,pressureConcern]){
+   assert.equal(x.status,'ready');
+   assert.equal(x.purchaseEnabled,false);
+   assert.equal(x.modelCalls,0);
+  }
+  assert(!selectedIds(topical).includes('decision'));
+  assert(!selectedIds(topical).includes('integrated_judgment'));
+  assert(selectedIds(topical).includes('money'));
+  assert(selectedIds(moneyChoice).includes('decision'));
+  assert(selectedIds(moneyChoice).includes('integrated_judgment'));
+  assert(!selectedIds(pressureConcern).includes('decision'));
+  assert(!selectedIds(pressureConcern).includes('integrated_judgment'));
+  const noChoiceReasons=topical.estimate.chapters.filter(c=>
+   ['decision','integrated_judgment'].includes(c.id)).map(c=>c.omittedReason);
+  assert(noChoiceReasons.every(x=>/고객|선택|비교/.test(x)&&
+   !x.includes('근거가 부족합니다')),
+   'a topic-only buyer must be told the REAL omission reason, not false missing evidence');
   const checked=[];
   for(const [birthDate,birthTime,calendar,chapters,expectedEligible] of cases){
    const input={calendar,birthDate,birthTime,gender:'male',
