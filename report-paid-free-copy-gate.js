@@ -38,31 +38,39 @@ function minimumValueProblems(core,packet){
   errors.push('paid-core-no-independent-reader-value:saju_core:strength');
  return errors;
 }
+// Every completed paid chapter has a potential resale problem: the customer
+// already received the whole FREE reading, not only its birth-month card.
+// Reject a free paragraph merely moved to "money", "career" or "2027".
+// Wording similarity is a conservative automated minimum, not proof that
+// every dissimilar paragraph adds individual premium value.
 function inspect(sections,packet){
- const core=(sections||[]).find(s=>s?.id==='saju_core');
- if(!core)return [];
+ const actual=(sections||[]).filter(s=>s?.id&&(
+  Array.isArray(s.body)||Array.isArray(s.topicConclusions)));
+ if(!actual.length)return [];
  if(packet?.status!=='ready')throw Error('PAID_FREE_COPY_VERIFIED_PACKET_REQUIRED');
  const sample=free.build(packet);
  if(sample.status!=='calculated-example'||sample.modelCalls!==0||
    sample.completedPremiumParagraphs!==0)
   throw Error('PAID_FREE_COPY_UNVERIFIED_PREVIEW');
- // The FREE report already contains the exact year/hour traditional
- // meanings. New paid hour/year extensions must NOT repeat that card as
- // purported premium insight. Compare all natal free cards, not just month.
- const natalFreeIds=new Set(['birth-month','month-visible-link','year-hour']);
- const cards=sample.cards.filter(x=>natalFreeIds.has(x.id));
+ // The free annual card and every birth-year/hour/month card are already
+ // included in a customer's free report. This is never core-only scope.
+ const freeCards=sample.cards.filter(c=>new Set([
+  'birth-month','month-visible-link','year-hour','annual-2027']).has(c.id));
  const errors=[];
- for(let i=0;i<(core.body||[]).length;i++){
-  const paid=String(core.body[i]||''),compact=norm(paid);
-  if(compact.length<55)continue;
-  const topic=core.bodyTopics?.[i]||String(i);
-  for(const card of cards){
-   const sentences=meaningful(card.text),material=sentences.join(' ');
-   const copied=sentences.some(sentence=>{
-    const t=norm(sentence);return t.length>=55&&compact.includes(t);
-   });
-   if(copied||similarity(material,paid)>=0.84)
-    errors.push('copied-free-reader-meaning:saju_core:'+topic+':'+card.id);
+ for(const section of actual){
+  const body=Array.isArray(section.body)?section.body:section.topicConclusions;
+  for(let i=0;i<body.length;i++){
+   const paid=String(body[i]||''),compact=norm(paid);
+   if(compact.length<55)continue;
+   const topic=section.bodyTopics?.[i]||String(i);
+   for(const card of freeCards){
+    const sentences=meaningful(card.text),material=sentences.join(' ');
+    const copied=sentences.some(sentence=>{
+     const t=norm(sentence);return t.length>=55&&compact.includes(t);
+    });
+    if(copied||similarity(material,paid)>=0.84)
+     errors.push('copied-free-reader-meaning:'+section.id+':'+topic+':'+card.id);
+   }
   }
  }
  return [...new Set(errors)];
