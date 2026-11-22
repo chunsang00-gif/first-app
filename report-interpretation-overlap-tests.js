@@ -267,4 +267,33 @@ assert.deepEqual(synthesisRepetition({sections:[separateVerdict],finalJudgment:{
 }}),[],
  'ordinary limitations and generic vocabulary are not copied paid conclusions');
 
+// Work74: use the REAL pre-synthesis gate, not just the post-synthesis
+// quality validator. Reject known contradictions before another model bill.
+const preSynthesis=require('./report-server-contract').preSynthesisDuplicateErrors;
+const yearOpposite=section('year_2027_money','change',yearCalcOpposite,
+ ['facts.targetYearRelations']);
+const preCharge=preSynthesis([yearCalcA,yearOpposite]);
+assert(preCharge.some(code=>
+ code.includes('contradictory calculated claim between chapters:')),
+ 'opposite calculated annual/day assertions must reject before paid synthesis');
+const restored=[{
+ id:yearCalcA.id,keyJudgment:yearCalcA.keyJudgment,
+ bodyTopics:yearCalcA.bodyTopics,topicConclusions:yearCalcA.body,
+ evidence:yearCalcA.evidence
+}];
+assert(preSynthesis([...restored,yearOpposite]).some(code=>
+ code.includes('contradictory calculated claim between chapters:')),
+ 'a resumed/previous batch stores topicConclusions, not body: still reject');
+const differentSite=section('year_2027_money','change',
+ '2027년에는 태어난 달과 새해의 지지 사이에 직접 충이 계산되지 않았습니다.',
+ ['facts.targetYearRelations']);
+assert(!preSynthesis([yearCalcA,differentSite]).some(code=>
+ code.includes('contradictory calculated claim between chapters:')),
+ 'different natal positions are not one contradictory calculated assertion');
+const cautious=section('year_2027_money','change',
+ '2027년 충으로 실제 손실이나 금전 문제가 생긴다고 단정할 수 없습니다.',
+ ['facts.targetYearRelations']);
+assert(!preSynthesis([yearCalcA,cautious]).some(code=>
+ code.includes('contradictory calculated claim between chapters:')),
+ 'a proper uncertainty statement cannot reverse an annual symbolic calculation');
 console.log('PASS deterministic repeated causal interpretation under shared verified facts; no paid API');
