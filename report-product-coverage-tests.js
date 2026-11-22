@@ -307,10 +307,23 @@ const names=['NODE_ENV','RENDER','PAID_CORE_DEPTH_V2',
    unknownBirthTime:true,birthTime:'12:00'});
   assert.equal(withoutTime.firstChapterFeasibility.status,'not-qualified');
   assert.equal(withoutTime.purchaseEnabled,false);
+  // Work63: a source-unique case is TECHNICALLY eligible but none of the
+  // nine Work61 cases has a reviewed paid manuscript. Do not imply that
+  // uniqueness authorizes sales on the actual reader-facing screen.
+  const uniqueSource=coverage.calculate({
+   calendar:'solar',birthDate:'1982-10-15',birthTime:'02:20',
+   gender:'male',mbti:'ISFP',
+   readerDecision:'기존 일을 유지할지 새로운 기술을 배울지 고민 중입니다.'
+  });
+  assert.equal(uniqueSource.firstChapterFeasibility.status,
+   'source-candidate-not-validated');
+  assert(uniqueSource.firstChapterFeasibility.message.includes('현재 구매할 수 없습니다'));
+  assert.equal(uniqueSource.firstChapterFeasibility.customerSaleApproved,false);
+  assert.equal(uniqueSource.purchaseEnabled,false);
   const currentUI=require('node:fs').readFileSync(
    require('node:path').join(__dirname,'live-report-ui.js'),'utf8');
   assert(currentUI.includes('무료 풀이와 다른 유료 첫 장의 근거'));
-  assert(currentUI.includes('firstChapter.message'));
+  assert(currentUI.includes('firstChapter.message'));\n  assert(currentUI.includes('계산 근거 후보만 확인 · 현재 유료 판매 불가'));
   assert(currentUI.includes('firstChapter.status'));
   assert(currentUI.includes('firstChapter.newPaymentEnabled!==false'));
   assert(currentUI.indexOf('firstChapterHtml}')<
