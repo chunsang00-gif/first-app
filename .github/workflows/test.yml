@@ -231,6 +231,18 @@ jobs:
           const packet=subject.source(),html=subject.html();
           assert.equal(packet.caseId,'S02');
           assert.equal(packet.chart,'壬戌 / 丁未 / 己亥 / 乙丑');
+          // Work67: real textual match of day+hour DOES NOT make the
+          // independently cited 卯/申-month outcomes applicable to 未-month S02.
+          assert.deepEqual(packet.textScope.caseExplicitMonths,['卯','申']);
+          assert.equal(packet.textScope.actualCalculatedMonth,'未');
+          assert.equal(packet.textScope.specificMonthRuleMatched,false);
+          assert.equal(packet.textScope.dayHourRuleProfessionallyApplied,false);
+          assert.equal(packet.textScope.branchRelationAndMonthPriorityProfessionallyResolved,false);
+          assert.equal(packet.textScope.personalWealthPredictionVerified,false);
+          assert(html.includes('이 사례의 계산된 출생월:'));
+          assert(html.includes('원문에서 확인한 내용과 아직 판단할 수 없는 부분'));
+          assert(html.includes('일부 온라인 전사본에서 己/已/巳가 혼용되는 대목'));
+          assert.equal(html.includes('출생월: 卯월'),false);
           assert.equal(packet.licensedForPaidGeneration,false);
           assert.equal(packet.approvedForSale,false);
           assert.equal(packet.checkoutEnabled,false);
