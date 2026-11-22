@@ -25,6 +25,12 @@ for(const id of [
 ])assert(html.includes('id="'+id+'"'),'real wizard input missing: '+id);
 assert(html.includes('<link rel="stylesheet" href="report-work-skill-decision-workbook.css">'));
 assert(html.includes('aria-live="polite"')&&html.includes('무료 미리보기'));
+assert(html.includes('이 고민은 사주 계산 결과를 바꾸지 않습니다.'),
+ 'STEP01_SELF_REPORT_NOT_NATAL_FACT_NOTICE_MISSING');
+assert(html.includes('유료 보고서는 아직 검증 중이며 판매하지 않습니다.'),
+ 'STEP01_UNAPPROVED_PAID_PRODUCT_MUST_NOT_BE_ADVERTISED');
+assert(!html.includes('입력하면 유료 보고서의 첫 장·선택과 결정'),
+ 'unapproved paid manuscript must not be promised on first screen');
 assert(html.includes('id="workSkillWorkbookResult" class="workbook-result" role="region"'));
 assert(html.includes('aria-label="학습 시간과 교육비 선택 비교 결과" aria-live="off"'));
 assert(html.includes('id="workSkillWorkbookLiveStatus"'));
