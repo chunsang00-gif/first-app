@@ -391,7 +391,7 @@ function compile(prompt){
   const related=delivered.related;
   return {kind:'delivered-only-buyer-choice-final-v1',question:decision,
    inputAsCalculatedEvidence:false,observedCustomerOutcome:false,
-   supportChapter:'decision',
+   supportChapter:delivered.decisionChapterId,
    relatedChapter:related?.chapterId||null,relatedTopic:related?.topicId||null,
    relatedParagraphWasDelivered:Boolean(related),newPaidParagraph:false,
    extraProviderCall:false,professionalReviewComplete:false};
@@ -869,8 +869,16 @@ function schema(prompt,transport){
       choice.observedCustomerOutcome!==false||
       choice.newPaidParagraph!==false||
       choice.extraProviderCall!==false||
-      choice.professionalReviewComplete!==false||
-      !payload.task.completedReport.sections.some(s=>s.id==='decision'))
+      choice.professionalReviewComplete!==false)
+    throw Error('PAID_FINAL_CHOICE_SOURCE_DRIFT');
+   const completedSections=payload.task.completedReport.sections;
+   const decisionDelivered=completedSections.some(s=>s.id==='decision'&&
+    Array.isArray(s.body)&&s.body.some(x=>typeof x==='string'&&x.trim()));
+   const relatedDelivered=choice.relatedParagraphWasDelivered===true&&
+    completedSections.some(s=>s.id===choice.relatedChapter&&
+     Array.isArray(s.bodyTopics)&&s.bodyTopics.includes(choice.relatedTopic));
+   if(choice.supportChapter!==(decisionDelivered?'decision':null)||
+      (!decisionDelivered&&!relatedDelivered))
     throw Error('PAID_FINAL_CHOICE_SOURCE_DRIFT');
    const final=result.properties.finalJudgment.properties;
    const readerScope=require('./report-paid-reader-question-domain');
@@ -883,7 +891,9 @@ function schema(prompt,transport){
     JSON.stringify(choice.question)+'. '+
     (mustContrastTwo?
       '관련 분야의 실제 본문이 고객의 두 선택지를 구분했습니다. 최종 정리에도 두 선택지 각각의 다른 조건을 간결하게 대조해 답하고, 한쪽만 언급하거나 두 이름만 나열하며 상투적인 조언을 하지 않는다. ':
-      '실제로 완성된 선택·결정 장에서 이미 답한 서로 다른 판단 조건 중 하나를 종합 본문 한 문장에 자연스럽게 적용한다. ')+
+      (decisionDelivered?
+       '실제로 완성된 선택·결정 장에서 이미 답한 서로 다른 판단 조건 중 하나를 종합 본문 한 문장에 자연스럽게 적용한다. ':
+       '별도의 선택·결정 장은 작성되지 않았습니다. 실제 완성된 관련 분야의 제한된 설명만 연결하고, 고객이 제시하지 않은 다른 선택이나 독립적인 결정을 창작하지 않는다. '))+
     (choice.relatedParagraphWasDelivered?
       '실제로 완성된 '+choice.relatedChapter+'.'+choice.relatedTopic+
       ' 분야의 질문을 보조로 활용할 수 있다. ':
