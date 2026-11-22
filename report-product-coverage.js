@@ -174,7 +174,7 @@ function calculate(input){
   'hour-whole-natal-category-audit-unverified':
    '출생시간의 추가 글자를 원국 전체와 대조해 독립성을 확인할 수 없어 유료 첫 장을 제공하지 않습니다.',
   'verified-hour-addition-awaits-human-review':
-   '무료 풀이에 없던 출생시간의 별도 계산 근거가 확인됐습니다. 아직 실제 유료 문장과 상품 가치는 검증되지 않았습니다.',
+   '무료 풀이에 없는 출생시간의 계산 근거 후보만 확인됐습니다. 유료 첫 장의 독립적인 해석과 실제 원고 품질은 검증되지 않아 현재 구매할 수 없습니다.',
   'no-guaranteed-independent-first-chapter-paragraph':
    packet.person?.readerDecision?
     '현재 질문과 출생정보로는 무료 풀이와 구별되는 유료 첫 장의 별도 해석 근거가 확인되지 않았습니다.':
