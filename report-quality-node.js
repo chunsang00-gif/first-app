@@ -356,11 +356,23 @@ function validate(r,packet){
   if(section)errors.push(...require('./report-paid-mbti-reader-substance')
    .inspect(section,type));
  }
- // Free reader prose must never be repackaged as a paid first chapter.
+ // Work76: a FREE reading also cannot be sold as money/career/year
+ // content or repeated in the FINAL summary. The body-stage gate stops
+ // another paid call early; this final-stage check is a second boundary.
  if(packet?.status==='ready'&&packet.facts?.tenGods?.month&&
     packet.facts?.structuralEvidence?.monthCommand&&
-    packet.facts?.annualTenGods?.stemTenGod)
-  errors.push(...require('./report-paid-free-copy-gate').inspect(r.sections,packet));
+    packet.facts?.annualTenGods?.stemTenGod){
+  const final=r.finalJudgment||{};
+  const summary=[...(final.body||[]),...(final.strengths||[]),
+   ...(final.watchouts||[]),
+   ...(final.routines||[]).flatMap(x=>[x?.trigger,x?.action,x?.reason]),
+   final.closingQuestion].filter(x=>typeof x==='string'&&x.trim());
+  const finished=[...r.sections,...(summary.length?[{
+   id:'finalJudgment',body:summary,
+   bodyTopics:summary.map((_,i)=>'final-'+i)
+  }]:[])];
+  errors.push(...require('./report-paid-free-copy-gate').inspect(finished,packet));
+ }
  // A paid report must be bound to the exact calculation it was generated for.
  // Otherwise a valid-looking report from another customer can pass prose checks.
  if(packet?.status==='ready'){
