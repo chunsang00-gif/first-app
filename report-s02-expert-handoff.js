@@ -6,9 +6,28 @@ const assert=require('node:assert/strict');
 const work61=require('./qa-work61-nine-case-human-review-packet');
 const CASE='S02';
 const SOURCES=Object.freeze([
+ // Main self-contained classical clause, plus an annotated second edition.
  'https://skqs.dazhishi.com/show_grdorvjlya.html',
  'https://www.mczwl.cn/guji/sanming/smth-09-002'
 ]);
+// Work67: independently checked against BOTH cited public source pages on
+// 2026-11-22. This establishes the text's wording, NOT its predictive truth
+// or applicability to the whole chart. Historic outcomes cannot be sold.
+const TEXT_SCOPE=Object.freeze({
+ chapter:'六己日乙丑時斷',
+ generalDayStem:'己',
+ generalHour:'乙丑',
+ visibleHourStem:'乙',
+ hiddenHourStem:'癸',
+ caseDayHour:'己亥日乙丑時',
+ caseExplicitMonths:Object.freeze(['卯','申']),
+ actualCalculatedMonth:'未',
+ specificMonthRuleMatched:false,
+ generalTextMentionsBothStems:true,
+ dayHourRuleProfessionallyApplied:false,
+ branchRelationAndMonthPriorityProfessionallyResolved:false,
+ personalWealthPredictionVerified:false
+});
 const QUESTIONS=Object.freeze([
  {id:'original-clause',
   title:'원문 범위와 글자 해석',
@@ -47,7 +66,8 @@ function source(){
   sourceRef:one.selectedSource,hiddenStem:one.selectedHiddenStem,
   tenGod:one.selectedTenGod,
   freeCards:one.currentFreeCards,
-  sourceUrls:SOURCES.slice(),questions:QUESTIONS.map(x=>({...x})),
+  sourceUrls:SOURCES.slice(),textScope:TEXT_SCOPE,
+  questions:QUESTIONS.map(x=>({...x})),
   requiresIndependentProfessionalReview:true,
   expertIdentityVerified:false,claimedMethodVerified:false,
   newlyAuthoredCustomerManuscriptApproved:false,
@@ -104,8 +124,13 @@ function html(){
   '<p class="notice"><strong>합성 사례 · 실제 유료 원고 없음 · 판매 미승인</strong>. 전문가가 실제 고전 원문과 명식 전체의 조건을 직접 판단하기 위한 자료입니다. 작성한 답변은 브라우저에서만 저장되며 외부로 전송되지 않습니다. 사주와 실제 금융성과의 인과 관계를 주장하지 마십시오.</p>'+
   '<p><b>원국:</b> '+esc(x.chart)+'<br><b>입력:</b> 양력 '+esc(x.birthDate)+' '+esc(x.birthTime)+
   ' / <b>고민:</b> '+esc(x.readerQuestion)+'<br><b>추가 유료 계산 후보:</b> 시지 속글자 '+esc(x.hiddenStem)+'('+esc(x.tenGod)+')</p>'+
-  '<h2>① 원문을 먼저 대조</h2><p class="sources">'+x.sourceUrls.map(u=>esc(u)).join('\n')+
-  '</p><p class="hint">해당 자료의 己亥日乙丑時 조항에서 출생월 조건을 별도로 확인하십시오. 卯월·申월의 개인적 길흉 주장을 未월의 이 사례에 자동 적용하지 마십시오. 출생시간 글자 하나만으로 해석 방법을 선정하지 마십시오.</p>'+
+  '<h2>① 원문에서 확인한 내용과 아직 판단할 수 없는 부분</h2>'+
+  '<section><p><b>일·시 조합:</b> '+esc(x.textScope.caseDayHour)+' (명식과 글자 일치)</p>'+
+  '<p><b>일반 조항:</b> 己일에 乙丑시가 왔을 때 겉의 乙과 丑 안의 癸를 함께 언급합니다. 이는 전통 문헌의 표현이며 개인별 미래·재물 결과를 검증한 것은 아닙니다.</p>'+
+  '<p><b>개별 조항에 적힌 조건:</b> 卯월, 또는 申월과 水木運의 조합. <b>이 사례의 계산된 출생월:</b> 未월. 따라서 그 개별 월 조건의 결과를 S02의 재물운·관직·적금·대출 조언으로 가져오면 안 됩니다.</p>'+
+  '<p><b>추가 미해결:</b> 원문의 戌·未 관련 형·충 표현이 S02 전체 명식에서 어떤 우선순위를 갖는지는 검증되지 않았습니다. 이를 재물 증가 공식처럼 취급하지 마십시오.</p>'+
+  '<p class="hint">일부 온라인 전사본에서 己/已/巳가 혼용되는 대목이 있어 글자가 비슷하다고 간주하지 말고 원문을 교차 확인하십시오. 아래는 원문 주소 두 곳입니다.</p></section>'+
+  '<p class="sources">'+x.sourceUrls.map(u=>esc(u)).join('\n')+'</p>'+
   '<h2>② 동일 명식에 현재 실제로 공개된 무료 풀이</h2><div class="free-grid">'+free+'</div>'+
   '<h2>③ 외부 전문가의 원문·반례·독자 가치 판정</h2>'+
   '<p>아래 각 항목을 별도로 검토해야 합니다. 긍정 판단을 강제하지 않으며, 근거가 없으면 비적용이라고 기록하십시오.</p>'+
