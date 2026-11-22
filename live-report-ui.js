@@ -125,10 +125,10 @@ async function showCoverage(validatedInput,isCurrent=()=>true){
   '<section class="section report-first-chapter-status">'+
   '<h2>무료 풀이와 다른 유료 첫 장의 근거</h2>'+
   '<p><strong>'+esc(firstChapter.status==='source-candidate-not-validated'?
-   '별도 계산 근거 후보 확인 · 원고 검증 전':
+   '계산 근거 후보만 확인 · 현재 유료 판매 불가':
    '별도 해석 근거 미확인 · 유료 판매 불가')+'</strong></p>'+
   '<p>'+esc(firstChapter.message)+'</p>'+
-  '<p class="meta">장 수와 세부 항목 수는 유료 원고의 품질을 보증하지 않습니다. 실제 생성 원고 검토와 판매 승인은 아직 완료되지 않았습니다.</p>'+
+  '<p class="meta">장 수와 세부 항목 수는 품질을 보증하지 않습니다. 실제 유료 원고 검증과 판매 승인이 완료되지 않아 결제할 수 없습니다.</p>'+
   '</section>';
  const primary=selected.filter(x=>proposal.mainChapterIds.includes(x.id));
  const conditional=selected.filter(x=>proposal.conditional2027ChapterIds.includes(x.id));
