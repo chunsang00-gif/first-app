@@ -146,10 +146,14 @@ function earlySubstantiveDuplicateErrors(sections){
 }
 function preSynthesisDuplicateErrors(sections){
  const actual=actualBatchParagraphs(sections);
+ const overlap=require('./report-interpretation-overlap');
  return [...earlySubstantiveDuplicateErrors(actual),
   ...findParaphrasedTopicContent(actual),
   ...findRecycledThemes(actual),...findReusedEvidenceConclusions(actual),
-  ...require('./report-interpretation-overlap').inspect(actual)];
+  ...overlap.inspect(actual),
+  // Work74: stop before purchasing synthesis if already-delivered chapters
+  // contradict the same explicitly stated calculated relation.
+  ...overlap.synthesisRepetition({sections:actual})];
 }
 // A shared calculation is allowed, but repeating the same conclusion with the
 // same evidence in another chapter is not a second paid insight.
@@ -574,6 +578,17 @@ async function generate(input,callModel,onProgress=()=>{},onValidatedBatch=()=>{
     requestedIds:ids,codes:substantiveDuplicates
    });
    throw Error('AI report service returned a copied substantive sentence');
+  }
+  // Work74: detect direct chart-fact reversals before buying the NEXT batch.
+  // This passes only already-decoded body text, never prompts or raw private input.
+  const bodyFactContradictions=require('./report-interpretation-overlap')
+   .synthesisRepetition({sections:actualBatchParagraphs([...priorSections,...result.sections])})
+   .filter(code=>code.startsWith('contradictory calculated claim between chapters:'));
+  if(bodyFactContradictions.length){
+   console.error('[Report body calculated-fact contradiction before next provider call]',{
+    requestedIds:ids,codes:bodyFactContradictions
+   });
+   throw Error('AI report service returned contradictory calculated claims');
   }
   priorSections.push(...result.sections.map(s=>({id:s.id,keyJudgment:s.keyJudgment,bodyLabels:s.bodyLabels,bodyTopics:s.bodyTopics,topicConclusions:s.body.slice(),evidence:s.evidence.slice()})));
   await onValidatedBatch({ids:ids.slice(),sections:result.sections,completedSections:priorSections.length});
