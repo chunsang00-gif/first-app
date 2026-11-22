@@ -199,6 +199,23 @@ jobs:
           REPORT_MODEL_URL: ''
           REPORT_QA_CONFIRM: ''
         run: node qa-paid-hour-cross-pillar-value-tests.js
+      - name: Export nine distinct synthetic first-chapter source cases beside REAL FREE reading (NO API/CHARGE)
+        env:
+          OPENAI_API_KEY: ''
+          REPORT_MODEL_URL: ''
+          REPORT_QA_CONFIRM: ''
+          REPORT_QA_ALLOW_PAYMENT: ''
+        run: |
+          node qa-work61-nine-case-human-review-packet.js --markdown > "${RUNNER_TEMP}/work61-nine-case-human-review.md"
+          test -s "${RUNNER_TEMP}/work61-nine-case-human-review.md"
+          echo 'PASS work61: nine source-only cases exported for HUMAN method / buyer-value review, not sale'
+      - name: Archive work61 nine-case synthetic FREE-vs-candidate review packet
+        uses: actions/upload-artifact@v4
+        with:
+          name: work61-nine-case-human-review-no-paid-calls
+          path: ${{ runner.temp }}/work61-nine-case-human-review.md
+          if-no-files-found: error
+          retention-days: 14
       - name: Freeze the exact new Luna first-chapter QA consent packet with NO provider transport
         env:
           NODE_ENV: test
