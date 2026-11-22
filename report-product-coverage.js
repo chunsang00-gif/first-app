@@ -88,9 +88,9 @@ const WHY=Object.freeze({
  'missing-plan':'계산에 필요한 분석 계획이 확인되지 않았습니다.',
  'no-grounded-topic':'독립적으로 해석할 계산 근거가 확인되지 않았습니다.',
  'no-direct-annual-domain-evidence':'2027년 계산과 이 분야를 따로 연결할 근거가 확인되지 않았습니다.',
- 'no-specific-buyer-decision-editorial-overlap':'별도로 입력한 구체적인 고민이 없어 기본 풀이와 내용이 겹치는 선택 장은 제외했습니다.',
+ 'no-explicit-buyer-choice-for-decision-chapter':'고객이 비교하거나 결정할 선택을 구체적으로 적지 않아 일반 조언을 반복하는 선택 장은 제외했습니다.',
  'no-specific-buyer-stress-question':'스트레스에 관한 별도 질문이 없거나 해당 분야의 독립된 풀이가 없어 이 장을 제외했습니다.',
- 'no-specific-buyer-integration-editorial-overlap':'새로운 독립 해석 없이 다른 장의 설명을 반복하는 종합 장은 제외했습니다.'
+ 'no-explicit-buyer-choice-for-integration':'독립적으로 비교할 고객 선택이 없어 기존 풀이를 반복하는 종합 장은 제외했습니다.'
 });
 // These two brief reader paragraphs come from the SAME source-owned
 // interpretive builder used by the REAL paid writer. They are free,
