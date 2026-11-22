@@ -210,4 +210,61 @@ assert.deepEqual(synthesisRepetition({sections:[section('saju_core','strength',
  coreRecycled.body[0],['natal.day.stem'])],finalJudgment:{
  body:['정보를 이해하지 못한다고 단정할 수 없고 비용 부족도 확인할 수 없습니다.']}}),[],
  'a mere denial in final prose is not a repeated positive thesis');
+// Work73: the original gate compared chapter BODY only and skipped
+// keyJudgment, final strengths/watchouts/routines. Verbatim padding in those
+// visible fields was therefore treated as a new premium conclusion.
+const longVerdict='태어난 달의 계산된 두 위치는 같은 상황에서도 확인할 사항을 서로 다르게 설명할 수 있습니다.';
+const separateVerdict=section('saju_core','strength',
+ '태어난 달의 겉글자와 안쪽 글자를 구분한 뒤 실제 선택 상황에 적용하는 예시를 살핍니다.',
+ ['natal.month.stem']);
+separateVerdict.keyJudgment=longVerdict;
+const withFinal=finalJudgment=>({sections:[separateVerdict],finalJudgment});
+assert(synthesisRepetition(withFinal({body:[longVerdict]}))
+ .some(x=>x.includes('saju_core:keyJudgment')),
+ 'copying the original chapter verdict into the final body is not fresh analysis');
+for(const field of ['strengths','watchouts']){
+ assert(synthesisRepetition(withFinal({
+  body:['서로 다른 계산 위치를 하나의 관점으로 읽을 때는 출처부터 따로 확인합니다.'],
+  [field]:[longVerdict]
+ })).some(x=>x.includes('saju_core:keyJudgment')),
+ 'a copied long key verdict in final '+field+' must be detected');
+}
+assert(synthesisRepetition(withFinal({
+ body:['마지막 본문에서는 앞에서 검토한 조건을 간결하게 연결합니다.'],
+ routines:[{trigger:'선택 전',action:'계산 근거 확인',reason:longVerdict}]
+})).some(x=>x.includes('saju_core:keyJudgment')),
+ 'routines cannot recycle a whole original paid verdict as a new action reason');
+assert(synthesisRepetition(withFinal({body:['짧은 요약입니다.'],
+ closingQuestion:longVerdict})).some(x=>x.includes('saju_core:keyJudgment')),
+ 'the closing sentence must not simply repeat the chapter verdict');
+assert.deepEqual(synthesisRepetition(withFinal({
+ body:['태어난 달의 서로 다른 분류를 실제 선택의 조건으로 비교하는 데 한계가 있음을 확인합니다.'],
+ strengths:['두 출처 확인'],watchouts:['단정하지 않기']
+})),[],
+ 'a genuinely shorter synthesis with a different question must not be blocked');
+const yearCalcA=section('year_2027','change',
+ '2027년에는 태어난 날과 새해의 지지 사이에 직접 충이 계산됩니다.',
+ ['facts.targetYearRelations']);
+const yearCalcOpposite='2027년에는 태어난 날과 새해의 지지 사이에 직접 충이 계산되지 않았습니다.';
+assert(synthesisRepetition({sections:[yearCalcA],
+ finalJudgment:{body:[yearCalcOpposite]}})
+ .some(x=>x.includes('final synthesis contradicts previously stated calculation')),
+ 'the exact same annual/day calculation cannot reverse its existence in the conclusion');
+assert(synthesisRepetition({sections:[yearCalcA,section('year_2027_money','change',
+ yearCalcOpposite,['facts.targetYearRelations'])],finalJudgment:{body:[]}})
+ .some(x=>x.includes('contradictory calculated claim between chapters')),
+ 'a direct source-fact contradiction must not hide across body chapters');
+assert.deepEqual(synthesisRepetition({sections:[yearCalcA],finalJudgment:{
+ body:['2027년에는 태어난 달과 새해의 지지 사이에 직접 충이 계산되지 않았습니다.']
+}}),[],
+ 'different natal positions are not a contradiction merely because the same word 충 appears');
+assert.deepEqual(synthesisRepetition({sections:[yearCalcA],finalJudgment:{
+ body:['2027년의 관계를 근거로 실제 갈등이 일어난다고 단정할 수 없습니다.']
+}}),[],
+ 'a non-predictive limitation does not reverse the computed annual relation');
+assert.deepEqual(synthesisRepetition({sections:[separateVerdict],finalJudgment:{
+ body:['원국의 계산 글자를 독자 생활의 실제 결과로 단정해서는 안 됩니다.']
+}}),[],
+ 'ordinary limitations and generic vocabulary are not copied paid conclusions');
+
 console.log('PASS deterministic repeated causal interpretation under shared verified facts; no paid API');
