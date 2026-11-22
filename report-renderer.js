@@ -15,7 +15,7 @@ function readableChapterTitle(id,hasMbti){
  if(!hasMbti&&id==='integrated_judgment')return '사주 종합';
  return themes[id]?.[0]||'상세 해석';
 }
-function section(s,hasMbti,report){
+function section(s,hasMbti,report,choiceLinks){
  const theme=themes[s.id]||['상세 분석','•',''];const labels=Array.isArray(s.bodyLabels)?s.bodyLabels:[];
  const group={saju_core:'성격 · 기본 성향',mbti_contradiction:'성격 · 두 풀이 비교',decision:'성격 · 선택과 결정',money:'재물 · 소비와 판단',career:'일·직업 · 역할과 성장',relationship:'관계 · 소통과 거리',stress:'스트레스 · 압박과 회복',integrated_judgment:'종합 · 전체 해석',year_2027:'2027년 · 전체',year_2027_money:'2027년 · 재물',year_2027_career:'2027년 · 일·직업',year_2027_relationship:'2027년 · 관계'};
  const withArt=new Set(['saju_core','money','career','relationship','stress','integrated_judgment','year_2027']);
@@ -27,7 +27,9 @@ function section(s,hasMbti,report){
  const headline=String(s.keyJudgment||'').trim()||chapterTitle;
  const categoryText=chapterTitle&&chapterTitle!==headline?
   category+' · '+chapterTitle:category;
- const selfReportedQuestion=s.id==='decision'&&typeof report?.meta?.readerDecision==='string'
+ const questionOwner=s.id==='decision'||
+  (choiceLinks?.decisionChapterId===null&&choiceLinks?.related?.chapterId===s.id);
+ const selfReportedQuestion=questionOwner&&typeof report?.meta?.readerDecision==='string'
   ?report.meta.readerDecision.trim():'';
  const customerQuestionHtml=selfReportedQuestion?
   `<div class="reader-decision-note"><small>내가 직접 입력한 고민</small><p>${esc(selfReportedQuestion)}</p><small>직접 작성한 질문이며, 사주로 알아낸 사실은 아닙니다.</small></div>`:'';
@@ -62,7 +64,7 @@ function render(report,target){
  const chapters=(report.sections||[]).filter(s=>s?.id&&Array.isArray(s.body)&&s.body.some(x=>typeof x==='string'&&x.trim()));
  const choiceLinks=window.REPORT_BUYER_QUESTION_LINKS?.locateDelivered(report)||null;
  const choiceShortcut=choiceLinks?
-  `<aside class="report-question-guide" data-share-exclude><strong>내가 적은 고민, 관련 풀이 바로가기</strong><p>입력한 고민과 실제 문장의 조건이 연결된 경우에만 관련 분야 바로가기를 표시합니다.</p><div class="report-question-guide-links"><a href="#detail-decision">선택·결정 풀이</a>${choiceLinks.related?`<a href="#topic-${esc(choiceLinks.related.chapterId)}-${choiceLinks.related.topicIndex}">관련 분야의 세부 풀이</a>`:''}</div><small>내가 입력한 질문은 출생자료가 아니며, 이동한 풀이가 어느 선택의 성공을 보장한다는 뜻도 아닙니다.</small></aside>`:'';
+  `<aside class="report-question-guide" data-share-exclude><strong>내가 적은 고민, 관련 풀이 바로가기</strong><p>입력한 고민과 실제 문장의 조건이 연결된 경우에만 관련 분야 바로가기를 표시합니다.</p><div class="report-question-guide-links">${choiceLinks.decisionChapterId?'<a href="#detail-decision">선택·결정 풀이</a>':''}${choiceLinks.related?`<a href="#topic-${esc(choiceLinks.related.chapterId)}-${choiceLinks.related.topicIndex}">관련 분야의 세부 풀이</a>`:''}</div><small>내가 입력한 질문은 출생자료가 아니며, 이동한 풀이가 어느 선택의 성공을 보장한다는 뜻도 아닙니다.</small></aside>`:'';
  const quickLinks=[['saju_core','⌂','기본'],['mbti_contradiction','♙','성격'],['relationship','♡','관계'],['career','▣','일·직업'],['money','◎','재물'],['stress','◇','스트레스'],['year_2027','▥','2027년']]
   .filter(([id])=>chapters.some(s=>s.id===id));
  const integrated=(report.sections||[]).find(s=>s.id==='integrated_judgment');
@@ -89,7 +91,7 @@ ${balanceRows.length===5?`<div class="cover-dashboard"><p class="meta balance-so
 <button class="full-analysis-cta" id="viewFullReport" type="button"><strong>전체 분석 이어서 보기</strong><small>실제로 작성된 ${chapters.length}개 장의 해석을 확인합니다</small><b aria-hidden="true">›</b></button>
 <nav class="result-nav" aria-label="분석 항목 바로가기">${quickLinks.map(([id,icon,label])=>`<button data-target="detail-${esc(id)}" ${id==='saju_core'?'class="nav-summary"':''}>${icon}<span>${esc(label)}</span></button>`).join('')}</nav>
 <nav class="report-contents" aria-label="실제 작성된 보고서 목차" data-share-exclude><h3>내 보고서 목차</h3><p>생성된 분석만 표시합니다. 누르면 해당 장으로 이동합니다.</p><ol>${chapters.map((chapter,i)=>{const n=chapter.body.filter(x=>typeof x==='string'&&x.trim()).length;const title=readableChapterTitle(chapter.id,hasMbti);return `<li><a href="#detail-${esc(chapter.id)}"><span class="report-contents-number">${String(i+1).padStart(2,'0')}</span><span class="report-contents-name">${esc(title)}</span><small>${n}개 세부 풀이</small></a></li>`}).join('')}</ol></nav>
-${report.meta?.calculationNote?`<details class="chart-explanation"><summary>계산 기준과 해석 범위</summary><p>${esc(report.meta.calculationNote)}</p></details>`:''}</section>`+report.sections.map(s=>section(s,hasMbti,report)).join('')+
+${report.meta?.calculationNote?`<details class="chart-explanation"><summary>계산 기준과 해석 범위</summary><p>${esc(report.meta.calculationNote)}</p></details>`:''}</section>`+report.sections.map(s=>section(s,hasMbti,report,choiceLinks)).join('')+
  `<section class="section final-card"><div class="num">종합 총평</div><h2>${esc(report.finalJudgment?.headline||'당신을 이해하는 핵심 결론')}</h2>${list(report.finalJudgment?.body).map(paragraph).join('')}${list(report.finalJudgment?.strengths).length?`<div class="final-strengths"><h3>계속 살릴 강점</h3><ul>${list(report.finalJudgment.strengths).map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>`:''}${list(report.finalJudgment?.watchouts).length?`<div class="final-watchouts"><h3>주의할 약점</h3><ul>${list(report.finalJudgment.watchouts).map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>`:''}${list(report.finalJudgment?.routines).length?`<div class="routine-list"><h3>다음 상황에서 이렇게 해보세요</h3>${list(report.finalJudgment.routines).map((x,i)=>`<article class="routine"><span>0${i+1}</span><div><strong>${esc(x.trigger)}</strong><p>${esc(x.action)}</p><small>${esc(x.reason)}</small></div></article>`).join('')}</div>`:''}<div class="final-conclusion"><h3>가장 중요한 결론</h3><p class="quote">${esc(report.finalJudgment.closingQuestion)}</p></div></section><div class="share-actions full-report-share" data-share-exclude><div><strong>전체 사주 공유하기</strong><small>첫 페이지부터 최종 정리까지 모두 담습니다. 이름과 풀이 내용이 함께 공유됩니다.${report.meta?.readerDecision?' 직접 입력한 고민도 포함됩니다.':''}</small></div><div class="share-buttons"><button type="button" id="shareFullReport">전체 사주 공유하기</button><button type="button" id="saveFullReport">전체 사주 저장하기</button></div><p id="fullShareStatus" role="status" aria-live="polite">여러 장의 이미지로 공유 · 미지원 기기는 ZIP으로 저장</p></div><div class="report-end-actions"><button class="btn primary" id="saveReadableReport" type="button">읽기용 전체 보고서 저장</button><button class="btn ghost" id="saveReportForReview" type="button">보고서 원문 저장</button><button class="btn ghost" id="restartReport" type="button">처음부터 다시 하기</button><p class="meta">읽기용 저장은 인터넷 없이 열 수 있는 HTML 파일입니다. 개인 정보가 포함될 수 있으며 브라우저 인쇄로 PDF 저장도 가능합니다. JSON 원문은 검토용입니다.</p></div>`;
  target.querySelectorAll('.chart-info').forEach(btn=>btn.addEventListener('click',()=>{const note=target.querySelector('.chart-explanation');note.hidden=!note.hidden;target.querySelectorAll('.chart-info').forEach(b=>b.setAttribute('aria-expanded',String(!note.hidden)))}));
  const navButtons=[...target.querySelectorAll('.result-nav button')]; const markNav=()=>{let active=navButtons[0];if(!active)return;navButtons.forEach(btn=>{const el=document.getElementById(btn.dataset.target);if(el&&el.getBoundingClientRect().top<=140)active=btn});navButtons.forEach(btn=>btn.classList.toggle('on',btn===active))}; markNav();window.addEventListener('scroll',markNav,{passive:true}); target.querySelectorAll('.cover-insight,.cover-more').forEach(btn=>btn.addEventListener('click',()=>document.getElementById(btn.dataset.target)?.scrollIntoView({behavior:'smooth',block:'start'})));
