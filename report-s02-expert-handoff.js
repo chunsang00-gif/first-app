@@ -115,7 +115,7 @@ function html(){
   qs+'<button id="save" type="button">검토 답변을 이 기기에만 저장(JSON)</button>'+
   '<p id="saved" role="status"></p><small>검토자의 이름 기입이나 JSON 파일 생성만으로 자격·전통 해석·유료 원고가 인증되지 않습니다. 이 답변을 공개 GitHub에 업로드하지 마세요. 실제 결제, 유료 AI, 운영 배포는 여전히 금지됩니다.</small>'+
   '</main>'+
-  '<script>document.getElementById("save").addEventListener("click",saveLocal);</script></body></html>';
+  '<script>'+saveLocal.toString()+';document.getElementById("save").addEventListener("click",saveLocal);</script></body></html>';
 }
 function main(argv=process.argv.slice(2)){
  if(argv.length!==1||!['--html','--json'].includes(argv[0]))
