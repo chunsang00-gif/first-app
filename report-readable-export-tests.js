@@ -46,6 +46,22 @@ assert(choiceHtml.includes('href="#part-5-topic-1"'),
 assert(choiceHtml.includes('id="part-5-topic-1"'));
 assert.equal(choiceHtml.split(buyer.meta.readerDecision).length-1,1,
  'do not repeat buyer question in both navigation and decision paragraph');
+// Work72: a 6-chapter adaptive report may intentionally omit decision.
+const topicalWithoutDecision=structuredClone(buyer);
+topicalWithoutDecision.sections=topicalWithoutDecision.sections.filter(s=>s.id!=='decision');
+const directTopicHtml=exp.build(topicalWithoutDecision);
+assert(directTopicHtml.includes('class="choice-shortcut"'));
+assert(directTopicHtml.includes('href="#part-4-topic-1"'),
+ 'the real career paragraph is reachable even without a decision chapter');
+assert(directTopicHtml.includes('id="part-4-topic-1"'));
+assert(!directTopicHtml.includes('>선택·결정 풀이</a>'),
+ 'do not create a dead link to an omitted decision chapter');
+assert.equal(directTopicHtml.split(buyer.meta.readerDecision).length-1,1,
+ 'the buyer question is shown only in the actual related chapter');
+const topicalGeneric=structuredClone(topicalWithoutDecision);
+topicalGeneric.sections.find(s=>s.id==='career').body[0]='일반적인 직업 해석을 위한 계산 설명입니다.';
+assert(!exp.build(topicalGeneric).includes('class="choice-shortcut"'),
+ 'no relevant delivered paragraph means no buyer-specific navigation');
 const excluded=structuredClone(buyer);
 excluded.sections.find(s=>s.id==='career').bodyTopics=['first','second'];
 const omitted=exp.build(excluded);
