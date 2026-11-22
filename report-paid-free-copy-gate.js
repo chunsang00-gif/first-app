@@ -56,6 +56,15 @@ function inspect(sections,packet){
  // included in a customer's free report. This is never core-only scope.
  const freeCards=sample.cards.filter(c=>new Set([
   'birth-month','month-visible-link','year-hour','annual-2027']).has(c.id));
+ // These two topic examples are ALREADY shown for free on the real
+ // pre-purchase screen. Reuse its exact editor/source builder; do not
+ // maintain a weaker shadow copy of the public paragraphs.
+ if(actual.some(s=>s.id==='money'||s.id==='career')){
+  const guidance=require('./report-analysis-guidance');
+  const previews=require('./report-product-coverage').independentDomainReadings(
+   packet,guidance.preflight(packet),new Set(actual.map(s=>s.id)));
+  for(const preview of previews)freeCards.push(preview);
+ }
  const errors=[];
  for(const section of actual){
   const body=Array.isArray(section.body)?section.body:section.topicConclusions;
