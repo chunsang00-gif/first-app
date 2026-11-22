@@ -153,6 +153,13 @@ function build(packet,source){
    '고객이 두 선택지를 적었다면 두 경우의 차이를 독립된 문장으로 설명한다. '+
    '이 글자는 실제 출생시간의 근거 '+b+'에 해당하며 시간 겉글자의 분류는 '+hour.stemTenGod+
    '이다. 인용은 '+a+'과 '+b+'만 허용하며, 출생월을 뜻만 바꿔 나열하지 않는다. '+
+   // Work64: a day-hour classical passage can depend on the BIRTH MONTH.
+   // The exact current paragraph only cites two HOUR rows. It cannot claim
+   // to have verified the whole chart's classical applicability or priority.
+   '이 문단이 인용할 수 있는 시간의 두 출처만으로는 고전의 일주·출생월·다른 지지 조건을 대조할 수 없다. '+
+   '따라서 고전의 조건부 부귀·재물·직업 판단이 이 고객에게 적용된다고 주장하지 않는다. '+
+   '다른 출생 기둥의 우선순위나 전통적 방법을 검증한 듯한 문장을 쓰지 않는다. '+
+   '근거 밖의 월별 조건이나 실제 고객의 생활 정보를 임의로 채우지 않는다. '+
    '숨은 글자 한 개를 골랐다는 이유로 사령·강약·격국·성격·재산·능력·건강·성취·미래를 확정하지 않는다. '+
    '질문에 답할 근거가 없으면 지어내지 않고 품질 검사에서 실패한다. '+
    '고객의 고민은 실제 행동을 관찰한 증거가 아니라 본인이 제공한 질문이다.'
