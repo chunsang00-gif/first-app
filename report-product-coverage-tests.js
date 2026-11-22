@@ -58,9 +58,9 @@ const names=['NODE_ENV','RENDER','PAID_CORE_DEPTH_V2',
    assert.deepEqual(result.estimate.chapters.filter(row=>
     ['decision','stress','integrated_judgment'].includes(row.id))
     .map(row=>row.omittedReason),[
-     '별도로 입력한 구체적인 고민이 없어 기본 풀이와 내용이 겹치는 선택 장은 제외했습니다.',
+     '고객이 비교하거나 결정할 선택을 구체적으로 적지 않아 일반 조언을 반복하는 선택 장은 제외했습니다.',
      '스트레스에 관한 별도 질문이 없거나 해당 분야의 독립된 풀이가 없어 이 장을 제외했습니다.',
-     '새로운 독립 해석 없이 다른 장의 설명을 반복하는 종합 장은 제외했습니다.'
+     '독립적으로 비교할 고객 선택이 없어 기존 풀이를 반복하는 종합 장은 제외했습니다.'
     ]);
 
    assert.equal(result.readingSample.kind,'free-calculated-meaning-preview-v1');
