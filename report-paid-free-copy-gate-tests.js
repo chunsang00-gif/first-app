@@ -34,7 +34,21 @@ for(const input of cases){
   body:[yearHour.text+' 개인에게 적용할 때 확인할 내용입니다.']}];
  assert(copy.inspect(paddedYear,packet).some(v=>v.endsWith(':year-hour')),
   'padding an unchanged free year/hour paragraph is not paid value');
- assert.deepEqual(copy.inspect([{id:'decision',bodyTopics:['approach'],body:[original]}],packet),[]);
+ const moved=copy.inspect([{id:'decision',bodyTopics:['approach'],body:[original]}],packet);
+ assert(moved.includes('copied-free-reader-meaning:decision:approach:birth-month'),
+  'moving FREE core prose into an optional paid decision chapter is not added value');
+ const annual=sample.build(packet).cards.find(c=>c.id==='annual-2027').text;
+ assert(copy.inspect([{id:'year_2027',bodyTopics:['change'],body:[annual]}],packet)
+  .includes('copied-free-reader-meaning:year_2027:change:annual-2027'),
+  'annual category already explained FREE cannot be billed again under a new heading');
+ assert(copy.inspect([{id:'year_2027_money',bodyTopics:['change'],
+  body:[annual+' 금전 항목의 별도 설명입니다.']}],packet)
+  .some(x=>x.endsWith(':annual-2027')),
+  'padding an annual-free card with domain labels is still free copying');
+ const restored=copy.inspect([{id:'relationship',bodyTopics:['closeness'],
+  topicConclusions:[original]}],packet);
+ assert(restored.some(x=>x.includes('relationship:closeness:birth-month')),
+  'restored batches store topicConclusions, not body, and must be checked');
  assert.equal(copy.similarity('',original),0);
 }
 // Real paid QA regression: even when the prose paraphrases rather than COPIES
@@ -66,6 +80,25 @@ for(const input of cases){
   'missing provenance should be rejected by the grounding gate, not guessed here');
 }
 
+// Work76: verify the EXACT customer-visible free income/work paragraphs
+// cannot be re-sold as money/career paid material. No model/merchant.
+{
+ const calculated=require('./report-product-coverage').calculate(cases[0]);
+ assert.equal(calculated.status,'ready');
+ const publicExamples=calculated.interpretivePreviews;
+ assert(publicExamples.length>0,'the actual free customer preview has authored domain examples');
+ const packet=facts.build(cases[0],2027);
+ for(const preview of publicExamples){
+  const [id,topic]=preview.id.split('.');
+  const copied=copy.inspect([{id,bodyTopics:[topic],body:[preview.text]}],packet);
+  assert(copied.includes('copied-free-reader-meaning:'+id+':'+topic+':'+preview.id),
+   'the FREE pre-purchase '+preview.id+' paragraph must never qualify as paid insight');
+ }
+ const trulyDifferent=[{id:'money',bodyTopics:['spending'],
+  body:['가상의 생활비 지출에서 이미 나간 금액과 아직 결정하지 않은 예정 지출을 나누어 기록합니다. 이 비교는 출생 정보에서 계산된 사실과 구별되는 사용자 선택의 연습입니다.'] }];
+ assert.deepEqual(copy.inspect(trulyDifferent,packet),[],
+  'different customer questions may reuse normal vocabulary without being called copies');
+}
 assert.throws(()=>copy.inspect([{id:'saju_core',body:['충분히 긴 문장을 작성합니다.']}],{}),
  /PAID_FREE_COPY_VERIFIED_PACKET_REQUIRED/);
 console.log('PASS three independent charts reject copied and minimally rewritten free reading, but allow distinct paid meaning; no provider calls');
