@@ -99,6 +99,36 @@ for(const input of cases){
  assert.deepEqual(copy.inspect(trulyDifferent,packet),[],
   'different customer questions may reuse normal vocabulary without being called copies');
 }
+// The FINAL synthesis/strengths are also a paid, customer-visible deliverable.
+{
+ const packet=facts.build(cases[0],2027);
+ const freeAnnual=sample.build(packet).cards.find(c=>c.id==='annual-2027').text;
+ const quality=require('./report-quality-node');
+ const r={
+  meta:{name:packet.person.name,mbti:packet.person.mbti,
+   chart:packet.chart,targetYear:packet.targetYear?.year},
+  sections:[{id:'saju_core',title:'출생월의 계산 위치를 설명하는 독립적인 제목',
+   keyJudgment:'태어난 달의 겉글자와 안쪽 글자는 서로 다른 위치입니다.',
+   body:['태어난 달의 계산한 글자가 서로 다른 위치에 있어 한 가지 결론만 적용해서는 안 됩니다.'],
+   bodyLabels:['태어난 달의 자리'],bodyTopics:['strength'],
+   evidence:['월간과 월지 중심 글자의 계산된 관계를 구별합니다.']}],
+  cover:{headline:'출생월의 위치 비교',description:'전통 해석의 구별되는 출처를 설명합니다.',
+   keywords:['위치 비교','전통 분류','출생 자료'],highlights:[]},
+  finalJudgment:{headline:'확인된 점과 한계',body:[freeAnnual],
+   strengths:['출처를 구분해 읽을 수 있습니다.'],watchouts:[],
+   routines:[],closingQuestion:'입력된 출생자료의 계산된 위치를 구별해야 합니다.'}
+ };
+ const copied=quality.validate(r,packet).errors;
+ assert(copied.some(x=>x.startsWith('copied-free-reader-meaning:finalJudgment:final-0:annual-2027')),
+  'the ACTUAL final report QA must block free annual card copied into final conclusion');
+ const notCopied=structuredClone(r);
+ notCopied.finalJudgment.body=[
+  '전통적인 출생월 계산만으로 실제 개인의 수입과 직장 변화를 판정할 수는 없습니다.'
+ ];
+ assert(!quality.validate(notCopied,packet).errors.some(x=>x.startsWith(
+  'copied-free-reader-meaning:finalJudgment:')),
+  'a distinct final limitation must not be falsely called a verbatim free card');
+}
 assert.throws(()=>copy.inspect([{id:'saju_core',body:['충분히 긴 문장을 작성합니다.']}],{}),
  /PAID_FREE_COPY_VERIFIED_PACKET_REQUIRED/);
 console.log('PASS three independent charts reject copied and minimally rewritten free reading, but allow distinct paid meaning; no provider calls');
