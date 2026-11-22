@@ -156,9 +156,11 @@ function locateDelivered(report){
  const chapters=report.sections;
  if(!Array.isArray(chapters)||new Set(chapters.map(x=>x?.id)).size!==chapters.length)
   return null;
+ // Decision is optional in adaptive-v1. A buyer's topical question may
+ // still have a genuinely responsive domain paragraph without any decision
+ // chapter. Never require an unsupported extra chapter for navigation.
  const decisionIndex=chapters.findIndex(s=>s.id==='decision'&&
   Array.isArray(s.body)&&s.body.some(text=>typeof text==='string'&&text.trim()));
- if(decisionIndex<0)return null;
  const domain=chosenDomain(question),chapterIndex=domain?
   chapters.findIndex(s=>s?.id===domain):-1;
  let related=null;
@@ -176,9 +178,14 @@ function locateDelivered(report){
    }
   }
  }
+ // No delivered, responsive topic and no actual decision chapter:
+ // there is nothing truthful to link to. Do not show an empty guide.
+ if(decisionIndex<0&&!related)return null;
  return {
   kind:'reader-navigation-to-delivered-choice-v1',
-  decisionChapterId:'decision',decisionIndex,related,
+  decisionChapterId:decisionIndex>=0?'decision':null,
+  decisionIndex:decisionIndex>=0?decisionIndex:null,
+  related,
   questionsAreUserInputNotProof:true,deliveredProseNotSemanticallyApproved:true
  };
 }
