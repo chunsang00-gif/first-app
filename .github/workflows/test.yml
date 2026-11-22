@@ -280,8 +280,8 @@ jobs:
             cp "$file" "${RUNNER_TEMP}/work70-complete-original-editorial-drafts/"
             cmp "$file" "${RUNNER_TEMP}/work70-complete-original-editorial-drafts/$(basename "$file")"
           done
-          test "$(grep -c '^## [1-9]\\.' "$original")" -eq 9
-          test "$(grep -c '^## [1-6]장\\.' "$revision")" -eq 6
+          test "$(grep -c '^## [1-9]\.' "$original")" -eq 9
+          test "$(grep -c '^## [1-6]장\.' "$revision")" -eq 6
           grep -q '판매 불가' "$original"
           grep -q '실제 유료 AI 생성본 아님' "$revision"
           echo 'PASS original 9 chapters + revised 6 chapters, byte-for-byte unchanged; paid calls=0'
