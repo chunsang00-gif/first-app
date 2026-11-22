@@ -3,7 +3,7 @@
 const assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
 const source=fs.readFileSync(path.join(__dirname,'report-renderer.js'),'utf8');
-function run(mbti,readerDecision,withCareer=false){
+function run(mbti,readerDecision,withCareer=false,withoutDecision=false){
  const details=[];
  const window={
   CHARACTER_ASSETS:{
@@ -26,6 +26,7 @@ function run(mbti,readerDecision,withCareer=false){
  const ids=['saju_core','mbti_contradiction','decision',
   'relationship','integrated_judgment','year_2027'];
  if(withCareer)ids.splice(3,0,'career');
+ if(withoutDecision)ids.splice(ids.indexOf('decision'),1);
  const sections=ids.map((id,i)=>({
   id,title:'각 장의 고유한 제목 '+i,
   keyJudgment:id==='decision'?'각 장의 고유한 제목 '+i:
@@ -104,6 +105,15 @@ assert(withCareer.html.includes('href="#topic-career-0"'),
  'target a delivered career paragraph, not a guessed report section');
 assert(withCareer.html.includes('id="topic-career-0"'),
  'the exact target should exist in rendered paid prose');
+const topicWithoutDecision=run('ISFP',question,true,true);
+assert(topicWithoutDecision.html.includes('href="#topic-career-0"'),
+ 'adaptive topical report must link the actually delivered buyer answer without adding decision');
+assert(!topicWithoutDecision.html.includes('href="#detail-decision"'),
+ 'no link to omitted and nonexistent decision chapter');
+assert(!topicWithoutDecision.html.includes('id="detail-decision"'));
+assert.equal(topicWithoutDecision.html.split(question).length-1,1,
+ 'voluntary question must appear exactly once, in the actual related chapter');
+assert(topicWithoutDecision.html.includes('<small>내가 직접 입력한 고민</small>'));
 const genericCareer=run('ISFP',question,'generic');
 assert(genericCareer.html.includes('id="topic-career-0"'));
 assert(!genericCareer.html.includes('href="#topic-career-0"'),
