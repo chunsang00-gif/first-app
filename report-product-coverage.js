@@ -286,4 +286,6 @@ function calculate(input){
   modelCalls:0
  };
 }
-module.exports={calculate,NAMES};
+// Reuse the EXACT already-free domain reader paragraphs at the paid-copy
+// boundary. A free example may not be resold as a fresh paid insight.
+module.exports={calculate,NAMES,independentDomainReadings};
