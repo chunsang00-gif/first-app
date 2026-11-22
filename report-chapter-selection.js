@@ -22,10 +22,18 @@ function editorialOmission(id,options){
  const domain=valid?require('./report-paid-reader-question-domain')
   .chosenDomain(question):null;
  const specificStress=domain==='stress';
- if(id==='decision'&&!domain)return 'no-specific-buyer-decision-editorial-overlap';
+ // Work71: a TOPIC question is not necessarily a buyer's DECISION.
+ // "I feel tired" has a stress domain but supplies no choice to compare.
+ // Count an extra decision/integration chapter only for an expressed choice.
+ // This is a conservative text-intent minimum, not human semantic approval.
+ const asksForChoice=Boolean(domain&&(
+  require('./report-paid-core-choice-application').alternatives(question)||
+  /(?:할지|을지|울지|릴지|갈지|고를지|할까(?:요)?|선택|결정|비교|둘\s*중|어느\s*쪽)/.test(question)));
+ if(id==='decision'&&!asksForChoice)
+  return 'no-explicit-buyer-choice-for-decision-chapter';
  if(id==='stress'&&!specificStress)return 'no-specific-buyer-stress-question';
- if(id==='integrated_judgment'&&!domain)
-  return 'no-specific-buyer-integration-editorial-overlap';
+ if(id==='integrated_judgment'&&!asksForChoice)
+  return 'no-explicit-buyer-choice-for-integration';
  return null;
 }
 function select(groups,blueprint,options={}){
