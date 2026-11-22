@@ -216,6 +216,41 @@ jobs:
           path: ${{ runner.temp }}/work61-nine-case-human-review.md
           if-no-files-found: error
           retention-days: 14
+      - name: Build S02 synthetic expert review HTML for a real independent method decision (LOCAL ONLY)
+        env:
+          OPENAI_API_KEY: ''
+          REPORT_MODEL_URL: ''
+          REPORT_QA_CONFIRM: ''
+          REPORT_QA_ALLOW_PAYMENT: ''
+        run: |
+          node report-s02-expert-handoff.js --html > "${RUNNER_TEMP}/work65-s02-independent-expert-review.html"
+          test -s "${RUNNER_TEMP}/work65-s02-independent-expert-review.html"
+          node - <<'NODE'
+          const assert=require('node:assert/strict'),fs=require('node:fs');
+          const subject=require('./report-s02-expert-handoff');
+          const packet=subject.source(),html=subject.html();
+          assert.equal(packet.caseId,'S02');
+          assert.equal(packet.chart,'壬戌 / 丁未 / 己亥 / 乙丑');
+          assert.equal(packet.licensedForPaidGeneration,false);
+          assert.equal(packet.approvedForSale,false);
+          assert.equal(packet.checkoutEnabled,false);
+          assert.equal(packet.paidProviderCalls,0);
+          assert.equal(packet.questions.length,4);
+          for(const c of packet.freeCards)assert(html.includes(c.text));
+          assert(html.includes("connect-src &#39;none&#39;"));
+          assert(!html.includes('api/checkout/start'));
+          assert(!html.includes('OPENAI_API_KEY'));
+          assert(!html.includes('<script src='));
+          assert(!html.includes('fetch('));
+          console.log('PASS S02 expert HTML grounded in ACTUAL free cards; no API, approval or checkout');
+          NODE
+      - name: Attach S02 synthetic expert review HTML for PRIVATE human handoff
+        uses: actions/upload-artifact@v4
+        with:
+          name: work65-s02-independent-expert-review-no-paid-calls
+          path: ${{ runner.temp }}/work65-s02-independent-expert-review.html
+          if-no-files-found: error
+          retention-days: 14
       - name: Freeze the exact new Luna first-chapter QA consent packet with NO provider transport
         env:
           NODE_ENV: test
