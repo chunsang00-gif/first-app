@@ -323,7 +323,8 @@ const names=['NODE_ENV','RENDER','PAID_CORE_DEPTH_V2',
   const currentUI=require('node:fs').readFileSync(
    require('node:path').join(__dirname,'live-report-ui.js'),'utf8');
   assert(currentUI.includes('무료 풀이와 다른 유료 첫 장의 근거'));
-  assert(currentUI.includes('firstChapter.message'));\n  assert(currentUI.includes('계산 근거 후보만 확인 · 현재 유료 판매 불가'));
+  assert(currentUI.includes('firstChapter.message'));
+  assert(currentUI.includes('계산 근거 후보만 확인 · 현재 유료 판매 불가'));
   assert(currentUI.includes('firstChapter.status'));
   assert(currentUI.includes('firstChapter.newPaymentEnabled!==false'));
   assert(currentUI.indexOf('firstChapterHtml}')<
