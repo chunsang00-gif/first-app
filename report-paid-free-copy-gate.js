@@ -74,10 +74,15 @@ function inspect(sections,packet){
    const topic=section.bodyTopics?.[i]||String(i);
    for(const card of freeCards){
     const sentences=meaningful(card.text),material=sentences.join(' ');
+    // A short FREE annual card may split into several short sentences.
+    // The old "meaningful" filter ignored each one and let a FULL verbatim
+    // copy through. Check the exact published card before sentence screening.
+    const completeFree=norm(card.text);
+    const copiedFull=completeFree.length>=55&&compact.includes(completeFree);
     const copied=sentences.some(sentence=>{
      const t=norm(sentence);return t.length>=55&&compact.includes(t);
     });
-    if(copied||similarity(material,paid)>=0.84)
+    if(copiedFull||copied||similarity(material,paid)>=0.84)
      errors.push('copied-free-reader-meaning:'+section.id+':'+topic+':'+card.id);
    }
   }
