@@ -105,20 +105,49 @@ function coverage(sections){
 // pretend it owns fresh evidence. Prevent it from selling the preceding
 // reader paragraph verbatim or recasting the same historically rejected
 // understanding-versus-resources thesis as a new ending.
+// The synthesis can condense earlier paragraphs, but it cannot just sell
+// the exact long sentence again as a key conclusion, strength or action.
+const normalized=value=>String(value||'').normalize('NFKC')
+ .replace(/[^가-힣A-Za-z0-9]+/g,'').trim();
+const sentences=value=>String(value||'').split(/[.!?。！？\n]+/).map(x=>x.trim()).filter(Boolean);
+function copiedLongSentence(a,b){
+ const left=normalized(a),right=normalized(b);
+ if(left.length<30||right.length<30)return false;
+ if(left===right)return true;
+ const short=left.length<right.length?left:right,long=left.length<right.length?right:left;
+ return short.length>=40&&short.length/long.length>=.86&&long.includes(short);
+}
+// Detect ONLY a direct sign reversal on a written, specific calculation.
+// Never equate different placements or predictions with an actual calculation.
+function explicitCalculationPolarity(sentence){
+ const raw=normalized(sentence);
+ const m=raw.match(/^(.*?)(계산되지않았|계산되지않|계산되지|확인되지않았|확인되지않|확인되지|계산되었|계산됐|계산됩|계산되|확인되었|확인됐|확인됩|확인되)(?:습니다|니다|어요|다|네요|죠)?$/);
+ if(!m)return null;
+ const subject=m[1];
+ if(subject.length<18||
+   !/(?:2027년|태어난날|태어난달|출생일|출생월|대운)/.test(subject)||
+   !/(?:충|육합|삼합|대운교체|합관계)/.test(subject))return null;
+ return {subject,polarity:m[2].includes('되지')?'absent':'present'};
+}
 function synthesisRepetition(report){
- const owners=new Map(),priorMotifs=new Map(),errors=[];
- const normalized=value=>String(value||'').normalize('NFKC')
-  .replace(/[^가-힣A-Za-z0-9]+/g,'').trim();
- const sentences=value=>String(value||'').split(/[.!?。！？\n]+/).map(x=>x.trim()).filter(Boolean);
+ const owners=[],priorMotifs=new Map(),priorCalculated=new Map(),errors=[];
  for(const section of report?.sections||[]){
+  const statements=[...sentences(section?.keyJudgment).map(text=>({
+   text,owner:section.id+':keyJudgment'})),
+   ...paragraphs(section).flatMap(p=>sentences(p.text)
+    .map(text=>({text,owner:section.id+':'+p.topic})))];
+  for(const item of statements){
+   if(normalized(item.text).length>=30&&!LIMIT.test(item.text))
+    owners.push(item);
+   const calc=explicitCalculationPolarity(item.text);
+   if(!calc)continue;
+   const earlier=priorCalculated.get(calc.subject);
+   if(earlier&&earlier.polarity!==calc.polarity)
+    errors.push('contradictory calculated claim between chapters: '+
+     earlier.owner+' / '+item.owner);
+   else if(!earlier)priorCalculated.set(calc.subject,{...calc,owner:item.owner});
+  }
   for(const p of paragraphs(section)){
-   for(const sentence of sentences(p.text)){
-    const key=normalized(sentence);
-    if(key.length>=30&&!LIMIT.test(sentence)&&!owners.has(key))
-     owners.set(key,section.id+':'+p.topic);
-   }
-   // This narrow motif is a real prior paid-reader rejection, not a
-   // generic "both systems are different" disclaimer.
    if(p.refs.some(id=>id.startsWith('natal.')||id.startsWith('annual.')||
      id==='facts.annualTenGods'||id==='facts.targetYearBranchRelations')){
     if(signatures(p.text).has('understanding-vs-resources')&&
@@ -127,11 +156,22 @@ function synthesisRepetition(report){
    }
   }
  }
- const final=[...(report?.finalJudgment?.body||[]),report?.finalJudgment?.closingQuestion].filter(Boolean);
+ const judgment=report?.finalJudgment||{};
+ const final=[...(judgment.body||[]),...(judgment.strengths||[]),
+  ...(judgment.watchouts||[]),
+  ...(judgment.routines||[]).flatMap(row=>[row?.trigger,row?.action,row?.reason]),
+  judgment.closingQuestion].filter(x=>typeof x==='string'&&x.trim());
  for(const text of final){
   for(const sentence of sentences(text)){
-   const key=normalized(sentence),owner=owners.get(key);
-   if(owner)errors.push('final synthesis copies prior reader sentence: '+owner);
+   if(!LIMIT.test(sentence)){
+    const owner=owners.find(item=>copiedLongSentence(item.text,sentence));
+    if(owner)errors.push('final synthesis copies prior reader sentence: '+owner.owner);
+   }
+   const calc=explicitCalculationPolarity(sentence);
+   const earlier=calc&&priorCalculated.get(calc.subject);
+   if(earlier&&earlier.polarity!==calc.polarity)
+    errors.push('final synthesis contradicts previously stated calculation: '+
+     earlier.owner);
   }
   if(priorMotifs.has('understanding-vs-resources')&&
     signatures(text).has('understanding-vs-resources'))
