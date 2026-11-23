@@ -37,13 +37,19 @@ if(hour){
  assert(!entered.text.includes(JSON.stringify(question)));
  assert(entered.text.includes('이 필수 출생월 strength는 독자에게 이미 공개된 기본 계산 맥락'));
  assert(!entered.text.includes('명리 근거 아님'));
- assert(entered.hourText.includes(hour.readerGoal));
- assert(entered.hourText.includes('고객이 실제로 적은 두 선택'));
+ assert(ch.topics.temperament.sourceOwnedHourExtension.readerGoal===hour.readerGoal,
+  'actual normal paid model task contains the original chart-owned hour meaning');
+ assert(entered.hourText.includes('sourceOwnedHourExtension.readerGoal'),
+  'strict output schema references the task once rather than pasting its complete explanation');
+ assert(ch.coreReaderChoiceContext.writerBoundary.includes('고객이 직접 적은 첫째 선택과 둘째 선택'));
  assert(ch.coreReaderChoiceContext.writerBoundary.includes('추가 문단은 temperament이며'));
  assert.equal(entered.text,other.text,
   'the month-only already-FREE context cannot change merely because the buyer words changed');
- assert.notEqual(entered.hourText,other.hourText,
-  'the independently sourced hour explanation must still follow the buyer choices');
+ assert.equal(entered.hourText,other.hourText,
+  'schema is source/domain owned, not a duplicate of buyer prose or free report');
+ assert.notEqual(ch.coreReaderChoiceContext.text,
+  other.payload.task.chapters.saju_core.coreReaderChoiceContext.text,
+  'the actual writer task still preserves each independently supplied buyer question');
 }else{
  assert(entered.text.includes(JSON.stringify(question)));
  assert(entered.text.includes(ch.coreReaderChoiceContext.writerBoundary));
