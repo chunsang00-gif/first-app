@@ -41,6 +41,12 @@ global.fetch=()=>{modelCalls++;throw Error('PAID_BASELINE_TEST_NETWORK_FORBIDDEN
     'eligible independent hour must still be a mandatory paid first-chapter paragraph');
    const text=slot.anyOf[0].properties.text.description;
    assert(text.includes(checked.writerInstruction));
+   assert(text.includes('본문 첫 새 해석에서 실제로 추가된 시간 속글자와 질문을 먼저 밝히고'),
+    'actual paid writer must lead with the extra hour insight, not repeated free-month meanings');
+   assert(text.includes('그 질문이 없었다면 무료에서 답하지 못할 구체적인 확인 조건'),
+    'actual buyer should get a specific marginal addition beyond the free result');
+   assert(text.includes('독립적인 해석을 제공하지 못한 것으로 처리한다'),
+    'rewording already-public meanings is not billable interpretation');
    for(const c of actual)assert(text.includes(c.text),
     'do not merely name the free topic: send its existing customer-visible words');
    for(const id of hour.sourceRefs)assert(
