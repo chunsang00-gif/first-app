@@ -29,11 +29,22 @@ function editorialOmission(id,options){
  const asksForChoice=Boolean(domain&&(
   require('./report-paid-core-choice-application').alternatives(question)||
   /(?:할지|을지|울지|릴지|갈지|고를지|할까(?:요)?|선택|결정|비교|둘\s*중|어느\s*쪽)/.test(question)));
- if(id==='decision'&&!asksForChoice)
-  return 'no-explicit-buyer-choice-for-decision-chapter';
+ // Work87: the actual paid first chapter applies a verified birth-hour
+ // interpretation to the user's current concern, and a grounded topic in
+ // that concern's domain may answer it separately. Merely writing a choice
+ // does NOT justify two more "decision" and "integrated" chapters that
+ // repeat the identical A/B options with general advice. Both require a
+ // future *independent* reader-value contract before becoming paid chapters.
+ // The existing saju_core, MBTI comparison and topical chapters remain.
+ if(id==='decision'){
+  if(!asksForChoice)return 'no-explicit-buyer-choice-for-decision-chapter';
+  return 'buyer-choice-already-owned-by-core-and-domain';
+ }
  if(id==='stress'&&!specificStress)return 'no-specific-buyer-stress-question';
- if(id==='integrated_judgment'&&!asksForChoice)
-  return 'no-explicit-buyer-choice-for-integration';
+ if(id==='integrated_judgment'){
+  if(!asksForChoice)return 'no-explicit-buyer-choice-for-integration';
+  return 'buyer-choice-already-owned-by-core-and-domain';
+ }
  return null;
 }
 function select(groups,blueprint,options={}){
