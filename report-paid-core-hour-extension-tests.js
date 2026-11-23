@@ -62,7 +62,12 @@ assert.throws(()=>ext.build(packet,swapped),/CORE_HOUR_ADDITION_SOURCE_DRIFT/);
  assert.equal(leaf.anyOf.length,1,
   'buyer-triggered hour meaning must be present in paid first chapter');
  assert(!leaf.anyOf.some(x=>x.type==='null'));
- assert(opt.properties.text.description.includes(v.readerGoal));
+ assert(first.sourceOwnedHourExtension.readerGoal===v.readerGoal,
+  'calculated natal-hour reading stays in the actual paid request task');
+ assert(opt.properties.text.description.includes('sourceOwnedHourExtension.readerGoal'),
+  'strict schema references the already-present goal instead of duplicating it');
+ assert(!opt.properties.text.description.includes(v.readerGoal),
+  'the provider must not get the long reader goal twice');
  assert.deepEqual(opt.properties.basis.properties.refs.items.enum,v.sourceRefs,
   'strict outgoing first-chapter hour paragraph must NOT allow month/season sources');
  const older=await capture(input);
