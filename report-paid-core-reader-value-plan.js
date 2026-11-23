@@ -105,19 +105,19 @@ function build(packet,focus,allowed,source){
  const directed={
   resource:'달의 중심 글자가 나타내는 ‘'+centralQuestion+
    '’이 겉글자의 ‘'+visibleQuestion+
-   '’을 뒷받침하는 오행 방향으로 연결된다. ',
+   '’을 뒷받침하는 오행 방향으로 연결된다. 도움을 실제로 받았거나 두 능력이 발휘됐다는 뜻은 아니다.',
   output:'겉글자의 ‘'+visibleQuestion+
    '’에서 달 중심의 ‘'+centralQuestion+
-   '’으로 이어지는 오행 방향을 읽는다. ',
+   '’으로 이어지는 오행 방향을 읽는다. 실제 행동이 이어졌다는 뜻은 아니다.',
   'control-on-day':'달 중심의 ‘'+centralQuestion+
    '’이 겉글자의 ‘'+visibleQuestion+
-   '’을 제약하는 오행 방향이 확인된다. ',
+   '’을 제약하는 오행 방향이 확인된다. 두 성격이 실제로 충돌했다는 뜻은 아니다.',
   'day-controls':'겉글자의 ‘'+visibleQuestion+
    '’이 달 중심의 ‘'+centralQuestion+
-   '’을 제약하는 오행 방향이 확인된다. ',
+   '’을 제약하는 오행 방향이 확인된다. 실제 행동이나 손해가 일어났다는 뜻은 아니다.',
   'same-element':'두 출생 위치에서 ‘'+visibleQuestion+
    '’과 ‘'+centralQuestion+
-   '’이 같은 오행에 속한다. 계산되지 않은 도움·제약 방향은 덧붙이지 않는다.'
+   '’이 같은 오행에 속한다. 도움·제약 방향이나 두 배의 성향을 새로 만들 수는 없다.'
  };
  const actualTwoSidedReading=directed[expected];
  if(!actualTwoSidedReading)throw Error('PAID_CORE_READER_DIRECTION_MISSING');
@@ -141,11 +141,11 @@ function build(packet,focus,allowed,source){
  };
  const illustrativeScene=same?
   '가상 예시: '+visibleScene+' 때 살필 것은 ‘'+visibleCheck+
-  '’이라는 한 가지 질문이다. 같은 분류를 두 종류의 성격으로 나누지 않는다.':
+  '’이라는 한 가지 질문이다. 같은 분류가 두 위치에 있어도 이를 서로 다른 성격이나 두 배의 영향력으로 나누지 않는다.':
   '가상 예시: '+visibleScene+' 때 겉에서 읽는 뜻은 ‘'+visibleCheck+
   '’를 묻고, 안쪽에서 읽는 뜻은 ‘'+centralCheck+
   '’를 묻는다. '+directionInScene[expected]+
-  ' 두 질문에 답하는 장면은 해석을 이해시키기 위한 가정이다.';
+  ' 두 질문은 실제 선택의 원인·성공이나 고객이 겪은 일을 확인한 결과가 아니라, 계산된 전통 분류를 이해하기 위한 가정일 뿐이다.';
  const twoSidedScope=Object.freeze({
   visibleRole:top.tenGod,mainRole:bottom.tenGod,
   directionalReadingQuestion,visibleQuestion,centralQuestion,
@@ -181,15 +181,15 @@ function build(packet,focus,allowed,source){
    '겉글자의 전통적 뜻: '+reading.first.reading+
    '. 중심 숨은 글자의 전통적 뜻: '+reading.second.reading+'. '+
    '이 명식의 실제 질문: '+actualTwoSidedReading+' '+
-   '한쪽의 전통 분류가 다른 쪽을 뒷받침하거나 제약하는 방향을 바꾸지 않는다. '+
+   '이 관계가 실제 성격, 능력, 손해 또는 성공을 입증한 것처럼 쓰지 않는다. '+
    '한쪽만 보면 놓치고 반대로 다른 쪽만 보면 놓친다는 대칭 문장을 두 개 나열하지 않는다. '+
    '양쪽 모두 중요하다는 말로 끝내지 않는다. 두 역할을 구별한 뒤 독자가 추가로 알게 되는 조건 하나를 설명한다. '+
    '독자에게 실제로 새 뜻을 전하지 못하는 경우에는 분량을 늘리거나 계산법·작성 순서를 강의하지 않는다. '+
    '일상 예시가 독자의 이해에 꼭 도움될 때만 다음 가정을 짧게 참고한다: '+
    illustrativeScene+
-   ' 이는 실제 고객에게 일어난 일이 아니다. '+
+   ' 이는 실제 고객의 경험이 아니라 설명을 위한 가정이다. '+
    '무료 화면에 이미 제공된 겉·안쪽 두 질문을 복사해 유료 문단을 채우지 않는다. '+
-   '실제 경험이나 우선순위가 확인되지 않은 내용은 오직 내부 basis.limit에 적고 독자 본문에서 매번 면책 문장으로 반복하지 않는다. '+
+   '실제 고객의 일·사업·학교·소득을 지어내지 않으며, 추가 우선순위나 결과가 계산되지 않았으면 그것을 발명하지 않는다. '+
    '근거와 한계는 내부 출처에 남기고 독자용 문장을 같은 말의 재요약으로 끝내지 않는다.',
   noInventedHistory:true,noUnverifiedPersonalTrait:true,
   additionalTopic:false,professionalReviewComplete:false
