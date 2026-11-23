@@ -202,7 +202,14 @@ function inspect(sections,packet){
  const pos=core.bodyTopics?.indexOf('temperament')??-1;
  if(pos<0||!Array.isArray(core.body))
   return ['saju_core:buyer-hour-choice-paragraph-missing'];
- return inspectParagraph(core.body[pos],question,proof)
+ // Work81: the two authenticated hour symbols also determine an exact
+ // elemental direction. Passing buyer-choice keywords must not conceal a
+ // reversed/missing factual relation in the same paid paragraph.
+ const pair=require('./report-paid-core-hour-pair-meaning')
+  .build(packet,source,proof);
+ const relationProblems=require('./report-paid-core-hour-pair-reader-gate')
+  .inspectParagraph(core.body[pos],pair);
+ return [...inspectParagraph(core.body[pos],question,proof),...relationProblems]
   .map(error=>'saju_core:'+error);
 }
 module.exports={taskFor,writerFor,singleFocus,preflightReaderQuestion,inspectSingleConcern,inspectParagraph,inspect};
