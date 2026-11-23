@@ -288,4 +288,15 @@ function calculate(input){
 }
 // Reuse the EXACT already-free domain reader paragraphs at the paid-copy
 // boundary. A free example may not be resold as a fresh paid insight.
-module.exports={calculate,NAMES,independentDomainReadings};
+// Reconstruct the EXACT same FREE domain examples from the same plan as
+// calculate(), without calling calculate() and its paid precharge/schema
+// (which would recurse when the paid first-chapter writer asks for context).
+// This is public writing context ONLY, never another birth-chart fact.
+function alreadyPublicDomainReadings(packet){
+ if(packet?.status!=='ready')throw Error('FREE_DOMAIN_CONTEXT_NEEDS_CALCULATED_PACKET');
+ const blueprint=guidance.preflight(packet);
+ const choice=selection.select(groups,blueprint,{mode:'adaptive-v1',
+  readerQuestion:packet.person?.readerDecision});
+ return independentDomainReadings(packet,blueprint,new Set(choice.plannedIds));
+}
+module.exports={calculate,NAMES,independentDomainReadings,alreadyPublicDomainReadings};
