@@ -495,6 +495,18 @@ function compile(prompt){
       .build(prompt.facts,source);
      if(ext){
       topic.sourceOwnedHourExtension=ext;
+      // Only a distinct HOUR symbol receives the additional mathematically
+      // verified visible-to-hidden reading. Historical duplicate-hour
+      // prompts stay unchanged, including the archived Terra QA request.
+      if(ext.wholeNatalCategoryDistinct===true){
+       const pair=require('./report-paid-core-hour-pair-meaning')
+        .build(prompt.facts,source,ext);
+       if(!pair||pair.saleApproved!==false||
+          pair.observedPersonalBehavior!==false||
+          pair.sourceRefs.some(x=>!ext.sourceRefs.includes(x)))
+        throw Error('CORE_HOUR_PAIR_VERIFIED_READING_MISSING');
+       topic.sourceOwnedHourPairMeaning=pair;
+      }
       // A voluntarily described current job/target skill is NOT a natal
       // fact. Only attach it to the source-verified learning comparison.
       const context=prompt.facts?.person?.decisionContext;
@@ -785,7 +797,20 @@ function compile(prompt){
       writing.premiumManuscriptQualityVerified!==false||
       JSON.stringify(writing.sourceRefs)!==JSON.stringify(verifiedHour.sourceRefs))
     throw Error('PAID_CORE_LATE_HOUR_WRITING_SCOPE_DRIFT');
-   coreChapter.coreReaderChoiceContext.writerBoundary=writing.buyerContextBoundary;
+   const hourPair=coreChapter.topics.temperament.sourceOwnedHourPairMeaning;
+   if(verifiedHour.wholeNatalCategoryDistinct===true){
+    const expected=require('./report-paid-core-hour-pair-meaning')
+     .build(prompt.facts,source,verifiedHour);
+    if(!expected||JSON.stringify(hourPair)!==JSON.stringify(expected))
+     throw Error('CORE_HOUR_PAIR_EDITORIAL_BINDING_DRIFT');
+    coreChapter.coreReaderChoiceContext.writerBoundary=
+     writing.buyerContextBoundary+
+     ' 출생시간 겉·안 두 분류 사이 실제 계산된 관계: '+
+     hourPair.writerInstruction;
+   }else{
+    if(hourPair)throw Error('CORE_HOUR_DUPLICATE_CATEGORY_AS_NEW_PAIR');
+    coreChapter.coreReaderChoiceContext.writerBoundary=writing.buyerContextBoundary;
+   }
   }
   // The customer question should reach its *relevant* paid domain once,
   // not merely the generic first and decision chapters. The domain writer
@@ -1129,6 +1154,19 @@ function schema(prompt,transport){
     const hourChoiceGoal=require('./report-paid-core-hour-choice-meaning')
      .writerFor(ext,prompt.facts?.person?.readerDecision);
     p.properties.text.description+=' '+hourChoiceGoal;
+    const pair=task.sourceOwnedHourPairMeaning;
+    if(pair){
+     const verifiedPair=require('./report-paid-core-hour-pair-meaning')
+      .build(prompt.facts,payload.source,ext);
+     if(!verifiedPair||JSON.stringify(pair)!==JSON.stringify(verifiedPair)||
+        pair.sourceRefs.some(ref=>!basis.properties.refs.items.enum.includes(ref))||
+        pair.independentClassicalMethodChosen!==false||
+        pair.saleApproved!==false)
+      throw Error('CORE_HOUR_PAIR_STRICT_SCHEMA_DRIFT');
+     p.properties.text.description+=' 시간 겉·속 글자 사이 추가 계산 관계를 한 문장으로 자연스럽게 풀이한다: '+
+      pair.writerInstruction;
+    }else if(ext.wholeNatalCategoryDistinct===true)
+     throw Error('CORE_HOUR_PAIR_MISSING_FROM_ELIGIBLE_WRITER_SCHEMA');
     if(task.customerDeclaredChoiceSituation){
      const extra=task.customerDeclaredChoiceSituation;
      if(extra.kind!=='buyer-self-reported-work-and-study-context-v1'||
