@@ -797,6 +797,26 @@ function compile(prompt){
       writing.premiumManuscriptQualityVerified!==false||
       JSON.stringify(writing.sourceRefs)!==JSON.stringify(verifiedHour.sourceRefs))
     throw Error('PAID_CORE_LATE_HOUR_WRITING_SCOPE_DRIFT');
+   // Work84: the normal first-chapter consumer had the full FREE sample
+   // copied into the strict text schema, plus another long hour goal there,
+   // while the actual chapter task already contained the same hour proof.
+   // Put the same-chart free text ONCE on the real model task; schema fields
+   // below reference it instead of pasting another report into each rule.
+   const freeCopy=require('./report-paid-core-free-baseline')
+    .build(prompt.facts,verifiedHour);
+   if(freeCopy.saleApproved!==false||freeCopy.modelCalls!==0||
+      freeCopy.merchantCalls!==0||
+      freeCopy.extraNatalEvidenceAdded!==false||
+      !Array.isArray(freeCopy.alreadyPublicCards))
+    throw Error('PAID_CORE_ONE_COPY_FREE_SOURCE_UNVERIFIED');
+   coreChapter.coreReaderChoiceContext.alreadyPublicFreeReading={
+    kind:'same-chart-free-reader-copy-once-v1',
+    cards:freeCopy.alreadyPublicCards,
+    domainReadings:freeCopy.alreadyPublicDomainReadings,
+    readerDomain:freeCopy.readerDomain,
+    sourceIsPublicFree:true,
+    cannotChargeAgain:true
+   };
    const hourPair=coreChapter.topics.temperament.sourceOwnedHourPairMeaning;
    if(verifiedHour.wholeNatalCategoryDistinct===true){
     const expected=require('./report-paid-core-hour-pair-meaning')
@@ -1130,8 +1150,8 @@ function schema(prompt,transport){
      '독자가 읽는 온전한 한국어 문장으로 작성한다. 사전적 의미 나열, 출생월 본문 재요약, 고객 질문의 그대로 복사는 실패다. '+
      '이 문단에서 가장 중요한 것은 task.chapters.saju_core.coreReaderChoiceContext.writerBoundary의 출생시간 분류별 핵심 해석 질문이다. '+
      '계산된 분류가 두 선택에서 각각 무엇을 다르게 보게 하는지 실제 한 장면으로 풀고, 근거의 뜻을 설명한 뒤 일반적인 확인·준비 조언이나 한계 안내로 문단을 채우지 않는다. '+
-     ext.readerGoal+' 이 출생시간의 의미를 고객이 직접 적은 '+readerDomainLabel+
-     ' 질문에서 검토할 구체적인 조건과 연결한다. '+ 
+     '이미 모델 task.topics.temperament.sourceOwnedHourExtension.readerGoal에 기록된 검증 분류 하나만 '+readerDomainLabel+
+     ' 질문에 적용한다. 긴 출처 지침을 여기서 다시 복사하지 않는다. '+
      '고객이 질문하지 않은 다른 분야의 생활 경험이나 선택지를 만들지 않는다. '+
      '현실의 능력, 취업 성공, 과거 경험, 명리 방법의 우선순위는 확정하지 않는다.';
     basis.properties.refs.description=
@@ -1148,7 +1168,21 @@ function schema(prompt,transport){
        freeBoundary.extraNatalEvidenceAdded!==false||
        freeBoundary.saleApproved!==false)
      throw Error('CORE_FREE_BASELINE_CANNOT_CHANGE_PAID_EVIDENCE');
-    p.properties.text.description+=' '+freeBoundary.writerInstruction;
+    const once=payload.task.chapters.saju_core?.coreReaderChoiceContext
+     ?.alreadyPublicFreeReading;
+    if(once?.kind!=='same-chart-free-reader-copy-once-v1'||
+       once.sourceIsPublicFree!==true||once.cannotChargeAgain!==true||
+       once.readerDomain!==ext.readerDomain||
+       JSON.stringify(once.cards)!==JSON.stringify(freeBoundary.alreadyPublicCards)||
+       JSON.stringify(once.domainReadings)!==
+        JSON.stringify(freeBoundary.alreadyPublicDomainReadings))
+     throw Error('CORE_FREE_READER_ONCE_CONTEXT_DRIFT');
+    p.properties.text.description+=
+     ' 이미 고객에게 무료 공개된 실제 본문은 '+
+     'task.chapters.saju_core.coreReaderChoiceContext.alreadyPublicFreeReading'+
+     '의 cards와 domainReadings에 한 번만 기록돼 있다. '+
+     '무료 본문을 다시 쓰지 말고 출생시간의 별도 계산 근거로만 새 설명을 만든다. '+
+     '그 내용과 구별되지 않으면 새 유료 해석으로 판정하지 않는다.';
     // The reader must see the exact additional hour meaning INSIDE each
     // option, not merely in the introduction above generic work advice.
     const hourChoiceGoal=require('./report-paid-core-hour-choice-meaning')
