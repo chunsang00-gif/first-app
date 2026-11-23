@@ -90,7 +90,8 @@ const WHY=Object.freeze({
  'no-direct-annual-domain-evidence':'2027년 계산과 이 분야를 따로 연결할 근거가 확인되지 않았습니다.',
  'no-explicit-buyer-choice-for-decision-chapter':'고객이 비교하거나 결정할 선택을 구체적으로 적지 않아 일반 조언을 반복하는 선택 장은 제외했습니다.',
  'no-specific-buyer-stress-question':'스트레스에 관한 별도 질문이 없거나 해당 분야의 독립된 풀이가 없어 이 장을 제외했습니다.',
- 'no-explicit-buyer-choice-for-integration':'독립적으로 비교할 고객 선택이 없어 기존 풀이를 반복하는 종합 장은 제외했습니다.'
+ 'no-explicit-buyer-choice-for-integration':'독립적으로 비교할 고객 선택이 없어 기존 풀이를 반복하는 종합 장은 제외했습니다.',
+ 'buyer-choice-already-owned-by-core-and-domain':'입력한 동일한 두 선택은 기본 풀이와 해당 분야에서 다룹니다. 같은 고민을 일반적인 결정·종합 조언으로 반복하지 않도록 이 장은 제외했습니다.'
 });
 // These two brief reader paragraphs come from the SAME source-owned
 // interpretive builder used by the REAL paid writer. They are free,
