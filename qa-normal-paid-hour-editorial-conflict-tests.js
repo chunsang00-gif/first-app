@@ -25,6 +25,20 @@ function status(prompt){
  assert(source);
  const high=writer.policyFor(prompt);
  const goal=chapter.analysisGoal,contextRule=context.writerBoundary;
+ const interpretive=require('./report-paid-core-hour-editorial-brief');
+ const verified=interpretive.build(source,prompt.facts.person.readerDecision);
+ assert.equal(verified.readerAngleFromCalculatedHour,true);
+ assert.equal(verified.actualBuyerBehaviorObserved,false);
+ assert.equal(verified.saleApproved,false);
+ assert(verified.verifiedRoleReaderAngle.length>25,
+  'real hour role must supply a concrete, differentiated interpretive idea');
+ assert(verified.verifiedRoleReaderContrast.length>35,
+  'source-owned role must reach the buyer question with a conditional contrast');
+ assert(contextRule.includes(verified.verifiedRoleReaderAngle)&&
+  contextRule.includes(verified.verifiedRoleReaderContrast),
+  'the LIVE model receives the actual calculated interpretation, not only its glossary meaning');
+ assert(contextRule.includes('독자 문단에는 전통 분류 이름을 쓰지 말고'),
+  'technical ten-god labels belong in cited evidence, not the reader paragraph');
  assert(body.task.editorialGoal?.includes('필수 strength는 태어난 달의 이미 공개된 기본 맥락'),
   'top-level model editorial brief must NOT remain month-only');
  assert(!body.task.editorialGoal.includes('계절의 독립적 해석을 확인할 수 없으면 선택 문단을 null로 둔다'),
@@ -55,10 +69,28 @@ function status(prompt){
   'hour-specific paid paragraph is mandatory after source verification');
  assert.deepEqual(slot.anyOf[0].properties.basis.properties.refs.items.enum,
   source.sourceRefs);
+ assert(slot.anyOf[0].properties.text.description.includes(
+  '출생시간 분류별 핵심 해석 질문'),
+  'strict writer must prioritize the semantic question selected from exact natal role');
  return {domain:source.readerDomain,twoChoice:source.twoBuyerChoicesParsed,
   schemaSourceCount:source.sourceRefs.length,extraModelCalls:0};
 }
 (async()=>{
+ // Six different verified roles must never share one generic interpretation.
+ const roleRules=require('./report-paid-core-hour-editorial-brief').READER_ANGLE;
+ const expected=hour.DOMAINS;
+ for(const [domain,detail] of Object.entries(expected)){
+  assert.deepEqual(Object.keys(roleRules[domain]).sort(),detail.roles.slice().sort());
+  for(const role of detail.roles){
+   const v=roleRules[domain][role];
+   assert(v.focus.length>=25&&v.two.length>=35&&v.one.length>=25);
+   assert(!/(?:실제로 .*성격|반드시 성공|운명|미래에 .*생긴다)/.test(
+    [v.focus,v.two,v.one].join(' ')));
+  }
+ }
+ assert.equal(new Set(Object.values(roleRules).flatMap(x=>
+  Object.values(x).map(y=>y.focus))).size,6,
+  'different calculated categories cannot all render the same generic glossary');
  const neutral=await capture.capture(require('./qa-current-core-preflight').SAMPLE);
  assert.equal(neutral.status,'captured-full-paid-composition');
  const neutralBody=writer.compile(neutral.prompt);
