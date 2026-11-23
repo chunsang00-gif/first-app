@@ -166,11 +166,13 @@ const server=http.createServer(require('./server').handler);
   assert.equal(request.data.scope.plannedChapters,trueScope.plannedChapters,
    'checkout promise must match real selected chapter scope for this buyer');
   assert(request.data.scope.plannedChapterIds.includes('saju_core'));
-  assert(request.data.scope.plannedChapterIds.includes('decision'));
-  assert(request.data.scope.plannedChapterIds.includes('integrated_judgment'));
-  assert(!request.data.scope.plannedChapterIds.includes('stress'));
-  // This buyer DID provide a specific learning decision: two relevant
-  // decision/integration chapters are eligible, but generic stress is not.
+  assert(request.data.scope.plannedChapterIds.includes('career'));
+  assert(request.data.scope.plannedChapterIds.includes('mbti_contradiction'));
+  assert(!request.data.scope.plannedChapterIds.includes('decision'));
+  assert(!request.data.scope.plannedChapterIds.includes('integrated_judgment'));
+  // A specific learning choice belongs to the first chapter and the
+  // source-qualified career chapter. The checkout scope cannot promise
+  // two extra generic paraphrases of the exact same A/B dilemma.
   assert(!request.data.scope.plannedChapterIds.includes('stress'));
   const pending=await post('/api/checkout/status',{orderId,ownerToken});
   assert.equal(pending.code,200);
