@@ -107,4 +107,4 @@ function build(proof,question){
    interpretiveHinge+difference+' '+real
  });
 }
-module.exports={build};
+module.exports={build,READER_ANGLE};
