@@ -12,12 +12,16 @@ const PHRASES=Object.freeze({
  'day-controls':'겉글자가 안쪽 글자를 제약하는 방향',
  'same-element':'두 글자가 같은 오행인 관계'
 });
+// Consumer first-chapter interpretation must explain one ASYMMETRIC
+// calculated source relation rather than two glossary meanings plus
+// generic checklists. Neither a birth-chart symbol nor a Five-Element
+// arrow proves that an actual life event happened.
 const INSTRUCTIONS=Object.freeze({
- resource:'안쪽의 질문을 검토하지 않으면 겉에서 말하는 질문을 뒷받침하는 조건이 빠진다는 상징적 순서를 설명한다.',
- output:'겉의 질문과 안쪽에서 새로 제기되는 질문을 순서대로 구별한다. 실제로 무언가가 완성됐다는 말은 하지 않는다.',
- 'control-on-day':'안쪽에서 읽는 질문이 겉의 질문을 제한한다고 가정하면 각각 무엇을 달리 확인해야 하는지 설명한다.',
- 'day-controls':'겉의 질문이 안쪽에서 새로 제기되는 질문을 제한한다고 가정하면 각각 무엇을 달리 확인해야 하는지 설명한다.',
- 'same-element':'두 분류의 질문은 구별하되 같은 오행이라는 이유로 영향이 두 배이거나 서로 돕고 막는다고 만들지 않는다.'
+ resource:'두 질문을 나란히 적는 대신, 시간 안쪽의 질문을 해석상 출발점으로 놓았을 때 겉의 질문을 뒷받침한다는 방향이 왜 필요한지 밝힌다. 같은 출생시간에서 겉글자만 봤다면 답하지 못하는 조건을 한 개 특정한다. 이것은 현실에서 도움을 받았다는 판단이 아니다.',
+ output:'겉글자의 질문에서 안쪽의 별도 질문으로 이어진다는 계산 방향을 설명한다. 안쪽 질문을 지웠을 때 사라지는 해석을 한 개 특정하고, 실제로 어떤 결과물이 완성됐다는 말은 하지 않는다.',
+ 'control-on-day':'시간 안쪽의 질문이 겉의 질문을 제약하는 계산 방향이다. 겉의 뜻만 읽으면 놓치는 제한 조건을 한 개 특정한다. 두 역할이 실제 마음속에서 싸운다거나 현실의 실패로 이어졌다고 해석하지 않는다.',
+ 'day-controls':'시간 겉글자의 질문이 안쪽의 질문을 제약하는 계산 방향이다. 안쪽의 뜻만 읽으면 놓치는 제한 조건을 한 개 특정한다. 실제 행동을 막았거나 특정 선택을 금지한다고 단정하지 않는다.',
+ 'same-element':'두 질문은 서로 다른 계산 자리에서 제기되지만 같은 기운에 속한다. 새로운 도움·제약 방향을 만들지 않는다. 분류가 반복된다는 사실과 질문 자체가 서로 다른 사실을 한 가지 사례로 구별한다.'
 });
 function build(packet,source,proof){
  if(!proof)return null;
@@ -63,9 +67,15 @@ function build(packet,source,proof){
   elementDirection:direction,
   symbolicQuestion,
   writerInstruction:symbolicQuestion+' '+INSTRUCTIONS[direction]+' '+
-   '이 두 분류를 말만 바꾸어 반복하지 말고 고객이 실제 적은 한 고민에 적용한다. '+
-   '명리의 계산 관계를 개인의 실제 능력이나 두 선택의 결과라고 단정하지 않는다. '+
-   '검증된 두 출처 외에 사주 우선순위나 고전 적용을 새로 주장하지 않는다.',
+   '본문 작성 순서: 첫째, 두 출생시간 글자의 차이와 계산 방향을 독자용 한 문장으로 밝힌다. '+
+   '둘째, 고객이 직접 적은 고민에서 그 관계가 추가하는 해석상 질문을 고른다. '+
+   '셋째, 고객이 두 선택을 적었다면 각각 다른 문장에 실제 선택을 이름 붙이고, '+
+   '앞서 계산한 같은 관계가 각 경우에서 어떤 조건을 다르게 묻게 하는지 설명한다. '+
+   '선택 순서를 바꾸어도 계산 방향은 바뀌지 않으며 첫 번째 선택을 기존 일·이미 가진 재산이라고 상상하지 않는다. '+
+   '넷째, 무료의 태어난 달 풀이에는 없던 판단의 경계를 한 문장으로 정리한다. '+
+   '실제 사건·성격·수입·능력·결과의 우열을 출생정보로 확정하지 않는다. '+
+   '출처·계산 방법·주의사항만 반복해서 분량을 채우거나 일반적인 조언 두 문장으로 끝내면 실패다. '+
+   '검증된 두 출처 외에 고전 적용 우선순위를 새로 주장하지 않는다.',
   strictlySymbolic:true,
   independentClassicalMethodChosen:false,
   observedPersonalBehavior:false,
