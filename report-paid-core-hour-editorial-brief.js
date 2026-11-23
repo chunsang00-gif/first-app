@@ -7,6 +7,8 @@
 // This is a writing contract, NOT a human-quality approval or sale switch.
 const hour=require('./report-paid-core-hour-extension');
 const choices=require('./report-paid-core-choice-application');
+// No A/B side is assumed to mean current work, a new choice, acquired money,
+// formal approval, or an unexpected incident. Those are buyer facts, not natal facts.
 // Each branch is selected from the VERIFIED natal-hour hidden-role category.
 // These are the distinct questions a traditional reading raises, NOT a
 // statement about the buyer's observed habits or a forecast. Keep this ONE
@@ -15,36 +17,36 @@ const READER_ANGLE=Object.freeze({
  skill:Object.freeze({
   식신:Object.freeze({
    focus:'배웠다는 사실과 직접 끝내서 보여줄 결과물을 구별한다.',
-   two:'첫 선택에서는 이미 끝낸 작업 가운데 무엇을 실제 결과물로 확인할지, 둘째 선택에서는 아직 완성하지 않은 작은 결과물을 어떻게 확인할지 구별한다.',
+   two:'첫 선택에서는 무엇을 완료된 결과로 확인할 수 있는지, 둘째 선택에서는 무엇을 별개의 결과로 확인할지 각각 묻는다. 실제로 어떤 작업을 끝냈거나 아직 시작하지 않았다고 가정하지 않는다.',
    one:'그 한 가지 학습 고민에서 설명을 들은 단계와 스스로 결과를 완성한 단계를 구별한다.'
   }),
   상관:Object.freeze({
    focus:'그대로 따라 하는 방법과 바꾸어 표현하거나 개선할 부분을 구별한다.',
-   two:'첫 선택에서는 기존 절차에서 유지하거나 고칠 대목을, 둘째 선택에서는 다른 방식으로 시험할 대목을 구별한다.',
+   two:'첫째와 둘째 선택에서 각각 어떤 절차를 그대로 둘지, 어떤 부분을 바꾸어 시험할지 고객이 적은 두 선택에 맞게 구별한다. 첫째가 기존 업무이고 둘째가 새로운 방법이라고 임의로 정하지 않는다.',
    one:'고민 중인 방법에서 그대로 둘 부분과 실제로 다르게 시도할 부분을 구별한다.'
   })
  }),
  money:Object.freeze({
   정재:Object.freeze({
    focus:'한 번에 보이는 금액과 선택한 뒤 반복해서 나가는 비용을 구별한다.',
-   two:'첫 선택 뒤 매달 이어질 부담과 둘째 선택 뒤 새로 반복될 부담을 별개로 묻되, 실제 금액이 입력되지 않았으면 수치나 유리한 쪽을 만들어내지 않는다.',
+   two:'첫째와 둘째 선택에서 한 번 내는 금액과 반복되는 비용이 각각 실제로 존재하는지 따로 묻는다. 매달 나가는 지출이 반드시 있다고 가정하거나 입력되지 않은 금액을 쓰지 않는다.',
    one:'질문에 나온 금액을 한 번 지불하는 것인지 매달 되풀이되는 비용인지 구별한다.'
   }),
   편재:Object.freeze({
    focus:'돈이 필요하다는 고민과 그 돈이나 도움을 마련할 경로가 실제로 있는지를 구별한다.',
-   two:'첫 선택에서 이미 확보 가능한 자원의 경로와 둘째 선택을 위해 추가로 마련해야 하는 경로를 비교하며, 실제 자산이나 대출 가능성을 상상하지 않는다.',
+   two:'두 선택 각각에서 필요한 돈이나 자원의 확보 경로가 실제로 확인되는지를 묻는다. 첫째 경로는 확보됐고 둘째 경로는 새로 마련해야 한다고 미리 정하거나 대출 가능성을 상상하지 않는다.',
    one:'질문에 나온 자원이나 돈을 어디에서 마련할지, 그 경로가 확실한지 구별한다.'
   })
  }),
  pressure:Object.freeze({
   정관:Object.freeze({
    focus:'일이 버겁다는 느낌과 누가 정해진 절차에 따라 승인·결정할 권한이 있는지를 구별한다.',
-   two:'첫 선택에서 따라야 할 승인 절차와 둘째 선택에서 책임을 맡거나 거절할 수 있는 공식 범위를 다르게 묻는다.',
+   two:'두 선택 각각에서 승인 절차가 있는지, 결정할 권한과 책임 범위는 누구에게 있는지 구분해 묻는다. 첫째에 공식 승인이 있고 둘째에는 거절 권한이 있다고 미리 정하지 않는다.',
    one:'그 업무 압박에서 정해진 책임과 실제 승인 권한이 각각 무엇인지 구별한다.'
   }),
   편관:Object.freeze({
    focus:'평소 맡은 일과 갑자기 생긴 요구를 같은 책임으로 묶지 않는다.',
-   two:'첫 선택에서 지금 추가되는 긴급 요구와 둘째 선택에서 예상하지 못한 책임이 넘어오는 조건을 따로 묻는다.',
+   two:'두 선택 각각에서 평소 맡은 책임인지 예외적인 추가 요구인지 다른 조건으로 살펴본다. 첫째는 긴급하고 둘째는 뜻밖의 요구라고 고객이 말하지 않았는데도 가정하지 않는다.',
    one:'그 압박이 기존 역할에 속하는지 새로 넘어온 예외 요구인지 구별한다.'
   })
  })
