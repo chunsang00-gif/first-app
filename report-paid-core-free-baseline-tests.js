@@ -49,16 +49,27 @@ global.fetch=()=>{modelCalls++;throw Error('PAID_BASELINE_TEST_NETWORK_FORBIDDEN
    assert.equal(slot.anyOf.length,1,
     'eligible independent hour must still be a mandatory paid first-chapter paragraph');
    const text=slot.anyOf[0].properties.text.description;
-   assert(text.includes(checked.writerInstruction));
-   assert(text.includes('본문 첫 새 해석에서 실제로 추가된 시간 속글자와 질문을 먼저 밝히고'),
-    'actual paid writer must lead with the extra hour insight, not repeated free-month meanings');
-   assert(text.includes('그 질문이 없었다면 무료에서 답하지 못할 구체적인 확인 조건'),
-    'actual buyer should get a specific marginal addition beyond the free result');
-   assert(text.includes('독립적인 해석을 제공하지 못한 것으로 처리한다'),
-    'rewording already-public meanings is not billable interpretation');
-   for(const c of [...actual,...checked.alreadyPublicDomainReadings])
-    assert(text.includes(c.text),
-    'send every already-public explanation the actual paid writer might repeat, including 2027 and topic examples');
+   const once=payload.task.chapters.saju_core
+    .coreReaderChoiceContext.alreadyPublicFreeReading;
+   assert.equal(once.kind,'same-chart-free-reader-copy-once-v1');
+   assert.equal(once.sourceIsPublicFree,true);
+   assert.equal(once.cannotChargeAgain,true);
+   assert.deepEqual(once.cards,checked.alreadyPublicCards,
+    'normal paid writer receives the exact free prose as ONCE-only task context');
+   assert.deepEqual(once.domainReadings,checked.alreadyPublicDomainReadings);
+   assert(text.includes('alreadyPublicFreeReading'),
+    'strict schema points to task instead of copying the free report again');
+   assert(text.includes('무료 본문을 다시 쓰지 말고'));
+   assert(text.includes('sourceOwnedHourExtension.readerGoal'),
+    'strict schema must reference the real role source rather than repeat an extra goal');
+   assert(!text.includes(checked.writerInstruction),
+    'schema duplication of an already-present report is a root cause of shallow paid text');
+   for(const c of [...actual,...checked.alreadyPublicDomainReadings]){
+    assert([...once.cards,...once.domainReadings].some(x=>x.text===c.text),
+     'send complete exact free context once, including year and domain previews');
+    assert(!text.includes(c.text),
+     'do not dilute the new paid paragraph with a second full free sample');
+   }
    assert(!text.includes('PREPURCHASE_INTERPRETIVE_READING_SOURCE_DRIFT'),
     'the writer sees ready-to-read free text, not error codes');
    for(const id of hour.sourceRefs)assert(
@@ -86,6 +97,6 @@ global.fetch=()=>{modelCalls++;throw Error('PAID_BASELINE_TEST_NETWORK_FORBIDDEN
   assert.throws(()=>boundary.build(packet,{kind:'invalid'}),/VERIFIED_HOUR_SOURCE/);
   assert.throws(()=>boundary.build({}, {kind:'buyer-choice-hour-symbolic-extension-v1'}),/VERIFIED_HOUR_SOURCE/);
   assert.equal(modelCalls,0);
-  console.log('PASS REAL paid first-chapter provider schema receives same-chart already-public FREE prose only for valid hour-choice customer, strict source remains, zero API calls');
+  console.log('PASS real first paid chapter task carries once-only free prose while strict schema points to it without a duplicated free report; strict citations and legacy unchanged; zero API');
  }finally{global.fetch=old}
 })().catch(e=>{console.error(e);process.exitCode=1;});
