@@ -42,7 +42,10 @@ global.fetch=(...args)=>{requests++;return forbidden(...args)};
   assert.equal(fields.temperament.anyOf.length,1);
   const hourText=fields.temperament.anyOf[0].properties.text.description;
   const monthText=fields.strength.properties.text.description;
-  assert(hourText.includes(hour.readerGoal));
+  assert(core.topics.temperament.sourceOwnedHourExtension.readerGoal===hour.readerGoal,
+   'the live task keeps exactly the one verified hour-role meaning');
+  assert(hourText.includes('sourceOwnedHourExtension.readerGoal'),
+   'schema refers to the task rather than duplicating a full hour-goal paragraph');
   assert(hourText.includes('출생시간'));
   assert(hourText.includes('이미 고객에게 무료 공개된 실제 본문'));
   assert(monthText.includes('이 필수 출생월 strength는 독자에게 이미 공개된 기본 계산 맥락'));
