@@ -40,6 +40,8 @@ try{
  assert(p.temperament.title.includes('출생시간'));
  assert(p.temperament.title.includes('유료 원고 미검증'));
  assert(!p.result.notice.includes('완성된'));
+ assert(p.result.notice.includes('무료에서 이미 보여 준 내용도 후보 수에 포함'),
+  'topic upper bounds may include the already-free month and are not unique paid insight counts');
  const swapped=firstChapter({...base,
   readerDecision:'대출을 상환할지 적금을 유지할지 고민입니다.'});
  assert.equal(swapped.temperament.title,p.temperament.title,
