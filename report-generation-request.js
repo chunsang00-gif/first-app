@@ -1103,6 +1103,8 @@ function schema(prompt,transport){
     if(!readerDomainLabel)throw Error('CORE_HOUR_EXTENSION_UNKNOWN_READER_DOMAIN');
     p.properties.text.description=
      '독자가 읽는 온전한 한국어 문장으로 작성한다. 사전적 의미 나열, 출생월 본문 재요약, 고객 질문의 그대로 복사는 실패다. '+
+     '이 문단에서 가장 중요한 것은 task.chapters.saju_core.coreReaderChoiceContext.writerBoundary의 출생시간 분류별 핵심 해석 질문이다. '+
+     '계산된 분류가 두 선택에서 각각 무엇을 다르게 보게 하는지 실제 한 장면으로 풀고, 근거의 뜻을 설명한 뒤 일반적인 확인·준비 조언이나 한계 안내로 문단을 채우지 않는다. '+
      ext.readerGoal+' 이 출생시간의 의미를 고객이 직접 적은 '+readerDomainLabel+
      ' 질문에서 검토할 구체적인 조건과 연결한다. '+ 
      '고객이 질문하지 않은 다른 분야의 생활 경험이나 선택지를 만들지 않는다. '+
