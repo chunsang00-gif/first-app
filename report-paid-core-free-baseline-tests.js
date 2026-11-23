@@ -34,6 +34,15 @@ global.fetch=()=>{modelCalls++;throw Error('PAID_BASELINE_TEST_NETWORK_FORBIDDEN
     boundary.IDS.includes(c.id));
    assert.deepEqual(checked.alreadyPublicCards,actual,
     'paid writer must receive the real free prose from the SAME birth chart');
+   assert(actual.some(c=>c.id==='annual-2027'),
+    'the annual free card is customer-visible and must not be omitted');
+   const publicScope=require('./report-product-coverage').calculate(input);
+   assert.equal(publicScope.status,'ready');
+   assert.deepEqual(checked.alreadyPublicDomainReadings,
+    publicScope.interpretivePreviews,
+    'the paid writer and actual pre-purchase page MUST get identical money/career free prose');
+   assert.equal(checked.alreadyPublicDomainReadings.length,
+    publicScope.interpretivePreviews.length);
    const strict=writer.schema(v.prompt,wire.schemaFor(v.prompt,schema));
    const slot=strict.properties.chapters.properties.saju_core
     .properties.paragraphs.properties.temperament;
@@ -47,8 +56,11 @@ global.fetch=()=>{modelCalls++;throw Error('PAID_BASELINE_TEST_NETWORK_FORBIDDEN
     'actual buyer should get a specific marginal addition beyond the free result');
    assert(text.includes('독립적인 해석을 제공하지 못한 것으로 처리한다'),
     'rewording already-public meanings is not billable interpretation');
-   for(const c of actual)assert(text.includes(c.text),
-    'do not merely name the free topic: send its existing customer-visible words');
+   for(const c of [...actual,...checked.alreadyPublicDomainReadings])
+    assert(text.includes(c.text),
+    'send every already-public explanation the actual paid writer might repeat, including 2027 and topic examples');
+   assert(!text.includes('PREPURCHASE_INTERPRETIVE_READING_SOURCE_DRIFT'),
+    'the writer sees ready-to-read free text, not error codes');
    for(const id of hour.sourceRefs)assert(
     slot.anyOf[0].properties.basis.properties.refs.items.enum.includes(id));
    assert(!checked.alreadyPublicCards.some(c=>
