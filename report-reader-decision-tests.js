@@ -1,6 +1,8 @@
 'use strict';
-// Optional self-reported current choice: one real client input -> exact paid
-// offer fingerprint -> scoped writer context. Never bill or call provider.
+// Optional self-reported choice: one real client input -> paid offer
+// fingerprint; don't add two redundant chapters to the adaptive product.
+// The separately compiled legacy writer contracts are tested for backwards
+// compatibility only, never authorized as customer-facing extra chapters.
 const assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path');
 const {validateInput}=require('./input-validation');
@@ -42,12 +44,12 @@ assert.notEqual(paidOffer.inputFingerprint,plainOffer.inputFingerprint,
  'a paid order cannot be reused after changing the customer question');
 assert.equal(whitespace.inputFingerprint,paidOffer.inputFingerprint,
  'trim-only differences may not falsely change the purchased scope');
-assert(paidOffer.candidateTopicUpperBound>plainOffer.candidateTopicUpperBound,
- 'a buyer question can justify supported decision/integration topics, never fake new natal evidence');
+assert.equal(paidOffer.candidateTopicUpperBound,plainOffer.candidateTopicUpperBound,
+ 'a buyer question may personalize the source-qualified chapter without selling extra duplicate slots');
 assert.deepEqual(paidOffer.plannedChapterIds.filter(id=>
  ['decision','stress','integrated_judgment'].includes(id)),
- ['decision','integrated_judgment'],
- 'a career-only buyer question must not add the unrelated stress chapter');
+ [],
+ 'one career dilemma must not generate two more generic buyer-decision chapters');
 assert(!plainOffer.plannedChapterIds.some(id=>
  ['decision','stress','integrated_judgment'].includes(id)),
  'customer-facing product must omit repetitive chapters without an explicit decision');
@@ -97,6 +99,8 @@ assert(html.includes("['지금 고민하는 선택',d.readerDecision]"));
   assert.equal(ch.readerDecisionContext,undefined,
    'a customer concern must not be sent to unrelated saju/MBTI batches');
  assert(!JSON.stringify(first.source).includes(question));
+ // Legacy manually scoped dev writer is still capable of receiving a
+ // customer question, but the actual adaptive offering omits these chapters.
  const ids=['decision','integrated_judgment'];
  const plan=guidance.preflight(p);
  const shaped={...received,requestedSections:ids,
