@@ -302,17 +302,22 @@ function paidCoreHourGoal(prompt){
  if(hour.classicalPriorityApproved!==false||hour.premiumValueApproved!==false||
     hour.realAbilityObserved!==false||hour.extraPaidTopic!==false)
   throw Error('PAID_CORE_HOUR_GOAL_UNVERIFIED');
- if(hour.readerDomain&&hour.readerDomain!=='skill')return '선택 문단은 출생월 무료 풀이와 다른 출생시간의 전통적 분류를 고객이 직접 입력한 고민에 적용한다. '+
-  '시간 겉글자와 시간 속글자의 실제 계산 출처는 반드시 두 개 인용한다. '+
-  '새로 추가되는 속글자의 전통적 분류는 '+hour.hourHiddenRole+'이다. '+
-  hour.readerGoal+' 설명이 충분하지 않으면 꾸며 쓰지 않고 해당 검수에서 실패 처리한다. '+
-  '기존 출생월 필수 strength 문단은 그대로 유지한다.';
- return '선택 문단은 출생월의 계절 풀이 대신 이 명식의 정확한 출생시간에서 독립적으로 확인된 전통적 표현 분류를 설명한다. '+
-  '고객이 직접 입력한 배움·기술 관련 고민을 구체적인 가상의 선택으로 사용하되 두 개의 삶의 결과를 예언하지 않는다. '+
-  '시간의 숨은 글자 분류는 '+hour.hourHiddenRole+'이며 출생시간 겉글자와 숨은 글자의 정확한 두 출처를 내부 근거로 연결한다. '+
-  '필수 출생월 문단에서 설명한 두 의미를 다시 나열하지 않고, 그 고민에 출생시간의 별도 표현·결과물 질문이 추가되는 이유를 이해하기 쉬운 한국어로 설명한다. '+
-  '독자의 실제 성취·성격·과거 직무 경험·미래 취업을 판정하지 않는다. 제목과 본문에 십성 이름·출처 ID를 쓰지 않는다. '+
-  '출생월 필수 strength 문단은 기존 근거와 고정 핵심 판단을 그대로 지킨다.';
+ // Work84: the real task already owns the long chart-specific hour
+ // reading and the exact customer-specific boundary. Repeating the full
+ // readerGoal at the top level obscured which part is newly paid.
+ const where='task.chapters.saju_core.topics.temperament.sourceOwnedHourExtension.readerGoal';
+ const choiceWhere='task.chapters.saju_core.coreReaderChoiceContext.writerBoundary';
+ if(hour.readerDomain&&hour.readerDomain!=='skill')
+  return '선택 문단은 출생월 무료 풀이가 아닌 출생시간의 새 분류에 한정한다. '+
+   '출생시간 겉·속 두 출처를 정확히 인용한다. 새 분류는 '+hour.hourHiddenRole+'이다. '+
+   '이미 기록된 '+where+'와 '+choiceWhere+'에서 해석 방향과 고객 질문을 한 번씩만 읽고, '+ 
+   '실제 재산·책임·성과 또는 선택의 우열을 지어내지 않는다. '+
+   '출생월 필수 strength는 무료에서 이미 보인 설명으로만 남긴다.';
+ return '선택 문단은 출생월의 계절 풀이 대신 출생시간에서 별도로 검증된 질문을 다룬다. '+
+  '시간 속글자 분류는 '+hour.hourHiddenRole+'이다. '+
+  '이미 기록된 '+where+'와 '+choiceWhere+'를 따라 실제 입력한 배움·기술 고민의 선택별 차이를 설명한다. '+
+  '출생월 기본 설명을 다시 쓰거나 가상의 직무 경험·결과·고전 우선순위를 지어내지 않는다. '+
+  '본문에 전문 분류 이름이나 내부 출처 ID를 노출하지 않는다.';
 }
 const additiveGoal=' 선택형 QA에서는 temperament의 기존 선택 기준과 strength 필수 판정을 유지한다. natal_depth는 독립적으로 증명 가능한 새 개인별 해석이 없으면 null이다. 계산상 새로운 분류와 고전 사례만으로 실제 능력, 성격, 운세를 새로 만들어 쓰지 않는다. 다른 두 문단의 내용을 복제하거나 일반적인 조언으로 심화를 채우지 않는다.';
 function editorialGoalFor(prompt){
