@@ -35,8 +35,17 @@ const names=['NODE_ENV','RENDER','PAID_CORE_DEPTH_V2',
   assert(!selectedIds(topical).includes('decision'));
   assert(!selectedIds(topical).includes('integrated_judgment'));
   assert(selectedIds(topical).includes('money'));
-  assert(selectedIds(moneyChoice).includes('decision'));
-  assert(selectedIds(moneyChoice).includes('integrated_judgment'));
+  assert(!selectedIds(moneyChoice).includes('decision'));
+  assert(!selectedIds(moneyChoice).includes('integrated_judgment'));
+  assert(selectedIds(moneyChoice).includes('money'),
+   'the exact financial dilemma is owned by its original money domain');
+  assert(selectedIds(moneyChoice).includes('mbti_contradiction'),
+   'the independent user-reported MBTI explanation still belongs in the report');
+  const duplicateReasons=moneyChoice.estimate.chapters.filter(c=>
+   ['decision','integrated_judgment'].includes(c.id)).map(c=>c.omittedReason);
+  assert.equal(duplicateReasons.length,2);
+  assert(duplicateReasons.every(x=>x.includes('같은 고민을')&&x.includes('반복')),
+   'the buyer must see why the two generic chapters were honestly removed');
   assert(!selectedIds(pressureConcern).includes('decision'));
   assert(!selectedIds(pressureConcern).includes('integrated_judgment'));
   const noChoiceReasons=topical.estimate.chapters.filter(c=>
