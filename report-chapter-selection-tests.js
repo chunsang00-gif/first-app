@@ -113,9 +113,14 @@ const create=()=>{
  }
  const career=selection.select(groups,create(),{
   mode:'adaptive-v1',readerQuestion:'새 직장에 취업할지 고민'});
- assert(career.plannedIds.includes('decision'));
- assert(career.plannedIds.includes('integrated_judgment'));
+ assert(!career.plannedIds.includes('decision'));
+ assert(!career.plannedIds.includes('integrated_judgment'));
  assert(!career.plannedIds.includes('stress'));
+ assert.deepEqual(career.omitted.filter(x=>['decision','integrated_judgment'].includes(x.id))
+  .map(x=>x.reason),[
+   'buyer-choice-already-owned-by-core-and-domain',
+   'buyer-choice-already-owned-by-core-and-domain'
+  ],'a career-specific buyer question cannot license two copied decision chapters');
  const pressure=selection.select(groups,create(),{
   mode:'adaptive-v1',readerQuestion:'스트레스와 피로를 줄이고 싶다'});
  assert(pressure.plannedIds.includes('stress'),
@@ -136,14 +141,25 @@ const create=()=>{
  assert(plainTopic.plannedIds.includes('money'));
  const moneyChoice=selection.select(groups,create(),{
   mode:'adaptive-v1',readerQuestion:'적금을 유지할지 대출을 상환할지 고민입니다.'});
- assert(moneyChoice.plannedIds.includes('decision'));
- assert(moneyChoice.plannedIds.includes('integrated_judgment'));
+ assert(!moneyChoice.plannedIds.includes('decision'));
+ assert(!moneyChoice.plannedIds.includes('integrated_judgment'));
+ assert(moneyChoice.plannedIds.includes('money'));
+ assert(moneyChoice.plannedIds.includes('saju_core'));
+ assert(moneyChoice.plannedIds.includes('mbti_contradiction'),
+  'the genuine Saju×MBTI comparison stays; only duplicate decision chapters go');
+ assert.equal(moneyChoice.plannedIds.length,9,
+  'a qualified money question does not inflate the generic buyer-neutral offer');
  const stressChoice=selection.select(groups,create(),{
   mode:'adaptive-v1',readerQuestion:'압박을 받으면 참고 견딜지 휴식을 취할지 고민입니다.'});
  assert(stressChoice.plannedIds.includes('stress'));
- assert(stressChoice.plannedIds.includes('decision'));
- assert(stressChoice.plannedIds.includes('integrated_judgment'),
-  'an explicit stress choice can still earn a scoped choice/integration candidate');
+ assert(!stressChoice.plannedIds.includes('decision'));
+ assert(!stressChoice.plannedIds.includes('integrated_judgment'),
+  'a specific stress dilemma belongs in its own domain, not three copied answers');
+ assert.deepEqual(stressChoice.omitted.filter(x=>['decision','integrated_judgment'].includes(x.id))
+  .map(x=>x.reason),[
+   'buyer-choice-already-owned-by-core-and-domain',
+   'buyer-choice-already-owned-by-core-and-domain'
+  ]);
  const requestedButUnsupported=create();
  requestedButUnsupported.stress.hasGroundedTopic=false;
  const noInvent=selection.select(groups,requestedButUnsupported,{
