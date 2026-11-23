@@ -6,7 +6,7 @@
 // It is READER CONTEXT, NOT extra natal evidence or expert approval.
 const free=require('./report-reading-sample');
 const SOURCE_KIND='buyer-choice-hour-symbolic-extension-v1';
-const IDS=Object.freeze(['birth-month','month-visible-link','year-hour']);
+const IDS=Object.freeze(['birth-month','month-visible-link','year-hour','annual-2027']);
 // Keep the ordinary first-chapter writer aligned with the ACTUAL qualified
 // buyer domain. A finance/pressure query is not a learning/career question.
 const DOMAIN_LABELS=Object.freeze({
@@ -43,6 +43,16 @@ function build(packet,hour){
     !alreadyPublic.some(c=>c.id==='year-hour')||
     alreadyPublic.some(c=>typeof c.text!=='string'||c.text.length<30))
   throw Error('PAID_CORE_FREE_BASELINE_REQUIRED_CARDS_MISSING');
+ // Work78: these money/career examples are shown before checkout in the
+ // same customer's product preview and are already covered by the post-paid
+ // free-copy gate. Give the writer their exact text BEFORE any billable call.
+ // Do not invoke coverage.calculate(): it calls precharge/schema and recurses.
+ const alreadyPublicDomainReadings=require('./report-product-coverage')
+  .alreadyPublicDomainReadings(packet);
+ if(!Array.isArray(alreadyPublicDomainReadings)||
+    alreadyPublicDomainReadings.some(c=>!c.id||typeof c.text!=='string'||
+     c.text.length<130))
+  throw Error('PAID_CORE_FREE_BASELINE_DOMAIN_CONTEXT_DRIFT');
  const label=DOMAIN_LABELS[hour.readerDomain];
  const templates=DOMAIN_TASKS[hour.readerDomain];
  if(!label||!templates)throw Error('PAID_CORE_FREE_BASELINE_UNKNOWN_READER_DOMAIN');
@@ -52,7 +62,8 @@ function build(packet,hour){
  const choiceTask=choices?
   '고객이 실제로 적은 두 선택을 각각 다른 확인 조건에 적용한다. 고객 질문을 그대로 복사하거나 양쪽에 같은 조언을 반복하지 않는다. ':
   '고객 질문에서 두 선택이 명확히 확인되지 않았으므로 가짜 두 선택지를 창작하지 말고 실제 적은 한 가지 고민에만 조건부로 답한다. ';
- const summary=alreadyPublic.map(c=>c.title+' — '+c.text).join(' / ');
+ const summary=[...alreadyPublic,...alreadyPublicDomainReadings]
+  .map(c=>c.title+' — '+c.text).join(' / ');
  const instruction=
   '동일한 출생정보로 이미 고객에게 무료 공개된 실제 본문은 다음과 같다: '+summary+
   ' 이 첫 장에서 무료와 달라야 할 본문은 temperament의 출생시간 안쪽 글자 해석이다. '+ 
@@ -68,6 +79,8 @@ function build(packet,hour){
  return Object.freeze({
   kind:'same-chart-free-first-chapter-boundary-v1',
   alreadyPublicCards:alreadyPublic.map(c=>({id:c.id,title:c.title,text:c.text})),
+  alreadyPublicDomainReadings:alreadyPublicDomainReadings.map(c=>({
+   id:c.id,title:c.title,text:c.text})),
   writerInstruction:instruction,readerDomain:hour.readerDomain,
   readerDomainLabel:label,twoBuyerChoicesParsed:Boolean(choices),
   modelCalls:0,merchantCalls:0,
