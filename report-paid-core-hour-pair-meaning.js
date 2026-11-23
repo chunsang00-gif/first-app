@@ -52,8 +52,9 @@ function build(packet,source,proof){
   throw Error('PAID_HOUR_PAIR_DIRECTION_NOT_SUPPORTED');
  const outside=question(outer.tenGod),inside=question(inner.tenGod);
  if(!outside||!inside)throw Error('PAID_HOUR_PAIR_MEANING_MISSING');
- const symbolicQuestion='시간의 겉에서는 ‘'+outside+
-  '’을, 안쪽에서는 ‘'+inside+'’을 각각 질문한다. '+PHRASES[direction]+'이다.';
+ const symbolicQuestion='출생시간 겉글자의 전통적 질문은 ‘'+outside+
+  '’, 안쪽 글자의 질문은 ‘'+inside+'’입니다. 두 글자의 오행 관계는 '+
+  PHRASES[direction]+'입니다.';
  return Object.freeze({
   kind:'source-owned-hour-visible-hidden-element-contrast-v1',
   sourceRefs:Object.freeze(proof.sourceRefs.slice()),
