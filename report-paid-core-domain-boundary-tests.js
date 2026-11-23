@@ -59,7 +59,12 @@ function actual(input){
   assert(actualSkillGoal.includes('둘째 ['+altSkill.second.join('·')+']'));
   assert(!actualSkillGoal.includes('배우거나 익힌 내용을 실제로 만들어 보여 줄 경우와 기존 방식을 바꾸어 제안할 경우'));
   assert(!actualSkillGoal.includes('현재 일을 유지하는 가정에서는'));
-  assert(differentSkill.leaf.properties.text.description.includes(actualSkillGoal));
+  assert.equal(differentSkill.task.task.chapters.saju_core.topics.temperament
+   .sourceOwnedHourExtension.readerGoal,actualSkillGoal);
+  assert(differentSkill.leaf.properties.text.description
+   .includes('sourceOwnedHourExtension.readerGoal'));
+  assert(!differentSkill.leaf.properties.text.description.includes(actualSkillGoal),
+   'schema must reference exact buyer choices in the task rather than repeat all of them');
   assert(!differentSkill.leaf.properties.text.description.includes('현재 일을 유지하는 가정에서는'));
 
   const single=actual({...sample,readerDecision:'새로운 기술을 배우고 싶습니다.'});
@@ -98,8 +103,16 @@ function actual(input){
    assert.equal(free.readerDomainLabel,c.label);
    assert.equal(free.readerDomain,c.domain);
    assert.equal(free.twoBuyerChoicesParsed,true);
-   assert(text.includes(free.writerInstruction),
-    'actual outgoing strict provider schema must carry the scoped free/paid reader boundary');
+   const once=found.task.task.chapters.saju_core
+    .coreReaderChoiceContext.alreadyPublicFreeReading;
+   assert.equal(once.kind,'same-chart-free-reader-copy-once-v1');
+   assert.equal(once.readerDomain,c.domain);
+   assert.deepEqual(once.cards,free.alreadyPublicCards);
+   assert.deepEqual(once.domainReadings,free.alreadyPublicDomainReadings);
+   assert(text.includes('alreadyPublicFreeReading'),
+    'the strict provider field references free copy already sent ONCE on the task');
+   assert(!text.includes(free.writerInstruction),
+    'do not paste the whole free report into a second schema description');
    assert(text.includes(c.label));
    assert(!text.includes('고객의 배움·기술 고민'),
     'a non-learning buyer must never be instructed to learn a new skill');
@@ -127,7 +140,11 @@ function actual(input){
    assert(!changedGoal.includes(c.domain==='money'?
     '매번 들어가는 비용을 따져볼 경우와 새로운 자원을 찾아 마련할 경우':
     '평소에 정해진 절차로 대응하는 경우와 갑자기 새로운 요구가 들어오는 경우'));
-   assert(changed.leaf.properties.text.description.includes(changedGoal));
+   assert.equal(changed.task.task.chapters.saju_core.topics.temperament
+    .sourceOwnedHourExtension.readerGoal,changedGoal);
+   assert(changed.leaf.properties.text.description
+    .includes('sourceOwnedHourExtension.readerGoal'));
+   assert(!changed.leaf.properties.text.description.includes(changedGoal));
    assert(!changed.leaf.properties.text.description.includes(
     '새로운 기술을 배우는 가정에서는'));
    const oneQuestion=c.domain==='money'?
