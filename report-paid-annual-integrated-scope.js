@@ -18,6 +18,24 @@ function build(packet){
  const career=core.eligibleAnnualStemGods('career').includes(god);
  if(money&&career)throw Error('ANNUAL_INTEGRATED_SCOPE_CONFLICTING_STEM_DOMAIN');
  const proof=core.all(packet);
+ // A year pillar identical to the reader's BIRTH-MONTH pillar must not be
+ // advertised as newly introduced symbols. The year is a new calendar
+ // position, not an extra natal role, demonstrated event or fresh relation
+ // category. In that case the same natal month branch makes identical
+ // pair-table relationships with the other three natal branches.
+ const sameBirthMonth=packet.targetYear.pillar===packet.chart?.month;
+ const priorNatalPairs=sameBirthMonth?
+  require('./report-branch-relations').natal(packet.chart).pairs:[];
+ const annualPairs=sameBirthMonth?
+  require('./report-branch-relations')
+   .annual(packet.chart,packet.targetYear.pillar).pairs:[];
+ if(sameBirthMonth&&annualPairs
+  .filter(pair=>pair.between!=='month')
+  .some(pair=>!priorNatalPairs.some(previous=>
+    previous.type===pair.type&&
+    previous.positions.includes('month')&&
+    previous.positions.includes(pair.between))))
+  throw Error('ANNUAL_IDENTICAL_MONTH_PAIR_TABLE_DRIFT');
  const kind=money?'money':career?'career':'other';
  const theme=FAMILY[kind];
  const meaning=packet.facts.tenGodGlossary[god];
@@ -31,6 +49,13 @@ function build(packet){
   '2027년 겉글자가 역할·학습과 관련된 전통 분류를 나타낸다는 것까지만 설명한다. 승진·취업·이직은 계산되지 않았다.':
   '2027년 겉글자 하나를 근거로 금전 또는 직업 사건을 만들어 해석하지 않는다.';
  const boundary=[
+  ...(sameBirthMonth?[
+   '2027년의 겉·아랫글자 조합은 태어난 달의 두 글자와 정확히 같다. 새 글자 종류가 등장했다고 말하지 않는다. '+
+   '2027년이라는 해의 자리는 새롭게 비교할 수 있지만 같은 조합의 되풀이를 새 성격·새 금전운·새 직업운으로 부풀리지 않는다.',
+   '2027년 아래 글자가 태어난 해·날·시간의 아래 글자와 맺는 관계표상의 종류는 '+
+   '태어난 달 아래 글자가 같은 위치와 맺던 관계표의 종류와 같다. '+
+   '따라서 이전에 없던 충돌이 새로 생겼다고 말하지 않으며 실제 사건 발생도 단정하지 않는다.'
+  ]:[]),
   focus,
   proof.money.relevant?
    '출생 근거와 실제 세부 종류 차이가 있는 금전 비교는 별도의 2027년 금전 장의 고유 질문이므로 이 기본 풀이에 복사하지 않는다.':
@@ -46,7 +71,11 @@ function build(packet){
   annualPillar:packet.targetYear.pillar,annualStem:stem,annualGod:god,
   traditionalMeaning:meaning,calculatedTheme:theme,
   themeFamily:kind,domainChapters:Object.freeze(domainChapters),
-  readerQuestion:'2027년 겉글자가 실제 나타내는 전통적 뜻과 별도 분야 장에서만 가능한 출생 시점 비교를 어떻게 구별하는가?',
+  exactBirthMonthPillarRepeated:sameBirthMonth,
+  annualSourceIsNewCalendarPositionNotNewStem:sameBirthMonth,
+  readerQuestion:sameBirthMonth?
+   '2027년의 위아래 글자 조합이 태어난 달의 조합과 정확히 같은 경우, 새로워진 시간 자리와 이미 있던 글자·관계가 어떻게 구별되는가?':
+   '2027년 겉글자가 실제 나타내는 전통적 뜻과 별도 분야 장에서만 가능한 출생 시점 비교를 어떻게 구별하는가?',
   writerBoundary:boundary,
   predictedIncome:false,predictedPromotion:false,predictedMarriage:false,
   personalHistoryObserved:false,additionalPaidTopic:false
