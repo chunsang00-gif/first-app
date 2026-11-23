@@ -25,8 +25,8 @@ const NAMES=Object.freeze({
 // that a completed premium paragraph will survive final quality review.
 const TOPIC_NAMES=Object.freeze({
  saju_core:Object.freeze({
-  temperament:'태어난 시기의 전통적 해석',
-  strength:'기본 기질을 설명하는 별도의 근거'
+  temperament:'태어난 시기의 풀이 후보(추가 유료 근거 미확정)',
+  strength:'무료 풀이에 포함된 태어난 달의 기본 설명'
  }),
  mbti_contradiction:Object.freeze({
   agreement:'사주와 MBTI가 각각 설명하는 공통 질문',
@@ -196,6 +196,25 @@ function calculate(input){
   customerSaleApproved:false,additionalModelCalls:0,
   newPaymentEnabled:false
  });
+ // Work83: the first paid chapter's real mandatory 'strength' slot repeats
+ // birth-MONTH material that has already been given away for free.
+ // The optional 'temperament' slot changes source/mode with the chart.
+ // A static title claiming both are paid/new is a misleading sales scope.
+ const coreTopicTitle=(topicId)=>{
+  if(topicId==='strength')return TOPIC_NAMES.saju_core.strength;
+  if(topicId!=='temperament')throw Error('UNKNOWN_CORE_SCOPE_TOPIC');
+  const reason=firstChapterPrecharge.reason;
+  if(reason==='verified-hour-addition-awaits-human-review')
+   return '출생시간에서 확인한 별도 계산 관계(유료 원고 미검증)';
+  if(reason==='hour-role-already-in-other-natal-pillar-unreviewed-positional-meaning'||
+     reason==='hour-whole-natal-category-audit-unverified')
+   return '출생시간에서 확인한 글자(새 유료 해석 근거 미확정)';
+  if(reason==='year-visible-meaning-already-in-free-preview')
+   return '출생 해에서 확인한 전통적 뜻(이미 무료 공개)';
+  return TOPIC_NAMES.saju_core.temperament;
+ };
+ const scopedTitle=(id,topicId)=>id==='saju_core'?
+  coreTopicTitle(topicId):TOPIC_NAMES[id][topicId];
  const chapters=expected.map(id=>{
   const entries=Object.keys(outline.topics[id]);
   const selected=planned.has(id);
@@ -207,7 +226,7 @@ function calculate(input){
    throw Error('PRODUCT_COVERAGE_MISSING_TOPIC_DECISION:'+id);
   const active=selected?entries.filter(key=>modes[key]!=='state-limits'):[];
   const excludedTopics=selected?entries.filter(key=>modes[key]==='state-limits')
-   .map(key=>({id:key,title:TOPIC_NAMES[id][key],
+   .map(key=>({id:key,title:scopedTitle(id,key),
     reason:id==='mbti_contradiction'&&['information','judgment','energy','planning'].includes(key)?
      '해당 MBTI 선호가 확인되지 않아 이 질문을 제외했습니다.':
      '이 질문에만 사용할 별도의 계산 근거가 확인되지 않았습니다.'
@@ -219,7 +238,7 @@ function calculate(input){
   // plan that selects actual provider output slots. A topic name cannot
   // create eligibility, and a disabled or omitted topic is never advertised.
   const eligibleTopics=active.map(topicId=>({
-   id:topicId,title:TOPIC_NAMES[id][topicId]
+   id:topicId,title:scopedTitle(id,topicId)
   }));
   return {id,name:NAMES[id],includedInPlan:selected,
    definedTopicSlots:entries.length,
