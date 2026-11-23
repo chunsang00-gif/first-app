@@ -109,3 +109,32 @@ for(const {date,time,domain} of annualExamples){
 }
 console.log('PASS 2027 annual money/career customer prose uses both actual annual and birth source roles; generic summary rejected before new paid calls');
 
+
+
+// Real consumer annual writer: one chart has the EXACT SAME annual and
+// natal month pillar. The new time position may be discussed, but not as
+// freshly introduced birth symbols, clash categories or predicted events.
+{
+ const input={calendar:'solar',birthDate:'1982-07-15',birthTime:'02:20',
+  gender:'male',mbti:'ISFP',
+  readerDecision:'적금을 유지할지 대출을 상환할지 고민입니다.'};
+ const packet=facts.build(input,2027);
+ assert.equal(packet.chart.month,'丁未');
+ assert.equal(packet.targetYear.pillar,'丁未');
+ const plan=guidance.preflight(packet);
+ const p={stage:'body',facts:packet,requestedSections:['year_2027'],
+  analysisGuidance:{...guidance.forRequest(['year_2027'],packet.person.mbti),
+   editorialBlueprint:plan}};
+ const owned=writer.compile(p).task.chapters.year_2027.topics
+  .change.sourceOwnedAnnualIntegratedScope;
+ assert.equal(owned.exactBirthMonthPillarRepeated,true);
+ assert.equal(owned.annualSourceIsNewCalendarPositionNotNewStem,true);
+ assert(owned.writerBoundary.includes('태어난 달의 두 글자와 정확히 같다'));
+ assert(owned.writerBoundary.includes('이전에 없던 충돌이 새로 생겼다고 말하지'));
+ const regular=facts.build({...input,birthDate:'1982-10-15'},2027);
+ assert.notEqual(regular.chart.month,regular.targetYear.pillar);
+ const normal=require('./report-paid-annual-integrated-scope').build(regular);
+ assert.equal(normal.exactBirthMonthPillarRepeated,false);
+ assert(!normal.writerBoundary.includes('태어난 달의 두 글자와 정확히 같다'));
+}
+console.log('PASS identical-2027-birth-month chart cannot be presented as new symbolic category in actual annual writer; 0 API calls');
