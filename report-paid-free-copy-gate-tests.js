@@ -93,6 +93,11 @@ for(const input of cases){
   const copied=copy.inspect([{id,bodyTopics:[topic],body:[preview.text]}],packet);
   assert(copied.includes('copied-free-reader-meaning:'+id+':'+topic+':'+preview.id),
    'the FREE pre-purchase '+preview.id+' paragraph must never qualify as paid insight');
+  const repackaged=copy.inspect([{
+   id:'saju_core',bodyTopics:['temperament'],body:[preview.text]
+  }],packet);
+  assert(repackaged.includes('copied-free-reader-meaning:saju_core:temperament:'+preview.id),
+   'moving an already-FREE '+preview.id+' paragraph to the paid FIRST chapter is still copying');
  }
  const trulyDifferent=[{id:'money',bodyTopics:['spending'],
   body:['가상의 생활비 지출에서 이미 나간 금액과 아직 결정하지 않은 예정 지출을 나누어 기록합니다. 이 비교는 출생 정보에서 계산된 사실과 구별되는 사용자 선택의 연습입니다.'] }];
