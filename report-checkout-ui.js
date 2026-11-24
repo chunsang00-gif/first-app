@@ -30,6 +30,9 @@ function displayedChapterIds(proposal){
  if(!Array.isArray(main)||!Array.isArray(extra)||
     !Number.isInteger(proposal.plannedChapterCount)||
     !Number.isInteger(proposal.topicCandidateUpperBound)||
+    proposal.freeBaselineTopicCount!==1||
+    !Number.isInteger(proposal.additionalTopicCandidateUpperBound)||
+    proposal.additionalTopicCandidateUpperBound+proposal.freeBaselineTopicCount!==proposal.topicCandidateUpperBound||
     main.length!==proposal.mainChapterCount||
     extra.length!==proposal.conditionalChapterCount)return null;
  const ids=[...main,...extra];
@@ -354,14 +357,14 @@ async function mount({container,analysisInput,proposal,isCurrent}={}){
  if(!cfg||!container.isConnected||
     (typeof isCurrent==='function'&&!isCurrent()))return;
  const notice=find('coverageSalesNotice');
- if(notice)notice.textContent='이 출생정보로 작성할 수 있는 보고서의 후보 구성입니다. 표시한 최대 항목 수는 실제 완성 문단 수가 아닙니다. 결제 전 작성 후보를 확인해 주세요.';
+ if(notice)notice.textContent='이 출생정보로 작성 가능한 후보 구성입니다. 추가 풀이 후보 수에는 이미 무료로 공개한 출생월 복습을 포함하지 않았습니다. 실제 완성 문단 수는 아닙니다.';
  const panel=document.createElement('section');panel.className='section report-checkout';
  panel.id='reportCheckoutSection';
  const heading=document.createElement('h2');
  heading.textContent='맞춤형 유료 보고서 결제';
  const description=document.createElement('p');
  description.textContent=proposal.plannedChapterCount+'개 장, 최대 '+
-  proposal.topicCandidateUpperBound+'개 후보 항목을 계산했습니다. 실제 작성 결과는 검수 중 일부 문단이 생략될 수 있습니다. 12장·35항목 고정 제공 상품이 아닙니다.';
+  proposal.additionalTopicCandidateUpperBound+'개 추가 풀이 후보를 계산했습니다. 전체 작성 후보 '+proposal.topicCandidateUpperBound+'개 중 이미 무료 공개된 출생월 복습 '+proposal.freeBaselineTopicCount+'개를 제외한 수치입니다. 실제 새 유료 풀이의 완성이나 검수 승인을 의미하지 않으며 12장·35항목 고정 제공 상품이 아닙니다.';
  const chapterTitle=document.createElement('p');
  chapterTitle.textContent='결제 전에 확인할 실제 작성 후보 장 목록';
  const chapterList=document.createElement('ul');
@@ -407,6 +410,8 @@ async function mount({container,analysisInput,proposal,isCurrent}={}){
       data.scope?.productMode!=='adaptive-v1'||
       data.scope?.plannedChapters!==proposal.plannedChapterCount||
       data.scope?.candidateTopicUpperBound!==proposal.topicCandidateUpperBound||
+      data.scope?.freeBaselineTopicCount!==proposal.freeBaselineTopicCount||
+      data.scope?.additionalTopicCandidateUpperBound!==proposal.additionalTopicCandidateUpperBound||
        data.scope?.countsAreUpperBounds!==true||
        data.scope?.fixed12ChaptersPromised!==false||
        data.scope?.fixed35TopicsPromised!==false||
