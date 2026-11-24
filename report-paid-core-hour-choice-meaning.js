@@ -102,7 +102,8 @@ function writerFor(proof,question){
  const role=require('./report-paid-core-hour-extension')
   .DOMAINS[proof.readerDomain]?.meanings?.[proof.hourHiddenRole];
  if(!role)throw Error('PAID_HOUR_SINGLE_READER_MEANING_UNVERIFIED');
- return alternatives(question)?scope.writer:
+ return alternatives(question)?scope.writer+
+  ' 두 문장에서 대안의 이름이나 납기·연습 등 한 단어만 바꿔 같은 결론을 반복하면 불합격이다. 각 선택의 전통적 해석이 각각 어떤 다른 확인 조건을 더하는지 온전한 문장으로 구분한다.':
   '이 고객은 두 선택지를 직접 입력하지 않았다. '+ 
   '출생시간 안쪽 글자의 ‘'+role+'’라는 별도 질문을 고객이 실제로 적은 한 가지 고민에만 조건부로 적용한다. '+
   '대안이 없는 질문에 새로운 직장·기술·금전 선택지를 만들어 두 가지 경우처럼 비교하지 않는다. '+
