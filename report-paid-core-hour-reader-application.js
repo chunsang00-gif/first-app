@@ -56,7 +56,7 @@ function inspect(p,monthText,proof){
  const sourceLinked=Boolean(output)&&sentences.some((sentence,i)=>
   (hour.test(sentence)&&output.test(sentence))||
   (i>0&&hour.test(sentences[i-1])&&output.test(sentence)&&
-   /(?:겉에\\s*드러난\\s*글자|겉글자|안쪽의\\s*다른\\s*글자|안쪽\\s*글자)/.test(sentence)));
+   /(?:겉에\s*드러난\s*글자|겉글자|안쪽의\s*다른\s*글자|안쪽\s*글자)/.test(sentence)));
  if(!sourceLinked)
   errors.push('missing-hour-specific-meaning');
  if(!concern||!output||!sentences.some(s=>concern.test(s)&&output.test(s)&&
