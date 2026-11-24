@@ -3,7 +3,7 @@
 const assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
 const source=fs.readFileSync(path.join(__dirname,'report-renderer.js'),'utf8');
-function run(mbti,readerDecision,withCareer=false,withoutDecision=false){
+function run(mbti,readerDecision,withCareer=false,withoutDecision=false,includeFreeRecap=false){
  const details=[];
  const window={
   CHARACTER_ASSETS:{
@@ -35,6 +35,13 @@ function run(mbti,readerDecision,withCareer=false,withoutDecision=false){
   bodyTopics:[id==='career'?'growth':'topic'],bodyLabels:['실제 작성된 질문'],
   evidence:['계산된 근거를 설명하는 자료입니다.']
  }));
+ if(includeFreeRecap){
+  const core=sections.find(x=>x.id==='saju_core');
+  core.body=['새 출생시간의 독립적인 의미를 설명하는 별도의 독자용 문단입니다.',
+   '무료 공개된 출생월의 전통적인 기질 풀이를 다시 설명합니다.'];
+  core.bodyTopics=['temperament','strength'];
+  core.bodyLabels=['출생시간 추가 풀이','기본 출생월'];
+ }
  if(withCareer&&withCareer!=='generic'){
   sections.find(x=>x.id==='career').body[0]="기존 일을 유지할 때에는 이미 익힌 방법을 계속 활용할 수 있는 조건을 확인합니다. 새로운 기술을 배울 경우에는 익히는 시간과 준비할 도구를 따로 확보해야 하는지 설명합니다.";
  }
@@ -128,3 +135,23 @@ assert(!unsafeQuestion.html.includes('<img src=x onerror=alert(1)>'),
  'uploaded user text must always remain escaped in rendered HTML');
 console.log('PASS self-reported choice appears only once in decision chapter, remains escaped and is disclosed in full sharing');
 
+
+
+// The real mandatory strength slot uses already FREE month evidence. It is
+// still kept in the validated report, but must not be sold to a reader as an
+// additional premium insight. The same distinction must appear in counts,
+// chapter navigation and the actual first-chapter HTML (including sharing).
+const recap=run('ISFP',null,false,false,true);
+assert(recap.html.includes('<details class="copy-block free-month-recap" id="topic-saju_core-1">'));
+assert(recap.html.includes('무료에서 이미 다룬 출생월 설명 · 유료 추가 풀이 아님'));
+assert(recap.html.includes('새 출생시간의 독립적인 의미'));
+assert(recap.html.includes('무료 공개된 출생월의 전통적인 기질 풀이'));
+assert(recap.html.includes('실제로 작성된 분석: 6개 장 · 추가 세부 풀이 6개 · 무료 출생월 복습 1개(추가 유료 내용 아님)'));
+assert(recap.html.includes('추가 1개 · 무료 복습 1개'));
+assert(!recap.html.includes('7개 세부 풀이'));
+assert(!recap.html.includes('href="#topic-saju_core-1"'),
+ 'already FREE month text cannot be added to the premium-only topic navigation');
+const ordinary=run('ISFP');
+assert(!ordinary.html.includes('무료에서 이미 다룬 출생월 설명 · 유료 추가 풀이 아님'),
+ 'do not relabel a report slot as free unless its actual source topic is strength');
+console.log('PASS work89 first paid core: month-only strength stays in source report but appears as clearly labeled collapsed FREE recap; customer counts exclude it');
