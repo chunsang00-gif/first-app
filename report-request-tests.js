@@ -420,8 +420,9 @@ assert.equal(p.stage,'body');assert.equal(p.priorSections.length,expectedBatches
 
 
  assert.equal(captured[0].facts.person.name,'검증가');
- // The first paid batch cannot sell the source-matched FREE reading
- // verbatim and then spend tokens on the second body batch.
+ // The first paid batch may preserve the month-only FREE strength
+ // as a labeled recap, but can NEVER sell it as an independently authored
+ // temperament interpretation or spend on the next paid body batch.
  let freeCopyCalls=0;
  await assert.rejects(
   contract.generate(sampleInput,async p=>{
@@ -432,7 +433,7 @@ assert.equal(p.stage,'body');assert.equal(p.priorSections.length,expectedBatches
     id,title:id,keyJudgment:id,
     bodyTopics:activeKeys(p,id),
     bodyLabels:activeKeys(p,id).map((_,i)=>'검증 항목 '+i),
-    body:activeKeys(p,id).map(t=>(id==='saju_core'&&t==='strength')?
+    body:activeKeys(p,id).map(t=>(id==='saju_core'&&t==='temperament')?
      calculatedFree+' '+require('./qa/core-meaning-mock').body(p):
      (id==='mbti_contradiction'&&mockMbtiPreferenceCopy[t])||
      (id+' '+t+'에 대한 독립된 모의 검증 문장입니다. 사주 정보에서 확인된 별도 질문을 설명하지만 실제 생활을 확인하지 않았습니다.')),
@@ -442,7 +443,7 @@ assert.equal(p.stage,'body');assert.equal(p.priorSections.length,expectedBatches
   /reused free preview interpretation in paid prose/
  );
  assert.equal(freeCopyCalls,1,
-  'copied FREE first chapter must fail before any second paid model batch');
+  'copied FREE month wording in an allegedly NEW first-chapter topic must fail before batch two');
  let mismatchCalls=0;
  await assert.rejects(contract.generate({calendar:'solar',birthDate:'1990-06-15',unknownBirthTime:true,gender:'male',mbti:'INFP'},async prompt=>{
   mismatchCalls++;
