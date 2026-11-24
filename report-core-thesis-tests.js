@@ -404,4 +404,64 @@ for(const input of inputs.slice(0,4)){
 }
 assert(directionalCases>=1,'real calculated month arrows must be covered');
 
+// Work93: verify a *real* birth-hour-qualified PAID chart produces its
+// first visible headline from the paid HOUR addition, not the already FREE
+// month-only interpretation. Keep the traditional reading separate from
+// observed money behavior and verify the exact outgoing strict schema.
+const choiceInput={calendar:'solar',birthDate:'1982-07-15',birthTime:'02:20',
+ gender:'male',mbti:'ISFP',
+ readerDecision:'적금을 유지할지 대출을 상환할지 고민입니다.'};
+const choicePacket=facts.build(choiceInput,2027);
+const choiceBlueprint=guidance.preflight(choicePacket);
+const choicePrompt={stage:'body',facts:choicePacket,requestedSections:['saju_core'],
+ analysisGuidance:{...guidance.forRequest(['saju_core'],choiceInput.mbti),
+  editorialBlueprint:{saju_core:choiceBlueprint.saju_core}}};
+const paidThesis=core.forPrompt(choicePrompt);
+assert.equal(paidThesis.sourcePosition,'hour');
+assert.equal(paidThesis.buyerDomain,'money');
+assert.equal(paidThesis.premiumManuscriptQualityApproved,false);
+assert.deepEqual(paidThesis.sourceIds,['natal.hour.stem','natal.hour.hidden.癸']);
+assert.equal(paidThesis.title.startsWith('출생시간: '),true);
+assert(paidThesis.title.includes('필요한 자원 활용'));
+assert(paidThesis.keyJudgment.startsWith('사주에서는 태어난 시간의 안쪽에서 읽는'));
+assert(paidThesis.keyJudgment.includes('겉에서 읽는'));
+assert(paidThesis.keyJudgment.includes('뒷받침하는 전통적 관계로 풀이합니다.'));
+assert(!paidThesis.keyJudgment.includes(choiceInput.readerDecision),
+ 'customer choices do not become chart-derived fixed first-chapter fact');
+const choiceSource=require('./report-generation-request').compile(choicePrompt);
+const verifiedHour=choiceSource.task.chapters.saju_core.topics.temperament
+ .sourceOwnedHourExtension;
+const verifiedPair=choiceSource.task.chapters.saju_core.topics.temperament
+ .sourceOwnedHourPairMeaning;
+assert.equal(verifiedHour.wholeNatalCategoryDistinct,true);
+assert.deepEqual(paidThesis.sourceIds,verifiedHour.sourceRefs);
+assert.equal(verifiedPair.elementDirection,'resource');
+const choiceWire=wire.schemaFor(choicePrompt,schema).properties.chapters
+ .properties.saju_core.properties;
+assert.deepEqual(choiceWire.title.enum,[paidThesis.title]);
+assert.deepEqual(choiceWire.keyJudgment.enum,[paidThesis.keyJudgment]);
+assert(choiceWire.title.description.includes('출생시간'));
+assert(choiceWire.keyJudgment.description.includes('출생시간'));
+assert(!choiceWire.keyJudgment.description.includes('핵심 판단은 출생월 두 계산 출처'));
+assert(choiceWire.paragraphs.properties.strength.properties.text.description
+ .includes('이미 무료로 공개한 태어난 달의 기본 의미'));
+const choiceStrict=require('./report-generation-request').schema(choicePrompt,
+ wire.schemaFor(choicePrompt,schema));
+const strictCore=choiceStrict.properties.chapters.properties.saju_core.properties;
+assert.deepEqual(strictCore.keyJudgment.enum,[paidThesis.keyJudgment]);
+assert(strictCore.paragraphs.properties.strength.properties.text.description
+ .includes('이미 고객에게 공개한 출생월 기본 풀이의 복습'));
+const paidExtra=strictCore.paragraphs.properties.temperament.anyOf[0].properties;
+assert.deepEqual(paidExtra.basis.properties.refs.items.enum,paidThesis.sourceIds);
+assert(paidExtra.text.description.includes('sourceOwnedHourExtension.readerGoal'));
+assert.doesNotThrow(()=>core.assertDecoded(paidThesis,choicePrompt));
+assert.throws(()=>core.assertDecoded({...paidThesis,title:'무료에서 보던 달 풀이'},choicePrompt),
+ /violated grounded first-chapter title/);
+const noChoicePacket=facts.build({...choiceInput,readerDecision:undefined},2027);
+const oldMonth=core.forPrompt({...choicePrompt,facts:noChoicePacket});
+assert.notEqual(oldMonth.sourcePosition,'hour');
+assert(oldMonth.sourceIds.every(x=>x.startsWith('natal.month.')),
+ 'the no-question legacy chart must keep its verified month thesis');
+console.log('PASS work93: actual money-choice paid first chapter title and judgment are locked to verified hour-only proof, FREE strength remains recap; no provider calls');
+
 console.log('PASS deterministic single-sentence core thesis from real lunar/month stems for 5 cases, strict schema and decoding; 0 paid API');
