@@ -5,6 +5,7 @@
 // historical only. No provider calls, pricing or customer approval.
 const outline=require('./report-outline').topics;
 const canonical=require('./report-quality-node').IDS;
+const freeScope=require('./report-paid-free-recap-scope');
 const GENERAL=Object.freeze([
  'saju_core','mbti_contradiction','decision','money','career',
  'relationship','stress','integrated_judgment','year_2027'
@@ -36,15 +37,21 @@ function build(blueprint,selected){
    throw Error('ADAPTIVE_OFFER_MISSING_REQUIRED_EVIDENCE:'+id);
   if(!selectedSet.has(id)&&eligible.length)
    throw Error('ADAPTIVE_OFFER_OMISSION_MISMATCH:'+id);
+  const value=freeScope.classifyChapter(id,eligible);
   return {
    id,kind:GENERAL.includes(id)?'main':'conditional-2027',
    included:selectedSet.has(id),topicUpperBound:eligible.length,
-   topicIds:eligible
+   topicIds:eligible,freeBaselineTopicCount:value.freeBaselineTopicCount,
+   additionalTopicCandidateUpperBound:value.additionalTopicCandidateUpperBound
   };
  });
  const primary=rows.filter(x=>x.kind==='main'&&x.included);
  const additions=rows.filter(x=>x.kind==='conditional-2027'&&x.included);
  const eligible=rows.reduce((n,x)=>n+x.topicUpperBound,0);
+ const alreadyFree=rows.reduce((n,x)=>n+x.freeBaselineTopicCount,0);
+ const additional=rows.reduce((n,x)=>n+x.additionalTopicCandidateUpperBound,0);
+ if(alreadyFree+additional!==eligible||alreadyFree!==1)
+  throw Error('ADAPTIVE_OFFER_FREE_BASELINE_SCOPE_DRIFT');
  if(primary.length+additions.length!==ids.length||
     !equal(rows.filter(x=>x.included).map(x=>x.id),ids))
   throw Error('ADAPTIVE_OFFER_PAID_PLAN_DRIFT');
@@ -57,6 +64,8 @@ function build(blueprint,selected){
   conditionalChapterCount:additions.length,
   plannedChapterCount:ids.length,
   topicCandidateUpperBound:eligible,
+  freeBaselineTopicCount:alreadyFree,
+  additionalTopicCandidateUpperBound:additional,
   mainTopicCandidateUpperBound:primary.reduce((n,x)=>n+x.topicUpperBound,0),
   conditionalTopicCandidateUpperBound:additions.reduce((n,x)=>n+x.topicUpperBound,0),
   excludedChapterIds:rows.filter(x=>!x.included).map(x=>x.id),
