@@ -1,25 +1,33 @@
 'use strict';
-// Work81: verify that a first-chapter reader sentence reports the direction
-// calculated from the two actual birth-HOUR stems. This is a lexical safety
+// Work88: verify that a first-chapter reader sentence reports the direction
+// calculated from the two actual birth-HOUR stems, including source-ordered
+// plain Korean paraphrases of birth-hour roles. Opposite directions remain
+// a hard veto. This is a lexical safety
 // floor, not evidence that traditional symbolism predicts real behavior.
 const PHRASES=require('./report-paid-core-hour-pair-meaning').PHRASES;
 const DIRECTIONS=Object.freeze({
  resource:Object.freeze([
   /안쪽\s*(?:글자|의\s*글자)?(?:가|에서)?\s*겉\s*(?:글자|의\s*글자)?(?:를|이|가)?\s*(?:낳|생겨|생성|만들)/,
-  /안쪽\s*글자(?:의)?\s*(?:기운|오행)?(?:이|가)?\s*겉\s*글자(?:를)?\s*(?:생|낳)/
+  /안쪽\s*글자(?:의)?\s*(?:기운|오행)?(?:이|가)?\s*겉\s*글자(?:를)?\s*(?:생|낳)/,
+  /안쪽\s*(?:글자|의\s*글자)?(?:가|에서)?\s*겉\s*(?:글자|의\s*글자)?(?:를|이|가)?\s*(?:뒷받침|받쳐|도와|힘을\s*보태)/,
+  /안쪽에서\s*읽는\s*[^.!?。\n]{2,36}?질문(?:이|은)\s*겉에서\s*읽는\s*[^.!?。\n]{2,36}?질문(?:을|에)\s*(?:뒷받침|받쳐|도와)/
  ]),
  output:Object.freeze([
   /겉\s*(?:글자|의\s*글자)?(?:가|에서)?\s*안쪽\s*(?:글자|의\s*글자)?(?:를|이|가)?\s*(?:낳|생겨|생성|만들)/,
-  /겉\s*글자(?:의)?\s*(?:기운|오행)?(?:이|가)?\s*안쪽\s*글자(?:를)?\s*(?:생|낳)/
+  /겉\s*글자(?:의)?\s*(?:기운|오행)?(?:이|가)?\s*안쪽\s*글자(?:를)?\s*(?:생|낳)/,
+  /겉\s*(?:글자|의\s*글자)?(?:가|에서)?\s*안쪽\s*(?:글자|의\s*글자)?(?:를|이|가)?\s*(?:뒷받침|받쳐|도와|힘을\s*보태)/,
+  /겉에서\s*읽는\s*[^.!?。\n]{2,36}?질문(?:이|은)\s*안쪽에서\s*읽는\s*[^.!?。\n]{2,36}?질문(?:을|에)\s*(?:뒷받침|받쳐|도와)/
  ]),
  'control-on-day':Object.freeze([
-  /안쪽\s*(?:글자|의\s*글자)?(?:가|에서)?\s*겉\s*(?:글자|의\s*글자)?(?:를|이|가)?\s*(?:제약|억제|누르|제어|통제)/
+  /안쪽\s*(?:글자|의\s*글자)?(?:가|에서)?\s*겉\s*(?:글자|의\s*글자)?(?:를|이|가)?\s*(?:제약|억제|누르|제어|통제)/,
+  /안쪽\s*(?:글자|의\s*글자)?(?:가|에서)?\s*겉\s*(?:글자|의\s*글자)?(?:를|에)?\s*(?:제동|제한|막)/
  ]),
  'day-controls':Object.freeze([
-  /겉\s*(?:글자|의\s*글자)?(?:가|에서)?\s*안쪽\s*(?:글자|의\s*글자)?(?:를|이|가)?\s*(?:제약|억제|누르|제어|통제)/
+  /겉\s*(?:글자|의\s*글자)?(?:가|에서)?\s*안쪽\s*(?:글자|의\s*글자)?(?:를|이|가)?\s*(?:제약|억제|누르|제어|통제)/,
+  /겉\s*(?:글자|의\s*글자)?(?:가|에서)?\s*안쪽\s*(?:글자|의\s*글자)?(?:를|에)?\s*(?:제동|제한|막)/
  ]),
  'same-element':Object.freeze([
-  /(?:겉\s*글자.{0,24}안쪽\s*글자|안쪽\s*글자.{0,24}겉\s*글자).{0,24}(?:같은\s*오행|오행이\s*같|동일한\s*오행)/
+  /(?:겉\s*글자.{0,24}안쪽\s*글자|안쪽\s*글자.{0,24}겉\s*글자).{0,40}(?:같은\s*(?:오행|성질|분류|종류)|동일한\s*(?:오행|성질|분류))/
  ])
 });
 function inspectParagraph(text,meaning){
