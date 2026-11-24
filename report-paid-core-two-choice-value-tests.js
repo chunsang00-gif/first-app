@@ -12,6 +12,22 @@ const swapped='지출을 줄일 경우 매달 필요한 비용과 한도를 점�
  '저축을 늘릴 경우 매달 필요한 비용과 한도를 점검해야 합니다.';
 assert.deepEqual(inspect(swapped,buyer),['buyer-two-options-share-one-boilerplate'],
  'two option names inserted into the SAME sentence are not paid insight');
+// Two otherwise identical consequences with one changed check noun are
+// NOT an independent paid answer, even though a broad category lexer would
+// call them different checks.
+const near='지출을 줄일 경우 매달 나가는 고정 비용을 기록하고 한도를 확인해야 합니다. '+
+ '저축을 늘릴 경우 매달 나가는 고정 비용을 기록하고 기간을 확인해야 합니다.';
+assert.deepEqual(inspect(near,buyer),['buyer-two-options-near-duplicate-consequence'],
+ 'swapping only 한도 for 기간 cannot make a second paid buyer insight');
+const nearSkill='현재 일을 유지할 경우 매달 결과물의 완성 기준과 납기 일정을 기록해야 합니다. '+
+ '새 기술을 배울 경우 매달 결과물의 완성 기준과 연습 일정을 기록해야 합니다.';
+const realSkill='현재 일을 유지할지 새로운 기술을 배울지 고민 중입니다.';
+assert.deepEqual(inspect(nearSkill,realSkill),['buyer-two-options-near-duplicate-consequence'],
+ 'work/learning vocabulary swap without different consequences must fail');
+const deepSkill='현재 일을 유지할 경우 기존 결과물의 납기와 실제 검수 책임을 확인합니다. '+
+ '새 기술을 배울 경우 연습 결과물을 완성하는 데 필요한 훈련 기간을 따로 정합니다.';
+assert.deepEqual(inspect(deepSkill,realSkill),[],
+ 'two distinct real-choice considerations must remain allowed');
 const one='지출을 줄일 경우 비용과 월급을 꼼꼼히 점검해야 합니다. '+
  '어떤 선택도 장단점이 있으므로 신중히 검토해야 합니다.';
 assert.deepEqual(inspect(one,buyer),['buyer-two-options-not-applied-separately']);
