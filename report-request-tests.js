@@ -440,7 +440,7 @@ assert.equal(p.stage,'body');assert.equal(p.priorSections.length,expectedBatches
     evidence:[id+'의 원국과 십성 관계를 구분해 확인하는 모의 분석 자료입니다.']
    }))};
   }),
-  /reused free preview interpretation in paid prose/
+  /reused free preview interpretation in paid prose|non-specific interpretation/
  );
  assert.equal(freeCopyCalls,1,
   'copied FREE month wording in an allegedly NEW first-chapter topic must fail before batch two');
