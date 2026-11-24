@@ -30,11 +30,34 @@ function inspect(text,question){
   const outcome=s.replace(/^.*?(?:경우|때|라면|한다면|하면)/,'').trim();
   return norm(outcome);
  };
+ // A model can evade an exact-template veto by swapping just "납기" for
+ // "연습" while keeping the same conclusion. Compare normalized TRIGRAMS
+ // of the actual consequences (never the buyer option names). Very short
+ // consequences are left to the existing checks and human editorial review.
+ const nearClone=(first,second)=>{
+  const a=redacted(first),b=redacted(second);
+  if(a.length<18||b.length<18||
+     Math.min(a.length,b.length)/Math.max(a.length,b.length)<0.75)return false;
+  const grams=s=>Array.from({length:s.length-2},(_,i)=>s.slice(i,i+3));
+  const A=grams(a),B=grams(b),freq=new Map();
+  for(const g of A)freq.set(g,(freq.get(g)||0)+1);
+  let shared=0;
+  for(const g of B)if(freq.get(g)>0){
+   shared++;freq.set(g,freq.get(g)-1);
+  }
+  return (2*shared)/(A.length+B.length)>=0.77;
+ };
  // Replacing only the option name in identical template sentences does not
  // add distinct value, even though two separate sentences are present.
- if(!first.some(a=>second.some(z=>a.i!==z.i&&
-    redacted(a.s)!==redacted(z.s))))
+ const independentlyDifferent=(filter)=>first.some(a=>second.some(z=>
+  a.i!==z.i&&filter(a.s,z.s)));
+ if(!independentlyDifferent((a,b)=>redacted(a)!==redacted(b)))
   return ['buyer-two-options-share-one-boilerplate'];
+ // A cosmetic replacement of a single check word is not the separate
+ // decision explanation promised to a paying buyer, even when distinct
+ // broad topic categories ("납기" versus "연습") are superficially present.
+ if(!independentlyDifferent((a,b)=>!nearClone(a,b)))
+  return ['buyer-two-options-near-duplicate-consequence'];
  return [];
 }
 module.exports={inspect};
