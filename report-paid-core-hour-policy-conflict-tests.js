@@ -50,8 +50,22 @@ global.fetch=(...args)=>{requests++;return forbidden(...args)};
   assert(hourText.includes('이미 고객에게 무료 공개된 실제 본문'));
   assert(monthText.includes('이미 고객에게 공개한 출생월 기본 풀이의 복습'));
   assert(monthText.includes('alreadyPublicFreeReading.cards'));
-  assert(monthText.includes('sourceOwnedCoreReaderValue.script의 월별 해석 확대·가상 사례 작성 지시는 이 무료 복습 문단에 적용하지 않는다'),
-   'the same FIRST PAID paragraph must not be told to produce NEW month insight');
+  const recap=core.topics.strength.sourceOwnedCoreReaderValue;
+  assert.equal(recap.scope,'already-public-month-recap-only-v1');
+  assert.equal(recap.notAnAdditionalPaidParagraph,true);
+  assert.deepEqual(recap.refs,[...recap.refs]);
+  assert.equal(recap.script,undefined,
+   'the provider task must not contain contradictory instructions to PRODUCE fresh month insights');
+  assert.equal(recap.illustrativeScene,undefined,
+   'the provider task must not contain a paid month-story example then order the writer to ignore it');
+  assert.equal(recap.readerTakeaway,undefined,
+   'the provider task must not teach a new month thesis inside a FREE recap');
+  assert.equal(core.topics.strength.sourceOwnedMonthNonmainExposure,undefined,
+   'new third-month interpretation instructions may not be attached to a FREE month recap');
+  assert(monthText.includes('sourceOwnedCoreReaderValue.writerInstruction만 따라 무료 복습을 짧게 적는다'),
+   'the actual strict provider field must reference ONLY the compact free-recap plan');
+  assert(!monthText.includes('sourceOwnedCoreReaderValue.script의 월별 해석 확대·가상 사례 작성 지시는'),
+   'the obsolete contradictory extra month-writing instruction must be absent');
   assert(!monthText.includes('이 필수 본문은 task.chapters.saju_core.topics.strength.sourceOwnedCoreReaderValue.script을 따른다'),
    'base month script and explicit FREE-recap-only writer must not give opposite orders');
   assert(!monthText.includes('고객이 직접 입력한 현재 질문(명리 근거 아님)'));
@@ -74,10 +88,35 @@ global.fetch=(...args)=>{requests++;return forbidden(...args)};
   assert(!older.includes('이 명식의 선택 문단 temperament는 실제 출생시간'));
   assert.equal(writer.compile(noQuestion.prompt).task.chapters.saju_core
    .topics.temperament.sourceOwnedHourExtension,undefined);
+  const oldPlan=writer.compile(noQuestion.prompt).task.chapters.saju_core.topics
+   .strength.sourceOwnedCoreReaderValue;
+  assert.equal(oldPlan.scope,undefined);
+  assert(oldPlan.script?.includes('독자가 새롭게 알 내용은'),
+   'normal legacy buyer-neutral writer must still preserve its original month plan');
   const oldSchema=writer.schema(noQuestion.prompt,wire.schemaFor(noQuestion.prompt,schema));
   assert(oldSchema.properties.chapters.properties.saju_core.properties
    .paragraphs.properties.temperament.anyOf.some(x=>x.type==='null'));
+  // The same real money example with a different computed hour pair MUST
+  // have the compact recap, while keeping both new hour citations strict.
+  const moneyInput={calendar:'solar',birthDate:'1982-07-15',birthTime:'02:20',
+   gender:'male',mbti:'ISFP',
+   readerDecision:'적금을 유지할지 대출을 상환할지 고민입니다.'};
+  const money=await capture(moneyInput);
+  assert.equal(money.providerCalls,0);
+  const moneyPayload=writer.compile(money.prompt);
+  const moneyCore=moneyPayload.task.chapters.saju_core.topics;
+  assert.equal(moneyCore.strength.sourceOwnedCoreReaderValue.scope,
+   'already-public-month-recap-only-v1');
+  assert.equal(moneyCore.strength.sourceOwnedCoreReaderValue.script,undefined);
+  assert.equal(moneyCore.strength.sourceOwnedMonthNonmainExposure,undefined);
+  assert.deepEqual(moneyCore.temperament.sourceOwnedHourExtension.sourceRefs,
+   ['natal.hour.stem','natal.hour.hidden.癸']);
+  const moneySchema=writer.schema(money.prompt,wire.schemaFor(money.prompt,schema));
+  const sourceRefs=moneySchema.properties.chapters.properties.saju_core
+   .properties.paragraphs.properties.temperament.anyOf[0].properties.basis
+   .properties.refs.items.enum;
+  assert.deepEqual(sourceRefs,['natal.hour.stem','natal.hour.hidden.癸']);
   assert.equal(requests,0);
-  console.log('PASS REAL source-owned paid first chapter sends ONE hour-focused policy, confines free month to strength, does not leak buyer dilemma there, preserves non-hour policy; 0 API');
+  console.log('PASS work96: real skill+money paid hour writer has only a compact FREE month recap and separately verified new hour paragraphs; legacy normal month script unchanged; zero API');
  }finally{global.fetch=oldFetch}
 })().catch(e=>{console.error(e.stack);process.exitCode=1});
