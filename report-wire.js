@@ -122,6 +122,20 @@ function coreReaderRoles(prompt){
    claimBrief(secondClaim)+
    '계산 근거 ID나 용어 목록을 본문에 넣지 않으며, 정확한 출처 ID는 내부 basis.refs에, 판단 한계는 내부 basis.limit에 기록한다. 확인하지 못한 실제 선택 경향·과거 경험·미래 결과를 지어내지 않으며, 명리 전문가가 확정하지 않은 추가 해석의 우선순위나 실제 행동을 발명하지 않는다.';
  }
+ // This is the actual NORMAL paid hour-qualified customer product. Its
+ // headline is now source-bound to the extra hour role, so the mandatory
+ // month-strength slot must never claim to explain that headline. It is
+ // already FREE, remains short and cannot borrow hour-only evidence.
+ if(!frozen&&lockedJudgment&&
+    require('./report-core-thesis').forPrompt(prompt)?.sourcePosition==='hour'){
+  roles.strength.label='이미 무료에서 보여 준 출생월 기본 설명을 짧게 다시 읽는 소제목입니다. 유료에서 새로 발견한 개인별 성격이나 결론이라고 표시하지 않습니다.';
+  roles.strength.text='이미 무료로 공개한 태어난 달의 기본 의미를 짧고 자연스러운 한국어로 다시 설명합니다. '+
+   '출생월의 겉글자와 안쪽 중심 글자에서 계산된 내용만 다루며, '+
+   '이 장의 고정 핵심 판단은 추가 출생시간 관계이므로 여기에서 설명하거나 흉내 내지 않습니다. '+
+   '고객이 직접 입력한 현재 고민이나 서로 다른 선택지를 이 복습 문단에 적용하지 않습니다. '+
+   '독립된 유료 해석은 출생시간에 관한 temperament 문단 하나에만 둡니다. '+
+   '관찰하지 않은 성격·행동·미래·돈의 결과를 만들지 않고, 전문 계산 용어와 반복 주의문은 본문에 쓰지 않습니다.';
+ }
  return roles;
 }
 const object=properties=>({type:'object',additionalProperties:false,required:Object.keys(properties),properties});
@@ -159,6 +173,9 @@ function schemaFor(prompt,reportSchema){
    if(frozen){
     title.description+=' 첫 장 제목은 두 문단의 근거에 따라 제시한 한 가지 조건부 기질 해석의 핵심을 가리킨다. 출생 구조·기질의 조건·계산 근거라는 교재 제목이나, 본문에서 검증하지 않은 인물 평가를 피한다.';
     judgment.description+=' 첫 장 핵심 판단은 제목의 조건부 기질 해석을 자연스러운 한국어 한 문장으로 제시한다. 먼저 검증된 두 출생 위치가 뒷받침하는 전통적 기질 해석을 조건부로 말하고, 생활 조언이나 자료 분석 계획만으로 대체하지 않는다. 계산 과정·근거 목록·검토하겠다는 작성 계획이 아니다. 본문 두 문단의 조건부 전통 해석을 넘어 실제 성격·과거 행동을 확인했다고 단정하지 않는다.';
+   }else if(fixed.sourcePosition==='hour'){
+    title.description+=' 고객이 무료에서 이미 본 출생월의 기본 기질이 아니라 이번에 추가로 검증된 출생시간의 두 실제 출처를 가리키는 제목이다. 고객이 실제로 그런 행동을 했다고 암시하지 않는다.';
+    judgment.description+=' 이 핵심 문장은 실제 출생시간 겉글자와 안쪽 글자 사이에 계산된 한 방향만 설명한다. 출생월 복습 문단을 새 근거로 광고하거나 실제 고객이 특정 선택을 하는 성격이라고 주장하지 않는다.';
    }else{
     title.description+=' 실제 출생월 두 출처와 오행의 계산 관계가 허용하는 전통적 질문을 표시한다. 실제 성격 평가가 아니다.';
     judgment.description+=' 핵심 판단은 출생월 두 계산 출처와 뜻을 설명하는 한 문장이다. 실제 고객의 선택 경향, 이익·손해, 명리 해석의 미검증 우선순위를 확정하지 않는다.';
