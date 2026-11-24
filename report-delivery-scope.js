@@ -5,6 +5,7 @@
 const outline=require('./report-outline');
 const guidance=require('./report-analysis-guidance');
 const quality=require('./report-quality-node');
+const freeScope=require('./report-paid-free-recap-scope');
 function inspect({report,packet,coverage}={}){
  const errors=[];
  if(!packet?.chart||!packet?.facts?.tenGods||
@@ -23,7 +24,8 @@ function inspect({report,packet,coverage}={}){
     JSON.stringify(quality.IDS.filter(id=>actualIds.includes(id))))
   errors.push('delivered-chapter-id-or-order-invalid');
  const planSet=new Set(expected);
- let upperBound=0,deliveredTopics=0;
+ let upperBound=0,deliveredTopics=0,freeBaselineUpperBound=0;
+ let actualAlreadyFreeTopics=0;
  const byChapter=[];
  for(const id of quality.IDS){
   const topicIds=Object.keys(outline.topics[id]||{});
@@ -32,6 +34,8 @@ function inspect({report,packet,coverage}={}){
   const included=planSet.has(id);
   const permitted=included?topicIds.filter(k=>plan?.topicTasks?.[k]?.mode!=='state-limits'):[];
   upperBound+=permitted.length;
+  const upperValues=freeScope.classifyChapter(id,permitted);
+  freeBaselineUpperBound+=upperValues.freeBaselineTopicCount;
   if(!included&&!chapter)continue;
   const observed=chapter?.bodyTopics;
   const retained=Array.isArray(observed)?observed:[];
@@ -51,11 +55,16 @@ function inspect({report,packet,coverage}={}){
       chapter.bodyLabels.some(t=>typeof t!=='string'||!t.trim()))
     errors.push(id+':retained-paragraph-content-invalid');
    deliveredTopics+=retained.length;
+   actualAlreadyFreeTopics+=freeScope.classifyChapter(id,retained).freeBaselineTopicCount;
   }
   byChapter.push({
    id,planned:included,
    eligibleTopicUpperBound:permitted.length,
+   freeBaselineTopicCount:upperValues.freeBaselineTopicCount,
+   additionalTopicCandidateUpperBound:upperValues.additionalTopicCandidateUpperBound,
    actualDeliveredTopics:retained.length,
+   actualAlreadyFreeTopics:freeScope.classifyChapter(id,retained).freeBaselineTopicCount,
+   actualAdditionalDeliveredTopics:retained.length-freeScope.classifyChapter(id,retained).freeBaselineTopicCount,
    omittedOptionalTopicIds:permitted.filter(k=>!retained.includes(k))
   });
  }
@@ -67,7 +76,11 @@ function inspect({report,packet,coverage}={}){
   plannedChapters:expected.length,
   actualDeliveredChapters:actual.length,
   evidenceEligibleTopicUpperBound:upperBound,
+  freeBaselineTopicCount:freeBaselineUpperBound,
+  additionalTopicCandidateUpperBound:upperBound-freeBaselineUpperBound,
   actualDeliveredTopics:deliveredTopics,
+  actualAlreadyFreeTopics,
+  actualAdditionalDeliveredTopics:deliveredTopics-actualAlreadyFreeTopics,
   omittedEligibleTopicCount:Math.max(0,upperBound-deliveredTopics),
   byChapter,
   countsAreNotTraditionalExpertReview:true,
