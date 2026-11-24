@@ -300,10 +300,15 @@ function inspectTransport(prompt,actual){
       if(paidOrdinary&&expected){
        const planned=require('./report-paid-core-reader-value-plan')
         .build(prompt.facts,expected,permitted,actual.source);
-       if(!planned||
-          JSON.stringify(topic.sourceOwnedCoreReaderValue)!==JSON.stringify(planned))
+       const freeRecap=Boolean(
+        chapter.topics?.temperament?.sourceOwnedHourExtension);
+       const expectedPlan=planned&&freeRecap?
+        require('./report-paid-core-free-recap-task').fromPlan(planned):planned;
+       if(!planned||JSON.stringify(topic.sourceOwnedCoreReaderValue)!==
+          JSON.stringify(expectedPlan))
         errors.push('core-paid-reader-value-contract-drift');
-       if(planned)expected.readerReasoning.hypotheticalQuestion=
+       if(planned)expected.readerReasoning.hypotheticalQuestion=freeRecap?
+        '무료에서 이미 공개한 출생월 관계만 짧게 복습한다. 새 계산 사실이나 가상의 생활 상황을 추가하지 않는다.':
         '가상의 업무 장면을 의무적으로 만들지 않는다. '+planned.readerTakeaway+
         ' 실제 출생월의 두 의미와 오행 관계를 독자 자신의 삶을 관찰한 사실처럼 말하지 않는다.';
       }else if(Object.hasOwn(topic,'sourceOwnedCoreReaderValue')){
