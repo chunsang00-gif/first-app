@@ -71,7 +71,10 @@ for(const day of days)for(const birthTime of times){
  assert(shown.notice.includes('기본 해석 '+shown.productProposal.mainChapterCount+'개 장'));
  assert(shown.notice.includes('조건부 2027년 분야별 해석 '+
   shown.productProposal.conditionalChapterCount+'개 장'));
- assert(shown.notice.includes('최대 '+valid+'개가 작성 후보'));
+ assert(shown.notice.includes('전체 작성 후보는 최대 '+valid+'개'));
+ assert(shown.notice.includes('추가 풀이 후보는 최대 '+(valid-1)+'개'));
+ assert.equal(shown.estimate.freeBaselineTopicCount,1);
+ assert.equal(shown.productProposal.additionalTopicCandidateUpperBound,valid-1);
  assert(!shown.notice.includes(date),'private birth date cannot leak into preview');
  assert(!shown.notice.includes(birthTime),'private birth time cannot leak into preview');
  assert(valid<=32);
