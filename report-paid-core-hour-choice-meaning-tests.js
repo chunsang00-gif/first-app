@@ -48,16 +48,27 @@ const onlyIntro='태어난 시간의 숨은 글자는 익힌 내용을 결과물
 const sameCheck='태어난 시간의 숨은 글자는 익힌 것을 결과물로 만드는 전통적 질문입니다. '+
  '현재 일을 유지할 경우 결과물의 완성 기준을 살펴봅니다. '+
  '새 기술을 배울 경우 결과물의 완성 기준을 다시 살펴봅니다.';
+const nearClone='태어난 시간의 숨은 글자는 익힌 내용을 결과물로 완성하는 전통적 질문입니다. '+
+ '현재 일을 유지할 경우 매달 결과물의 완성 기준과 납기 일정을 기록해야 합니다. '+
+ '새 기술을 배울 경우 매달 결과물의 완성 기준과 연습 일정을 기록해야 합니다.';
 const differentOnlyAtIntro='태어난 시간의 숨은 글자는 결과물로 마무리하는 질문입니다. '+
  '현재 일을 유지할 경우 기존 결과물을 검수할 때 필요한 기준을 기록합니다. '+
  '새 기술을 배울 경우 연습 비용과 일정을 확인합니다.';
 try{
  assert.deepEqual(audit.inspectParagraph(good,q,proof),[]);
  assert.deepEqual(server.earlyPaidCoreHourMeaningProblems(make(good),packet),[]);
+ // This deliberately meets the older distinct-topic-word check (납기 vs
+ // 연습) while repeating the same outcome. The actual early body gate,
+ // not just an isolated helper, must reject it BEFORE more provider calls.
+ assert(audit.inspectParagraph(nearClone,q,proof).includes(
+  'buyer-hour-role-choices-have-near-identical-consequences'));
+ assert(server.earlyPaidCoreHourMeaningProblems(make(nearClone),packet)
+  .includes('saju_core:buyer-hour-role-choices-have-near-identical-consequences'));
  for(const [text,code] of [
   [onlyIntro,'buyer-first-option-lacks-hour-role-meaning'],
   [sameCheck,'buyer-hour-role-choices-have-no-distinct-checks'],
-  [differentOnlyAtIntro,'buyer-second-option-lacks-hour-role-meaning']
+  [differentOnlyAtIntro,'buyer-second-option-lacks-hour-role-meaning'],
+  [nearClone,'buyer-hour-role-choices-have-near-identical-consequences']
  ]){
   const issues=audit.inspectParagraph(text,q,proof);
   assert(issues.includes(code),JSON.stringify({issues,code}));
