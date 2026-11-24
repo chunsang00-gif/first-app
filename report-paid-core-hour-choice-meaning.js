@@ -163,16 +163,14 @@ function inspectParagraph(text,question,proof){
  if(!scope)return []; // only the actual verified additional birth-hour path
  if(typeof text!=='string'||!text.trim())
   return ['buyer-hour-choice-paragraph-missing'];
- // Splitting contrast pivots and commas respects fluent Korean two-clause
- // sentences. Do not count intro or a combined A/B slogan as application.
- const clauses=text.split(/[.!?。！？\n;,，；]+|\s+(?:반면|반대로|한편|이에\s*비해|그에\s*비해)\s+/)
-  .map(s=>s.trim()).filter(s=>s.length>=24);
- const candidates=words=>clauses.map((value,index)=>({value,index}))
-  .filter(x=>CONDITION.test(x.value)&&
-   words.some(word=>word.length>=2&&x.value.includes(word)));
- const first=candidates(choice.first),second=candidates(choice.second);
- const anchored=xs=>xs.filter(x=>scope.meaning.test(x.value));
- const a=anchored(first),b=anchored(second);
+ // Korean buyer explanations frequently introduce a choice in one
+ // sentence and explain its verified hour meaning in the next. Group only
+ // its two immediately following sentences; stop before the NEXT option.
+ // Never credit a common introduction or a combined A/B slogan to either.
+ const owned=require('./report-paid-core-two-choice-passages').owned(text,question);
+ const anchored=xs=>(xs||[]).map(x=>({value:x.s,index:x.i}))
+  .filter(x=>scope.meaning.test(x.value));
+ const a=anchored(owned?.first),b=anchored(owned?.second);
  const errors=[];
  if(!a.length)errors.push('buyer-first-option-lacks-hour-role-meaning');
  if(!b.length)errors.push('buyer-second-option-lacks-hour-role-meaning');
