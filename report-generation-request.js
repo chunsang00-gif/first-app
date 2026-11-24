@@ -1261,7 +1261,14 @@ function schema(prompt,transport){
     // and caveats in the JSON text-field description diluted the one
     // substantive customer interpretation and inflated every paid request.
     // Preserve that plan ONCE in task; point the writer to it from schema.
-    p.properties.text.description+=
+    const hourPaidAddition=payload.task.chapters.saju_core?.topics
+     ?.temperament?.sourceOwnedHourExtension;
+    p.properties.text.description+=hourPaidAddition?
+     ' 이 strength는 비용을 받고 새로 해석하는 문단이 아니라 이미 고객에게 공개한 출생월 기본 풀이의 복습이다. '+
+     'task.chapters.saju_core.coreReaderChoiceContext.alreadyPublicFreeReading.cards에서 birth-month 항목의 원래 내용을 확인한다. '+
+     '출생월 근거 둘의 기존 뜻을 짧고 자연스럽게 유지하되 새로운 발견·성격 판정·독립 유료 근거처럼 포장하지 않는다. '+
+     '새 해석과 고객의 실제 선택별 적용은 반드시 temperament에만 쓴다. '+
+     'sourceOwnedCoreReaderValue.script의 월별 해석 확대·가상 사례 작성 지시는 이 무료 복습 문단에 적용하지 않는다. ':
      ' 이 필수 본문은 task.chapters.saju_core.topics.strength.sourceOwnedCoreReaderValue.script을 따른다. '+
      '거기에 기록된 실제 계산 관계와 두 출생월 위치의 서로 다른 뜻만 독자용 쉬운 문장으로 풀어 쓴다. '+
      'keyJudgment를 다시 설명하거나 가상 사례·한계 안내를 여러 번 복사하지 않는다. '+
@@ -1286,10 +1293,9 @@ function schema(prompt,transport){
     const addedHour=payload.task.chapters.saju_core?.topics
      ?.temperament?.sourceOwnedHourExtension;
     if(addedHour){
-     p.properties.text.description+=' 이 필수 출생월 strength는 독자에게 이미 공개된 기본 계산 맥락이다. '+
-      '고객이 직접 입력한 고민의 양자택일 또는 행동 조언은 이 문단에서 쓰지 않는다. '+
+     p.properties.text.description+=' 이 strength에는 고객이 직접 입력한 고민의 양자택일이나 행동 조언을 쓰지 않는다. '+
       '새로운 출생시간 근거와 고객 질문의 구체적 설명은 필수 temperament에서만 작성한다. '+
-      '출생월 자료를 새롭게 발견한 유료 판단처럼 꾸미거나 temperament 내용을 미리 반복하지 않는다.';
+      '같은 출생월 풀이를 동의어로 길게 늘리지 않고 짧은 무료 복습으로만 둔다.';
     }else{
      p.properties.text.description+=' 고객이 직접 입력한 현재 질문(명리 근거 아님): '+
       JSON.stringify(choice.text)+'. '+choice.writerBoundary+
