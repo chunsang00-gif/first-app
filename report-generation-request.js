@@ -549,7 +549,7 @@ function compile(prompt){
     // topic, and trimming the provider payload changes the citation enum.
     // No natal facts are deleted from the original packet.
     if(chapterId==='saju_core'&&topicId==='strength'&&
-       require('./report-core-thesis').forPrompt(prompt)?.sourcePosition==='hour')
+       require('./report-paid-core-hour-extension').build(prompt.facts,source))
       delete topic.normalPaidMonthNonmainExposure;
     const permitted=[...allowedRefs(payload,topic,chapterId,topicId)];
     topic.citableFacts=permitted.map(id=>{
@@ -614,8 +614,8 @@ function compile(prompt){
      // chapter content. The FULL month plan (and its illustrative scene)
      // is still verified above, but no longer sent to the model as a
      // contradictory instruction to produce 'new' FREE month insights.
-     const freeRecapOnly=require('./report-core-thesis')
-      .forPrompt(prompt)?.sourcePosition==='hour';
+     const freeRecapOnly=Boolean(
+      require('./report-paid-core-hour-extension').build(prompt.facts,source));
      topic.sourceOwnedCoreReaderValue=freeRecapOnly?
       require('./report-paid-core-free-recap-task').fromPlan(plan):plan;
      if(topic.normalPaidMonthNonmainExposure){
@@ -1289,8 +1289,7 @@ function schema(prompt,transport){
      .build(prompt.facts,task.evidenceFocus,permitted,payload.source);
     const hourPaidAddition=payload.task.chapters.saju_core?.topics
      ?.temperament?.sourceOwnedHourExtension;
-    const freeRecapOnly=Boolean(hourPaidAddition)&&
-     require('./report-core-thesis').forPrompt(prompt)?.sourcePosition==='hour';
+    const freeRecapOnly=Boolean(hourPaidAddition);
     const expected=freeRecapOnly&&actual?
      require('./report-paid-core-free-recap-task').fromPlan(actual):actual;
     if(chapterId!=='saju_core'||topic!=='strength'||!actual||
