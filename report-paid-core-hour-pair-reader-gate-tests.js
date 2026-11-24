@@ -34,6 +34,29 @@ try{
   const wrong='출생시간의 두 글자는 '+pair.PHRASES[inverse]+'입니다.';
   assert.deepEqual(gate.inspectParagraph(right,meaning),[],
    'a literal true chart relation must be allowed');
+  // The real writer is explicitly asked for plain reader Korean. It must
+  // NOT be rejected for avoiding the specialist "오행" and "낳다" wording,
+  // provided the two CALCULATED positions and the direction stay explicit.
+  const natural=expected==='resource'?
+   '출생시간 안쪽에서 읽는 자원 마련의 질문이 겉에서 읽는 책임의 질문을 뒷받침합니다.':
+   '출생시간의 겉글자가 안쪽 글자에 제동을 거는 뜻입니다.';
+  const reversed=expected==='resource'?
+   '출생시간 겉글자가 안쪽 글자를 뒷받침합니다.':
+   '출생시간 안쪽 글자가 겉글자에 제동을 겁니다.';
+  assert.deepEqual(gate.inspectParagraph(natural,meaning),[],
+   'source-ordered natural Korean must pass the same real reader veto');
+  assert.deepEqual(server.earlyPaidCoreHourMeaningProblems([
+   {id:'saju_core',bodyTopics:['temperament'],body:[natural]}
+  ],packet),[],
+   'the actual pre-next-provider early gate must allow grounded plain language');
+  assert(gate.inspectParagraph(reversed,meaning).includes(
+   'hour-pair-element-direction-conflicts-with-calculation'));
+  assert(gate.inspectParagraph(natural+' '+reversed,meaning).includes(
+   'hour-pair-element-direction-conflicts-with-calculation'),
+   'even one natural-language reversed claim must veto the entire paragraph');
+  assert(gate.inspectParagraph('출생시간에서 안쪽과 겉은 서로 돕는 관계입니다.',meaning)
+   .includes('hour-pair-relation-not-explained'),
+   'generic mutual support without a calculated direction is still insufficient');
   for(const [prose,reason] of [
    [wrong,'hour-pair-element-direction-conflicts-with-calculation'],
    [right+' '+wrong,'hour-pair-element-direction-conflicts-with-calculation'],
@@ -59,5 +82,5 @@ try{
   assert.deepEqual(gate.inspectParagraph('아직 판매하지 않는 편집 시안.',null),[]);
  }
  assert.equal(calls,0);
- console.log('PASS work81 factual direction veto for two real natal charts and resumed paid early-batch gate, 0 API/payment');
+ console.log('PASS work88 natural-language chart direction and inverse veto in real early paid reader gate; 0 API/payment');
 }finally{global.fetch=fetchBefore;}
