@@ -8,6 +8,7 @@ const guidance=require('./report-analysis-guidance');
 const selection=require('./report-chapter-selection');
 const outline=require('./report-outline');
 const quality=require('./report-quality-node');
+const freeScope=require('./report-paid-free-recap-scope');
 const groups=Object.freeze([
  ['saju_core','mbti_contradiction'],['decision','stress'],
  ['money','career'],['relationship','integrated_judgment'],
@@ -238,12 +239,16 @@ function calculate(input){
   // The displayed questions are derived from the same canonical evidence
   // plan that selects actual provider output slots. A topic name cannot
   // create eligibility, and a disabled or omitted topic is never advertised.
+  const value=freeScope.classifyChapter(id,active);
   const eligibleTopics=active.map(topicId=>({
-   id:topicId,title:scopedTitle(id,topicId)
+   id:topicId,title:scopedTitle(id,topicId),
+   alreadyFreeBaseline:freeScope.isFreeBaseline(id,topicId)
   }));
   return {id,name:NAMES[id],includedInPlan:selected,
    definedTopicSlots:entries.length,
    eligibleTopicUpperBound:active.length,
+   freeBaselineTopicCount:value.freeBaselineTopicCount,
+   additionalTopicCandidateUpperBound:value.additionalTopicCandidateUpperBound,
    eligibleTopics,excludedTopics,
    omittedReason:selected?null:
     (omitted?.reason==='no-direct-annual-domain-evidence'?
@@ -254,6 +259,12 @@ function calculate(input){
  const selectedDefined=chapters.filter(x=>x.includedInPlan)
   .reduce((n,x)=>n+x.definedTopicSlots,0);
  const eligible=chapters.reduce((n,x)=>n+x.eligibleTopicUpperBound,0);
+ const alreadyFree=chapters.reduce((n,x)=>n+x.freeBaselineTopicCount,0);
+ const additional=chapters.reduce((n,x)=>n+x.additionalTopicCandidateUpperBound,0);
+ if(alreadyFree+additional!==eligible||alreadyFree!==1||
+    productProposal.freeBaselineTopicCount!==alreadyFree||
+    productProposal.additionalTopicCandidateUpperBound!==additional)
+  throw Error('PRODUCT_COVERAGE_FREE_VS_ADDITIONAL_SCOPE_DRIFT');
  const excludedWithinPlanned=chapters.reduce((n,x)=>n+x.excludedTopics.length,0);
  const omittedWithChapter=chapters.filter(x=>!x.includedInPlan)
   .reduce((n,x)=>n+x.definedTopicSlots,0);
@@ -287,14 +298,17 @@ function calculate(input){
    advertised12x35NotDeliverable:choice.plannedIds.length!==12||eligible<35,
    selectedDefinedTopicUpperBound:selectedDefined,
    evidenceEligibleTopicUpperBound:eligible,
+   freeBaselineTopicCount:alreadyFree,
+   additionalTopicCandidateUpperBound:additional,
    chapters,
    canAttemptGeneration:choice.canGenerate,
    eligibilityIssues:choice.issues.slice()},
   notice:'이 출생정보에서는 기본 해석 '+productProposal.mainChapterCount+
    '개 장과 조건부 2027년 분야별 해석 '+productProposal.conditionalChapterCount+
-   '개 장이 선택됐습니다. 세부 항목은 최대 '+eligible+
-   '개가 작성 후보이며 실제 완성·품질 승인된 문단 수는 아닙니다. '+
-    '첫 장의 태어난 달 기본 설명처럼 무료에서 이미 보여 준 내용도 후보 수에 포함되며, 이 숫자가 새로운 유료 해석의 개수라는 뜻은 아닙니다.',
+   '개 장이 선택됐습니다. 전체 작성 후보는 최대 '+eligible+
+   '개이며, 그중 무료에서 이미 제공한 출생월 설명 '+alreadyFree+
+   '개를 제외한 추가 풀이 후보는 최대 '+additional+
+   '개입니다. 실제 완성·품질 승인된 유료 문단 수가 아니라 미검증 작성 상한입니다.',
   limitations:[
    '항목마다 독립적인 풀이가 가능한지는 실제 작성·검증 후에만 확정됩니다.',
    '근거가 약하거나 다른 항목과 중복되면 해당 문단이 생략될 수 있습니다.',
