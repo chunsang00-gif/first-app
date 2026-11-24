@@ -82,7 +82,25 @@ function inspect(prompt){
     if(!thesis||JSON.stringify(chapterSchema.title?.enum)!==JSON.stringify([thesis.title])||
        JSON.stringify(chapterSchema.keyJudgment?.enum)!==JSON.stringify([thesis.keyJudgment]))
      errors.push('core-fixed-thesis-missing-from-audited-schema');
-    if(!month?.monthStem?.sourceId||!month?.monthMainHidden?.sourceId||
+    if(thesis?.sourcePosition==='hour'){
+     // The buyer already saw the month evidence for FREE. The source-owned
+     // premium first-chapter heading MUST match the extra birth-HOUR pair,
+     // while the mandatory strength explanation stays exclusively month.
+     // Failing the OLD month-judgment check here previously charged again
+     // for the same FREE meaning instead of letting the correct contract
+     // proceed to its independent hour citation and reader-value gates.
+     const refs=thesis.sourceIds||[];
+     const head=chapterSchema.keyJudgment?.enum?.[0]||'';
+     if(!month?.monthStem?.sourceId||!month?.monthMainHidden?.sourceId||
+        refs.length!==2||refs[0]!=='natal.hour.stem'||
+        !/^natal\.hour\.hidden\.[甲乙丙丁戊己庚辛壬癸]$/.test(refs[1])||
+        !head.startsWith('사주에서는 태어난 시간의 ')||
+        !text.includes('이미 무료로 공개한 태어난 달의 기본 의미')||
+        text.includes(head)||
+        !text.includes('temperament 문단 하나에만 둡니다')){
+      errors.push('core-paid-hour-headline-and-free-month-roles-disagree');
+     }
+    }else if(!month?.monthStem?.sourceId||!month?.monthMainHidden?.sourceId||
        !text.includes(thesis?.keyJudgment||'__missing_locked_thesis__')||
        ((prompt.qaNatalDepthPreview===true||
          prompt.qaAdditiveDepthPreview===true||
