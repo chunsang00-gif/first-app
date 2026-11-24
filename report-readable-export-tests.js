@@ -152,4 +152,37 @@ assert.throws(()=>exp.build(invalid),/READABLE_EXPORT_INVALID_COMPLETED_CHAPTER/
 assert.throws(()=>exp.build({sections:[]}),/READABLE_EXPORT_NO_COMPLETED_CHAPTERS/);
 const repeated=structuredClone(report);repeated.sections.push(repeated.sections[0]);
 assert.throws(()=>exp.build(repeated),/READABLE_EXPORT_DUPLICATE_CHAPTER/);
+// Work95: the offline report must retain the SAME question-to-hour-answer
+// route as the real app, even if adaptive selection omits decision and money.
+const moneyQuestion='적금을 유지할지 대출을 상환할지 고민입니다.';
+const work85=fs.readFileSync(
+ 'qa/work85-authored-first-paid-hour-money-reader-1982-0715-0220-20261124.md','utf8');
+const realProse=work85.split(
+ '### 적금을 그대로 둘까, 대출을 갚을까 — 태어난 시간에서 따로 나오는 질문')[1]
+ ?.split('## 내부 출처 확인')[0].replace(/\\*/g,'').trim();
+assert(realProse&&realProse.length>800);
+const onlyHourReport=structuredClone(report);
+onlyHourReport.meta.readerDecision=moneyQuestion;
+onlyHourReport.sections=[{
+ ...onlyHourReport.sections[0],
+ bodyTopics:['temperament','strength'],bodyLabels:['출생시간 별도 풀이','무료 출생월 복습'],
+ body:[realProse,'이 출생월 내용은 이미 무료에서 공개한 기본 풀이의 복습입니다.']
+}];
+const firstOnlyHtml=exp.build(onlyHourReport);
+assert(firstOnlyHtml.includes('href="#part-1-topic-1"'));
+assert(firstOnlyHtml.includes('>출생시간에서 추가된 선택 풀이</a>'));
+assert(firstOnlyHtml.includes('id="part-1-topic-1"'));
+assert(!firstOnlyHtml.includes('href="#part-1-topic-2"'));
+assert(firstOnlyHtml.includes('무료에서 이미 다룬 출생월 설명 · 유료 추가 풀이 아님'));
+assert(firstOnlyHtml.includes('추가 세부 풀이 1개 · 무료 출생월 복습 1개'));
+assert(firstOnlyHtml.includes('<strong>내가 직접 적은 고민</strong>'));
+assert.equal(firstOnlyHtml.split(moneyQuestion).length-1,1);
+assert(!firstOnlyHtml.includes('>선택·결정 풀이</a>'),
+ 'do not link any omitted decision section in saved offline file');
+const noMoneyAnswer=structuredClone(onlyHourReport);
+noMoneyAnswer.sections[0].body[0]='태어난 시간에 돈에 관해 묻는 전통적 질문이 있습니다. 실제 적금과 대출의 유불리를 미리 결정하지는 않습니다.';
+assert(!exp.build(noMoneyAnswer).includes('class="choice-shortcut"'),
+ 'an unsupported first-chapter slogan must not create an offline paid-answer shortcut');
+console.log('PASS work95 offline saved report has the same exact buyer-hour anchor and unique question ownership as live reader');
+
 console.log('PASS offline readable HTML export: delivered-only chapters/paragraphs, exact source-owned counts, bounded final summary, escaped private input, no network or script or fake chapter');
