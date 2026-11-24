@@ -48,7 +48,12 @@ global.fetch=(...args)=>{requests++;return forbidden(...args)};
    'schema refers to the task rather than duplicating a full hour-goal paragraph');
   assert(hourText.includes('출생시간'));
   assert(hourText.includes('이미 고객에게 무료 공개된 실제 본문'));
-  assert(monthText.includes('이 필수 출생월 strength는 독자에게 이미 공개된 기본 계산 맥락'));
+  assert(monthText.includes('이미 고객에게 공개한 출생월 기본 풀이의 복습'));
+  assert(monthText.includes('alreadyPublicFreeReading.cards'));
+  assert(monthText.includes('sourceOwnedCoreReaderValue.script의 월별 해석 확대·가상 사례 작성 지시는 이 무료 복습 문단에 적용하지 않는다'),
+   'the same FIRST PAID paragraph must not be told to produce NEW month insight');
+  assert(!monthText.includes('이 필수 본문은 task.chapters.saju_core.topics.strength.sourceOwnedCoreReaderValue.script을 따른다'),
+   'base month script and explicit FREE-recap-only writer must not give opposite orders');
   assert(!monthText.includes('고객이 직접 입력한 현재 질문(명리 근거 아님)'));
   assert(!monthText.includes(original.readerDecision),
    'the buyer decision belongs ONLY to the NEW hour explanation, not the free month paraphrase');
