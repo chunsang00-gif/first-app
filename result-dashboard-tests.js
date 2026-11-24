@@ -60,11 +60,11 @@ for(const sec of receipt.sections){
  sec.bodyLabels=['첫 번째 소제목'];
 }
 const exact=render(receipt);
-assert(exact.includes('실제로 작성된 분석: 12개 장 · 12개 세부 풀이'));
+assert(exact.includes('실제로 작성된 분석: 12개 장 · 추가 세부 풀이 12개'));
 const fewer=structuredClone(receipt);
 fewer.sections.splice(9,3);
 const fewerHtml=render(fewer);
-assert(fewerHtml.includes('실제로 작성된 분석: 9개 장 · 9개 세부 풀이'));
+assert(fewerHtml.includes('실제로 작성된 분석: 9개 장 · 추가 세부 풀이 9개'));
 assert(!fewerHtml.includes('35개 세부 풀이'));
 assert(!render(edited).includes('report-delivered-scope'),
  'legacy records without source-owned topic IDs must not display a misleading zero');
@@ -87,7 +87,7 @@ console.log('PASS reader sees actual completed chapter/topic count, not undefine
  assert(!toc.includes('href="#detail-year_2027"'));
  assert(!narrowHtml.includes('data-target="detail-relationship"'));
  assert(!narrowHtml.includes('data-target="detail-year_2027"'));
- assert(narrowHtml.includes('실제로 작성된 분석: 7개 장 · 7개 세부 풀이'));
+ assert(narrowHtml.includes('실제로 작성된 분석: 7개 장 · 추가 세부 풀이 7개'));
  assert(narrowHtml.includes('실제로 작성된 7개 장의 해석을 확인합니다'));
  // For multiple real paragraph labels, let readers jump directly to their
  // section's two/three topics (not only when five are present).
