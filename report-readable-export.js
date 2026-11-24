@@ -4,6 +4,10 @@
 const esc=value=>String(value==null?'':value).replace(/[&<>"']/g,c=>
  ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const array=value=>Array.isArray(value)?value:[];
+// Keep the full validated report, but distinguish a free birth-month recap
+// from an independently sourced paid explanation in the offline export.
+const freeMonthRecap=(section,i)=>section?.id==='saju_core'&&
+ Array.isArray(section.bodyTopics)&&section.bodyTopics[i]==='strength';
 const named=Object.freeze({
  saju_core:'사주 기본 풀이',mbti_contradiction:'사주와 MBTI 비교',
  decision:'선택과 결정',money:'금전',career:'직업과 일',
@@ -25,6 +29,7 @@ const style=[
  '.chapter-label{font-size:12px;color:#446a92;font-weight:700;margin-bottom:8px}',
  '.judgment{font-weight:650;background:#f1f5fb;border-left:4px solid #5078aa;padding:12px 15px;border-radius:2px 8px 8px 2px}',
  '.topic{margin:20px 0;break-inside:avoid-page}.topic h3{margin-top:18px}.topic p{white-space:pre-wrap}',
+ '.free-month-recap{border-left:3px solid #bdc7d4;background:#f6f8fb;padding:10px 15px;margin-top:24px}.free-month-recap .recap-notice{font-size:13px;color:#526477;font-weight:650}',
  'ul{padding-left:24px}.reader-question{background:#fffaed;padding:12px 14px;border-radius:10px}',
  ' .choice-shortcut{background:#f0f5fc;padding:18px 20px;border-radius:12px;border:1px solid #d7e3f1;margin:22px 0}.choice-shortcut p{margin:5px 0 10px;font-size:13px}.choice-shortcut-links a{display:inline-block;margin:5px 10px 5px 0;padding:7px 12px;border-radius:8px;background:white;border:1px solid #b6cbe8;font-size:13px;font-weight:650}',
  '.final{background:#fafbfd;margin-top:24px;padding:26px 28px;border-radius:14px;border:1px solid #e4eaf0}',
@@ -54,6 +59,8 @@ function build(report){
   s.bodyTopics.every(t=>typeof t==='string'&&t.length>0)&&
   new Set(s.bodyTopics).size===s.bodyTopics.length);
  const actualTopics=accurate?sections.reduce((n,s)=>n+s.body.length,0):null;
+ const freeTopicCount=accurate?sections.reduce((n,s)=>n+s.bodyTopics.filter((_,i)=>freeMonthRecap(s,i)).length,0):null;
+ const additionalTopicCount=actualTopics===null?null:actualTopics-freeTopicCount;
  const ids=new Map(sections.map(s=>[s.id,s.position]));
  const buyerChoice=root.REPORT_BUYER_QUESTION_LINKS?.locateDelivered(report)||null;
  const choiceShortcuts=buyerChoice?
@@ -73,7 +80,9 @@ function build(report){
  const cover=report?.cover||{};
  const keys=array(cover.keywords).filter(v=>typeof v==='string'&&v.trim()).slice(0,8);
  const nameText=name?esc(name):'독자';
- const summary=esc(sections.length+'개 장'+(actualTopics===null?'':' · 실제 작성된 '+actualTopics+'개 세부 풀이'));
+ const summary=esc(sections.length+'개 장'+(actualTopics===null?'':
+  ' · 추가 세부 풀이 '+additionalTopicCount+'개'+
+  (freeTopicCount?' · 무료 출생월 복습 '+freeTopicCount+'개(추가 유료 내용 아님)':'')));
  const chart=report?.meta?.chart||{};
  const chartRows=[['연주',chart.year],['월주',chart.month],['일주',chart.day],['시주',chart.hour]]
   .filter(row=>typeof row[1]==='string'&&row[1].trim());
@@ -103,9 +112,13 @@ function build(report){
    report.meta.readerDecision.trim()?
    '<div class="reader-question"><strong>내가 직접 적은 고민</strong><p>'+
    esc(report.meta.readerDecision.trim())+'</p><small>사용자가 입력한 문장이며 출생정보로 확인된 사실은 아닙니다.</small></div>':'';
-  const paragraphs=s.body.map((text,i)=>'<section class="topic" id="part-'+s.position+'-topic-'+(i+1)+'">'+
+  const paragraphs=s.body.map((text,i)=>{
+   const recap=freeMonthRecap(s,i);
+   return '<section class="topic'+(recap?' free-month-recap':'')+'" id="part-'+s.position+'-topic-'+(i+1)+'">'+
+    (recap?'<div class="recap-notice">무료에서 이미 다룬 출생월 설명 · 유료 추가 풀이 아님</div>':'')+
     '<h3>'+esc(s.validLabels[i]||'세부 풀이 '+(i+1))+'</h3>'+
-    '<p>'+esc(text)+'</p></section>').join('');
+    '<p>'+esc(text)+'</p></section>';
+  }).join('');
   return '<article id="part-'+s.position+'"><div class="chapter-label">'+
    String(s.position).padStart(2,'0')+' · '+esc(chapterLabel(s.id))+'</div>'+
    '<h2>'+esc(judgment||heading||chapterLabel(s.id))+'</h2>'+titleText+
@@ -140,7 +153,8 @@ function build(report){
   table+'</header>'+intro+choiceShortcuts+
   '<nav aria-label="실제 작성된 장 목록"><strong>내 보고서 목차</strong><ol>'+
   sections.map(s=>'<li><a href="#part-'+s.position+'">'+esc(chapterLabel(s.id))+'</a> <small>('+
-   s.body.length+'개 세부 풀이)</small></li>').join('')+
+   s.body.filter((_,i)=>!freeMonthRecap(s,i)).length+'개 추가 풀이'+
+   (s.body.some((_,i)=>freeMonthRecap(s,i))?' · 무료 복습 1개':'')+')</small></li>').join('')+
   (finalContent?'<li><a href="#final">종합 정리</a></li>':'')+
   '</ol></nav>'+body+finalContent+
   '<footer>이 파일에는 개인의 이름, 사주 해석 및 직접 입력한 고민이 포함될 수 있습니다. 외부에 공유하기 전에 내용을 확인하세요. '+
