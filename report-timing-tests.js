@@ -94,13 +94,18 @@ assert.equal(createTiming().snapshot().sampleCount,0);
   productProposal:{kind:'chart-specific-evidence-scoped-product-proposal-v1',
    status:'draft-not-for-sale',mainChapterIds:['saju_core'],conditional2027ChapterIds:[],
    mainChapterCount:1,conditionalChapterCount:0,plannedChapterCount:1,topicCandidateUpperBound:2,
+   freeBaselineTopicCount:1,additionalTopicCandidateUpperBound:1,
    fixed12ChaptersPromised:false,fixed35TopicsPromised:false,paymentEnabled:false,
    humanEditorialApproved:false},
   catalog:{chapterDefinitions:12,topicDefinitions:28,originallyPlannedTopics:35},estimate:{plannedChapters:1,
-  evidenceEligibleTopicUpperBound:2,chapters:[
+  evidenceEligibleTopicUpperBound:2,freeBaselineTopicCount:1,
+  additionalTopicCandidateUpperBound:1,chapters:[
    {id:'saju_core',name:'사주 기본',includedInPlan:true,eligibleTopicUpperBound:2,
-    eligibleTopics:[{id:'temperament',title:'태어난 시기의 전통적 해석'},{id:'strength',title:'기질을 설명하는 별도 근거'}]},
+    freeBaselineTopicCount:1,additionalTopicCandidateUpperBound:1,
+    eligibleTopics:[{id:'temperament',title:'태어난 시기의 전통적 해석',alreadyFreeBaseline:false},
+     {id:'strength',title:'기질을 설명하는 별도 근거',alreadyFreeBaseline:true}]},
    {id:'year_2027_money',name:'2027년 금전',includedInPlan:false,eligibleTopicUpperBound:0,
+    freeBaselineTopicCount:0,additionalTopicCandidateUpperBound:0,
     eligibleTopics:[],omittedReason:'근거 없음'}]}});
  await pending;
  assert(body.innerHTML.includes('실제 출생정보에서 확인한 해석 근거'));
@@ -109,7 +114,9 @@ assert.equal(createTiming().snapshot().sampleCount,0);
  assert(body.innerHTML.indexOf('태어난 달에서 확인되는 두 근거')<
    body.innerHTML.indexOf('맞춤형 심화 풀이 구성안'),
    'the real calculated preview must appear BEFORE numerical scope');
- assert(body.innerHTML.includes('최대 2개 세부 항목'));
+ assert(body.innerHTML.includes('추가 풀이 후보 최대 1개'));
+ assert(body.innerHTML.includes('전체 항목 2개 중 무료 출생월 복습 1개'));
+ assert(body.innerHTML.includes('[이미 무료 공개]'));
  assert(body.innerHTML.includes('기본 해석 1개 장 + 2027년 추가 분야 0개 장'));
  assert(body.innerHTML.includes('상품의 확정 약속이 아닌 검토 초안'));
  assert(body.innerHTML.includes('2027년 금전'));
