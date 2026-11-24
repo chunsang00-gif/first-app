@@ -1,6 +1,8 @@
-# Completion sequence
+# Historical build checklist — superseded by launch-first execution plan
 
-Status: active. Continue without requiring user to issue `다음` for planning decisions.
+> **현재 출시 지침은 [AGENTS.md](AGENTS.md), 단일 진척표는 [LAUNCH_PLAN.md](LAUNCH_PLAN.md)가 최우선입니다.** 아래 1~8단계는 초기 개발 이력이며 새 작업 순서가 아닙니다. 특히 과거 고정 12장 계획은 판매 약속으로 사용하지 않습니다.
+
+Status: historical reference only (2026-11-25). The launch-critical path is **actual paid manuscript G1 → complete report G2 → merchant and deployment G3 → verified live launch G4**, not repeating this development checklist.
 
 1. UI input completion
    - unknown birth time
