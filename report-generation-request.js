@@ -602,17 +602,28 @@ function compile(prompt){
      const plan=require('./report-paid-core-reader-value-plan')
       .build(prompt.facts,topic.evidenceFocus,permitted,source);
      if(!plan)throw Error('PAID_CORE_READER_VALUE_PLAN_UNAVAILABLE');
-     topic.sourceOwnedCoreReaderValue=plan;
+     // The independent buyer HOUR meaning is the only new paid first-
+     // chapter content. The FULL month plan (and its illustrative scene)
+     // is still verified above, but no longer sent to the model as a
+     // contradictory instruction to produce 'new' FREE month insights.
+     const freeRecapOnly=require('./report-core-thesis')
+      .forPrompt(prompt)?.sourcePosition==='hour';
+     topic.sourceOwnedCoreReaderValue=freeRecapOnly?
+      require('./report-paid-core-free-recap-task').fromPlan(plan):plan;
      if(topic.normalPaidMonthNonmainExposure){
       const m=topic.normalPaidMonthNonmainExposure;
       if(!m.sourceRefs.every(id=>permitted.includes(id))||
          m.approvedAsPremiumValue!==false||
          m.additionalInterpretivePrioritySelected!==false)
        throw Error('PAID_CORE_THIRD_MONTH_EXPOSURE_NOT_VERIFIED');
-      topic.sourceOwnedMonthNonmainExposure=m;
+      // A third MONTH hidden exposure is an optional, already-free
+      // calculation detail. Keep it inside the normal non-hour route;
+      // it must not overwrite a paid HOUR-qualified free-recap brief.
+      if(!freeRecapOnly)topic.sourceOwnedMonthNonmainExposure=m;
       delete topic.normalPaidMonthNonmainExposure;
      }
-     topic.evidenceFocus.readerReasoning.hypotheticalQuestion=
+     topic.evidenceFocus.readerReasoning.hypotheticalQuestion=freeRecapOnly?
+      '무료에서 이미 공개한 출생월 관계만 짧게 복습한다. 새 계산 사실이나 가상의 생활 상황을 추가하지 않는다.':
       '가상의 업무 장면을 의무적으로 만들지 않는다. '+plan.readerTakeaway+
       ' 실제 출생월의 두 의미와 오행 관계를 독자 자신의 삶을 관찰한 사실처럼 말하지 않는다.';
     }
@@ -1268,8 +1279,14 @@ function schema(prompt,transport){
     const plan=task.sourceOwnedCoreReaderValue;
     const actual=require('./report-paid-core-reader-value-plan')
      .build(prompt.facts,task.evidenceFocus,permitted,payload.source);
+    const hourPaidAddition=payload.task.chapters.saju_core?.topics
+     ?.temperament?.sourceOwnedHourExtension;
+    const freeRecapOnly=Boolean(hourPaidAddition)&&
+     require('./report-core-thesis').forPrompt(prompt)?.sourcePosition==='hour';
+    const expected=freeRecapOnly&&actual?
+     require('./report-paid-core-free-recap-task').fromPlan(actual):actual;
     if(chapterId!=='saju_core'||topic!=='strength'||!actual||
-       JSON.stringify(plan)!==JSON.stringify(actual)||
+       JSON.stringify(plan)!==JSON.stringify(expected)||
        plan.refs.some(x=>!permitted.includes(x))||
        plan.noInventedHistory!==true||plan.noUnverifiedPersonalTrait!==true||
        plan.additionalTopic!==false||plan.professionalReviewComplete!==false)
@@ -1279,14 +1296,12 @@ function schema(prompt,transport){
     // and caveats in the JSON text-field description diluted the one
     // substantive customer interpretation and inflated every paid request.
     // Preserve that plan ONCE in task; point the writer to it from schema.
-    const hourPaidAddition=payload.task.chapters.saju_core?.topics
-     ?.temperament?.sourceOwnedHourExtension;
-    p.properties.text.description+=hourPaidAddition?
+    p.properties.text.description+=freeRecapOnly?
      ' 이 strength는 비용을 받고 새로 해석하는 문단이 아니라 이미 고객에게 공개한 출생월 기본 풀이의 복습이다. '+
      'task.chapters.saju_core.coreReaderChoiceContext.alreadyPublicFreeReading.cards에서 birth-month 항목의 원래 내용을 확인한다. '+
-     '출생월 근거 둘의 기존 뜻을 짧고 자연스럽게 유지하되 새로운 발견·성격 판정·독립 유료 근거처럼 포장하지 않는다. '+
-     '새 해석과 고객의 실제 선택별 적용은 반드시 temperament에만 쓴다. '+
-     'sourceOwnedCoreReaderValue.script의 월별 해석 확대·가상 사례 작성 지시는 이 무료 복습 문단에 적용하지 않는다. ':
+     'task.chapters.saju_core.topics.strength.sourceOwnedCoreReaderValue.writerInstruction만 따라 무료 복습을 짧게 적는다. '+
+     '출생월 심화 원고 script·가상 사례·다른 숨은 글자의 추가 의미는 이 모델 요청에 전달하지 않았다. '+
+     '새 해석과 고객의 실제 선택별 적용은 반드시 temperament에만 쓴다. ':
      ' 이 필수 본문은 task.chapters.saju_core.topics.strength.sourceOwnedCoreReaderValue.script을 따른다. '+
      '거기에 기록된 실제 계산 관계와 두 출생월 위치의 서로 다른 뜻만 독자용 쉬운 문장으로 풀어 쓴다. '+
      'keyJudgment를 다시 설명하거나 가상 사례·한계 안내를 여러 번 복사하지 않는다. '+
