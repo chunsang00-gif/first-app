@@ -35,7 +35,9 @@ const hour=ch.topics.temperament.sourceOwnedHourExtension;
 if(hour){
  assert.equal(hour.distinctFromFreeVisibleNatal,true);
  assert(!entered.text.includes(JSON.stringify(question)));
- assert(entered.text.includes('이 필수 출생월 strength는 독자에게 이미 공개된 기본 계산 맥락'));
+ assert(entered.text.includes('이미 고객에게 공개한 출생월 기본 풀이의 복습'));
+ assert(!entered.text.includes('이 필수 본문은 task.chapters.saju_core.topics.strength.sourceOwnedCoreReaderValue.script을 따른다'));
+ assert(entered.text.includes('temperament에만 쓴다'));
  assert(!entered.text.includes('명리 근거 아님'));
  assert(ch.topics.temperament.sourceOwnedHourExtension.readerGoal===hour.readerGoal,
   'actual normal paid model task contains the original chart-owned hour meaning');
