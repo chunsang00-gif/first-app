@@ -10,7 +10,7 @@ const PHRASES=Object.freeze({
  output:'겉글자가 안쪽 글자를 뒷받침하는 방향',
  'control-on-day':'안쪽 글자가 겉글자를 제약하는 방향',
  'day-controls':'겉글자가 안쪽 글자를 제약하는 방향',
- 'same-element':'두 글자가 전통 분류에서 같은 성질을 가진 관계'
+ 'same-element':'겉글자와 안쪽 글자가 전통 분류에서 같은 성질을 가진 관계'
 });
 // Consumer first-chapter interpretation must explain one ASYMMETRIC
 // calculated source relation rather than two glossary meanings plus
