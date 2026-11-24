@@ -13,14 +13,12 @@ function inspect(text,question){
   return ['missing-buyer-choice-additional-paragraph'];
  const alternatives=parse(question);
  if(!alternatives)return []; // Not a machine "PASS"; operator must review.
- const cleaned=text.replace(String(question).trim(),' ');
- // A pair of conditions in a single generic sentence does not count.
- const segments=cleaned.split(/[.!?。！？\n;,，；]+|\s+(?:반면|반대로|한편|이에\s*비해)\s+/)
-  .map(s=>s.trim()).filter(s=>s.length>=24);
- const qualifies=(s,words)=>WHEN.test(s)&&CHECK.test(s)&&
-  words.some(word=>word.length>=2&&s.includes(word));
- const first=segments.map((s,i)=>({s,i})).filter(x=>qualifies(x.s,alternatives.first));
- const second=segments.map((s,i)=>({s,i})).filter(x=>qualifies(x.s,alternatives.second));
+ // Keep a buyer option and at most its NEXT two explanation sentences
+ // together. The old single-sentence constraint rejected coherent
+ // human-authored paid prose when the practical check followed the title.
+ const owned=require('./report-paid-core-two-choice-passages').owned(text,question);
+ const first=(owned?.first||[]).filter(x=>CHECK.test(x.s));
+ const second=(owned?.second||[]).filter(x=>CHECK.test(x.s));
  if(!first.some(a=>second.some(z=>a.i!==z.i)))
   return ['buyer-two-options-not-applied-separately'];
  const redacted=s=>{
