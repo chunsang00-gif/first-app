@@ -2,6 +2,7 @@
 // Free/paid first-chapter copy check against the SAME computed chart.
 // Never log paid prose, dates, names or extracted text.
 const free=require('./report-reading-sample');
+const recap=require('./report-paid-free-recap-scope');
 const norm=x=>String(x||'').normalize('NFKC').toLowerCase()
  .replace(/[^가-힣a-z0-9]/g,'');
 const meaningful=s=>String(s||'').split(/[.!?。！？\n]+/)
@@ -71,6 +72,14 @@ function inspect(sections,packet){
    const paid=String(body[i]||''),compact=norm(paid);
    if(compact.length<55)continue;
    const topic=section.bodyTopics?.[i]||String(i);
+   // A structurally identified birth-month strength paragraph was already
+   // presented for FREE. The buyer's actual report now collapses and counts
+   // it as a free recap, not additional paid value. Never reject a truthful
+   // recap just because the model reused the original wording. Keep the
+   // copied-free veto for every NEW paid topic, title and final conclusion.
+   // The separate minimumValueProblems gate still blocks a first chapter
+   // consisting of month-only strength with no independently cited content.
+   if(recap.isFreeBaseline(section.id,topic))continue;
    for(const card of freeCards){
     const sentences=meaningful(card.text),material=sentences.join(' ');
     // A short FREE annual card may split into several short sentences.
