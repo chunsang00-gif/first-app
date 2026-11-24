@@ -31,7 +31,7 @@ function owned(text,question){
    if(text.length+parts[j].length>420)break;
    text+=' '+parts[j];
   }
-  entries[side].push({s:text,i});
+  entries[side].push({s:text,i,anchor:parts[i]});
  }
  return entries;
 }
