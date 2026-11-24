@@ -543,6 +543,14 @@ function compile(prompt){
       if(year)topic.sourceOwnedYearVisibleExtension=year;
      }
     }
+    // Before source whitelisting, drop the optional third MONTH source
+    // from an hour-qualified FREE recap. Otherwise citableFacts contains
+    // an extra row while the compact recap has no corresponding writing
+    // topic, and trimming the provider payload changes the citation enum.
+    // No natal facts are deleted from the original packet.
+    if(chapterId==='saju_core'&&topicId==='strength'&&
+       require('./report-core-thesis').forPrompt(prompt)?.sourcePosition==='hour')
+      delete topic.normalPaidMonthNonmainExposure;
     const permitted=[...allowedRefs(payload,topic,chapterId,topicId)];
     topic.citableFacts=permitted.map(id=>{
      const fact=source[id]||{};
