@@ -156,6 +156,18 @@ const names=['NODE_ENV','RENDER','PAID_CORE_DEPTH_V2',
    }
    assert.equal(result.estimate.plannedChapters,chapters);
    assert.equal(result.estimate.evidenceEligibleTopicUpperBound,eligible);
+   assert.equal(result.estimate.freeBaselineTopicCount,1,
+    'mandatory birth-month explanation was already FREE');
+   assert.equal(result.estimate.additionalTopicCandidateUpperBound,eligible-1,
+    'potential NEW paragraphs must exclude the already free month-only strength');
+   const coreScope=result.estimate.chapters.find(x=>x.id==='saju_core');
+   assert.equal(coreScope.freeBaselineTopicCount,1);
+   assert.equal(coreScope.additionalTopicCandidateUpperBound,
+    coreScope.eligibleTopicUpperBound-1);
+   assert.equal(coreScope.eligibleTopics.find(x=>x.id==='strength').alreadyFreeBaseline,true);
+   assert(result.estimate.chapters.flatMap(x=>x.eligibleTopics)
+    .filter(x=>x.alreadyFreeBaseline).length===1,
+    'only the real month-strength paragraph is a known free recap');
    assert.equal(result.estimate.targetChapterCount,12);
    assert.equal(result.estimate.targetTopicCount,35);
    assert.equal(result.estimate.chaptersNotSelected,12-chapters);
@@ -166,6 +178,8 @@ const names=['NODE_ENV','RENDER','PAID_CORE_DEPTH_V2',
    assert.equal(proposal.status,'draft-not-for-sale');
    assert.equal(proposal.plannedChapterCount,chapters);
    assert.equal(proposal.topicCandidateUpperBound,eligible);
+   assert.equal(proposal.freeBaselineTopicCount,1);
+   assert.equal(proposal.additionalTopicCandidateUpperBound,eligible-1);
    assert.equal(proposal.mainChapterCount+proposal.conditionalChapterCount,chapters);
    assert.equal(proposal.mainTopicCandidateUpperBound+
     proposal.conditionalTopicCandidateUpperBound,eligible);
@@ -176,8 +190,10 @@ const names=['NODE_ENV','RENDER','PAID_CORE_DEPTH_V2',
    assert.equal(proposal.humanEditorialApproved,false);
    assert(result.notice.includes('기본 해석 '+proposal.mainChapterCount+'개 장'));
    assert(result.notice.includes('조건부 2027년 분야별 해석 '+proposal.conditionalChapterCount+'개 장'));
-   assert(result.notice.includes('최대 '+eligible+'개가 작성 후보'));
-   assert(result.notice.includes('실제 완성·품질 승인된 문단 수는 아닙니다'));
+   assert(result.notice.includes('전체 작성 후보는 최대 '+eligible+'개'));
+   assert(result.notice.includes('무료에서 이미 제공한 출생월 설명 1개'));
+   assert(result.notice.includes('추가 풀이 후보는 최대 '+(eligible-1)+'개'));
+   assert(result.notice.includes('실제 완성·품질 승인된 유료 문단 수가 아니라'));
    assert(!/TEST_DO_NOT_EXPOSE|TEST_ADDRESS_DO_NOT_EXPOSE/.test(result.notice),
     'customer notice cannot echo sensitive input');
    assert.equal(result.estimate.chapters.length,12);
