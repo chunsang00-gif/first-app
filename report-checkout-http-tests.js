@@ -160,9 +160,17 @@ const server=http.createServer(require('./server').handler);
   assert.equal(request.data.productId,'saju-mbti-adaptive-report-v1');
   assert.equal(request.data.scope.productMode,'adaptive-v1');
   assert.equal(request.data.scope.countsAreUpperBounds,true);
+  assert.equal(request.data.scope.freeBaselineTopicCount,1);
+  assert.equal(request.data.scope.additionalTopicCandidateUpperBound,
+   request.data.scope.candidateTopicUpperBound-1,
+   'checkout must not promise the FREE month recap as a new paid paragraph');
   assert.equal(request.data.scope.fixed12ChaptersPromised,false);
   assert.equal(request.data.scope.fixed35TopicsPromised,false);
   const trueScope=require('./report-product-coverage').calculate(input).estimate;
+  assert.equal(request.data.scope.additionalTopicCandidateUpperBound,
+   trueScope.additionalTopicCandidateUpperBound);
+  assert.equal(request.data.scope.freeBaselineTopicCount,
+   trueScope.freeBaselineTopicCount);
   assert.equal(request.data.scope.plannedChapters,trueScope.plannedChapters,
    'checkout promise must match real selected chapter scope for this buyer');
   assert(request.data.scope.plannedChapterIds.includes('saju_core'));
