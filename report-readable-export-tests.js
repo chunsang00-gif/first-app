@@ -74,7 +74,7 @@ assert(html.includes('<html lang="ko">')&&html.includes('<style>'));
 assert(html.includes('Content-Security-Policy'));
 assert(!html.includes('<script'));
 assert(!html.includes('src="https://')&&!html.includes('href="https://'));
-assert(html.includes('실제로 작성된 내용: 9개 장 · 실제 작성된 18개 세부 풀이'));
+assert(html.includes('실제로 작성된 내용: 9개 장 · 추가 세부 풀이 18개'));
 assert.equal((html.match(/<article id="part-/g)||[]).length,9);
 assert.equal((html.match(/<section class="topic" id="part-\d+-topic-\d+">/g)||[]).length,18);
 assert(!html.includes('2027년 직업')&&!html.includes('제외되어야 할 연도 장'));
@@ -133,14 +133,14 @@ assert(!html.includes('시간 모름 — 출생시간을 입력하지 않아 계
  'the known-time sample must not be misrepresented as unknown');
 const narrow=structuredClone(report);narrow.sections=narrow.sections.slice(0,3);
 const narrowHtml=exp.build(narrow);
-assert(narrowHtml.includes('실제로 작성된 내용: 3개 장 · 실제 작성된 6개 세부 풀이'));
+assert(narrowHtml.includes('실제로 작성된 내용: 3개 장 · 추가 세부 풀이 6개'));
 assert.equal((narrowHtml.match(/<article id="part-/g)||[]).length,3);
 assert.equal((narrowHtml.match(/<section class="topic" id="part-\d+-topic-\d+">/g)||[]).length,6);
 assert(!narrowHtml.includes('직업 본문에 있는 내용'),'omitted chapter highlights cannot leak into export');
 const legacy=structuredClone(narrow);for(const item of legacy.sections)delete item.bodyTopics;
 const legacyHtml=exp.build(legacy);
 assert(legacyHtml.includes('실제로 작성된 내용: 3개 장'));
-assert(!legacyHtml.includes('실제 작성된 6개 세부 풀이'),
+assert(!legacyHtml.includes('추가 세부 풀이 6개'),
  'legacy data without source-owned topic IDs must not claim exact volume');
 const malicious=structuredClone(narrow);malicious.meta.name='<img src=x onerror=alert(9)>';
 malicious.sections[0].body[0]='</article><script>alert(9)</script>';
