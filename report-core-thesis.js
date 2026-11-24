@@ -73,8 +73,68 @@ function locatedReaderJudgment(kind,visible,hidden){
   josa(from,'이','가')+' '+toPosition+'에서 읽는 '+to+
   josa(to,'을','를')+' '+verb+' 전통적 관계로 풀이합니다.';
 }
+// Work93: the first PAID hour-qualified chapter cannot lead with the
+// already-free birth-MONTH thesis. Lock its title/judgment to the actual two
+// verified birth-HOUR positions and their calculated relationship instead.
+// The buyer's question is reader context, not natal evidence. Never use
+// this for historical frozen QA, unqualified or unapproved chart sources.
+function qualifiedHourThesis(prompt){
+ const frozen=prompt?.qaNatalDepthPreview===true||
+  prompt?.qaAdditiveDepthPreview===true||
+  prompt?.qaOfflineEditorialResearchPreview===true||
+  prompt?.paidCoreDepthV2===true;
+ if(frozen||!prompt?.facts?.person?.readerDecision||
+    prompt?.stage!=='body'||!prompt.requestedSections?.includes('saju_core'))
+  return null;
+ const rows=require('./report-fact-bindings').build(prompt.facts);
+ const source=Object.fromEntries(rows.map(x=>[x.id,x]));
+ const hour=require('./report-paid-core-hour-extension').build(prompt.facts,source);
+ if(!hour||hour.wholeNatalCategoryDistinct!==true||
+    hour.repeatedExactStemNatalRefs?.length!==0)return null;
+ const pair=require('./report-paid-core-hour-pair-meaning')
+  .build(prompt.facts,source,hour);
+ if(!pair||pair.sourceRefs.length!==2||pair.saleApproved!==false||
+    pair.independentClassicalMethodChosen!==false||
+    JSON.stringify(pair.sourceRefs)!==JSON.stringify(hour.sourceRefs))
+  throw Error('CORE_PAID_TITLE_HOUR_SOURCE_DRIFT');
+ const outer=readerNoun[hour.hourVisibleRole],inner=readerNoun[hour.hourHiddenRole];
+ const outward=shortTitle[hour.hourVisibleRole],inward=shortTitle[hour.hourHiddenRole];
+ if(!outer||!inner||!outward||!inward)
+  throw Error('CORE_PAID_TITLE_HOUR_MEANING_MISSING');
+ const relation=pair.elementDirection;
+ const direction=(relation==='resource'||relation==='control-on-day')?
+  [inner,outer,'안쪽','겉']: [outer,inner,'겉','안쪽'];
+ let judgement;
+ if(relation==='same-element')
+  judgement='사주에서는 태어난 시간의 겉에서 읽는 '+outer+
+   josa(outer,'과','와')+' 안쪽에서 읽는 '+inner+
+   josa(inner,'이','가')+' 같은 성질이지만 서로 다른 질문으로 풀이합니다.';
+ else {
+  const [from,to,fromPosition,toPosition]=direction;
+  const verb=relation==='resource'||relation==='output'?'뒷받침하는':
+   relation==='control-on-day'||relation==='day-controls'?'제약하는':null;
+  if(!verb)throw Error('CORE_PAID_TITLE_HOUR_RELATION_UNSUPPORTED');
+  judgement='사주에서는 태어난 시간의 '+fromPosition+'에서 읽는 '+from+
+   josa(from,'이','가')+' '+toPosition+'에서 읽는 '+to+
+   josa(to,'을','를')+' '+verb+' 전통적 관계로 풀이합니다.';
+ }
+ const title='출생시간: '+outward+' · '+inward;
+ if(title.length>45||judgement.length>130||
+    !judgement.endsWith('풀이합니다.')||
+    !judgement.startsWith('사주에서는 태어난 시간의 '))
+  throw Error('CORE_PAID_TITLE_HOUR_READER_OUTPUT_INVALID');
+ return {title,keyJudgment:judgement,
+  sourceIds:hour.sourceRefs.slice(),categories:[
+   hour.hourVisibleRole,hour.hourHiddenRole],
+  status:'traditional-reading-not-observed-trait',
+  buyerDomain:hour.readerDomain,sourcePosition:'hour',
+  classicalMethodApproved:false,premiumManuscriptQualityApproved:false};
+}
+
 function forPrompt(prompt){
  if(prompt?.stage!=='body'||!prompt.requestedSections?.includes('saju_core'))return null;
+ const paidHour=qualifiedHourThesis(prompt);
+ if(paidHour)return paidHour;
  const calculated=contrast.build(prompt.facts)?.monthTenGodContext;
  if(!calculated?.monthStem?.tenGod||!calculated?.monthMainHidden?.tenGod)
   throw Error('NO_VERIFIED_MONTH_PAIR_FOR_CORE_THESIS');
