@@ -42,6 +42,9 @@ function build(input){
     p.humanEditorialApproved!==false||e.canAttemptGeneration!==true||
     p.plannedChapterCount!==e.plannedChapters||
     p.topicCandidateUpperBound!==e.evidenceEligibleTopicUpperBound||
+    p.freeBaselineTopicCount!==e.freeBaselineTopicCount||
+    p.additionalTopicCandidateUpperBound!==e.additionalTopicCandidateUpperBound||
+    e.additionalTopicCandidateUpperBound+e.freeBaselineTopicCount!==e.evidenceEligibleTopicUpperBound||
     !p.mainChapterIds.includes('saju_core')||
     !p.mainChapterIds.includes('year_2027')||
     p.plannedChapterCount<3||p.topicCandidateUpperBound<3)
@@ -57,6 +60,8 @@ function build(input){
   kind:KIND,productMode:PRODUCT_MODE,targetYear:2027,
   inputFingerprint:digest(canonical),plannedChapterIds:Object.freeze(planned),
   candidateTopicUpperBound:p.topicCandidateUpperBound,
+  freeBaselineTopicCount:p.freeBaselineTopicCount,
+  additionalTopicCandidateUpperBound:p.additionalTopicCandidateUpperBound,
   mainChapterCount:p.mainChapterCount,
   conditionalChapterCount:p.conditionalChapterCount,
   fixed12ChaptersPromised:false,fixed35TopicsPromised:false,
@@ -72,6 +77,8 @@ function customerSummary(offer){
   productMode:PRODUCT_MODE,plannedChapterIds:offer.plannedChapterIds.slice(),
   plannedChapters:offer.plannedChapterIds.length,
   candidateTopicUpperBound:offer.candidateTopicUpperBound,
+  freeBaselineTopicCount:offer.freeBaselineTopicCount,
+  additionalTopicCandidateUpperBound:offer.additionalTopicCandidateUpperBound,
   countsAreUpperBounds:true,
   fixed12ChaptersPromised:false,fixed35TopicsPromised:false
  };
