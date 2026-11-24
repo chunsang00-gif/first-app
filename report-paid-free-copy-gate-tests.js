@@ -13,11 +13,23 @@ for(const input of cases){
  assert.equal(packet.status,'ready');
  const original=sample.build(packet).cards.find(x=>x.id==='birth-month').text;
  const section=body=>[{id:'saju_core',bodyTopics:['strength'],body:[body]}];
- const code='copied-free-reader-meaning:saju_core:strength:birth-month';
- assert(copy.inspect(section(original),packet).includes(code));
- assert(copy.inspect(section(original+' 별도의 유료 내용입니다.'),packet).includes(code));
+ // The born-month strength slot is explicitly an already-free recap,
+ // not a paid insight (work89/90). Exact reusable FREE prose is valid there.
+ assert.deepEqual(copy.inspect(section(original),packet),[],
+  'a labeled free recap may keep the original published month text');
+ assert.deepEqual(copy.inspect(section(original+' 기존 무료 출생월 설명의 복습입니다.'),packet),[],
+  'minor editorial phrasing of a non-billable recap is not a copy offense');
  const swapped=original.replace('태어난 달','출생한 달').replace('안쪽','내부').replace('겉에','바깥에');
- assert(copy.inspect(section(swapped),packet).includes(code));
+ assert.deepEqual(copy.inspect(section(swapped),packet),[]);
+ // The same customer-visible text remains prohibited in every ADDITIONAL
+ // paid paragraph, even alongside an honestly labeled free strength recap.
+ const extraAndFree=[{id:'saju_core',
+  bodyTopics:['temperament','strength'],body:[original,original]}];
+ assert(copy.inspect(extraAndFree,packet).includes(
+  'copied-free-reader-meaning:saju_core:temperament:birth-month'),
+  'a copied free insight cannot be disguised as a distinct paid hour topic');
+ assert(!copy.inspect(extraAndFree,packet).some(x=>x.includes(':strength:')),
+  'the same free copy is not billed as an extra topic and must stay allowed');
  const unique='이 출생월에 계산된 두 분류를 이어서 한 가지 선택 상황에 적용하는 질문입니다. '+
   '각각의 전통적 뜻이 판단의 어느 부분을 설명하는지 연결하되, 실제 행동을 확인하거나 출생월 관계의 우위를 확정할 수는 없습니다. '+
   '선택 상황과 해석 한계가 구분되지 않는 경우에는 그 의미를 짧게만 남기고, 새로운 직업이나 사건을 만들어내지 않습니다.';
