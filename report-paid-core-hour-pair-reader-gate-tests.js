@@ -45,10 +45,13 @@ try{
    '출생시간 안쪽 글자가 겉글자에 제동을 겁니다.';
   assert.deepEqual(gate.inspectParagraph(natural,meaning),[],
    'source-ordered natural Korean must pass the same real reader veto');
-  assert.deepEqual(server.earlyPaidCoreHourMeaningProblems([
+  const early=server.earlyPaidCoreHourMeaningProblems([
    {id:'saju_core',bodyTopics:['temperament'],body:[natural]}
-  ],packet),[],
-   'the actual pre-next-provider early gate must allow grounded plain language');
+  ],packet);
+  assert(!early.some(x=>x.includes('hour-pair-')),
+   'real early gate accepts natural Korean when its chart direction is correct');
+  assert(early.some(x=>x.includes('buyer-first-option')),
+   'the same early gate must STILL reject a one-sentence stub missing both buyer choices');
   assert(gate.inspectParagraph(reversed,meaning).includes(
    'hour-pair-element-direction-conflicts-with-calculation'));
   assert(gate.inspectParagraph(natural+' '+reversed,meaning).includes(
