@@ -178,14 +178,34 @@ function locateDelivered(report){
    }
   }
  }
- // No delivered, responsive topic and no actual decision chapter:
- // there is nothing truthful to link to. Do not show an empty guide.
- if(decisionIndex<0&&!related)return null;
+ // The real first paid chapter can itself be the ONLY delivered answer
+ // to a volunteered dilemma (a verified birth-HOUR temperament topic).
+ // Previous routing only recognized decision and the separate domain
+ // chapters, so buyers could not find the one new interpretation they paid
+ // to read. Claim a link only when that actual additional topic EXISTS,
+ // names the birth-HOUR provenance and separately addresses the user's
+ // alternatives. A FREE strength recap must NEVER qualify as an answer.
+ let coreAnswer=null;
+ const core=chapters.find(s=>s?.id==='saju_core');
+ if(domain&&core&&Array.isArray(core.body)&&Array.isArray(core.bodyTopics)&&
+    core.body.length===core.bodyTopics.length&&
+    new Set(core.bodyTopics).size===core.bodyTopics.length){
+  const index=core.bodyTopics.indexOf('temperament');
+  const paragraph=index<0?null:core.body[index];
+  if(typeof paragraph==='string'&&
+     /(?:태어난\\s*시간|출생\\s*시간|출생시간)/.test(paragraph)&&
+     addressesDeliveredQuestion(question,domain,paragraph)){
+   coreAnswer={chapterId:'saju_core',chapterIndex:chapters.indexOf(core),
+    topicId:'temperament',topicIndex:index};
+  }
+ }
+ // Never create a shortcut merely because a chapter slot exists.
+ if(decisionIndex<0&&!related&&!coreAnswer)return null;
  return {
   kind:'reader-navigation-to-delivered-choice-v1',
   decisionChapterId:decisionIndex>=0?'decision':null,
   decisionIndex:decisionIndex>=0?decisionIndex:null,
-  related,
+  related,coreAnswer,
   questionsAreUserInputNotProof:true,deliveredProseNotSemanticallyApproved:true
  };
 }
