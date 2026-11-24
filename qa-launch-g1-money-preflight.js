@@ -52,7 +52,7 @@ async function inspect(){
    ['natal.hour.stem','natal.hour.hidden.癸']);
   assert.equal(extra[0].type,'object');
   assert(core.paragraphs.properties.strength.properties.text.description
-   .includes('무료 공개'));
+   .includes('alreadyPublicFreeReading.cards'));
   assert.equal(networkCalls,0);
   // Cost here uses the existing 2026-11-20 model-rate assumption and a
   // BYTE-based planning proxy, NOT tokenized real usage or a hard dollar cap.
