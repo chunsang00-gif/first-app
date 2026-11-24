@@ -42,7 +42,8 @@ const realIds=['saju_core','mbti_contradiction','decision','money','career',
 const proposal={status:'draft-not-for-sale',mainChapterIds:realIds,
  conditional2027ChapterIds:[],mainChapterCount:realIds.length,
  conditionalChapterCount:0,plannedChapterCount:realIds.length,
- topicCandidateUpperBound:18};
+ topicCandidateUpperBound:18,freeBaselineTopicCount:1,
+ additionalTopicCandidateUpperBound:17};
 const container={isConnected:true,append(){offersAttached++}};
 (async()=>{
  let active=true;
