@@ -47,7 +47,17 @@ function inspect(p,monthText,proof){
  };
  const scoped=rules[proof.readerDomain||'skill'];
  const concern=scoped?.concern,output=scoped?.roles[proof.hourHiddenRole];
- if(!output||!sentences.some(s=>hour.test(s)&&output.test(s)))
+ // A human reader can understand "태어난 시간에는 두 글자가
+ // 있습니다." followed by "겉의 글자는 ..., 안쪽의 글자는 자원을
+ // 마련하는 질문입니다." Requiring the same literal '태어난 시간'
+ // again in the next sentence wrongly rejected the complete Work85
+ // manuscript. Only accept the next sentence when it explicitly assigns
+ // meaning to an HOUR inner/outer symbol; generic adjacent advice does not.
+ const sourceLinked=Boolean(output)&&sentences.some((sentence,i)=>
+  (hour.test(sentence)&&output.test(sentence))||
+  (i>0&&hour.test(sentences[i-1])&&output.test(sentence)&&
+   /(?:겉에\\s*드러난\\s*글자|겉글자|안쪽의\\s*다른\\s*글자|안쪽\\s*글자)/.test(sentence)));
+ if(!sourceLinked)
   errors.push('missing-hour-specific-meaning');
  if(!concern||!output||!sentences.some(s=>concern.test(s)&&output.test(s)&&
    /(?:때|경우|상황|과정|한다면|하려면|구별|비교|다르|반면|대신|조건)/.test(s)))
