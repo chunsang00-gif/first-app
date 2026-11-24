@@ -55,7 +55,10 @@ function inspect({report,packet,coverage}={}){
       chapter.bodyLabels.some(t=>typeof t!=='string'||!t.trim()))
     errors.push(id+':retained-paragraph-content-invalid');
    deliveredTopics+=retained.length;
-   actualAlreadyFreeTopics+=freeScope.classifyChapter(id,retained).freeBaselineTopicCount;
+   // Malformed duplicate topic IDs must be reported as 'inconsistent' by
+   // the existing report gate, not throw from the accounting helper first.
+   actualAlreadyFreeTopics+=retained.filter(key=>
+    freeScope.isFreeBaseline(id,key)).length;
   }
   byChapter.push({
    id,planned:included,
@@ -63,8 +66,8 @@ function inspect({report,packet,coverage}={}){
    freeBaselineTopicCount:upperValues.freeBaselineTopicCount,
    additionalTopicCandidateUpperBound:upperValues.additionalTopicCandidateUpperBound,
    actualDeliveredTopics:retained.length,
-   actualAlreadyFreeTopics:freeScope.classifyChapter(id,retained).freeBaselineTopicCount,
-   actualAdditionalDeliveredTopics:retained.length-freeScope.classifyChapter(id,retained).freeBaselineTopicCount,
+   actualAlreadyFreeTopics:retained.filter(key=>freeScope.isFreeBaseline(id,key)).length,
+   actualAdditionalDeliveredTopics:retained.filter(key=>!freeScope.isFreeBaseline(id,key)).length,
    omittedOptionalTopicIds:permitted.filter(k=>!retained.includes(k))
   });
  }
