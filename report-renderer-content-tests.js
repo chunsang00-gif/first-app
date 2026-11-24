@@ -3,7 +3,7 @@
 const assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
 const source=fs.readFileSync(path.join(__dirname,'report-renderer.js'),'utf8');
-function run(mbti,readerDecision,withCareer=false,withoutDecision=false,includeFreeRecap=false){
+function run(mbti,readerDecision,withCareer=false,withoutDecision=false,includeFreeRecap=false,coreHourText=null){
  const details=[];
  const window={
   CHARACTER_ASSETS:{
@@ -41,6 +41,7 @@ function run(mbti,readerDecision,withCareer=false,withoutDecision=false,includeF
    '무료 공개된 출생월의 전통적인 기질 풀이를 다시 설명합니다.'];
   core.bodyTopics=['temperament','strength'];
   core.bodyLabels=['출생시간 추가 풀이','기본 출생월'];
+  if(coreHourText!==null)core.body[0]=coreHourText;
  }
  if(withCareer&&withCareer!=='generic'){
   sections.find(x=>x.id==='career').body[0]="기존 일을 유지할 때에는 이미 익힌 방법을 계속 활용할 수 있는 조건을 확인합니다. 새로운 기술을 배울 경우에는 익히는 시간과 준비할 도구를 따로 확보해야 하는지 설명합니다.";
@@ -154,4 +155,33 @@ assert(!recap.html.includes('href="#topic-saju_core-1"'),
 const ordinary=run('ISFP');
 assert(!ordinary.html.includes('무료에서 이미 다룬 출생월 설명 · 유료 추가 풀이 아님'),
  'do not relabel a report slot as free unless its actual source topic is strength');
+// Work95: the ONLY buyer-specific answer may be the actual hour addition
+// in saju_core; no optional decision or money chapter needs to exist.
+const moneyQuestion='적금을 유지할지 대출을 상환할지 고민입니다.';
+const work85=fs.readFileSync(path.join(__dirname,'qa',
+ 'work85-authored-first-paid-hour-money-reader-1982-0715-0220-20261124.md'),'utf8');
+const moneyHourText=work85.split(
+ '### 적금을 그대로 둘까, 대출을 갚을까 — 태어난 시간에서 따로 나오는 질문')[1]
+ ?.split('## 내부 출처 확인')[0].replace(/\\*/g,'').trim();
+assert(moneyHourText&&moneyHourText.length>800);
+const moneyOnly=run('ISFP',moneyQuestion,false,true,true,moneyHourText);
+assert(moneyOnly.html.includes('href="#topic-saju_core-0"'),
+ 'real reader must find the actual extra hour paragraph in core-only adaptive output');
+assert(moneyOnly.html.includes('id="topic-saju_core-0"'));
+assert(moneyOnly.html.includes('>출생시간에서 추가된 선택 풀이</a>'));
+assert(!moneyOnly.html.includes('href="#topic-saju_core-1"'),
+ 'never navigate to the FREE month recap as a premium buyer answer');
+assert.equal(moneyOnly.html.split(moneyQuestion).length-1,1,
+ 'the buyer question belongs in one core answer, not copied to every chapter');
+assert(moneyOnly.html.includes('<small>내가 직접 입력한 고민</small>'));
+assert(moneyOnly.html.includes('사주로 알아낸 사실은 아닙니다.'));
+assert(!moneyOnly.html.includes('href="#detail-decision"'));
+const genericCore=run('ISFP',moneyQuestion,false,true,true,
+ '태어난 시간의 뜻도 살펴볼 수 있습니다. 적금과 대출은 신중하게 검토해야 합니다.');
+assert(!genericCore.html.includes('href="#topic-saju_core-0"'),
+ 'just naming the topic and the birth hour cannot be an advertised paid answer');
+assert(!genericCore.html.includes('reader-decision-note'),
+ 'do not show a fabricated question-owner badge without responsive prose');
+console.log('PASS work95 live reader routes the full archived money buyer answer in first chapter and labels FREE month separately; no live provider');
+
 console.log('PASS work89 first paid core: month-only strength stays in source report but appears as clearly labeled collapsed FREE recap; customer counts exclude it');
