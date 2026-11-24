@@ -232,7 +232,7 @@ assert.equal(scope.locateDelivered(onlySlogan),null,
  'a one-sentence A/B slogan and common advice must not create a paid interpretation shortcut');
 const withRealMoney=structuredClone(coreOnly);
 withRealMoney.sections.push({id:'money',bodyTopics:['spending'],body:[
- '적금을 유지할 때에는 만기 조건을 따로 확인합니다. 대출을 상환할 때에는 금리와 상환 수수료를 따로 확인합니다.']});
+ '적금을 유지할 때에는 매월 납입할 돈과 만기까지 남은 기간을 별도로 확인합니다. 대출을 상환할 때에는 실제 대출 금리와 중도상환 수수료, 상환 후 남길 현금을 따로 확인합니다.']});
 const routes=scope.locateDelivered(withRealMoney);
 assert(routes.coreAnswer&&routes.related,
  'the buyer may access BOTH independently delivered, responsive interpretations');
