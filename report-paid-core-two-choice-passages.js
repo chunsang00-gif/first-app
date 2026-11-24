@@ -15,8 +15,15 @@ function owned(text,question){
   .map(s=>s.trim()).filter(s=>s.length>=12);
  const matches=(s,words)=>words.some(w=>w.length>=2&&s.includes(w));
  const owners=parts.map((s,i)=>{
-  if(!WHEN.test(s))return null;
-  const a=matches(s,alternatives.first),b=matches(s,alternatives.second);
+  const conditional=s.match(WHEN);
+  if(!conditional)return null;
+  // Ownership comes from the ACTUAL opening option, not nouns introduced
+  // later in its explanation. "마감 일정을 조정할 경우 ... 업무 요청"
+  // belongs to the first choice even though the reason names the second
+  // option's topic. Compound "A할지 B할지 ... 경우" still belongs to neither.
+  const opening=s.slice(0,conditional.index);
+  const a=matches(opening,alternatives.first);
+  const b=matches(opening,alternatives.second);
   return a!==b?(a?'first':'second'):null;
  });
  const entries={first:[],second:[]};
