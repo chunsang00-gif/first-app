@@ -40,8 +40,12 @@ try{
  assert(p.temperament.title.includes('출생시간'));
  assert(p.temperament.title.includes('유료 원고 미검증'));
  assert(!p.result.notice.includes('완성된'));
- assert(p.result.notice.includes('무료에서 이미 보여 준 내용도 후보 수에 포함'),
-  'topic upper bounds may include the already-free month and are not unique paid insight counts');
+ assert(p.result.notice.includes('무료에서 이미 제공한 출생월 설명 1개'));
+ assert(p.result.notice.includes('추가 풀이 후보는 최대 '+
+  p.result.estimate.additionalTopicCandidateUpperBound+'개'));
+ assert.equal(p.result.estimate.evidenceEligibleTopicUpperBound,
+  p.result.estimate.additionalTopicCandidateUpperBound+1,
+  'the original writer topic count retains the free source, but buyer-facing count excludes it');
  const swapped=firstChapter({...base,
   readerDecision:'대출을 상환할지 적금을 유지할지 고민입니다.'});
  assert.equal(swapped.temperament.title,p.temperament.title,
