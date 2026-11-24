@@ -193,7 +193,7 @@ function locateDelivered(report){
   const index=core.bodyTopics.indexOf('temperament');
   const paragraph=index<0?null:core.body[index];
   if(typeof paragraph==='string'&&
-     /(?:태어난\\s*시간|출생\\s*시간|출생시간)/.test(paragraph)&&
+     /(?:태어난\s*시간|출생\s*시간|출생시간)/.test(paragraph)&&
      addressesDeliveredQuestion(question,domain,paragraph)){
    coreAnswer={chapterId:'saju_core',chapterIndex:chapters.indexOf(core),
     topicId:'temperament',topicIndex:index};
