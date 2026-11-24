@@ -224,7 +224,8 @@ function scenario({kind='success',amount='9900',confirm='ok',state='verified-pai
    mainChapterIds:['saju_core','decision','year_2027'],
    conditional2027ChapterIds:[],
    mainChapterCount:3,conditionalChapterCount:0,
-   plannedChapterCount:3,topicCandidateUpperBound:5
+   plannedChapterCount:3,topicCandidateUpperBound:5,
+   freeBaselineTopicCount:1,additionalTopicCandidateUpperBound:4
   };
   const window={
    location:{href:'https://test.example/',origin:'https://test.example'},
@@ -258,6 +259,7 @@ function scenario({kind='success',amount='9900',confirm='ok',state='verified-pai
      scope:{
       productMode:'adaptive-v1',plannedChapters:3,
       plannedChapterIds:serverIds,candidateTopicUpperBound:5,
+      freeBaselineTopicCount:1,additionalTopicCandidateUpperBound:4,
       countsAreUpperBounds:true,fixed12ChaptersPromised:false,
       fixed35TopicsPromised:false
      }
@@ -280,6 +282,8 @@ function scenario({kind='success',amount='9900',confirm='ok',state='verified-pai
   assert.deepEqual(list.children.map(x=>x.textContent),[
    '사주 기본 풀이','선택과 결정','2027년 기본 해석'
   ]);
+  assert(panel.children.find(x=>x.tagName==='p').textContent.includes('최대 4개 추가 풀이 후보'),
+   'checkout must not sell the same free birth-month recap as a fifth new topic');
   const checkbox=panel.children.find(x=>x.tagName==='label').children[0];
   const start=panel.children.find(x=>x.tagName==='button');
   checkbox.checked=true;
