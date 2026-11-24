@@ -6,11 +6,11 @@
 const seasonal=require('./report-seasonal-evidence');
 const question=require('./report-chart-contrast').monthDecisionQuestion;
 const PHRASES=Object.freeze({
- resource:'안쪽 글자가 겉글자를 낳는 방향',
- output:'겉글자가 안쪽 글자를 낳는 방향',
+ resource:'안쪽 글자가 겉글자를 뒷받침하는 방향',
+ output:'겉글자가 안쪽 글자를 뒷받침하는 방향',
  'control-on-day':'안쪽 글자가 겉글자를 제약하는 방향',
  'day-controls':'겉글자가 안쪽 글자를 제약하는 방향',
- 'same-element':'두 글자가 같은 오행인 관계'
+ 'same-element':'두 글자가 전통 분류에서 같은 성질을 가진 관계'
 });
 // Consumer first-chapter interpretation must explain one ASYMMETRIC
 // calculated source relation rather than two glossary meanings plus
@@ -21,7 +21,7 @@ const INSTRUCTIONS=Object.freeze({
  output:'겉글자의 질문에서 안쪽의 별도 질문으로 이어진다는 계산 방향을 설명한다. 안쪽 질문을 지웠을 때 사라지는 해석을 한 개 특정하고, 실제로 어떤 결과물이 완성됐다는 말은 하지 않는다.',
  'control-on-day':'시간 안쪽의 질문이 겉의 질문을 제약하는 계산 방향이다. 겉의 뜻만 읽으면 놓치는 제한 조건을 한 개 특정한다. 두 역할이 실제 마음속에서 싸운다거나 현실의 실패로 이어졌다고 해석하지 않는다.',
  'day-controls':'시간 겉글자의 질문이 안쪽의 질문을 제약하는 계산 방향이다. 안쪽의 뜻만 읽으면 놓치는 제한 조건을 한 개 특정한다. 실제 행동을 막았거나 특정 선택을 금지한다고 단정하지 않는다.',
- 'same-element':'두 질문은 서로 다른 계산 자리에서 제기되지만 같은 기운에 속한다. 새로운 도움·제약 방향을 만들지 않는다. 분류가 반복된다는 사실과 질문 자체가 서로 다른 사실을 한 가지 사례로 구별한다.'
+ 'same-element':'두 질문은 서로 다른 계산 자리에서 제기되지만 전통 분류상 같은 성질에 속한다. 새로운 도움·제약 방향을 만들지 않는다. 분류가 반복된다는 사실과 질문 자체가 서로 다른 사실을 한 가지 사례로 구별한다.'
 });
 function build(packet,source,proof){
  if(!proof)return null;
@@ -57,7 +57,7 @@ function build(packet,source,proof){
  const outside=question(outer.tenGod),inside=question(inner.tenGod);
  if(!outside||!inside)throw Error('PAID_HOUR_PAIR_MEANING_MISSING');
  const symbolicQuestion='출생시간 겉글자의 전통적 질문은 ‘'+outside+
-  '’, 안쪽 글자의 질문은 ‘'+inside+'’입니다. 두 글자의 오행 관계는 '+
+  '’, 안쪽 글자의 질문은 ‘'+inside+'’입니다. 두 글자의 전통적 관계는 '+
   PHRASES[direction]+'입니다.';
  return Object.freeze({
   kind:'source-owned-hour-visible-hidden-element-contrast-v1',
