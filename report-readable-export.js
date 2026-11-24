@@ -64,7 +64,9 @@ function build(report){
  const ids=new Map(sections.map(s=>[s.id,s.position]));
  const buyerChoice=root.REPORT_BUYER_QUESTION_LINKS?.locateDelivered(report)||null;
  const choiceShortcuts=buyerChoice?
-  '<aside class="choice-shortcut" aria-label="고민과 관련된 실제 풀이"><strong>내가 적은 고민, 관련 풀이 바로가기</strong><p>실제로 제공된 장과 문단만 안내합니다.</p><div class="choice-shortcut-links">'+(buyerChoice.decisionIndex!==null?'<a href="#part-'+(buyerChoice.decisionIndex+1)+'">선택·결정 풀이</a>':'')+
+  '<aside class="choice-shortcut" aria-label="고민과 관련된 실제 풀이"><strong>내가 적은 고민, 관련 풀이 바로가기</strong><p>실제로 제공된 장과 문단만 안내합니다.</p><div class="choice-shortcut-links">'+
+  (buyerChoice.coreAnswer?'<a href="#part-'+(buyerChoice.coreAnswer.chapterIndex+1)+'-topic-'+(buyerChoice.coreAnswer.topicIndex+1)+'">출생시간에서 추가된 선택 풀이</a>':'')+
+  (buyerChoice.decisionIndex!==null?'<a href="#part-'+(buyerChoice.decisionIndex+1)+'">선택·결정 풀이</a>':'')+
   (buyerChoice.related?'<a href="#part-'+(buyerChoice.related.chapterIndex+1)+'-topic-'+(buyerChoice.related.topicIndex+1)+'">관련 분야의 세부 풀이</a>':'')+
   '</div><small>고객의 입력은 출생사실의 증거가 아니며 풀이가 정답을 보장하지 않습니다.</small></aside>':'';
 
@@ -107,7 +109,10 @@ function build(report){
   const titleText=heading&&heading!==judgment?
    '<p class="subtle">'+esc(heading)+'</p>':'';
   const questionOwner=s.id==='decision'||
-   (buyerChoice?.decisionChapterId===null&&buyerChoice?.related?.chapterId===s.id);
+   (buyerChoice?.decisionChapterId===null&&
+    (buyerChoice?.related?.chapterId===s.id||
+     (!buyerChoice?.related&&s.id==='saju_core'&&
+      buyerChoice?.coreAnswer?.chapterId==='saju_core')));
   const customerQuestion=questionOwner&&typeof report?.meta?.readerDecision==='string'&&
    report.meta.readerDecision.trim()?
    '<div class="reader-question"><strong>내가 직접 적은 고민</strong><p>'+
