@@ -3,6 +3,11 @@ const REPORT_RENDERER=(()=>{
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const list=x=>Array.isArray(x)?x:(x?[x]:[]);
 const paragraph=x=>`<p>${esc(x)}</p>`;
+// The mandatory month-only strength paragraph uses already-public FREE natal
+// month evidence. Keep the full validated source/report, but distinguish
+// this recap from genuinely additional reader material on every display.
+const freeMonthRecap=(section,index)=>section?.id==='saju_core'&&
+ Array.isArray(section.bodyTopics)&&section.bodyTopics[index]==='strength';
 const branchInfo={子:['쥐띠','자','쥐','쥐'],丑:['소띠','축','소','소'],寅:['호랑이띠','인','호랑이','호랑이'],卯:['토끼띠','묘','토끼','토끼'],辰:['용띠','진','용','용'],巳:['뱀띠','사','뱀','뱀'],午:['말띠','오','말','말'],未:['양띠','미','양','양'],申:['원숭이띠','신','원숭이','원숭이'],酉:['닭띠','유','닭','닭'],戌:['개띠','술','개','개'],亥:['돼지띠','해','돼지','돼지']};
 const stemInfo={甲:['갑','큰 나무'],乙:['을','풀과 덩굴'],丙:['병','큰 불'],丁:['정','작은 불'],戊:['무','큰 흙'],己:['기','부드러운 흙'],庚:['경','단단한 쇠'],辛:['신','정제된 쇠'],壬:['임','큰 물'],癸:['계','작은 물']};
 function zodiacFor(report){const p=String(report?.meta?.chart?.year||'');return branchInfo[p.slice(-1)]||['띠 정보 없음','','','']}
@@ -17,6 +22,9 @@ function readableChapterTitle(id,hasMbti){
 }
 function section(s,hasMbti,report,choiceLinks){
  const theme=themes[s.id]||['상세 분석','•',''];const labels=Array.isArray(s.bodyLabels)?s.bodyLabels:[];
+ const blocks=list(s.body).map((text,index)=>({text,index,freeRecap:freeMonthRecap(s,index)}))
+  .filter(x=>typeof x.text==='string'&&x.text.trim());
+ const added=blocks.filter(x=>!x.freeRecap);
  const group={saju_core:'성격 · 기본 성향',mbti_contradiction:'성격 · 두 풀이 비교',decision:'성격 · 선택과 결정',money:'재물 · 소비와 판단',career:'일·직업 · 역할과 성장',relationship:'관계 · 소통과 거리',stress:'스트레스 · 압박과 회복',integrated_judgment:'종합 · 전체 해석',year_2027:'2027년 · 전체',year_2027_money:'2027년 · 재물',year_2027_career:'2027년 · 일·직업',year_2027_relationship:'2027년 · 관계'};
  const withArt=new Set(['saju_core','money','career','relationship','stress','integrated_judgment','year_2027']);
  const character=withArt.has(s.id)?window.CHARACTER_ASSETS.detail(s.id,report,window.LIVE_REPORT_UI?.input?.()||{},s):'';
@@ -34,7 +42,7 @@ function section(s,hasMbti,report,choiceLinks){
  const customerQuestionHtml=selfReportedQuestion?
   `<div class="reader-decision-note"><small>내가 직접 입력한 고민</small><p>${esc(selfReportedQuestion)}</p><small>직접 작성한 질문이며, 사주로 알아낸 사실은 아닙니다.</small></div>`:'';
 
- return `<section class="section detail-section ${theme[2]}" id="detail-${esc(s.id)}" data-report-id="${esc(s.id)}"><header class="detail-head"><div><div class="detail-category">${esc(categoryText)}</div><h2>${esc(headline)}</h2></div>${character?`<div class="detail-symbol" aria-hidden="true">${character}</div>`:''}</header>${customerQuestionHtml}${labels.length>=2&&labels.length===list(s.body).filter(Boolean).length?`<nav class="topic-nav" aria-label="이 장의 세부 내용" data-share-exclude>${labels.map((label,j)=>`<a href="#topic-${esc(s.id)}-${j}">${esc(label)}</a>`).join('')}</nav>`:''}<div class="detail-copy">${list(s.body).filter(Boolean).map((text,j)=>`<div class="copy-block" id="topic-${esc(s.id)}-${j}"><h3>${esc(labels[j]||['핵심 해석','실제 선택에서 드러나는 모습','주의점과 개선 방향','바꿔볼 행동'][Math.min(j,3)])}</h3>${paragraph(text)}</div>`).join('')}</div></section>`;
+ return `<section class="section detail-section ${theme[2]}" id="detail-${esc(s.id)}" data-report-id="${esc(s.id)}"><header class="detail-head"><div><div class="detail-category">${esc(categoryText)}</div><h2>${esc(headline)}</h2></div>${character?`<div class="detail-symbol" aria-hidden="true">${character}</div>`:''}</header>${customerQuestionHtml}${added.length>=2&&labels.length===list(s.body).length?`<nav class="topic-nav" aria-label="추가 풀이 목차" data-share-exclude>${added.map(({index})=>`<a href="#topic-${esc(s.id)}-${index}">${esc(labels[index]||'추가 풀이')}</a>`).join('')}</nav>`:''}<div class="detail-copy">${blocks.map(({text,index,freeRecap})=>freeRecap?`<details class="copy-block free-month-recap" id="topic-${esc(s.id)}-${index}"><summary>무료에서 이미 다룬 출생월 설명 · 유료 추가 풀이 아님</summary><h3>${esc(labels[index]||'출생월 기본 풀이')}</h3>${paragraph(text)}</details>`:`<div class="copy-block" id="topic-${esc(s.id)}-${index}"><h3>${esc(labels[index]||['핵심 해석','실제 선택에서 드러나는 모습','주의점과 개선 방향','바꿔볼 행동'][Math.min(index,3)])}</h3>${paragraph(text)}</div>`).join('')}</div></section>`;
 }
 function shareText(report,name,mbti,animal){const core=(report.sections||[]).find(s=>s.id==='saju_core')?.keyJudgment||'';const hasMbti=mbti!=='모름';return `${name}님의 ${hasMbti?'사주 × MBTI':'사주'} 결과\n${hasMbti?mbti+' · ':''}${animal}\n${core}`}
 function restart(){sessionStorage.removeItem('reportJobId');location.href=location.pathname}
@@ -59,6 +67,9 @@ function render(report,target){
   s.body.every(text=>typeof text==='string'&&text.trim()));
  const deliveredTopics=hasCountableTopics?(report.sections||[])
   .reduce((count,section)=>count+section.bodyTopics.length,0):null;
+ const alreadyFreeTopics=hasCountableTopics?(report.sections||[])
+  .reduce((n,section)=>n+section.bodyTopics.filter((_,i)=>freeMonthRecap(section,i)).length,0):null;
+ const additionalTopics=deliveredTopics===null?null:deliveredTopics-alreadyFreeTopics;
  // Index ONLY finished chapters. The paid source planner may legitimately
  // omit any annual domain, so a fixed 12-chapter navigation is misleading.
  const chapters=(report.sections||[]).filter(s=>s?.id&&Array.isArray(s.body)&&s.body.some(x=>typeof x==='string'&&x.trim()));
@@ -77,7 +88,7 @@ function render(report,target){
 <h1 class="hero-name">${esc(name||'당신')}<small>님</small></h1>
 <div class="hero-badges">${hasMbti?`<span class="mbti-badge">${esc(mbti)}</span>`:''}<span class="zodiac-badge">${window.CHARACTER_ASSETS.badge(report,input)}${esc(animal)}</span></div>
 <h2 class="hero-quote">${esc(cover.headline||integrated?.title||first?.title||integrated?.keyJudgment||'')}</h2><p class="hero-description">${esc(cover.description||integrated?.keyJudgment||first?.keyJudgment||'')}</p>
-${deliveredTopics===null?'':`<p class="meta report-delivered-scope">실제로 작성된 분석: ${deliveredChapters}개 장 · ${deliveredTopics}개 세부 풀이</p>`}
+${deliveredTopics===null?'':`<p class="meta report-delivered-scope">실제로 작성된 분석: ${deliveredChapters}개 장 · 추가 세부 풀이 ${additionalTopics}개${alreadyFreeTopics?' · 무료 출생월 복습 '+alreadyFreeTopics+'개(추가 유료 내용 아님)':''}</p>`}
 </div>
 <div class="hero-character" aria-label="사주 결과 캐릭터">${window.CHARACTER_ASSETS.hero(report,input)}</div>
 </div>
@@ -90,7 +101,7 @@ ${balanceRows.length===5?`<div class="cover-dashboard"><p class="meta balance-so
 <div class="share-actions" data-share-exclude><div><strong>내 결과, 한 장으로 공유하기</strong><small>지금 보이는 첫 페이지를 이미지로 담습니다</small></div><div class="share-buttons"><button type="button" id="shareReport">결과 공유</button><button type="button" id="saveReportImage">이미지 저장</button></div><p id="shareStatus" role="status" aria-live="polite"></p></div>
 <button class="full-analysis-cta" id="viewFullReport" type="button"><strong>전체 분석 이어서 보기</strong><small>실제로 작성된 ${chapters.length}개 장의 해석을 확인합니다</small><b aria-hidden="true">›</b></button>
 <nav class="result-nav" aria-label="분석 항목 바로가기">${quickLinks.map(([id,icon,label])=>`<button data-target="detail-${esc(id)}" ${id==='saju_core'?'class="nav-summary"':''}>${icon}<span>${esc(label)}</span></button>`).join('')}</nav>
-<nav class="report-contents" aria-label="실제 작성된 보고서 목차" data-share-exclude><h3>내 보고서 목차</h3><p>생성된 분석만 표시합니다. 누르면 해당 장으로 이동합니다.</p><ol>${chapters.map((chapter,i)=>{const n=chapter.body.filter(x=>typeof x==='string'&&x.trim()).length;const title=readableChapterTitle(chapter.id,hasMbti);return `<li><a href="#detail-${esc(chapter.id)}"><span class="report-contents-number">${String(i+1).padStart(2,'0')}</span><span class="report-contents-name">${esc(title)}</span><small>${n}개 세부 풀이</small></a></li>`}).join('')}</ol></nav>
+<nav class="report-contents" aria-label="실제 작성된 보고서 목차" data-share-exclude><h3>내 보고서 목차</h3><p>생성된 분석만 표시합니다. 누르면 해당 장으로 이동합니다.</p><ol>${chapters.map((chapter,i)=>{const n=chapter.body.filter((x,i)=>typeof x==='string'&&x.trim()&&!freeMonthRecap(chapter,i)).length;const hasRecap=chapter.body.some((x,i)=>typeof x==='string'&&x.trim()&&freeMonthRecap(chapter,i));const title=readableChapterTitle(chapter.id,hasMbti);return `<li><a href="#detail-${esc(chapter.id)}"><span class="report-contents-number">${String(i+1).padStart(2,'0')}</span><span class="report-contents-name">${esc(title)}</span><small>추가 ${n}개${hasRecap?' · 무료 복습 1개':''}</small></a></li>`}).join('')}</ol></nav>
 ${report.meta?.calculationNote?`<details class="chart-explanation"><summary>계산 기준과 해석 범위</summary><p>${esc(report.meta.calculationNote)}</p></details>`:''}</section>`+report.sections.map(s=>section(s,hasMbti,report,choiceLinks)).join('')+
  `<section class="section final-card"><div class="num">종합 총평</div><h2>${esc(report.finalJudgment?.headline||'당신을 이해하는 핵심 결론')}</h2>${list(report.finalJudgment?.body).map(paragraph).join('')}${list(report.finalJudgment?.strengths).length?`<div class="final-strengths"><h3>계속 살릴 강점</h3><ul>${list(report.finalJudgment.strengths).map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>`:''}${list(report.finalJudgment?.watchouts).length?`<div class="final-watchouts"><h3>주의할 약점</h3><ul>${list(report.finalJudgment.watchouts).map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>`:''}${list(report.finalJudgment?.routines).length?`<div class="routine-list"><h3>다음 상황에서 이렇게 해보세요</h3>${list(report.finalJudgment.routines).map((x,i)=>`<article class="routine"><span>0${i+1}</span><div><strong>${esc(x.trigger)}</strong><p>${esc(x.action)}</p><small>${esc(x.reason)}</small></div></article>`).join('')}</div>`:''}<div class="final-conclusion"><h3>가장 중요한 결론</h3><p class="quote">${esc(report.finalJudgment.closingQuestion)}</p></div></section><div class="share-actions full-report-share" data-share-exclude><div><strong>전체 사주 공유하기</strong><small>첫 페이지부터 최종 정리까지 모두 담습니다. 이름과 풀이 내용이 함께 공유됩니다.${report.meta?.readerDecision?' 직접 입력한 고민도 포함됩니다.':''}</small></div><div class="share-buttons"><button type="button" id="shareFullReport">전체 사주 공유하기</button><button type="button" id="saveFullReport">전체 사주 저장하기</button></div><p id="fullShareStatus" role="status" aria-live="polite">여러 장의 이미지로 공유 · 미지원 기기는 ZIP으로 저장</p></div><div class="report-end-actions"><button class="btn primary" id="saveReadableReport" type="button">읽기용 전체 보고서 저장</button><button class="btn ghost" id="saveReportForReview" type="button">보고서 원문 저장</button><button class="btn ghost" id="restartReport" type="button">처음부터 다시 하기</button><p class="meta">읽기용 저장은 인터넷 없이 열 수 있는 HTML 파일입니다. 개인 정보가 포함될 수 있으며 브라우저 인쇄로 PDF 저장도 가능합니다. JSON 원문은 검토용입니다.</p></div>`;
  target.querySelectorAll('.chart-info').forEach(btn=>btn.addEventListener('click',()=>{const note=target.querySelector('.chart-explanation');note.hidden=!note.hidden;target.querySelectorAll('.chart-info').forEach(b=>b.setAttribute('aria-expanded',String(!note.hidden)))}));
