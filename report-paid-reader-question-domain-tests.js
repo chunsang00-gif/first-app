@@ -188,4 +188,54 @@ assert.equal(savingLink.related.topicIndex,0);
 assert.equal(scope.locateDelivered({meta:{readerDecision:'<script>evil</script>'},sections:delivered.sections}),null);
 assert.equal(JSON.stringify(links),JSON.stringify(browserLinks.window.REPORT_BUYER_QUESTION_LINKS.locateDelivered(delivered)),
  'server and browser must point to the same actually delivered customer answer');
+// Work95: actual offline buyer prose has an independently cited HOUR
+// temperament choice answer, but the adaptive product can omit both
+// decision and money chapters. The only answer must NOT disappear from
+// the reader's navigation. Human-authored fixture, never model quality
+// approval or a sale-ready paragraph.
+const humanMoneyQuestion='적금을 유지할지 대출을 상환할지 고민입니다.';
+const humanMd=fsLinks.readFileSync(
+ 'qa/work85-authored-first-paid-hour-money-reader-1982-0715-0220-20261124.md','utf8');
+const humanMoney=humanMd.split(
+ '### 적금을 그대로 둘까, 대출을 갚을까 — 태어난 시간에서 따로 나오는 질문')[1]
+ ?.split('## 내부 출처 확인')[0].replace(/\\*/g,'').trim();
+assert(humanMoney&&humanMoney.length>800);
+const coreOnly={meta:{readerDecision:humanMoneyQuestion},sections:[{
+ id:'saju_core',title:'출생시간의 근거',keyJudgment:'출생시간의 별도 관계',
+ bodyTopics:['temperament','strength'],
+ body:[humanMoney,'태어난 달의 이미 공개된 무료 풀이입니다.'],
+ bodyLabels:['별도 출생시간 해석','무료 복습']
+}]};
+const coreLink=scope.locateDelivered(coreOnly);
+assert(coreLink,'a verified-looking delivered buyer answer requires a navigable reading route');
+assert.equal(coreLink.related,null);
+assert.equal(coreLink.decisionChapterId,null);
+assert.equal(coreLink.coreAnswer.chapterId,'saju_core');
+assert.equal(coreLink.coreAnswer.topicIndex,0);
+assert.equal(coreLink.questionsAreUserInputNotProof,true);
+assert.equal(coreLink.deliveredProseNotSemanticallyApproved,true);
+assert.equal(JSON.stringify(coreLink),
+ JSON.stringify(browserLinks.window.REPORT_BUYER_QUESTION_LINKS.locateDelivered(coreOnly)),
+ 'source-informed browser and Node routing must agree for the actual first-chapter buyer prose');
+const freeOnly=structuredClone(coreOnly);
+freeOnly.sections[0].bodyTopics=['strength','other'];
+assert.equal(scope.locateDelivered(freeOnly),null,
+ 'already-free month content may NEVER masquerade as the buyer paid answer');
+const noHour=structuredClone(coreOnly);
+noHour.sections[0].body[0]=humanMoney.replace(/태어난 시간/g,'이번 풀이')
+ .replace(/출생시간/g,'이번 풀이');
+assert.equal(scope.locateDelivered(noHour),null,
+ 'a buyer question without an identified birth-hour source is not a first chapter answer');
+const onlySlogan=structuredClone(coreOnly);
+onlySlogan.sections[0].body[0]='태어난 시간의 글자로 적금 유지와 대출 상환을 함께 살펴볼 수 있습니다. 금전 선택은 일반적으로 신중하게 검토해야 합니다.';
+assert.equal(scope.locateDelivered(onlySlogan),null,
+ 'a one-sentence A/B slogan and common advice must not create a paid interpretation shortcut');
+const withRealMoney=structuredClone(coreOnly);
+withRealMoney.sections.push({id:'money',bodyTopics:['spending'],body:[
+ '적금을 유지할 때에는 만기 조건을 따로 확인합니다. 대출을 상환할 때에는 금리와 상환 수수료를 따로 확인합니다.']});
+const routes=scope.locateDelivered(withRealMoney);
+assert(routes.coreAnswer&&routes.related,
+ 'the buyer may access BOTH independently delivered, responsive interpretations');
+console.log('PASS work95 real human first-chapter answer is navigable in browser and server even with no optional decision/money chapters; FREE and generic slogans are not');
+
 console.log('PASS buyer question links map only a delivered decision and exact domain paragraph; omitted and ambiguous topics remain unlinked');
