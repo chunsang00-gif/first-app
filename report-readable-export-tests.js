@@ -92,6 +92,24 @@ assert(html.includes('새 일로 &lt;script&gt;alert(9)&lt;/script&gt; 갈까요
 assert.equal(html.split('새 일로 &lt;script&gt;alert(9)&lt;/script&gt; 갈까요?').length-1,1);
 assert(!html.includes('<script>alert(9)</script>'));
 assert(html.includes('인쇄')&&html.includes('@media print'));
+// Paid first-chapter provenance: its mandatory strength paragraph reuses
+// the FREE month evidence. Offline HTML must preserve it for review while
+// excluding it from the number of additional interpretations promised.
+const coreRecap=structuredClone(report);
+coreRecap.sections[0].bodyTopics=['temperament','strength'];
+coreRecap.sections[0].bodyLabels=['추가 출생시간 풀이','출생월 기본 복습'];
+const recapHtml=exp.build(coreRecap);
+assert(recapHtml.includes('실제로 작성된 내용: 9개 장 · 추가 세부 풀이 17개 · 무료 출생월 복습 1개(추가 유료 내용 아님)'));
+assert(recapHtml.includes('class="topic free-month-recap" id="part-1-topic-2"'));
+assert(recapHtml.includes('무료에서 이미 다룬 출생월 설명 · 유료 추가 풀이 아님'));
+assert(recapHtml.includes('작성된 두 번째 풀이 1'),
+ 'the original month paragraph remains available in the offline evidence record');
+assert(recapHtml.includes('1개 추가 풀이 · 무료 복습 1개'));
+assert.equal((recapHtml.match(/<section class="topic(?: free-month-recap)?" id="part-\d+-topic-\d+">/g)||[]).length,18,
+ 'labeling the free source must not silently delete evidence or change delivered section shape');
+assert(!html.includes('무료에서 이미 다룬 출생월 설명 · 유료 추가 풀이 아님'),
+ 'do not mislabel missing or unknown topic IDs as a verified free month slot');
+
 const withoutMbti=structuredClone(report);withoutMbti.meta.mbti='모름';
 const withoutMbtiHtml=exp.build(withoutMbti);
 assert(!withoutMbtiHtml.includes('직접 입력한 MBTI:'));
