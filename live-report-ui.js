@@ -50,6 +50,21 @@ async function showCoverage(validatedInput,isCurrent=()=>true){
     chapter.eligibleTopics.some(topic=>typeof topic.title!=='string'||!topic.title.trim()))||
     estimate.chapters.reduce((n,chapter)=>n+chapter.eligibleTopics.length,0)!==estimate.evidenceEligibleTopicUpperBound)
   throw Error('작성 가능 항목 목록과 계산된 제공 범위가 일치하지 않습니다.');
+ // The mandatory birth-month strength topic has already been delivered
+ // for free. Require an explicit independent count before showing a
+ // prospective paid quantity. Never silently fall back to all topics.
+ const freeRecaps=estimate.chapters.reduce((n,c)=>n+(c.freeBaselineTopicCount||0),0);
+ const addedUpper=estimate.chapters.reduce((n,c)=>n+(c.additionalTopicCandidateUpperBound||0),0);
+ if(estimate.freeBaselineTopicCount!==freeRecaps||
+    estimate.additionalTopicCandidateUpperBound!==addedUpper||
+    addedUpper+freeRecaps!==estimate.evidenceEligibleTopicUpperBound||
+    freeRecaps!==1||estimate.chapters.some(c=>
+     !Number.isInteger(c.freeBaselineTopicCount)||
+     !Number.isInteger(c.additionalTopicCandidateUpperBound)||
+     c.freeBaselineTopicCount+c.additionalTopicCandidateUpperBound!==c.eligibleTopicUpperBound||
+     c.eligibleTopics.some(t=>t.alreadyFreeBaseline!==(c.id==='saju_core'&&t.id==='strength'))||
+     c.eligibleTopics.filter(t=>t.alreadyFreeBaseline).length!==c.freeBaselineTopicCount))
+  throw Error('무료 기본 풀이와 추가 풀이 후보 수가 일치하지 않습니다.');
  const selected=estimate.chapters.filter(x=>x.includedInPlan);
  const omitted=estimate.chapters.filter(x=>!x.includedInPlan);
  const detailsAvailable=Number.isInteger(catalog.historicalDefinitionShortfall);
@@ -96,6 +111,8 @@ async function showCoverage(validatedInput,isCurrent=()=>true){
     !Array.isArray(proposal.conditional2027ChapterIds)||
     proposal.plannedChapterCount!==estimate.plannedChapters||
     proposal.topicCandidateUpperBound!==estimate.evidenceEligibleTopicUpperBound||
+    proposal.freeBaselineTopicCount!==estimate.freeBaselineTopicCount||
+    proposal.additionalTopicCandidateUpperBound!==estimate.additionalTopicCandidateUpperBound||
     proposal.mainChapterCount!==proposal.mainChapterIds.length||
     proposal.conditionalChapterCount!==proposal.conditional2027ChapterIds.length||
     JSON.stringify([...proposal.mainChapterIds,...proposal.conditional2027ChapterIds].sort())!==
@@ -167,12 +184,12 @@ async function showCoverage(validatedInput,isCurrent=()=>true){
  <section class="section report-coverage">
  <h2>맞춤형 심화 풀이 구성안</h2>
  <p><strong>기본 해석 ${proposal.mainChapterCount}개 장 + 2027년 추가 분야 ${proposal.conditionalChapterCount}개 장</strong>을 계산 근거에 따라 선택했습니다.</p>
- <p>전체 <strong>${proposal.plannedChapterCount}개 장 · 최대 ${proposal.topicCandidateUpperBound}개 세부 항목</strong>이 작성 후보입니다.</p>
- <p>이는 출생정보로 계산한 <strong>작성 가능 상한</strong>입니다. 실제 완성된 문단 수나 제공 보장은 아닙니다.</p>
+ <p>전체 <strong>${proposal.plannedChapterCount}개 장 · 추가 풀이 후보 최대 ${proposal.additionalTopicCandidateUpperBound}개</strong>입니다.</p>
+ <p>생성용 전체 항목 ${proposal.topicCandidateUpperBound}개 중 무료 출생월 복습 ${proposal.freeBaselineTopicCount}개를 제외했습니다. 이 숫자 역시 <strong>미검증 작성 상한</strong>이며 새 유료 해석의 완성이나 제공을 보장하지 않습니다.</p>
  ${breakdownHtml}
  <p class="meta">장마다 펼쳐 볼 수 있는 세부 질문은 실제 계산에서 작성 후보로 선택된 항목만 보여 줍니다. 이것만으로 개인별 풀이가 완성됐다는 뜻은 아닙니다.</p>
  <h3>기본 해석 구성</h3>
- <ul>${primary.map(x=>`<li><strong>${esc(x.name)} · 최대 ${x.eligibleTopicUpperBound}개 항목</strong><details><summary>작성 후보 질문 보기</summary><ul>${x.eligibleTopics.map(t=>`<li>${esc(t.title)}</li>`).join('')}</ul></details></li>`).join('')}</ul>
+ <ul>${primary.map(x=>`<li><strong>${esc(x.name)} · 추가 후보 최대 ${x.additionalTopicCandidateUpperBound}개${x.freeBaselineTopicCount?' · 무료 복습 '+x.freeBaselineTopicCount+'개 별도':''}</strong><details><summary>작성 후보 질문 보기</summary><ul>${x.eligibleTopics.map(t=>`<li>${t.alreadyFreeBaseline?'[이미 무료 공개] ':''}${esc(t.title)}</li>`).join('')}</ul></details></li>`).join('')}</ul>
  ${conditional.length?`<h3>별도 계산 근거가 있는 2027년 추가 분야</h3><ul>${conditional.map(x=>`<li><strong>${esc(x.name)} · 최대 ${x.eligibleTopicUpperBound}개 항목</strong><details><summary>작성 후보 질문 보기</summary><ul>${x.eligibleTopics.map(t=>`<li>${esc(t.title)}</li>`).join('')}</ul></details></li>`).join('')}</ul>`:'<p class="meta">별도로 추가할 수 있는 2027년 금전·직업·관계 풀이가 확인되지 않았습니다.</p>'}
  ${omitted.length?`<h3>제외된 장</h3><ul>${omitted.map(x=>`<li>${esc(x.name)}: ${esc(x.omittedReason)}</li>`).join('')}</ul>`:''}
  ${excludedHtml}
