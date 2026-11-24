@@ -37,6 +37,13 @@ for(const [calendar,birthDate,chapterCount,bound] of samples){
  assert.equal(result.actualDeliveredChapters,chapterCount);
  assert.equal(result.actualDeliveredTopics,chapterCount);
  assert.equal(result.evidenceEligibleTopicUpperBound,bound);
+ assert.equal(result.freeBaselineTopicCount,1);
+ assert.equal(result.additionalTopicCandidateUpperBound,bound-1);
+ assert.equal(result.actualAlreadyFreeTopics,1,
+  'mandatory natal month anchor is a FREE recap, not new premium value');
+ assert.equal(result.actualAdditionalDeliveredTopics,chapterCount-1);
+ assert.equal(result.byChapter.reduce((n,c)=>n+c.actualAdditionalDeliveredTopics,0),
+  result.actualAdditionalDeliveredTopics);
  assert.equal(result.omittedEligibleTopicCount,bound-chapterCount);
  assert.equal(result.saleApproved,false);
  assert.equal(result.independentHumanReviewCompleted,false);
