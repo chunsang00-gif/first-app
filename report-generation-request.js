@@ -36,6 +36,18 @@ const normalPaidMonthMethodBoundary="달의 겉글자가 기본 숨은 글자가
 // QA5/QA6, QA natal-depth and explicitly authorized development V2 keep
 // their pinned writer policy and source schemas unchanged.
 const normalCoreMeaningPriority='일반 유료 첫 장의 필수 strength 작성에서는 task.chapters.saju_core.topics.strength.sourceOwnedCoreReaderValue가 가장 구체적인 독자용 작성 지침이다. 기존 상위 문구의 가상 직장 사례·두 조건의 기계적 장단점 요구보다 이 명식의 월간과 달의 중심 속글자에서 확인한 실제 두 전통 분류의 뜻·오행 관계를 우선한다. 서로 다른 뜻이면 검증된 오행 관계의 실제 방향 하나가 두 전통 분류를 어떻게 연결하는지 먼저 설명하고, 서로 대칭인 두 누락 경고 문장을 만들지 않는다. 같은 뜻이면 관계를 억지로 대비하지 말고 같은 분류가 두 출처에 있다는 의미만 설명한다. 글자 이름을 나열하거나 직업·부품·납품·인수인계 등의 고정 사례를 만들지 않는다. 실제로 검증된 독립 해석 없이 가상의 도움·손해·성취를 억지로 채우지 않는다. 가상 상황은 독자가 이 구분을 이해하는 데 필요할 때만 짧게 사용한다. 상위 정책의 실제 성격·능력·사건 금지, 인용 출처·월 중심 우선순위 미확정 원칙은 그대로 지킨다.';
+const qualifiedHourMeaningPriority='이 고객의 첫 장은 새 출생시간 근거를 가진 경우다. '+
+ '고정된 제목·핵심 판단은 시간 겉글자와 안쪽 글자 사이의 계산 관계에만 묶는다. '+
+ '필수 출생월 strength는 이미 무료로 공개한 설명의 짧은 복습이지 새로운 유료 해석이 아니며, '+
+ '출생월용 sourceOwnedCoreReaderValue.script의 심화·가상 사례 확대 지시를 적용하지 않는다. '+
+ '추가 유료 후보 temperament에서만 실제 고객 질문에 출생시간의 관계를 조건부로 적용한다. '+
+ '고객의 관찰된 성격, 선택 우열, 미래 결과 또는 검증되지 않은 고전 해석 우선순위를 말하지 않는다.';
+function coreMeaningPriorityFor(prompt){
+ const hour=sourceOwnedHourFirstChapter(prompt);
+ return hour?.wholeNatalCategoryDistinct===true&&
+  hour.repeatedExactStemNatalRefs?.length===0?
+  qualifiedHourMeaningPriority:normalCoreMeaningPriority;
+}
 const additivePolicy='선택형 QA: temperament는 일반 유료 첫 장처럼 독립적 근거가 있을 때만 작성하고 strength는 필수로 유지한다. natal_depth는 선택 항목이며 새로운 개인별 판단 근거가 없으면 null로 반환한다. 고전이나 계산 정보의 일치 자체를 실제 성격 또는 미래 결과로 단정하지 않는다.';
 // Exactly the regular paid customer's first-chapter request, including a
 // mixed body batch. Historical paid QA envelopes and V2 remain untouched.
@@ -108,7 +120,7 @@ function policyFor(prompt){
    (prompt.paidCoreDepthV2===true?'\n'+coreDepthExperimentalPolicy:'')+
    (prompt.qaNatalDepthPreview!==true&&prompt.paidCoreDepthV2!==true&&
     prompt.qaAdditiveDepthPreview!==true&&
-    prompt.qaOfflineEditorialResearchPreview!==true?'\n'+normalCoreMeaningPriority:'');
+    prompt.qaOfflineEditorialResearchPreview!==true?'\n'+coreMeaningPriorityFor(prompt):'');
   const qa6=require('./report-qa6-required-research-slot');
   return baseline+(require('./report-paid-core-v2-classical-provider-bridge')
    .enabled(prompt)?(qa6.enabled(prompt)?
@@ -127,7 +139,7 @@ function policyFor(prompt){
    normalPaidHourPolicyPart(i,normalizeNormalCorePolicyPart(i,v),
     sourceOwnedHourFirstChapter(prompt))).join('\n'):policy)+(prompt?.stage==='body'&&prompt?.requestedSections?.includes('saju_core')&&
   prompt.qaNatalDepthPreview!==true?'\n'+normalPaidMonthMethodBoundary:'')+
-  (isNormalCore?'\n'+normalCoreMeaningPriority:'');
+  (isNormalCore?'\n'+coreMeaningPriorityFor(prompt):'');
 }
 // MBTI was present in money/work/relationship depth goals but the strict
 // writer schema did not permit those chapters to cite the actual MBTI input.
@@ -270,6 +282,12 @@ function sourceQualifiedNormalCoreBrief(prompt){
 function normalCoreGoalFor(prompt){
  const extra=sourceQualifiedNormalCoreBrief(prompt);
  if(!extra)return normalCoreEditorialGoal;
+ if(require('./report-core-thesis').forPrompt(prompt)?.sourcePosition==='hour')
+  return '이번 사주 첫 장에서 이미 무료로 보여준 출생월 설명은 짧은 복습으로만 남긴다. '+
+   '새 유료 원고 후보는 출생시간 겉·안쪽 글자의 실제 계산 관계와 고객이 직접 물어본 고민의 서로 다른 조건을 설명하는 temperament 하나이다. '+
+   '제목과 핵심 판단에는 검증된 출생시간 관계가 이미 고정되어 있으므로 strength의 출생월 관계를 새 결론처럼 다시 쓰지 않는다. '+
+   '분류 이름과 인용 출처는 내부에만 기록하고, 출생정보로 관찰하지 않은 실제 성격·행동·손익·미래 사건은 단정하지 않는다. '+
+   extra.analysisGoal;
  const obsolete='계절의 독립적 해석을 확인할 수 없으면 선택 문단을 null로 둔다. ';
  if(!normalCoreEditorialGoal.includes(obsolete))
   throw Error('PAID_CORE_OBSOLETE_MONTH_ONLY_GOAL_DRIFT');
