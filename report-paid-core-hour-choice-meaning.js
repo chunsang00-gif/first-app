@@ -168,7 +168,7 @@ function inspectParagraph(text,question,proof){
  // its two immediately following sentences; stop before the NEXT option.
  // Never credit a common introduction or a combined A/B slogan to either.
  const owned=require('./report-paid-core-two-choice-passages').owned(text,question);
- const anchored=xs=>(xs||[]).map(x=>({value:x.s,index:x.i}))
+ const anchored=xs=>(xs||[]).map(x=>({value:x.s,index:x.i,anchor:x.anchor}))
   .filter(x=>scope.meaning.test(x.value));
  const a=anchored(owned?.first),b=anchored(owned?.second);
  const errors=[];
@@ -179,13 +179,24 @@ function inspectParagraph(text,question,proof){
  if(a.length&&b.length){
   // Names of the two buyer alternatives are not a distinct confirmation
   // standard. Two clauses should ask about DIFFERENT tangible checks.
-  const profiles=xs=>xs.map(x=>({index:x.index,marks:checks
-   .map((re,i)=>re.test(x.value)?i:-1).filter(i=>i>=0)}));
-  const A=profiles(a),B=profiles(b);
-  if(!A.some(x=>B.some(y=>x.index!==y.index&&
-      x.marks.length&&y.marks.length&&
-      (x.marks.some(k=>!y.marks.includes(k))||
-       y.marks.some(k=>!x.marks.includes(k))))))
+  const profiles=(xs,field)=>xs.map(x=>({index:x.index,marks:checks
+   .map((re,i)=>re.test(x[field]||'')?i:-1).filter(i=>i>=0)}));
+  const different=field=>{
+   const A=profiles(a,field),B=profiles(b,field);
+   return A.some(x=>B.some(y=>x.index!==y.index&&
+    x.marks.length&&y.marks.length&&
+    (x.marks.some(k=>!y.marks.includes(k))||
+     y.marks.some(k=>!x.marks.includes(k)))));
+  };
+  // Additional contextual sentences may legitimately mention both cost
+  // and schedule. Keep a genuinely different original source-linked
+  // conditional check from getting erased by that extra explanation.
+  // But do not credit anchor-only differences if the hour meaning itself
+  // appears only in the appended, generic neighboring sentences.
+  const originalDifferent=different('anchor')&&
+   a.some(x=>scope.meaning.test(x.anchor))&&
+   b.some(x=>scope.meaning.test(x.anchor));
+  if(!different('value')&&!originalDifferent)
    errors.push('buyer-hour-role-choices-have-no-distinct-checks');
  }
  // Distinct vocabulary groups are only a necessary condition. A recycled
