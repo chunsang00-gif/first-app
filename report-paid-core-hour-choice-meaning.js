@@ -189,6 +189,13 @@ function inspectParagraph(text,question,proof){
        y.marks.some(k=>!x.marks.includes(k))))))
    errors.push('buyer-hour-role-choices-have-no-distinct-checks');
  }
+ // Distinct vocabulary groups are only a necessary condition. A recycled
+ // conclusion with one swapped word is not a different buyer-facing answer.
+ // Share the EXACT consequence comparison with the first-chapter choice
+ // gate, including when called directly before the next paid provider batch.
+ if(require('./report-paid-core-two-choice-value')
+     .inspect(text,question).includes('buyer-two-options-near-duplicate-consequence'))
+  errors.push('buyer-hour-role-choices-have-near-identical-consequences');
  return errors;
 }
 function inspect(sections,packet){
