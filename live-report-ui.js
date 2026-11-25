@@ -8,7 +8,7 @@ function loading(sec=0,mode='scope'){
  const body=$('#reportBody'),activeJob=mode==='paid'||Boolean(sessionStorage.getItem('reportJobId'));
  const progress=activeJob?window.REPORT_API?.progress:null;
  const stages={body:'세부 풀이 작성 중',edit:'내용 중복·문장 교정 중',synthesis:'메인 핵심·최종 정리 선별 중'};
- const stage=activeJob?(stages[progress?.stage]||'기존 보고서 작업 상태 확인 중'):'무료 사주 계산 및 제공 범위 확인 중';
+ const stage=activeJob?(stages[progress?.stage]||'기존 보고서 작업 상태 확인 중'):'보고서 제공 범위 확인 중';
  const notice=activeJob?(progress?.total>0?`전체 ${progress.total}개 장 중 ${Math.max(0,progress.completed||0)}개 완료.`:progress?.stage==='synthesis'?'완성된 본문을 바탕으로 핵심 내용을 정리합니다.':'저장된 보고서의 실제 진행 상태를 확인하고 있습니다.'):'출생정보를 계산해 분석 가능한 장과 항목을 확인합니다. 이 단계에서는 결제하거나 유료 보고서를 생성하지 않습니다.';
  if(body.querySelector('.analysis-loading')){
   body.querySelector('h2').textContent=stage;
@@ -64,44 +64,8 @@ async function showCoverage(validatedInput,isCurrent=()=>true){
      c.freeBaselineTopicCount+c.additionalTopicCandidateUpperBound!==c.eligibleTopicUpperBound||
      c.eligibleTopics.some(t=>t.alreadyFreeBaseline!==(c.id==='saju_core'&&t.id==='strength'))||
      c.eligibleTopics.filter(t=>t.alreadyFreeBaseline).length!==c.freeBaselineTopicCount))
-  throw Error('무료 기본 풀이와 추가 풀이 후보 수가 일치하지 않습니다.');
+  throw Error('보고서 구성 항목 수가 일치하지 않습니다.');
  const selected=estimate.chapters.filter(x=>x.includedInPlan);
- const omitted=estimate.chapters.filter(x=>!x.includedInPlan);
- const detailsAvailable=Number.isInteger(catalog.historicalDefinitionShortfall);
- if(detailsAvailable&&(
-    catalog.historicalDefinitionShortfall!==
-      Math.max(0,catalog.originallyPlannedTopics-catalog.topicDefinitions)||
-    selected.some(x=>!Array.isArray(x.excludedTopics)||
-      x.eligibleTopicUpperBound+x.excludedTopics.length!==x.definedTopicSlots||
-      x.excludedTopics.some(t=>!t.title||!t.reason))||
-    omitted.some(x=>!Array.isArray(x.excludedTopics)||x.excludedTopics.length>0)||
-    estimate.excludedDefinedTopicsWithinPlannedChapters!==
-      selected.reduce((n,x)=>n+x.excludedTopics.length,0)||
-    estimate.topicsUnavailableBecauseChaptersOmitted!==
-      omitted.reduce((n,x)=>n+x.definedTopicSlots,0)||
-    catalog.topicDefinitions!==estimate.evidenceEligibleTopicUpperBound+
-      estimate.excludedDefinedTopicsWithinPlannedChapters+
-      estimate.topicsUnavailableBecauseChaptersOmitted||
-    estimate.topicUpperBoundGapToTarget!==catalog.historicalDefinitionShortfall+
-      estimate.excludedDefinedTopicsWithinPlannedChapters+
-      estimate.topicsUnavailableBecauseChaptersOmitted))
-  throw Error('작성 가능한 항목과 제외한 항목의 합계가 실제 상품 정의와 다릅니다.');
- const excludedQuestions=selected.flatMap(chapter=>
-  (Array.isArray(chapter.excludedTopics)?chapter.excludedTopics:[])
-   .map(topic=>({...topic,chapterName:chapter.name})));
- const breakdownHtml=detailsAvailable?
-  '<p class="meta">현재 정의된 '+catalog.topicDefinitions+'개 질문 중 '+
-   estimate.evidenceEligibleTopicUpperBound+'개가 작성 후보이며, '+
-   estimate.excludedDefinedTopicsWithinPlannedChapters+'개는 선택된 장에서 제외하고 '+
-   estimate.topicsUnavailableBecauseChaptersOmitted+
-   '개는 장 자체가 제외됐습니다. 기존 목표 '+
-   catalog.originallyPlannedTopics+'개 중 아직 정의되지 않은 질문도 '+
-   catalog.historicalDefinitionShortfall+'개 있습니다.</p>':'';
- const excludedHtml=excludedQuestions.length?
-   '<h3>선택된 장에서 작성하지 않는 질문</h3><ul>'+
-    excludedQuestions.map(x=>'<li><strong>'+esc(x.chapterName)+
-      ' · '+esc(x.title)+'</strong>: '+esc(x.reason)+'</li>').join('')+'</ul>':
-   '<p class="meta">선택된 장에는 근거 부족으로 제외된 질문이 없습니다.</p>';
  const proposal=out.productProposal;
  if(proposal?.kind!=='chart-specific-evidence-scoped-product-proposal-v1'||
     proposal.status!=='draft-not-for-sale'||proposal.paymentEnabled!==false||
@@ -137,10 +101,10 @@ async function showCoverage(validatedInput,isCurrent=()=>true){
     firstChapter.customerSaleApproved!==false||
     firstChapter.newPaymentEnabled!==false||
     firstChapter.additionalModelCalls!==0)
-  throw Error('유료 첫 장의 무료 대비 차별화 검증 정보가 올바르지 않습니다.');
+  throw Error('유료 보고서의 제공 가능 여부를 확인하지 못했습니다.');
  const firstChapterHtml=
   '<section class="section report-first-chapter-status">'+
-  '<h2>무료 풀이와 다른 유료 첫 장의 근거</h2>'+
+  '<h2>유료 보고서 제공 여부</h2>'+
   '<p><strong>'+esc(firstChapter.status==='source-candidate-not-validated'?
    '계산 근거 후보만 확인 · 현재 유료 판매 불가':
    '별도 해석 근거 미확인 · 유료 판매 불가')+'</strong></p>'+
@@ -149,51 +113,17 @@ async function showCoverage(validatedInput,isCurrent=()=>true){
   '</section>';
  const primary=selected.filter(x=>proposal.mainChapterIds.includes(x.id));
  const conditional=selected.filter(x=>proposal.conditional2027ChapterIds.includes(x.id));
- const sample=out.readingSample;
- if(sample?.kind!=='free-calculated-meaning-preview-v1'||
-    sample?.status!=='calculated-example'||sample?.modelCalls!==0||
-    sample?.completedPremiumParagraphs!==0||sample?.humanEditorialApproved!==false||
-    !Array.isArray(sample.cards)||sample.cards.length<2||sample.cards.length>4||
-    new Set(sample.cards.map(c=>c.id)).size!==sample.cards.length||
-    sample.cards.some(c=>typeof c.title!=='string'||!c.title.trim()||
-      typeof c.text!=='string'||c.text.length<30)||
-    typeof sample.note!=='string'||!sample.note.trim())
-   throw Error('무료 해석 예시가 검증된 계산 결과와 일치하지 않습니다.');
- // Older cached calculation results and UI fixtures have no optional
- // domain mini-reading field. Never mistake absence for a corrupt report.
- const interpreted=out.interpretivePreviews??[];
- if(!Array.isArray(interpreted)||interpreted.length>2||
-    new Set(interpreted.map(x=>x.id)).size!==interpreted.length||
-    interpreted.some(x=>!['money.earning','career.workstyle'].includes(x.id)||
-      typeof x.title!=='string'||!x.title.trim()||
-      typeof x.text!=='string'||x.text.length<130))
-   throw Error('독자용 분야별 예시가 계산된 원본 근거와 일치하지 않습니다.');
- body.innerHTML=`<section class="section report-reading-sample">
- <h2>실제 출생정보에서 확인한 해석 근거</h2>
- <p>같은 글을 모든 사람에게 보여 주는 예시가 아니라, 입력한 출생정보로 계산된 위치와 분류를 바탕으로 읽습니다.</p>
- ${sample.cards.map(item=>`<article class="reading-preview-card"><h3>${esc(item.title)}</h3><p>${esc(item.text)}</p></article>`).join('')}
- <p class="meta">${esc(sample.note)}</p>
- </section>
- ${interpreted.length?`<section class="section report-reading-sample">
- <h2>금전·직업 분야별 풀이 맛보기</h2>
- <p>출생정보에서 실제로 확인된 서로 다른 전통 분류를 비교해, 돈을 얻는 활동과 일을 배우고 완성하는 활동을 각각 풀었습니다.</p>
- ${interpreted.map(item=>`<article class="reading-preview-card"><h3>${esc(item.title)}</h3><p>${esc(item.text)}</p></article>`).join('')}
- <p class="meta">결제 없이 계산한 참고용 풀이입니다. 실제 삶의 경험을 확인한 결과나 AI 유료 보고서의 완성·판매 승인 기록이 아닙니다.</p>
- </section>`:''}
+ body.innerHTML=`
  ${firstChapterHtml}
  <section class="section report-coverage">
  <h2>맞춤형 심화 풀이 구성안</h2>
  <p><strong>기본 해석 ${proposal.mainChapterCount}개 장 + 2027년 추가 분야 ${proposal.conditionalChapterCount}개 장</strong>을 계산 근거에 따라 선택했습니다.</p>
- <p>전체 <strong>${proposal.plannedChapterCount}개 장 · 추가 풀이 후보 최대 ${proposal.additionalTopicCandidateUpperBound}개</strong>입니다.</p>
- <p>생성용 전체 항목 ${proposal.topicCandidateUpperBound}개 중 무료 출생월 복습 ${proposal.freeBaselineTopicCount}개를 제외했습니다. 이 숫자 역시 <strong>미검증 작성 상한</strong>이며 새 유료 해석의 완성이나 제공을 보장하지 않습니다.</p>
- ${breakdownHtml}
+ <p><strong>${proposal.plannedChapterCount}개 장 · 작성 후보 최대 ${proposal.topicCandidateUpperBound}개 항목</strong>입니다. 풀이 본문은 결제를 확인한 뒤 제공합니다.</p>
  <p class="meta">장마다 펼쳐 볼 수 있는 세부 질문은 실제 계산에서 작성 후보로 선택된 항목만 보여 줍니다. 이것만으로 개인별 풀이가 완성됐다는 뜻은 아닙니다.</p>
  <h3>기본 해석 구성</h3>
- <ul>${primary.map(x=>`<li><strong>${esc(x.name)} · 추가 후보 최대 ${x.additionalTopicCandidateUpperBound}개${x.freeBaselineTopicCount?' · 무료 복습 '+x.freeBaselineTopicCount+'개 별도':''}</strong><details><summary>작성 후보 질문 보기</summary><ul>${x.eligibleTopics.map(t=>`<li>${t.alreadyFreeBaseline?'[이미 무료 공개] ':''}${esc(t.title)}</li>`).join('')}</ul></details></li>`).join('')}</ul>
+ <ul>${primary.map(x=>`<li><strong>${esc(x.name)} · 최대 ${x.eligibleTopicUpperBound}개 항목</strong><details><summary>작성 후보 질문 보기</summary><ul>${x.eligibleTopics.map(t=>`<li>${esc(t.title)}</li>`).join('')}</ul></details></li>`).join('')}</ul>
  ${conditional.length?`<h3>별도 계산 근거가 있는 2027년 추가 분야</h3><ul>${conditional.map(x=>`<li><strong>${esc(x.name)} · 최대 ${x.eligibleTopicUpperBound}개 항목</strong><details><summary>작성 후보 질문 보기</summary><ul>${x.eligibleTopics.map(t=>`<li>${esc(t.title)}</li>`).join('')}</ul></details></li>`).join('')}</ul>`:'<p class="meta">별도로 추가할 수 있는 2027년 금전·직업·관계 풀이가 확인되지 않았습니다.</p>'}
- ${omitted.length?`<h3>제외된 장</h3><ul>${omitted.map(x=>`<li>${esc(x.name)}: ${esc(x.omittedReason)}</li>`).join('')}</ul>`:''}
- ${excludedHtml}
- <p class="meta">이 구성은 구매 상품의 확정 약속이 아닌 검토 초안입니다. 기존 12장·${catalog.originallyPlannedTopics}항목 고정 목표는 달성하지 못했습니다. 선택된 항목도 중복이나 근거 부족으로 실제 작성 시 생략될 수 있으며, 판매 가격과 정식 제공량은 결정되지 않았습니다.</p>
+ <p class="meta">실제 보고서 항목은 계산 근거와 원고 검증에 따라 달라집니다.</p>
  <p id="coverageSalesNotice"><strong>현재 유료 구매와 정식 보고서 생성은 준비 중입니다.</strong> 결제나 유료 AI 생성 요청은 진행하지 않습니다.</p>
  <button class="btn primary" type="button" id="coverageBackToInput">입력 화면으로 돌아가기</button>
  </section>`;

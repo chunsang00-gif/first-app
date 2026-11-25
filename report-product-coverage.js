@@ -27,7 +27,7 @@ const NAMES=Object.freeze({
 const TOPIC_NAMES=Object.freeze({
  saju_core:Object.freeze({
   temperament:'태어난 시기의 풀이 후보(추가 유료 근거 미확정)',
-  strength:'무료 풀이에 포함된 태어난 달의 기본 설명'
+  strength:'태어난 달의 기본 해석'
  }),
  mbti_contradiction:Object.freeze({
   agreement:'사주와 MBTI가 각각 설명하는 공통 질문',
@@ -337,4 +337,17 @@ function alreadyPublicDomainReadings(packet,options){
   readerQuestion:packet.person?.readerDecision});
  return independentDomainReadings(packet,blueprint,new Set(choice.plannedIds),options);
 }
-module.exports={calculate,NAMES,independentDomainReadings,alreadyPublicDomainReadings};
+// The unauthenticated purchase route exposes scope, while the existing
+// calculated manuscripts stay available to internal editorial checks.
+function purchasePreview(summary){
+ if(summary.status!=='ready')return summary;
+ const {readingSample,interpretivePreviews,...preview}=summary;
+ const first=preview.firstChapterFeasibility;
+ return {...preview,
+  firstChapterFeasibility:{...first,message:first.status==='source-candidate-not-validated'?
+   '입력에 맞춘 보고서의 계산 근거를 확인했습니다. 원고 검증이 끝나면 구매할 수 있습니다.':
+   '현재 입력으로는 유료 첫 장의 해석 근거를 충분히 확인할 수 없습니다.'},
+  notice:'입력에 맞춰 구성 후보를 확인했습니다. 실제 보고서의 항목은 검증 결과에 따라 달라집니다.'
+ };
+}
+module.exports={calculate,NAMES,independentDomainReadings,alreadyPublicDomainReadings,purchasePreview};

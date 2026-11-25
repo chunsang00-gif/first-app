@@ -228,7 +228,7 @@ if(req.method==='POST'&&req.url==='/api/checkout/start'){
     'first-chapter-interpretation-unavailable',
    message:buyerQuestionUnverifiable?
     '현재 적은 고민은 두 선택을 구분하거나 핵심 질문을 확인하기 어려워 유료 보고서를 준비할 수 없습니다. 한 가지 구체적인 고민 또는 비교할 두 선택을 분명히 적어 주세요. 주문과 결제는 진행되지 않았습니다.':
-    '이번 입력에서는 무료 풀이와 구별되는 유료 첫 장을 아직 확인하지 못했습니다. 주문과 결제는 진행되지 않았습니다.'
+    '이번 입력에서는 유료 첫 장을 제공할 근거를 아직 확인하지 못했습니다. 주문과 결제는 진행되지 않았습니다.'
   });
  }
  let offer;
@@ -267,7 +267,7 @@ if(req.method==='POST'&&req.url==='/api/checkout/status'){
   return json(res,403,{status:'blocked',code:'PAYMENT_ORDER_OWNER_DENIED'});
  }
 }
-if(req.method==='POST'&&req.url==='/api/calculate'){const input=await body(req),errors=validateInput(input);if(errors.length)return json(res,422,{status:'blocked',errors});if(input.unknownBirthTime)input.birthTime='12:00';const packet=facts.build(input,2027);return json(res,packet.status==='ready'?200:422,packet)}if(req.method==='POST'&&req.url==='/api/report-coverage'){const input=await body(req),errors=validateInput(input);if(errors.length)return json(res,422,{status:'blocked',errors});if(input.unknownBirthTime)input.birthTime='12:00';const summary=require('./report-product-coverage').calculate(input);return json(res,summary.status==='ready'?200:422,summary)}if(req.method==='POST'&&req.url==='/api/report'){
+if(req.method==='POST'&&req.url==='/api/calculate'){const input=await body(req),errors=validateInput(input);if(errors.length)return json(res,422,{status:'blocked',errors});if(input.unknownBirthTime)input.birthTime='12:00';const packet=facts.build(input,2027);return json(res,packet.status==='ready'?200:422,packet)}if(req.method==='POST'&&req.url==='/api/report-coverage'){const input=await body(req),errors=validateInput(input);if(errors.length)return json(res,422,{status:'blocked',errors});if(input.unknownBirthTime)input.birthTime='12:00';const summary=require('./report-product-coverage').calculate(input);return json(res,summary.status==='ready'?200:422,require('./report-product-coverage').purchasePreview(summary))}if(req.method==='POST'&&req.url==='/api/report'){
  const localMock=localMockEnabled(req);
  const payload=await body(req);
  // Closing NEW sales must not revoke a previously verified customer's
