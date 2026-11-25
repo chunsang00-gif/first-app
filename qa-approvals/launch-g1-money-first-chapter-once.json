@@ -1,0 +1,14 @@
+{
+  "kind": "launch-g1-exact-money-first-chapter-user-consent-v1",
+  "operatorApprovedOneBillableCall": true,
+  "model": "gpt-6-luna",
+  "requestSha256": "aa28e503eb9bacb76ed609424605e54f06b3a886da5b2dc33fa8180879370647",
+  "noRetries": true,
+  "noPayment": true,
+  "noDeployment": true,
+  "allowedChapters": [
+    "saju_core"
+  ],
+  "consentSource": "explicit-chat-approval-for-this-g1-call",
+  "parentCommit": "19b43e941968acf22cbe3544a5a4360a5c03c927"
+}
