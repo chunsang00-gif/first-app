@@ -66,6 +66,22 @@ function check(candidate,response){
  // Structural check only; human review and canonical validator remain required.
  return errors;
 }
+// Connect compact text verbatim to existing first-chapter editorial gates.
+// This is a paragraph-level bridge, NOT a complete report decoder or sale.
+function reviewParagraph(candidate,response,packet){
+ const structural=check(candidate,response);
+ if(structural.length)return {pass:false,problems:structural,paragraph:null};
+ const paragraph=candidate.fields.map(k=>response[k].trim()).join(' ');
+ const section={id:'saju_core',bodyTopics:['temperament'],body:[paragraph]};
+ const problems=[
+  ...require('./report-paid-core-hour-choice-meaning').inspect([section],packet),
+  ...require('./report-paid-core-two-choice-value').inspect(paragraph,candidate.question),
+  ...require('./report-paid-free-copy-gate').inspect([section],packet),
+  ...require('./report-reader-policy').errors([paragraph])
+ ];
+ return {pass:problems.length===0,problems,paragraph,
+  sourceIds:candidate.proof.sourceRefs.slice(),saleApproved:false};
+}
 async function inspect(){
  const prev=global.fetch;let network=0;
  global.fetch=async()=>{network++;throw Error('COMPACT_OFFLINE_NO_NETWORK')};
@@ -81,12 +97,27 @@ async function inspect(){
   assert.equal(candidate.request.max_output_tokens,1200);
   assert.deepEqual(check(candidate,{relationship:'',firstChoice:'',secondChoice:''}),['length-or-empty']);
   assert.deepEqual(check(candidate,{relationship:'x',firstChoice:'y',secondChoice:'z',extra:'x'}),['shape']);
+  // Human-authored synthetic fixture, never a real provider response.
+  const fixture={
+   relationship:'태어난 시간의 안쪽 글자가 겉글자를 뒷받침하는 관계는 필요한 돈을 마련하는 길을 맡은 책임과 함께 살펴보는 전통적 해석입니다.',
+   firstChoice:'적금을 유지하는 경우, 적금에 넣은 돈을 남겨 두면서 납입 일정에 맞춰 필요한 돈을 다른 경로에서 마련할 수 있는지 살펴봅니다.',
+   secondChoice:'대출을 상환하는 경우, 상환 자금을 확보한 뒤 남은 생활비와 비상시 필요한 자원의 규모를 따로 확인합니다.'
+  };
+  const review=reviewParagraph(candidate,fixture,c.prompt.facts);
+  assert.deepEqual(review.problems,[],'existing editorial gate rejected the compact fixture');
+  assert.equal(review.pass,true);
+  assert.equal(review.paragraph,Object.values(fixture).join(' '));
+  assert.equal(review.saleApproved,false);
+  const wrong={...fixture,relationship:fixture.relationship.replace('안쪽 글자가 겉글자를','겉글자가 안쪽 글자를')};
+  assert(reviewParagraph(candidate,wrong,c.prompt.facts).problems.some(x=>x.includes('direction-conflicts')));
+  const repeated={...fixture,secondChoice:fixture.firstChoice.replaceAll('적금을 유지','대출을 상환')};
+  assert.equal(reviewParagraph(candidate,repeated,c.prompt.facts).pass,false);
   assert.equal(network,0);
   return {kind:'offline-compact-writer-candidate',oldRequestBytes:before,newRequestBytes:after,
    reductionPercent:Math.round(100*(1-after/before)),oldOutputLimit:old.max_output_tokens,newOutputLimit:candidate.request.max_output_tokens,
    retainedSourceIds:candidate.proof.sourceRefs,modelCalls:0,
-   integrationWithCanonicalDecoder:false,actualManuscriptVerified:false,saleApproved:false};
+   existingParagraphGatesPassed:true,fullDecoderIntegrated:false,actualManuscriptVerified:false,saleApproved:false};
  }finally{global.fetch=prev}
 }
 if(require.main===module)inspect().then(r=>console.log('G1_COMPACT_OFFLINE='+JSON.stringify(r))).catch(e=>{console.error(e);process.exitCode=1});
-module.exports={build,check,inspect};
+module.exports={build,check,reviewParagraph,inspect};
