@@ -169,6 +169,14 @@ async function inspect(){
   assert.equal(assembled.decoded.finalJudgment,null);
   assert.equal(assembled.fullReportCompleted,false);
   assert.equal(assembled.saleApproved,false);
+  // The canonical decoder must still reject a missing or substituted hour
+  // citation. The inherited month-seasonal requirement is NOT a reason
+  // to weaken the exact independent two-source contract.
+  for(const refs of [[candidate.proof.sourceRefs[0]],['natal.month.stem',candidate.proof.sourceRefs[1]]]){
+   const invalid=structuredClone(assembled.raw);
+   invalid.chapters.saju_core.paragraphs.temperament.basis.refs=refs;
+   assert.throws(()=>require('./report-response-decoder').decode(invalid,c.prompt),/missing-hour-pair-citations|unrelated paragraph basis|EXACT_REQUIRED_SOURCE_PAIR_MISMATCH/);
+  }
   assert.throws(()=>assemble(candidate,wrong,c.prompt),/COMPACT_READER_REJECTED/);
   assert.equal(network,0);
   return {kind:'offline-compact-writer-candidate',oldRequestBytes:before,newRequestBytes:after,
