@@ -2603,7 +2603,10 @@ function restoreEvidence(value,prompt){
         b.refs.length!==2||new Set(b.refs).size!==2||
         !pair.sourceRefs.every(ref=>b.refs.includes(ref)))
       throw Error('CORE_HOUR_EXACT_REQUIRED_SOURCE_PAIR_MISMATCH');
-     requiredKinds=requiredKinds.filter(k=>!['seasonal','natal-month-position','month-ten-god'].includes(k));
+     // All legacy source-kind requirements belong to the replaced topic.
+     // The exact independently recomputed pair above is the entire source
+     // contract here; the schema cannot emit any additional citation.
+     requiredKinds=[];
     }
     if(requiredKinds.includes('month-ten-god')){
      const monthStem=payload.source['facts.structuralEvidence.monthCommand']?.mainHiddenStem;
