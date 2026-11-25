@@ -1,0 +1,51 @@
+# No billable action except a separately approved, new, marker-only push.
+name: Launch G1 skill first chapter one explicitly approved call
+on:
+  push:
+    branches: [fix-paid-qa-fact-bindings-20261014]
+    paths:
+      - qa-approvals/launch-g1-skill-once.json
+permissions:
+  contents: read
+  actions: read
+jobs:
+  compact-one-call:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    concurrency:
+      group: launch-g1-skill-single-attempt
+      cancel-in-progress: false
+    env:
+      NODE_ENV: test
+      REPORT_MODEL_URL: ''
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --ignore-scripts --no-audit --no-fund
+      - name: Verify complete offline first chapter batch before billing
+        env:
+          OPENAI_API_KEY: ''
+        run: node qa-launch-g1-skill-once.js --preflight
+      - name: Exactly one approved compact request and existing batch validation
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node qa-launch-g1-skill-once.js
+      - name: Encrypt original even on failure
+        if: always()
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: node report-qa-secure-archive.js encrypt
+      - name: Upload only encrypted private evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: launch-g1-skill-encrypted-evidence
+          path: premium-first-chapter-qa.enc
+          if-no-files-found: ignore
+          retention-days: 30
