@@ -82,6 +82,58 @@ function reviewParagraph(candidate,response,packet){
  return {pass:problems.length===0,problems,paragraph,
   sourceIds:candidate.proof.sourceRefs.slice(),saleApproved:false};
 }
+// Assemble the canonical first chapter from checked reader sentences and
+// independently computed metadata. Never repair or replace rejected prose.
+// This function is not connected to live provider transport.
+function assemble(candidate,response,prompt){
+ const checked=reviewParagraph(candidate,response,prompt.facts);
+ if(!checked.pass)throw Error('COMPACT_READER_REJECTED:'+checked.problems.join('|'));
+ const verified=build(prompt);
+ assert.deepEqual(candidate.request,verified.request);
+ assert.deepEqual(candidate.proof,verified.proof);
+ const compiled=writer.compile(prompt);
+ const chapter=compiled.task.chapters.saju_core;
+ const recap=chapter.topics.strength.sourceOwnedCoreReaderValue;
+ assert.equal(recap.scope,'already-public-month-recap-only-v1');
+ assert.equal(recap.notAnAdditionalPaidParagraph,true);
+ const month=verified.free.cards.find(x=>x.id==='birth-month');
+ assert(month&&typeof month.text==='string'&&month.text.trim());
+ const thesis=require('./report-core-thesis').forPrompt(prompt);
+ assert.equal(thesis.sourcePosition,'hour');
+ assert.deepEqual(thesis.sourceIds,verified.proof.sourceRefs);
+ const basis=(refs,interpretation,condition)=>({
+  refs:refs.slice(),interpretation,condition,
+  limit:'전통적 상징 해석이며 실제 행동이나 미래 결과를 확인한 자료가 아님.'
+ });
+ const raw={chapters:{saju_core:{
+  title:thesis.title,keyJudgment:thesis.keyJudgment,mood:'reflective',
+  paragraphs:{
+   temperament:{label:'고민에 더하는 출생시간의 질문',text:checked.paragraph,
+    basis:basis(verified.proof.sourceRefs,verified.pair.symbolicQuestion,
+     '고객이 직접 입력한 두 선택에 조건부로 적용하는 전통적 질문')},
+   strength:{label:'무료 풀이 다시 보기',text:month.text,
+    basis:basis(recap.refs,'이미 공개된 출생월의 전통적 두 분류 복습',
+     '기존 무료 본문 그대로 제공하며 추가 유료 해석 아님')}
+  }
+ }},finalJudgment:null,cover:null};
+ const decoded=require('./report-response-decoder').decode(raw,prompt);
+ assert.equal(decoded.sections.length,1);
+ const result=decoded.sections[0];
+ assert.equal(result.id,'saju_core');
+ assert.deepEqual(result.bodyTopics,['temperament','strength']);
+ assert.equal(result.body[0],checked.paragraph,'reader prose cannot be silently rewritten');
+ const scope=require('./report-batch-evidence-gate').check(decoded.sections,prompt.analysisGuidance.editorialBlueprint);
+ assert.deepEqual(scope.problems,[]);
+ const contract=require('./report-server-contract');
+ const failures=[
+  ...contract.earlyFreePreviewCopyProblems(decoded.sections,prompt.facts),
+  ...contract.earlyPaidCoreMinimumValueProblems(decoded.sections,prompt.facts),
+  ...contract.earlyPaidCoreChoiceProblems(decoded.sections,prompt.facts),
+  ...contract.earlyPaidCoreHourMeaningProblems(decoded.sections,prompt.facts)
+ ];
+ if(failures.length)throw Error('COMPACT_CANONICAL_REJECTED:'+failures.join('|'));
+ return {decoded,raw,fullReportCompleted:false,saleApproved:false};
+}
 async function inspect(){
  const prev=global.fetch;let network=0;
  global.fetch=async()=>{network++;throw Error('COMPACT_OFFLINE_NO_NETWORK')};
@@ -112,12 +164,18 @@ async function inspect(){
   assert(reviewParagraph(candidate,wrong,c.prompt.facts).problems.some(x=>x.includes('direction-conflicts')));
   const repeated={...fixture,secondChoice:fixture.firstChoice.replaceAll('적금을 유지','대출을 상환')};
   assert.equal(reviewParagraph(candidate,repeated,c.prompt.facts).pass,false);
+  const assembled=assemble(candidate,fixture,c.prompt);
+  assert.equal(assembled.decoded.sections[0].body[0],review.paragraph);
+  assert.equal(assembled.decoded.finalJudgment,null);
+  assert.equal(assembled.fullReportCompleted,false);
+  assert.equal(assembled.saleApproved,false);
+  assert.throws(()=>assemble(candidate,wrong,c.prompt),/COMPACT_READER_REJECTED/);
   assert.equal(network,0);
   return {kind:'offline-compact-writer-candidate',oldRequestBytes:before,newRequestBytes:after,
    reductionPercent:Math.round(100*(1-after/before)),oldOutputLimit:old.max_output_tokens,newOutputLimit:candidate.request.max_output_tokens,
    retainedSourceIds:candidate.proof.sourceRefs,modelCalls:0,
-   existingParagraphGatesPassed:true,fullDecoderIntegrated:false,actualManuscriptVerified:false,saleApproved:false};
+   existingParagraphGatesPassed:true,canonicalFirstChapterDecoderIntegrated:true,fullReportCompleted:false,actualManuscriptVerified:false,saleApproved:false};
  }finally{global.fetch=prev}
 }
 if(require.main===module)inspect().then(r=>console.log('G1_COMPACT_OFFLINE='+JSON.stringify(r))).catch(e=>{console.error(e);process.exitCode=1});
-module.exports={build,check,reviewParagraph,inspect};
+module.exports={build,check,reviewParagraph,assemble,inspect};
