@@ -178,11 +178,28 @@ async function inspect(){
    assert.throws(()=>require('./report-response-decoder').decode(invalid,c.prompt),/missing-hour-pair-citations|unrelated paragraph basis|EXACT_REQUIRED_SOURCE_PAIR_MISMATCH/);
   }
   assert.throws(()=>assemble(candidate,wrong,c.prompt),/COMPACT_READER_REJECTED/);
+  // Exercise the complete existing batch pipeline, stopping at the first
+  // validated chapter. No real model, network, synthesis, or second call.
+  let mockCalls=0,validated=0;
+  const stop='COMPACT_OFFLINE_FIRST_BATCH_STOP';
+  await assert.rejects(()=>require('./report-server-contract').generate(pilot.INPUT,
+   async prompt=>{
+    assert.equal(++mockCalls,1);
+    const exact=build(prompt);
+    assert.deepEqual(exact.request,candidate.request);
+    return assemble(exact,fixture,prompt).decoded;
+   },()=>{},async batch=>{
+    assert.deepEqual(batch.ids,['saju_core']);
+    assert.equal(batch.completedSections,1);
+    validated++;throw Error(stop);
+   }),e=>e.message===stop);
+  assert.equal(mockCalls,1);
+  assert.equal(validated,1);
   assert.equal(network,0);
   return {kind:'offline-compact-writer-candidate',oldRequestBytes:before,newRequestBytes:after,
    reductionPercent:Math.round(100*(1-after/before)),oldOutputLimit:old.max_output_tokens,newOutputLimit:candidate.request.max_output_tokens,
    retainedSourceIds:candidate.proof.sourceRefs,modelCalls:0,
-   existingParagraphGatesPassed:true,canonicalFirstChapterDecoderIntegrated:true,fullReportCompleted:false,actualManuscriptVerified:false,saleApproved:false};
+   existingParagraphGatesPassed:true,canonicalFirstChapterDecoderIntegrated:true,canonicalFirstBatchMockValidated:true,fullReportCompleted:false,actualManuscriptVerified:false,saleApproved:false};
  }finally{global.fetch=prev}
 }
 if(require.main===module)inspect().then(r=>console.log('G1_COMPACT_OFFLINE='+JSON.stringify(r))).catch(e=>{console.error(e);process.exitCode=1});
