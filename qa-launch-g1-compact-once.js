@@ -16,8 +16,10 @@ async function preflight(){
  const candidate=compact.build(c.prompt);
  assert.equal(candidate.request.max_output_tokens,1200);
  assert.equal(result.newRequestBytes,6414);
- return {requestSha256:hash(candidate.request),requestBytes:6414,model:pilot.MODEL,outputLimit:1200,
+ const packet={requestSha256:hash(candidate.request),requestBytes:6414,model:pilot.MODEL,outputLimit:1200,
   previousAttemptConsumed:true,paidCalls:0,saleApproved:false};
+ await testAuthorization(packet);
+ return packet;
 }
 function approve(marker,expected,env,git){
  assert.deepEqual(marker,{
@@ -42,6 +44,29 @@ async function history(env,fetcher){
  const v=b.workflow_runs[0];
  assert.equal(v.id,Number(env.GITHUB_RUN_ID));assert.equal(v.head_sha,env.GITHUB_SHA);
  assert.equal(v.head_branch,BRANCH);assert.equal(v.run_attempt,1);assert.equal(v.event,'push');assert.equal(v.path,WORKFLOW);
+}
+// Offline-only authorization regression: real paid marker and history
+// are never consulted here. These fake credentials cannot call a provider.
+async function testAuthorization(expected){
+ const parent='a'.repeat(40),head='b'.repeat(40);
+ const marker={kind:'launch-g1-compact-explicit-one-call-v1',operatorApprovedOneBillableCall:true,
+  requestSha256:expected.requestSha256,model:pilot.MODEL,noRetries:true,noPayment:true,noDeployment:true,parentCommit:parent};
+ const env={GITHUB_REPOSITORY:REPO,GITHUB_REF:'refs/heads/'+BRANCH,
+  GITHUB_WORKFLOW_REF:REPO+'/'+WORKFLOW+'@refs/heads/'+BRANCH,GITHUB_EVENT_NAME:'push',
+  GITHUB_ACTIONS:'true',GITHUB_RUN_ATTEMPT:'1',NODE_ENV:'test',GITHUB_SHA:head,GITHUB_RUN_ID:'1234',
+  OPENAI_API_KEY:'OFFLINE_FAKE_ONLY_NEVER_A_PROVIDER_KEY_123456',GITHUB_TOKEN:'OFFLINE_FAKE_ONLY'};
+ const git=a=>({'rev-parse HEAD^':parent,'rev-parse HEAD':head,'diff --name-only HEAD^ HEAD':MARKER})[a.join(' ')];
+ approve(marker,expected,env,git);
+ for(const change of [{requestSha256:'0'.repeat(64)},{noRetries:false},{operatorApprovedOneBillableCall:false}])
+  assert.throws(()=>approve({...marker,...change},expected,env,git));
+ assert.throws(()=>approve(marker,expected,{...env,GITHUB_RUN_ATTEMPT:'2'},git));
+ assert.throws(()=>approve(marker,expected,{...env,GITHUB_EVENT_NAME:'workflow_dispatch'},git));
+ assert.throws(()=>approve(marker,expected,env,a=>a[0]==='diff'?'server.js':git(a)));
+ const first={id:1234,head_sha:head,head_branch:BRANCH,run_attempt:1,event:'push',path:WORKFLOW};
+ const fake=b=>async()=>({ok:true,json:async()=>b});
+ await history(env,fake({total_count:1,workflow_runs:[first]}));
+ await assert.rejects(()=>history(env,fake({total_count:2,workflow_runs:[first,first]})));
+ await assert.rejects(()=>history(env,fake({total_count:1,workflow_runs:[{...first,run_attempt:2}]})));
 }
 function save(name,data){
  assert(archive.NAMES.includes(name));fs.writeFileSync(name,JSON.stringify(data,null,2),{flag:'wx',mode:0o600});
@@ -85,6 +110,6 @@ async function run(){
 }
 if(require.main===module){
  const fn=process.argv[2]==='--preflight'?async()=>console.log('COMPACT_APPROVAL_PACKET='+JSON.stringify(await preflight())):run;
- fn().catch(()=>{console.error('COMPACT_EXECUTION_STOPPED');process.exitCode=1});
+ fn().catch(e=>{if(process.argv[2]==='--preflight')console.error('COMPACT_OFFLINE_PREFLIGHT_FAILED:',e.stack);else console.error('COMPACT_EXECUTION_STOPPED');process.exitCode=1});
 }
 module.exports={preflight,approve,history,hash};
