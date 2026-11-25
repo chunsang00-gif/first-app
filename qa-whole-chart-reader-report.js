@@ -18,6 +18,7 @@ function build(packet){
  if(!decision||decision.birthTime!=='14:20'||packet.targetYear?.year!==2027)
   return null;
  const first=firstChapter.build(packet);
+ const countercondition=first?.paragraphs.find(paragraph=>paragraph.kind==='exact-day-hour-classical-text')?.conditionalRelationAudit;
  const natal=graph.build(packet);
  const rows=new Map(bindings.build(packet).map(row=>[row.id,row]));
  const natalClashes=natal.natalRelations.filter(row=>row.type==='충'&&
@@ -32,7 +33,8 @@ function build(packet){
     rows.get('annual.stem')?.stem!==rows.get('natal.hour.hidden.丁')?.stem||
     natalClashes.length!==2||!natalClashes.includes('day')||
     !natalClashes.includes('hour')||!annualMonthClash||
-    !first.competingClassicalClause||
+    countercondition?.volumeSix?.matches.map(match=>match.position).join('/')!=='month/hour'||
+    countercondition.counteractionEffectProved!==false||
     decision.relativeInterpretiveDominanceDecided===true)
   throw Error('WHOLE_CHART_REPORT_EVIDENCE_DRIFT');
 
@@ -42,14 +44,15 @@ function build(packet){
    refs:['natal.year.stem','natal.month.stem','natal.day.stem',
     'natal.hour.stem','facts.natalBranchRelations','facts.seasonalEvidence']},
   {id:'career',title:'배운 것을 끝내는 데 걸리는 조건',
-   text:'태어난 시간에는 이해를 더하려는 뜻이 결과를 내는 뜻을 누르는 관계가 있습니다. 같은 자리 안쪽의 자원을 살피는 뜻은 그 제약을 누그러뜨릴 조건으로 읽힙니다. 필요한 수단이 갖춰지면 배운 내용을 결과로 옮길 여지가 있습니다. 반대로 이해를 더하는 데만 머물면 끝내야 할 일이 밀릴 수 있습니다. 이 사주에서 제약과 완화 중 어느 쪽이 더 강한지는 확정하지 않습니다.',
-   refs:['natal.hour.stem','natal.hour.hidden.丁','natal.hour.hidden.己']},
+   text:'태어난 시간에는 이해를 더하려는 뜻이 결과를 내는 뜻을 제약하는 관계가 있습니다. 고전에서는 그 제약을 줄이는 별도 조건도 봅니다. 이 사주에서는 태어난 달과 시간의 안쪽에 그 조건에 해당하는 글자가 있습니다. 따라서 결과가 막힌다고 단정할 수 없습니다. 두 작용 가운데 어느 쪽이 우세한지는 이 자료로 정하지 못합니다.',
+   refs:['natal.day.stem','natal.month.stem','natal.month.hidden.己',
+    'natal.hour.stem','natal.hour.hidden.丁','natal.hour.hidden.己']},
   {id:'year_2027',title:'2027년에는 안쪽에 있던 표현의 뜻이 겉에 드러납니다',
    text:'태어난 시간 안쪽의 결과물 관련 글자가 2027년의 겉에 나타납니다. 또 2027년은 태어난 달과 맞서는데, 태어난 날과 시간에도 이미 같은 맞섬이 있습니다. 새로 읽을 부분은 결과를 표현하는 뜻이 해의 겉에 놓였다는 점입니다. 기존 맞섬을 2027년에 새로 생기는 사건으로 세지 않습니다.',
    refs:['annual.stem','natal.hour.hidden.丁','facts.targetYearBranchRelations',
     'facts.natalBranchRelations']}
  ];
- const finalJudgment='기존 자료를 참고하는 뜻과 자기 기준으로 다시 판단하는 뜻이 함께 있습니다. 다만 이해가 결과로 이어지려면 필요한 수단이 갖춰져야 한다는 조건이 붙습니다. 2027년 풀이에서도 이 조건을 빼고 성과를 단정할 수 없습니다.';
+ const finalJudgment='이 사주에서 결과를 읽을 때는 제약과 그것을 줄이는 조건을 함께 봅니다. 2027년에 결과와 관련된 글자가 겉에 나타나지만, 그 위치만으로 성과를 판단하지 않습니다.';
  if(sections.some(chapter=>chapter.refs.some(ref=>
     ref.startsWith('facts.')?!packet.facts[ref.slice(6)]:!rows.has(ref)))||
     readerPolicy.errors([...sections.flatMap(chapter=>[chapter.title,chapter.text]),
@@ -63,7 +66,7 @@ function build(packet){
   selfReportedMbti:packet.person.mbti,
   classicalReview:{
    chart:first.chartFingerprint,sourceScope:first.sourceScope,
-   competingCondition:first.competingClassicalClause,
+   competingCondition:countercondition,
    priorityApproved:false
   },
   modelCalls:0,saleApproved:false
@@ -71,7 +74,8 @@ function build(packet){
 }
 
 function verify(){
- const report=build(facts.build(INPUT,2027));
+ const packet=facts.build(INPUT,2027);
+ const report=build(packet);
  if(!report)throw Error('WHOLE_CHART_EXAMPLE_MISSING');
  for(const input of [
   {...INPUT,birthTime:'20:20'},
@@ -81,6 +85,14 @@ function verify(){
   if(build(facts.build(input,2027))!==null)
    throw Error('WHOLE_CHART_EXAMPLE_APPLIED_TO_DIFFERENT_CHART');
  }
+ const differentHour=facts.build({...INPUT,birthTime:'20:20'},2027);
+ const review=firstChapter.build(differentHour)?.competingClassicalClause;
+ if(review?.matches.map(match=>match.position).join('/')!=='month')
+  throw Error('WHOLE_CHART_REVIEW_MISATTRIBUTED_SHARED_CONDITION');
+ const changedYear=structuredClone(packet);
+ changedYear.facts.targetYearBranchRelations.pairs=[];
+ if(build(changedYear)!==null)
+  throw Error('WHOLE_CHART_REVIEW_ACCEPTED_TAMPERED_ANNUAL_RELATION');
  return report;
 }
 
