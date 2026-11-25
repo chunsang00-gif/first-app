@@ -1,0 +1,10 @@
+{
+  "kind": "launch-g1-skill-explicit-one-call-v1",
+  "operatorApprovedOneBillableCall": true,
+  "requestSha256": "1b8745df5c3a475ad92db00b9a440eecb35427ac4fa2ad383ae7c9e9066cc542",
+  "model": "gpt-6-luna",
+  "noRetries": true,
+  "noPayment": true,
+  "noDeployment": true,
+  "parentCommit": "03bdc06239e3fa645d2abb2b1a050f8990f44c49"
+}
