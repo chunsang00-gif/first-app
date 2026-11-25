@@ -142,6 +142,14 @@ const server=http.createServer(require('./server').handler);
   assert.equal(require('./report-paid-core-precharge-value')
    .inspect(validBuyerContext).eligible,true,
    'different, grounded customer work/skill inputs may enter the normal path');
+  const repeatedFreePair={...require('./qa-launch-g1-money-preflight').INPUT,
+   birthDate:'1982-01-02'};
+  const repeatedPairCheckout=await post('/api/checkout/start',
+   {analysisInput:{status:'ready',calculationInput:repeatedFreePair}});
+  assert.equal(repeatedPairCheckout.code,422);
+  assert.equal(repeatedPairCheckout.data.code,'FIRST_CHAPTER_VALUE_NOT_READY');
+  assert.equal(repeatedPairCheckout.data.orderId,undefined);
+  assert.equal(chargeAttempts,0);
   const startPayload={analysisInput:{status:'ready',calculationInput:input}};
   const missingOffer=await post('/api/checkout/start',{});
   assert.equal(missingOffer.code,422);

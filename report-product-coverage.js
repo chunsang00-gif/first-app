@@ -98,7 +98,7 @@ const WHY=Object.freeze({
 // interpretive builder used by the REAL paid writer. They are free,
 // unapproved illustrative interpretations, not a paid provider response.
 // Never return the original natal ledger, raw IDs, personal name or birth date.
-function independentDomainReadings(packet,blueprint,planned){
+function independentDomainReadings(packet,blueprint,planned,{includeSourceRefs=false}={}){
  if(packet.calculationInput?.unknownBirthTime===true)return [];
  const birthYear=Number(packet.calculationInput?.birthDate?.slice(0,4));
  const targetYear=Number(packet.targetYear?.year||2027);
@@ -135,7 +135,8 @@ function independentDomainReadings(packet,blueprint,planned){
      reading.readerParagraph.length<130||
      /(?:natal\.|annual\.|facts\.|person\.)/.test(reading.readerParagraph))
    throw Error('PREPURCHASE_INTERPRETIVE_READING_SOURCE_DRIFT:'+x.id);
-  return [Object.freeze({id:x.id,title:x.title,text:reading.readerParagraph})];
+  return [Object.freeze({id:x.id,title:x.title,text:reading.readerParagraph,
+   ...(includeSourceRefs?{sourceRefs:Object.freeze(reading.sourceRefs.slice())}:{})})];
  });
 }
 function calculate(input){
@@ -173,6 +174,8 @@ function calculate(input){
  const firstChapterReasons=Object.freeze({
   'hour-role-already-in-other-natal-pillar-unreviewed-positional-meaning':
    '출생시간에서 찾은 전통 분류와 정확히 같은 글자가 원국의 다른 위치에도 있습니다. 위치만 바뀐 설명을 새 유료 가치로 팔지 않으며, 검증된 위치별 해석법을 마련하기 전에는 유료 첫 장을 제공하지 않습니다.',
+  'hour-pair-already-explained-in-free-domain-reading':
+   '무료 풀이에서 이미 출생시간의 같은 두 근거를 함께 설명했습니다. 이 근거만으로는 유료 첫 장을 제공하지 않습니다.',
   'hour-whole-natal-category-audit-unverified':
    '출생시간의 추가 글자를 원국 전체와 대조해 독립성을 확인할 수 없어 유료 첫 장을 제공하지 않습니다.',
   'verified-hour-addition-awaits-human-review':
@@ -327,11 +330,11 @@ function calculate(input){
 // calculate(), without calling calculate() and its paid precharge/schema
 // (which would recurse when the paid first-chapter writer asks for context).
 // This is public writing context ONLY, never another birth-chart fact.
-function alreadyPublicDomainReadings(packet){
+function alreadyPublicDomainReadings(packet,options){
  if(packet?.status!=='ready')throw Error('FREE_DOMAIN_CONTEXT_NEEDS_CALCULATED_PACKET');
  const blueprint=guidance.preflight(packet);
  const choice=selection.select(groups,blueprint,{mode:'adaptive-v1',
   readerQuestion:packet.person?.readerDecision});
- return independentDomainReadings(packet,blueprint,new Set(choice.plannedIds));
+ return independentDomainReadings(packet,blueprint,new Set(choice.plannedIds),options);
 }
 module.exports={calculate,NAMES,independentDomainReadings,alreadyPublicDomainReadings};

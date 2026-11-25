@@ -51,6 +51,11 @@ function inspect(input){
  const wholeNatalDistinct=Boolean(onlyIndependentHour&&
   natalRoleAudit?.status==='not-exactly-repeated-across-other-natal-positions'&&
   natalRoleAudit.wholeNatalCategoryIsNew===true);
+ // An hour pair can be distinct within the chart yet already explained
+ // together in the full free report. Compare calculated refs, not wording.
+ const pairAlreadyFree=wholeNatalDistinct&&require('./report-product-coverage')
+  .alreadyPublicDomainReadings(packet,{includeSourceRefs:true})
+  .some(reading=>refs.every(ref=>reading.sourceRefs.includes(ref)));
  const yearRefs=year?.sourceRefs||[];
  const onlyIndependentYear=!hour&&
   year?.kind==='buyer-question-year-visible-role-addition-v1'&&
@@ -89,7 +94,7 @@ function inspect(input){
  // as an editorial draft, but NEVER authorize a paid order solely for it.
  return Object.freeze({
   kind:'adaptive-first-chapter-precharge-unique-evidence-v1',
-  eligible:Boolean(onlyIndependentHour&&wholeNatalDistinct)&&
+  eligible:Boolean(onlyIndependentHour&&wholeNatalDistinct&&!pairAlreadyFree)&&
    contextProblems.length===0&&readerProblems.length===0,
   reason:onlyIndependentHour&&contextProblems.length?
    'buyer-context-unusable-for-two-option-paid-explanation':
@@ -99,6 +104,7 @@ function inspect(input){
    'hour-role-already-in-other-natal-pillar-unreviewed-positional-meaning':
    onlyIndependentHour&&!wholeNatalDistinct?
    'hour-whole-natal-category-audit-unverified':
+   pairAlreadyFree?'hour-pair-already-explained-in-free-domain-reading':
    onlyIndependentHour?'verified-hour-addition-awaits-human-review':
    onlyIndependentYear?'year-visible-meaning-already-in-free-preview':
    'no-guaranteed-independent-first-chapter-paragraph',

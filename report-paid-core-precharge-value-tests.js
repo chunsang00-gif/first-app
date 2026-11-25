@@ -57,4 +57,13 @@ assert.equal(sameLabels.eligible,false,
 assert.equal(sameLabels.additionalModelCalls,0);
 const noTime=gate.inspect({...base,birthTime:'',unknownBirthTime:true,readerDecision:choice});
 assert.equal(noTime.eligible,false);
+const money=require('./qa-launch-g1-money-preflight').INPUT;
+const alreadyFree={...money,birthDate:'1982-01-02'};
+assert.equal(gate.inspect(money).eligible,true);
+assert.equal(gate.inspect(alreadyFree).eligible,false);
+assert.equal(gate.inspect(alreadyFree).reason,
+ 'hour-pair-already-explained-in-free-domain-reading');
+const coverage=require('./report-product-coverage').calculate(alreadyFree);
+assert(coverage.interpretivePreviews.some(reading=>reading.id==='money.earning'));
+assert(coverage.interpretivePreviews.every(reading=>!Object.hasOwn(reading,'sourceRefs')));
 console.log('PASS zero-cost precharge rejects repeated hour roles across the natal chart');
