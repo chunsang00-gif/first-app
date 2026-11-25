@@ -151,7 +151,7 @@ function build({attempt,raw=null,validated=null,summary}){
  // The customer paid for birth-HOUR meaning, not an expanded month recap.
  // Preserve original topic labels and raw prose; never edit model output
  // to mask failures. The human reviewer sees it in source order.
- const paidParagraphs=['strength','temperament'].flatMap(id=>{
+ const paidParagraphs=['temperament','strength'].flatMap(id=>{
   const p=original?.paragraphs?.[id];
   return text(p?.text).trim()?
    [{id,label:text(p.label||id),text:p.text}]:[];
