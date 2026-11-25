@@ -1,0 +1,100 @@
+name: Diagnose consumed skill G1 archive without model calls
+on:
+  push:
+    branches: [fix-paid-qa-fact-bindings-20261014]
+    paths: [.github/workflows/qa-diagnose-skill-g1-existing.yml]
+permissions:
+  contents: read
+  actions: read
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ccdcbb33e084600e38f512c06f0060ea69ca992c
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --ignore-scripts --no-audit --no-fund
+      - uses: actions/download-artifact@v4
+        with:
+          repository: chunsang00-gif/first-app
+          run-id: 45704404825
+          name: launch-g1-skill-encrypted-evidence
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/source
+      - name: Decrypt existing archive and replay all checks locally; safe diagnostics only
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          set -euo pipefail
+          umask 077
+          trap 'rm -rf "$RUNNER_TEMP/source" "$RUNNER_TEMP/compact-private"' EXIT
+          node report-qa-secure-archive.js decrypt "$RUNNER_TEMP/source/premium-first-chapter-qa.enc" "$RUNNER_TEMP/compact-private"
+          unset OPENAI_API_KEY REPORT_MODEL_URL REPORT_MODEL_KEY
+          node - <<'NODE'
+          const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
+          const dir=path.join(process.env.RUNNER_TEMP,'compact-private');
+          const read=n=>JSON.parse(fs.readFileSync(path.join(dir,n),'utf8'));
+          const compact=require('./qa-launch-g1-compact-writer');
+          const input={...require('./qa-launch-g1-money-preflight').INPUT,birthDate:'1982-10-15',readerDecision:'기존 일을 유지할지 새로운 기술을 배울지 고민 중입니다.'};
+          const hash=require('./qa-launch-g1-skill-once').hash;
+          const expected='1b8745df5c3a475ad92db00b9a440eecb35427ac4fa2ad383ae7c9e9066cc542';
+          let network=0;
+          global.fetch=async()=>{network++;throw Error('NETWORK_DENIED')};
+          const out={runId:45704404825,newProviderCalls:0,saleApproved:false,stage:'archive'};
+          const safeEnum=(v,allowed)=>allowed.includes(v)?v:'other-or-absent';
+          const safeProblems=xs=>xs.map(x=>/^(?:shape|length-or-empty|duplicate|jargon|firstChoice-missing|secondChoice-missing|exact-free-copy|(?:saju_core:)?(?:buyer-|hour-pair-)[a-z-]+|copied-free-reader-meaning:saju_core:temperament:[a-z0-9_-]+)$/.test(x)?x:'other-reader-check');
+          (async()=>{
+            const attempt=read('private-qa-first-chapter-attempt.json');
+            assert.equal(attempt.requestSha256,expected);assert.equal(attempt.runId,'45704404825');
+            const summary=read('private-qa-first-chapter.json');
+            out.calls=summary.calls;out.validated=summary.validated;
+            out.stage='provider-response';
+            const file='private-qa-first-chapter-provider-calls.json';
+            if(!fs.existsSync(path.join(dir,file))){out.stage='no-provider-response-saved';return;}
+            const record=read(file);
+            assert.equal(record.kind,'compact-original-response');assert.equal(hash(record.request),expected);
+            const raw=record.response;
+            out.providerStatus=safeEnum(raw.status,['completed','incomplete','failed','cancelled','queued','in_progress']);
+            out.incompleteReason=safeEnum(raw.incomplete_details?.reason,['max_output_tokens','content_filter']);
+            out.providerErrorCode=safeEnum(raw.error?.code,['model_not_found','invalid_request_error','invalid_json_schema','unsupported_parameter','rate_limit_exceeded','insufficient_quota','server_error','invalid_api_key']);
+            out.usage=Object.fromEntries(['input_tokens','output_tokens','total_tokens'].map(k=>[k,Number.isInteger(raw.usage?.[k])?raw.usage[k]:null]));
+            if(raw.status!=='completed')return;
+            const text=raw.output?.flatMap(x=>x.type==='message'?x.content||[]:[]).filter(x=>x.type==='output_text').map(x=>x.text).join('')||'';
+            out.outputChars=text.length;out.stage='json';
+            if(!text)return;
+            let value;try{value=JSON.parse(text)}catch{return;}
+            out.stage='paragraph-check';
+            const c=await require('./report-core-paid-full-prompt-capture').capture(input);
+            const candidate=compact.build(c.prompt);
+            assert.equal(hash(candidate.request),expected);
+            out.fieldLengths=Object.fromEntries(candidate.fields.map(k=>[k,typeof value?.[k]==='string'?value[k].trim().length:null]));
+            const review=compact.reviewParagraph(candidate,value,c.prompt.facts);
+            out.readerProblems=safeProblems(review.problems);
+            if(!review.pass)return;
+            out.stage='canonical-decoder';
+            const assembled=compact.assemble(candidate,value,c.prompt);
+            out.decoderPassed=true;
+            out.stage='existing-batch';
+            const stop='EXISTING_COMPACT_ARCHIVE_BATCH_STOP';
+            const originalLog=console.error;
+            // Avoid raw private prose in unexpected error logs.
+            console.error=()=>{};
+            try{
+              await require('./report-server-contract').generate(input,
+                async prompt=>compact.assemble(compact.build(prompt),value,prompt).decoded,
+                ()=>{},async batch=>{assert.deepEqual(batch.ids,['saju_core']);out.batchPassed=true;throw Error(stop)});
+            }catch(e){if(e.message!==stop)throw e;}
+            finally{console.error=originalLog;}
+            out.stage='batch-validated-human-review-required';
+          })().catch(e=>{
+            const m=String(e.message||'');
+            out.errorClass=/^AI report service [a-z -]+$/.test(m)?m:
+              /^COMPACT_(?:READER|CANONICAL)_REJECTED:/.test(m)?m.split(':')[0]:
+              e.name==='AssertionError'?'assertion-failure':'other-private-error';
+          }).finally(()=>{out.networkAttempts=network;console.log('SKILL_ARCHIVE_DIAGNOSIS='+JSON.stringify(out));if(network)process.exitCode=1;});
+          NODE
