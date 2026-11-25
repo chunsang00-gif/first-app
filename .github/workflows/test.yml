@@ -29,6 +29,13 @@ jobs:
           REPORT_QA_CONFIRM: ''
           REPORT_QA_ALLOW_PAYMENT: ''
         run: node qa-launch-g1-money-single-call-tests.js
+      - name: Launch G1 — review ORIGINAL first chapter beside same-chart FREE prose, using ONLY offline private fixtures
+        env:
+          OPENAI_API_KEY: ''
+          REPORT_MODEL_URL: ''
+          REPORT_QA_CONFIRM: ''
+          REPORT_QA_ALLOW_PAYMENT: ''
+        run: node qa-launch-g1-money-private-review-tests.js
       - name: Proofread actual FREE templates and 3 manually revised first-chapter drafts (NO API)
         env:
           OPENAI_API_KEY: ''
