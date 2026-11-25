@@ -2587,23 +2587,41 @@ function restoreEvidence(value,prompt){
      // provenance. An unrelated root is rejected by allowedRefs() above
      // BEFORE the core is considered a successful paid generation.
     }
-    if(task.requiredSourceKinds?.includes('month-ten-god')){
+    // A qualified independent HOUR paragraph has an exact two-source
+    // provider schema and an exact pair check above. The original optional
+    // seasonal MONTH topic's inherited citation requirements contradict
+    // that contract. Keep every requirement for all other topics, and
+    // independently verify the exact hour pair before using its scope.
+    let requiredKinds=task.requiredSourceKinds||[];
+    if(id==='saju_core'&&topic==='temperament'&&
+       task.sourceOwnedHourExtension?.wholeNatalCategoryDistinct===true&&
+       task.sourceOwnedHourPairMeaning){
+     const proof=task.sourceOwnedHourExtension;
+     const pair=require('./report-paid-core-hour-pair-meaning')
+      .build(prompt.facts,payload.source,proof);
+     if(!pair||JSON.stringify(pair)!==JSON.stringify(task.sourceOwnedHourPairMeaning)||
+        b.refs.length!==2||new Set(b.refs).size!==2||
+        !pair.sourceRefs.every(ref=>b.refs.includes(ref)))
+      throw Error('CORE_HOUR_EXACT_REQUIRED_SOURCE_PAIR_MISMATCH');
+     requiredKinds=requiredKinds.filter(k=>!['seasonal','natal-month-position','month-ten-god'].includes(k));
+    }
+    if(requiredKinds.includes('month-ten-god')){
      const monthStem=payload.source['facts.structuralEvidence.monthCommand']?.mainHiddenStem;
      if(!monthStem||!b.refs.includes('natal.month.stem')||
          !b.refs.includes('natal.month.hidden.'+monthStem))
       throw Error('AI report service missing required paired month ten-god classifications');
     }
-    if(task.requiredSourceKinds?.includes('seasonal')&&!b.refs.includes('facts.seasonalEvidence'))
+    if(requiredKinds.includes('seasonal')&&!b.refs.includes('facts.seasonalEvidence'))
      throw Error('AI report service missing required month seasonal source: '+id+':'+topic);
-    if(task.requiredSourceKinds?.includes('natal-month-position')&&!b.refs.some(ref=>ref.startsWith('natal.month.')))
+    if(requiredKinds.includes('natal-month-position')&&!b.refs.some(ref=>ref.startsWith('natal.month.')))
      throw Error('AI report service missing month-position evidence: '+id+':'+topic);
-    if(task.requiredSourceKinds?.includes('root-condition')&&!b.refs.includes('facts.rootConditions'))
+    if(requiredKinds.includes('root-condition')&&!b.refs.includes('facts.rootConditions'))
      throw Error('AI report service missing verified root condition evidence: '+id+':'+topic);
-    if(task.requiredSourceKinds?.includes('stem-linkage')&&!b.refs.includes('facts.stemConnections'))
+    if(requiredKinds.includes('stem-linkage')&&!b.refs.includes('facts.stemConnections'))
      throw Error('AI report service missing required grounded stem connection evidence: '+id+':'+topic);
-    if(task.requiredSourceKinds?.includes('qi-ledger')&&!b.refs.includes('facts.qiEvidence'))
+    if(requiredKinds.includes('qi-ledger')&&!b.refs.includes('facts.qiEvidence'))
      throw Error('AI report service missing required positional qi evidence: '+id+':'+topic);
-    if(task.requiredSourceKinds?.includes('annual')){
+    if(requiredKinds.includes('annual')){
      const pairs=payload.task.chapters[id]?.annualScope?.comparisons||[];
      if(!pairs.some(pair=>b.refs.includes(pair.annualId)&&b.refs.includes(pair.natalId)))
       throw Error('AI report service annual interpretation lacks an actual yearly-to-natal source pair: '+id+':'+topic);
