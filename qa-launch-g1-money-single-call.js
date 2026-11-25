@@ -16,10 +16,7 @@ const REQUEST_SHA='aa28e503eb9bacb76ed609424605e54f06b3a886da5b2dc33fa8180879370
 const STOP='LAUNCH_G1_FIRST_CHAPTER_ONLY_STOP';
 const deny=s=>{throw Error('LAUNCH_G1_ONE_CALL_DENIED:'+s)};
 const hash=x=>crypto.createHash('sha256').update(JSON.stringify(x),'utf8').digest('hex');
-function readMarker(dir=__dirname){
- const loc=path.join(dir,MARKER);
- if(!fs.existsSync(loc))deny('explicit-user-approval-marker-absent');
- const q=JSON.parse(fs.readFileSync(loc,'utf8'));
+function validateMarker(q){
  if(q?.kind!=='launch-g1-exact-money-first-chapter-user-consent-v1'||
   q.operatorApprovedOneBillableCall!==true||
   q.model!==MODEL||q.requestSha256!==REQUEST_SHA||
@@ -34,8 +31,13 @@ function readMarker(dir=__dirname){
   deny('approval-marker-not-exact');
  return q;
 }
+function readMarker(dir=__dirname){
+ const loc=path.join(dir,MARKER);
+ if(!fs.existsSync(loc))deny('explicit-user-approval-marker-absent');
+ return validateMarker(JSON.parse(fs.readFileSync(loc,'utf8')));
+}
 function approval(env=process.env,options={}){
- const q=options.marker||readMarker(options.dir);
+ const q=validateMarker(options.marker||readMarker(options.dir));
  if(env.GITHUB_EVENT_NAME!=='push'||env.GITHUB_ACTIONS!=='true'||
   env.GITHUB_REPOSITORY!==REPO||env.GITHUB_REF_NAME!==BRANCH||
   env.GITHUB_REF!=='refs/heads/'+BRANCH||
