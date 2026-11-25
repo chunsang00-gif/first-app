@@ -15,7 +15,7 @@ const INPUT=Object.freeze({calendar:'lunar',birthDate:'1982-11-24',
 function build(packet){
  if(packet?.status!=='ready'||!integrity.verify(packet).pass)return null;
  const decision=method.inspect(packet);
- if(!decision||decision.birthTime!=='14:20'||packet.targetYear?.year!==2027)
+ if(!decision||packet.targetYear?.year!==2027)
   return null;
  const first=firstChapter.build(packet);
  const countercondition=first?.paragraphs.find(paragraph=>paragraph.kind==='exact-day-hour-classical-text')?.conditionalRelationAudit;
@@ -25,6 +25,30 @@ function build(packet){
   row.positions.includes('month')).map(row=>row.positions.find(p=>p!=='month'));
  const annualMonthClash=packet.facts.targetYearBranchRelations.pairs.some(
   row=>row.type==='충'&&row.between==='month');
+ if(decision.birthTime==='20:20'){
+  const annualRelations=packet.facts.targetYearBranchRelations.pairs;
+  const relationTypes=position=>annualRelations.filter(row=>row.between===position)
+   .map(row=>row.type).sort().join('/');
+  if(first?.competingClassicalClause?.matches.map(match=>match.position).join('/')!=='month'||
+     rows.get('natal.hour.stem')?.tenGod!=='상관'||
+     rows.get('natal.hour.hidden.丁')?.stem!==rows.get('annual.stem')?.stem||
+     natalClashes.join('/')!=='day'||!annualMonthClash||
+     packet.chart.hour[1]!==packet.chart.year[1]||
+     relationTypes('hour')!=='파/형'||relationTypes('hour')!==relationTypes('year'))
+   throw Error('WHOLE_CHART_LATE_HOUR_EVIDENCE_DRIFT');
+  return compose(packet,rows,first,[
+   {id:'saju_core',title:'태어난 달과 시간의 뜻이 갈라집니다',
+    text:'태어난 달은 낯선 내용을 자기 방식으로 이해하는 쪽입니다. 저녁에 태어난 시간의 겉글자는 기존 방식에 의문을 제기하고 달리 표현하는 쪽으로 읽습니다. 태어난 달과 날은 맞서고, 달과 시간에는 그 맞섬이 없습니다.',
+    refs:['natal.month.stem','natal.hour.stem','facts.natalBranchRelations']},
+   {id:'career',title:'같은 제약 풀이를 가져올 수 없습니다',
+    text:'태어난 시간의 겉글자는 새 방식을 표현하는 뜻이고, 안쪽에는 결과를 만들어 내는 뜻이 남아 있습니다. 오후 사례에서 시간의 이해를 뜻하는 글자가 결과를 누르는 관계는 이 시간에 그대로 적용되지 않습니다. 그 제약을 줄이는 고전 조건은 태어난 달에서 계속 확인됩니다.',
+    refs:['natal.day.stem','natal.month.stem','natal.month.hidden.己',
+     'natal.hour.stem','natal.hour.hidden.丁']},
+   {id:'year_2027',title:'2027년은 태어난 시간과도 별도 관계를 맺습니다',
+    text:'태어난 시간 안쪽의 결과물 관련 글자가 2027년에는 겉에 놓입니다. 2027년은 태어난 달과 맞섭니다. 태어난 해와 시간의 아랫글자는 서로 같아, 2027년을 대조하면 두 자리에서 같은 관계가 반복됩니다. 이 반복을 두 번의 사건으로 세지 않습니다.',
+    refs:['annual.stem','natal.hour.hidden.丁','facts.targetYearBranchRelations']}
+  ],'태어난 달의 이해와 시간의 표현을 함께 읽습니다. 두 역할의 우선순위를 정할 근거는 아직 확인되지 않았습니다.');
+ }
  if(!first||rows.get('natal.year.stem')?.tenGod!=='정인'||
     rows.get('natal.month.stem')?.tenGod!=='편인'||
     rows.get('natal.hour.stem')?.tenGod!=='편인'||
@@ -53,6 +77,10 @@ function build(packet){
     'facts.natalBranchRelations']}
  ];
  const finalJudgment='이 사주에서 결과를 읽을 때는 제약과 그것을 줄이는 조건을 함께 봅니다. 2027년에 결과와 관련된 글자가 겉에 나타나지만, 그 위치만으로 성과를 판단하지 않습니다.';
+ return compose(packet,rows,first,sections,finalJudgment);
+}
+
+function compose(packet,rows,first,sections,finalJudgment){
  if(sections.some(chapter=>chapter.refs.some(ref=>
     ref.startsWith('facts.')?!packet.facts[ref.slice(6)]:!rows.has(ref)))||
     readerPolicy.errors([...sections.flatMap(chapter=>[chapter.title,chapter.text]),
@@ -66,7 +94,7 @@ function build(packet){
   selfReportedMbti:packet.person.mbti,
   classicalReview:{
    chart:first.chartFingerprint,sourceScope:first.sourceScope,
-   competingCondition:countercondition,
+   competingCondition:first.competingClassicalClause,
    priorityApproved:false
   },
   modelCalls:0,saleApproved:false
@@ -78,7 +106,6 @@ function verify(){
  const report=build(packet);
  if(!report)throw Error('WHOLE_CHART_EXAMPLE_MISSING');
  for(const input of [
-  {...INPUT,birthTime:'20:20'},
   {...INPUT,birthTime:'',unknownBirthTime:true},
   {...INPUT,birthDate:'1982-11-25'}
  ]){
@@ -86,23 +113,27 @@ function verify(){
    throw Error('WHOLE_CHART_EXAMPLE_APPLIED_TO_DIFFERENT_CHART');
  }
  const differentHour=facts.build({...INPUT,birthTime:'20:20'},2027);
- const review=firstChapter.build(differentHour)?.competingClassicalClause;
- if(review?.matches.map(match=>match.position).join('/')!=='month')
-  throw Error('WHOLE_CHART_REVIEW_MISATTRIBUTED_SHARED_CONDITION');
+ const contrast=build(differentHour);
+ if(!contrast||contrast.sections.some((chapter,i)=>chapter.text===report.sections[i].text))
+  throw Error('WHOLE_CHART_REVIEW_DID_NOT_CHANGE_WITH_CALCULATED_HOUR');
  const changedYear=structuredClone(packet);
  changedYear.facts.targetYearBranchRelations.pairs=[];
  if(build(changedYear)!==null)
   throw Error('WHOLE_CHART_REVIEW_ACCEPTED_TAMPERED_ANNUAL_RELATION');
- return report;
+ return {report,contrast};
 }
 
-if(require.main===module){
- const report=verify();
+function print(report){
  console.log('# '+report.title+'\n\n편집 검수용 원고 · 판매 미승인');
  for(const chapter of report.sections)
   console.log('\n## '+chapter.title+'\n\n'+chapter.text);
  console.log('\n## 총평\n\n'+report.finalJudgment);
  console.log('\n입력한 MBTI '+report.selfReportedMbti);
+}
+
+if(require.main===module){
+ const {report,contrast}=verify();
+ print(process.argv.includes('--evening')?contrast:report);
 }
 
 module.exports={build,verify};
