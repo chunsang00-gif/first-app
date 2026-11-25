@@ -337,9 +337,12 @@ const names=['NODE_ENV','RENDER','PAID_CORE_DEPTH_V2',
   assert(mbti.excludedTopics.some(x=>x.id==='planning'&&x.reason.includes('MBTI')));
   const visibleUI=require('node:fs').readFileSync(
    require('node:path').join(__dirname,'live-report-ui.js'),'utf8');
-  assert(visibleUI.includes('선택된 장에서 작성하지 않는 질문'));
-  assert(visibleUI.includes('excludedHtml'));
-  assert(visibleUI.includes('historicalDefinitionShortfall'));
+  const purchasePreview=coverage.purchasePreview(noMBTI);
+  assert.equal(Object.hasOwn(purchasePreview,'readingSample'),false);
+  assert.equal(Object.hasOwn(purchasePreview,'interpretivePreviews'),false);
+  assert.deepEqual(purchasePreview.estimate,noMBTI.estimate);
+  assert(!visibleUI.includes('sample.cards.map'));
+  assert(!visibleUI.includes('interpretivePreviews'));
   assert.equal(noMBTI.customerSaleApproved,false);
   // Customer-visible first-chapter status must match the ACTUAL server
   // precharge writer, not optimistic chapter/topic counts.
@@ -374,7 +377,7 @@ const names=['NODE_ENV','RENDER','PAID_CORE_DEPTH_V2',
   assert.equal(uniqueSource.purchaseEnabled,false);
   const currentUI=require('node:fs').readFileSync(
    require('node:path').join(__dirname,'live-report-ui.js'),'utf8');
-  assert(currentUI.includes('무료 풀이와 다른 유료 첫 장의 근거'));
+  assert(currentUI.includes('유료 보고서 제공 여부'));
   assert(currentUI.includes('firstChapter.message'));
   assert(currentUI.includes('계산 근거 후보만 확인 · 현재 유료 판매 불가'));
   assert(currentUI.includes('firstChapter.status'));
