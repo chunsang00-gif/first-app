@@ -22,6 +22,13 @@ jobs:
           REPORT_QA_CONFIRM: ''
           REPORT_QA_ALLOW_PAYMENT: ''
         run: node qa-launch-g1-money-preflight.js
+      - name: Launch G1 — validate consent-only single-call runner with fake GitHub (NO API)
+        env:
+          OPENAI_API_KEY: ''
+          REPORT_MODEL_URL: ''
+          REPORT_QA_CONFIRM: ''
+          REPORT_QA_ALLOW_PAYMENT: ''
+        run: node qa-launch-g1-money-single-call-tests.js
       - name: Proofread actual FREE templates and 3 manually revised first-chapter drafts (NO API)
         env:
           OPENAI_API_KEY: ''
