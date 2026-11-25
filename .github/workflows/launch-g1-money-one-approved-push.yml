@@ -1,0 +1,76 @@
+# G1 real-money first chapter: this workflow NEVER runs on normal code,
+# schedules, pull requests or manual dispatch. Its ONLY trigger is a NEW,
+# separately user-approved, marker-only commit, which does not yet exist.
+# A failed/started attempt permanently consumes its one-shot history slot.
+name: Launch G1 exactly one explicitly approved Luna money first chapter
+on:
+  push:
+    branches:
+      - fix-paid-qa-fact-bindings-20261014
+    paths:
+      - qa-approvals/launch-g1-money-first-chapter-once.json
+permissions:
+  contents: read
+  actions: read
+jobs:
+  one-consented-first-chapter:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    concurrency:
+      group: launch-g1-money-first-chapter-one-approved-attempt
+      cancel-in-progress: false
+    env:
+      NODE_ENV: test
+      REPORT_MODEL: gpt-6-luna
+      REPORT_MODEL_URL: ''
+      REPORT_QA_OUTPUT: ${{ github.workspace }}/private-qa-first-chapter.json
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install repository dependencies without install-time code
+        run: npm install --ignore-scripts --no-audit --no-fund
+      - name: Verify the exact synthetic-money G1 provider request without a model key
+        env:
+          OPENAI_API_KEY: ''
+          REPORT_QA_CONFIRM: ''
+          REPORT_QA_ALLOW_PAYMENT: ''
+        run: node qa-launch-g1-money-preflight.js
+      - name: Fail closed unless new user-approved single marker, run history and request SHA are verified
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          node - <<'NODE'
+          const q=require('./qa-launch-g1-money-single-call');
+          (async()=>{
+            q.approval();
+            await q.history();
+            await q.preflight();
+            console.log('LAUNCH_G1_EXACT_ONE_CONSENTED_REQUEST_PREBILL_PASS');
+          })().catch(e=>{
+            console.error('LAUNCH_G1_APPROVAL_DENIED:'+e.message);
+            process.exitCode=1;
+          });
+          NODE
+      - name: At most one paid first chapter; never retry or generate another chapter
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node qa-launch-g1-money-single-call.js
+      - name: Authenticated-encrypt raw or failed evidence even when the attempt fails
+        if: always()
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: node report-qa-secure-archive.js encrypt
+      - name: Upload encrypted private original only, no plaintext buyer text or AI output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: launch-g1-money-first-chapter-encrypted-evidence
+          path: premium-first-chapter-qa.enc
+          if-no-files-found: ignore
+          retention-days: 30
