@@ -138,28 +138,41 @@ function assemble(candidate,response,prompt){
 // separate, explicitly supported buyer options for the practical questions.
 function composeMoneyComparison(candidate){
  const {pair,question}=candidate;
- if(pair?.elementDirection!=='resource'||
-    pair.hourVisibleRole!=='편관'||pair.hourHiddenRole!=='편재')
-  return null;
- // Only this reviewed synthetic decision is supported. A question with
+ // Only this synthetic decision is supported. A question with
  // additional constraints needs its own comparison, even with similar words.
  const reverseQuestion='대출을 상환할지 적금을 유지할지 고민입니다.';
  if(question!==pilot.INPUT.readerDecision&&question!==reverseQuestion)return null;
  const firstIsSavings=question===pilot.INPUT.readerDecision;
 
- const keep={
-  question:'keeping-savings-while-funding-scheduled-payments',
-  text:'적금을 유지하는 경우, 적금에 넣어 둔 돈은 그대로 두고 다음 대출 납입 일정에 맞춰 납입액을 따로 마련할 수 있는지 확인합니다.'
- };
- const repay={
-  question:'cash-remaining-after-the-repayment',
-  text:'대출을 상환하는 경우, 상환할 돈을 마련한 뒤 남는 현금이 생활비와 예정된 지출을 감당할 금액인지 따로 확인합니다.'
- };
+ let relationship,keep,repay;
+ if(pair?.elementDirection==='resource'&&
+    pair.hourVisibleRole==='편관'&&pair.hourHiddenRole==='편재'){
+  relationship='태어난 시간의 안쪽 글자가 겉글자를 뒷받침합니다. 이 관계를 전통적으로 읽으면, 안쪽 글자가 뜻하는 돈을 마련할 방법이 갑자기 맡게 된 책임을 감당하는 데 도움이 되는지를 먼저 살핍니다.';
+  keep={
+   question:'keeping-savings-while-funding-scheduled-payments',
+   text:'적금을 유지하는 경우, 적금에 넣어 둔 돈은 그대로 두고 다음 대출 납입 일정에 맞춰 납입액을 따로 마련할 수 있는지 확인합니다.'
+  };
+  repay={
+   question:'cash-remaining-after-the-repayment',
+   text:'대출을 상환하는 경우, 상환할 돈을 마련한 뒤 남는 현금이 생활비와 예정된 지출을 감당할 금액인지 따로 확인합니다.'
+  };
+ }else if(pair?.elementDirection==='output'&&
+    pair.hourVisibleRole==='식신'&&pair.hourHiddenRole==='편재'){
+  relationship='태어난 시간의 겉글자가 안쪽 글자를 뒷받침합니다. 이 관계를 전통적으로 읽으면, 끝내려는 일을 먼저 정했을 때 안쪽 글자가 뜻하는 돈 마련의 기준이 구체화됩니다.';
+  keep={
+   question:'savings-milestone-before-funding',
+   text:'적금을 유지하는 경우, 어느 시점까지 얼마를 남기는 것이 목표인지 정한 뒤 그 일정에 맞춰 필요한 납입 재원을 마련할 수 있는지 확인합니다.'
+  };
+  repay={
+   question:'debt-reduction-target-before-funding',
+   text:'대출을 상환하는 경우, 줄이려는 대출 원금의 범위를 먼저 정하고 그 금액을 마련할 경로를 확인합니다.'
+  };
+ }else return null;
  const [first,second]=firstIsSavings?[keep,repay]:[repay,keep];
  return {
   choiceQuestions:[first.question,second.question],
   prose:{
-   relationship:'태어난 시간의 안쪽 글자가 겉글자를 뒷받침하는 관계는, 돈을 마련할 방법이 눈앞의 책임을 감당하는 데 도움이 되는지 살펴보는 전통적 해석입니다.',
+   relationship,
    firstChoice:first.text,
    secondChoice:second.text
   }
@@ -200,6 +213,23 @@ async function inspect(){
   assert.equal(composeMoneyComparison({...candidate,
    question:'만기까지 적금을 유지할지 대출을 일부 상환할지 고민입니다.'
   }),null);
+  // Keep the question, time, and MBTI constant. A change to the actual
+  // birth date must change both the verified direction and reader questions.
+  const contrastInput={...pilot.INPUT,birthDate:'1982-01-02'};
+  const contrastPrompt=(await capture(contrastInput)).prompt;
+  const contrastCandidate=build(contrastPrompt);
+  assert.equal(contrastCandidate.pair.elementDirection,'output');
+  const contrast=composeMoneyComparison(contrastCandidate);
+  for(const field of candidate.fields)
+   assert.notEqual(contrast.prose[field],fixture[field]);
+  assert.deepEqual(reviewParagraph(contrastCandidate,contrast.prose,contrastPrompt.facts).problems,[]);
+  assemble(contrastCandidate,contrast.prose,contrastPrompt);
+  assert(reviewParagraph(contrastCandidate,fixture,contrastPrompt.facts).problems
+   .some(problem=>problem.includes('direction-conflicts')));
+  const noHour=require('./report-paid-core-precharge-value').inspect(
+   {...pilot.INPUT,birthTime:undefined,unknownBirthTime:true}
+  );
+  assert.equal(noHour.eligible,false);
   const review=reviewParagraph(candidate,fixture,c.prompt.facts);
   assert.deepEqual(review.problems,[],'existing editorial gate rejected the compact fixture');
   assert.equal(review.pass,true);
@@ -244,7 +274,7 @@ async function inspect(){
   return {kind:'offline-compact-writer-candidate',oldRequestBytes:before,newRequestBytes:after,
    reductionPercent:Math.round(100*(1-after/before)),oldOutputLimit:old.max_output_tokens,newOutputLimit:candidate.request.max_output_tokens,
    retainedSourceIds:candidate.proof.sourceRefs,modelCalls:0,
-   existingParagraphGatesPassed:true,canonicalFirstChapterDecoderIntegrated:true,canonicalFirstBatchMockValidated:true,fullReportCompleted:false,actualManuscriptVerified:false,saleApproved:false,editorialCandidate:comparison.prose};
+   existingParagraphGatesPassed:true,canonicalFirstChapterDecoderIntegrated:true,canonicalFirstBatchMockValidated:true,fullReportCompleted:false,actualManuscriptVerified:false,saleApproved:false,editorialCandidate:comparison.prose,contrastCandidate:contrast.prose};
  }finally{global.fetch=prev}
 }
 if(require.main===module)inspect().then(r=>console.log('G1_COMPACT_OFFLINE='+JSON.stringify(r))).catch(e=>{console.error(e);process.exitCode=1});
