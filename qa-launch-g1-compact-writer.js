@@ -21,7 +21,7 @@ function build(prompt){
  assert.deepEqual(prompt.requestedSections,['saju_core']);
  assert.equal(proof.wholeNatalCategoryDistinct,true);
  assert.equal(proof.premiumValueApproved,false);
- assert.equal(proof.readerDomain,'money');
+ assert(['money','skill'].includes(proof.readerDomain));
  assert(options);
  assert.deepEqual(proof.sourceRefs,pair.sourceRefs);
  assert.deepEqual(pair,pairEngine.build(prompt.facts,compiled.source,proof));
@@ -277,5 +277,26 @@ async function inspect(){
    existingParagraphGatesPassed:true,canonicalFirstChapterDecoderIntegrated:true,canonicalFirstBatchMockValidated:true,fullReportCompleted:false,actualManuscriptVerified:false,saleApproved:false,editorialCandidate:comparison.prose,contrastCandidate:contrast.prose};
  }finally{global.fetch=prev}
 }
-if(require.main===module)inspect().then(r=>console.log('G1_COMPACT_OFFLINE='+JSON.stringify(r))).catch(e=>{console.error(e);process.exitCode=1});
+async function inspectSkill(){
+ const input={...pilot.INPUT,birthDate:'1982-10-15',
+  readerDecision:'기존 일을 유지할지 새로운 기술을 배울지 고민 중입니다.'};
+ assert.equal(require('./report-paid-core-precharge-value').inspect(input).eligible,true);
+ const observed=await capture(input);
+ assert.equal(observed.providerCalls,0);
+ const candidate=build(observed.prompt);
+ assert.equal(candidate.pair.elementDirection,'day-controls');
+ const editorialDraft={
+  relationship:'태어난 시간의 겉글자는 낯선 정보를 이해하는 문제, 안쪽 글자는 결과물을 완성하는 문제입니다. 겉글자가 안쪽 글자를 제약하는 방향이므로, 전통 풀이에서는 이해를 더하는 과정이 결과물의 완성 조건이 되는지 살핍니다.',
+  firstChoice:'기존 일을 유지하는 경우, 지금 결과물에 반복되는 문제가 있다면 그 원리를 더 알아야 검수 기준을 충족할 수 있는지 확인합니다.',
+  secondChoice:'새 기술을 배우는 경우, 설명을 더 익혀야 할 범위를 정하고 연습 기간 안에 혼자 완성할 결과물을 하나 정해 배운 내용을 확인합니다.'
+ };
+ const result=assemble(candidate,editorialDraft,observed.prompt);
+ assert.deepEqual(result.decoded.sections.map(s=>s.id),['saju_core']);
+ const requestJson=JSON.stringify(candidate.request);
+ return {model:candidate.request.model,bytes:Buffer.byteLength(requestJson,'utf8'),
+  requestSha256:require('node:crypto').createHash('sha256').update(requestJson).digest('hex'),
+  maxOutputTokens:candidate.request.max_output_tokens,modelCalls:0,
+  editorialDraft,saleApproved:false};
+}
+if(require.main===module)(process.argv.includes('--skill')?inspectSkill():inspect()).then(r=>console.log('G1_COMPACT_OFFLINE='+JSON.stringify(r))).catch(e=>{console.error(e);process.exitCode=1});
 module.exports={build,check,reviewParagraph,assemble,composeMoneyComparison,inspect};
