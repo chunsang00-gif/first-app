@@ -15,9 +15,17 @@ assert(workflow.includes('node qa-launch-g1-money-single-call.js'));
 assert(workflow.includes('node report-qa-secure-archive.js encrypt'));
 assert(workflow.includes('if: always()'));
 assert(workflow.includes('premium-first-chapter-qa.enc'));
-assert(!fs.existsSync(path.join(__dirname,q.MARKER)),
- 'An explicit user-approval marker MUST NOT exist before consent');
-assert.throws(()=>q.readMarker(),/explicit-user-approval-marker-absent/);
+// The real marker now records the consumed Nov 25 attempt. Keep it immutable.
+// Test absence in an isolated fixture, not against the live audit record.
+const fixture=fs.mkdtempSync(path.join(require('node:os').tmpdir(),'g1-no-consent-'));
+try{assert.throws(()=>q.readMarker(fixture),/explicit-user-approval-marker-absent/);}
+finally{fs.rmSync(fixture,{recursive:true,force:true});}
+if(fs.existsSync(path.join(__dirname,q.MARKER))){
+ const recorded=q.readMarker();
+ assert.equal(recorded.parentCommit,'19b43e941968acf22cbe3544a5a4360a5c03c927');
+ assert.equal(recorded.requestSha256,q.REQUEST_SHA);
+ assert.equal(recorded.noRetries,true);
+}
 assert.equal(q.MODEL,'gpt-6-luna');
 assert.match(q.REQUEST_SHA,/^[0-9a-f]{64}$/);
 assert.notEqual(q.REQUEST_SHA,old.FROZEN_REQUEST_SHA256);
