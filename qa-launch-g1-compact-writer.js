@@ -134,6 +134,37 @@ function assemble(candidate,response,prompt){
  if(failures.length)throw Error('COMPACT_CANONICAL_REJECTED:'+failures.join('|'));
  return {decoded,raw,fullReportCompleted:false,saleApproved:false};
 }
+// The editorial candidate uses calculated roles for the interpretation and
+// separate, explicitly supported buyer options for the practical questions.
+function composeMoneyComparison(candidate){
+ const {pair,question}=candidate;
+ if(pair?.elementDirection!=='resource'||
+    pair.hourVisibleRole!=='편관'||pair.hourHiddenRole!=='편재')
+  return null;
+ // Only this reviewed synthetic decision is supported. A question with
+ // additional constraints needs its own comparison, even with similar words.
+ const reverseQuestion='대출을 상환할지 적금을 유지할지 고민입니다.';
+ if(question!==pilot.INPUT.readerDecision&&question!==reverseQuestion)return null;
+ const firstIsSavings=question===pilot.INPUT.readerDecision;
+
+ const keep={
+  question:'keeping-savings-while-funding-scheduled-payments',
+  text:'적금을 유지하는 경우, 적금에 넣어 둔 돈은 그대로 두고 다음 대출 납입 일정에 맞춰 납입액을 따로 마련할 수 있는지 확인합니다.'
+ };
+ const repay={
+  question:'cash-remaining-after-the-repayment',
+  text:'대출을 상환하는 경우, 상환할 돈을 마련한 뒤 남는 현금이 생활비와 예정된 지출을 감당할 금액인지 따로 확인합니다.'
+ };
+ const [first,second]=firstIsSavings?[keep,repay]:[repay,keep];
+ return {
+  choiceQuestions:[first.question,second.question],
+  prose:{
+   relationship:'태어난 시간의 안쪽 글자가 겉글자를 뒷받침하는 관계는, 돈을 마련할 방법이 눈앞의 책임을 감당하는 데 도움이 되는지 살펴보는 전통적 해석입니다.',
+   firstChoice:first.text,
+   secondChoice:second.text
+  }
+ };
+}
 async function inspect(){
  const prev=global.fetch;let network=0;
  global.fetch=async()=>{network++;throw Error('COMPACT_OFFLINE_NO_NETWORK')};
@@ -149,12 +180,26 @@ async function inspect(){
   assert.equal(candidate.request.max_output_tokens,1200);
   assert.deepEqual(check(candidate,{relationship:'',firstChoice:'',secondChoice:''}),['length-or-empty']);
   assert.deepEqual(check(candidate,{relationship:'x',firstChoice:'y',secondChoice:'z',extra:'x'}),['shape']);
-  // Human-authored synthetic fixture, never a real provider response.
-  const fixture={
-   relationship:'태어난 시간의 안쪽 글자가 겉글자를 뒷받침하는 관계는 필요한 돈을 마련하는 길을 맡은 책임과 함께 살펴보는 전통적 해석입니다.',
-   firstChoice:'적금을 유지하는 경우, 적금에 넣은 돈을 남겨 두면서 납입 일정에 맞춰 필요한 돈을 다른 경로에서 마련할 수 있는지 살펴봅니다.',
-   secondChoice:'대출을 상환하는 경우, 상환 자금을 확보한 뒤 남은 생활비와 비상시 필요한 자원의 규모를 따로 확인합니다.'
-  };
+  const comparison=composeMoneyComparison(candidate);
+  assert.deepEqual(comparison.choiceQuestions,[
+   'keeping-savings-while-funding-scheduled-payments',
+   'cash-remaining-after-the-repayment'
+  ]);
+  const fixture=comparison.prose;
+  const reverseInput={...pilot.INPUT,readerDecision:'대출을 상환할지 적금을 유지할지 고민입니다.'};
+  const reversePrompt=(await capture(reverseInput)).prompt;
+  const reverseCandidate=build(reversePrompt);
+  const reversed=composeMoneyComparison(reverseCandidate);
+  assemble(reverseCandidate,reversed.prose,reversePrompt);
+  assert.equal(reversed.prose.firstChoice,fixture.secondChoice);
+  assert.equal(reversed.prose.secondChoice,fixture.firstChoice);
+  assert.equal(reversed.prose.relationship,fixture.relationship);
+  assert.equal(composeMoneyComparison({...candidate,pair:{
+   ...candidate.pair,elementDirection:'output'
+  }}),null);
+  assert.equal(composeMoneyComparison({...candidate,
+   question:'만기까지 적금을 유지할지 대출을 일부 상환할지 고민입니다.'
+  }),null);
   const review=reviewParagraph(candidate,fixture,c.prompt.facts);
   assert.deepEqual(review.problems,[],'existing editorial gate rejected the compact fixture');
   assert.equal(review.pass,true);
@@ -199,8 +244,8 @@ async function inspect(){
   return {kind:'offline-compact-writer-candidate',oldRequestBytes:before,newRequestBytes:after,
    reductionPercent:Math.round(100*(1-after/before)),oldOutputLimit:old.max_output_tokens,newOutputLimit:candidate.request.max_output_tokens,
    retainedSourceIds:candidate.proof.sourceRefs,modelCalls:0,
-   existingParagraphGatesPassed:true,canonicalFirstChapterDecoderIntegrated:true,canonicalFirstBatchMockValidated:true,fullReportCompleted:false,actualManuscriptVerified:false,saleApproved:false};
+   existingParagraphGatesPassed:true,canonicalFirstChapterDecoderIntegrated:true,canonicalFirstBatchMockValidated:true,fullReportCompleted:false,actualManuscriptVerified:false,saleApproved:false,editorialCandidate:comparison.prose};
  }finally{global.fetch=prev}
 }
 if(require.main===module)inspect().then(r=>console.log('G1_COMPACT_OFFLINE='+JSON.stringify(r))).catch(e=>{console.error(e);process.exitCode=1});
-module.exports={build,check,reviewParagraph,assemble,inspect};
+module.exports={build,check,reviewParagraph,assemble,composeMoneyComparison,inspect};
