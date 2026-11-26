@@ -19,11 +19,12 @@ async function inspect(){
   const candidate=legacyDraft.build(original);
   const {prose}=legacyDraft.composeMoneyComparison(candidate);
   const {raw}=legacyDraft.assemble(candidate,prose,original);
-  const prompt={...original,paidWholeNatalContext:true};
+  const prompt={...original,paidWholeNatalContext:true,separateReaderQuestionFromCore:true};
   const {title,keyJudgment}=thesis.forPrompt(prompt);
   Object.assign(raw.chapters.saju_core,{title,keyJudgment});
   const paragraphs=raw.chapters.saju_core.paragraphs;
   const compiled=writer.compile(prompt);
+  paragraphs.temperament.text='태어난 시간의 안쪽 글자는 필요한 돈을 마련하는 뜻으로 읽습니다. 겉글자는 갑자기 생긴 요구와 책임을 살피는 뜻입니다. 이 관계에서는 책임을 읽을 때 그것을 뒷받침할 자원의 뜻도 함께 봅니다.';
   for(const [id,paragraph] of Object.entries(paragraphs)){
    const opening=compiled.task.chapters.saju_core.topics[id].calculatedOpening;
    if(opening){
@@ -42,13 +43,24 @@ async function inspect(){
    outbound=options.body;
    return {ok:true,json:async()=>({status:'completed',output_text:JSON.stringify(raw)})};
   };
-  const decoded=await callOpenAI(prompt);
+  let decoded;
+  const stop=Error('OFFLINE_FIRST_CHAPTER_VALIDATED');
+  await assert.rejects(()=>require('./report-server-contract').generate(base,async actual=>{
+   assert.deepEqual(actual.requestedSections,['saju_core']);
+   assert.equal(actual.separateReaderQuestionFromCore,true);
+   decoded=await callOpenAI(actual);
+   return decoded;
+  },()=>{},async batch=>{
+   assert.deepEqual(batch.ids,['saju_core']);
+   throw stop;
+  },[],{paidWholeNatalContext:true}),e=>e===stop);
   assert.equal(decoded.sections[0].title,title);
   assert(decoded.sections[0].evidence.some(line=>line.includes('natal.year.stem')));
   assert.equal(calls,1);
   const request=JSON.parse(outbound);
   const sent=JSON.parse(request.input[1].content);
   assert.deepEqual(sent.source,compiled.source);
+  assert(!outbound.includes(base.readerDecision));
   assert.deepEqual(sent.task.chapters.saju_core.wholeNatalContext,
    compiled.task.chapters.saju_core.wholeNatalContext);
   const scope=request.text.format.schema.properties.chapters.properties.saju_core
@@ -73,7 +85,7 @@ async function inspect(){
   const skill={...base,birthDate:'1982-10-15',
    readerDecision:'기존 일을 유지할지 새로운 기술을 배울지 고민 중입니다.'};
   const next=await capture(skill);
-  const requested={...next.prompt,paidWholeNatalContext:true};
+  const requested={...next.prompt,paidWholeNatalContext:true,separateReaderQuestionFromCore:true};
   const originalError=console.error;
   global.fetch=async(url,options)=>{
    assert.equal(url,'https://api.openai.com/v1/responses');
@@ -86,11 +98,19 @@ async function inspect(){
   }finally{console.error=originalError;}
   const skillRequest=JSON.parse(outbound);
   const skillCore=JSON.parse(skillRequest.input[1].content).task.chapters.saju_core;
-  assert.equal(skillCore.readerQuestion,skill.readerDecision);
+  assert(!Object.hasOwn(skillCore,'readerQuestion'));
+  assert(!outbound.includes(skill.readerDecision));
   assert.deepEqual(skillCore.wholeNatalContext.positions,requested.facts.chart);
   assert.equal(skillCore.topics.strength.calculatedOpening.text,
    '태어난 날과 시간의 아랫글자는 서로 맞서는 관계입니다.');
   assert(Buffer.byteLength(outbound,'utf8')<30000);
+  const careerPlan=require('./report-analysis-guidance').preflight(requested.facts);
+  const careerPrompt={...requested,requestedSections:['career'],
+   analysisGuidance:{...require('./report-analysis-guidance').forRequest(['career'],skill.mbti),
+    editorialBlueprint:{career:careerPlan.career}}};
+  const careerTopics=writer.compile(careerPrompt).task.chapters.career.topics;
+  assert(Object.values(careerTopics).some(topic=>topic.buyerCurrentQuestion),
+   'career must retain the submitted question when chart evidence supports it');
   return {money:captured,skill:{
    model:skillRequest.model,bytes:Buffer.byteLength(outbound,'utf8'),
    requestSha256:crypto.createHash('sha256').update(outbound).digest('hex'),

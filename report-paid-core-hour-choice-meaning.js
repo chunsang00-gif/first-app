@@ -208,7 +208,7 @@ function inspectParagraph(text,question,proof){
   errors.push('buyer-hour-role-choices-have-near-identical-consequences');
  return errors;
 }
-function inspect(sections,packet){
+function inspect(sections,packet,{natalOnly=false}={}){
  const core=(sections||[]).find(x=>x?.id==='saju_core');
  if(!core||packet?.status!=='ready')return [];
  const question=packet.person?.readerDecision;
@@ -226,7 +226,7 @@ function inspect(sections,packet){
   .build(packet,source,proof);
  const relationProblems=require('./report-paid-core-hour-pair-reader-gate')
   .inspectParagraph(core.body[pos],pair);
- return [...inspectParagraph(core.body[pos],question,proof),...relationProblems]
+ return [...(natalOnly&&pair?[]:inspectParagraph(core.body[pos],question,proof)),...relationProblems]
   .map(error=>'saju_core:'+error);
 }
 module.exports={taskFor,writerFor,singleFocus,preflightReaderQuestion,inspectSingleConcern,inspectParagraph,inspect};

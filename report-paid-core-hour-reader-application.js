@@ -1,7 +1,7 @@
 'use strict';
 // A real paid hour claim needs exact HOUR citations AND a distinct reader
 // application. Mechanical boundary only; not human editorial approval.
-function inspect(p,monthText,proof){
+function inspect(p,monthText,proof,{natalOnly=false}={}){
  if(!proof)return [];
  if(!p||!Array.isArray(p.basis?.refs)||typeof p.text!=='string')
   return ['missing-hour-paragraph'];
@@ -59,8 +59,8 @@ function inspect(p,monthText,proof){
    /(?:겉에\s*드러난\s*글자|겉글자|안쪽의\s*다른\s*글자|안쪽\s*글자)/.test(sentence)));
  if(!sourceLinked)
   errors.push('missing-hour-specific-meaning');
- if(!concern||!output||!sentences.some(s=>concern.test(s)&&output.test(s)&&
-   /(?:때|경우|상황|과정|한다면|하려면|구별|비교|다르|반면|대신|조건)/.test(s)))
+ if(!natalOnly&&(!concern||!output||!sentences.some(s=>concern.test(s)&&output.test(s)&&
+   /(?:때|경우|상황|과정|한다면|하려면|구별|비교|다르|반면|대신|조건)/.test(s))))
   errors.push('missing-conditional-study-application');
  const norm=s=>String(s||'').normalize('NFKC').replace(/[\s.,!?。！？]+/g,'');
  if(norm(p.text)===norm(monthText)||!sentences.some(s=>

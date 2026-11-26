@@ -2584,7 +2584,8 @@ function restoreEvidence(value,prompt){
     if(id==='saju_core'&&topic==='temperament'&&
        task.sourceOwnedHourExtension){
      const problems=require('./report-paid-core-hour-reader-application')
-      .inspect(p,chapter.paragraphs.strength?.text,task.sourceOwnedHourExtension);
+      .inspect(p,chapter.paragraphs.strength?.text,task.sourceOwnedHourExtension,
+       {natalOnly:prompt.separateReaderQuestionFromCore===true&&Boolean(task.calculatedOpening)});
      if(problems.length)
       throw Error('CORE_HOUR_EXTENSION_READER_VALUE_MISSING:'+problems.join('|'));
     }
@@ -2592,7 +2593,7 @@ function restoreEvidence(value,prompt){
     // customer included both, both must actually inform the separate
     // checkable conditional alternatives in the delivered paid paragraph.
     if(id==='saju_core'&&topic==='temperament'&&
-       task.customerDeclaredChoiceSituation){
+       task.customerDeclaredChoiceSituation&&prompt.separateReaderQuestionFromCore!==true){
      const declared=task.customerDeclaredChoiceSituation;
      const verified=require('./report-buyer-decision-context')
       .readerTask(prompt.facts?.person?.decisionContext);
@@ -2606,6 +2607,7 @@ function restoreEvidence(value,prompt){
     // Even two source-correct extra explanations do not serve a buyer if
     // they merely repeat one canned phrase with option names swapped.
     if(id==='saju_core'&&topic==='temperament'&&
+       !(prompt.separateReaderQuestionFromCore===true&&task.calculatedOpening)&&
        (task.sourceOwnedYearVisibleExtension||task.sourceOwnedHourExtension)){
      const errors=require('./report-paid-core-two-choice-value')
       .inspect(p.text,prompt.facts?.person?.readerDecision);
