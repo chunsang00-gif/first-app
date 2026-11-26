@@ -1,0 +1,67 @@
+name: Private reading of the existing whole-chart first chapter
+on:
+  push:
+    branches: [fix-paid-qa-fact-bindings-20261014]
+    paths: [.github/workflows/qa-whole-chart-first-chapter-private-review.yml]
+permissions:
+  contents: read
+  actions: read
+jobs:
+  transfer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 46a7b679f6623fa2512b9c244cf45a9b95fd25ce
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          repository: chunsang00-gif/first-app
+          run-id: 45794338221
+          name: launch-whole-chart-first-chapter-encrypted-evidence
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/source
+      - name: Seal the existing synthetic manuscript to the reviewer key
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          set -euo pipefail
+          umask 077
+          trap 'rm -rf "$RUNNER_TEMP/source" "$RUNNER_TEMP/review-private"' EXIT
+          node report-qa-secure-archive.js decrypt "$RUNNER_TEMP/source/premium-first-chapter-qa.enc" "$RUNNER_TEMP/review-private"
+          unset OPENAI_API_KEY REPORT_MODEL_URL REPORT_MODEL_KEY
+          node - <<'NODE'
+          const fs=require('node:fs'),crypto=require('node:crypto'),path=require('node:path'),assert=require('node:assert/strict');
+          const dir=path.join(process.env.RUNNER_TEMP,'review-private');
+          const read=name=>JSON.parse(fs.readFileSync(path.join(dir,name),'utf8'));
+          const attempt=read('private-qa-first-chapter-attempt.json');
+          assert.equal(attempt.runId,'45794338221');
+          const status=read('private-qa-first-chapter.json');
+          const name='private-qa-first-chapter-provider-calls.json';
+          const r=fs.existsSync(path.join(dir,name))?read(name):null;
+          const t={calls:status.calls,validated:status.validated,manuscript:null};
+          if(r){
+            assert.equal(r.kind,'whole-chart-original-response');
+            assert.equal(crypto.createHash('sha256').update(JSON.stringify(r.request),'utf8').digest('hex'),'0b63478f7c625ceb9155736b5594146a4731d67d8251f63899121da3a38369e2');
+            const response=r.response;
+            t.status=response.status||null;
+            t.usage=response.usage||null;
+            t.reason=response.incomplete_details?.reason||response.error?.code||null;
+            const text=response.output_text||response.output?.flatMap(x=>x.type==='message'?x.content||[]:[]).filter(x=>x.type==='output_text').map(x=>x.text).join('')||'';
+            if(text&&text.length<=16000){
+              try{
+                const chapter=JSON.parse(text).chapters?.saju_core;
+                if(chapter){
+                  t.manuscript={title:chapter.title,keyJudgment:chapter.keyJudgment,paragraphs:chapter.paragraphs};
+                }else t.parseStatus='chapter-missing';
+              }catch{t.parseStatus='incomplete-or-invalid-json';}
+            }
+          }
+          const k=crypto.randomBytes(32),iv=crypto.randomBytes(12),c=crypto.createCipheriv('aes-256-gcm',k,iv);
+          const data=Buffer.concat([c.update(JSON.stringify(t),'utf8'),c.final()]);
+          const pk=crypto.createPublicKey({key:Buffer.from('MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAtXStnRttGB+nyL7chGaLcGt9SR098P2ZsrgS8a9648j7pHOAJ2kR4Uej6ZXacebL6C6xnhpIfUJ2IwkxLKABYVUpjwFK29+Xbk7N6KU/DooptB/27m2b8nSb8uGpgy8lUKyGW18tyyt9GNwzt0l3SrSozPiKZ2xNrRF9zKktDoCDuixTHfAM/fxxZTfr3zH0Jun2vrXJqSYIwHXfjmZMjU/3c4NPUf2TUs2CVeo6ezW6Qa80nNeVx2Xr1B/N76si1uQ8pCeieTjtX03bErhSjJPj1QgPdMIwD6KwQUV9kwKeZ5sUTu3xSeK4oBGCa5jvURWZtO5Xd2xMCE6b8j/nHwIDAQAB','base64'),format:'der',type:'spki'});
+          const sealed=crypto.publicEncrypt({key:pk,padding:crypto.constants.RSA_PKCS1_OAEP_PADDING,oaepHash:'sha256'},k);
+          const packet={key:sealed.toString('base64'),iv:iv.toString('base64'),tag:c.getAuthTag().toString('base64'),data:data.toString('base64')};
+          console.log('WHOLE_CHART_REVIEW_CIPHER='+Buffer.from(JSON.stringify(packet)).toString('base64'));
+          NODE
