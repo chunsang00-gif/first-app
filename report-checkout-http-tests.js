@@ -52,7 +52,17 @@ global.fetch=async(url,opts={})=>{
   delete oldPrompt.paidWholeNatalContext;
   const archived=writer.compile(oldPrompt).task.chapters.saju_core;
   assert(!Object.hasOwn(archived,'wholeNatalContext'));
-  assert.deepEqual(core.topics,archived.topics);
+  const citationIds=core.topics.strength.citableFacts.map(row=>row.id);
+  const extra=core.topics.strength.wholeNatalSupplementRefs;
+  assert.deepEqual(extra,['natal.year.stem','natal.day.stem','natal.hour.stem']);
+  assert(extra.every(ref=>citationIds.includes(ref)&&Object.hasOwn(compiled.source,ref)));
+  assert.deepEqual(core.topics.temperament,archived.topics.temperament);
+  const schema=writer.schema(prompt,require('./report-wire').schemaFor(prompt,
+   require('./report-schema.json')));
+  const strength=schema.properties.chapters.properties.saju_core.properties
+   .paragraphs.properties.strength;
+  const strengthSlot=strength.anyOf?.find(item=>item.type==='object')||strength;
+  assert.deepEqual(strengthSlot.properties.basis.properties.refs.items.enum,citationIds);
   return {ok:false,status:503};
  }
  return nativeFetch(url,opts);

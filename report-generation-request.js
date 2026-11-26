@@ -43,6 +43,9 @@ const qualifiedHourMeaningPriority='이 고객의 첫 장은 새 출생시간 �
  '추가 유료 후보 temperament에서만 실제 고객 질문에 출생시간의 관계를 조건부로 적용한다. '+
  '고객의 관찰된 성격, 선택 우열, 미래 결과 또는 검증되지 않은 고전 해석 우선순위를 말하지 않는다.';
 function coreMeaningPriorityFor(prompt){
+ if(prompt.paidWholeNatalContext===true)
+  return '첫 장의 strength에서 달의 두 근거를 짧게 밝히고, 함께 인용할 수 있는 다른 출생 자리의 계산 근거가 해석을 보완하거나 제한할 때에만 그 차이를 설명한다. 부족한 출생시간을 추정하거나 사람의 실제 성격과 사건을 단정하지 않는다. 신청자가 쓴 고민은 별도 문단에서만 다룬다.';
+
  const hour=sourceOwnedHourFirstChapter(prompt);
  return hour?.wholeNatalCategoryDistinct===true&&
   hour.repeatedExactStemNatalRefs?.length===0?
@@ -551,6 +554,10 @@ function compile(prompt){
     if(chapterId==='saju_core'&&topicId==='strength'&&
        require('./report-paid-core-hour-extension').build(prompt.facts,source))
       delete topic.normalPaidMonthNonmainExposure;
+    if(prompt.paidWholeNatalContext===true&&chapterId==='saju_core'&&
+       topicId==='strength'&&topic.mode!=='state-limits')
+     topic.wholeNatalSupplementRefs=['natal.year.stem','natal.day.stem','natal.hour.stem']
+      .filter(ref=>Object.hasOwn(source,ref));
     const permitted=[...allowedRefs(payload,topic,chapterId,topicId)];
     topic.citableFacts=permitted.map(id=>{
      const fact=source[id]||{};
@@ -2095,6 +2102,12 @@ function schema(prompt,transport){
    const younger=require('./report-reader-age-boundary').forPrompt(prompt);
    if(younger)p.properties.text.description=
     (p.properties.text.description||'')+' '+younger.rule;
+   if(chapterId==='saju_core'&&topic==='strength'&&task.wholeNatalSupplementRefs?.length){
+    p.properties.text.description=
+     '달의 겉글자와 중심 안쪽 글자의 근거를 밝힌다. wholeNatalContext에서 대조한 해·날·시간의 실제 근거가 이 판단을 보완하거나 제한할 때, 해당 위치를 짧게 밝히고 그 차이를 쓴다. 단순 나열, 일반 조언, 사용자 질문을 반복해 분량을 채우지 않는다. 사람의 행동과 미래 사건, 해석의 우열을 단정하지 않는다.';
+    basis.properties.refs.description=
+     '달의 필수 두 근거를 유지한다. 다른 위치의 근거를 실제로 본문에서 설명한 경우에만 해당 출처를 함께 인용한다.';
+   }
    p.properties={basis,...p.properties};p.required=['basis',...p.required];
    // QA6 is a new, separately gated FREE research contract. It must not
    // modify the frozen QA5 request hash or the normal paid optional slot.
@@ -2245,6 +2258,14 @@ function allowedRefs(payload,task,chapterId,topic){
  if(linkedDomainIds.has(chapterId)&&payload.source['person.mbti']&&
     task.mode!=='state-limits'&&[...ids].some(id=>id.startsWith('natal.')))
   ids.add('person.mbti');
+ if(chapterId==='saju_core'&&topic==='strength'&&task?.wholeNatalSupplementRefs){
+  for(const ref of task.wholeNatalSupplementRefs){
+   if(!/^natal\.(year|day|hour)\.stem$/.test(ref)||
+      !Object.hasOwn(payload.source,ref))
+    throw Error('WHOLE_NATAL_STRENGTH_SOURCE_DRIFT');
+   ids.add(ref);
+  }
+ }
  return ids;
 }
 // A provider may cite every *actual* observed root and clash ledger while
