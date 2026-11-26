@@ -1,0 +1,10 @@
+{
+  "kind": "whole-chart-first-chapter-explicit-one-call-v1",
+  "operatorApprovedOneBillableCall": true,
+  "requestSha256": "0b63478f7c625ceb9155736b5594146a4731d67d8251f63899121da3a38369e2",
+  "model": "gpt-6-luna",
+  "noRetries": true,
+  "noPayment": true,
+  "noDeployment": true,
+  "parentCommit": "144ce0d49fd1811638a678d8254d7f8d6aeee3a1"
+}
