@@ -115,7 +115,8 @@ assert.equal(createTiming().snapshot().sampleCount,0);
  assert(!body.innerHTML.includes('태어난 달에서 확인되는 두 근거'));
  assert(!body.innerHTML.includes('2027년 계산에서 추가되는 질문'));
  assert(!body.innerHTML.includes('전통적인 분류를 확인하는 무료 예시'));
- assert(!body.innerHTML.includes('2027년 금전'));
+ assert(!body.innerHTML.includes('<strong>2027년 금전 ·'),
+  'omitted financial reading must not appear as a purchasable chapter');
  assert(body.innerHTML.includes('작성 후보 질문 보기'));
  assert(body.innerHTML.includes('태어난 시기의 전통적 해석'));
  assert(!body.innerHTML.includes('금전 손실 예측에서 알 수 없는 부분'));
