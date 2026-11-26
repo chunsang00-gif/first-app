@@ -22,6 +22,11 @@ jobs:
           REPORT_QA_CONFIRM: ''
           REPORT_QA_ALLOW_PAYMENT: ''
         run: node qa-launch-g1-money-preflight.js
+      - name: Verify exact whole-chart fixture and one-call consent offline
+        env:
+          OPENAI_API_KEY: ''
+          REPORT_MODEL_URL: ''
+        run: node qa-launch-whole-chart-first-chapter-once.js --preflight
       - name: Launch G1 — validate consent-only single-call runner with fake GitHub (NO API)
         env:
           OPENAI_API_KEY: ''
