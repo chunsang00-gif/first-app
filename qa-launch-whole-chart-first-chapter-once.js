@@ -9,6 +9,7 @@ const WORKFLOW='.github/workflows/launch-whole-chart-first-chapter-once.yml';
 const MARKER='qa-approvals/launch-whole-chart-first-chapter-once.json';
 const INPUT={...pilot.INPUT,birthDate:'1982-10-15',readerDecision:'기존 일을 유지할지 새로운 기술을 배울지 고민 중입니다.'};
 const REQUEST_SHA='0b63478f7c625ceb9155736b5594146a4731d67d8251f63899121da3a38369e2';
+const LEGACY_GATE={workflow:WORKFLOW,marker:MARKER,kind:'whole-chart-first-chapter-explicit-one-call-v1'};
 const STOP='COMPACT_FIRST_CHAPTER_ONLY_STOP';
 async function preflight(){
  const output=cp.execFileSync(process.execPath,['qa-compact-paid-first-chapter-transport.js'],{encoding:'utf8'}).trim();
@@ -30,65 +31,65 @@ function checkRequest(url,method,body,expected,request){
   digestBody(body)===expected.requestSha256&&request.model===expected.model&&
   request.store===false&&request.max_output_tokens===18000;
 }
-function approve(marker,expected,env,git){
+function approve(marker,expected,env,git,gate=LEGACY_GATE){
  assert.deepEqual(marker,{
-  kind:'whole-chart-first-chapter-explicit-one-call-v1',operatorApprovedOneBillableCall:true,
+  kind:gate.kind,operatorApprovedOneBillableCall:true,
   requestSha256:expected.requestSha256,model:pilot.MODEL,noRetries:true,noPayment:true,noDeployment:true,
   parentCommit:git(['rev-parse','HEAD^'])
  });
  assert.equal(env.GITHUB_REPOSITORY,REPO);assert.equal(env.GITHUB_REF,'refs/heads/'+BRANCH);
- assert.equal(env.GITHUB_WORKFLOW_REF,REPO+'/'+WORKFLOW+'@refs/heads/'+BRANCH);
+ assert.equal(env.GITHUB_WORKFLOW_REF,REPO+'/'+gate.workflow+'@refs/heads/'+BRANCH);
  assert.equal(env.GITHUB_EVENT_NAME,'push');assert.equal(env.GITHUB_ACTIONS,'true');
  assert.equal(env.GITHUB_RUN_ATTEMPT,'1');assert.equal(env.NODE_ENV,'test');
  assert.equal(git(['rev-parse','HEAD']),env.GITHUB_SHA);
- assert.equal(git(['diff','--name-only','HEAD^','HEAD']),MARKER);
+ assert.equal(git(['diff','--name-only','HEAD^','HEAD']),gate.marker);
  assert.match(env.GITHUB_RUN_ID,/^[1-9][0-9]*$/);
  assert(env.OPENAI_API_KEY?.length>=32&&env.GITHUB_TOKEN?.length>=8);
  assert(!env.REPORT_MODEL_URL&&env.RENDER!=='true');
 }
-async function history(env,fetcher){
- const u='https://api.github.com/repos/'+REPO+'/actions/workflows/launch-whole-chart-first-chapter-once.yml/runs?event=push&branch='+BRANCH+'&per_page=100';
+async function history(env,fetcher,gate=LEGACY_GATE){
+ const u='https://api.github.com/repos/'+REPO+'/actions/workflows/'+gate.workflow.split('/').pop()+'/runs?event=push&branch='+BRANCH+'&per_page=100';
  const r=await fetcher(u,{headers:{authorization:'Bearer '+env.GITHUB_TOKEN,accept:'application/vnd.github+json'}});
  assert(r.ok);const b=await r.json();assert.equal(b.total_count,1);assert.equal(b.workflow_runs.length,1);
  const v=b.workflow_runs[0];
  assert.equal(v.id,Number(env.GITHUB_RUN_ID));assert.equal(v.head_sha,env.GITHUB_SHA);
- assert.equal(v.head_branch,BRANCH);assert.equal(v.run_attempt,1);assert.equal(v.event,'push');assert.equal(v.path,WORKFLOW);
+ assert.equal(v.head_branch,BRANCH);assert.equal(v.run_attempt,1);assert.equal(v.event,'push');assert.equal(v.path,gate.workflow);
 }
 // Offline-only authorization regression: real paid marker and history
 // are never consulted here. These fake credentials cannot call a provider.
-async function testAuthorization(expected){
+async function testAuthorization(expected,gate=LEGACY_GATE){
  const parent='a'.repeat(40),head='b'.repeat(40);
- const marker={kind:'whole-chart-first-chapter-explicit-one-call-v1',operatorApprovedOneBillableCall:true,
+ const marker={kind:gate.kind,operatorApprovedOneBillableCall:true,
   requestSha256:expected.requestSha256,model:pilot.MODEL,noRetries:true,noPayment:true,noDeployment:true,parentCommit:parent};
  const env={GITHUB_REPOSITORY:REPO,GITHUB_REF:'refs/heads/'+BRANCH,
-  GITHUB_WORKFLOW_REF:REPO+'/'+WORKFLOW+'@refs/heads/'+BRANCH,GITHUB_EVENT_NAME:'push',
+  GITHUB_WORKFLOW_REF:REPO+'/'+gate.workflow+'@refs/heads/'+BRANCH,GITHUB_EVENT_NAME:'push',
   GITHUB_ACTIONS:'true',GITHUB_RUN_ATTEMPT:'1',NODE_ENV:'test',GITHUB_SHA:head,GITHUB_RUN_ID:'1234',
   OPENAI_API_KEY:'OFFLINE_FAKE_ONLY_NEVER_A_PROVIDER_KEY_123456',GITHUB_TOKEN:'OFFLINE_FAKE_ONLY'};
- const git=a=>({'rev-parse HEAD^':parent,'rev-parse HEAD':head,'diff --name-only HEAD^ HEAD':MARKER})[a.join(' ')];
- approve(marker,expected,env,git);
+ const git=a=>({'rev-parse HEAD^':parent,'rev-parse HEAD':head,'diff --name-only HEAD^ HEAD':gate.marker})[a.join(' ')];
+ approve(marker,expected,env,git,gate);
  for(const change of [{requestSha256:'0'.repeat(64)},{noRetries:false},{operatorApprovedOneBillableCall:false}])
-  assert.throws(()=>approve({...marker,...change},expected,env,git));
- assert.throws(()=>approve(marker,expected,{...env,GITHUB_RUN_ATTEMPT:'2'},git));
- assert.throws(()=>approve(marker,expected,{...env,GITHUB_EVENT_NAME:'workflow_dispatch'},git));
- assert.throws(()=>approve(marker,expected,env,a=>a[0]==='diff'?'server.js':git(a)));
- const first={id:1234,head_sha:head,head_branch:BRANCH,run_attempt:1,event:'push',path:WORKFLOW};
+  assert.throws(()=>approve({...marker,...change},expected,env,git,gate));
+ assert.throws(()=>approve(marker,expected,{...env,GITHUB_RUN_ATTEMPT:'2'},git,gate));
+ assert.throws(()=>approve(marker,expected,{...env,GITHUB_EVENT_NAME:'workflow_dispatch'},git,gate));
+ assert.throws(()=>approve(marker,expected,env,a=>a[0]==='diff'?'server.js':git(a),gate));
+ const first={id:1234,head_sha:head,head_branch:BRANCH,run_attempt:1,event:'push',path:gate.workflow};
  const fake=b=>async()=>({ok:true,json:async()=>b});
- await history(env,fake({total_count:1,workflow_runs:[first]}));
- await assert.rejects(()=>history(env,fake({total_count:2,workflow_runs:[first,first]})));
- await assert.rejects(()=>history(env,fake({total_count:1,workflow_runs:[{...first,run_attempt:2}]})));
+ await history(env,fake({total_count:1,workflow_runs:[first]}),gate);
+ await assert.rejects(()=>history(env,fake({total_count:2,workflow_runs:[first,first]}),gate));
+ await assert.rejects(()=>history(env,fake({total_count:1,workflow_runs:[{...first,run_attempt:2}]}),gate));
 }
 function save(name,data){
  assert(archive.NAMES.includes(name));fs.writeFileSync(name,JSON.stringify(data,null,2),{flag:'wx',mode:0o600});
 }
-async function run(){
- const expected=await preflight(),env=process.env;
- const marker=JSON.parse(fs.readFileSync(MARKER,'utf8'));
- approve(marker,expected,env,a=>cp.execFileSync('git',a,{encoding:'utf8'}).trim());
- await history(env,global.fetch);
+async function run(prepare=preflight,gate=LEGACY_GATE){
+ const expected=await prepare(),env=process.env;
+ const marker=JSON.parse(fs.readFileSync(gate.marker,'utf8'));
+ approve(marker,expected,env,a=>cp.execFileSync('git',a,{encoding:'utf8'}).trim(),gate);
+ await history(env,global.fetch,gate);
  for(const n of archive.NAMES)assert(!fs.existsSync(n));
  save('private-qa-first-chapter-attempt.json',{kind:'compact-one-attempt',status:'charge-possible-no-retry',...expected,runId:env.GITHUB_RUN_ID});
  let calls=0,validated=false;
- const transport=global.fetch;
+ const transport=global.fetch,logError=console.error;
  assert.equal(env.REPORT_MODEL,expected.model);
  global.fetch=async(url,options)=>{
   const raw=JSON.parse(options?.body||'null');
@@ -97,26 +98,28 @@ async function run(){
   calls++;
   const response=await transport(url,options);
   save('private-qa-first-chapter-provider-calls.json',{
-   kind:'whole-chart-original-response',request:raw,response:await response.clone().json()
+   kind:'whole-chart-original-response',request:raw,httpStatus:response.status,
+   response:await response.clone().json().catch(()=>null)
   });
   return response;
  };
  try{
+  if(gate.generationOptions)console.error=()=>{};
   await contract.generate(INPUT,async prompt=>{
    assert.deepEqual(prompt.requestedSections,['saju_core']);
-   return callOpenAI({...prompt,paidWholeNatalContext:true});
+   return callOpenAI(gate.generationOptions?prompt:{...prompt,paidWholeNatalContext:true});
   },()=>{},async batch=>{
    assert.equal(calls,1);assert.deepEqual(batch.ids,['saju_core']);assert.equal(batch.completedSections,1);
    save('private-qa-first-chapter-validated-first-chapter.json',{kind:'compact-canonical-batch',batch,humanReviewed:false,saleApproved:false});
    validated=true;throw Error(STOP);
-  });
+  },[],gate.generationOptions);
   throw Error('COMPACT_UNEXPECTED_CONTINUATION');
  }catch(e){
   if(e.message!==STOP||!validated){
-   save('private-qa-first-chapter.json',{status:'stopped-no-retry',calls,validated,saleApproved:false});
+   save('private-qa-first-chapter.json',{status:'stopped-no-retry',calls,validated,saleApproved:false,error:e.message});
    throw Error('COMPACT_ONE_ATTEMPT_STOPPED_NO_RETRY');
   }
- }finally{global.fetch=transport;}
+ }finally{global.fetch=transport;console.error=logError;}
  save('private-qa-first-chapter.json',{status:'machine-validated-not-human-reviewed',calls,validated,saleApproved:false});
  console.log('COMPACT_FIRST_CHAPTER_MACHINE_PASS; private original retained; no sale');
 }
@@ -124,4 +127,4 @@ if(require.main===module){
  const fn=process.argv[2]==='--preflight'?async()=>console.log('COMPACT_APPROVAL_PACKET='+JSON.stringify(await preflight())):run;
  fn().catch(e=>{if(process.argv[2]==='--preflight')console.error('COMPACT_OFFLINE_PREFLIGHT_FAILED:',e.stack);else console.error('COMPACT_EXECUTION_STOPPED');process.exitCode=1});
 }
-module.exports={preflight,approve,history};
+module.exports={preflight,approve,history,testAuthorization,run};

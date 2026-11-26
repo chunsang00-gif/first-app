@@ -53,7 +53,7 @@ async function inspect(){
   assert(groups.length+1<=chapterPlan.MAX_PAID_CALLS);
 
   let firstRequest,firstPrompt,nextPrompt;
-  let intercepted=0,checkpoints=0;
+  let intercepted=0,checkpoints=0,firstCheckpoint;
   const stop=Error('OFFLINE_NEXT_REQUEST_CAPTURED');
   global.fetch=async(url,options)=>{
    assert.equal(url,'https://api.openai.com/v1/responses');
@@ -81,6 +81,7 @@ async function inspect(){
    return callOpenAI(prompt);
   },()=>{},async entry=>{
    assert.deepEqual(entry.ids,['saju_core']);
+   firstCheckpoint=entry;
    checkpoints++;
   },[],{paidWholeNatalContext:true}),e=>e===stop);
   assert.equal(intercepted,1);
@@ -88,6 +89,16 @@ async function inspect(){
   assert.deepEqual(nextPrompt.requestedSections,groups[1]);
   assert(nextPrompt.priorSections.some(section=>section.id==='saju_core'));
   assert(!firstRequest.includes(INPUT.readerDecision));
+  let resumedAt;
+  await assert.rejects(()=>contract.generate(INPUT,async prompt=>{
+   resumedAt=prompt;
+   throw stop;
+  },()=>{},()=>assert.fail('no new batch should be saved'),[firstCheckpoint],
+  {paidWholeNatalContext:true}),e=>e===stop);
+  assert.deepEqual(resumedAt.requestedSections,groups[1]);
+  assert.deepEqual(resumedAt.priorSections,nextPrompt.priorSections);
+  assert.equal(intercepted,1);
+
 
   let attempts=0;
   await assert.rejects(()=>contract.generate(INPUT,async prompt=>{
@@ -126,7 +137,7 @@ async function inspect(){
   const outputCeiling=rows.reduce((sum,row)=>sum+row.outputCeiling,synthesisTokens);
   return {body:rows,domain,synthesis:{outputCeiling:synthesisTokens},
    maxCalls:rows.length+1,outputCeiling,
-   verifiedFirstBatchAdvanced:true,rejectedFirstBatchStopped:true,
+   verifiedFirstBatchAdvanced:true,rejectedFirstBatchStopped:true,resumedFirstBatchWithoutAnotherCall:true,
    modelNetworkCalls:0,realReportCompleted:false,saleApproved:false};
  }finally{
   global.fetch=nativeFetch;
