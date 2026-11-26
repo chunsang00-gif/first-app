@@ -827,6 +827,9 @@ function compile(prompt){
   // answer that choice from the FREE month source, then answer it again
   // from the additional hour source: the paid first chapter was padded.
   const coreChapter=task.chapters.saju_core;
+  if(coreChapter&&prompt.paidWholeNatalContext===true)
+   coreChapter.wholeNatalContext=require('./report-core-evidence-graph')
+    .forPaidFirstChapter(prompt.facts);
   if(coreChapter?.coreReaderChoiceContext&&
      coreChapter.topics?.temperament?.sourceOwnedHourExtension){
    // This LATE binding is authoritative: the real exact hour proof has

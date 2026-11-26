@@ -316,7 +316,10 @@ reportContract.generate(a.calculationInput,prompt=>enqueueModel(async()=>{
  if(reportStore.enabled)reportStore.startProviderCall(id,n,{
   stage:prompt.stage,requestedSections:prompt.requestedSections||[],
   identity:checkpointIdentity.signature(a.calculationInput)});
- return callModel(prompt,async(response,receipt)=>{
+ const customerPrompt=paid&&prompt.stage==='body'&&
+  prompt.requestedSections?.includes('saju_core')?
+  {...prompt,paidWholeNatalContext:true}:prompt;
+ return callModel(customerPrompt,async(response,receipt)=>{
   if(reportStore.enabled)reportStore.saveProviderResponse(id,n,response,receipt)
  });
 }),progress=>{

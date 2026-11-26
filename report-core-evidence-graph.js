@@ -71,4 +71,19 @@ function build(packet){
   usedAnnualFacts:false,usedMbti:false
  };
 }
-module.exports={build};
+// Calculated context for the ordinary first-chapter writer. It can rule
+// out broad claims, but does not expand a topic's citation permissions.
+function forPaidFirstChapter(packet){
+ const evidence=build(packet);
+ return {
+  positions:Object.fromEntries(Object.entries(packet.chart).filter(([,value])=>value)),
+  monthSeason:packet.facts.seasonalEvidence?.monthSeason??null,
+  visibleRoles:[evidence.monthVisible,...evidence.otherVisible],
+  dayMasterRoots:evidence.dayMasterRoots,
+  natalRelations:evidence.natalRelations,
+  unknownBirthHour:evidence.unknownBirthHour,
+  measuredStrength:false,interpretivePriorityEstablished:false,
+  readerBoundary:'태어난 날을 기준으로 태어난 달의 계절과 해·달·날·시간 관계를 먼저 대조한다. 다른 자리의 근거가 좁은 풀이를 제한하면 그만큼 판단을 좁힌다. 같은 글자나 관계가 반복돼도 강도나 사건 횟수로 세지 않는다. 시간을 모르면 그 자리를 추정하지 않는다. 본문은 해당 항목에서 허용한 인용으로 뒷받침할 수 있는 해석만 짧게 쓴다. 근거가 없는 조언, 관찰하지 않은 성격, 미래 사건으로 분량을 채우지 않는다.'
+ };
+}
+module.exports={build,forPaidFirstChapter};

@@ -31,6 +31,17 @@ global.fetch=async(url,opts={})=>{
   // Fail before any billable output, proving the paid order stays bound and
   // a second automatic model attempt cannot occur.
   modelAttempts++;
+  const prompt=JSON.parse(opts.body);
+  assert.equal(prompt.paidWholeNatalContext,true);
+  const writer=require('./report-generation-request');
+  const core=writer.compile(prompt).task.chapters.saju_core;
+  assert.deepEqual(core.wholeNatalContext.positions,prompt.facts.chart);
+  assert.equal(core.wholeNatalContext.interpretivePriorityEstablished,false);
+  const oldPrompt={...prompt};
+  delete oldPrompt.paidWholeNatalContext;
+  const archived=writer.compile(oldPrompt).task.chapters.saju_core;
+  assert(!Object.hasOwn(archived,'wholeNatalContext'));
+  assert.deepEqual(core.topics,archived.topics);
   return {ok:false,status:503};
  }
  return nativeFetch(url,opts);
