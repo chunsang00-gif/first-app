@@ -48,6 +48,11 @@ for(const profile of profiles)for(const mbti of types){
    assert.deepEqual(pre.inspect(paidPrompt,paidPayload,paidSchema),[],
     'whole-chart citations must survive the real provider preflight');
    const paidCore=paidPayload.task.chapters.saju_core;
+   const thesis=require('./report-core-thesis').forPrompt(paidPrompt);
+   assert.equal(thesis.sourcePosition,'whole-natal');
+   assert.deepEqual(thesis.sourceIds,['natal.month.stem','natal.year.stem']);
+   assert.deepEqual(paidSchema.properties.chapters.properties.saju_core
+    .properties.title.enum,[thesis.title]);
    const scopes=paidCore.topics.strength.wholeNatalSupplementRefs;
    assert.deepEqual(scopes,profile.unknownBirthTime?
     ['natal.year.stem','natal.day.stem']:

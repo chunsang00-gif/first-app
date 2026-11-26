@@ -131,8 +131,28 @@ function qualifiedHourThesis(prompt){
   classicalMethodApproved:false,premiumManuscriptQualityApproved:false};
 }
 
+// This heading compares two verified positions. It does not infer
+// dominance from either the buyer's question or a single hour pair.
+function wholeNatalThesis(packet){
+ const context=require('./report-core-evidence-graph').forPaidFirstChapter(packet);
+ const month=context.visibleRoles.find(row=>row.position==='month');
+ const year=context.visibleRoles.find(row=>row.position==='year');
+ const a=readerNoun[month?.tenGod],b=readerNoun[year?.tenGod];
+ if(!a||!b)throw Error('WHOLE_NATAL_THESIS_SOURCE_MISSING');
+ const same=month.tenGod===year.tenGod;
+ return {
+  title:same?'해와 달에 겹치는 '+a:a+josa(a,'과','와')+' '+b,
+  keyJudgment:same?
+   '태어난 해와 달에서 '+a+'의 뜻이 함께 확인됩니다.':
+   '태어난 달에서는 '+a+josa(a,'을','를')+', 태어난 해에서는 '+b+josa(b,'을','를')+' 살피는 뜻이 확인됩니다.',
+  sourceIds:[month.id,year.id],categories:[month.tenGod,year.tenGod],
+  status:'traditional-reading-not-observed-trait',sourcePosition:'whole-natal'
+ };
+}
+
 function forPrompt(prompt){
  if(prompt?.stage!=='body'||!prompt.requestedSections?.includes('saju_core'))return null;
+ if(prompt.paidWholeNatalContext===true)return wholeNatalThesis(prompt.facts);
  const paidHour=qualifiedHourThesis(prompt);
  if(paidHour)return paidHour;
  const calculated=contrast.build(prompt.facts)?.monthTenGodContext;

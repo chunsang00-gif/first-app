@@ -283,6 +283,9 @@ function sourceQualifiedNormalCoreBrief(prompt){
   .build(proof,prompt.facts.person.readerDecision):null;
 }
 function normalCoreGoalFor(prompt){
+ if(prompt.paidWholeNatalContext===true)
+  return '첫 장은 해·달·날·시간의 계산 관계를 대조한다. 기본 본문에는 달의 두 근거와, 실제로 같은 뜻을 보완하거나 제한하는 다른 출생 위치를 짧게 연결한다. 제목과 판단을 본문에 그대로 반복하지 않는다. 출생시간의 별도 문단이 있으면 그 두 출처의 의미만 설명한다. 확인되지 않은 강약, 실제 성격, 사건, 일반 조언으로 분량을 채우지 않는다.';
+
  const extra=sourceQualifiedNormalCoreBrief(prompt);
  if(!extra)return normalCoreEditorialGoal;
  if(require('./report-core-thesis').forPrompt(prompt)?.sourcePosition==='hour')
@@ -343,6 +346,10 @@ function paidCoreHourGoal(prompt){
 const additiveGoal=' 선택형 QA에서는 temperament의 기존 선택 기준과 strength 필수 판정을 유지한다. natal_depth는 독립적으로 증명 가능한 새 개인별 해석이 없으면 null이다. 계산상 새로운 분류와 고전 사례만으로 실제 능력, 성격, 운세를 새로 만들어 쓰지 않는다. 다른 두 문단의 내용을 복제하거나 일반적인 조언으로 심화를 채우지 않는다.';
 function editorialGoalFor(prompt){
  const original=typeof prompt?.editorialTask==='string'?prompt.editorialTask:null;
+ if(normalPaidCore(prompt)&&prompt.paidWholeNatalContext===true)
+  return prompt.requestedSections.length===1?normalCoreGoalFor(prompt):
+   [original,normalCoreGoalFor(prompt)].filter(Boolean).join(' ');
+
  // An actual ordinary first provider batch can contain saju_core AND
  // mbti_contradiction. The existing single-chapter branch below did not
  // correct the top-level editorial brief in that legitimate combination,
