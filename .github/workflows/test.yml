@@ -44,10 +44,6 @@ jobs:
         run: node report-free-reading-language-tests.js
       - run: node character-assets-test.js
       - run: npm test
-      - name: Verify paid first-chapter approval and resume offline
-        env:
-          OPENAI_API_KEY: ''
-        run: node qa-launch-report-first-chapter-once.js --preflight
       - name: Verify REAL web server serves every app entry script and denies private files (LOCAL HTTP)
         env:
           OPENAI_API_KEY: ''

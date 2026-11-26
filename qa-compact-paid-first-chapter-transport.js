@@ -103,6 +103,13 @@ async function inspect(){
   assert.deepEqual(skillCore.wholeNatalContext.positions,requested.facts.chart);
   assert.equal(skillCore.topics.strength.calculatedOpening.text,
    '태어난 날과 시간의 아랫글자는 서로 맞서는 관계입니다.');
+  assert.deepEqual(skillCore.monthMeaning,{
+   visible:{ref:'natal.month.stem',meaning:'공동으로 쓰는 자원과 서로 맡을 몫을 어떻게 정할지'},
+   central:{ref:'natal.month.hidden.戊',meaning:'새로운 일을 누구에게 배우고 어떤 도움을 받을지'}
+  });
+  assert.match(skillCore.hourRelation.application,/겉글자의 질문이 안쪽의 질문을 제약/);
+  assert.match(skillRequest.input[0].content,/두 뜻을 연결한 조건 하나/);
+
   assert(Buffer.byteLength(outbound,'utf8')<30000);
   const careerPlan=require('./report-analysis-guidance').preflight(requested.facts);
   const careerPrompt={...requested,requestedSections:['career'],
