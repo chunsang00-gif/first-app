@@ -1,0 +1,72 @@
+name: Private reading of approved revised paid report first chapter
+on:
+  push:
+    branches: [fix-paid-qa-fact-bindings-20261014]
+    paths: [.github/workflows/qa-paid-report-revised-first-chapter-private-review.yml]
+permissions:
+  contents: read
+  actions: read
+jobs:
+  transfer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 0ef60a5b4b0ebfbfda916af8bba9924a97cd5d55
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          repository: chunsang00-gif/first-app
+          run-id: 45896281549
+          name: launch-report-revised-first-chapter-encrypted-evidence
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/source
+      - name: Seal authorized synthetic manuscript to the reviewer
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          set -euo pipefail
+          umask 077
+          trap 'rm -rf "$RUNNER_TEMP/source" "$RUNNER_TEMP/review-private"' EXIT
+          node report-qa-secure-archive.js decrypt "$RUNNER_TEMP/source/premium-first-chapter-qa.enc" "$RUNNER_TEMP/review-private"
+          unset OPENAI_API_KEY REPORT_MODEL_URL REPORT_MODEL_KEY
+          node - <<'NODE'
+          const fs = require('node:fs');
+          const path = require('node:path');
+          const crypto = require('node:crypto');
+          const assert = require('node:assert/strict');
+          const root = path.join(process.env.RUNNER_TEMP,'review-private');
+          function read(name) {
+           const file = path.join(root,'private-qa-first-chapter'+name+'.json');
+           return fs.existsSync(file) ? JSON.parse(fs.readFileSync(file,'utf8')) : null;
+          }
+          const attempt = read('-attempt');
+          assert.equal(attempt.runId,'45896281549');
+          const result = read('');
+          const retained = read('-provider-calls');
+          const checkpoint = read('-validated-first-chapter');
+          const review = {result,checkpoint,manuscript:null};
+          if (retained) {
+           assert.equal(retained.kind,'whole-chart-original-response');
+           const hash = crypto.createHash('sha256').update(JSON.stringify(retained.request)).digest('hex');
+           assert.equal(hash,'c9bb5d4b2c5f00ba17af339fd15f4abec3fb2e30e7b2a46008a328e8b0e2cf14');
+           const r = retained.response;
+           review.httpStatus = retained.httpStatus;
+           review.status = r?.status || null;
+           review.usage = r?.usage || null;
+           review.reason = r?.incomplete_details?.reason || r?.error?.code || null;
+           const body = r?.output_text || r?.output?.flatMap(x=>x.type==='message'?x.content||[]:[]).filter(x=>x.type==='output_text').map(x=>x.text).join('') || '';
+           if (body.length <= 24000 && body) {
+            try {review.manuscript = JSON.parse(body).chapters?.saju_core || null;}
+            catch {review.parseStatus = 'incomplete-or-invalid-json';}
+           }
+          }
+          const session = crypto.randomBytes(32), iv = crypto.randomBytes(12);
+          const cipher = crypto.createCipheriv('aes-256-gcm',session,iv);
+          const payload = Buffer.concat([cipher.update(JSON.stringify(review),'utf8'),cipher.final()]);
+          const pk = crypto.createPublicKey({key:Buffer.from('MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAnsR9QjN7x6tUEIg8AvOUYoJDioiCK+vfy0JVzu/UKQC/4yNgklI8UmWQwLdmRZJ79lZ3vgFxWf5GwikOpJjwxOOCPekGjwHn86Wo0DlzxeW+mXxP4MBLdZp+Kwo3ijvPaC+0THdtJ6RNMIufq7mXwx2WGClXvnUAaxXxC4VBuoICpf0xSl+HxUVjOaJ8hdAlfOVQpA6hrQQcjMenuRXDJrd9PCJOyI/rz+onnEGZM9hLku06G3wOpA0FR9J37yD0g53qQmjfM2QuyT8k/79JQJtA7W+iL4zXOzscGITfBtQLT9s0PaGz83Rv4q6fJfblQblDAUXOUx2jBFCrgYu+cwIDAQAB','base64'),format:'der',type:'spki'});
+          const wrapped = crypto.publicEncrypt({key:pk,padding:crypto.constants.RSA_PKCS1_OAEP_PADDING,oaepHash:'sha256'},session);
+          const packet = Object.fromEntries(Object.entries({wrapped,iv,tag:cipher.getAuthTag(),payload}).map(([name,value])=>[name,value.toString('base64')]));
+          console.log('PAID_REPORT_REVIEW_CIPHER='+Buffer.from(JSON.stringify(packet)).toString('base64'));
+          NODE
