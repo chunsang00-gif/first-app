@@ -23,8 +23,12 @@ function firstChapter(input){
  assert.equal(chapter.includedInPlan,true);
  const named=[...chapter.eligibleTopics,...chapter.excludedTopics];
  const strength=named.find(x=>x.id==='strength');
- assert(strength?.title.includes('무료 풀이'),
-  'do not resell already-public month strength as an independent paid topic');
+ assert.equal(strength?.alreadyFreeBaseline,true,
+  'the internal baseline is still excluded from the additional interpretation count');
+ const listing=coverage.purchasePreview(result);
+ const listedChapter=listing.estimate.chapters.find(x=>x.id==='saju_core');
+ assert.equal(listedChapter.eligibleTopics.find(x=>x.id==='strength')?.title,'태어난 달의 기본 해석');
+ assert.equal(Object.hasOwn(listing,'readingSample'),false);
  const temperament=named.find(x=>x.id==='temperament');
  assert(temperament);
  assert(!/기질|적성|성격을\s*예측/.test(temperament.title),
