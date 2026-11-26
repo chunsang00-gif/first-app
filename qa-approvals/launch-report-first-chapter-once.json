@@ -1,0 +1,10 @@
+{
+  "kind": "paid-report-first-chapter-explicit-one-call-v1",
+  "operatorApprovedOneBillableCall": true,
+  "requestSha256": "7cf5bc9bf9b8bd83eaef36d8bb6b778c5cc12b8580bb37647b43fc55ad675bd9",
+  "model": "gpt-6-luna",
+  "noRetries": true,
+  "noPayment": true,
+  "noDeployment": true,
+  "parentCommit": "d1c2e2920e53c03448dd57b678d206e91331a75e"
+}
