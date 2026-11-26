@@ -108,23 +108,18 @@ assert.equal(createTiming().snapshot().sampleCount,0);
     freeBaselineTopicCount:0,additionalTopicCandidateUpperBound:0,
     eligibleTopics:[],omittedReason:'근거 없음'}]}});
  await pending;
- assert(body.innerHTML.includes('실제 출생정보에서 확인한 해석 근거'));
- assert(body.innerHTML.includes('태어난 달에서 확인되는 두 근거'));
- assert(body.innerHTML.includes('2027년 계산에서 추가되는 질문'));
- assert(body.innerHTML.indexOf('태어난 달에서 확인되는 두 근거')<
-   body.innerHTML.indexOf('맞춤형 심화 풀이 구성안'),
-   'the real calculated preview must appear BEFORE numerical scope');
- assert(body.innerHTML.includes('추가 풀이 후보 최대 1개'));
- assert(body.innerHTML.includes('전체 항목 2개 중 무료 출생월 복습 1개'));
- assert(body.innerHTML.includes('[이미 무료 공개]'));
+ assert(body.innerHTML.includes('맞춤형 심화 풀이 구성안'));
+ assert(body.innerHTML.includes('작성 후보 최대 2개 항목'));
+ assert(body.innerHTML.includes('풀이 본문은 결제를 확인한 뒤 제공합니다.'));
  assert(body.innerHTML.includes('기본 해석 1개 장 + 2027년 추가 분야 0개 장'));
- assert(body.innerHTML.includes('상품의 확정 약속이 아닌 검토 초안'));
- assert(body.innerHTML.includes('2027년 금전'));
+ assert(!body.innerHTML.includes('태어난 달에서 확인되는 두 근거'));
+ assert(!body.innerHTML.includes('2027년 계산에서 추가되는 질문'));
+ assert(!body.innerHTML.includes('전통적인 분류를 확인하는 무료 예시'));
+ assert(!body.innerHTML.includes('2027년 금전'));
  assert(body.innerHTML.includes('작성 후보 질문 보기'));
  assert(body.innerHTML.includes('태어난 시기의 전통적 해석'));
  assert(!body.innerHTML.includes('금전 손실 예측에서 알 수 없는 부분'));
  assert(body.innerHTML.includes('현재 유료 구매와 정식 보고서 생성은 준비 중입니다'));
- assert(body.innerHTML.includes('기존 12장·35항목 고정 목표는 달성하지 못했습니다'));
  assert(!body.innerHTML.includes('구매가 가능합니다'));
  assert(!body.innerHTML.includes('12개 장을 작성한 뒤'));
  assert.equal(charged,0);
