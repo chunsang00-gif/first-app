@@ -15,6 +15,7 @@ const env={REPORT_STORAGE_DIR:dir,PREMIUM_REPORT_PRICE_KRW:'9900',
 const prior=Object.fromEntries(Object.keys(env).map(k=>[k,process.env[k]]));
 Object.assign(process.env,env);
 let chargeAttempts=0,modelAttempts=0;
+const modelPrompts=[];
 global.fetch=async(url,opts={})=>{
  const u=String(url);
  if(u==='https://api.tosspayments.com/v1/payments/confirm'){
@@ -31,38 +32,7 @@ global.fetch=async(url,opts={})=>{
   // Fail before any billable output, proving the paid order stays bound and
   // a second automatic model attempt cannot occur.
   modelAttempts++;
-  const prompt=JSON.parse(opts.body);
-  assert.equal(prompt.paidWholeNatalContext,true);
-  const writer=require('./report-generation-request');
-  const compiled=writer.compile(prompt);
-  const audit=require('./report-instruction-audit');
-  assert.deepEqual(audit.inspectTransport(prompt,compiled),[]);
-  const core=compiled.task.chapters.saju_core;
-  const altered=structuredClone(compiled);
-  altered.task.chapters.saju_core.wholeNatalContext.positions.day='乙亥';
-  assert(audit.inspectTransport(prompt,altered)
-   .includes('paid-whole-natal-context-dropped-or-changed'));
-  const missing=structuredClone(compiled);
-  delete missing.task.chapters.saju_core.wholeNatalContext;
-  assert(audit.inspectTransport(prompt,missing)
-   .includes('paid-whole-natal-context-dropped-or-changed'));
-  assert.deepEqual(core.wholeNatalContext.positions,prompt.facts.chart);
-  assert.equal(core.wholeNatalContext.interpretivePriorityEstablished,false);
-  const oldPrompt={...prompt};
-  delete oldPrompt.paidWholeNatalContext;
-  const archived=writer.compile(oldPrompt).task.chapters.saju_core;
-  assert(!Object.hasOwn(archived,'wholeNatalContext'));
-  const citationIds=core.topics.strength.citableFacts.map(row=>row.id);
-  const extra=core.topics.strength.wholeNatalSupplementRefs;
-  assert.deepEqual(extra,['natal.year.stem','natal.day.stem','natal.hour.stem']);
-  assert(extra.every(ref=>citationIds.includes(ref)&&Object.hasOwn(compiled.source,ref)));
-  assert.deepEqual(core.topics.temperament,archived.topics.temperament);
-  const schema=writer.schema(prompt,require('./report-wire').schemaFor(prompt,
-   require('./report-schema.json')));
-  const strength=schema.properties.chapters.properties.saju_core.properties
-   .paragraphs.properties.strength;
-  const strengthSlot=strength.anyOf?.find(item=>item.type==='object')||strength;
-  assert.deepEqual(strengthSlot.properties.basis.properties.refs.items.enum,citationIds);
+  modelPrompts.push(JSON.parse(opts.body));
   return {ok:false,status:503};
  }
  return nativeFetch(url,opts);
@@ -405,6 +375,40 @@ const server=http.createServer(require('./server').handler);
    .map(file=>fs.readFileSync(path.join(dir,'purchases',file),'utf8')));
   assert(!receiptDisk.includes(ownerToken),'purchase credential is stored as hash only');
   assert.equal(chargeAttempts,3);
+  assert(modelPrompts.length>0,'the approved mock checkout must reach the model transport');
+  for(const prompt of modelPrompts){
+   assert.equal(prompt.paidWholeNatalContext,true);
+   const writer=require('./report-generation-request');
+   const compiled=writer.compile(prompt);
+   const audit=require('./report-instruction-audit');
+   assert.deepEqual(audit.inspectTransport(prompt,compiled),[]);
+   const core=compiled.task.chapters.saju_core;
+   const altered=structuredClone(compiled);
+   altered.task.chapters.saju_core.wholeNatalContext.positions.day='乙亥';
+   assert(audit.inspectTransport(prompt,altered)
+    .includes('paid-whole-natal-context-dropped-or-changed'));
+   const missing=structuredClone(compiled);
+   delete missing.task.chapters.saju_core.wholeNatalContext;
+   assert(audit.inspectTransport(prompt,missing)
+    .includes('paid-whole-natal-context-dropped-or-changed'));
+   assert.deepEqual(core.wholeNatalContext.positions,prompt.facts.chart);
+   assert.equal(core.wholeNatalContext.interpretivePriorityEstablished,false);
+   const oldPrompt={...prompt};
+   delete oldPrompt.paidWholeNatalContext;
+   const archived=writer.compile(oldPrompt).task.chapters.saju_core;
+   assert(!Object.hasOwn(archived,'wholeNatalContext'));
+   const citationIds=core.topics.strength.citableFacts.map(row=>row.id);
+   const extra=core.topics.strength.wholeNatalSupplementRefs;
+   assert.deepEqual(extra,['natal.year.stem','natal.day.stem','natal.hour.stem']);
+   assert(extra.every(ref=>citationIds.includes(ref)&&Object.hasOwn(compiled.source,ref)));
+   assert.deepEqual(core.topics.temperament,archived.topics.temperament);
+   const schema=writer.schema(prompt,require('./report-wire').schemaFor(prompt,
+    require('./report-schema.json')));
+   const strength=schema.properties.chapters.properties.saju_core.properties
+    .paragraphs.properties.strength;
+   const strengthSlot=strength.anyOf?.find(item=>item.type==='object')||strength;
+   assert.deepEqual(strengthSlot.properties.basis.properties.refs.items.enum,citationIds);
+  }
   console.log('PASS real adaptive offer checkout offline: server-calculated chapters, persisted order scope, changed birth hour rejected before paid model, one charge per order, owner-only recovery, fulfill already-paid order after closing new sales; zero external requests');
  }finally{
   await new Promise(resolve=>server.close(resolve));

@@ -42,6 +42,21 @@ for(const profile of profiles)for(const mbti of types){
   const outgoing=writer.schema(prompt,draft);
   assert.deepEqual(pre.inspect(prompt,payload,outgoing),[],profile.birthDate+' '+mbti+' '+ids);
   if(ids.includes('saju_core')){
+   const paidPrompt={...prompt,paidWholeNatalContext:true};
+   const paidPayload=writer.compile(paidPrompt);
+   const paidSchema=writer.schema(paidPrompt,wire.schemaFor(paidPrompt,schema));
+   assert.deepEqual(pre.inspect(paidPrompt,paidPayload,paidSchema),[],
+    'whole-chart citations must survive the real provider preflight');
+   const paidCore=paidPayload.task.chapters.saju_core;
+   const scopes=paidCore.topics.strength.wholeNatalSupplementRefs;
+   assert.deepEqual(scopes,profile.unknownBirthTime?
+    ['natal.year.stem','natal.day.stem']:
+    ['natal.year.stem','natal.day.stem','natal.hour.stem']);
+   assert.equal(Object.hasOwn(paidCore.wholeNatalContext.positions,'hour'),
+    !profile.unknownBirthTime);
+   assert.deepEqual(paidCore.topics.temperament,payload.task.chapters.saju_core.topics.temperament);
+   for(const id of ids.filter(name=>name!=='saju_core'))
+    assert(!Object.hasOwn(paidPayload.task.chapters[id],'wholeNatalContext'));
    // If the root/clash citations are unavailable to this writing topic,
    // the legitimate paired month-ten-god interpretation must still pass.
    const withoutOptionalRoots=structuredClone(payload);
