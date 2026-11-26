@@ -86,4 +86,20 @@ function forPaidFirstChapter(packet){
   readerBoundary:'태어난 날을 기준으로 태어난 달의 계절과 해·달·날·시간 관계를 먼저 대조한다. 다른 자리의 근거가 좁은 풀이를 제한하면 그만큼 판단을 좁힌다. 같은 글자나 관계가 반복돼도 강도나 사건 횟수로 세지 않는다. 시간을 모르면 그 자리를 추정하지 않는다. 본문은 해당 항목에서 허용한 인용으로 뒷받침할 수 있는 해석만 짧게 쓴다. 근거가 없는 조언, 관찰하지 않은 성격, 미래 사건으로 분량을 채우지 않는다.'
  };
 }
-module.exports={build,forPaidFirstChapter};
+// Prefer the month/day comparison, then the month/hour or month/year
+// comparison. This selects a fact to explain, never a priority of effects.
+function firstChapterOpening(packet){
+ const context=forPaidFirstChapter(packet);
+ const labels={day:'날',hour:'시간',year:'해',month:'달'};
+ const clashes=context.natalRelations.filter(row=>row.type==='충');
+ const pair=clashes.find(row=>row.positions.includes('month')&&row.positions.includes('day'))||
+  clashes.find(row=>row.positions.includes('month'))||clashes[0];
+ if(!pair)return null;
+ const [a,b]=pair.positions.map(position=>labels[position]);
+ const join=a==='달'||a==='날'?'과':'와';
+ return {
+  text:'태어난 '+a+join+' '+b+'의 아랫글자는 서로 맞서는 관계입니다.',
+  refs:['facts.natalBranchRelations']
+ };
+}
+module.exports={build,forPaidFirstChapter,firstChapterOpening};

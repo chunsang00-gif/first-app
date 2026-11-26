@@ -59,7 +59,9 @@ for(const profile of profiles)for(const mbti of types){
     ['natal.year.stem','natal.day.stem','natal.hour.stem']);
    assert.equal(Object.hasOwn(paidCore.wholeNatalContext.positions,'hour'),
     !profile.unknownBirthTime);
-   assert.deepEqual(paidCore.topics.temperament,payload.task.chapters.saju_core.topics.temperament);
+   const {calculatedOpening,...legacyTemperament}=paidCore.topics.temperament;
+   assert.deepEqual(legacyTemperament,payload.task.chapters.saju_core.topics.temperament);
+   assert.equal(Boolean(calculatedOpening),Boolean(legacyTemperament.sourceOwnedHourPairMeaning));
    for(const id of ids.filter(name=>name!=='saju_core'))
     assert(!Object.hasOwn(paidPayload.task.chapters[id],'wholeNatalContext'));
    // If the root/clash citations are unavailable to this writing topic,

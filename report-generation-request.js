@@ -241,6 +241,8 @@ function sources(prompt){
   if(!p?.facts?.natalBranchRelations)throw Error('PAID_DAY_HARMONY_TABLE_MISSING');
   result['facts.natalBranchRelations']=p.facts.natalBranchRelations;
  }
+ if(prompt.paidWholeNatalContext===true&&prompt.requestedSections?.includes('saju_core'))
+  result['facts.natalBranchRelations']=p.facts.natalBranchRelations;
  if(prompt.qaNatalDepthPreview===true){
   if(!p?.facts?.natalBranchRelations)
    throw Error('QA_NATAL_DEPTH_MISSING_NATAL_RELATION_TABLE');
@@ -562,9 +564,24 @@ function compile(prompt){
        require('./report-paid-core-hour-extension').build(prompt.facts,source))
       delete topic.normalPaidMonthNonmainExposure;
     if(prompt.paidWholeNatalContext===true&&chapterId==='saju_core'&&
-       topicId==='strength'&&topic.mode!=='state-limits')
+       topicId==='strength'&&topic.mode!=='state-limits'){
      topic.wholeNatalSupplementRefs=['natal.year.stem','natal.day.stem','natal.hour.stem']
       .filter(ref=>Object.hasOwn(source,ref));
+     topic.calculatedOpening=require('./report-core-evidence-graph')
+      .firstChapterOpening(prompt.facts);
+    }
+    if(prompt.paidWholeNatalContext===true&&chapterId==='saju_core'&&
+       topicId==='temperament'&&topic.sourceOwnedHourPairMeaning){
+     const pair=topic.sourceOwnedHourPairMeaning;
+     const sentences={
+      resource:'태어난 시간의 안쪽 글자가 겉글자를 뒷받침합니다.',
+      output:'태어난 시간의 겉글자가 안쪽 글자를 뒷받침합니다.',
+      'control-on-day':'태어난 시간의 안쪽 글자가 겉글자를 제약합니다.',
+      'day-controls':'태어난 시간의 겉글자가 안쪽 글자를 제약합니다.',
+      'same-element':'태어난 시간의 겉글자와 안쪽 글자는 같은 성질입니다.'
+     };
+     topic.calculatedOpening={text:sentences[pair.elementDirection],refs:pair.sourceRefs};
+    }
     const permitted=[...allowedRefs(payload,topic,chapterId,topicId)];
     topic.citableFacts=permitted.map(id=>{
      const fact=source[id]||{};
@@ -2273,6 +2290,13 @@ function allowedRefs(payload,task,chapterId,topic){
    ids.add(ref);
   }
  }
+ if(chapterId==='saju_core'&&topic==='strength'&&task?.calculatedOpening){
+  for(const ref of task.calculatedOpening.refs){
+   if(!Object.hasOwn(payload.source,ref))
+    throw Error('WHOLE_NATAL_FIRST_CHAPTER_OPENING_REF_MISSING');
+   ids.add(ref);
+  }
+ }
  return ids;
 }
 // A provider may cite every *actual* observed root and clash ledger while
@@ -2332,6 +2356,11 @@ function restoreEvidence(value,prompt){
       ['interpretation','condition'].some(k=>typeof b[k]!=='string'||!b[k].trim())))
     throw Error('AI report service missing verified paragraph basis');
    if(!task)throw Error('AI report service unexpected paragraph topic: '+id+':'+topic);
+   if(task.calculatedOpening&&
+      (typeof p.text!=='string'||!p.text.trimStart().startsWith(task.calculatedOpening.text)||
+       task.calculatedOpening.refs.some(ref=>!b.refs?.includes(ref))))
+    throw Error('AI report service dropped the verified first-chapter comparison: '+topic);
+
    if(id==='saju_core'&&topic==='natal_depth'&&prompt.qaNatalDepthPreview===true){
     const locked=require('./report-core-paid-natal-depth-fact-lock')
      .fromPayload(payload);

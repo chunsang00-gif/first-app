@@ -22,8 +22,18 @@ async function inspect(){
   const prompt={...original,paidWholeNatalContext:true};
   const {title,keyJudgment}=thesis.forPrompt(prompt);
   Object.assign(raw.chapters.saju_core,{title,keyJudgment});
-  const strength=raw.chapters.saju_core.paragraphs.strength;
-  strength.basis.refs.push('natal.year.stem');
+  const paragraphs=raw.chapters.saju_core.paragraphs;
+  const compiled=writer.compile(prompt);
+  for(const [id,paragraph] of Object.entries(paragraphs)){
+   const opening=compiled.task.chapters.saju_core.topics[id].calculatedOpening;
+   if(opening){
+    paragraph.text=opening.text+' '+paragraph.text;
+    paragraph.basis.refs=[...new Set([...paragraph.basis.refs,...opening.refs])];
+   }
+  }
+  const strength=paragraphs.strength;
+  if(!strength.basis.refs.includes('natal.year.stem'))
+   strength.basis.refs.push('natal.year.stem');
   strength.text+=' 태어난 해에는 자원을 꾸준히 돌보는 뜻이 있어, 달의 새로운 정보를 이해하는 뜻과 함께 읽습니다.';
   let outbound,calls=0;
   global.fetch=async(url,options)=>{
@@ -38,7 +48,6 @@ async function inspect(){
   assert.equal(calls,1);
   const request=JSON.parse(outbound);
   const sent=JSON.parse(request.input[1].content);
-  const compiled=writer.compile(prompt);
   assert.deepEqual(sent.source,compiled.source);
   assert.deepEqual(sent.task.chapters.saju_core.wholeNatalContext,
    compiled.task.chapters.saju_core.wholeNatalContext);
@@ -54,9 +63,13 @@ async function inspect(){
    requestSha256:crypto.createHash('sha256').update(outbound).digest('hex'),
    model:request.model,outputLimit:request.max_output_tokens,modelNetworkCalls:0};
 
+  const body=paragraphs.temperament.text;
+  paragraphs.temperament.text='기존 일을 이어가고 새 기술을 배울 계획을 각각 확인합니다.';
+  await assert.rejects(()=>callOpenAI(prompt),/dropped the verified first-chapter comparison/);
+  paragraphs.temperament.text=body;
   strength.basis.refs.push('annual.stem');
   await assert.rejects(()=>callOpenAI(prompt),/missing verified paragraph basis|unrelated paragraph basis/);
-  assert.equal(calls,2);
+  assert.equal(calls,3);
   const skill={...base,birthDate:'1982-10-15',
    readerDecision:'기존 일을 유지할지 새로운 기술을 배울지 고민 중입니다.'};
   const next=await capture(skill);
@@ -75,6 +88,8 @@ async function inspect(){
   const skillCore=JSON.parse(skillRequest.input[1].content).task.chapters.saju_core;
   assert.equal(skillCore.readerQuestion,skill.readerDecision);
   assert.deepEqual(skillCore.wholeNatalContext.positions,requested.facts.chart);
+  assert.equal(skillCore.topics.strength.calculatedOpening.text,
+   '태어난 날과 시간의 아랫글자는 서로 맞서는 관계입니다.');
   assert(Buffer.byteLength(outbound,'utf8')<30000);
   return {money:captured,skill:{
    model:skillRequest.model,bytes:Buffer.byteLength(outbound,'utf8'),

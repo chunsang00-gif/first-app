@@ -401,7 +401,9 @@ const server=http.createServer(require('./server').handler);
    const extra=core.topics.strength.wholeNatalSupplementRefs;
    assert.deepEqual(extra,['natal.year.stem','natal.day.stem','natal.hour.stem']);
    assert(extra.every(ref=>citationIds.includes(ref)&&Object.hasOwn(compiled.source,ref)));
-   assert.deepEqual(core.topics.temperament,archived.topics.temperament);
+   const {calculatedOpening,...legacyTemperament}=core.topics.temperament;
+   assert.deepEqual(legacyTemperament,archived.topics.temperament);
+   assert.equal(Boolean(calculatedOpening),Boolean(legacyTemperament.sourceOwnedHourPairMeaning));
    const schema=writer.schema(prompt,require('./report-wire').schemaFor(prompt,
     require('./report-schema.json')));
    const strength=schema.properties.chapters.properties.saju_core.properties
