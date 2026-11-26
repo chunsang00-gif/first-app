@@ -69,7 +69,7 @@ async function inspect(){
    Object.assign(raw.chapters.saju_core,{title,keyJudgment});
    const {topics}=writer.compile(prompt).task.chapters.saju_core;
    const p=raw.chapters.saju_core.paragraphs;
-   p.temperament.text='태어난 시간의 겉글자는 새 정보를 이해하는 방식, 안쪽 글자는 결과물을 준비하는 순서를 가리킵니다. 이해가 덜 됐다면 결과물을 보여줄 순서부터 정해도, 무엇을 보여줘야 할지 기준이 비기 쉽다는 풀이입니다.';
+   p.temperament.text='처음 접한 정보를 자기 방식으로 이해하는 문제는 결과물을 준비하고 보여주는 순서와 함께 살펴야 합니다.';
    p.temperament.basis.condition='겉과 안의 뜻을 함께 비교할 때만 적용하는 풀이';
    for(const [topic,paragraph] of Object.entries(p)){
     const opening=topics[topic].calculatedOpening;
@@ -86,6 +86,8 @@ async function inspect(){
   },[],{paidWholeNatalContext:true}),e=>e===stop);
   assert.equal(intercepted,1);
   assert.equal(checkpoints,1);
+  assert(firstCheckpoint.sections[0].body.some(line=>line.includes('무엇을 보여줄지 기준이 비기 쉽다')));
+  assert.match(raw.chapters.saju_core.paragraphs.temperament.text,/함께 살펴야 합니다/);
   assert.deepEqual(nextPrompt.requestedSections,groups[1]);
   assert(nextPrompt.priorSections.some(section=>section.id==='saju_core'));
   assert(!firstRequest.includes(INPUT.readerDecision));

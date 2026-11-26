@@ -2583,9 +2583,25 @@ function restoreEvidence(value,prompt){
     }
     if(id==='saju_core'&&topic==='temperament'&&
        task.sourceOwnedHourExtension){
+     const natalOnly=prompt.separateReaderQuestionFromCore===true&&Boolean(task.calculatedOpening);
+     if(natalOnly&&prompt.paidWholeNatalContext===true&&prompt.requestedSections.length===1&&b.refs.length===2){
+      const pair=task.sourceOwnedHourPairMeaning;
+      const planned=require('./report-paid-core-hour-pair-meaning')
+       .composeReaderParagraph(pair,task.calculatedOpening);
+      if(planned){
+       const directionErrors=require('./report-paid-core-hour-pair-reader-gate')
+        .inspectParagraph(p.text,pair);
+       if(directionErrors.length)
+        throw Error('AI report service contradicted a calculated hour relation');
+       // Replace only the cloned paragraph after checking the model's
+       // calculated opening and citations. All body gates see the result.
+       p.label=planned.label;
+       p.text=planned.text;
+       Object.assign(b,planned.basis);
+      }
+     }
      const problems=require('./report-paid-core-hour-reader-application')
-      .inspect(p,chapter.paragraphs.strength?.text,task.sourceOwnedHourExtension,
-       {natalOnly:prompt.separateReaderQuestionFromCore===true&&Boolean(task.calculatedOpening)});
+      .inspect(p,chapter.paragraphs.strength?.text,task.sourceOwnedHourExtension,{natalOnly});
      if(problems.length)
       throw Error('CORE_HOUR_EXTENSION_READER_VALUE_MISSING:'+problems.join('|'));
     }

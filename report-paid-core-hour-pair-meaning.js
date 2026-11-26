@@ -82,4 +82,36 @@ function build(packet,source,proof){
   saleApproved:false
  });
 }
-module.exports={build,PHRASES,INSTRUCTIONS};
+// Editorially reviewed applications indexed by the calculated role pair and
+// direction. A matching direction alone cannot select either paragraph.
+const APPLICATIONS=Object.freeze({
+ 'resource:편관:편재':{
+  label:'갑작스러운 책임의 조건',
+  roles:'태어난 시간의 안쪽 글자는 필요한 돈이나 물품을 마련하는 뜻입니다. 겉글자는 갑자기 생긴 요구와 책임을 살피는 뜻입니다.',
+  condition:'갑작스러운 요구를 맡을 때 쓸 돈이나 물품을 마련할 길이 있는지가 책임을 감당하는 조건입니다.'
+ },
+ 'day-controls:편인:식신':{
+  label:'결과를 보여주기 전의 조건',
+  roles:'태어난 시간의 겉글자는 새 정보를 이해하는 방식, 안쪽 글자는 결과물을 준비하는 순서를 가리킵니다.',
+  condition:'이해가 덜 됐다면 결과물을 보여줄 순서부터 정해도 무엇을 보여줄지 기준이 비기 쉽다는 풀이입니다.'
+ }
+});
+
+function composeReaderParagraph(pair,opening){
+ if(!pair||!opening)return null;
+ const key=[pair.elementDirection,pair.hourVisibleRole,pair.hourHiddenRole].join(':');
+ if(!Object.hasOwn(APPLICATIONS,key))return null;
+ const reading=APPLICATIONS[key];
+ return {
+  label:reading.label,
+  text:[opening.text,reading.roles,reading.condition].join(' '),
+  basis:{
+   refs:pair.sourceRefs.slice(),
+   interpretation:opening.text+' '+reading.roles,
+   condition:reading.condition,
+   limit:'출생시간의 두 글자를 대조한 전통 풀이의 범위이며 실제 행동이나 결과는 확인되지 않습니다.'
+  }
+ };
+}
+
+module.exports={build,PHRASES,INSTRUCTIONS,composeReaderParagraph};

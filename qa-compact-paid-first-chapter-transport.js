@@ -55,6 +55,7 @@ async function inspect(){
    throw stop;
   },[],{paidWholeNatalContext:true}),e=>e===stop);
   assert.equal(decoded.sections[0].title,title);
+  assert(decoded.sections[0].body.some(line=>line.includes('마련할 길이 있는지가 책임을 감당하는 조건')));
   assert(decoded.sections[0].evidence.some(line=>line.includes('natal.year.stem')));
   assert.equal(calls,1);
   const request=JSON.parse(outbound);
