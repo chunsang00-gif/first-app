@@ -34,7 +34,18 @@ global.fetch=async(url,opts={})=>{
   const prompt=JSON.parse(opts.body);
   assert.equal(prompt.paidWholeNatalContext,true);
   const writer=require('./report-generation-request');
-  const core=writer.compile(prompt).task.chapters.saju_core;
+  const compiled=writer.compile(prompt);
+  const audit=require('./report-instruction-audit');
+  assert.deepEqual(audit.inspectTransport(prompt,compiled),[]);
+  const core=compiled.task.chapters.saju_core;
+  const altered=structuredClone(compiled);
+  altered.task.chapters.saju_core.wholeNatalContext.positions.day='乙亥';
+  assert(audit.inspectTransport(prompt,altered)
+   .includes('paid-whole-natal-context-dropped-or-changed'));
+  const missing=structuredClone(compiled);
+  delete missing.task.chapters.saju_core.wholeNatalContext;
+  assert(audit.inspectTransport(prompt,missing)
+   .includes('paid-whole-natal-context-dropped-or-changed'));
   assert.deepEqual(core.wholeNatalContext.positions,prompt.facts.chart);
   assert.equal(core.wholeNatalContext.interpretivePriorityEstablished,false);
   const oldPrompt={...prompt};

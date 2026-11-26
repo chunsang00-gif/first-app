@@ -194,6 +194,14 @@ function inspectTransport(prompt,actual){
    const upstream=prompt.analysisGuidance?.chapterTasks?.[id]||{};
    const chapter=task.chapters?.[id];
    if(!chapter){errors.push('provider-chapter-missing:'+id);continue}
+   if(id==='saju_core'&&prompt.paidWholeNatalContext===true){
+    const verified=require('./report-core-evidence-graph')
+     .forPaidFirstChapter(prompt.facts);
+    if(JSON.stringify(chapter.wholeNatalContext)!==JSON.stringify(verified))
+     errors.push('paid-whole-natal-context-dropped-or-changed');
+   }else if(Object.hasOwn(chapter,'wholeNatalContext')){
+    errors.push('paid-whole-natal-context-leaked-to-unrelated-chapter:'+id);
+   }
    if(chapter.analysisGoal!==require('./report-generation-request').scopedAnalysisGoal(prompt,id))
     errors.push('chapter-depth-goal-dropped:'+id);
    // The first-chapter V2 instruction must survive actual writer transport.
