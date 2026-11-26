@@ -101,6 +101,7 @@ async function inspect(){
   [],{paidWholeNatalContext:true}),/dropped the verified first-chapter comparison/);
   assert.equal(attempts,1);
 
+  let domainPrompt=null;
   const rows=groups.map((ids,index)=>{
    if(index===0)return {chapters:ids,requestBytes:Buffer.byteLength(firstRequest),
     requestSha256:crypto.createHash('sha256').update(firstRequest).digest('hex'),
@@ -110,15 +111,20 @@ async function inspect(){
      editorialBlueprint:Object.fromEntries(ids.map(id=>[id,blueprint[id]]))}};
    const payload=writer.compile(p);
    assert.deepEqual(preflight.inspect(p,payload,writer.schema(p,wire.schemaFor(p,schema))),[]);
-   if(ids.includes('career'))assert(Object.values(payload.task.chapters.career.topics)
-    .some(topic=>topic.buyerCurrentQuestion),'career must own the buyer question');
+   if(ids.includes('career')){
+    assert(Object.values(payload.task.chapters.career.topics)
+     .some(topic=>topic.buyerCurrentQuestion),'career must own the buyer question');
+    domainPrompt=p;
+   }
    const envelope=cost.envelope(p,model);
    return {chapters:ids,requestBytes:Buffer.byteLength(JSON.stringify(envelope)),
     outputCeiling:envelope.max_output_tokens,exact:false};
   });
+  assert(domainPrompt);
+  const domain=await verifyDomainTransport(domainPrompt);
   const synthesisTokens=chapterPlan.outputLimit(model,{stage:'synthesis'});
   const outputCeiling=rows.reduce((sum,row)=>sum+row.outputCeiling,synthesisTokens);
-  return {body:rows,synthesis:{outputCeiling:synthesisTokens},
+  return {body:rows,domain,synthesis:{outputCeiling:synthesisTokens},
    maxCalls:rows.length+1,outputCeiling,
    verifiedFirstBatchAdvanced:true,rejectedFirstBatchStopped:true,
    modelNetworkCalls:0,realReportCompleted:false,saleApproved:false};
@@ -127,6 +133,47 @@ async function inspect(){
   for(const [key,value] of Object.entries(prior))
    if(value===undefined)delete process.env[key];else process.env[key]=value;
  }
+}
+
+async function verifyDomainTransport(prompt){
+ let captured;
+ global.fetch=async(url,options)=>{
+  assert.equal(url,'https://api.openai.com/v1/responses');
+  captured=options.body;
+  return {ok:false,status:503,json:async()=>({})};
+ };
+ const oldError=console.error;
+ async function request(p){
+  captured=null;
+  await assert.rejects(()=>callOpenAI(p),/AI report service error \(503\)/);
+  assert(captured);
+  return {bytes:Buffer.byteLength(captured),body:JSON.parse(captured)};
+ }
+ let before,after;
+ try{
+  console.error=()=>{};
+  before=await request(prompt);
+  after=await request({...prompt,paidCompactDomainContext:true});
+ }finally{console.error=oldError;}
+ const original=JSON.parse(before.body.input[1].content);
+ const compact=JSON.parse(after.body.input[1].content);
+ assert.deepEqual(after.body.text,before.body.text);
+ assert.equal(after.body.input[0].content,before.body.input[0].content);
+ assert(after.bytes<before.bytes*0.9,'remove at least 10% of this sample request');
+ for(const id of prompt.requestedSections){
+  for(const [name,topic] of Object.entries(original.task.chapters[id].topics)){
+   const projected=compact.task.chapters[id].topics[name];
+   assert.deepEqual(projected,{...topic,citableFacts:topic.citableFacts.map(({id})=>({id}))});
+   for(const {id} of projected.citableFacts)
+    assert.deepEqual(compact.source[id],original.source[id]);
+  }
+ }
+ assert.deepEqual(compact.task.previousSections,original.task.previousSections);
+ assert(!Object.hasOwn(compact.source,'facts.qiEvidence'));
+ return {beforeBytes:before.bytes,afterBytes:after.bytes,
+  reductionPercent:Math.round(100*(1-after.bytes/before.bytes)),
+  sourcesBefore:Object.keys(original.source).length,
+  sourcesAfter:Object.keys(compact.source).length};
 }
 
 if(require.main===module)inspect().then(result=>console.log(JSON.stringify(result)))

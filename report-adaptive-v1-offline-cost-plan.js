@@ -74,7 +74,8 @@ function envelope(prompt,model=MODEL){
   ...require('./report-provider-model-options').requestFields(model),
   input:[{role:'system',content:'Return only the requested premium report JSON. '+
    writer.policyFor(prompt)+' '+wire.instruction},
-   {role:'user',content:JSON.stringify(projection.project(prompt,compiled))}],
+   {role:'user',content:JSON.stringify(require('./report-paid-domain-compact-transport')
+    .project(prompt,projection.project(prompt,compiled),schema))}],
   text:{format:{type:'json_schema',name:'saju_mbti_premium_report',
    strict:true,schema}}};
 }
