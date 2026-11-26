@@ -69,7 +69,7 @@ async function inspect(){
    Object.assign(raw.chapters.saju_core,{title,keyJudgment});
    const {topics}=writer.compile(prompt).task.chapters.saju_core;
    const p=raw.chapters.saju_core.paragraphs;
-   p.temperament.text='태어난 시간의 겉글자는 처음 접한 내용을 자기 방식으로 이해하는 뜻입니다. 안쪽 글자는 배운 것을 결과물로 완성하는 뜻입니다. 이 관계에서는 이해하는 쪽의 뜻이 결과를 보여주는 쪽의 뜻을 제한합니다.';
+   p.temperament.text='태어난 시간의 겉글자는 새 정보를 이해하는 방식, 안쪽 글자는 결과물을 준비하는 순서를 가리킵니다. 이해가 덜 됐다면 결과물을 보여줄 순서부터 정해도, 무엇을 보여줘야 할지 기준이 비기 쉽다는 풀이입니다.';
    p.temperament.basis.condition='겉과 안의 뜻을 함께 비교할 때만 적용하는 풀이';
    for(const [topic,paragraph] of Object.entries(p)){
     const opening=topics[topic].calculatedOpening;

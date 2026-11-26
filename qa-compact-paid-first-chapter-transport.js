@@ -24,7 +24,7 @@ async function inspect(){
   Object.assign(raw.chapters.saju_core,{title,keyJudgment});
   const paragraphs=raw.chapters.saju_core.paragraphs;
   const compiled=writer.compile(prompt);
-  paragraphs.temperament.text='태어난 시간의 안쪽 글자는 필요한 돈을 마련하는 뜻으로 읽습니다. 겉글자는 갑자기 생긴 요구와 책임을 살피는 뜻입니다. 이 관계에서는 책임을 읽을 때 그것을 뒷받침할 자원의 뜻도 함께 봅니다.';
+  paragraphs.temperament.text='태어난 시간의 안쪽 글자는 필요한 자원을 마련하는 뜻입니다. 겉글자는 갑자기 생긴 요구와 책임을 살피는 뜻입니다. 뜻밖의 요구를 받아들일 때 쓸 돈이나 물품을 확보할 길이 있어야 책임을 감당한다는 풀이입니다.';
   for(const [id,paragraph] of Object.entries(paragraphs)){
    const opening=compiled.task.chapters.saju_core.topics[id].calculatedOpening;
    if(opening){
@@ -108,6 +108,18 @@ async function inspect(){
    central:{ref:'natal.month.hidden.戊',meaning:'새로운 일을 누구에게 배우고 어떤 도움을 받을지'}
   });
   assert.match(skillCore.hourRelation.application,/겉글자의 질문이 안쪽의 질문을 제약/);
+  const skillCompiled=writer.compile(requested).task.chapters.saju_core.topics.temperament;
+  const moneyProof=compiled.task.chapters.saju_core.topics.temperament.sourceOwnedHourPairMeaning;
+  const skillProof=skillCompiled.sourceOwnedHourPairMeaning;
+  const gate=require('./report-paid-core-hour-pair-reader-gate');
+  const skillParagraph=skillCompiled.calculatedOpening.text+
+   ' 태어난 시간의 겉글자는 새 정보를 이해하는 방식, 안쪽 글자는 결과물을 준비하는 순서를 가리킵니다. 이해가 덜 됐다면 결과물을 보여줄 순서부터 정해도, 무엇을 보여줘야 할지 기준이 비기 쉽다는 풀이입니다.';
+  assert.deepEqual(gate.inspectParagraph(body,moneyProof),[]);
+  assert.deepEqual(gate.inspectParagraph(skillParagraph,skillProof),[]);
+  for(const [paragraph,wrongChart] of [[body,skillProof],[skillParagraph,moneyProof]]){
+   assert(gate.inspectParagraph(paragraph,wrongChart)
+    .includes('hour-pair-element-direction-conflicts-with-calculation'));
+  }
   assert.match(skillRequest.input[0].content,/두 뜻을 연결한 조건 하나/);
 
   assert(Buffer.byteLength(outbound,'utf8')<30000);
