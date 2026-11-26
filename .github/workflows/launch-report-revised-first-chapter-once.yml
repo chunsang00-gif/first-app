@@ -1,0 +1,52 @@
+# No billable action except a separately approved, new, marker-only push.
+name: Revised paid report first chapter after explicit one-call consent
+on:
+  push:
+    branches: [fix-paid-qa-fact-bindings-20261014]
+    paths:
+      - qa-approvals/launch-report-revised-first-chapter-once.json
+permissions:
+  contents: read
+  actions: read
+jobs:
+  paid-first-chapter:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    concurrency:
+      group: launch-report-revised-first-chapter-single-attempt
+      cancel-in-progress: false
+    env:
+      NODE_ENV: test
+      REPORT_MODEL_URL: ''
+      REPORT_MODEL: gpt-6-luna
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --ignore-scripts --no-audit --no-fund
+      - name: Verify complete offline first chapter batch before billing
+        env:
+          OPENAI_API_KEY: ''
+        run: node qa-launch-report-first-chapter-once.js --revised --preflight
+      - name: Generate exactly one approved first chapter and save its checkpoint
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node qa-launch-report-first-chapter-once.js --revised
+      - name: Encrypt original even on failure
+        if: always()
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: node report-qa-secure-archive.js encrypt
+      - name: Upload only encrypted private evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: launch-report-revised-first-chapter-encrypted-evidence
+          path: premium-first-chapter-qa.enc
+          if-no-files-found: ignore
+          retention-days: 30
