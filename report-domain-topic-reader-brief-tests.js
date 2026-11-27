@@ -757,6 +757,10 @@ const careerParagraph={label:'작업 방식과 결과물의 조건',
   condition:method.computedCondition,limit:'실제 업무 성적이나 취업 결과를 예언하지 않습니다.'}};
 const careerResponse=p=>({chapters:{career:{paragraphs:{workstyle:p}}}});
 assert.doesNotThrow(()=>generator.restoreEvidence(careerResponse(careerParagraph),careerPrompt));
+const questionContrast=structuredClone(careerParagraph);
+questionContrast.text='기존 지침을 배우고 결과물을 어떻게 검수할지 살핍니다. '+
+ '방법을 익히는 단계와 결과물의 완성도를 확인하는 단계는 같은 질문이 아닙니다.';
+assert.doesNotThrow(()=>generator.restoreEvidence(careerResponse(questionContrast),careerPrompt));
 const genericCareer=structuredClone(careerParagraph);
 genericCareer.text='업무를 시작할 때는 상황을 잘 살피고 신중하게 일해야 합니다. '+
  '다양한 관점을 고려하면 직장 생활이 좋아질 수 있습니다.';

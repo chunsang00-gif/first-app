@@ -13,7 +13,7 @@ const WORDS=Object.freeze({
  '정인':/(?:배우|익히|학습|지침|교육|조언|지원|설명|안내|절차를\s*이해)/,
  '편인':/(?:이해|해석|낯선\s*(?:방법|자료|과제)|새로운?\s*(?:방법|자료)|비교해\s*배우|다른\s*(?:접근|관점)|원리)/,
 });
-const CONDITIONAL=/(?:반면|반대로|하지만|그러나|그렇지만|없(?:으면|다면|는\s*경우)|빠지(?:면|기\s*때문)|한쪽|첫\s*번째|둘째|앞의\s*조건|뒤의\s*조건|서로\s*다른|각각|차이|구별|대조|와\s*달리|일\s*때와)/;
+const CONDITIONAL=/(?:반면|반대로|하지만|그러나|그렇지만|없(?:으면|다면|는\s*경우)|빠지(?:면|기\s*때문)|한쪽|첫\s*번째|둘째|앞의\s*조건|뒤의\s*조건|서로\s*다른|같은\s*질문이\s*아닙니다|각각|차이|구별|대조|와\s*달리|일\s*때와)/;
 const SUPPORTED=Object.freeze({
  'money.earning':'earnedValueConditionalReading',
  'career.workstyle':'careerWorkstyleCondition'
