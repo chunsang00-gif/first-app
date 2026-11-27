@@ -34,6 +34,10 @@ const annualGate={
  workflow:'.github/workflows/qa-finish-annual-summary-once.yml',
  marker:'qa-approvals/finish-annual-summary-once.json'
 };
+const freshGate={
+ kind:'fresh-automatic-report-v1',offset:-1,
+ workflow:'.github/workflows/qa-fresh-paid-report-once.yml',marker:'qa-approvals/fresh-paid-report-once.json'
+};
 const SOURCE_RUN='45896281549';
 const SOURCE_HASH='c9bb5d4b2c5f00ba17af339fd15f4abec3fb2e30e7b2a46008a328e8b0e2cf14';
 const INPUT={...require('./qa-launch-g1-money-preflight').INPUT,birthDate:'1982-10-15',
@@ -41,6 +45,10 @@ const INPUT={...require('./qa-launch-g1-money-preflight').INPUT,birthDate:'1982-
 const OPTIONS={paidWholeNatalContext:true};
 const PLAN=[['mbti_contradiction'],['money','career'],['relationship'],['year_2027'],[]];
 const MAX_OUTPUT=12000;
+const FIRST_OUTPUT=18000;
+const scopeAt=index=>index===-1?['saju_core']:PLAN[index];
+const limitAt=index=>index===-1?FIRST_OUTPUT:MAX_OUTPUT;
+const totalLimit=gate=>gate.offset===-1?FIRST_OUTPUT+PLAN.length*MAX_OUTPUT:(PLAN.length-gate.offset)*MAX_OUTPUT;
 const MAX_REQUEST_BYTES=225000;
 const SUMMARY='private-qa-first-chapter.json';
 const ARCHIVE='private-qa-first-chapter-provider-calls.json';
@@ -49,10 +57,10 @@ const CHECKPOINTS='private-qa-first-chapter-validated-first-chapter.json';
 function authorize(marker,env,git,gate){
  assert.deepEqual(marker,{
   kind:gate.kind,operatorApprovedOneReport:true,
-  sourceRun:SOURCE_RUN,sourceRequestSha256:SOURCE_HASH,
+  ...(gate.offset===-1?{firstRequestSha256:SOURCE_HASH}:{sourceRun:SOURCE_RUN,sourceRequestSha256:SOURCE_HASH}),
   ...(gate.continuationRun?{continuationRun:gate.continuationRun}:{}),
   ...(gate.relationshipRun?{relationshipRun:gate.relationshipRun}:{}),
-  maxNewCalls:PLAN.length-gate.offset,totalOutputTokenLimit:(PLAN.length-gate.offset)*MAX_OUTPUT,
+  maxNewCalls:PLAN.length-gate.offset,totalOutputTokenLimit:totalLimit(gate),
   model:MODEL,noRetries:true,noPayment:true,noDeployment:true,
   parentCommit:git(['rev-parse','HEAD^'])
  });
@@ -72,20 +80,20 @@ function authorize(marker,env,git,gate){
 }
 
 function checkStage(prompt,index){
- const ids=PLAN[index];
+ const ids=scopeAt(index);
  assert(ids,'unapproved continuation call');
  assert.equal(prompt.stage,ids.length?'body':'synthesis');
  assert.deepEqual(prompt.requestedSections,ids);
- assert.equal(require('./report-paid-batch-plan').outputLimit(MODEL,prompt),MAX_OUTPUT);
+ assert.equal(require('./report-paid-batch-plan').outputLimit(MODEL,prompt),limitAt(index));
 }
-function checkTransport(url,options){
+function checkTransport(url,options,index=0){
  assert.equal(url,'https://api.openai.com/v1/responses');
  assert.equal(options.method,'POST');
  assert(Buffer.byteLength(options.body)<=MAX_REQUEST_BYTES,'request size exceeds approved scope');
  const body=JSON.parse(options.body);
  assert.equal(body.model,MODEL);
  assert.equal(body.store,false);
- assert.equal(body.max_output_tokens,MAX_OUTPUT);
+ assert.equal(body.max_output_tokens,limitAt(index));
 }
 
 function readArchivedOutput(dir){
@@ -200,7 +208,9 @@ async function run(dir,continuationDir,relationshipDir,gate){
  console.error=()=>{};
  global.fetch=async(url,options)=>{
   assert(active&&!active.sent,'no retry or unplanned network call');
-  checkTransport(url,options);
+  checkTransport(url,options,gate.offset+dispatched);
+  if(gate.offset+dispatched===-1)
+   assert.equal(crypto.createHash('sha256').update(options.body).digest('hex'),SOURCE_HASH);
   active.sent=true;
   dispatched++;
   const response=await transport(url,options);
@@ -210,7 +220,7 @@ async function run(dir,continuationDir,relationshipDir,gate){
   return response;
  };
  try{
-  const checkpoints=await restoreFromArchives(dir,continuationDir,relationshipDir,gate);
+  const checkpoints=gate.offset===-1?[]:await restoreFromArchives(dir,continuationDir,relationshipDir,gate);
   batches.push(...checkpoints);
   writePrivate(CHECKPOINTS,{sourceRun:SOURCE_RUN,batches});
   const result=await generate(INPUT,async prompt=>{
@@ -224,10 +234,10 @@ async function run(dir,continuationDir,relationshipDir,gate){
    writePrivate(CHECKPOINTS,{sourceRun:SOURCE_RUN,batches});
   },checkpoints,OPTIONS);
   writePrivate(SUMMARY,{sourceRun:SOURCE_RUN,dispatched,result,saleApproved:false});
-  console.log('REPORT_QA_STATUS='+result.status+'; new_calls='+dispatched+'; first_chapter_reused=true');
+  console.log('REPORT_QA_STATUS='+result.status+'; new_calls='+dispatched+'; first_chapter_reused='+String(gate.offset!==-1) );
   if(result.status!=='ready')process.exitCode=2;
  }catch(error){
-  writePrivate(SUMMARY,{sourceRun:SOURCE_RUN,dispatched,stage:dispatched?PLAN[gate.offset+dispatched-1]:null,
+  writePrivate(SUMMARY,{sourceRun:SOURCE_RUN,dispatched,stage:dispatched?scopeAt(gate.offset+dispatched-1):null,
    reason:error.message,status:'stopped-no-retry',saleApproved:false});
   console.log('REPORT_QA_STATUS=stopped-no-retry; new_calls='+dispatched);
   process.exitCode=1;
@@ -256,10 +266,10 @@ async function preflight(gate){
  })[cmd.join(' ')];
  const maxNewCalls=PLAN.length-gate.offset;
  const marker={kind:gate.kind,operatorApprovedOneReport:true,
-  sourceRun:SOURCE_RUN,sourceRequestSha256:SOURCE_HASH,
+  ...(gate.offset===-1?{firstRequestSha256:SOURCE_HASH}:{sourceRun:SOURCE_RUN,sourceRequestSha256:SOURCE_HASH}),
   ...(gate.continuationRun?{continuationRun:gate.continuationRun}:{}),
   ...(gate.relationshipRun?{relationshipRun:gate.relationshipRun}:{}),
-  maxNewCalls,totalOutputTokenLimit:maxNewCalls*MAX_OUTPUT,
+  maxNewCalls,totalOutputTokenLimit:totalLimit(gate),
   model:MODEL,noRetries:true,noPayment:true,noDeployment:true,parentCommit:parent};
  authorize(marker,env,git,gate);
  assert.throws(()=>authorize({...marker,operatorApprovedOneReport:false},env,git,gate));
@@ -278,7 +288,7 @@ async function preflight(gate){
  assert.throws(()=>checkTransport(url,request({...data,store:true})));
  assert.throws(()=>checkTransport(url,request({...data,max_output_tokens:MAX_OUTPUT+1})));
  assert.throws(()=>checkTransport(url,request({...data,padding:'x'.repeat(MAX_REQUEST_BYTES)})));
- if(gate.offset){
+ if(gate.offset>0){
   assert.throws(()=>authorize({...marker,continuationRun:'123'},env,git,gate));
   assert.throws(()=>checkStage({stage:'body',requestedSections:['money','career']},gate.offset));
   assert.deepEqual(PLAN.slice(gate.offset),gate.relationshipRun?
@@ -289,8 +299,13 @@ async function preflight(gate){
   assert.throws(()=>checkStage({stage:'body',requestedSections:['relationship']},gate.offset));
   assert.throws(()=>recoverRelationship('{"chapters":{"relationship":{}}}'),/strictly equal/);
  }
- console.log(JSON.stringify({sourceRun:SOURCE_RUN,continuationRun:gate.continuationRun,
-  plan:PLAN.slice(gate.offset),maxNewCalls,totalOutputTokenLimit:maxNewCalls*MAX_OUTPUT,
+ if(gate.offset===-1){
+  assert.equal(proof.body[0].requestSha256,SOURCE_HASH);
+  checkStage({stage:'body',requestedSections:['saju_core']},-1);
+  assert.throws(()=>authorize({...marker,firstRequestSha256:'invalid'},env,git,gate));
+ }
+ console.log(JSON.stringify({sourceRun:gate.offset===-1?null:SOURCE_RUN,continuationRun:gate.continuationRun,
+  plan:gate.offset===-1?[scopeAt(-1),...PLAN]:PLAN.slice(gate.offset),maxNewCalls,totalOutputTokenLimit:totalLimit(gate),
   maxRequestBytes:MAX_REQUEST_BYTES,modelCalls:0}));
 }
 async function verifyPrefix(dir,continuationDir,relationshipDir,gate){
@@ -301,11 +316,11 @@ async function verifyPrefix(dir,continuationDir,relationshipDir,gate){
 
 const [mode,dir,continuationDir,relationshipDir]=process.argv.slice(2);
 const annual=['--annual-preflight','--verify-annual-prefix','--finish-annual'].includes(mode);
-const offline=['--preflight','--finish-preflight','--annual-preflight'].includes(mode);
+const offline=['--preflight','--finish-preflight','--annual-preflight','--fresh-preflight'].includes(mode);
 const verify=['--verify-prefix','--verify-annual-prefix'].includes(mode);
-const paid=['--resume','--finish','--finish-annual'].includes(mode);
-const gate=annual?annualGate:verify||mode?.startsWith('--finish')?remainingGate:originalGate;
-const inputsReady=path.isAbsolute(dir||'')&&(!gate.offset||path.isAbsolute(continuationDir||''))&&
+const paid=['--resume','--finish','--finish-annual','--fresh'].includes(mode);
+const gate=['--fresh','--fresh-preflight'].includes(mode)?freshGate:annual?annualGate:verify||mode?.startsWith('--finish')?remainingGate:originalGate;
+const inputsReady=gate.offset===-1||path.isAbsolute(dir||'')&&(!gate.offset||path.isAbsolute(continuationDir||''))&&
  (!gate.relationshipRun||path.isAbsolute(relationshipDir||''));
 (offline?preflight(gate):verify&&inputsReady?verifyPrefix(dir,continuationDir,relationshipDir,gate):
  paid&&inputsReady?run(dir,continuationDir,relationshipDir,gate):
