@@ -88,6 +88,16 @@ async function inspect(){
   assert.equal(checkpoints,1);
   assert(firstCheckpoint.sections[0].body.some(line=>line.includes('무엇을 보여줄지 기준이 비기 쉽다')));
   assert.match(raw.chapters.saju_core.paragraphs.temperament.text,/함께 살펴야 합니다/);
+  assert(firstCheckpoint.sections[0].body.some(line=>line.includes('쓰는 법을 배울 길이 있어야 나눈 몫을 쓸 수')));
+  assert(!raw.chapters.saju_core.paragraphs.strength.text.includes('쓰는 법을 배울 길이'));
+  const compiled=writer.compile(firstPrompt);
+  const month=compiled.task.chapters.saju_core.topics.strength;
+  const compose=require('./report-paid-core-reader-value-plan').composeReaderParagraph;
+  assert(compose(month,compiled.source));
+  assert.equal(compose({...month,calculatedOpening:null},compiled.source),null);
+  const opposite=structuredClone(month);
+  opposite.evidenceFocus.tenGodFocus.elementLink.kind='visible-generates-hidden';
+  assert.equal(compose(opposite,compiled.source),null);
   assert.deepEqual(nextPrompt.requestedSections,groups[1]);
   assert(nextPrompt.priorSections.some(section=>section.id==='saju_core'));
   assert(!firstRequest.includes(INPUT.readerDecision));

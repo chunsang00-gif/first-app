@@ -195,4 +195,32 @@ function build(packet,focus,allowed,source){
   additionalTopic:false,professionalReviewComplete:false
  });
 }
-module.exports={build,directionalQuestion};
+// Reader application for one reviewed interpretation of the calculated
+// month pair. A shared element direction by itself is insufficient.
+function composeReaderParagraph(task,source){
+ const focus=task?.evidenceFocus?.tenGodFocus;
+ const visible=focus?.monthStem;
+ const central=focus?.monthMainHidden;
+ if(!task?.calculatedOpening||visible?.tenGod!=='겁재'||central?.tenGod!=='정인'||
+    focus.elementLink?.kind!=='hidden-generates-visible')
+  return null;
+ const opening=task.calculatedOpening;
+ const refs=['facts.structuralEvidence.monthCommand',visible.sourceId,central.sourceId,...opening.refs];
+ const roles='달의 겉은 공동 자원의 몫, 달의 안은 배움과 도움을 살핍니다.';
+ const condition='공동 장비를 나눠 쓸 때는 쓰는 법을 배울 길이 있어야 나눈 몫을 쓸 수 있다는 풀이입니다.';
+ const withYear=task.wholeNatalSupplementRefs?.includes('natal.year.stem')&&
+  source['natal.year.stem']?.tenGod==='상관';
+ const year='태어난 해에서 읽는 새 방식은 기존 규칙을 어떻게 바꿀지에 대한 별도의 판단입니다.';
+ return {
+  label:'몫을 나누기 전에 필요한 것',
+  text:[opening.text,roles,condition,...(withYear?[year]:[])].join(' '),
+  basis:{
+   refs:[...new Set([...refs,...(withYear?['natal.year.stem']:[])])],
+   interpretation:'달 안쪽의 배움과 도움이 겉의 자원 배분을 뒷받침하는 방향을 읽습니다. '+opening.text+(withYear?' '+year:''),
+   condition,
+   limit:'두 역할의 전통적 해석이며 어느 글자가 실제로 주도하는지나 구체적 사건은 확인되지 않습니다.'
+  }
+ };
+}
+
+module.exports={build,directionalQuestion,composeReaderParagraph};

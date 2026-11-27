@@ -2389,6 +2389,21 @@ function restoreEvidence(value,prompt){
       throw Error('AI report service domain MBTI comparison missing natal basis: '+id+':'+topic);
     }
     if(!allowed.size||b.refs.some(ref=>!allowed.has(ref)))throw Error('AI report service unrelated paragraph basis: '+id+':'+topic);
+    if(id==='saju_core'&&topic==='strength'&&prompt.paidWholeNatalContext===true&&
+       prompt.separateReaderQuestionFromCore===true&&prompt.requestedSections.length===1){
+     const reading=require('./report-paid-core-reader-value-plan')
+      .composeReaderParagraph(task,payload.source);
+     if(reading){
+      // Validate the model citations before supplying independent local prose.
+      const monthRefs=['natal.month.stem',
+       task.evidenceFocus.tenGodFocus.monthMainHidden.sourceId];
+      if(monthRefs.some(ref=>!b.refs.includes(ref))||reading.basis.refs.some(ref=>!allowed.has(ref)))
+       throw Error('AI report service missing verified month application sources');
+      p.label=reading.label;
+      p.text=reading.text;
+      Object.assign(b,reading.basis);
+     }
+    }
     // A generic calculated fact can be a valid extra citation, but it cannot
     // be the ONLY cited basis for a domain question whose writer brief was
     // built from a real ten-god category. Otherwise a grounded-looking
