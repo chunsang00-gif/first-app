@@ -211,6 +211,11 @@ run('MBTI paid chapter must visibly compare MBTI preference and calculated saju'
  section.body=['MBTI 사고형의 판단 선호와 사주 월지의 해석은 같은 선택 상황을 서로 다른 관점에서 설명합니다.'];
  const checked=Q.validate(report,packet).errors;
  assert(!checked.some(x=>x.startsWith('mbti comparison:')));
+ section.body=['입력한 INTJ 선호는 정보를 살피는 방식을 설명합니다. 한편 태어난 달의 겉과 안은 맡을 몫과 도움을 살피는 서로 다른 조건입니다.'];
+ assert(!Q.validate(report,packet).errors.some(x=>x.startsWith('mbti comparison:')));
+ section.body=[section.body[0].replace('INTJ','ISFP')];
+ assert(Q.validate(report,packet).errors.includes('mbti comparison: visible MBTI preference interpretation missing'));
+
 });
 run('reference case locks four pillars and 2027 annual stem relationships',()=>{
  const p=F.build({calendar:'solar',birthDate:'1990-05-15',birthTime:'10:30',birthplace:'서울',gender:'male',mbti:'INTJ'});

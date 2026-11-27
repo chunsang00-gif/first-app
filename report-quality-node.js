@@ -386,14 +386,18 @@ function validate(r,packet){
  if(packet?.status==='ready'&&/^[EI][NS][FT][JP]$/.test(packet.person?.mbti||'')){
   const comparison=r.sections.find(section=>section?.id==='mbti_contradiction');
   const visible=norm([comparison?.keyJudgment,...(comparison?.body||[])].join(' '));
-  if(!/(?:MBTI|성격\s*유형|정보\s*(?:처리|탐색)|감각형|직관형|사고형|감정형|판단형|인식형|내향|외향)/i.test(visible))
+  const enteredType=new RegExp('(?:^|[^A-Z])'+packet.person.mbti+'(?=$|[^A-Z])','i');
+  const preference=/(?:선호|먼저\s*(?:살피|보는|고려)|편하게\s*느끼)/;
+  const mbtiSource=/(?:MBTI|성격\s*유형|감각형|직관형|사고형|감정형|판단형|인식형|내향|외향)/i;
+  const sajuSource=/(?:사주|원국|일간|월지|월간|일지|십성|지장간|비견|겁재|식신|상관|편재|정재|정관|편관|편인|정인|태어난\s*(?:달|날|해|시간)의\s*(?:겉|안|아랫글자))/;
+  const relation=/(?:비교|반면|다르게|차이|겹치|같은 상황|한편|그러나|일치|어긋|서로|함께 놓|둘 다|두 해석)/;
+  const hasMbtiSource=part=>mbtiSource.test(part)||(enteredType.test(part)&&preference.test(part));
+  if(!hasMbtiSource(visible)&&!/(?:정보\s*(?:처리|탐색))/.test(visible))
    errors.push('mbti comparison: visible MBTI preference interpretation missing');
-  if(!/(?:사주|일간|월지|월간|일지|십성|지장간|비견|겁재|식신|상관|편재|정재|정관|편관|편인|정인)/.test(visible))
+  if(!sajuSource.test(visible))
    errors.push('mbti comparison: visible calculated saju comparison missing');
-  // The contrast must occur in a reader-visible paragraph mentioning BOTH systems.
-  // A stray 'comparison' in an unrelated paragraph is not a paid interpretation.
   const comparisonParagraphs=[comparison?.keyJudgment,...(comparison?.body||[])].filter(Boolean);
-  const linked=comparisonParagraphs.some(part=>/(?:MBTI|성격\s*유형|감각형|직관형|사고형|감정형|판단형|인식형|내향|외향)/i.test(part)&&/(?:사주|원국|일간|월지|월간|일지|십성|지장간|비견|겁재|식신|상관|편재|정재|정관|편관|편인|정인)/.test(part)&&/(?:비교|반면|다르게|차이|겹치|같은 상황|한편|그러나|일치|어긋|서로|함께 놓|둘 다|두 해석)/.test(part));
+  const linked=comparisonParagraphs.some(part=>hasMbtiSource(part)&&sajuSource.test(part)&&relation.test(part));
   if(!linked)errors.push('mbti comparison: no explicit relation between the two interpretations');
  }
  const readable=[r.cover?.headline,r.cover?.description,...(r.cover?.highlights||[]).flatMap(h=>[h.title,h.description]),...(r.cover?.keywords||[]),...r.sections.flatMap(s=>[s.title,s.keyJudgment,...(s.body||[]),...(s.bodyLabels||[]),...(s.evidence||[])]),...(r.finalJudgment?.body||[]),r.finalJudgment?.headline,...(r.finalJudgment?.strengths||[]),...(r.finalJudgment?.watchouts||[]),...(r.finalJudgment?.routines||[]).flatMap(x=>[x.trigger,x.action,x.reason]),r.finalJudgment?.closingQuestion].filter(Boolean);
