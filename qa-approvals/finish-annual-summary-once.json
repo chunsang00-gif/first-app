@@ -1,0 +1,15 @@
+{
+  "kind": "resume-archived-five-chapters-v1",
+  "operatorApprovedOneReport": true,
+  "sourceRun": "45896281549",
+  "sourceRequestSha256": "c9bb5d4b2c5f00ba17af339fd15f4abec3fb2e30e7b2a46008a328e8b0e2cf14",
+  "continuationRun": "45953625555",
+  "relationshipRun": "45954272626",
+  "maxNewCalls": 2,
+  "totalOutputTokenLimit": 24000,
+  "model": "gpt-6-luna",
+  "noRetries": true,
+  "noPayment": true,
+  "noDeployment": true,
+  "parentCommit": "bf0223fd8442ba87c9337b5d83ae998518174a55"
+}
