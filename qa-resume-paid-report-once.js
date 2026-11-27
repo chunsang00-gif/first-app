@@ -197,6 +197,7 @@ function writePrivate(file,data){
 
 async function run(dir,continuationDir,relationshipDir,gate){
  const env=process.env;
+ const sourceRun=gate.offset===-1?null:SOURCE_RUN;
  const marker=JSON.parse(fs.readFileSync(gate.marker,'utf8'));
  authorize(marker,env,args=>execFileSync('git',args,{encoding:'utf8'}).trim(),gate);
  const transport=global.fetch;
@@ -216,13 +217,13 @@ async function run(dir,continuationDir,relationshipDir,gate){
   const response=await transport(url,options);
   const value=await response.clone().json().catch(()=>null);
   saved.push({stage:active.stage,sections:active.sections,httpStatus:response.status,response:value});
-  writePrivate(ARCHIVE,{sourceRun:SOURCE_RUN,calls:saved});
+  writePrivate(ARCHIVE,{sourceRun,calls:saved});
   return response;
  };
  try{
   const checkpoints=gate.offset===-1?[]:await restoreFromArchives(dir,continuationDir,relationshipDir,gate);
   batches.push(...checkpoints);
-  writePrivate(CHECKPOINTS,{sourceRun:SOURCE_RUN,batches});
+  writePrivate(CHECKPOINTS,{sourceRun,batches});
   const result=await generate(INPUT,async prompt=>{
    checkStage(prompt,gate.offset+dispatched);
    active={stage:prompt.stage,sections:prompt.requestedSections.slice(),sent:false};
@@ -231,13 +232,13 @@ async function run(dir,continuationDir,relationshipDir,gate){
    }finally{active=null;}
   },()=>{},batch=>{
    batches.push(batch);
-   writePrivate(CHECKPOINTS,{sourceRun:SOURCE_RUN,batches});
+   writePrivate(CHECKPOINTS,{sourceRun,batches});
   },checkpoints,OPTIONS);
-  writePrivate(SUMMARY,{sourceRun:SOURCE_RUN,dispatched,result,saleApproved:false});
+  writePrivate(SUMMARY,{sourceRun,dispatched,result,saleApproved:false});
   console.log('REPORT_QA_STATUS='+result.status+'; new_calls='+dispatched+'; first_chapter_reused='+String(gate.offset!==-1) );
   if(result.status!=='ready')process.exitCode=2;
  }catch(error){
-  writePrivate(SUMMARY,{sourceRun:SOURCE_RUN,dispatched,stage:dispatched?scopeAt(gate.offset+dispatched-1):null,
+  writePrivate(SUMMARY,{sourceRun,dispatched,stage:dispatched?scopeAt(gate.offset+dispatched-1):null,
    reason:error.message,status:'stopped-no-retry',saleApproved:false});
   console.log('REPORT_QA_STATUS=stopped-no-retry; new_calls='+dispatched);
   process.exitCode=1;
