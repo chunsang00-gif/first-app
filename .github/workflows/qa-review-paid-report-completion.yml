@@ -1,0 +1,64 @@
+name: Private review of the paid report completion
+on:
+  push:
+    branches: [fix-paid-qa-fact-bindings-20261014]
+    paths: [.github/workflows/qa-review-paid-report-completion.yml]
+permissions:
+  contents: read
+  actions: read
+jobs:
+  transfer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: af93ef4cb60676c621427ffbb857216cecc55bdf
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          repository: chunsang00-gif/first-app
+          run-id: 45954272626
+          name: paid-report-finish-encrypted-evidence
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/source
+      - name: Seal the authorized report and usage for the reviewer
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          set -euo pipefail
+          umask 077
+          trap 'rm -rf "$RUNNER_TEMP/source" "$RUNNER_TEMP/review-private"' EXIT
+          node report-qa-secure-archive.js decrypt "$RUNNER_TEMP/source/premium-first-chapter-qa.enc" "$RUNNER_TEMP/review-private"
+          unset OPENAI_API_KEY REPORT_MODEL_URL REPORT_MODEL_KEY
+          node - <<'NODE'
+          const fs=require('node:fs'), path=require('node:path'), crypto=require('node:crypto');
+          const zlib=require('node:zlib'), assert=require('node:assert/strict');
+          const root=path.join(process.env.RUNNER_TEMP,'review-private');
+          function read(suffix){
+           const file=path.join(root,'private-qa-first-chapter'+suffix+'.json');
+           return fs.existsSync(file)?JSON.parse(fs.readFileSync(file,'utf8')):null;
+          }
+          const result=read(''), archive=read('-provider-calls'), batches=read('-validated-first-chapter');
+          assert.equal(result.sourceRun,'45896281549');
+          if(archive)assert.equal(archive.sourceRun,result.sourceRun);
+          if(batches)assert.equal(batches.sourceRun,result.sourceRun);
+          const calls=(archive?.calls||[]).map(({stage,sections,httpStatus,response})=>({
+           stage,sections,httpStatus,status:response?.status||null,usage:response?.usage||null,
+           reason:response?.incomplete_details?.reason||response?.error?.code||null
+          }));
+          const last=archive?.calls.at(-1)?.response;
+          const output=last?.output_text||last?.output?.flatMap(item=>item.content||[])
+           .filter(item=>item.type==='output_text').map(item=>item.text).join('')||null;
+          const evidence={result,batches,calls,rejectedOutput:result.result?.report?null:output};
+          const session=crypto.randomBytes(32),iv=crypto.randomBytes(12);
+          const cipher=crypto.createCipheriv('aes-256-gcm',session,iv);
+          const packed=zlib.gzipSync(JSON.stringify(evidence));
+          const payload=Buffer.concat([cipher.update(packed),cipher.final()]);
+          const pk=crypto.createPublicKey({key:Buffer.from('MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAqzW/IeaQ8aOzTIwGLR5Uq3ZZ491j8bX0NBb/c9O9Q9WKqqkHkgVIrKj6nY2GDgSAw+/QBKtvHcbmFv6CHqzXUjeQcyIMsH+MyxspbBNXFU8P7JbhtjG93AyCrTF7tQj4Dn7d4UpX/4rkeTiN8DOffw2Zf3kZZn+p7sBSHnqJL7sJVe/+fvcvH6zZeoA/2bouYWLVyDBkoy2r3KIH7TfNfpfdwUzMqRbxvcp5hVEzYjoL255GjYsZDqjkm2woebIcB/fhZ19f+cOkvJGhZnjLndxbfuXVIMuMNTP5aTxGU4UJD+gZaFrnnbG8fZpdL6vK1usdzsds38EZ/85G7kF7UwIDAQAB','base64'),format:'der',type:'spki'});
+          const wrapped=crypto.publicEncrypt({key:pk,padding:crypto.constants.RSA_PKCS1_OAEP_PADDING,oaepHash:'sha256'},session);
+          const packet=Object.fromEntries(Object.entries({wrapped,iv,tag:cipher.getAuthTag(),payload}).map(([n,b])=>[n,b.toString('base64')]));
+          const encoded=Buffer.from(JSON.stringify(packet)).toString('base64');
+          const chunks=encoded.match(/.{1,1500}/g);
+          chunks.forEach((chunk,i)=>console.log('WHOLE_REPORT_CIPHER_'+i+'_'+chunks.length+'='+chunk));
+          NODE
