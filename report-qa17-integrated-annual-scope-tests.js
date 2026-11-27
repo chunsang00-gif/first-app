@@ -94,3 +94,21 @@ const fake={targetYear:{year:2027},facts:{annualTenGods:{stem:'丁',stemTenGod:'
 assert.equal(bridge.build(fake),null,'missing original glossary must not be invented');
 console.log('PASS integrated annual theme in original paid year chapter: 64 real charts, '+
  JSON.stringify(profiles)+'; no extra billed slots, zero paid model calls or payments');
+
+const repeatInput={...require('./qa-launch-g1-money-preflight').INPUT,birthDate:'1982-10-15'};
+const repeatPacket=require('./report-facts-node').build(repeatInput,2027);
+const repeatPrompt={stage:'body',facts:repeatPacket,requestedSections:['year_2027'],
+ paidAnnualNatalRepeat:true,analysisGuidance:{...guidance.forRequest(['year_2027'],repeatPacket.person.mbti),
+ editorialBlueprint:guidance.preflight(repeatPacket)},priorSections:[]};
+const repeatPayload=writer.compile(repeatPrompt);
+assert.equal(repeatPayload.task.chapters.year_2027.topics.change.annualRepeatedDayDemandRef,'natal.day.hidden.丁');
+assert.equal(bridge.repeatedDayDemand(repeatPacket,{'facts.annualTenGods':repeatPayload.source['facts.annualTenGods']}),null);
+const provisional={chapters:{year_2027:{paragraphs:{change:{
+ label:'연도 풀이',text:'2027년의 요청을 살핍니다.',basis:{refs:['facts.annualTenGods'],
+ interpretation:'연간 분류',condition:'해의 범위에서',limit:'사건은 알 수 없습니다.'}
+}}}}};
+const verifiedRepeat=writer.restoreEvidence(provisional,repeatPrompt).chapters.year_2027;
+assert.match(verifiedRepeat.paragraphs.change.text,/태어난 날의 안쪽.*2027년의 겉글자에서도 반복/);
+assert.deepEqual(require('./report-source-ledger').usedPaths({evidence:verifiedRepeat.evidence},'change'),
+ ['facts.annualTenGods','natal.day.hidden.丁']);
+assert.equal(provisional.chapters.year_2027.paragraphs.change.text,'2027년의 요청을 살핍니다.');

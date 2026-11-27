@@ -81,4 +81,14 @@ function build(packet){
   personalHistoryObserved:false,additionalPaidTopic:false
  });
 }
-module.exports={build};
+function repeatedDayDemand(packet,source){
+ const annual=source['facts.annualTenGods'];
+ if(packet?.targetYear?.year!==2027||annual?.stemTenGod!=='편관')return null;
+ const ref='natal.day.hidden.'+annual.stem;
+ const natal=source[ref];
+ if(natal?.stem!==annual.stem||natal?.tenGod!==annual.stemTenGod||
+    !packet.facts?.tenGods?.day?.hiddenStems?.some(row=>row.stem===natal.stem&&row.tenGod===natal.tenGod))
+  return null;
+ return ref;
+}
+module.exports={build,repeatedDayDemand};

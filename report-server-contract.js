@@ -431,6 +431,7 @@ async function generate(input,callModel,onProgress=()=>{},onValidatedBatch=()=>{
  const request=(ids,extra={})=>require('./report-instruction-audit').assert({...base,...extra,
  ...(wholeNatal&&extra.stage==='body'&&ids.length>0&&
      ids.every(id=>id==='money'||id==='career')?{paidCompactDomainContext:true}:{}),
+ ...(wholeNatal&&extra.stage==='body'&&ids.includes('year_2027')?{paidAnnualNatalRepeat:true}:{}),
  ...(wholeNatal&&extra.stage==='body'&&ids.includes('saju_core')?{
   paidWholeNatalContext:true,separateReaderQuestionFromCore:separateReaderQuestion
  }:{}),

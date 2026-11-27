@@ -582,6 +582,11 @@ function compile(prompt){
      };
      topic.calculatedOpening={text:sentences[pair.elementDirection],refs:pair.sourceRefs};
     }
+    if(prompt.paidAnnualNatalRepeat===true&&chapterId==='year_2027'&&
+       topicId==='change'&&topic.mode!=='state-limits'){
+     const ref=require('./report-paid-annual-integrated-scope').repeatedDayDemand(prompt.facts,source);
+     if(ref)topic.annualRepeatedDayDemandRef=ref;
+    }
     const permitted=[...allowedRefs(payload,topic,chapterId,topicId)];
     topic.citableFacts=permitted.map(id=>{
      const fact=source[id]||{};
@@ -2256,6 +2261,8 @@ function allowedRefs(payload,task,chapterId,topic){
   if(path==='facts.annualTenGods.hiddenStems'&&Object.hasOwn(payload.source,'facts.annualTenGods')&&Array.isArray(payload.source['facts.annualTenGods']?.hiddenStems)&&payload.source['facts.annualTenGods'].hiddenStems.length)ids.add('facts.annualTenGods');
   if(path==='facts.tenGods')for(const id of Object.keys(payload.source))if(id.startsWith('natal.'))ids.add(id);
  }
+ if(chapterId==='year_2027'&&topic==='change'&&task?.annualRepeatedDayDemandRef)
+  ids.add(task.annualRepeatedDayDemandRef);
  // A secondary day-pair table belongs ONLY to year_2027.impact.
  // Exposing its exact source never makes a new paid relationship chapter.
  if(chapterId==='year_2027'&&topic==='impact'&&
@@ -2504,6 +2511,19 @@ function restoreEvidence(value,prompt){
         JSON.stringify(task.sourceOwnedAnnualIntegratedScope)!==JSON.stringify(actual)||
         !b.refs.includes(actual.sourceRef))
       throw Error('AI report service general annual meaning lacks original yearly source: '+id+':'+topic);
+     if(task.annualRepeatedDayDemandRef){
+      const ref=require('./report-paid-annual-integrated-scope')
+       .repeatedDayDemand(prompt.facts,payload.source);
+      if(ref!==task.annualRepeatedDayDemandRef||!allowed.has(ref))
+       throw Error('AI report service annual repeat source mismatch');
+      const condition='새 역할을 맡을 때는 예상 밖의 요청까지 어디까지 맡기로 했는지가 판단 기준입니다.';
+      p.label='예상 밖의 요청을 맡는 범위';
+      p.text='태어난 날의 안쪽에서 읽던 갑작스러운 요구에 대한 대응이 2027년의 겉글자에서도 반복됩니다. '+condition+' 이 해석은 입춘부터 적용됩니다.';
+      Object.assign(b,{refs:[actual.sourceRef,ref],
+       interpretation:'같은 글자와 전통적 분류가 출생일 안쪽과 2027년 겉에서 확인됩니다.',
+       condition,limit:'실제로 요청이 늘거나 직장이 바뀐다는 예측은 할 수 없습니다.'});
+     }
+
     }
     // A distinct 2027 money/career subtype reading must cite BOTH the
     // annual source and its independently verified birth-chart counterpart.
