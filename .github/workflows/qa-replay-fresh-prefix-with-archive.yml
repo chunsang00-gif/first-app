@@ -13,12 +13,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: 625b40cb232a6680cc7b4f9e04d856fa0c2289ba
+          ref: 3266bc5c52bac141667755644a781e784ec9c1b9
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
       - run: npm install --ignore-scripts --no-audit --no-fund
+      - run: node node-tests.js
       - uses: actions/download-artifact@v4
         with:
           repository: chunsang00-gif/first-app
