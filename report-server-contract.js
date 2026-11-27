@@ -528,6 +528,10 @@ async function generate(input,callModel,onProgress=()=>{},onValidatedBatch=()=>{
   // Check MBTI reader meaning in the FIRST body batch, before any further
   // billable chapter calls. This was previously only checked after synthesis.
   const mbtiProblems=earlyMbtiReaderProblems(result.sections,packet.person?.mbti);
+  if(wholeNatal&&ids.includes('mbti_contradiction')){
+   const comparison=result.sections.find(section=>section.id==='mbti_contradiction');
+   mbtiProblems.push(...quality.visibleMbtiComparisonProblems(comparison,packet.person?.mbti));
+  }
   if(mbtiProblems.length){
    console.error('[Paid MBTI reader copy rejected before next provider call]',{
     requestedIds:ids,codes:mbtiProblems
