@@ -79,11 +79,13 @@ assert.equal((html.match(/<article id="part-/g)||[]).length,9);
 assert.equal((html.match(/<section class="topic" id="part-\d+-topic-\d+">/g)||[]).length,18);
 assert(!html.includes('2027년 직업')&&!html.includes('제외되어야 할 연도 장'));
 for(let i=1;i<=9;i++)assert(html.includes('href="#part-'+i+'"'));
-assert(html.includes('진로에서 볼 핵심')&&html.includes('직업 본문에 있는 내용'));
+assert(!html.includes('진로에서 볼 핵심'));
+assert(html.includes('<h2>일</h2>')&&html.includes('작성된 첫 번째 풀이 5'));
+assert(!html.includes('<h3>첫 해석</h3>'));
 assert(html.includes('이번 해석에서 확인할 일'));
 assert(html.includes('종합 결론')&&html.includes('정보를 한 번 확인'));
-assert(html.includes('<h3>가장 중요한 결론</h3>'),
- 'the saved report must label a conclusion as a conclusion, matching the live app');
+assert(html.includes('<h2>총평</h2>')&&html.includes(report.finalJudgment.closingQuestion));
+assert(!html.includes('<h3>가장 중요한 결론</h3>'));
 assert(!html.includes('<h3>마지막 질문</h3>'));
 assert(html.includes('&#39;none&#39;'), 'offline document must block active resources');
 assert(!html.includes('natal.hour.stem'),'internal source IDs must never leak to reader document');
@@ -119,8 +121,8 @@ assert(!withoutMbtiHtml.includes('사주와 MBTI 비교'),
 assert(!withoutMbtiHtml.includes('사주 × MBTI 보고서'));
 assert(withoutMbtiHtml.includes('<a href="#part-2">성격 풀이의 다른 관점</a>'));
 assert(withoutMbtiHtml.includes('<a href="#part-8">사주 종합</a>'));
-assert(withoutMbtiHtml.includes('02 · 성격 풀이의 다른 관점'));
-assert(withoutMbtiHtml.includes('08 · 사주 종합'));
+assert(withoutMbtiHtml.includes('<h2>성격 풀이의 다른 관점</h2>'));
+assert(withoutMbtiHtml.includes('<h2>사주 종합</h2>'));
 const withoutHour=structuredClone(withoutMbti);
 delete withoutHour.meta.chart.hour;
 const withoutHourHtml=exp.build(withoutHour);

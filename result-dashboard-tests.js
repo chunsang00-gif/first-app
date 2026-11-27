@@ -40,13 +40,13 @@ console.log('PASS independent report identity, zodiac/gender selection, synchron
 const edited=structuredClone(a);edited.cover={headline:'확인한 답을 실행으로 옮기는 사람',description:'빠른 선택에 직접 확인을 더합니다.',keywords:['실행력','직접확인','분명한표현']};
 edited.sections.forEach((s,i)=>{s.title='분야 '+i+' 핵심 제목';s.body=['계산 근거에서 읽은 내용','강점의 구체적인 장면','주의할 상황과 바꿔볼 행동'];s.bodyLabels=['판단의 이유','강점의 장면','다음 선택'];s.mood=['cautious','encouraging','confident','reflective'][i%4]});
 edited.finalJudgment={headline:'확인하는 힘을 실행에 쓰세요',body:['근거에 따른 최종 해석'],strengths:['실행 순서를 정하는 선택'],watchouts:['다른 의견을 늦게 듣는 선택'],routines:[{trigger:'결정 직전',action:'반대 의견 한 가지를 먼저 확인해보세요',reason:'빠른 선택에서 빠지는 정보를 줄이는 데 도움이 됩니다'}],closingQuestion:'꼼꼼하게 확인하느라 결정을 늦출 때는, 오늘 확인할 내용을 먼저 정하는 것이 도움이 됩니다.'};
-const editedHTML=render(edited);assert(editedHTML.includes(edited.cover.headline));assert(editedHTML.includes('#직접확인'));assert(!editedHTML.includes('hero-tags'));assert(editedHTML.indexOf('keyword-strip')<editedHTML.indexOf('cover-summary-title'));assert(editedHTML.includes('id="shareReport"'));assert(editedHTML.includes('id="saveReportImage"'));assert(editedHTML.includes('portrait-male-cautious.webp'));assert(editedHTML.includes('portrait-male-encouraging.webp'));assert.equal((editedHTML.match(/class="detail-symbol"/g)||[]).length,7);assert.equal((editedHTML.match(/class="copy-block"/g)||[]).length,36);assert(editedHTML.includes('반대 의견 한 가지를 먼저 확인해보세요'));
+const editedHTML=render(edited);assert(editedHTML.includes(edited.cover.headline));assert(editedHTML.includes('#직접확인'));assert(!editedHTML.includes('hero-tags'));assert(!editedHTML.includes('cover-summary-title'));assert(editedHTML.includes('id="shareReport"'));assert(editedHTML.includes('id="saveReportImage"'));assert(editedHTML.includes('portrait-male-cautious.webp'));assert(editedHTML.includes('portrait-male-encouraging.webp'));assert.equal((editedHTML.match(/class="detail-symbol"/g)||[]).length,7);assert.equal((editedHTML.match(/class="copy-block"/g)||[]).length,36);assert(editedHTML.includes('반대 의견 한 가지를 먼저 확인해보세요'));
 const malicious=structuredClone(edited);malicious.cover.headline='<img onerror=alert(1)>';malicious.sections[0].bodyLabels[0]='<script>bad</script>';assert(!render(malicious).includes('<script>bad</script>'));assert(!render(malicious).includes('<img onerror=alert(1)>'));
 for(const gender of ['male','female'])for(const mood of ['encouraging','cautious'])assert(fs.existsSync('assets/result/portrait-'+gender+'-'+mood+'.webp'));
 console.log('PASS personalized cover, keyword order, no repeated tags, share controls, reduced portraits, mood selection, labeled paragraphs, actionable final summary, escaping');
 
 assert(editedHTML.includes('id="shareFullReport"'));assert(editedHTML.includes('id="saveFullReport"'));assert(editedHTML.indexOf('id="shareFullReport"')>editedHTML.indexOf('class="section final-card"'));console.log('PASS full-report sharing appears after final summary');
-const curated=structuredClone(edited);curated.cover.highlights=[{sectionId:'relationship',title:'관계에서 선별한 핵심',description:'본문 관계 해석에서 뽑은 설명'},{sectionId:'money',title:'재물에서 선별한 핵심',description:'본문 재물 해석에서 뽑은 설명'},{sectionId:'career',title:'직업에서 선별한 핵심',description:'본문 직업 해석에서 뽑은 설명'}];const curatedHtml=render(curated);for(const item of curated.cover.highlights){assert(curatedHtml.includes(item.title));assert(curatedHtml.includes(item.description));assert(curatedHtml.includes('data-target="detail-'+item.sectionId+'"'))}console.log('PASS cover uses whole-report curated highlights with matching navigation');
+const curated=structuredClone(edited);curated.cover.highlights=[{sectionId:'relationship',title:'관계에서 선별한 핵심',description:'본문 관계 해석에서 뽑은 설명'},{sectionId:'money',title:'재물에서 선별한 핵심',description:'본문 재물 해석에서 뽑은 설명'},{sectionId:'career',title:'직업에서 선별한 핵심',description:'본문 직업 해석에서 뽑은 설명'}];const curatedHtml=render(curated);for(const item of curated.cover.highlights){assert(!curatedHtml.includes(item.title));assert(curatedHtml.includes(item.description));assert(curatedHtml.includes('data-target="detail-'+item.sectionId+'"'))}console.log('PASS cover uses whole-report curated highlights with matching navigation');
 
 
 
@@ -89,17 +89,8 @@ console.log('PASS reader sees actual completed chapter/topic count, not undefine
  assert(!narrowHtml.includes('data-target="detail-year_2027"'));
  assert(narrowHtml.includes('실제로 작성된 분석: 7개 장 · 추가 세부 풀이 7개'));
  assert(narrowHtml.includes('실제로 작성된 7개 장의 해석을 확인합니다'));
- // For multiple real paragraph labels, let readers jump directly to their
- // section's two/three topics (not only when five are present).
  const labeled=render(edited);
- assert.equal((labeled.match(/<nav class="topic-nav"/g)||[]).length,12);
- assert(labeled.includes('href="#topic-saju_core-0"'));
+ assert(!labeled.includes('<nav class="topic-nav"'));
  assert(labeled.includes('id="topic-saju_core-0"'));
- const noLabels=structuredClone(edited);
- noLabels.sections[0].bodyLabels=['이름 하나뿐'];
- const noLabelsHtml=render(noLabels);
- assert(!noLabelsHtml.includes('href="#topic-saju_core-0"'),
-  'mismatched labels may not create a broken in-chapter index');
- assert.equal((noLabelsHtml.match(/<nav class="topic-nav"/g)||[]).length,11);
- console.log('PASS delivered-only chapter navigation, no omitted links, exact paragraph shortcuts and mismatched-label refusal');
-
+ assert(!labeled.includes('<div class="detail-category">'));
+ console.log('PASS compact chapter headings, preserved paragraph anchors and delivered-only navigation');

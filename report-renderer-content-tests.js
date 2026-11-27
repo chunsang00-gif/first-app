@@ -66,17 +66,17 @@ function run(mbti,readerDecision,withCareer=false,withoutDecision=false,includeF
 }
 const free=run('모름');
 assert(free.html.includes('성격 풀이의 다른 관점'));
-assert(free.html.includes('성격 · 서로 다른 해석 관점'));
+assert(free.html.includes('<h2>성격 풀이의 다른 관점</h2>'));
 assert(free.html.includes('사주 종합'));
 assert(!free.html.includes('MBTI와 다른 의외의 점'));
 assert(!free.html.includes('사주 × MBTI 종합'));
 assert(free.html.includes('별도의 핵심 결론 saju_core'));
 assert(free.html.includes('별도의 핵심 결론 mbti_contradiction'));
 assert(free.html.includes('별도의 핵심 결론 integrated_judgment'));
-assert.equal((free.html.match(/<h2>별도의 핵심 결론 /g)||[]).length,5,
- 'unique judgments must become chapter headlines, not additional summaries');
-assert(free.html.includes('<h2>각 장의 고유한 제목 2</h2>'),
- 'identical title and judgment must be displayed only once');
+assert(free.html.includes('<h2>사주 기본</h2>'));
+assert(free.html.includes('<p>별도의 핵심 결론 saju_core</p>'));
+assert(!free.html.includes('<h2>별도의 핵심 결론'));
+assert(!free.html.includes('class="topic-nav"'));
 assert(!free.html.includes('detail-verdict'),
  'do not reintroduce the duplicate-verdict block');
 assert(free.html.includes('이 장에 실제로 제공되는 서로 다른 내용 relationship'));
@@ -87,11 +87,11 @@ const paid=run('ISFP');
 assert(paid.html.includes('id="saveReadableReport"'));
 assert(paid.html.includes('읽기용 전체 보고서 저장'));
 assert(paid.html.includes('인터넷 없이 열 수 있는 HTML 파일'));
-assert(paid.html.includes('사주와 MBTI 비교'));
+assert(paid.html.includes('<h2>사주와 MBTI</h2>'));
 assert(!paid.html.includes('MBTI와 다른 의외의 점'),
  'the report must not manufacture a contradiction simply because two lenses are compared');
 assert(paid.html.includes('사주 × MBTI 종합'));
-assert(paid.html.includes('성격 · 두 풀이 비교'));
+assert(!paid.html.includes('성격 · 두 풀이 비교'));
 assert(!paid.html.includes('성격 · 의외의 차이'));
 assert.deepEqual(paid.details,free.details);
 console.log('PASS premium reader displays unique chapter judgments, truthful no-MBTI labels and ID-bound art across omitted chapters');

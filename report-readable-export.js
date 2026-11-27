@@ -9,10 +9,10 @@ const array=value=>Array.isArray(value)?value:[];
 const freeMonthRecap=(section,i)=>section?.id==='saju_core'&&
  Array.isArray(section.bodyTopics)&&section.bodyTopics[i]==='strength';
 const named=Object.freeze({
- saju_core:'사주 기본 풀이',mbti_contradiction:'사주와 MBTI 비교',
- decision:'선택과 결정',money:'금전',career:'직업과 일',
- relationship:'인간관계',stress:'압박과 대처',
- integrated_judgment:'종합 풀이',year_2027:'2027년 기본 해석',
+ saju_core:'사주 기본',mbti_contradiction:'사주와 MBTI',
+ decision:'선택과 결정',money:'돈',career:'일',
+ relationship:'관계',stress:'압박과 대처',
+ integrated_judgment:'종합 풀이',year_2027:'2027년 풀이',
  year_2027_money:'2027년 금전',year_2027_career:'2027년 직업',
  year_2027_relationship:'2027년 관계'
 });
@@ -47,10 +47,7 @@ function build(report){
      !Array.isArray(s.body)||!s.body.length||
      s.body.some(t=>typeof t!=='string'||!t.trim()))
    throw Error('READABLE_EXPORT_INVALID_COMPLETED_CHAPTER:'+(i+1));
-  const labels=Array.isArray(s.bodyLabels)&&s.bodyLabels.length===s.body.length?
-   s.bodyLabels:[];
-  return {...s,position:i+1,
-   label:named[s.id],validLabels:labels};
+  return {...s,position:i+1};
  });
  if(new Set(sections.map(s=>s.id)).size!==sections.length)
   throw Error('READABLE_EXPORT_DUPLICATE_CHAPTER');
@@ -61,7 +58,6 @@ function build(report){
  const actualTopics=accurate?sections.reduce((n,s)=>n+s.body.length,0):null;
  const freeTopicCount=accurate?sections.reduce((n,s)=>n+s.bodyTopics.filter((_,i)=>freeMonthRecap(s,i)).length,0):null;
  const additionalTopicCount=actualTopics===null?null:actualTopics-freeTopicCount;
- const ids=new Map(sections.map(s=>[s.id,s.position]));
  const buyerChoice=root.REPORT_BUYER_QUESTION_LINKS?.locateDelivered(report)||null;
  const choiceShortcuts=buyerChoice?
   '<aside class="choice-shortcut" aria-label="고민과 관련된 실제 풀이"><strong>내가 적은 고민, 관련 풀이 바로가기</strong><p>실제로 제공된 장과 문단만 안내합니다.</p><div class="choice-shortcut-links">'+
@@ -96,18 +92,8 @@ function build(report){
   chartRows.map(([key,v])=>'<tr><th scope="row">'+esc(key)+'</th><td>'+esc(v)+'</td></tr>').join('')+
   (hourUnknown?'<tr><th scope="row">시주</th><td>시간 모름 — 출생시간을 입력하지 않아 계산하지 않음</td></tr>':'')+
   '</tbody></table>':'';
- const highlights=array(cover.highlights).filter(h=>h&&ids.has(h.sectionId)&&
-  typeof h.description==='string'&&h.description.trim());
- const intro=highlights.length?
-  '<section aria-label="핵심 요약"><h2>먼저 살펴볼 내용</h2><ol>'+
-  highlights.map(h=>'<li><a href="#part-'+ids.get(h.sectionId)+'">'+
-   esc(h.title||named[h.sectionId])+'</a> — '+esc(h.description)+'</li>').join('')+
-  '</ol></section>':'';
  const body=sections.map(s=>{
-  const heading=String(s.title||'').trim();
   const judgment=String(s.keyJudgment||'').trim();
-  const titleText=heading&&heading!==judgment?
-   '<p class="subtle">'+esc(heading)+'</p>':'';
   const questionOwner=s.id==='decision'||
    (buyerChoice?.decisionChapterId===null&&
     (buyerChoice?.related?.chapterId===s.id||
@@ -121,27 +107,26 @@ function build(report){
    const recap=freeMonthRecap(s,i);
    return '<section class="topic'+(recap?' free-month-recap':'')+'" id="part-'+s.position+'-topic-'+(i+1)+'">'+
     (recap?'<div class="recap-notice">무료에서 이미 다룬 출생월 설명 · 유료 추가 풀이 아님</div>':'')+
-    '<h3>'+esc(s.validLabels[i]||'세부 풀이 '+(i+1))+'</h3>'+
     '<p>'+esc(text)+'</p></section>';
   }).join('');
-  return '<article id="part-'+s.position+'"><div class="chapter-label">'+
-   String(s.position).padStart(2,'0')+' · '+esc(chapterLabel(s.id))+'</div>'+
-   '<h2>'+esc(judgment||heading||chapterLabel(s.id))+'</h2>'+titleText+
+  return '<article id="part-'+s.position+'"><h2>'+esc(chapterLabel(s.id))+'</h2>'+
+   (judgment?'<p>'+esc(judgment)+'</p>':'')+
    customerQuestion+paragraphs+'</article>';
  }).join('');
  const final=report?.finalJudgment;
  const finalContent=final&&typeof final==='object'?(
-  '<section class="final" id="final"><h2>'+esc(final.headline||'종합 정리')+'</h2>'+
+  '<section class="final" id="final"><h2>총평</h2>'+
+  (final.headline?'<p>'+esc(final.headline)+'</p>':'')+
   array(final.body).filter(t=>typeof t==='string'&&t.trim())
    .map(t=>'<p>'+esc(t)+'</p>').join('')+
-  (array(final.strengths).length?'<h3>계속 살릴 강점</h3><ul>'+
+  (array(final.strengths).length?'<p><strong>강점</strong></p><ul>'+
    array(final.strengths).map(t=>'<li>'+esc(t)+'</li>').join('')+'</ul>':'')+
-  (array(final.watchouts).length?'<h3>주의할 점</h3><ul>'+
+  (array(final.watchouts).length?'<p><strong>주의점</strong></p><ul>'+
    array(final.watchouts).map(t=>'<li>'+esc(t)+'</li>').join('')+'</ul>':'')+
-  (array(final.routines).length?'<h3>다음 상황에서 시도할 일</h3><ol>'+
+  (array(final.routines).length?'<p><strong>실천 방법</strong></p><ol>'+
    array(final.routines).map(r=>'<li><strong>'+esc(r.trigger)+'</strong> — '+
     esc(r.action)+' <span class="subtle">'+esc(r.reason)+'</span></li>').join('')+'</ol>':'')+
-  (final.closingQuestion?'<h3>가장 중요한 결론</h3><p>'+esc(final.closingQuestion)+'</p>':'')+
+  (final.closingQuestion?'<p>'+esc(final.closingQuestion)+'</p>':'')+
   '</section>'):'';
  return '<!doctype html><html lang="ko"><head><meta charset="utf-8">'+
   '<meta name="viewport" content="width=device-width,initial-scale=1">'+
@@ -155,12 +140,12 @@ function build(report){
   (cover.description?'<p>'+esc(cover.description)+'</p>':'')+
   '<div class="scope">실제로 작성된 내용: '+summary+'</div>'+
   (keys.length?'<div class="keywords">'+keys.map(k=>'<span>#'+esc(k.replace(/^#+/,''))+'</span>').join('')+'</div>':'')+
-  table+'</header>'+intro+choiceShortcuts+
+  table+'</header>'+choiceShortcuts+
   '<nav aria-label="실제 작성된 장 목록"><strong>내 보고서 목차</strong><ol>'+
   sections.map(s=>'<li><a href="#part-'+s.position+'">'+esc(chapterLabel(s.id))+'</a> <small>('+
    s.body.filter((_,i)=>!freeMonthRecap(s,i)).length+'개 추가 풀이'+
    (s.body.some((_,i)=>freeMonthRecap(s,i))?' · 무료 복습 1개':'')+')</small></li>').join('')+
-  (finalContent?'<li><a href="#final">종합 정리</a></li>':'')+
+  (finalContent?'<li><a href="#final">총평</a></li>':'')+
   '</ol></nav>'+body+finalContent+
   '<footer>이 파일에는 개인의 이름, 사주 해석 및 직접 입력한 고민이 포함될 수 있습니다. 외부에 공유하기 전에 내용을 확인하세요. '+
   '사주와 MBTI의 해석은 개인의 실제 성격·능력이나 미래 사건을 객관적으로 확인한 결과가 아닙니다. '+
