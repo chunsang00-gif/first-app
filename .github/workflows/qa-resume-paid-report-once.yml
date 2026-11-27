@@ -1,0 +1,60 @@
+name: Verify one paid report by resuming its archived first chapter
+on:
+  push:
+    branches: [fix-paid-qa-fact-bindings-20261014]
+    paths: [qa-approvals/resume-paid-report-once.json]
+permissions:
+  contents: read
+  actions: read
+jobs:
+  only-approved-report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    concurrency:
+      group: resume-one-paid-report
+      cancel-in-progress: false
+    env:
+      NODE_ENV: test
+      REPORT_MODEL: gpt-6-luna
+      REPORT_MODEL_URL: ''
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --ignore-scripts --no-audit --no-fund
+      - name: Check resume and continuation limits without a provider
+        run: node qa-resume-paid-report-once.js --preflight
+      - uses: actions/download-artifact@v4
+        with:
+          repository: chunsang00-gif/first-app
+          run-id: 45896281549
+          name: launch-report-revised-first-chapter-encrypted-evidence
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/paid-resume-source
+      - name: Restore the archived first chapter and run the approved remainder once
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          umask 077
+          trap 'rm -rf "$RUNNER_TEMP/paid-resume-source" "$RUNNER_TEMP/paid-resume-private"' EXIT
+          node report-qa-secure-archive.js decrypt "$RUNNER_TEMP/paid-resume-source/premium-first-chapter-qa.enc" "$RUNNER_TEMP/paid-resume-private"
+          node qa-resume-paid-report-once.js --resume "$RUNNER_TEMP/paid-resume-private"
+      - name: Seal review evidence including failed responses
+        if: always()
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: node report-qa-secure-archive.js encrypt
+      - name: Upload encrypted evidence only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: paid-report-resume-encrypted-evidence
+          path: premium-first-chapter-qa.enc
+          if-no-files-found: ignore
+          retention-days: 30

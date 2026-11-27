@@ -43,6 +43,8 @@ jobs:
           REPORT_QA_CONFIRM: ''
         run: node report-free-reading-language-tests.js
       - run: node character-assets-test.js
+      - name: Verify whole report continuation without billing
+        run: node qa-resume-paid-report-once.js --preflight
       - run: npm test
       - name: Verify REAL web server serves every app entry script and denies private files (LOCAL HTTP)
         env:
