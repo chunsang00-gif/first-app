@@ -1,0 +1,13 @@
+{
+  "kind": "resume-archived-first-chapter-v1",
+  "operatorApprovedOneReport": true,
+  "sourceRun": "45896281549",
+  "sourceRequestSha256": "c9bb5d4b2c5f00ba17af339fd15f4abec3fb2e30e7b2a46008a328e8b0e2cf14",
+  "maxNewCalls": 5,
+  "totalOutputTokenLimit": 60000,
+  "model": "gpt-6-luna",
+  "noRetries": true,
+  "noPayment": true,
+  "noDeployment": true,
+  "parentCommit": "b3a955722b78ada427779d5ed8a0ab6a1d6476ef"
+}
