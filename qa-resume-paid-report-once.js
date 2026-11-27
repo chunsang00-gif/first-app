@@ -13,9 +13,18 @@ const {history}=require('./qa-launch-whole-chart-first-chapter-once');
 const REPO='chunsang00-gif/first-app';
 const BRANCH='fix-paid-qa-fact-bindings-20261014';
 const MODEL='gpt-6-luna';
-const gate={
+const originalGate={
+ kind:'resume-archived-first-chapter-v1',
+ offset:0,
  workflow:'.github/workflows/qa-resume-paid-report-once.yml',
  marker:'qa-approvals/resume-paid-report-once.json'
+};
+const remainingGate={
+ kind:'resume-archived-four-chapters-v1',
+ offset:2,
+ continuationRun:'45953625555',
+ workflow:'.github/workflows/qa-finish-paid-report-once.yml',
+ marker:'qa-approvals/finish-paid-report-once.json'
 };
 const SOURCE_RUN='45896281549';
 const SOURCE_HASH='c9bb5d4b2c5f00ba17af339fd15f4abec3fb2e30e7b2a46008a328e8b0e2cf14';
@@ -29,11 +38,13 @@ const SUMMARY='private-qa-first-chapter.json';
 const ARCHIVE='private-qa-first-chapter-provider-calls.json';
 const CHECKPOINTS='private-qa-first-chapter-validated-first-chapter.json';
 
-function authorize(marker,env,git){
+function authorize(marker,env,git,gate){
  assert.deepEqual(marker,{
-  kind:'resume-archived-first-chapter-v1',operatorApprovedOneReport:true,
-  sourceRun:SOURCE_RUN,sourceRequestSha256:SOURCE_HASH,maxNewCalls:5,
-  totalOutputTokenLimit:60000,model:MODEL,noRetries:true,noPayment:true,noDeployment:true,
+  kind:gate.kind,operatorApprovedOneReport:true,
+  sourceRun:SOURCE_RUN,sourceRequestSha256:SOURCE_HASH,
+  ...(gate.continuationRun?{continuationRun:gate.continuationRun}:{}),
+  maxNewCalls:PLAN.length-gate.offset,totalOutputTokenLimit:(PLAN.length-gate.offset)*MAX_OUTPUT,
+  model:MODEL,noRetries:true,noPayment:true,noDeployment:true,
   parentCommit:git(['rev-parse','HEAD^'])
  });
  assert.equal(env.GITHUB_REPOSITORY,REPO);
@@ -75,36 +86,58 @@ function readArchivedOutput(dir){
  assert.equal(original.kind,'whole-chart-original-response');
  assert.equal(crypto.createHash('sha256').update(JSON.stringify(original.request)).digest('hex'),SOURCE_HASH);
  assert.equal(original.response.status,'completed');
- const text=original.response.output_text||original.response.output
+ return providerOutput(original.response);
+}
+function providerOutput(response){
+ assert.equal(response?.status,'completed');
+ const text=response.output_text||response.output
   .flatMap(item=>item.content||[])
   .filter(item=>item.type==='output_text').map(item=>item.text).join('');
  return JSON.parse(text);
 }
-async function restoreFirstChapter(raw){
- let checkpoint;
+function readContinuation(dir){
+ const read=name=>JSON.parse(fs.readFileSync(path.join(dir,name),'utf8'));
+ const summary=read(SUMMARY);
+ const archived=read(ARCHIVE);
+ assert.equal(summary.sourceRun,SOURCE_RUN);
+ assert.equal(summary.status,'stopped-no-retry');
+ assert.equal(summary.dispatched,remainingGate.offset);
+ assert.deepEqual(summary.stage,PLAN[remainingGate.offset-1]);
+ assert.equal(archived.sourceRun,SOURCE_RUN);
+ assert.equal(archived.calls.length,remainingGate.offset);
+ return archived.calls.map((call,index)=>{
+  assert.equal(call.stage,'body');
+  assert.deepEqual(call.sections,PLAN[index]);
+  assert.equal(call.httpStatus,200);
+  return providerOutput(call.response);
+ });
+}
+async function restorePrefix(original,continuation){
+ const raw=[original,...continuation];
+ const checkpoints=[];
  const stop=Error('restored');
+ let used=0;
  await assert.rejects(()=>generate(INPUT,async prompt=>{
-  if(checkpoint){
-   checkStage(prompt,0);
-   throw stop;
-  }
-  assert.deepEqual(prompt.requestedSections,['saju_core']);
-  return decode(raw,prompt);
+  if(used===0)assert.deepEqual(prompt.requestedSections,['saju_core']);
+  else checkStage(prompt,used-1);
+  if(used===raw.length)throw stop;
+  return decode(raw[used++],prompt);
  },()=>{},batch=>{
-  assert.deepEqual(batch.ids,['saju_core']);
-  checkpoint=batch;
+  assert.deepEqual(batch.ids,used===1?['saju_core']:PLAN[used-2]);
+  checkpoints.push(batch);
  },[],OPTIONS),error=>error===stop);
- return checkpoint;
+ assert.equal(checkpoints.length,raw.length);
+ return checkpoints;
 }
 
 function writePrivate(file,data){
  fs.writeFileSync(file,JSON.stringify(data,null,2),{mode:0o600});
 }
 
-async function run(dir){
+async function run(dir,continuationDir,gate){
  const env=process.env;
  const marker=JSON.parse(fs.readFileSync(gate.marker,'utf8'));
- authorize(marker,env,args=>execFileSync('git',args,{encoding:'utf8'}).trim());
+ authorize(marker,env,args=>execFileSync('git',args,{encoding:'utf8'}).trim(),gate);
  const transport=global.fetch;
  await history(env,transport,gate);
  for(const name of [ARCHIVE,CHECKPOINTS,SUMMARY])assert(!fs.existsSync(name));
@@ -124,11 +157,12 @@ async function run(dir){
   return response;
  };
  try{
-  const checkpoint=await restoreFirstChapter(readArchivedOutput(dir));
-  batches.push(checkpoint);
+  const continuation=gate.offset?readContinuation(continuationDir):[];
+  const checkpoints=await restorePrefix(readArchivedOutput(dir),continuation);
+  batches.push(...checkpoints);
   writePrivate(CHECKPOINTS,{sourceRun:SOURCE_RUN,batches});
   const result=await generate(INPUT,async prompt=>{
-   checkStage(prompt,dispatched);
+   checkStage(prompt,gate.offset+dispatched);
    active={stage:prompt.stage,sections:prompt.requestedSections.slice(),sent:false};
    try{
     return await callOpenAI(prompt);
@@ -136,12 +170,12 @@ async function run(dir){
   },()=>{},batch=>{
    batches.push(batch);
    writePrivate(CHECKPOINTS,{sourceRun:SOURCE_RUN,batches});
-  },[checkpoint],OPTIONS);
+  },checkpoints,OPTIONS);
   writePrivate(SUMMARY,{sourceRun:SOURCE_RUN,dispatched,result,saleApproved:false});
   console.log('REPORT_QA_STATUS='+result.status+'; new_calls='+dispatched+'; first_chapter_reused=true');
   if(result.status!=='ready')process.exitCode=2;
  }catch(error){
-  writePrivate(SUMMARY,{sourceRun:SOURCE_RUN,dispatched,stage:PLAN[dispatched-1]??null,
+  writePrivate(SUMMARY,{sourceRun:SOURCE_RUN,dispatched,stage:dispatched?PLAN[gate.offset+dispatched-1]:null,
    reason:error.message,status:'stopped-no-retry',saleApproved:false});
   console.log('REPORT_QA_STATUS=stopped-no-retry; new_calls='+dispatched);
   process.exitCode=1;
@@ -150,7 +184,7 @@ async function run(dir){
   console.error=log;
  }
 }
-async function preflight(){
+async function preflight(gate){
  const proof=await require('./qa-whole-report-continuation').inspect();
  assert.equal(proof.resumedFirstBatchWithoutAnotherCall,true);
  assert.equal(proof.rejectedFirstBatchStopped,true);
@@ -168,14 +202,17 @@ async function preflight(){
  const git=cmd=>({
   'rev-parse HEAD^':parent,'rev-parse HEAD':head,'diff --name-only HEAD^ HEAD':gate.marker
  })[cmd.join(' ')];
- const marker={kind:'resume-archived-first-chapter-v1',operatorApprovedOneReport:true,
-  sourceRun:SOURCE_RUN,sourceRequestSha256:SOURCE_HASH,maxNewCalls:5,
-  totalOutputTokenLimit:60000,model:MODEL,noRetries:true,noPayment:true,noDeployment:true,parentCommit:parent};
- authorize(marker,env,git);
- assert.throws(()=>authorize({...marker,operatorApprovedOneReport:false},env,git));
- assert.throws(()=>authorize({...marker,sourceRun:'123'},env,git));
- assert.throws(()=>authorize({...marker,maxNewCalls:6},env,git));
- assert.throws(()=>authorize(marker,{...env,GITHUB_RUN_ATTEMPT:'2'},git));
+ const maxNewCalls=PLAN.length-gate.offset;
+ const marker={kind:gate.kind,operatorApprovedOneReport:true,
+  sourceRun:SOURCE_RUN,sourceRequestSha256:SOURCE_HASH,
+  ...(gate.continuationRun?{continuationRun:gate.continuationRun}:{}),
+  maxNewCalls,totalOutputTokenLimit:maxNewCalls*MAX_OUTPUT,
+  model:MODEL,noRetries:true,noPayment:true,noDeployment:true,parentCommit:parent};
+ authorize(marker,env,git,gate);
+ assert.throws(()=>authorize({...marker,operatorApprovedOneReport:false},env,git,gate));
+ assert.throws(()=>authorize({...marker,sourceRun:'123'},env,git,gate));
+ assert.throws(()=>authorize({...marker,maxNewCalls:maxNewCalls+1},env,git,gate));
+ assert.throws(()=>authorize(marker,{...env,GITHUB_RUN_ATTEMPT:'2'},git,gate));
  PLAN.forEach((sections,i)=>{
   checkStage({stage:sections.length?'body':'synthesis',requestedSections:sections},i);
  });
@@ -188,12 +225,29 @@ async function preflight(){
  assert.throws(()=>checkTransport(url,request({...data,store:true})));
  assert.throws(()=>checkTransport(url,request({...data,max_output_tokens:MAX_OUTPUT+1})));
  assert.throws(()=>checkTransport(url,request({...data,padding:'x'.repeat(MAX_REQUEST_BYTES)})));
- console.log(JSON.stringify({sourceRun:SOURCE_RUN,plan:PLAN,maxNewCalls:5,
-  totalOutputTokenLimit:5*MAX_OUTPUT,maxRequestBytes:MAX_REQUEST_BYTES,modelCalls:0}));
+ if(gate.offset){
+  assert.throws(()=>authorize({...marker,continuationRun:'123'},env,git,gate));
+  assert.throws(()=>checkStage({stage:'body',requestedSections:['money','career']},gate.offset));
+  assert.deepEqual(PLAN.slice(gate.offset),[['relationship'],['year_2027'],[]]);
+ }
+ console.log(JSON.stringify({sourceRun:SOURCE_RUN,continuationRun:gate.continuationRun,
+  plan:PLAN.slice(gate.offset),maxNewCalls,totalOutputTokenLimit:maxNewCalls*MAX_OUTPUT,
+  maxRequestBytes:MAX_REQUEST_BYTES,modelCalls:0}));
 }
-const [mode,dir]=process.argv.slice(2);
-const offline=mode==='--preflight';
-(offline?preflight():mode==='--resume'&&path.isAbsolute(dir||'')?run(dir):
+async function verifyPrefix(dir,continuationDir){
+ global.fetch=async()=>{throw Error('Offline replay attempted network access');};
+ const batches=await restorePrefix(readArchivedOutput(dir),readContinuation(continuationDir));
+ console.log(JSON.stringify({restored:batches.flatMap(batch=>batch.ids),next:PLAN[remainingGate.offset],modelCalls:0}));
+}
+
+const [mode,dir,continuationDir]=process.argv.slice(2);
+const offline=mode==='--preflight'||mode==='--finish-preflight';
+const verify=mode==='--verify-prefix';
+const paid=mode==='--resume'||mode==='--finish';
+const gate=verify||mode?.startsWith('--finish')?remainingGate:originalGate;
+const inputsReady=path.isAbsolute(dir||'')&&(!gate.offset||path.isAbsolute(continuationDir||''));
+(offline?preflight(gate):verify&&inputsReady?verifyPrefix(dir,continuationDir):
+ paid&&inputsReady?run(dir,continuationDir,gate):
  Promise.reject(Error('Explicit mode required'))).catch(error=>{
  console.error(offline?error.stack:'REPORT_QA_BLOCKED_BEFORE_EXECUTION');
  process.exitCode=1;
