@@ -26,6 +26,14 @@ const remainingGate={
  workflow:'.github/workflows/qa-finish-paid-report-once.yml',
  marker:'qa-approvals/finish-paid-report-once.json'
 };
+const annualGate={
+ ...remainingGate,
+ kind:'resume-archived-five-chapters-v1',
+ offset:3,
+ relationshipRun:'45954272626',
+ workflow:'.github/workflows/qa-finish-annual-summary-once.yml',
+ marker:'qa-approvals/finish-annual-summary-once.json'
+};
 const SOURCE_RUN='45896281549';
 const SOURCE_HASH='c9bb5d4b2c5f00ba17af339fd15f4abec3fb2e30e7b2a46008a328e8b0e2cf14';
 const INPUT={...require('./qa-launch-g1-money-preflight').INPUT,birthDate:'1982-10-15',
@@ -43,6 +51,7 @@ function authorize(marker,env,git,gate){
   kind:gate.kind,operatorApprovedOneReport:true,
   sourceRun:SOURCE_RUN,sourceRequestSha256:SOURCE_HASH,
   ...(gate.continuationRun?{continuationRun:gate.continuationRun}:{}),
+  ...(gate.relationshipRun?{relationshipRun:gate.relationshipRun}:{}),
   maxNewCalls:PLAN.length-gate.offset,totalOutputTokenLimit:(PLAN.length-gate.offset)*MAX_OUTPUT,
   model:MODEL,noRetries:true,noPayment:true,noDeployment:true,
   parentCommit:git(['rev-parse','HEAD^'])
@@ -112,6 +121,50 @@ function readContinuation(dir){
   return providerOutput(call.response);
  });
 }
+function readRelationship(dir){
+ const read=name=>JSON.parse(fs.readFileSync(path.join(dir,name),'utf8'));
+ const summary=read(SUMMARY);
+ assert.equal(summary.sourceRun,SOURCE_RUN);
+ assert.equal(summary.status,'stopped-no-retry');
+ assert.equal(summary.reason,'AI report service output token limit');
+ assert.equal(summary.dispatched,1);
+ assert.deepEqual(summary.stage,['relationship']);
+ const archive=read(ARCHIVE);
+ assert.equal(archive.sourceRun,SOURCE_RUN);
+ assert.equal(archive.calls.length,1);
+ const call=archive.calls[0];
+ assert.equal(call.stage,'body');
+ assert.deepEqual(call.sections,['relationship']);
+ assert.equal(call.httpStatus,200);
+ const response=call.response;
+ assert.equal(response.status,'incomplete');
+ assert.equal(response.incomplete_details?.reason,'max_output_tokens');
+ assert.equal(response.usage?.input_tokens,48203);
+ assert.equal(response.usage?.output_tokens,MAX_OUTPUT);
+ const text=response.output_text||response.output.flatMap(item=>item.content||[])
+  .filter(item=>item.type==='output_text').map(item=>item.text).join('');
+ return recoverRelationship(text);
+}
+
+// Only the pinned synthetic QA artifact had this specific incomplete shape.
+// Live provider output continues to use the unchanged strict decoder.
+function recoverRelationship(text){
+ const prefix=text.trimEnd();
+ assert.equal(prefix.length,1168);
+ assert.equal(text.length-prefix.length,45744);
+ assert.throws(()=>JSON.parse(text),SyntaxError);
+ const repaired=JSON.parse(prefix+'}');
+ assert.deepEqual(Object.keys(repaired),['chapters']);
+ assert.deepEqual(Object.keys(repaired.chapters),['relationship']);
+ return repaired;
+}
+
+function restoreFromArchives(dir,continuationDir,relationshipDir,gate){
+ const continuation=gate.offset?readContinuation(continuationDir):[];
+ if(gate.relationshipRun)continuation.push(readRelationship(relationshipDir));
+ return restorePrefix(readArchivedOutput(dir),continuation);
+}
+
 async function restorePrefix(original,continuation){
  const raw=[original,...continuation];
  const checkpoints=[];
@@ -134,7 +187,7 @@ function writePrivate(file,data){
  fs.writeFileSync(file,JSON.stringify(data,null,2),{mode:0o600});
 }
 
-async function run(dir,continuationDir,gate){
+async function run(dir,continuationDir,relationshipDir,gate){
  const env=process.env;
  const marker=JSON.parse(fs.readFileSync(gate.marker,'utf8'));
  authorize(marker,env,args=>execFileSync('git',args,{encoding:'utf8'}).trim(),gate);
@@ -157,8 +210,7 @@ async function run(dir,continuationDir,gate){
   return response;
  };
  try{
-  const continuation=gate.offset?readContinuation(continuationDir):[];
-  const checkpoints=await restorePrefix(readArchivedOutput(dir),continuation);
+  const checkpoints=await restoreFromArchives(dir,continuationDir,relationshipDir,gate);
   batches.push(...checkpoints);
   writePrivate(CHECKPOINTS,{sourceRun:SOURCE_RUN,batches});
   const result=await generate(INPUT,async prompt=>{
@@ -206,6 +258,7 @@ async function preflight(gate){
  const marker={kind:gate.kind,operatorApprovedOneReport:true,
   sourceRun:SOURCE_RUN,sourceRequestSha256:SOURCE_HASH,
   ...(gate.continuationRun?{continuationRun:gate.continuationRun}:{}),
+  ...(gate.relationshipRun?{relationshipRun:gate.relationshipRun}:{}),
   maxNewCalls,totalOutputTokenLimit:maxNewCalls*MAX_OUTPUT,
   model:MODEL,noRetries:true,noPayment:true,noDeployment:true,parentCommit:parent};
  authorize(marker,env,git,gate);
@@ -228,26 +281,34 @@ async function preflight(gate){
  if(gate.offset){
   assert.throws(()=>authorize({...marker,continuationRun:'123'},env,git,gate));
   assert.throws(()=>checkStage({stage:'body',requestedSections:['money','career']},gate.offset));
-  assert.deepEqual(PLAN.slice(gate.offset),[['relationship'],['year_2027'],[]]);
+  assert.deepEqual(PLAN.slice(gate.offset),gate.relationshipRun?
+   [['year_2027'],[]]:[['relationship'],['year_2027'],[]]);
+ }
+ if(gate.relationshipRun){
+  assert.throws(()=>authorize({...marker,relationshipRun:'123'},env,git,gate));
+  assert.throws(()=>checkStage({stage:'body',requestedSections:['relationship']},gate.offset));
+  assert.throws(()=>recoverRelationship('{"chapters":{"relationship":{}}}'),/strictly equal/);
  }
  console.log(JSON.stringify({sourceRun:SOURCE_RUN,continuationRun:gate.continuationRun,
   plan:PLAN.slice(gate.offset),maxNewCalls,totalOutputTokenLimit:maxNewCalls*MAX_OUTPUT,
   maxRequestBytes:MAX_REQUEST_BYTES,modelCalls:0}));
 }
-async function verifyPrefix(dir,continuationDir){
+async function verifyPrefix(dir,continuationDir,relationshipDir,gate){
  global.fetch=async()=>{throw Error('Offline replay attempted network access');};
- const batches=await restorePrefix(readArchivedOutput(dir),readContinuation(continuationDir));
- console.log(JSON.stringify({restored:batches.flatMap(batch=>batch.ids),next:PLAN[remainingGate.offset],modelCalls:0}));
+ const batches=await restoreFromArchives(dir,continuationDir,relationshipDir,gate);
+ console.log(JSON.stringify({restored:batches.flatMap(batch=>batch.ids),next:PLAN[gate.offset],modelCalls:0}));
 }
 
-const [mode,dir,continuationDir]=process.argv.slice(2);
-const offline=mode==='--preflight'||mode==='--finish-preflight';
-const verify=mode==='--verify-prefix';
-const paid=mode==='--resume'||mode==='--finish';
-const gate=verify||mode?.startsWith('--finish')?remainingGate:originalGate;
-const inputsReady=path.isAbsolute(dir||'')&&(!gate.offset||path.isAbsolute(continuationDir||''));
-(offline?preflight(gate):verify&&inputsReady?verifyPrefix(dir,continuationDir):
- paid&&inputsReady?run(dir,continuationDir,gate):
+const [mode,dir,continuationDir,relationshipDir]=process.argv.slice(2);
+const annual=['--annual-preflight','--verify-annual-prefix','--finish-annual'].includes(mode);
+const offline=['--preflight','--finish-preflight','--annual-preflight'].includes(mode);
+const verify=['--verify-prefix','--verify-annual-prefix'].includes(mode);
+const paid=['--resume','--finish','--finish-annual'].includes(mode);
+const gate=annual?annualGate:verify||mode?.startsWith('--finish')?remainingGate:originalGate;
+const inputsReady=path.isAbsolute(dir||'')&&(!gate.offset||path.isAbsolute(continuationDir||''))&&
+ (!gate.relationshipRun||path.isAbsolute(relationshipDir||''));
+(offline?preflight(gate):verify&&inputsReady?verifyPrefix(dir,continuationDir,relationshipDir,gate):
+ paid&&inputsReady?run(dir,continuationDir,relationshipDir,gate):
  Promise.reject(Error('Explicit mode required'))).catch(error=>{
  console.error(offline?error.stack:'REPORT_QA_BLOCKED_BEFORE_EXECUTION');
  process.exitCode=1;
