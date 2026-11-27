@@ -217,6 +217,14 @@ run('MBTI paid chapter must visibly compare MBTI preference and calculated saju'
  assert(Q.validate(report,packet).errors.includes('mbti comparison: visible MBTI preference interpretation missing'));
 
 });
+run('paid conclusion rejects direct personality assertions while allowing practical decision conditions',()=>{
+ const report=mockReport();
+ const code='final judgment: unsupported personal characterization in closing';
+ report.finalJudgment.closingQuestion='당신은 새 길을 고를 때 준비 조건과 방법의 타당성을 나누어 살펴볼 수 있는 사람입니다.';
+ assert(Q.validate(report).errors.includes(code));
+ report.finalJudgment.closingQuestion='새 기술을 배운다면 도움받을 곳과 혼자 끝낼 결과물을 먼저 정합니다.';
+ assert(!Q.validate(report).errors.includes(code));
+});
 run('reference case locks four pillars and 2027 annual stem relationships',()=>{
  const p=F.build({calendar:'solar',birthDate:'1990-05-15',birthTime:'10:30',birthplace:'서울',gender:'male',mbti:'INTJ'});
  assert.equal(p.status,'ready');

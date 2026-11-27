@@ -385,6 +385,9 @@ function validate(r,packet){
  // Evaluate visible analysis, never hidden evidence metadata alone.
  if(packet?.status==='ready')
   errors.push(...visibleMbtiComparisonProblems(r.sections.find(s=>s?.id==='mbti_contradiction'),packet.person?.mbti));
+ const closing=String(r.finalJudgment?.closingQuestion||'');
+ if(/(?:^|[.!?。]\s*)당신은\s+[^.!?。]{1,130}사람입니다(?:[.!?。]|$)/u.test(closing.trim()))
+  errors.push('final judgment: unsupported personal characterization in closing');
  const readable=[r.cover?.headline,r.cover?.description,...(r.cover?.highlights||[]).flatMap(h=>[h.title,h.description]),...(r.cover?.keywords||[]),...r.sections.flatMap(s=>[s.title,s.keyJudgment,...(s.body||[]),...(s.bodyLabels||[]),...(s.evidence||[])]),...(r.finalJudgment?.body||[]),r.finalJudgment?.headline,...(r.finalJudgment?.strengths||[]),...(r.finalJudgment?.watchouts||[]),...(r.finalJudgment?.routines||[]).flatMap(x=>[x.trigger,x.action,x.reason]),r.finalJudgment?.closingQuestion].filter(Boolean);
  const all=norm(readable.join(' '));
  // Facts remain checked in internal evidence; visible prose must not require jargon.
