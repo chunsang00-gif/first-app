@@ -1,0 +1,14 @@
+{
+  "kind": "resume-archived-four-chapters-v1",
+  "operatorApprovedOneReport": true,
+  "sourceRun": "45896281549",
+  "sourceRequestSha256": "c9bb5d4b2c5f00ba17af339fd15f4abec3fb2e30e7b2a46008a328e8b0e2cf14",
+  "continuationRun": "45953625555",
+  "maxNewCalls": 3,
+  "totalOutputTokenLimit": 36000,
+  "model": "gpt-6-luna",
+  "noRetries": true,
+  "noPayment": true,
+  "noDeployment": true,
+  "parentCommit": "cb31895e36d7e6be07f0d63d85ffd78067412be6"
+}
