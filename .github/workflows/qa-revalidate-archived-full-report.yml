@@ -1,0 +1,69 @@
+name: Revalidate the archived six-chapter report offline
+on:
+  push:
+    branches: [fix-paid-qa-fact-bindings-20261014]
+    paths: [.github/workflows/qa-revalidate-archived-full-report.yml]
+permissions:
+  contents: read
+  actions: read
+jobs:
+  transfer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 54b2dfa8abbf81c86232a485ea321b51e93e4962
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --ignore-scripts --no-audit --no-fund
+      - uses: actions/download-artifact@v4
+        with:
+          repository: chunsang00-gif/first-app
+          run-id: 45973922274
+          name: paid-report-annual-summary-encrypted-evidence
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/source
+      - name: Recheck final quality without calling the provider
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          set -euo pipefail
+          umask 077
+          trap 'rm -rf "$RUNNER_TEMP/source" "$RUNNER_TEMP/review-private"' EXIT
+          node report-qa-secure-archive.js decrypt "$RUNNER_TEMP/source/premium-first-chapter-qa.enc" "$RUNNER_TEMP/review-private"
+          unset OPENAI_API_KEY REPORT_MODEL_URL REPORT_MODEL_KEY
+          node - <<'NODE'
+          const fs=require('node:fs'), path=require('node:path'), crypto=require('node:crypto');
+          const zlib=require('node:zlib'), assert=require('node:assert/strict');
+          const root=path.join(process.env.RUNNER_TEMP,'review-private');
+          function read(suffix){
+           const file=path.join(root,'private-qa-first-chapter'+suffix+'.json');
+           return fs.existsSync(file)?JSON.parse(fs.readFileSync(file,'utf8')):null;
+          }
+          const saved=read('');
+          assert.equal(saved.sourceRun,'45896281549');
+          const {report,coverage}=saved.result;
+          assert.equal(report.sections.length,6);
+          assert(report.cover&&report.finalJudgment);
+          const packet=require('./report-facts-node').build({
+           ...require('./qa-launch-g1-money-preflight').INPUT,birthDate:'1982-10-15',
+           readerDecision:'기존 일을 유지할지 새로운 기술을 배울지 고민 중입니다.'
+          },2027);
+          assert.equal(packet.status,'ready');
+          global.fetch=async()=>{throw Error('OFFLINE_ONLY');};
+          function inspect(candidate){
+           const qa=require('./report-quality-node').validate(candidate,packet);
+           const result=require('./report-release-gate').finalize({report:candidate,qa,packet,coverage});
+           return {pass:result.pass,errors:result.errors,technical:result.releaseGate.technicalChecks};
+          }
+          const edited=structuredClone(report);
+          const section=edited.sections.find(x=>x.id==='mbti_contradiction');
+          section.body[0]="이 사례가 입력한 ISFP 선호는 확인된 사례와 사람에게 미칠 영향을 먼저 살피는 쪽입니다. 사주에서는 태어난 달의 겉에서 함께 쓸 자원의 몫을, 안에서 배움과 도움을 읽습니다. 새 일을 함께 맡을 때, 해본 일과 비슷해 보여도 장비를 배울 사람과 시간을 확보하지 못했다면 맡은 몫을 감당할 준비는 부족하다는 풀이입니다.";
+          const originalCheck=inspect(report),editedCheck=inspect(edited);
+          section.body[0]=section.body[0].replace('사주에서는','한편 사주에서는');
+          const linkedCheck=inspect(edited);
+          console.log('OFFLINE_FINAL_REVIEW='+JSON.stringify({originalCheck,editedCheck,linkedCheck,calls:0,saleApproved:false}));
+          NODE
