@@ -213,6 +213,8 @@ run('MBTI paid chapter must visibly compare MBTI preference and calculated saju'
  assert(!checked.some(x=>x.startsWith('mbti comparison:')));
  section.body=['입력한 INTJ 선호는 정보를 살피는 방식을 설명합니다. 한편 태어난 달의 겉과 안은 맡을 몫과 도움을 살피는 서로 다른 조건입니다.'];
  assert(!Q.validate(report,packet).errors.some(x=>x.startsWith('mbti comparison:')));
+ section.body=['INTJ로 입력한 선호는 자료를 확인하는 방식입니다. 태어난 달의 상징은 다른 질문을 다룹니다.'];
+ assert(!Q.validate(report,packet).errors.some(x=>x.startsWith('mbti comparison:')));
  section.body=[section.body[0].replace('INTJ','ISFP')];
  assert(Q.validate(report,packet).errors.includes('mbti comparison: visible MBTI preference interpretation missing'));
 

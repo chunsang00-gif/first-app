@@ -571,8 +571,8 @@ function visibleMbtiComparisonProblems(comparison,mbti){
   const enteredType=new RegExp('(?:^|[^A-Z])'+mbti+'(?=$|[^A-Z])','i');
   const preference=/(?:선호|먼저\s*(?:살피|보는|고려)|편하게\s*느끼)/;
   const mbtiSource=/(?:MBTI|성격\s*유형|감각형|직관형|사고형|감정형|판단형|인식형|내향|외향)/i;
-  const sajuSource=/(?:사주|원국|일간|월지|월간|일지|십성|지장간|비견|겁재|식신|상관|편재|정재|정관|편관|편인|정인|태어난\s*(?:달|날|해|시간)의\s*(?:겉|안|아랫글자))/;
-  const relation=/(?:비교|반면|다르게|차이|겹치|같은 상황|한편|그러나|일치|어긋|서로|함께 놓|둘 다|두 해석)/;
+  const sajuSource=/(?:사주|원국|일간|월지|월간|일지|십성|지장간|비견|겁재|식신|상관|편재|정재|정관|편관|편인|정인|태어난\s*(?:달|날|해|시간)의\s*(?:겉|안|아랫글자|상징))/;
+  const relation=/(?:비교|반면|다르게|다른\s*질문을\s*다[루룹]|차이|겹치|같은 상황|한편|그러나|일치|어긋|서로|함께 놓|둘 다|두 해석)/;
   const hasMbtiSource=part=>mbtiSource.test(part)||(enteredType.test(part)&&preference.test(part));
   if(!hasMbtiSource(visible)&&!/(?:정보\s*(?:처리|탐색))/.test(visible))
    errors.push('mbti comparison: visible MBTI preference interpretation missing');
