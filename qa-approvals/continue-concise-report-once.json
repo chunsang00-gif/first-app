@@ -1,0 +1,13 @@
+{
+  "kind": "continue-concise-report-v1",
+  "operatorApprovedOneReport": true,
+  "sourceRun": "46101450865",
+  "sourceRequestSha256": "c9bb5d4b2c5f00ba17af339fd15f4abec3fb2e30e7b2a46008a328e8b0e2cf14",
+  "maxNewCalls": 5,
+  "totalOutputTokenLimit": 60000,
+  "model": "gpt-6-luna",
+  "noRetries": true,
+  "noPayment": true,
+  "noDeployment": true,
+  "parentCommit": "bf58d871d99c199c57fa713629e1f47303b58855"
+}
