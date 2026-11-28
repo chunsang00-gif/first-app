@@ -1,0 +1,147 @@
+name: Verify compact relationship transport with an archived report
+on:
+  push:
+    branches: [fix-paid-qa-fact-bindings-20261014]
+    paths: [.github/workflows/qa-check-compact-relationship-replay.yml]
+permissions:
+  contents: read
+  actions: read
+jobs:
+  transfer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 574af40a441d0d0ed3526fb7c249463cae1c3fa0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --ignore-scripts --no-audit --no-fund
+      - run: node node-tests.js
+      - uses: actions/download-artifact@v4
+        with:
+          repository: chunsang00-gif/first-app
+          run-id: 45973922274
+          name: paid-report-annual-summary-encrypted-evidence
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/source
+      - uses: actions/download-artifact@v4
+        with:
+          repository: chunsang00-gif/first-app
+          run-id: 46026824286
+          name: fresh-paid-report-encrypted-evidence
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/fresh-source
+      - name: Recheck final quality without calling the provider
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          set -euo pipefail
+          umask 077
+          trap 'rm -rf "$RUNNER_TEMP/source" "$RUNNER_TEMP/review-private" "$RUNNER_TEMP/fresh-source" "$RUNNER_TEMP/fresh-private"' EXIT
+          node report-qa-secure-archive.js decrypt "$RUNNER_TEMP/source/premium-first-chapter-qa.enc" "$RUNNER_TEMP/review-private"
+          node report-qa-secure-archive.js decrypt "$RUNNER_TEMP/fresh-source/premium-first-chapter-qa.enc" "$RUNNER_TEMP/fresh-private"
+          unset OPENAI_API_KEY REPORT_MODEL_URL REPORT_MODEL_KEY
+          node - <<'NODE'
+          const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
+          function read(dir,suffix){
+           return JSON.parse(fs.readFileSync(path.join(process.env.RUNNER_TEMP,dir,'private-qa-first-chapter'+suffix+'.json'),'utf8'));
+          }
+          const fresh=read('fresh-private','-provider-calls');
+          assert.equal(fresh.sourceRun,null);
+          assert.equal(fresh.calls.length,2);
+          const checkpoint=read('fresh-private','-validated-first-chapter').batches;
+          assert.deepEqual(checkpoint.flatMap(x=>x.ids),['saju_core']);
+          const original=read('review-private','').result.report;
+          const cached=read('review-private','-validated-first-chapter').batches;
+          const legacyCalls=read('review-private','-provider-calls').calls;
+          const input={...require('./qa-launch-g1-money-preflight').INPUT,
+           birthDate:'1982-10-15',readerDecision:'기존 일을 유지할지 새로운 기술을 배울지 고민 중입니다.'};
+          const goals={money:/수입 활동을 성립시키는 조건/,career:/새 절차의 결과를 검증/,relationship:/부탁을 어디까지 맡을지/};
+          const goalsSeen=[];
+          const decoded=(call,prompt)=>{
+           assert.deepEqual(call.sections,prompt.requestedSections);
+           assert.equal(call.stage,prompt.stage);
+           assert.equal(call.response.status,'completed');
+           const text=call.response.output_text||call.response.output.flatMap(x=>x.content||[])
+            .filter(x=>x.type==='output_text').map(x=>x.text).join('');
+           return require('./report-response-decoder').decode(JSON.parse(text),prompt);
+          };
+          global.fetch=async()=>{throw Error('OFFLINE_ONLY');};
+          async function verifyRelationship(prompt){
+           assert.equal(prompt.paidCompactDomainContext,true);
+           const origFetch=global.fetch, origError=console.error;
+           process.env.OPENAI_API_KEY='OFFLINE_FAKE_KEY';
+           process.env.REPORT_MODEL='gpt-6-luna';
+           let outbound;
+           global.fetch=async(url,options)=>{
+            assert.equal(url,'https://api.openai.com/v1/responses');
+            outbound=options.body;
+            return {ok:false,status:503,json:async()=>({})};
+           };
+           console.error=()=>{};
+           try{
+            await assert.rejects(()=>require('./server').callOpenAI({...prompt,paidCompactDomainContext:false}),/503/);
+            const before=outbound;
+            outbound=null;
+            await assert.rejects(()=>require('./server').callOpenAI(prompt),/503/);
+            const after=outbound;
+            assert(before&&after);
+            const old=JSON.parse(before),current=JSON.parse(after);
+            assert.deepEqual(old.text,current.text);
+            const full=JSON.parse(old.input[1].content),compact=JSON.parse(current.input[1].content);
+            for(const [id,topic] of Object.entries(full.task.chapters.relationship.topics)){
+             assert.deepEqual(compact.task.chapters.relationship.topics[id],{...topic,citableFacts:topic.citableFacts.map(({id})=>({id}))});
+             for(const {id:ref} of topic.citableFacts)assert.deepEqual(compact.source[ref],full.source[ref]);
+            }
+            assert.equal(compact.task.chapters.relationship.analysisGoal,full.task.chapters.relationship.analysisGoal);
+            assert.deepEqual(compact.task.previousSections,full.task.previousSections);
+            const size={before:Buffer.byteLength(before),after:Buffer.byteLength(after)};
+            assert(size.after<size.before);
+            return size;
+           }finally{
+            delete process.env.OPENAI_API_KEY;
+            global.fetch=origFetch;
+            console.error=origError;
+           }
+          }
+          async function main(){
+           const seen=[],validated=[];
+           let relationshipBytes;
+           try{
+            const result=await require('./report-server-contract').generate(input,async prompt=>{
+             const ids=prompt.requestedSections;
+             seen.push(ids.length?ids.join(','):'synthesis');
+             const target=ids.filter(id=>Object.hasOwn(goals,id));
+             if(target.length){
+              const chapters=require('./report-generation-request').compile(prompt).task.chapters;
+              for(const id of target){
+               assert.match(chapters[id].analysisGoal,goals[id]);
+               goalsSeen.push(id);
+              }
+             }
+             if(ids[0]==='mbti_contradiction')return decoded(fresh.calls[1],prompt);
+             if(ids[0]==='year_2027')return decoded(legacyCalls[0],prompt);
+             if(prompt.stage==='synthesis'){
+              const v=decoded(legacyCalls[1],prompt);
+              v.finalJudgment.body[0]='기존 일을 이어간다면 바꿀 절차 하나와 개선 여부를 판정할 기준을 정합니다. 새 기술을 배운다면 도움받을 곳과 혼자 끝낼 결과물을 먼저 정합니다.';
+              v.finalJudgment.closingQuestion='기존 일을 계속할지는 개선 여부로, 새 기술을 더 배울지는 혼자 결과물을 완성할 수 있는지로 판단합니다.';
+              return v;
+             }
+             if(ids[0]==='relationship')relationshipBytes=await verifyRelationship(prompt);
+             const saved=cached.find(batch=>JSON.stringify(batch.ids)===JSON.stringify(ids));
+             assert(saved);
+             return {sections:structuredClone(saved.sections)};
+            },()=>{},batch=>validated.push(...batch.ids),checkpoint,{paidWholeNatalContext:true});
+            assert.equal(original.sections.length,6);
+            assert.deepEqual(goalsSeen,['money','career','relationship']);
+            console.log('FRESH_PREFIX_REPLAY='+JSON.stringify({status:result.status,errors:result.qa.errors,seen,validated,
+             chapters:result.report.sections.length,goalsSeen,relationshipBytes,calls:0,saleApproved:false}));
+           }catch(error){
+            console.log('FRESH_PREFIX_REPLAY='+JSON.stringify({status:'stopped',reason:error.message,seen,validated,calls:0,saleApproved:false}));
+           }
+          }
+          main().catch(()=>{process.exitCode=1;});
+          NODE
