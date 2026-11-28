@@ -37,7 +37,8 @@ jobs:
           const [row]=JSON.parse(fs.readFileSync(path.join(process.env.RUNNER_TEMP,'private','private-qa-first-chapter.json')));
           const message=String(row.stopReason||'');
           const known=/^AI report service (?:paid source-owned reader substance missing|exact paid domain stem exposure citations missing|returned repeated interpretation from identical calculated evidence|returned reader-facing editorial defects|returned non-specific interpretation|returned factually inconsistent report data|returned cross-chapter recycled thesis)(?::[A-Za-z0-9_:-]+)?$/;
-          const reason=known.test(message)?message:'other-private-diagnostic';
+          const reason=known.test(message)?message:
+           /^(?:AI report service |PAID_|CORE_)[a-zA-Z0-9_ :()/.\-]{5,145}$/.test(message)?message:'other-private-diagnostic';
           console.log('FRESH_DIAG='+JSON.stringify({reason,accepted:row.accepted,calls:row.calls}));
           const env=process.env;
           fetch('https://api.github.com/repos/chunsang00-gif/first-app/statuses/'+env.GITHUB_SHA,{
