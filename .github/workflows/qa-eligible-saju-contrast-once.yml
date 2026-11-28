@@ -1,0 +1,112 @@
+name: Compare first paid chapters for two eligible birth times
+on:
+  push:
+    branches: [fix-paid-qa-fact-bindings-20261014]
+    paths: [qa-approvals/eligible-saju-contrast-once.json]
+permissions:
+  actions: read
+  contents: read
+jobs:
+  compare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    concurrency:
+      group: eligible-saju-contrast-once
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --ignore-scripts --no-audit --no-fund
+      - name: Generate exactly one first chapter per eligible synthetic case
+        env:
+          NODE_ENV: test
+          REPORT_MODEL: gpt-6-luna
+          REPORT_MODEL_URL: ''
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          node - <<'NODE'
+          const assert=require('node:assert/strict'),fs=require('node:fs'),crypto=require('node:crypto');
+          const {execFileSync}=require('node:child_process'),z=require('node:zlib');
+          const repo='chunsang00-gif/first-app',workflow='.github/workflows/qa-eligible-saju-contrast-once.yml',marker='qa-approvals/eligible-saju-contrast-once.json';
+          const times=['00:20','08:20'];
+          const git=(...args)=>execFileSync('git',args,{encoding:'utf8'}).trim();
+          const env=process.env;
+          const nativeFetch=global.fetch;
+          const input={calendar:'solar',birthDate:'1990-02-15',gender:'male',mbti:'ISFP',
+           readerDecision:'기존 일을 유지할지 새로운 기술을 배울지 고민 중입니다.'};
+          const oldError=console.error;
+          const evidence=[];
+          async function main(){
+           assert.equal(env.GITHUB_REPOSITORY,repo);
+           assert.equal(env.GITHUB_REF,'refs/heads/fix-paid-qa-fact-bindings-20261014');
+           assert.equal(env.GITHUB_WORKFLOW_REF,repo+'/'+workflow+'@'+env.GITHUB_REF);
+           assert.equal(env.GITHUB_EVENT_NAME,'push');
+           assert.equal(env.GITHUB_RUN_ATTEMPT,'1');
+           assert.equal(git('rev-parse','HEAD'),env.GITHUB_SHA);
+           assert.equal(git('diff','--name-only','HEAD^','HEAD'),marker);
+           assert.deepEqual(JSON.parse(fs.readFileSync(marker,'utf8')),
+            {kind:'eligible-saju-contrast-v1',parent:git('rev-parse','HEAD^'),times,maxCalls:2,maxOutputEach:18000,noRetry:true});
+           assert(env.OPENAI_API_KEY?.length>=32);
+           const {history}=require('./qa-launch-whole-chart-first-chapter-once');
+           await history(env,nativeFetch,{workflow});
+           const precharge=require('./report-paid-core-precharge-value');
+           for(const birthTime of times)assert.equal(precharge.inspect({...input,birthTime}).eligible,true);
+           const {generate}=require('./report-server-contract'), {callOpenAI}=require('./server');
+           const writer=require('./report-generation-request');
+           console.error=()=>{};
+           for(const birthTime of times){
+            const firstDone=Error('FIRST_CHAPTER_ONLY'),row={birthTime,dispatched:0};
+            evidence.push(row);
+            global.fetch=async(url,options)=>{
+             assert.equal(row.dispatched,0);
+             assert.equal(url,'https://api.openai.com/v1/responses');
+             assert.equal(options.method,'POST');
+             assert(Buffer.byteLength(options.body)<225000);
+             const packet=JSON.parse(options.body);
+             assert.equal(packet.model,'gpt-6-luna');
+             assert.equal(packet.store,false);
+             assert(packet.max_output_tokens<=18000);
+             row.dispatched++;
+             const response=await nativeFetch(url,options);
+             row.httpStatus=response.status;
+             row.response=await response.clone().json().catch(()=>null);
+             return response;
+            };
+            try{
+             await generate({...input,birthTime},async prompt=>{
+              if(row.dispatched)throw firstDone;
+              assert.equal(prompt.stage,'body');
+              assert.deepEqual(prompt.requestedSections,['saju_core']);
+              const opening=writer.compile(prompt).task.chapters.saju_core.topics.strength.calculatedOpening;
+              assert(opening.text.includes(birthTime==='00:20'?'같은 뜻이 반복됩니다':'표현하는 뜻을 가리킵니다'));
+              row.opening=opening;
+              return callOpenAI(prompt);
+             },()=>{},batch=>{row.chapter=batch.sections[0];},[],{paidWholeNatalContext:true});
+            }catch(error){
+             if(error!==firstDone)row.stopReason=error.message;
+            }finally{global.fetch=nativeFetch;}
+           }
+          }
+          main().catch(()=>{process.exitCode=1;console.log('SAJU_COMPARE_BLOCKED')}).finally(()=>{
+           console.error=oldError;
+           if(!evidence.length)return;
+           console.log('SAJU_COMPARE_STATUS='+JSON.stringify(evidence.map(row=>({
+            birthTime:row.birthTime,dispatched:row.dispatched,httpStatus:row.httpStatus,
+            responseStatus:row.response?.status,accepted:Boolean(row.chapter),usage:row.response?.usage
+           }))));
+           const key=crypto.randomBytes(32),iv=crypto.randomBytes(12);
+           const cipher=crypto.createCipheriv('aes-256-gcm',key,iv);
+           const payload=Buffer.concat([cipher.update(z.gzipSync(JSON.stringify(evidence))),cipher.final()]);
+           const pk=crypto.createPublicKey({key:Buffer.from('MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAiYdlfumkhRD2ECZgeYCOkAT1krsmtXOyNv+q/4oJmyyRPONIY9eVzttzIbwaVPTFhGo/qZBJ5k64E6QvUPuMpXLcDZ2pifEmM2JjMvMkPRoKu7fVHiGDk5+5ppgXw+x6ScHX0aLSEOseUj8HOaKn8vSIAP8CztCggf4IyyMnQJeSMk4YNAmgamFkX+uMenFxx1FHj0E/FssQXGesGB8lXoJ/abddOj5e6fzlFjzQpa2NCXv+T7QpB45H+5FxZo14x0x+ivKCSjp8QBea+qFhi8TxUkxcs3VVblIGbXRwX1nmRTV3JXeEkYUTEqN4YIJLkc5/xC68NURT/aZ52vpoowIDAQAB','base64'),format:'der',type:'spki'});
+           const wrapped=crypto.publicEncrypt({key:pk,padding:crypto.constants.RSA_PKCS1_OAEP_PADDING,oaepHash:'sha256'},key);
+           const pack=Object.fromEntries(Object.entries({wrapped,iv,tag:cipher.getAuthTag(),payload}).map(([n,b])=>[n,b.toString('base64')]));
+           const parts=Buffer.from(JSON.stringify(pack)).toString('base64').match(/.{1,1500}/g);
+           parts.forEach((s,i)=>console.log('SAJU_COMPARE_CIPHER_'+i+'_'+parts.length+'='+s));
+          });
+          NODE
