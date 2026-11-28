@@ -35,8 +35,8 @@ const annualGate={
  marker:'qa-approvals/finish-annual-summary-once.json'
 };
 const freshGate={
- kind:'fresh-automatic-report-v1',offset:-1,
- workflow:'.github/workflows/qa-fresh-paid-report-once.yml',marker:'qa-approvals/fresh-paid-report-once.json'
+ kind:'fresh-automatic-report-concise-v1',offset:-1,
+ workflow:'.github/workflows/qa-fresh-paid-report-concise-once.yml',marker:'qa-approvals/fresh-paid-report-concise-once.json'
 };
 const SOURCE_RUN='45896281549';
 const SOURCE_HASH='c9bb5d4b2c5f00ba17af339fd15f4abec3fb2e30e7b2a46008a328e8b0e2cf14';

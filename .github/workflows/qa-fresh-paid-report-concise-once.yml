@@ -1,0 +1,48 @@
+name: Verify one concise automatic paid report
+on:
+  push:
+    branches: [fix-paid-qa-fact-bindings-20261014]
+    paths: [qa-approvals/fresh-paid-report-concise-once.json]
+permissions:
+  contents: read
+  actions: read
+jobs:
+  only-approved-report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    concurrency:
+      group: fresh-paid-report-concise-once
+      cancel-in-progress: false
+    env:
+      NODE_ENV: test
+      REPORT_MODEL: gpt-6-luna
+      REPORT_MODEL_URL: ''
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --ignore-scripts --no-audit --no-fund
+      - name: Check resume and continuation limits without a provider
+        run: node qa-resume-paid-report-once.js --fresh-preflight
+      - name: Generate the one approved report once
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node qa-resume-paid-report-once.js --fresh
+      - name: Seal review evidence including failed responses
+        if: always()
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: node report-qa-secure-archive.js encrypt
+      - name: Upload encrypted evidence only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: concise-paid-report-encrypted-evidence
+          path: premium-first-chapter-qa.enc
+          if-no-files-found: ignore
+          retention-days: 30
