@@ -1549,7 +1549,7 @@ function schema(prompt,transport){
       ' 근거에 실제로 붙는 두 가지 누락 조건을 적용한 독자용 풀이를 작성한다. '+
       '첫 출처만 있을 때: '+earningCondition.firstOnlyMissing+
       '. 둘째 출처만 있을 때: '+earningCondition.secondOnlyMissing+
-      '. 하나의 가상 수입 활동을 설명하되 양쪽 조건을 모두 비교한다. '+
+      '. 계산된 두 출생 위치와 관계 방향을 본문에 쉽게 밝힌 뒤, 하나의 가상 수입 활동에서 그 관계가 양쪽 조건을 어떻게 바꾸는지 설명한다. '+
       'basis.condition의 문장을 본문에 그대로 복사하지 말고 독자가 이해할 해석으로 구성한다. ';
     }
     const careerCondition=thesis.careerWorkstyleCondition;
@@ -1577,7 +1577,7 @@ function schema(prompt,transport){
       '업무 결과를 확인할 두 번째 근거: '+careerCondition.secondFocus+'. '+
       '첫 조건만 있으면 '+careerCondition.firstOnlyMissing+
       ', 둘째 조건만 있으면 '+careerCondition.secondOnlyMissing+'. '+
-      '독자에게는 가상 작업의 방법 검토와 완성·개선 기준이 서로 다른 '+
+      '독자에게는 실제 두 출생 위치와 확인된 관계 방향을 먼저 밝힌다. 이어 가상 작업의 방법 검토와 완성·개선 기준이 서로 다른 '+
       '선택이 되는 이유를 짧고 자연스러운 하나의 해석으로 설명한다. '+
       '같은 금전/보상 장면을 복사하거나 실제 직무 능력을 추정하지 않는다. '+
       'basis.condition은 원래 계산 근거로 남기되 긴 고정 문자열을 본문에 복사하지 않는다.';
