@@ -11,6 +11,7 @@ const ADAPTIVE_PRODUCT='saju-mbti-adaptive-report-v1';
 const UUID=/^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/;
 function create({dir,priceKRW,salesApproved=false,secretKey,transport}={}){
  if(!dir||!path.isAbsolute(dir))throw Error('PAYMENT_DURABLE_STORAGE_REQUIRED');
+ const paymentMode=/^(test|live)_sk_/.exec(secretKey||'')?.[1];
  fs.mkdirSync(dir,{recursive:true,mode:0o700});
  const base=id=>{
   if(!UUID.test(id||''))throw Error('PAYMENT_ORDER_ID_INVALID');
@@ -31,6 +32,8 @@ function create({dir,priceKRW,salesApproved=false,secretKey,transport}={}){
   const root=base(orderId),order=read(root+'.json');
   if(!order||!access.valid(ownerToken,order.ownerHash))
    throw Error('PAYMENT_ORDER_OWNER_DENIED');
+  if(order.paymentMode&&order.paymentMode!==paymentMode)
+   throw Error('PAYMENT_ORDER_ENVIRONMENT_MISMATCH');
   if(order.currency!=='KRW'||!(
     (order.productId===PRODUCT&&!order.offer)||
     (order.productId===ADAPTIVE_PRODUCT&&
@@ -65,6 +68,7 @@ function create({dir,priceKRW,salesApproved=false,secretKey,transport}={}){
    const orderId=crypto.randomUUID(),ownerToken=access.issue();
    const order={orderId,productId:offer?ADAPTIVE_PRODUCT:PRODUCT,currency:'KRW',amount:priceKRW,
     ownerHash:access.digest(ownerToken),createdAt:new Date().toISOString(),
+    ...(paymentMode?{paymentMode}:{}),
     ...(offer?{offer:structuredClone(offer)}:{})};
    createOnce(base(orderId)+'.json',order);
    return {orderId,ownerToken,amount:order.amount,currency:'KRW',productId:order.productId,

@@ -58,6 +58,18 @@ const approved=(orderId,amount)=>({
   await assert.rejects(withoutKey.confirm({...first,paymentKey:key,
    claimedAmount:9900}),/PAYMENT_MERCHANT_NOT_CONFIGURED/);
   assert.equal(providerCalls,0,'missing merchant key must not burn order or call provider');
+  const modeOptions={dir:root,priceKRW:9900,salesApproved:true,
+   transport:async()=>{assert.fail('environment mismatch must never call Toss');}};
+  const sandbox=create({...modeOptions,secretKey:'test_sk_offline_123456'});
+  const production=create({...modeOptions,secretKey:'live_sk_offline_123456'});
+  const staged=sandbox.reserve();
+  assert.equal(sandbox.status(staged).state,'awaiting-provider-confirmation');
+  assert.throws(()=>production.status(staged),/PAYMENT_ORDER_ENVIRONMENT_MISMATCH/);
+  await assert.rejects(production.confirm({...staged,paymentKey:key,claimedAmount:9900}),
+   /PAYMENT_ORDER_ENVIRONMENT_MISMATCH/);
+  await assert.rejects(sandbox.confirm({...production.reserve(),paymentKey:key,claimedAmount:9900}),
+   /PAYMENT_ORDER_ENVIRONMENT_MISMATCH/);
+  assert(!fs.existsSync(path.join(root,'purchase-'+staged.orderId+'.confirming.json')));
   const payment=await ledger.confirm({...first,paymentKey:key,claimedAmount:9900});
   assert.deepEqual(payment,{orderId:first.orderId,status:'verified-paid',amount:9900});
   assert.equal(providerCalls,1);
