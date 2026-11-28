@@ -1,0 +1,49 @@
+name: Diagnose the concise report verification
+on:
+  push:
+    branches: [fix-paid-qa-fact-bindings-20261014]
+    paths: [.github/workflows/qa-diagnose-concise-report.yml]
+permissions:
+  contents: read
+  actions: read
+jobs:
+  metadata:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fe225f15552280b788f274452b91ed8b8fdc6c86
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          repository: chunsang00-gif/first-app
+          run-id: 46101450865
+          name: concise-paid-report-encrypted-evidence
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/source
+      - name: Read diagnostic categories and token usage without a model call
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          set -euo pipefail
+          umask 077
+          trap 'rm -rf "$RUNNER_TEMP/source" "$RUNNER_TEMP/review-private"' EXIT
+          node report-qa-secure-archive.js decrypt "$RUNNER_TEMP/source/premium-first-chapter-qa.enc" "$RUNNER_TEMP/review-private"
+          unset OPENAI_API_KEY
+          node - <<'NODE'
+          const fs=require('node:fs'), path=require('node:path');
+          const read=suffix=>JSON.parse(fs.readFileSync(path.join(process.env.RUNNER_TEMP,
+           'review-private','private-qa-first-chapter'+suffix+'.json')));
+          const result=read(''), calls=read('-provider-calls').calls;
+          const reason=String(result.reason||'');
+          const category=(
+           reason.match(/^(?:AI report service (?:returned|missing|invalid|error|MBTI|domain|entered)[a-zA-Z0-9 :_()/-]{0,140}|[A-Z][A-Z0-9_]{4,100})$/)?.[0]
+           ||'other-private-diagnostic');
+          const responses=calls.map(({stage,sections,httpStatus,response})=>({
+           stage,sections,httpStatus,status:response?.status,
+           inputTokens:response?.usage?.input_tokens,outputTokens:response?.usage?.output_tokens,
+           incompleteReason:response?.incomplete_details?.reason
+          }));
+          console.log('CONCISE_QA_DIAGNOSTIC='+JSON.stringify({category,dispatched:result.dispatched,stage:result.stage,responses}));
+          NODE
