@@ -29,7 +29,9 @@ function inspect(paragraph,chapterId,topicId,thesis){
   throw Error('PAID_SOURCE_MEANING_FAMILY_UNVERIFIED:'+key);
  const [a,b]=categories.map(k=>WORDS[k].test(text));
  if(!a||!b)return 'missing-chart-specific-role-meanings';
- if(!CONDITIONAL.test(text))return 'missing-two-sided-reading-difference';
+ const pairedOmission=/만\s*보면[^.!?。！？\n]{0,65}빠(?:지|질)[^.!?。！？\n]{0,50}만\s*보면/;
+ if(!CONDITIONAL.test(text)&&!pairedOmission.test(text))
+  return 'missing-two-sided-reading-difference';
  return null;
 }
 module.exports={inspect};
