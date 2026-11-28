@@ -61,6 +61,22 @@ assert(inspect(adaptive(incorrect),packet).errors.includes(
  'paid-final-existing-work-criterion-substituted-with-training-cost'));
 assert.deepEqual(inspect(adaptive('기존 일을 이어간다면 바꾼 방법으로 만든 결과를 이전 결과와 비교합니다. 새 기술을 배울 때는 매달 드는 비용을 확인합니다.'),packet).errors,[]);
 assert.deepEqual(inspect(adaptive('기존 일을 유지할지와 새 기술을 배울 때의 비용을 함께 살핍니다.'),packet).errors,[]);
+const compose=require('./report-paid-final-choice-application').composeWorkAndLearningSummary;
+const facts=require('./report-facts-node');
+const original={body:['기존 일을 이어갈 조건을 따로 확인합니다.']};
+const core={id:'saju_core',bodyTopics:['strength'],evidence:[
+ 'strength: natal.month.stem (근거); natal.month.hidden.甲 (근거) / 해석: 비용과 배움'
+]};
+const workWith=(ref)=>({id:'career',bodyTopics:['workstyle'],evidence:[
+ 'workstyle: '+ref+' (근거); natal.day.hidden.壬 (근거) / 해석: 일'
+]});
+const built=facts.build({calendar:'solar',birthDate:'1990-02-15',birthTime:'08:20',
+ gender:'male',mbti:'ISFP',readerDecision:question},2027);
+const manuscript={meta:{readerDecision:question},sections:[core,workWith('natal.year.hidden.己')]};
+assert(composedBody(compose(manuscript,built,original)).includes('이전 결과와 비교'));
+assert.equal(compose({...manuscript,sections:manuscript.sections.slice(0,1)},built,original),original);
+assert.equal(compose({...manuscript,sections:[{...core,evidence:[]},manuscript.sections[1]]},built,original),original);
+function composedBody(result){return result.body.join(' ');}
 const server=fs.readFileSync(path.join(__dirname,'report-server-contract.js'),'utf8');
 assert(server.includes("require('./report-paid-final-choice-application')"));
 assert(server.includes("pass:Boolean(qa.pass)&&choiceReview.errors.length===0"));

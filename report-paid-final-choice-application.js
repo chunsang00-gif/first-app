@@ -65,4 +65,35 @@ function inspect(report,packet){
  return {errors,warnings,humanReviewRequired:true,
   semanticApproval:'not-assessed',applicable:true};
 }
-module.exports={inspect};
+
+function composeWorkAndLearningSummary(report,packet,summary){
+ if(!summary||typeof summary!=='object')return summary;
+ const question=packet?.person?.readerDecision;
+ if(typeof question!=='string'||report?.meta?.readerDecision!==question||
+    !/(?:기존|현재)\s*일을?\s*(?:유지|이어|계속)/.test(question)||
+    !/(?:새로운|새)\s*기술을?\s*배(?:우|울)/.test(question))
+  return summary;
+ const work=report.sections.find(s=>s.id==='career'&&s.bodyTopics?.includes('workstyle'));
+ const core=report.sections.find(s=>s.id==='saju_core'&&s.bodyTopics?.includes('strength'));
+ if(!work||!core)return summary;
+ const usedPaths=require('./report-source-ledger').usedPaths;
+ const source=new Map(require('./report-fact-bindings').build(packet).map(row=>[row.id,row.tenGod]));
+ const study=usedPaths(core,'strength');
+ if(source.get('natal.month.stem')!=='정인'||!study.includes('natal.month.stem')||
+    !study.some(ref=>ref.startsWith('natal.month.hidden.')&&source.get(ref)==='정재'))
+  return summary;
+ const workRoles=new Set(usedPaths(work,'workstyle').map(ref=>source.get(ref)));
+ const visible=workRoles.has('정인'), independent=workRoles.has('편인');
+ if(visible===independent||!workRoles.has('상관'))return summary;
+ const current=visible?
+  '기존 일을 이어간다면 바꾼 절차가 기존 지침이 막던 실수를 여전히 막는지 봅니다.':
+  '기존 일을 이어간다면 바꾼 방법으로 만든 결과를 이전 결과와 비교할 수 있는지 봅니다.';
+ const learning='새 기술을 배운다면 설명을 들을 곳이 있는지, 혼자 해볼 단계까지 드는 비용을 감당할 수 있는지 봅니다.';
+ return {...summary,
+  headline:'기존 일을 이어갈 때와 새 기술을 배울 때',
+  body:[current+' '+learning,'본문에서 읽은 전통적 뜻을 두 선택에 대입한 풀이이며 실제 성과는 알 수 없습니다.'],
+  closingQuestion:'두 선택을 비교할 근거가 아직 없다면 결정을 내리기에는 이릅니다.',
+  strengths:[],watchouts:[],routines:[]
+ };
+}
+module.exports={inspect,composeWorkAndLearningSummary};

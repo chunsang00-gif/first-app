@@ -643,7 +643,9 @@ async function generate(input,callModel,onProgress=()=>{},onValidatedBatch=()=>{
  onProgress({stage:'synthesis',completed:0,total:1});
  require('./report-instruction-audit').assert(summaryPrompt);
  let summary=await callModel(summaryPrompt);
- let report={meta,sections,cover:summary.cover,finalJudgment:summary.finalJudgment};
+ const finalJudgment=wholeNatal?require('./report-paid-final-choice-application')
+  .composeWorkAndLearningSummary({meta,sections},packet,summary.finalJudgment):summary.finalJudgment;
+ let report={meta,sections,cover:summary.cover,finalJudgment};
  const headingRepairs=require('./report-heading-review').repair(report);
  let shape=validateShape(report),qa=shape.pass?quality.validate(report,packet):shape;
  // Duplicate prose has already been rejected before the final provider call.
