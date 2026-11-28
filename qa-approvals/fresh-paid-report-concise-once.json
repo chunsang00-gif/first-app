@@ -1,0 +1,12 @@
+{
+  "kind": "fresh-automatic-report-concise-v1",
+  "operatorApprovedOneReport": true,
+  "firstRequestSha256": "c9bb5d4b2c5f00ba17af339fd15f4abec3fb2e30e7b2a46008a328e8b0e2cf14",
+  "maxNewCalls": 6,
+  "totalOutputTokenLimit": 78000,
+  "model": "gpt-6-luna",
+  "noRetries": true,
+  "noPayment": true,
+  "noDeployment": true,
+  "parentCommit": "5841a669400cc5f762dd37bf34dc89ab6ed2e856"
+}
