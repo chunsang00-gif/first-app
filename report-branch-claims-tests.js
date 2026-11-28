@@ -50,4 +50,14 @@ assert.deepEqual(rules.check(core(right),natal),[]);
 assert.deepEqual(rules.check(core('태어난 날과 시간의 아랫글자 사이에는 맞서는 관계가 없습니다.'),natal),[]);
 assert(rules.check(core(right),facts.build({...birth,birthTime:'08:20'},2027))
  .includes('saju_core: invented natal clash between year and hour'));
+const anotherHour=facts.build({...birth,birthTime:'08:20'},2027);
+const hourRelation='2027년의 아랫글자와 태어난 시간의 아랫글자 사이에 해 관계가 있습니다.';
+const annualCode='year_2027_relationship: invented annual 해 relation with hour';
+assert.deepEqual(rules.check(draft(hourRelation),natal),[]);
+assert(rules.check(draft(hourRelation),anotherHour).includes(annualCode));
+assert(quality.verifyEvidenceAgainstFacts(draft(hourRelation),anotherHour).errors.includes(annualCode));
+assert.deepEqual(rules.check(draft(hourRelation.replace('있습니다','없습니다')),anotherHour),[]);
+const sameYear='2027년의 아랫글자와 태어난 해의 아랫글자는 육합 관계입니다.';
+for(const casePacket of [natal,anotherHour])
+ assert.deepEqual(rules.check(draft(sameYear),casePacket),[]);
 console.log('PASS real QA rejects fabricated harmonies, false priority and nonexistent yearly branch relationships; no paid API');

@@ -39,6 +39,14 @@ function check(report,packet){
    // Only check a precise year-to-position claim if the source position is
    // explicit. Text outside the calculated scope is not licensed by analogy.
    if(!actual||(!/^year_2027/.test(section.id)&&section.id!=='cover'&&section.id!=='finalJudgment'))continue;
+   const plainAnnual=/(?:2027년|세운|연운)(?:의)?\s*(?:아랫글자|아래\s*글자|지지)\s*(?:와|과|는|은|가|이)?\s*(?:태어난|출생한)\s*(해|달|날|시간)의\s*(?:아랫글자|아래\s*글자|지지)\s*(?:와|과|가|는|에)?\s*(?:사이(?:에|에는)?\s*)?(?:서로\s*)?(충|육합|형|파|해)\s*관계/g;
+   for(const match of sentence.matchAll(plainAnnual)){
+    const tail=sentence.slice(match.index+match[0].length);
+    if(/^\s*(?:가|이|는|은)?\s*(?:없|아닙|아니다|성립하지\s*않)/.test(tail))continue;
+    const actualPosition=plainPosition[match[1]];
+    if(!actual.some(row=>row.between===actualPosition&&row.type===match[2]))
+     errors.push(section.id+': invented annual '+match[2]+' relation with '+actualPosition);
+   }
    const relationship=/(?:2027년|세운|연운).{0,35}?(연지|월지|일지|시지).{0,19}?(충|육합|형|파|해)\s*(?:관계|입니다|이라고|이다|이|을|를|가|는|은)?/g;
    for(const match of sentence.matchAll(relationship)){
     if(qualified.test(sentence)||/(?:없|아니|성립하지\s*않)/.test(sentence.slice(match.index+match[0].length,match.index+match[0].length+15)))continue;
