@@ -1608,7 +1608,7 @@ function schema(prompt,transport){
       ' 인간관계 장만의 새로운 구체적 질문: '+relationReading.readerWritingGoal+
       ' 첫 번째 출처의 질문: '+relationReading.firstQuestion+
       '. 두 번째 출처의 질문: '+relationReading.secondQuestion+
-      '. 두 뜻을 하나의 가상 대화에 적용하되 실제 가족·연인 이력이나 '+
+      '. 두 뜻을 뜻밖의 부탁을 받는 하나의 가상 대화에 적용한다. 도움을 구할 수 있는지가 부탁을 맡는 범위에 어떤 차이를 만드는지 설명한다. 돈·일 장의 물품 마련 절차, 승인이나 검증 기준을 여기서 다시 풀지 않는다. 실제 가족·연인 이력이나 '+
       '상대방 속마음을 추정하지 않는다. basis.condition의 계산 문자열은 고객 본문에 복사하지 않는다.';
     }
     if(thesis.classicalOutputWealthCandidate){
