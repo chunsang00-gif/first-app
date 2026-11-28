@@ -2136,6 +2136,14 @@ function schema(prompt,transport){
      '달의 겉글자와 중심 안쪽 글자의 근거를 밝힌다. wholeNatalContext에서 대조한 해·날·시간의 실제 근거가 이 판단을 보완하거나 제한할 때, 해당 위치를 짧게 밝히고 그 차이를 쓴다. 단순 나열, 일반 조언, 사용자 질문을 반복해 분량을 채우지 않는다. 사람의 행동과 미래 사건, 해석의 우열을 단정하지 않는다.';
     basis.properties.refs.description=
      '달의 필수 두 근거를 유지한다. 다른 위치의 근거를 실제로 본문에서 설명한 경우에만 해당 출처를 함께 인용한다.';
+    const visibleRoles=payload.task.chapters[chapterId].wholeNatalContext.visibleRoles;
+    const month=visibleRoles.find(role=>role.position==='month');
+    const hour=visibleRoles.find(role=>role.position==='hour');
+    if(month?.category==='resource'&&hour?.relativeToMonth==='same-category-same-subtype'){
+     p.properties.text.description+=' 달과 시간의 겉글자에서 같은 배움의 뜻이 반복된다. 가상 상황에서는 새 내용을 어떻게 이해하는지에 풀이를 모으고, 반복을 별개의 능력이나 강도로 확대하지 않는다. 두 위치를 함께 설명했다면 각각을 인용한다.';
+    }else if(month?.category==='resource'&&hour?.category==='output'){
+     p.properties.text.description+=' 달의 배움과 시간의 표현이 서로 다른 분류다. 가상 상황에서는 새 내용을 이해하는 일과 그 내용을 다른 사람이 따를 수 있게 설명하거나 결과로 내놓는 일을 구별한다. 두 위치를 함께 설명했다면 각각을 인용한다.';
+    }
    }
    p.properties={basis,...p.properties};p.required=['basis',...p.required];
    // QA6 is a new, separately gated FREE research contract. It must not
