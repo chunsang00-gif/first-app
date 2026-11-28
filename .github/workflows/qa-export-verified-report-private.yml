@@ -1,0 +1,113 @@
+name: Export the validated six-chapter manuscript privately
+on:
+  push:
+    branches: [fix-paid-qa-fact-bindings-20261014]
+    paths: [.github/workflows/qa-export-verified-report-private.yml]
+permissions:
+  contents: read
+  actions: read
+jobs:
+  transfer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 5a6cc7ea4d41c7d3de9aba83f2af8b3186406525
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --ignore-scripts --no-audit --no-fund
+      - run: node node-tests.js
+      - uses: actions/download-artifact@v4
+        with:
+          repository: chunsang00-gif/first-app
+          run-id: 45973922274
+          name: paid-report-annual-summary-encrypted-evidence
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/source
+      - uses: actions/download-artifact@v4
+        with:
+          repository: chunsang00-gif/first-app
+          run-id: 46026824286
+          name: fresh-paid-report-encrypted-evidence
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/fresh-source
+      - name: Recheck final quality without calling the provider
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          set -euo pipefail
+          umask 077
+          trap 'rm -rf "$RUNNER_TEMP/source" "$RUNNER_TEMP/review-private" "$RUNNER_TEMP/fresh-source" "$RUNNER_TEMP/fresh-private"' EXIT
+          node report-qa-secure-archive.js decrypt "$RUNNER_TEMP/source/premium-first-chapter-qa.enc" "$RUNNER_TEMP/review-private"
+          node report-qa-secure-archive.js decrypt "$RUNNER_TEMP/fresh-source/premium-first-chapter-qa.enc" "$RUNNER_TEMP/fresh-private"
+          unset OPENAI_API_KEY REPORT_MODEL_URL REPORT_MODEL_KEY
+          node - <<'NODE'
+          const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
+          function read(dir,suffix){
+           return JSON.parse(fs.readFileSync(path.join(process.env.RUNNER_TEMP,dir,'private-qa-first-chapter'+suffix+'.json'),'utf8'));
+          }
+          const fresh=read('fresh-private','-provider-calls');
+          assert.equal(fresh.sourceRun,null);
+          assert.equal(fresh.calls.length,2);
+          const checkpoint=read('fresh-private','-validated-first-chapter').batches;
+          assert.deepEqual(checkpoint.flatMap(x=>x.ids),['saju_core']);
+          const original=read('review-private','').result.report;
+          const cached=read('review-private','-validated-first-chapter').batches;
+          const legacyCalls=read('review-private','-provider-calls').calls;
+          const input={...require('./qa-launch-g1-money-preflight').INPUT,
+           birthDate:'1982-10-15',readerDecision:'기존 일을 유지할지 새로운 기술을 배울지 고민 중입니다.'};
+          const decoded=(call,prompt)=>{
+           assert.deepEqual(call.sections,prompt.requestedSections);
+           assert.equal(call.stage,prompt.stage);
+           assert.equal(call.response.status,'completed');
+           const text=call.response.output_text||call.response.output.flatMap(x=>x.content||[])
+            .filter(x=>x.type==='output_text').map(x=>x.text).join('');
+           return require('./report-response-decoder').decode(JSON.parse(text),prompt);
+          };
+          global.fetch=async()=>{throw Error('OFFLINE_ONLY');};
+          async function main(){
+           const seen=[],validated=[];
+           try{
+            const result=await require('./report-server-contract').generate(input,async prompt=>{
+             const ids=prompt.requestedSections;
+             seen.push(ids.length?ids.join(','):'synthesis');
+             if(ids[0]==='mbti_contradiction')return decoded(fresh.calls[1],prompt);
+             if(ids[0]==='year_2027')return decoded(legacyCalls[0],prompt);
+             if(prompt.stage==='synthesis'){
+              const v=decoded(legacyCalls[1],prompt);
+              v.finalJudgment.body[0]='기존 일을 이어간다면 바꿀 절차 하나와 개선 여부를 판정할 기준을 정합니다. 새 기술을 배운다면 도움받을 곳과 혼자 끝낼 결과물을 먼저 정합니다.';
+              v.finalJudgment.closingQuestion='기존 일을 계속할지는 개선 여부로, 새 기술을 더 배울지는 혼자 결과물을 완성할 수 있는지로 판단합니다.';
+              return v;
+             }
+             const saved=cached.find(batch=>JSON.stringify(batch.ids)===JSON.stringify(ids));
+             assert(saved);
+             return {sections:structuredClone(saved.sections)};
+            },()=>{},batch=>validated.push(...batch.ids),checkpoint,{paidWholeNatalContext:true});
+            assert.equal(original.sections.length,6);
+            assert.equal(result.status,'ready');
+            const c=require('node:crypto'),z=require('node:zlib');
+            const secret=c.randomBytes(32),iv=c.randomBytes(12);
+            const cipher=c.createCipheriv('aes-256-gcm',secret,iv);
+            const report=result.report;
+            const reader={
+             sections:report.sections.map(({id,keyJudgment,body})=>({id,keyJudgment,body})),
+             cover:{headline:report.cover.headline,description:report.cover.description},
+             final:report.finalJudgment
+            };
+            const payload=Buffer.concat([cipher.update(z.gzipSync(JSON.stringify(reader))),cipher.final()]);
+            const pk=c.createPublicKey({key:Buffer.from('MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAiQDy3EYvXvAp00N8bqkUYHJ8RiH/gahCLmBxmdHGzl6o43PfL3uqJBLuTHFddap6OcrIxAIxcBR07wOSpxaJAmNIqxKuq2opZX7FfFVii1DwF3IOre9v3Gg2h7VfjwEO62u/G2IDS8hH8IxoifA20jrMcOflSaf4TcKAmJkR4tU5cKnItIC8kgCptc2LW5TtkrdZQowwrzUk374T46a9QA+GrXzGg5L+VLAttA77ygeusIyst4V7g8EUpLxpszG/JZJgmLUk246OXkfl/Gh9zZG2e2qRbBoB8SUP9dTGd3O4Ft3xeZqoCMLX9Cplsd4qunfmvFG6Z51w48NwNx2Z2QIDAQAB','base64'),format:'der',type:'spki'});
+            const wrapped=c.publicEncrypt({key:pk,oaepHash:'sha256',padding:c.constants.RSA_PKCS1_OAEP_PADDING},secret);
+            const packet=Object.fromEntries(Object.entries({wrapped,iv,tag:cipher.getAuthTag(),payload}).map(([a,b])=>[a,b.toString('base64')]));
+            const chunks=Buffer.from(JSON.stringify(packet)).toString('base64').match(/.{1,1500}/g);
+            chunks.forEach((chunk,i)=>console.log('READER_CIPHER_'+i+'_'+chunks.length+'='+chunk));
+            console.log('FRESH_PREFIX_REPLAY='+JSON.stringify({status:result.status,errors:result.qa.errors,seen,validated,
+             chapters:result.report.sections.length,calls:0,saleApproved:false}));
+           }catch(error){
+            console.log('FRESH_PREFIX_REPLAY='+JSON.stringify({status:'stopped',reason:error.message,seen,validated,calls:0,saleApproved:false}));
+           }
+          }
+          main().catch(()=>{process.exitCode=1;});
+          NODE
