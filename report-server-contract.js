@@ -433,7 +433,7 @@ async function generate(input,callModel,onProgress=()=>{},onValidatedBatch=()=>{
  const separateReaderQuestion=wholeNatal&&groups[0]?.length===1&&groups[0][0]==='saju_core';
  const request=(ids,extra={})=>require('./report-instruction-audit').assert({...base,...extra,
  ...(wholeNatal&&extra.stage==='body'&&ids.length>0&&
-     ids.every(id=>id==='money'||id==='career')?{paidCompactDomainContext:true}:{}),
+     ids.every(id=>id==='money'||id==='career'||id==='relationship')?{paidCompactDomainContext:true}:{}),
  ...(wholeNatal&&extra.stage==='body'&&ids.includes('year_2027')?{paidAnnualNatalRepeat:true}:{}),
  ...(wholeNatal&&extra.stage==='body'&&ids.includes('saju_core')?{
   paidWholeNatalContext:true,separateReaderQuestionFromCore:separateReaderQuestion

@@ -6,7 +6,7 @@
 function project(prompt,payload,schema){
  const ids=prompt?.requestedSections;
  if(prompt?.paidCompactDomainContext!==true||prompt.stage!=='body'||
-    !Array.isArray(ids)||!ids.length||!ids.every(id=>id==='money'||id==='career'))
+    !Array.isArray(ids)||!ids.length||!ids.every(id=>id==='money'||id==='career'||id==='relationship'))
   return payload;
  const task=structuredClone(payload.task);
  const referenced=JSON.stringify([task,schema]);
