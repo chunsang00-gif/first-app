@@ -2371,8 +2371,14 @@ function restoreEvidence(value,prompt){
       ['interpretation','condition'].some(k=>typeof b[k]!=='string'||!b[k].trim())))
     throw Error('AI report service missing verified paragraph basis');
    if(!task)throw Error('AI report service unexpected paragraph topic: '+id+':'+topic);
+   // A local month reading includes its verified opening. Require the
+   // calculated citations, but let the renderer supply that exact sentence.
+   const monthReading=id==='saju_core'&&topic==='strength'&&
+    prompt.paidWholeNatalContext===true&&prompt.separateReaderQuestionFromCore===true&&
+    prompt.requestedSections.length===1?
+    require('./report-paid-core-reader-value-plan').composeReaderParagraph(task,payload.source):null;
    if(task.calculatedOpening&&
-      (typeof p.text!=='string'||!p.text.trimStart().startsWith(task.calculatedOpening.text)||
+      (typeof p.text!=='string'||(!monthReading&&!p.text.trimStart().startsWith(task.calculatedOpening.text))||
        task.calculatedOpening.refs.some(ref=>!b.refs?.includes(ref))))
     throw Error('AI report service dropped the verified first-chapter comparison: '+topic);
 
@@ -2404,20 +2410,15 @@ function restoreEvidence(value,prompt){
       throw Error('AI report service domain MBTI comparison missing natal basis: '+id+':'+topic);
     }
     if(!allowed.size||b.refs.some(ref=>!allowed.has(ref)))throw Error('AI report service unrelated paragraph basis: '+id+':'+topic);
-    if(id==='saju_core'&&topic==='strength'&&prompt.paidWholeNatalContext===true&&
-       prompt.separateReaderQuestionFromCore===true&&prompt.requestedSections.length===1){
-     const reading=require('./report-paid-core-reader-value-plan')
-      .composeReaderParagraph(task,payload.source);
-     if(reading){
-      // Validate the model citations before supplying independent local prose.
-      const monthRefs=['natal.month.stem',
-       task.evidenceFocus.tenGodFocus.monthMainHidden.sourceId];
-      if(monthRefs.some(ref=>!b.refs.includes(ref))||reading.basis.refs.some(ref=>!allowed.has(ref)))
-       throw Error('AI report service missing verified month application sources');
-      p.label=reading.label;
-      p.text=reading.text;
-      Object.assign(b,reading.basis);
-     }
+    if(monthReading){
+     // Validate the model citations before supplying independent local prose.
+     const monthRefs=['natal.month.stem',
+      task.evidenceFocus.tenGodFocus.monthMainHidden.sourceId];
+     if(monthRefs.some(ref=>!b.refs.includes(ref))||monthReading.basis.refs.some(ref=>!allowed.has(ref)))
+      throw Error('AI report service missing verified month application sources');
+     p.label=monthReading.label;
+     p.text=monthReading.text;
+     Object.assign(b,monthReading.basis);
     }
     // A generic calculated fact can be a valid extra citation, but it cannot
     // be the ONLY cited basis for a domain question whose writer brief was
