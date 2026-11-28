@@ -83,4 +83,15 @@ function inspect(paragraph,chapterId,topicId,task){
  }
  return null;
 }
-module.exports={inspect};
+function composeExpectedAndUnexpectedWork(proof,refs){
+ if(proof?.chapter!=='year_2027_career'||proof.topic!=='change'||
+    proof.annualSource?.id!=='annual.stem'||proof.annualSource.tenGod!=='편관'||
+    proof.natalSource?.id!=='natal.month.hidden.丙'||proof.natalSource.tenGod!=='정관'||
+    proof.noEventPrediction!==true||proof.relativeStrengthAssessed!==false||
+    refs.length!==2||!proof.sourceRefs.every(ref=>refs.includes(ref)))
+  return null;
+ const interpretation='태어난 달의 안쪽 글자는 정해진 역할과 규칙을, 2027년의 겉글자는 예상 밖의 요구에 대응하는 일을 살핍니다. 둘은 책임을 보는 같은 계열이지만 묻는 것이 다릅니다.';
+ return {label:'정해진 일과 뜻밖의 요청',interpretation,
+  text:interpretation+' 맡은 범위가 이미 정해진 일은 기존 규칙으로 판단할 수 있습니다. 반면 그 범위를 넘는 요청이 갑자기 오면, 누가 그 일을 승인하고 맡는지까지 정해져 있는지가 대응의 조건입니다.'};
+}
+module.exports={inspect,composeExpectedAndUnexpectedWork};

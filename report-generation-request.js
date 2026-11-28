@@ -2562,6 +2562,13 @@ function restoreEvidence(value,prompt){
         proof.sourceRefs.length!==2||
         !proof.sourceRefs.every(ref=>allowed.has(ref)&&b.refs.includes(ref)))
       throw Error('AI report service paid annual comparison source citation missing: '+id+':'+topic);
+     const reading=prompt.paidVerifiedAnnualWorkReading===true?
+      require('./report-paid-annual-reader-substance').composeExpectedAndUnexpectedWork(proof,b.refs):null;
+     if(reading){
+      p.label=reading.label;
+      p.text=reading.text;
+      b.interpretation=reading.interpretation;
+     }
     }
     // A verified JSON basis is necessary but not sufficient for paid prose:
     // reject annual paragraphs which explain neither the computed role nor
