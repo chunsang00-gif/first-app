@@ -46,6 +46,11 @@ const conciseCompletionGate={
  kind:'complete-concise-report-v1',offset:2,sourceRun:'46101450865',continuationRun:'46106375971',
  workflow:'.github/workflows/qa-complete-concise-report-once.yml',marker:'qa-approvals/complete-concise-report-once.json'
 };
+const conciseFinalGate={
+ kind:'finalize-concise-report-v1',offset:3,sourceRun:'46101450865',
+ continuationRun:'46106375971',relationshipRun:'46109450697',
+ workflow:'.github/workflows/qa-finalize-concise-report-once.yml',marker:'qa-approvals/finalize-concise-report-once.json'
+};
 const SOURCE_RUN='45896281549';
 const SOURCE_HASH='c9bb5d4b2c5f00ba17af339fd15f4abec3fb2e30e7b2a46008a328e8b0e2cf14';
 const INPUT={...require('./qa-launch-g1-money-preflight').INPUT,birthDate:'1982-10-15',
@@ -176,6 +181,36 @@ function recoverRelationship(text){
 }
 
 async function restoreFromArchives(dir,continuationDir,relationshipDir,gate){
+ if(gate===conciseFinalGate){
+  const earlier=await restoreFromArchives(dir,continuationDir,null,conciseCompletionGate);
+  const read=file=>JSON.parse(fs.readFileSync(path.join(relationshipDir,file),'utf8'));
+  const summary=read(SUMMARY), archived=read(ARCHIVE), saved=read(CHECKPOINTS);
+  assert.equal(summary.sourceRun,gate.sourceRun);
+  assert.equal(summary.status,'stopped-no-retry');
+  assert.equal(summary.dispatched,1);
+  assert.deepEqual(summary.stage,['relationship']);
+  assert.equal(archived.sourceRun,gate.sourceRun);
+  assert.equal(archived.calls.length,1);
+  assert.deepEqual(archived.calls[0].sections,['relationship']);
+  assert.equal(archived.calls[0].httpStatus,200);
+  assert.equal(saved.sourceRun,gate.sourceRun);
+  assert.deepEqual(saved.batches,earlier);
+  const response=archived.calls[0].response;
+  assert.equal(response.status,'completed');
+  const text=response.output_text||response.output.flatMap(item=>item.content||[])
+   .filter(item=>item.type==='output_text').map(item=>item.text).join('');
+  assert.equal(crypto.createHash('sha256').update(text).digest('hex'),'cb038e7959f9ff1c029b361044d0c35fbe557e5f7a39f29aa93e1f118852b6ef');
+  const edited=JSON.parse(text);
+  // Reviewed copy for this synthetic report only. Preserve its calculated sources.
+  edited.chapters.relationship.paragraphs.closeness.text="태어난 날 안쪽에서 읽는 두 뜻은 필요한 도움을 바깥에서 구하는 일과 뜻밖의 부탁에 응하는 일입니다. 계산상 앞의 뜻이 뒤의 뜻을 돕습니다. 가까운 사람이 갑자기 함께 일을 하자고 하면, 도움을 구할 곳이 있을 때 그만큼 맡을 수 있다는 풀이입니다. 도움을 구할 데가 없다면 부탁을 더 받아들일수록 혼자 감당할 몫이 커집니다.";
+  const stop=Error('OFFLINE_AFTER_RELATIONSHIP'),validated=[];
+  await assert.rejects(()=>generate(INPUT,async prompt=>{
+   if(prompt.requestedSections.join(',')!=='relationship')throw stop;
+   return decode(edited,prompt);
+  },()=>{},batch=>validated.push(batch),earlier,OPTIONS),e=>e===stop);
+  assert.deepEqual(validated.map(batch=>batch.ids),[['relationship']]);
+  return [...earlier,...validated];
+ }
  if(gate===conciseCompletionGate){
   const first=await restoreFromArchives(dir,null,null,conciseContinuationGate);
   const read=(root,file)=>JSON.parse(fs.readFileSync(path.join(root,file),'utf8'));
@@ -364,10 +399,10 @@ async function verifyPrefix(dir,continuationDir,relationshipDir,gate){
 
 const [mode,dir,continuationDir,relationshipDir]=process.argv.slice(2);
 const annual=['--annual-preflight','--verify-annual-prefix','--finish-annual'].includes(mode);
-const offline=['--preflight','--finish-preflight','--annual-preflight','--fresh-preflight','--continue-concise-preflight','--complete-concise-preflight'].includes(mode);
+const offline=['--preflight','--finish-preflight','--annual-preflight','--fresh-preflight','--continue-concise-preflight','--complete-concise-preflight','--finalize-concise-preflight'].includes(mode);
 const verify=['--verify-prefix','--verify-annual-prefix'].includes(mode);
-const paid=['--resume','--finish','--finish-annual','--fresh','--continue-concise','--complete-concise'].includes(mode);
-const gate=mode?.startsWith('--complete-concise')?conciseCompletionGate:mode?.startsWith('--continue-concise')?conciseContinuationGate:['--fresh','--fresh-preflight'].includes(mode)?freshGate:annual?annualGate:verify||mode?.startsWith('--finish')?remainingGate:originalGate;
+const paid=['--resume','--finish','--finish-annual','--fresh','--continue-concise','--complete-concise','--finalize-concise'].includes(mode);
+const gate=mode?.startsWith('--finalize-concise')?conciseFinalGate:mode?.startsWith('--complete-concise')?conciseCompletionGate:mode?.startsWith('--continue-concise')?conciseContinuationGate:['--fresh','--fresh-preflight'].includes(mode)?freshGate:annual?annualGate:verify||mode?.startsWith('--finish')?remainingGate:originalGate;
 const inputsReady=gate.offset===-1||path.isAbsolute(dir||'')&&(!gate.offset||path.isAbsolute(continuationDir||''))&&
  (!gate.relationshipRun||path.isAbsolute(relationshipDir||''));
 (offline?preflight(gate):verify&&inputsReady?verifyPrefix(dir,continuationDir,relationshipDir,gate):
