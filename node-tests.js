@@ -232,6 +232,8 @@ run('interpersonal consequences are not instructions to seek help',()=>{
  const issue='overreaching advice: 주변 사람에게';
  section.body[0]='그 선택이 자신과 주변 사람에게 어떤 영향을 줄지 따져 보는 선호입니다.';
  assert(!Q.validate(report).errors.includes(issue));
+ section.body[0]='주변 사람에게 미칠 영향을 살피는 선호입니다.';
+ assert(!Q.validate(report).errors.includes(issue));
  section.body[0]='주변 사람에게 도움을 요청하세요.';
  assert(Q.validate(report).errors.includes(issue));
 });
