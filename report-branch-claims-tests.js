@@ -36,4 +36,18 @@ assert(rules.check({sections:[],finalJudgment:{headline:'정리',body:['합화�
 const noData={facts:{annualTenGods:{stemTenGod:'정관'}}};
 assert(rules.check(draft('충이 육합을 무효화합니다.'),noData).length,
  'winner hallucination must not be permitted even when branch input is absent');
+const facts=require('./report-facts-node');
+const birth={calendar:'solar',birthDate:'1990-02-15',birthTime:'00:20',
+ gender:'male',mbti:'ISFP'};
+const natal=facts.build(birth,2027);
+const core=text=>({sections:[{id:'saju_core',body:[text]}]});
+const wrong='태어난 날과 시간의 맞섬은 강약을 가릴 근거가 아니므로 전체적인 강약 판단으로 이어지지 않습니다.';
+const right='태어난 해와 시간의 아랫글자는 서로 맞서는 관계입니다.';
+const code='saju_core: invented natal clash between day and hour';
+assert(rules.check(core(wrong),natal).includes(code));
+assert(quality.verifyEvidenceAgainstFacts(core(wrong),natal).errors.includes(code));
+assert.deepEqual(rules.check(core(right),natal),[]);
+assert.deepEqual(rules.check(core('태어난 날과 시간의 아랫글자 사이에는 맞서는 관계가 없습니다.'),natal),[]);
+assert(rules.check(core(right),facts.build({...birth,birthTime:'08:20'},2027))
+ .includes('saju_core: invented natal clash between year and hour'));
 console.log('PASS real QA rejects fabricated harmonies, false priority and nonexistent yearly branch relationships; no paid API');
