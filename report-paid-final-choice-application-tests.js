@@ -54,6 +54,13 @@ assert.equal(inspect({sections:[career],finalJudgment:report('일을 배울 때 
 assert.equal(inspect(report('기술을 배우는 선택의 조건을 구별합니다.'),
  {person:{readerDecision:'이직과 주식 투자 중 무엇을 할까요?'}}).applicable,false,
  'a mixed-domain question is not silently assigned to one field');
+const adaptiveCareer={id:'career',bodyTopics:['workstyle'],body:['작업 순서를 바꾸는 방법과 결과를 확인하는 조건을 비교합니다.']};
+const adaptive=body=>({sections:[adaptiveCareer],finalJudgment:{body:[body]}});
+const incorrect='이번 고민에서 기존 일을 유지할지는 새 기술을 배우는 데 필요한 비용을 감당할 수 있는지가 기준입니다.';
+assert(inspect(adaptive(incorrect),packet).errors.includes(
+ 'paid-final-existing-work-criterion-substituted-with-training-cost'));
+assert.deepEqual(inspect(adaptive('기존 일을 이어간다면 바꾼 방법으로 만든 결과를 이전 결과와 비교합니다. 새 기술을 배울 때는 매달 드는 비용을 확인합니다.'),packet).errors,[]);
+assert.deepEqual(inspect(adaptive('기존 일을 유지할지와 새 기술을 배울 때의 비용을 함께 살핍니다.'),packet).errors,[]);
 const server=fs.readFileSync(path.join(__dirname,'report-server-contract.js'),'utf8');
 assert(server.includes("require('./report-paid-final-choice-application')"));
 assert(server.includes("pass:Boolean(qa.pass)&&choiceReview.errors.length===0"));
