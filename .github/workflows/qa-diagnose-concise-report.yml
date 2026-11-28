@@ -58,7 +58,7 @@ jobs:
           const report=console.error;
           console.error=(message,detail)=>{
            if(message==='[Paid MBTI reader copy rejected before next provider call]'){
-            const codes=detail.codes.map(code=>/^[\w:/.-]+$/.test(code)?code:'private-editorial-code');
+            const codes=detail.codes.map(code=>/^(mbti comparison: (visible MBTI preference interpretation missing|visible calculated saju comparison missing|no explicit relation between the two interpretations)|mbti_contradiction: [a-z _,:-]+)$/.test(code)?code:'private-editorial-code');
             console.log('CONCISE_MBTI_CODES='+JSON.stringify(codes));
            }
           };
