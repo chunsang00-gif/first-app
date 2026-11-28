@@ -15,6 +15,7 @@ jobs:
         with:
           ref: fe225f15552280b788f274452b91ed8b8fdc6c86
           persist-credentials: false
+      - run: npm install --ignore-scripts --no-audit --no-fund
       - uses: actions/download-artifact@v4
         with:
           repository: chunsang00-gif/first-app
@@ -46,4 +47,26 @@ jobs:
            incompleteReason:response?.incomplete_details?.reason
           }));
           console.log('CONCISE_QA_DIAGNOSTIC='+JSON.stringify({category,dispatched:result.dispatched,stage:result.stage,responses}));
+          const checkpoints=read('-validated-first-chapter').batches;
+          const response=calls[1].response;
+          const output=response.output_text||response.output.flatMap(x=>x.content||[])
+           .filter(x=>x.type==='output_text').map(x=>x.text).join('');
+          const input={...require('./qa-launch-g1-money-preflight').INPUT,birthDate:'1982-10-15',
+           readerDecision:'기존 일을 유지할지 새로운 기술을 배울지 고민 중입니다.'};
+          global.fetch=()=>{throw Error('OFFLINE_ONLY');};
+          const stop=Error('OFFLINE_AFTER_MBTI');
+          const report=console.error;
+          console.error=(message,detail)=>{
+           if(message==='[Paid MBTI reader copy rejected before next provider call]'){
+            const codes=detail.codes.map(code=>/^[\w:/.-]+$/.test(code)?code:'private-editorial-code');
+            console.log('CONCISE_MBTI_CODES='+JSON.stringify(codes));
+           }
+          };
+          require('./report-server-contract').generate(input,async prompt=>{
+           if(prompt.requestedSections.join(',')!=='mbti_contradiction')throw stop;
+           return require('./report-response-decoder').decode(JSON.parse(output),prompt);
+          },()=>{},()=>{},checkpoints,{paidWholeNatalContext:true}).catch(error=>{
+           console.log('CONCISE_REPLAY='+String(error===stop?'advanced':
+            error.message==='AI report service returned MBTI preference reader-quality defects'?'mbti-rejected':'other-rejection'));
+          }).finally(()=>{console.error=report;});
           NODE
