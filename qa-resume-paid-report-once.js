@@ -42,6 +42,10 @@ const conciseContinuationGate={
  kind:'continue-concise-report-v1',offset:0,sourceRun:'46101450865',
  workflow:'.github/workflows/qa-continue-concise-report-once.yml',marker:'qa-approvals/continue-concise-report-once.json'
 };
+const conciseCompletionGate={
+ kind:'complete-concise-report-v1',offset:2,sourceRun:'46101450865',continuationRun:'46106375971',
+ workflow:'.github/workflows/qa-complete-concise-report-once.yml',marker:'qa-approvals/complete-concise-report-once.json'
+};
 const SOURCE_RUN='45896281549';
 const SOURCE_HASH='c9bb5d4b2c5f00ba17af339fd15f4abec3fb2e30e7b2a46008a328e8b0e2cf14';
 const INPUT={...require('./qa-launch-g1-money-preflight').INPUT,birthDate:'1982-10-15',
@@ -172,6 +176,27 @@ function recoverRelationship(text){
 }
 
 async function restoreFromArchives(dir,continuationDir,relationshipDir,gate){
+ if(gate===conciseCompletionGate){
+  const first=await restoreFromArchives(dir,null,null,conciseContinuationGate);
+  const read=(root,file)=>JSON.parse(fs.readFileSync(path.join(root,file),'utf8'));
+  const summary=read(continuationDir,SUMMARY), archived=read(continuationDir,ARCHIVE);
+  const saved=read(continuationDir,CHECKPOINTS);
+  assert.equal(summary.sourceRun,gate.sourceRun);
+  assert.equal(summary.status,'stopped-no-retry');
+  assert.equal(summary.dispatched,2);
+  assert.deepEqual(summary.stage,['money','career']);
+  assert.equal(archived.sourceRun,gate.sourceRun);
+  assert.equal(archived.calls.length,2);
+  assert.deepEqual(archived.calls.map(call=>call.sections),PLAN.slice(0,2));
+  assert(archived.calls.every(call=>call.httpStatus===200&&call.stage==='body'));
+  assert.equal(saved.sourceRun,gate.sourceRun);
+  assert.deepEqual(saved.batches.map(batch=>batch.ids),[['saju_core'],['mbti_contradiction']]);
+  const original=read(dir,ARCHIVE).calls[0].response;
+  const restored=await restorePrefix(providerOutput(original),archived.calls.map(call=>providerOutput(call.response)));
+  assert.deepEqual(restored.slice(0,1),first);
+  assert.deepEqual(restored.slice(0,2),saved.batches);
+  return restored;
+ }
  if(gate===conciseContinuationGate){
   const read=file=>JSON.parse(fs.readFileSync(path.join(dir,file),'utf8'));
   const result=read(SUMMARY), archived=read(ARCHIVE), checkpoints=read(CHECKPOINTS);
@@ -339,10 +364,10 @@ async function verifyPrefix(dir,continuationDir,relationshipDir,gate){
 
 const [mode,dir,continuationDir,relationshipDir]=process.argv.slice(2);
 const annual=['--annual-preflight','--verify-annual-prefix','--finish-annual'].includes(mode);
-const offline=['--preflight','--finish-preflight','--annual-preflight','--fresh-preflight','--continue-concise-preflight'].includes(mode);
+const offline=['--preflight','--finish-preflight','--annual-preflight','--fresh-preflight','--continue-concise-preflight','--complete-concise-preflight'].includes(mode);
 const verify=['--verify-prefix','--verify-annual-prefix'].includes(mode);
-const paid=['--resume','--finish','--finish-annual','--fresh','--continue-concise'].includes(mode);
-const gate=mode?.startsWith('--continue-concise')?conciseContinuationGate:['--fresh','--fresh-preflight'].includes(mode)?freshGate:annual?annualGate:verify||mode?.startsWith('--finish')?remainingGate:originalGate;
+const paid=['--resume','--finish','--finish-annual','--fresh','--continue-concise','--complete-concise'].includes(mode);
+const gate=mode?.startsWith('--complete-concise')?conciseCompletionGate:mode?.startsWith('--continue-concise')?conciseContinuationGate:['--fresh','--fresh-preflight'].includes(mode)?freshGate:annual?annualGate:verify||mode?.startsWith('--finish')?remainingGate:originalGate;
 const inputsReady=gate.offset===-1||path.isAbsolute(dir||'')&&(!gate.offset||path.isAbsolute(continuationDir||''))&&
  (!gate.relationshipRun||path.isAbsolute(relationshipDir||''));
 (offline?preflight(gate):verify&&inputsReady?verifyPrefix(dir,continuationDir,relationshipDir,gate):
