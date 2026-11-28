@@ -7,15 +7,15 @@ const {inspect,refund}=require('./report-refund-operator');
 const root=fs.mkdtempSync(path.join(os.tmpdir(),'paid-refund-offline-'));
 const id='11111111-2222-4333-8444-555555555555';
 const jobId='aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee';
-const secret='test_gsk_offline_merchant_secret',lookup='test_sk_individual_lookup_secret';
+const secret='test_sk_offline_merchant_secret',lookup='test_sk_individual_lookup_secret';
 const pkey='opaque-valid-toss-payment-key',amount=9900;
 const digest=x=>crypto.createHash('sha256').update(x).digest('hex');
-function record(orderId,amount0=amount){
+function record(orderId,paymentMode){
  fs.mkdirSync(path.join(root,'purchases'),{recursive:true});
  const base=path.join(root,'purchases','purchase-'+orderId);
  fs.writeFileSync(base+'.json',JSON.stringify({orderId,
-  amount:amount0,currency:'KRW',productId:'saju-mbti-adaptive-report-v1'}));
- fs.writeFileSync(base+'.paid.json',JSON.stringify({orderId,amount:amount0,
+  amount,paymentMode,currency:'KRW',productId:'saju-mbti-adaptive-report-v1'}));
+ fs.writeFileSync(base+'.paid.json',JSON.stringify({orderId,amount,
   status:'verified-paid',paymentKeyHash:digest(pkey)}));
  fs.writeFileSync(base+'.delivery.json',JSON.stringify({orderId,jobId}));
  fs.writeFileSync(path.join(root,jobId+'.json'),
@@ -23,7 +23,7 @@ function record(orderId,amount0=amount){
  return base;
 }
 (async()=>{try{
- const base=record(id);
+ const base=record(id,'test');
  let get=0,post=0;
  const transport=async(url,options)=>{
   if(options.method==='GET'){
@@ -47,6 +47,17 @@ function record(orderId,amount0=amount){
   lookupSecretKey:lookup,secretKey:secret,transport};
  await assert.rejects(refund(opts),/REFUND_OPERATOR_APPROVAL_REQUIRED/);
  assert.equal(get,0);assert.equal(post,0);
+ const liveSecret=secret.replace(/^test_/,'live_');
+ const liveLookup=lookup.replace(/^test_/,'live_');
+ for(const keys of [
+  {lookupSecretKey:lookup,secretKey:liveSecret},
+  {lookupSecretKey:liveLookup,secretKey:liveSecret}
+ ]){
+  await assert.rejects(refund({...opts,...keys,operatorApproved:true}),
+   /REFUND_PAYMENT_MODE_MISMATCH/);
+ }
+ assert.equal(get,0);assert.equal(post,0);
+ assert(!fs.existsSync(base+'.refund-started.json'));
  const out=await refund({...opts,operatorApproved:true});
  assert.equal(out.status,'refund-verified');assert.equal(get,1);assert.equal(post,1);
  assert(fs.existsSync(base+'.refunded.json'));

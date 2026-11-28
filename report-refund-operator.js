@@ -40,13 +40,17 @@ async function refund({storageDir,orderId,reason,lookupSecretKey,
  secretKey,operatorApproved=false,transport=globalThis.fetch}={}){
  if(operatorApproved!==true)
   throw Error('REFUND_OPERATOR_APPROVAL_REQUIRED');
- if(!/^(test|live)_sk_[A-Za-z0-9_-]{8,}$/.test(lookupSecretKey||'')||
-    typeof secretKey!=='string'||secretKey.length<16||
+ const lookupMode=/^(test|live)_sk_[A-Za-z0-9_-]{8,}$/.exec(lookupSecretKey||'')?.[1];
+ const cancelMode=/^(test|live)_sk_[A-Za-z0-9_-]{8,}$/.exec(secretKey||'')?.[1];
+ if(!lookupMode||!cancelMode||
     typeof transport!=='function')
   throw Error('REFUND_REQUIRED_MERCHANT_KEYS_MISSING');
  if(typeof reason!=='string'||reason.length<6||reason.length>200)
   throw Error('REFUND_REASON_REQUIRED');
  const record=inspect({storageDir,orderId});
+ if(lookupMode!==cancelMode||
+    (record.order.paymentMode!=null&&record.order.paymentMode!==cancelMode))
+  throw Error('REFUND_PAYMENT_MODE_MISMATCH');
  if(record.alreadyDone)throw Error('REFUND_ALREADY_COMPLETE');
  if(record.attempted)throw Error('REFUND_ATTEMPT_UNCERTAIN_MANUAL_RECONCILIATION');
  const authorization=s=>'Basic '+Buffer.from(s+':').toString('base64');
