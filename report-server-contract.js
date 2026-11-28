@@ -435,6 +435,9 @@ async function generate(input,callModel,onProgress=()=>{},onValidatedBatch=()=>{
  ...(wholeNatal&&extra.stage==='body'&&ids.length>0&&
      ids.every(id=>id==='money'||id==='career'||id==='relationship')?{paidCompactDomainContext:true}:{}),
  ...(wholeNatal&&extra.stage==='body'&&ids.includes('year_2027')?{paidAnnualNatalRepeat:true}:{}),
+ ...(extra.stage==='body'&&ids.includes('year_2027')&&
+     coverage.omitted.some(item=>item.reason==='annual-work-comparison-in-year')?
+  {annualWorkInYearRef:require('./report-paid-annual-reading').workComparisonInYear(editorialBlueprint)}:{}),
  ...(wholeNatal&&extra.stage==='body'&&ids.includes('year_2027_career')?{paidVerifiedAnnualWorkReading:true}:{}),
  ...(wholeNatal&&extra.stage==='body'&&ids.includes('saju_core')?{
   paidWholeNatalContext:true,separateReaderQuestionFromCore:separateReaderQuestion

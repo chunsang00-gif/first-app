@@ -582,7 +582,14 @@ function compile(prompt){
      };
      topic.calculatedOpening={text:sentences[pair.elementDirection],refs:pair.sourceRefs};
     }
-    if(prompt.paidAnnualNatalRepeat===true&&chapterId==='year_2027'&&
+    if(prompt.annualWorkInYearRef&&chapterId==='year_2027'&&topicId==='change'&&topic.mode!=='state-limits'){
+     const ref=prompt.annualWorkInYearRef;
+     if(ref!=='natal.month.hidden.丙'||source[ref]?.tenGod!=='정관'||
+        prompt.facts.facts.annualTenGods?.stemTenGod!=='편관')
+      throw Error('PAID_YEAR_WORK_COMPARISON_NOT_VERIFIED');
+     topic.annualWorkInYearRef=ref;
+    }
+    if(!topic.annualWorkInYearRef&&prompt.paidAnnualNatalRepeat===true&&chapterId==='year_2027'&&
        topicId==='change'&&topic.mode!=='state-limits'){
      const ref=require('./report-paid-annual-integrated-scope').repeatedDayDemand(prompt.facts,source);
      if(ref)topic.annualRepeatedDayDemandRef=ref;
@@ -2269,6 +2276,8 @@ function allowedRefs(payload,task,chapterId,topic){
   if(path==='facts.annualTenGods.hiddenStems'&&Object.hasOwn(payload.source,'facts.annualTenGods')&&Array.isArray(payload.source['facts.annualTenGods']?.hiddenStems)&&payload.source['facts.annualTenGods'].hiddenStems.length)ids.add('facts.annualTenGods');
   if(path==='facts.tenGods')for(const id of Object.keys(payload.source))if(id.startsWith('natal.'))ids.add(id);
  }
+ if(chapterId==='year_2027'&&topic==='change'&&task?.annualWorkInYearRef)
+  ids.add(task.annualWorkInYearRef);
  if(chapterId==='year_2027'&&topic==='change'&&task?.annualRepeatedDayDemandRef)
   ids.add(task.annualRepeatedDayDemandRef);
  // A secondary day-pair table belongs ONLY to year_2027.impact.
@@ -2538,6 +2547,17 @@ function restoreEvidence(value,prompt){
         JSON.stringify(task.sourceOwnedAnnualIntegratedScope)!==JSON.stringify(actual)||
         !b.refs.includes(actual.sourceRef))
       throw Error('AI report service general annual meaning lacks original yearly source: '+id+':'+topic);
+     if(task.annualWorkInYearRef){
+      const ref=task.annualWorkInYearRef;
+      if(!allowed.has(ref)||payload.source[ref]?.tenGod!=='정관'||actual.annualGod!=='편관')
+       throw Error('AI report service merged annual work source mismatch');
+      const condition='맡은 범위가 이미 정해진 일은 기존 규칙으로 판단할 수 있습니다. 반면 그 범위를 넘는 요청이 갑자기 오면 누가 승인하고 맡는지가 대응의 조건입니다.';
+      p.label='정해진 일과 뜻밖의 요청';
+      p.text='태어난 달 안쪽의 글자는 정해진 역할과 규칙을, 2027년 겉글자는 예상 밖의 요구에 대응하는 일을 살핍니다. '+condition+' 이 풀이는 입춘부터 적용됩니다.';
+      Object.assign(b,{refs:[actual.sourceRef,ref],
+       interpretation:'역할과 책임이라는 같은 계열 안에서 출생월과 2027년의 두 분류가 다릅니다.',
+       condition,limit:'실제로 요구가 늘거나 직장이 바뀐다는 예측을 하지 않습니다.'});
+     }
      if(task.annualRepeatedDayDemandRef){
       const ref=require('./report-paid-annual-integrated-scope')
        .repeatedDayDemand(prompt.facts,payload.source);

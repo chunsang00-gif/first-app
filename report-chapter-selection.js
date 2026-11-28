@@ -59,6 +59,11 @@ function select(groups,blueprint,options={}){
   if(!plan)reason='missing-plan';
   else if(id.startsWith('year_2027_')&&plan.annualDomainEvidence?.relevant!==true)
    reason='no-direct-annual-domain-evidence';
+  else if(id==='year_2027_career'&&options.mode==='adaptive-v1'&&
+    requested.includes('year_2027')&&
+    require('./report-paid-reader-question-domain').chosenDomain(options.readerQuestion)==='career'&&
+    require('./report-paid-annual-reading').workComparisonInYear(blueprint))
+   reason='annual-work-comparison-in-year';
   else if(editorialOmission(id,options))reason=editorialOmission(id,options);
   else if(!plan.hasGroundedTopic||!plan.anchorTopic||
    !plan.topicTasks?.[plan.anchorTopic]||

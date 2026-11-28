@@ -20,6 +20,13 @@ const names=['NODE_ENV','RENDER','PAID_CORE_DEPTH_V2',
   // Work71: exercise the ACTUAL customer preview + its actual chapter scope,
   // not only a fake blueprint in report-chapter-selection-tests.js.
   // A topical sentence must not be sold as a personal decision plus synthesis.
+  const merged=coverage.calculate({calendar:'solar',birthDate:'1990-02-15',birthTime:'08:20',
+   gender:'male',mbti:'ISFP',readerDecision:'기존 일을 유지할지 새로운 기술을 배울지 고민 중입니다.'});
+  assert.equal(merged.estimate.plannedChapters,6);
+  assert(merged.estimate.chapters.find(row=>row.id==='year_2027').includedInPlan);
+  const mergedWork=merged.estimate.chapters.find(row=>row.id==='year_2027_career');
+  assert.equal(mergedWork.includedInPlan,false);
+  assert(mergedWork.omittedReason.includes('2027년 기본 장'));
   const scopeBase={calendar:'solar',birthDate:'1994-07-15',
    birthTime:'14:20',gender:'male',mbti:'ISFP'};
   const scoped=q=>coverage.calculate({...scopeBase,readerDecision:q});

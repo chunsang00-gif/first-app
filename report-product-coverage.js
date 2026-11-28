@@ -88,6 +88,7 @@ const TOPIC_NAMES=Object.freeze({
 const WHY=Object.freeze({
  'missing-plan':'계산에 필요한 분석 계획이 확인되지 않았습니다.',
  'no-grounded-topic':'독립적으로 해석할 계산 근거가 확인되지 않았습니다.',
+ 'annual-work-comparison-in-year':'정해진 역할과 뜻밖의 요구의 비교는 2027년 기본 장에 함께 담습니다.',
  'no-direct-annual-domain-evidence':'2027년 계산과 이 분야를 따로 연결할 근거가 확인되지 않았습니다.',
  'no-explicit-buyer-choice-for-decision-chapter':'고객이 비교하거나 결정할 선택을 구체적으로 적지 않아 일반 조언을 반복하는 선택 장은 제외했습니다.',
  'no-specific-buyer-stress-question':'스트레스에 관한 별도 질문이 없거나 해당 분야의 독립된 풀이가 없어 이 장을 제외했습니다.',

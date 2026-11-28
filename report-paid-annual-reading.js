@@ -129,5 +129,14 @@ function buildRelationship({chapterId,topicId,topic,source}={}){
    ' 이는 계산된 전통 배치와 설명용 가정일 뿐 실제 인간관계의 변화·감정·만남·이별을 알 수 없다.'
  });
 }
-module.exports={build,buildRelationship};
+function workComparisonInYear(blueprint){
+ const scope=blueprint?.year_2027_career?.annualDomainEvidence;
+ if(blueprint?.year_2027?.anchorTopic!=='change'||scope?.relevant!==true||
+    scope.guaranteesRealWorldOutcome!==false)return null;
+ const comparison=scope.comparisons?.[0];
+ return comparison?.annualId==='annual.stem'&&comparison.annualGod==='편관'&&
+  comparison.natalId==='natal.month.hidden.丙'&&comparison.natalGod==='정관'&&
+  comparison.contrast==='subtype-and-visibility'?comparison.natalId:null;
+}
+module.exports={build,buildRelationship,workComparisonInYear};
 
