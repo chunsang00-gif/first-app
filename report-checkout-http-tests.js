@@ -8,7 +8,7 @@ const dir=fs.mkdtempSync(path.join(os.tmpdir(),'saju-paid-order-http-'));
 const env={REPORT_STORAGE_DIR:dir,PREMIUM_REPORT_PRICE_KRW:'9900',
  PREMIUM_SALES_APPROVED:'true',PREMIUM_EDITORIAL_REVIEW_APPROVED:'true',
  PREMIUM_PRODUCT_MODE:'adaptive-v1',PREMIUM_ADAPTIVE_CONTRACT_APPROVED:'true',
- TOSS_SECRET_KEY:'offline-test-secret-not-a-merchant',
+ TOSS_SECRET_KEY:'test_sk_offline_confirm_123456',
  TOSS_CLIENT_KEY:'test_ck_offline_checkout_123456',
  TOSS_LOOKUP_SECRET_KEY:'test_sk_offline_lookup_123456',RENDER:'true',
  REPORT_MODEL_URL:'https://offline-model.invalid/report'};
@@ -156,6 +156,17 @@ const server=http.createServer(require('./server').handler);
   const missingOffer=await post('/api/checkout/start',{});
   assert.equal(missingOffer.code,422);
   assert.equal(chargeAttempts,0);
+  for(const key of ['TOSS_CLIENT_KEY','TOSS_SECRET_KEY','TOSS_LOOKUP_SECRET_KEY']){
+   process.env[key]=env[key].replace(/^test_/,'live_');
+   try{
+    const mixed=await nativeFetch(base+'/api/checkout/config').then(r=>r.json());
+    assert.equal(mixed.enabled,false);
+    assert.equal(mixed.clientKey,undefined);
+    assert.equal((await post('/api/checkout/start',startPayload)).code,403);
+    assert.equal((await post('/api/checkout/confirm',{})).code,403);
+    assert.equal(chargeAttempts,0);
+   }finally{process.env[key]=env[key];}
+  }
   const liveConfig=await nativeFetch(base+'/api/checkout/config').then(r=>r.json());
   assert.equal(liveConfig.enabled,true);
   assert.equal(liveConfig.clientKey,env.TOSS_CLIENT_KEY);
