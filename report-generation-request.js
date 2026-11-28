@@ -477,7 +477,7 @@ function compile(prompt){
     analysisFocus:prompt.analysisGuidance.chapterTasks?.[id]?.focus||null,
     comparisonEvidence: source['person.mbti']&&['mbti_contradiction','integrated_judgment'].includes(id)?
      (id==='mbti_contradiction'
-      ?'MBTI 비교에서는 사용자 입력 선호(person.mbti)와 실제 원국 위치(natal.*)를 함께 인용한다. 같은 결론이어도 된다. 실제 행동의 검증이나 두 체계의 인과 관계가 아니다.'
+      ?'MBTI 비교에서는 사용자 입력 선호(person.mbti)와 실제 원국 위치(natal.*)를 함께 인용한다. 한 생활 상황에서 입력 선호의 판단 기준과 사주 근거가 더하는 조건을 짧게 대비한다. 두 해석의 결론이 같아도 각각의 근거는 보여주되 같은 뜻을 풀어서 반복하지 않는다. 별도 선택 문단은 앞 비교로 답하지 못한 질문에만 쓰며, 새 판단이 없으면 null이다. 실제 행동의 검증이나 두 체계의 인과 관계가 아니다.'
       :'종합 해석에서는 MBTI 입력 선호(person.mbti)와 실제 원국 위치(natal.*)를 함께 인용한다. 앞선 비교 장의 결론을 재판매하지 않고 계산 근거가 허용하는 새 조건만 설명한다. 두 분석이 서로를 검증한다고 주장하지 않는다.'):null,
     safety:{avoid:prompt.analysisGuidance.chapterTasks?.[id]?.avoid||'',evidenceBoundary:p.evidenceBoundary||''},
     topics:Object.fromEntries(Object.entries(p.topicTasks).map(([key,t])=>[key,{
@@ -977,7 +977,7 @@ function schema(prompt,transport){
   const finalText=result.properties.finalJudgment?.properties;
   if(finalText?.body){
    finalText.body.description=(finalText.body.description||'')+
-    ' 완성된 이전 장의 실제 본문과 비교한다. 최종 문단을 앞 장의 문장으로 복사하거나 핵심 주장을 분야 이름만 바꾸어 재진술하지 않는다. 특히 이해한 정보와 실행 자원·예산을 구분한다는 같은 대비가 앞 장에 이미 있으면 이를 새로운 종합 결론으로 쓰지 않는다. 새로운 성격·미래 사건을 만들지 말고, 실제 인용된 서로 다른 해석 중 서로 보완하거나 한계가 달라지는 구체적인 조건만 짧게 연결한다. 그런 연결 근거가 부족하면 일반적인 실행 조언으로 분량을 채우지 않는다.';
+    ' 완성된 이전 장의 실제 본문과 비교한다. 최종 문단을 앞 장의 문장으로 복사하거나 핵심 주장을 분야 이름만 바꾸어 재진술하지 않는다. 특히 이해한 정보와 실행 자원·예산을 구분한다는 같은 대비가 앞 장에 이미 있으면 이를 새로운 종합 결론으로 쓰지 않는다. 새로운 성격·미래 사건을 만들지 말고, 실제 인용된 서로 다른 해석 중 서로 보완하거나 한계가 달라지는 구체적인 조건만 짧게 연결한다. 고객이 적은 두 선택을 본문이 각각 뒷받침할 때는 판단 기준을 하나씩만 대비한다. 제목·본문·마지막 문장과 장점·주의점 목록에 같은 기준을 반복하지 않는다. 그런 연결 근거가 부족하면 일반적인 실행 조언으로 분량을 채우지 않는다.';
   }
 
   const younger=require('./report-reader-age-boundary').forPrompt(prompt);
@@ -1412,7 +1412,7 @@ function schema(prompt,transport){
      ' 별도 선택 문단 '+topic+'의 고유 질문은 '+proof.readerQuestion+
      '이다. 선택한 기호의 입력된 선호 뜻: '+proof.interpretedPreference+
      '. 실제로 선택할 때: '+proof.appliedQuestion+
-     '. '+proof.limit+'. 다른 MBTI 차원의 뜻이나 사주와의 일치·반전 설명을 재사용하지 말고 '+
+     '. '+proof.limit+'. 앞 문단에 나온 선호의 정의나 같은 생활 질문을 재진술하면 이 선택 문단은 null이다. 다른 MBTI 차원의 뜻이나 사주와의 일치·반전 설명을 재사용하지 말고 '+
      '선호가 작동할 조건과 실제 행동을 아직 모르는 한계를 일상 한국어로 구별한다. '+
      '본문에 계산용 condition 문자열을 그대로 붙여 넣지 않는다.';
    }

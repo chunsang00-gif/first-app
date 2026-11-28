@@ -520,6 +520,8 @@ const schema=require('./report-schema.json');
  const synthesisTransport=wire.schemaFor(synthesisForCover,schema);
  const synthesisSchema=generation.schema(synthesisForCover,synthesisTransport);
  const validHighlightIds=synthesisSchema.properties.cover.properties.highlights.items.properties.sectionId.enum;
+ assert.match(synthesisSchema.properties.finalJudgment.properties.body.description,
+  /판단 기준을 하나씩만 대비한다/);
  assert.deepEqual(validHighlightIds,completedIds,'paid cover may reference only drafted chapters');
  assert(!validHighlightIds.includes('year_2027'),'missing chapters must never appear in synthesis highlight choices');
  assert(synthesisSchema.properties.finalJudgment.properties.body.description.includes(
@@ -572,6 +574,8 @@ const schema=require('./report-schema.json');
  
   assert.equal(actual.task.comparisonContract.calculatedAgreement,false);
   assert.equal(actual.task.comparisonContract.calculatedContradiction,false);
+  assert.match(actual.task.chapters.mbti_contradiction.comparisonEvidence,
+   /새 판단이 없으면 null/);
   assert.equal(focus('mbti_contradiction','agreement').verdict,'not-computed');
   assert(focus('mbti_contradiction','agreement').preferences.every(p=>p.meaning&&p.notEvidenceOf),
    'real paid MBTI analysis must contain actual independent preference meanings, not just letters');
