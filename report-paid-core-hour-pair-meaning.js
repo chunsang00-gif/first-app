@@ -85,6 +85,16 @@ function build(packet,source,proof){
 // Editorially reviewed applications indexed by the calculated role pair and
 // direction. A matching direction alone cannot select either paragraph.
 const APPLICATIONS=Object.freeze({
+ 'day-controls:정인:식신':{
+  label:'도움을 받아 결과를 만드는 조건',
+  roles:'태어난 시간의 겉글자는 안내를 받아 배우는 뜻입니다. 태어난 시간의 안쪽 글자는 배운 것을 결과물로 만드는 뜻입니다.',
+  condition:'배운 방법으로 결과물을 만들려는데 막힌 부분을 물어볼 곳이 없다면, 정해진 제출 순서만 따라서는 그 부분을 끝내기 어렵다는 풀이입니다.'
+ },
+ 'same-element:상관:식신':{
+  label:'변경 제안과 결과물의 차이',
+  roles:'태어난 시간의 겉글자는 기존 방식에 다른 방법을 제안하는 뜻입니다. 태어난 시간의 안쪽 글자는 결과물을 만들어 보여주는 뜻입니다.',
+  condition:'작업 순서를 바꾸자고 제안했더라도, 바꾼 순서로 만든 결과물이 있어야 제안이 실제 작업에 어떤 차이를 냈는지 비교할 수 있다는 풀이입니다.'
+ },
  'resource:편관:편재':{
   label:'갑작스러운 책임의 조건',
   roles:'태어난 시간의 안쪽 글자는 필요한 돈이나 물품을 마련하는 뜻입니다. 겉글자는 갑자기 생긴 요구와 책임을 살피는 뜻입니다.',
