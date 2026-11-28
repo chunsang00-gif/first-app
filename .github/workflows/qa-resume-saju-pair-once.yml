@@ -1,0 +1,152 @@
+name: Verify the two complete saju reports
+on:
+  push:
+    branches: [fix-paid-qa-fact-bindings-20261014]
+    paths: [qa-approvals/resume-saju-pair-once.json]
+permissions:
+  contents: read
+  actions: read
+jobs:
+  resume:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    concurrency:
+      group: resume-saju-pair-once
+      cancel-in-progress: false
+    env:
+      NODE_ENV: test
+      REPORT_MODEL: gpt-6-luna
+      REPORT_MODEL_URL: ''
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --ignore-scripts --no-audit --no-fund
+      - uses: actions/download-artifact@v4
+        with:
+          repository: chunsang00-gif/first-app
+          run-id: 46144320658
+          name: saju-pair-continuation-key
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/pair-key
+      - name: Resume both accepted drafts without repeating their first chapters
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -eu
+          umask 077
+          trap 'rm -rf "$RUNNER_TEMP/pair-key" "$RUNNER_TEMP/pair-private"' EXIT
+          node report-qa-secure-archive.js decrypt "$RUNNER_TEMP/pair-key/premium-first-chapter-qa.enc" "$RUNNER_TEMP/pair-private"
+          node - <<'NODE'
+          const assert=require('node:assert/strict'),fs=require('node:fs'),c=require('node:crypto'),z=require('node:zlib');
+          const {execFileSync}=require('node:child_process'),path=require('node:path');
+          const repo='chunsang00-gif/first-app',workflow='.github/workflows/qa-resume-saju-pair-once.yml',markerPath='qa-approvals/resume-saju-pair-once.json';
+          const env=process.env,native=global.fetch;
+          const times=['00:20','08:20'],stagePlan=[
+           ['mbti_contradiction'],['money','career'],['relationship'],['year_2027'],['year_2027_career'],[]
+          ];
+          const git=(...a)=>execFileSync('git',a,{encoding:'utf8'}).trim();
+          const rows=[];
+          const input={calendar:'solar',birthDate:'1990-02-15',gender:'male',mbti:'ISFP',
+           readerDecision:'기존 일을 유지할지 새로운 기술을 배울지 고민 중입니다.'};
+          const b=x=>Buffer.from(x,'base64');
+          const oldError=console.error;
+          async function main(){
+           assert.equal(env.GITHUB_REPOSITORY,repo);
+           assert.equal(env.GITHUB_REF,'refs/heads/fix-paid-qa-fact-bindings-20261014');
+           assert.equal(env.GITHUB_EVENT_NAME,'push');
+           assert.equal(env.GITHUB_RUN_ATTEMPT,'1');
+           assert.equal(env.GITHUB_WORKFLOW_REF,repo+'/'+workflow+'@'+env.GITHUB_REF);
+           assert.equal(git('rev-parse','HEAD'),env.GITHUB_SHA);
+           assert.equal(git('diff','--name-only','HEAD^','HEAD'),markerPath);
+           assert(env.OPENAI_API_KEY?.length>=32);
+           const marker=JSON.parse(fs.readFileSync(markerPath,'utf8'));
+           assert.deepEqual(Object.keys(marker).sort(),['kind','maxCalls','packet','parent','sourceRun'].sort());
+           assert.equal(marker.kind,'resume-saju-pair-v1');
+           assert.equal(marker.parent,git('rev-parse','HEAD^'));
+           assert.equal(marker.sourceRun,46130124339);
+           assert.equal(marker.maxCalls,12);
+           await require('./qa-launch-whole-chart-first-chapter-once').history(env,native,{workflow});
+           const pkg=marker.packet;
+           const {continuationPrivateKey}=JSON.parse(fs.readFileSync(path.join(env.RUNNER_TEMP,'pair-private','private-qa-first-chapter.json')));
+           const key=c.privateDecrypt({key:continuationPrivateKey,padding:c.constants.RSA_PKCS1_OAEP_PADDING,oaepHash:'sha256'},b(pkg.wrapped));
+           const decoder=c.createDecipheriv('aes-256-gcm',key,b(pkg.iv));
+           decoder.setAuthTag(b(pkg.tag));
+           const saved=JSON.parse(z.gunzipSync(Buffer.concat([decoder.update(b(pkg.payload)),decoder.final()])));
+           assert.deepEqual(saved.map(x=>x.birthTime),times);
+           const precharge=require('./report-paid-core-precharge-value');
+           for(const row of saved){
+            assert.deepEqual(row.checkpoint.ids,['saju_core']);
+            assert.equal(precharge.inspect({...input,birthTime:row.birthTime}).eligible,true);
+           }
+           const {generate}=require('./report-server-contract'), {callOpenAI}=require('./server');
+           console.error=()=>{};
+           for(const {birthTime,checkpoint} of saved){
+            const row={birthTime,accepted:['saju_core'],calls:[]};
+            rows.push(row);
+            let active;
+            global.fetch=async(url,options)=>{
+             assert(active&&!active.sent);
+             assert.equal(url,'https://api.openai.com/v1/responses');
+             assert.equal(options.method,'POST');
+             assert(Buffer.byteLength(options.body)<225000);
+             const wire=JSON.parse(options.body);
+             assert.equal(wire.model,'gpt-6-luna');
+             assert.equal(wire.store,false);
+             assert(wire.max_output_tokens<=12000);
+             active.sent=true;
+             row.calls.push({stage:active.stage,sections:active.sections});
+             const summary=row.calls.at(-1);
+             const response=await native(url,options);
+             const data=await response.clone().json().catch(()=>null);
+             summary.httpStatus=response.status;
+             summary.providerStatus=data?.status;
+             summary.inputTokens=data?.usage?.input_tokens;
+             summary.outputTokens=data?.usage?.output_tokens;
+             if(data?.status==='completed')row.latestResponse=data;
+             return response;
+            };
+            try{
+             row.result=await generate({...input,birthTime},async prompt=>{
+              const expected=stagePlan[row.calls.length];
+              assert(expected,'unplanned model call');
+              assert.deepEqual(prompt.requestedSections,expected);
+              assert.equal(prompt.stage,expected.length?'body':'synthesis');
+              active={stage:prompt.stage,sections:expected,sent:false};
+              try{return await callOpenAI(prompt);}finally{active=null;}
+             },()=>{},batch=>row.accepted.push(...batch.ids),[checkpoint],{paidWholeNatalContext:true});
+            }catch(error){row.stopReason=error.message;}
+            finally{global.fetch=native;}
+           }
+          }
+          main().catch(()=>{console.log('PAIR_RESUME_BLOCKED');process.exitCode=1;}).finally(()=>{
+           console.error=oldError;
+           if(!rows.length)return;
+           console.log('PAIR_RESUME_STATUS='+JSON.stringify(rows.map(x=>({birthTime:x.birthTime,
+            status:x.result?.status||'stopped',accepted:x.accepted,calls:x.calls}))));
+           fs.writeFileSync('private-qa-first-chapter.json',JSON.stringify(rows),{mode:0o600});
+           require('./report-qa-secure-archive').encrypt();
+           fs.unlinkSync('private-qa-first-chapter.json');
+           const key=c.randomBytes(32),iv=c.randomBytes(12);
+           const cipher=c.createCipheriv('aes-256-gcm',key,iv);
+           const payload=Buffer.concat([cipher.update(z.gzipSync(JSON.stringify(rows))),cipher.final()]);
+           const pk=c.createPublicKey({key:b('MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAiYdlfumkhRD2ECZgeYCOkAT1krsmtXOyNv+q/4oJmyyRPONIY9eVzttzIbwaVPTFhGo/qZBJ5k64E6QvUPuMpXLcDZ2pifEmM2JjMvMkPRoKu7fVHiGDk5+5ppgXw+x6ScHX0aLSEOseUj8HOaKn8vSIAP8CztCggf4IyyMnQJeSMk4YNAmgamFkX+uMenFxx1FHj0E/FssQXGesGB8lXoJ/abddOj5e6fzlFjzQpa2NCXv+T7QpB45H+5FxZo14x0x+ivKCSjp8QBea+qFhi8TxUkxcs3VVblIGbXRwX1nmRTV3JXeEkYUTEqN4YIJLkc5/xC68NURT/aZ52vpoowIDAQAB'),format:'der',type:'spki'});
+           const wrapped=c.publicEncrypt({key:pk,padding:c.constants.RSA_PKCS1_OAEP_PADDING,oaepHash:'sha256'},key);
+           const pack=Object.fromEntries(Object.entries({wrapped,iv,tag:cipher.getAuthTag(),payload}).map(([n,v])=>[n,v.toString('base64')]));
+           const parts=Buffer.from(JSON.stringify(pack)).toString('base64').match(/.{1,1500}/g);
+           parts.forEach((s,i)=>console.log('PAIR_RESUME_CIPHER_'+i+'_'+parts.length+'='+s));
+           if(rows.some(x=>x.result?.status!=='ready'))process.exitCode=2;
+          });
+          NODE
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: saju-pair-continuation-evidence
+          path: premium-first-chapter-qa.enc
+          if-no-files-found: ignore
+          retention-days: 30
