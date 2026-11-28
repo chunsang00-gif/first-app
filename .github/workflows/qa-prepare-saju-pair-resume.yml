@@ -1,0 +1,34 @@
+name: Prepare private continuation of the two saju reports
+on:
+  push:
+    branches: [fix-paid-qa-fact-bindings-20261014]
+    paths: [.github/workflows/qa-prepare-saju-pair-resume.yml]
+permissions:
+  contents: read
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Create a one-use transfer key without calling a provider
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          node - <<'NODE'
+          const fs=require('node:fs'),c=require('node:crypto');
+          const {privateKey,publicKey}=c.generateKeyPairSync('rsa',{modulusLength:2048});
+          fs.writeFileSync('private-qa-first-chapter.json',JSON.stringify({
+           continuationPrivateKey:privateKey.export({format:'pem',type:'pkcs8'})
+          }),{mode:0o600});
+          require('./report-qa-secure-archive').encrypt();
+          fs.unlinkSync('private-qa-first-chapter.json');
+          console.log('PAIR_RESUME_PUBLIC_KEY='+publicKey.export({format:'der',type:'spki'}).toString('base64'));
+          NODE
+      - uses: actions/upload-artifact@v4
+        with:
+          name: saju-pair-continuation-key
+          path: premium-first-chapter-qa.enc
+          retention-days: 2
