@@ -154,6 +154,17 @@ assert.equal(earthCommentary.inspect(elsewhere).chartHasAllThreeEarthBranches,fa
 assert.deepEqual(output.changed.monthHourTableAfter,
  actual.pairs.filter(x=>x.positions.includes('month')&&
  x.positions.includes('hour')).map(x=>x.type).sort());
+const {firstChapterOpening}=require('./report-core-evidence-graph');
+const earlierHour=facts.build({calendar:'lunar',birthDate:'1982-11-24',
+ leapMonth:false,birthTime:'14:20',gender:'male',mbti:'ISFP'},2027);
+assert.deepEqual(firstChapterOpening(earlierHour),{
+ text:'태어난 달과 시간의 겉글자에서 배움의 같은 뜻이 반복됩니다.',
+ refs:['natal.month.stem','natal.hour.stem']
+});
+assert.deepEqual(firstChapterOpening(p),{
+ text:'태어난 달의 겉글자는 이해하는 뜻을, 시간의 겉글자는 표현하는 뜻을 가리킵니다.',
+ refs:['natal.month.stem','natal.hour.stem']
+});
 console.log('QA_TWO_HOUR_REAL_EDITORIAL_CONTRAST='+JSON.stringify({
  beforeHour:output.charts.before.hour,afterHour:output.charts.after.hour,
  symbolChangedFrom:output.changed.priorHourCategory,

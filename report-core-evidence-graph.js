@@ -86,10 +86,24 @@ function forPaidFirstChapter(packet){
   readerBoundary:'태어난 날을 기준으로 태어난 달의 계절과 해·달·날·시간 관계를 먼저 대조한다. 다른 자리의 근거가 좁은 풀이를 제한하면 그만큼 판단을 좁힌다. 같은 글자나 관계가 반복돼도 강도나 사건 횟수로 세지 않는다. 시간을 모르면 그 자리를 추정하지 않는다. 본문은 해당 항목에서 허용한 인용으로 뒷받침할 수 있는 해석만 짧게 쓴다. 근거가 없는 조언, 관찰하지 않은 성격, 미래 사건으로 분량을 채우지 않는다.'
  };
 }
-// Prefer the month/day comparison, then the month/hour or month/year
-// comparison. This selects a fact to explain, never a priority of effects.
+// Lead with the verified month/hour role comparison when it changes the
+// learning question. Otherwise use the existing branch comparison.
 function firstChapterOpening(packet){
  const context=forPaidFirstChapter(packet);
+ const month=context.visibleRoles.find(role=>role.position==='month');
+ const hour=context.visibleRoles.find(role=>role.position==='hour');
+ if(month?.category==='resource'&&hour?.relativeToMonth==='same-category-same-subtype'){
+  return {
+   text:'태어난 달과 시간의 겉글자에서 배움의 같은 뜻이 반복됩니다.',
+   refs:[month.id,hour.id]
+  };
+ }
+ if(month?.category==='resource'&&hour?.category==='output'){
+  return {
+   text:'태어난 달의 겉글자는 이해하는 뜻을, 시간의 겉글자는 표현하는 뜻을 가리킵니다.',
+   refs:[month.id,hour.id]
+  };
+ }
  const labels={day:'날',hour:'시간',year:'해',month:'달'};
  const clashes=context.natalRelations.filter(row=>row.type==='충');
  const pair=clashes.find(row=>row.positions.includes('month')&&row.positions.includes('day'))||
