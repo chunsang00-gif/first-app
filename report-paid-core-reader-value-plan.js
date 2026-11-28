@@ -201,6 +201,24 @@ function composeReaderParagraph(task,source){
  const focus=task?.evidenceFocus?.tenGodFocus;
  const visible=focus?.monthStem;
  const central=focus?.monthMainHidden;
+ if(task?.calculatedOpening&&visible?.tenGod==='정인'&&central?.tenGod==='정재'&&
+    focus.elementLink?.kind==='hidden-controls-visible'&&
+    source?.[visible.sourceId]?.tenGod===visible.tenGod&&
+    source?.[central.sourceId]?.tenGod===central.tenGod){
+  const opening=task.calculatedOpening;
+  const roles='태어난 달의 겉글자는 도움을 받아 배우는 뜻이고, 안쪽 글자는 반복해서 드는 비용을 살피는 뜻입니다. 계산에서는 달의 안쪽 글자가 겉글자를 제약합니다.';
+  const condition='가령 매달 수강료를 내며 새 기술을 배운다면, 설명을 들을 수 있어도 혼자 해볼 단계까지 그 비용을 낼 수 있는지가 배울 기간을 가릅니다.';
+  return {
+   label:'배움이 이어지는 데 필요한 비용',
+   text:[opening.text,roles,condition].join(' '),
+   basis:{
+    refs:[...new Set([visible.sourceId,central.sourceId,...opening.refs])],
+    interpretation:roles,
+    condition,
+    limit:'달의 두 글자에 관한 전통 풀이이며 실제 지출이나 학습 결과는 확인되지 않습니다.'
+   }
+  };
+ }
  if(!task?.calculatedOpening||visible?.tenGod!=='겁재'||central?.tenGod!=='정인'||
     focus.elementLink?.kind!=='hidden-generates-visible')
   return null;
