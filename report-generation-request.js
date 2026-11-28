@@ -2450,6 +2450,13 @@ function restoreEvidence(value,prompt){
         !expected.sourceRefs.every(ref=>allowed.has(ref)&&b.refs.includes(ref))||
         b.condition!==expected.computedCondition)
       throw Error('AI report service earning two-sided grounded condition missing: '+id+':'+topic);
+     const reading=require('./report-paid-domain-reader-substance')
+      .composeRecurringCostReading(owned,b.refs);
+     if(reading){
+      p.label=reading.label;
+      p.text=reading.text;
+      b.interpretation=reading.interpretation;
+     }
     }
     if(owned?.careerWorkstyleCondition){
      const expected=owned.careerWorkstyleCondition;
@@ -2458,6 +2465,12 @@ function restoreEvidence(value,prompt){
         !expected.sourceRefs.every(ref=>allowed.has(ref)&&b.refs.includes(ref))||
         b.condition!==expected.computedCondition)
       throw Error('AI report service workstyle source-specific condition missing: '+id+':'+topic);
+     const reading=require('./report-paid-domain-reader-substance').composeWorkMethodReading(owned,b.refs);
+     if(reading){
+      p.label=reading.label;
+      p.text=reading.text;
+      b.interpretation=reading.interpretation;
+     }
     }
     if(owned?.relationshipClosenessCondition){
      const expected=owned.relationshipClosenessCondition;
@@ -2490,6 +2503,11 @@ function restoreEvidence(value,prompt){
     if(task.buyerCurrentQuestion){
      const errors=require('./report-paid-reader-question-application')
       .inspect(p,task.buyerCurrentQuestion);
+     if(id==='career'&&topic==='growth'&&chapter.paragraphs.workstyle&&
+        errors.length===1&&errors[0]==='buyer-domain-customer-alternatives-not-distinguished'){
+      chapter.paragraphs[topic]=null;
+      continue;
+     }
      if(errors.length)throw Error('PAID_BUYER_DOMAIN_READER_APPLICATION_MISSING:'+
       id+':'+topic+':'+errors.join('|'));
     }

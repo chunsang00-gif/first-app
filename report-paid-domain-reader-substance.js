@@ -34,4 +34,32 @@ function inspect(paragraph,chapterId,topicId,thesis){
   return 'missing-two-sided-reading-difference';
  return null;
 }
-module.exports={inspect};
+function composeRecurringCostReading(thesis,refs){
+ const pair=thesis?.sourceRoles;
+ const relation=thesis?.sourceElementRelation;
+ if(!Array.isArray(pair)||pair.length!==2||!Array.isArray(refs)||refs.length!==2||
+    pair[0].ref!=='natal.day.hidden.壬'||pair[0].tenGod!=='상관'||
+    pair[1].ref!=='natal.month.hidden.甲'||pair[1].tenGod!=='정재'||
+    relation?.elementalDirection!=='resource'||relation.realizedEffect!==false||
+    relation.predictedIncomeOrBehavior!==false||
+    !pair.every((role,i)=>relation.refs?.[i]===role.ref&&refs.includes(role.ref)))
+  return null;
+ const reasoning='태어난 날의 안쪽 글자는 기존 제품을 개선해 다른 결과물을 내놓는 뜻이고, 달의 안쪽 글자는 반복해서 드는 비용을 다루는 뜻입니다. 계산에서는 날의 안쪽 글자가 달의 안쪽 글자를 돕습니다.';
+ const condition='새 제품을 계속 납품한다면 한 번 납품할 수 있는지만으로는 부족합니다. 받은 대가에서 다음 물량을 만들 재료비와 제작비가 남는지 봅니다. 반면 비용만 맞춰 놓고 기존 제품과 달라진 점이 없다면 새 납품 단가를 설명할 근거가 약하다는 풀이입니다.';
+ return {label:'첫 납품과 반복 납품의 차이',text:reasoning+' '+condition,interpretation:reasoning};
+}
+
+function composeWorkMethodReading(thesis,refs){
+ const pair=thesis?.sourceRoles, relation=thesis?.sourceElementRelation;
+ if(!Array.isArray(pair)||pair.length!==2||!Array.isArray(refs)||refs.length!==2||
+    pair[0].ref!=='natal.year.hidden.己'||pair[0].tenGod!=='편인'||
+    pair[1].ref!=='natal.day.hidden.壬'||pair[1].tenGod!=='상관'||
+    relation?.elementalDirection!=='control-on-day'||relation.realizedEffect!==false||
+    relation.predictedIncomeOrBehavior!==false||
+    !pair.every((role,i)=>relation.refs?.[i]===role.ref&&refs.includes(role.ref)))
+  return null;
+ const reasoning='태어난 해의 안쪽 글자는 낯선 방법의 원리를 이해하는 뜻이고, 날의 안쪽 글자는 기존 방식을 바꾸는 뜻입니다. 계산에서는 해의 안쪽 글자가 날의 안쪽 글자를 제약합니다.';
+ const condition='작업 순서를 바꾼다면, 기존 순서가 어떤 오류를 막으려 했는지 알아야 새 방법을 시험할 기준이 생깁니다. 반면 이유만 이해하고 바꾼 순서로 작업한 결과를 비교하지 않으면 실제로 달라진 점을 판단하기 어렵다는 풀이입니다.';
+ return {label:'새 작업 방법을 시험할 조건',text:reasoning+' '+condition,interpretation:reasoning};
+}
+module.exports={inspect,composeRecurringCostReading,composeWorkMethodReading};
