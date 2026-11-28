@@ -38,6 +38,10 @@ const freshGate={
  kind:'fresh-automatic-report-concise-v1',offset:-1,
  workflow:'.github/workflows/qa-fresh-paid-report-concise-once.yml',marker:'qa-approvals/fresh-paid-report-concise-once.json'
 };
+const conciseContinuationGate={
+ kind:'continue-concise-report-v1',offset:0,sourceRun:'46101450865',
+ workflow:'.github/workflows/qa-continue-concise-report-once.yml',marker:'qa-approvals/continue-concise-report-once.json'
+};
 const SOURCE_RUN='45896281549';
 const SOURCE_HASH='c9bb5d4b2c5f00ba17af339fd15f4abec3fb2e30e7b2a46008a328e8b0e2cf14';
 const INPUT={...require('./qa-launch-g1-money-preflight').INPUT,birthDate:'1982-10-15',
@@ -57,7 +61,7 @@ const CHECKPOINTS='private-qa-first-chapter-validated-first-chapter.json';
 function authorize(marker,env,git,gate){
  assert.deepEqual(marker,{
   kind:gate.kind,operatorApprovedOneReport:true,
-  ...(gate.offset===-1?{firstRequestSha256:SOURCE_HASH}:{sourceRun:SOURCE_RUN,sourceRequestSha256:SOURCE_HASH}),
+  ...(gate.offset===-1?{firstRequestSha256:SOURCE_HASH}:{sourceRun:gate.sourceRun||SOURCE_RUN,sourceRequestSha256:SOURCE_HASH}),
   ...(gate.continuationRun?{continuationRun:gate.continuationRun}:{}),
   ...(gate.relationshipRun?{relationshipRun:gate.relationshipRun}:{}),
   maxNewCalls:PLAN.length-gate.offset,totalOutputTokenLimit:totalLimit(gate),
@@ -167,7 +171,25 @@ function recoverRelationship(text){
  return repaired;
 }
 
-function restoreFromArchives(dir,continuationDir,relationshipDir,gate){
+async function restoreFromArchives(dir,continuationDir,relationshipDir,gate){
+ if(gate===conciseContinuationGate){
+  const read=file=>JSON.parse(fs.readFileSync(path.join(dir,file),'utf8'));
+  const result=read(SUMMARY), archived=read(ARCHIVE), checkpoints=read(CHECKPOINTS);
+  assert.equal(result.sourceRun,null);
+  assert.equal(result.status,'stopped-no-retry');
+  assert.equal(result.dispatched,2);
+  assert.deepEqual(result.stage,['mbti_contradiction']);
+  assert.equal(archived.sourceRun,null);
+  assert.equal(archived.calls.length,2);
+  assert.deepEqual(archived.calls[0].sections,['saju_core']);
+  assert.deepEqual(archived.calls[1].sections,['mbti_contradiction']);
+  assert.equal(archived.calls[0].httpStatus,200);
+  assert.equal(checkpoints.sourceRun,null);
+  assert.deepEqual(checkpoints.batches.map(batch=>batch.ids),[['saju_core']]);
+  const reconstructed=await restorePrefix(providerOutput(archived.calls[0].response),[]);
+  assert.deepEqual(reconstructed,checkpoints.batches);
+  return reconstructed;
+ }
  const continuation=gate.offset?readContinuation(continuationDir):[];
  if(gate.relationshipRun)continuation.push(readRelationship(relationshipDir));
  return restorePrefix(readArchivedOutput(dir),continuation);
@@ -197,7 +219,7 @@ function writePrivate(file,data){
 
 async function run(dir,continuationDir,relationshipDir,gate){
  const env=process.env;
- const sourceRun=gate.offset===-1?null:SOURCE_RUN;
+ const sourceRun=gate.offset===-1?null:gate.sourceRun||SOURCE_RUN;
  const marker=JSON.parse(fs.readFileSync(gate.marker,'utf8'));
  authorize(marker,env,args=>execFileSync('git',args,{encoding:'utf8'}).trim(),gate);
  const transport=global.fetch;
@@ -267,7 +289,7 @@ async function preflight(gate){
  })[cmd.join(' ')];
  const maxNewCalls=PLAN.length-gate.offset;
  const marker={kind:gate.kind,operatorApprovedOneReport:true,
-  ...(gate.offset===-1?{firstRequestSha256:SOURCE_HASH}:{sourceRun:SOURCE_RUN,sourceRequestSha256:SOURCE_HASH}),
+  ...(gate.offset===-1?{firstRequestSha256:SOURCE_HASH}:{sourceRun:gate.sourceRun||SOURCE_RUN,sourceRequestSha256:SOURCE_HASH}),
   ...(gate.continuationRun?{continuationRun:gate.continuationRun}:{}),
   ...(gate.relationshipRun?{relationshipRun:gate.relationshipRun}:{}),
   maxNewCalls,totalOutputTokenLimit:totalLimit(gate),
@@ -305,7 +327,7 @@ async function preflight(gate){
   checkStage({stage:'body',requestedSections:['saju_core']},-1);
   assert.throws(()=>authorize({...marker,firstRequestSha256:'invalid'},env,git,gate));
  }
- console.log(JSON.stringify({sourceRun:gate.offset===-1?null:SOURCE_RUN,continuationRun:gate.continuationRun,
+ console.log(JSON.stringify({sourceRun:gate.offset===-1?null:gate.sourceRun||SOURCE_RUN,continuationRun:gate.continuationRun,
   plan:gate.offset===-1?[scopeAt(-1),...PLAN]:PLAN.slice(gate.offset),maxNewCalls,totalOutputTokenLimit:totalLimit(gate),
   maxRequestBytes:MAX_REQUEST_BYTES,modelCalls:0}));
 }
@@ -317,10 +339,10 @@ async function verifyPrefix(dir,continuationDir,relationshipDir,gate){
 
 const [mode,dir,continuationDir,relationshipDir]=process.argv.slice(2);
 const annual=['--annual-preflight','--verify-annual-prefix','--finish-annual'].includes(mode);
-const offline=['--preflight','--finish-preflight','--annual-preflight','--fresh-preflight'].includes(mode);
+const offline=['--preflight','--finish-preflight','--annual-preflight','--fresh-preflight','--continue-concise-preflight'].includes(mode);
 const verify=['--verify-prefix','--verify-annual-prefix'].includes(mode);
-const paid=['--resume','--finish','--finish-annual','--fresh'].includes(mode);
-const gate=['--fresh','--fresh-preflight'].includes(mode)?freshGate:annual?annualGate:verify||mode?.startsWith('--finish')?remainingGate:originalGate;
+const paid=['--resume','--finish','--finish-annual','--fresh','--continue-concise'].includes(mode);
+const gate=mode?.startsWith('--continue-concise')?conciseContinuationGate:['--fresh','--fresh-preflight'].includes(mode)?freshGate:annual?annualGate:verify||mode?.startsWith('--finish')?remainingGate:originalGate;
 const inputsReady=gate.offset===-1||path.isAbsolute(dir||'')&&(!gate.offset||path.isAbsolute(continuationDir||''))&&
  (!gate.relationshipRun||path.isAbsolute(relationshipDir||''));
 (offline?preflight(gate):verify&&inputsReady?verifyPrefix(dir,continuationDir,relationshipDir,gate):
