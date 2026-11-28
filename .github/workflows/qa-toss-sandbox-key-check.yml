@@ -1,0 +1,39 @@
+name: Check Toss sandbox key configuration
+on:
+  push:
+    branches: [fix-paid-qa-fact-bindings-20261014]
+    paths: [.github/workflows/qa-toss-sandbox-key-check.yml]
+  workflow_dispatch:
+permissions: {}
+jobs:
+  key-check:
+    if: github.ref == 'refs/heads/fix-paid-qa-fact-bindings-20261014'
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Classify test keys without disclosing values or calling Toss
+        env:
+          TOSS_CLIENT_KEY: ${{ secrets.TOSS_CLIENT_KEY }}
+          TOSS_SECRET_KEY: ${{ secrets.TOSS_SECRET_KEY }}
+          TOSS_LOOKUP_SECRET_KEY: ${{ secrets.TOSS_LOOKUP_SECRET_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          classify() {
+            local name="$1" pattern="$2" value="${!1}"
+            if [[ -z "$value" ]]; then
+              printf '%s=missing\n' "$name"
+              return 1
+            fi
+            if [[ "$value" =~ $pattern ]]; then
+              printf '%s=test-format\n' "$name"
+              return 0
+            fi
+            printf '%s=not-test-format\n' "$name"
+            return 1
+          }
+          ready=true
+          classify TOSS_CLIENT_KEY '^test_ck_[A-Za-z0-9_-]{8,}$' || ready=false
+          classify TOSS_SECRET_KEY '^test_sk_[A-Za-z0-9_-]{8,}$' || ready=false
+          classify TOSS_LOOKUP_SECRET_KEY '^test_sk_[A-Za-z0-9_-]{8,}$' || ready=false
+          printf 'sandbox_key_format_ready=%s\n' "$ready"
