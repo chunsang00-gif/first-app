@@ -477,7 +477,7 @@ function compile(prompt){
     analysisFocus:prompt.analysisGuidance.chapterTasks?.[id]?.focus||null,
     comparisonEvidence: source['person.mbti']&&['mbti_contradiction','integrated_judgment'].includes(id)?
      (id==='mbti_contradiction'
-      ?'MBTI 비교에서는 사용자 입력 선호(person.mbti)와 실제 원국 위치(natal.*)를 함께 인용한다. 필수 비교 문단 하나에서 같은 상황을 놓고 입력한 MBTI 유형·판단 선호와 태어난 자리의 사주 근거를 함께 밝힌다. 무엇을 확인할지 두 관점이 어떻게 달리 묻는지 그 문단에서 짧게 연결한다. 두 해석의 결론이 같아도 각각의 근거는 보여주되 같은 뜻을 풀어서 반복하지 않는다. 별도 선택 문단은 앞 비교로 답하지 못한 질문에만 쓰며, 새 판단이 없으면 null이다. 실제 행동의 검증이나 두 체계의 인과 관계가 아니다.'
+      ?'한 상황에서 입력 MBTI 유형·선호(person.mbti)와 계산한 출생 위치(natal.*)를 함께 인용한다. 한 문단에서 두 관점이 각각 무엇을 묻는지 연결한다. 달의 중심 글자와 다른 안쪽 글자의 뜻을 섞지 않는다. 같은 뜻을 반복하지 않는다. 별도 문단에 새 판단이 없으면 null이다. 실제 행동의 검증이나 두 체계의 인과 관계가 아니다.'
       :'종합 해석에서는 MBTI 입력 선호(person.mbti)와 실제 원국 위치(natal.*)를 함께 인용한다. 앞선 비교 장의 결론을 재판매하지 않고 계산 근거가 허용하는 새 조건만 설명한다. 두 분석이 서로를 검증한다고 주장하지 않는다.'):null,
     safety:{avoid:prompt.analysisGuidance.chapterTasks?.[id]?.avoid||'',evidenceBoundary:p.evidenceBoundary||''},
     topics:Object.fromEntries(Object.entries(p.topicTasks).map(([key,t])=>[key,{
