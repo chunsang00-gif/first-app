@@ -1,0 +1,48 @@
+name: Diagnose the continued fresh report
+on:
+  push:
+    branches: [fix-paid-qa-fact-bindings-20261014]
+    paths: [.github/workflows/qa-diagnose-continued-fresh-saju.yml]
+permissions:
+  contents: read
+  actions: read
+  statuses: write
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          repository: chunsang00-gif/first-app
+          run-id: 46154455313
+          name: continued-fresh-saju-evidence
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/raw
+      - name: Confirm the failure category from the saved response
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -eu
+          umask 077
+          trap 'rm -rf "$RUNNER_TEMP/raw" "$RUNNER_TEMP/private"' EXIT
+          node report-qa-secure-archive.js decrypt "$RUNNER_TEMP/raw/premium-first-chapter-qa.enc" "$RUNNER_TEMP/private"
+          unset OPENAI_API_KEY
+          node - <<'NODE'
+          const fs=require('node:fs'),path=require('node:path');
+          const [row]=JSON.parse(fs.readFileSync(path.join(process.env.RUNNER_TEMP,'private','private-qa-first-chapter.json')));
+          const message=String(row.stopReason||'');
+          const known=/^AI report service (?:paid source-owned reader substance missing|exact paid domain stem exposure citations missing|returned repeated interpretation from identical calculated evidence|returned reader-facing editorial defects|returned non-specific interpretation|returned factually inconsistent report data|returned cross-chapter recycled thesis)(?::[A-Za-z0-9_:-]+)?$/;
+          const reason=known.test(message)?message:'other-private-diagnostic';
+          console.log('FRESH_DIAG='+JSON.stringify({reason,accepted:row.accepted,calls:row.calls}));
+          const env=process.env;
+          fetch('https://api.github.com/repos/chunsang00-gif/first-app/statuses/'+env.GITHUB_SHA,{
+           method:'POST',headers:{authorization:'Bearer '+env.GITHUB_TOKEN,'content-type':'application/json'},
+           body:JSON.stringify({state:'success',context:'saju-qa/fresh-diagnosis',description:'Original failure classified',
+            target_url:'https://github.com/chunsang00-gif/first-app/actions/runs/'+env.GITHUB_RUN_ID})
+          }).then(r=>{if(!r.ok)process.exitCode=1;}).catch(()=>{process.exitCode=1;});
+          NODE
